@@ -1,0 +1,5 @@
+*.pyc
+*.komodoproject
+*~
+*.db
+db.sqlite3

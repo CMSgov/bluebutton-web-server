@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block Content %}
+
+  <div class="container">
+    
+    <div class="hero-unit">
+    <h1>{% trans "Login" %}</h1>
+  <br>
+   
+    <div class="row">
+        
+     <div class="col-lg-5">
+    {% include "include/messages.html" %}
+    
+      <form class="well" method="post" action="">
+        
+        {% csrf_token %}
+        <table>
+	{% load bootstrap %}
+	{{ form|bootstrap }}
+        </table>
+	<input type="submit" class="btn btn-success btn-large"  value="{% trans 'Login' %}" /><br>
+	<a href="javascript:history.go(-1)">{% trans "Cancel" %}</a>
+      </form>
+    </div>
+  </div>
+
+<div class="row">
+ <small><a href="/accounts/create">
+ {% trans "Register here" %}</a> with an invitation code. To request an invitation code
+<a href="/accounts/request-invite"> fill out this form </a>.
+ </small>
+
+    </div> 
+
+	<div class="row">
+ <small></small>
+
+    </div>
+	
+{% endblock %}
+

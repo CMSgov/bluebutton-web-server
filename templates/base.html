@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+{% load static %}
+
+<html lang="en">
+<head>
+
+
+	{% load i18n %}
+        <title>
+        {% block pretitle %} {% trans "oAuth2 Server" %} {%  endblock %} | 
+        {% block title %} {% trans "Sample" %} {% endblock %}
+        </title>
+	
+    {% block head %}
+        {% include "include/head.html" %}
+    {% endblock %}
+
+    {% block extra_head %}
+    {% endblock %}
+    
+
+</head>
+<body>
+      
+        {% include "include/top-nav.html" %}
+     
+
+      {% block Content %}
+        {% if template %}{% include template %}{% endif %}
+        {{ content|safe }}
+      {% endblock %}
+    
+                        
+        {% include "include/footer.html" %}
+    <!-- JavaScript -->
+    <script src="{% static "modern-business/js/jquery-1.11.0.js" %}"></script>
+    <script src="{% static "modern-business/js/bootstrap.js"  %}"></script>
+    {% block ExtraJSFoot %}
+	
+	{% endblock %}
+	
+    
+</body>
+
+</html>
