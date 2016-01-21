@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'piehme*+^#hylq8uz2eszps%o!5!+*#1@+*83gmp$o(u3%!ldp'
+SECRET_KEY = 'cakehme*+^#hylq8uz2eszps%o!5!+*#1@+*83gmp$o(u3%!ldp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -149,8 +149,6 @@ AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
             'django.contrib.auth.backends.ModelBackend',
             )
-
-
 
 
 #Python-social-auth settings
