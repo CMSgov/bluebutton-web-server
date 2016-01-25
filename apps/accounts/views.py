@@ -29,18 +29,18 @@ def request_invite(request):
         form = RequestInviteForm(request.POST)
         if form.is_valid():
           invite_request = form.save()
-          
+
           send_invite_request_notices(invite_request)
-          
+
           messages.success(request, _("Your invite request has been received.  You will be contacted by email when your invitation is ready."))
           return HttpResponseRedirect(reverse('login'))
         else:
             return render_to_response('generic/bootstrapform.html',
-                                      RequestContext(request, {'name': name,'form': form}))      
-    else:  
+                                      RequestContext(request, {'name': name,'form': form}))
+    else:
        #this is an HTTP  GET
        return render_to_response('generic/bootstrapform.html',
-                                 RequestContext(request, {'name': name, 'form': RequestInviteForm()}))   
+                                 RequestContext(request, {'name': name, 'form': RequestInviteForm()}))
 
 
 
@@ -49,7 +49,7 @@ def mylogout(request):
     messages.success(request, _("You have been logged out."))
     return HttpResponseRedirect(reverse('login'))
 
-    
+
 def simple_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -57,12 +57,12 @@ def simple_login(request):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             user=authenticate(username=username, password=password)
-            
+
             if user is not None:
 
                 if user.is_active:
                     login(request,user)
-                    
+
                     next = request.GET.get('next','')
                     if next:
                         #If a next is in the URL, then go there
@@ -75,8 +75,8 @@ def simple_login(request):
                         _("Your account is inactive so you may not log in."))
                    messages.info(request,
                         _("If you are having issues accesing you account, visit https://nppes.cms.hhs.gov/IAWeb for resolution."))
-                   
-                   
+
+
                    return render_to_response('accounts/login.html',
                                             {'form': form},
                                             RequestContext(request))
@@ -84,7 +84,7 @@ def simple_login(request):
                 messages.error(request, _("Invalid username or password."))
                 messages.info(request,
                         _("If you are having issues accesing you account, visit https://nppes.cms.hhs.gov/IAWeb for resolution."))
-                   
+
                 return render_to_response('accounts/login.html',
                                     {'form': form},
                                     RequestContext(request))
@@ -101,7 +101,7 @@ def simple_login(request):
 
 
 def reset_password(request, reset_password_key=None):
-    
+
     vprk = get_object_or_404(ValidPasswordResetKey, reset_password_key=reset_password_key)
     if request.method == 'POST':
         form = PasswordResetForm(request.POST)
@@ -115,16 +115,16 @@ def reset_password(request, reset_password_key=None):
         else:
             return render_to_response('accounts/reset-password.html',
                         RequestContext(request, {'form': form,
-                            'reset_password_key': reset_password_key}))  
-        
+                            'reset_password_key': reset_password_key}))
+
     return render_to_response('accounts/reset-password.html',
                               RequestContext(request,
                                     {'form': PasswordResetForm(),
                                     'reset_password_key': reset_password_key}))
-        
+
 @login_required
 def display_api_keys(request):
-    
+
     up = get_object_or_404(UserProfile, user=request.user)
     return render_to_response('accounts/display-api-keys.html',
                               RequestContext(request,
@@ -132,7 +132,7 @@ def display_api_keys(request):
 
 @login_required
 def reissue_api_keys(request):
-    
+
     up = get_object_or_404(UserProfile, user=request.user)
     up.access_key_reset = True
     up.save()
@@ -145,10 +145,10 @@ def password_reset_request(request):
     if request.method == 'POST':
 
         form = PasswordResetRequestForm(request.POST)
-        
-        if form.is_valid():  
+
+        if form.is_valid():
             data = form.cleaned_data
-            
+
             try:
                 u=User.objects.get(email=data['email'])
             except(User.DoesNotExist):
@@ -158,16 +158,16 @@ def password_reset_request(request):
             k=ValidPasswordResetKey.objects.create(user=u)
             messages.info(request, "Please check your email for a special link to rest your password.")
             return HttpResponseRedirect(reverse('login'))
-        
+
         else:
              return render_to_response('generic/bootstrapform.html',
-                                      RequestContext(request, {'form': form}))      
-        
+                                      RequestContext(request, {'form': form}))
+
     else:
-        return render_to_response('accounts/password-reset-request.html', 
+        return render_to_response('accounts/password-reset-request.html',
                              {'form': PasswordResetRequestForm()},
                               context_instance = RequestContext(request))
-    
+
 
 
 
@@ -184,14 +184,14 @@ def create(request):
             #return the bound form with errors
             return render_to_response('generic/bootstrapform.html',
                                       RequestContext(request, {'name': name,
-                                                               'form': form}))      
-    else:  
+                                                               'form': form}))
+    else:
        #this is an HTTP  GET
        messages.info(request, _("An invitation code is required to register."))
        return render_to_response('generic/bootstrapform.html',
                                  RequestContext(request,
                                 {'name': name,
-                                 'form': SignupForm()}))     
+                                 'form': SignupForm()}))
 
 
 def verify_email(request, verification_key,
@@ -208,7 +208,7 @@ def verify_email(request, verification_key,
     return render_to_response(template_name,
                               { 'account': account},
                               context_instance=context)
-    
+
 
 
 @login_required
@@ -224,12 +224,12 @@ def account_settings(request):
             request.user.username       = data['username']
             request.user.email          = data['email']
             request.user.first_name     = data['first_name']
-            request.user.last_name      = data['last_name'] 
+            request.user.last_name      = data['last_name']
             request.user.save()
             #update the user profile
             up.organization_name        = data['organization_name']
             up.save()
-            messages.success(request,'Your account settings have been updated.')  
+            messages.success(request,'Your account settings have been updated.')
             return render_to_response('generic/bootstrapform.html',
                             {'form': form,
                              'name': name,
@@ -242,9 +242,9 @@ def account_settings(request):
                              'name': name,
                              },
                             RequestContext(request))
-               
 
-    #this is an HTTP GET        
+
+    #this is an HTTP GET
     return render_to_response('generic/bootstrapform.html',
         {'name': name, 'form': AccountSettingsForm(
                               initial={ 'username':  request.user.username,
@@ -258,7 +258,7 @@ def account_settings(request):
 
 
 def signup_verify(request, signup_key=None):
-    
+
     if validate_signup(signup_key=signup_key):
         messages.success(request, "Your account has been activated. You may now login.")
         return HttpResponseRedirect(reverse('login'))
@@ -266,7 +266,7 @@ def signup_verify(request, signup_key=None):
         return render_to_response('accounts/invalid-key.html',
                               RequestContext(request,
                                              {}))
-    
+
 
 @require_GET
 @protected_resource()
@@ -276,10 +276,11 @@ def user_self(request):
     """
     user = request.resource_owner
     data = {
+        'id': user.pk,
         'username': user.username,
         'first_name': user.first_name,
         'last_name': user.last_name,
         'email': user.email,
         'created': user.date_joined,
     }
-    return JsonResponse(data) 
+    return JsonResponse(data)
