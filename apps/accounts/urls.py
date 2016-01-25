@@ -13,21 +13,25 @@ urlpatterns = patterns('',
     url(r'logout$', mylogout, name='mylogout'),
     url(r'password-reset-request$', password_reset_request,
         name='password_reset_request'),
-    
+
     url(r'settings$', account_settings, name='account_settings'),
     url(r'reset-password/(?P<reset_password_key>[^/]+)/', reset_password,
         name='password_reset_request'),
-    
+
     url(r'signup-verify/(?P<signup_key>[^/]+)/', signup_verify,
         name='signup_verify'),
-    
-    
+
+
     url(r'display-api-keys$', display_api_keys,
         name='display_api_keys'),
-    
-        
+
+
     url(r'reissue-api-keys$', reissue_api_keys,
         name='reissue_api_keys'),
 
-    url(r'^user/self/$', user_self, name='user_self'),
 )
+
+# these are the api endpoints exposed by the accounts application
+api_urls = [
+    url(r'^profile/$', user_self, name='user_self'),
+]

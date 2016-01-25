@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 
-from apps.utils.test import BaseApiTest
+from ..test import BaseApiTest
 
 
 class TestUserSelfEndpoint(BaseApiTest):
@@ -42,6 +42,7 @@ class TestUserSelfEndpoint(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         # Check if the content of the response corresponds to the expected json
         expected_json = {
+            'id': user.pk,
             'username': user.username,
             'first_name': user.first_name,
             'last_name': user.last_name,
