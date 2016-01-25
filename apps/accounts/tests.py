@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 
-from apps.utils.test import BaseApiTest
+from ..test import BaseApiTest
 
 
 class TestUserSelfEndpoint(BaseApiTest):

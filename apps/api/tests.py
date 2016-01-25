@@ -5,7 +5,7 @@ import json
 
 from django.core.urlresolvers import reverse
 
-from apps.utils.test import BaseApiTest
+from ..test import BaseApiTest
 
 
 class TestApi(BaseApiTest):
