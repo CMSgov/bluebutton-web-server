@@ -171,11 +171,6 @@ PROPRIETARY_BACKEND_NAME = 'myoauth'
 MY_AUTHORIZATION_URL = 'http://127.0.0.1:8000/o/authorize/'
 MY_ACCESS_TOKEN_URL =  'http://127.0.0.1:8000/o/token/'
 
-
-
-
-
-
 SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.social_details',
     'social.pipeline.social_auth.social_uid',
@@ -190,6 +185,10 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.user.user_details',
     'social.pipeline.debug.debug'
 )
+
+OAUTH2_PROVIDER = {
+    'OAUTH2_VALIDATOR_CLASS': 'apps.accounts.oauth2_validators.SingleAccessTokenValidator',
+}
 
 try:
     from settings_local import *

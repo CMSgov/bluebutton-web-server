@@ -50,3 +50,51 @@ class TestUserSelfEndpoint(BaseApiTest):
             'created': DjangoJSONEncoder().default(user.date_joined),
         }
         self.assertJSONEqual(response.content, expected_json)
+
+
+class TestSingleAccessTokenValidator(BaseApiTest):
+    def test_single_access_token_issued(self):
+        # create the user
+        user = self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
+        # create a oauth2 application
+        application = self._create_application('test')
+        # get the first access token for the user 'john'
+        first_access_token = self._get_access_token('john', '123456', application)
+        # request another access token for the same user/application
+        second_access_token = self._get_access_token('john', '123456', application)
+        self.assertEqual(first_access_token, second_access_token)
+
+    def test_single_access_token_issued_when_changed_scope_allowed(self):
+        """
+        Test that the same access token is issued when a scope is changed but
+        it is a subset of the old token's scope.
+
+        e.g. old_token_scope = 'read write'
+             new_token_scope = 'read'
+        """
+        # create the user
+        user = self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
+        # create a oauth2 application
+        application = self._create_application('test')
+        # get the first access token for the user 'john'
+        first_access_token = self._get_access_token('john', '123456', application, scope='read write')
+        # request another access token for the same user/application
+        second_access_token = self._get_access_token('john', '123456', application, scope='read')
+        self.assertEqual(first_access_token, second_access_token)
+
+    def test_new_access_token_issued_when_scope_added(self):
+        """
+        Test that a new access token is issued when a scope is added.
+
+        e.g. old_token_scope = 'read'
+             new_token_scope = 'read write'
+        """
+        # create the user
+        user = self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
+        # create a oauth2 application
+        application = self._create_application('test')
+        # get the first access token for the user 'john'
+        first_access_token = self._get_access_token('john', '123456', application, scope='read')
+        # request another access token for the same user/application
+        second_access_token = self._get_access_token('john', '123456', application, scope='read write')
+        self.assertNotEqual(first_access_token, second_access_token)
