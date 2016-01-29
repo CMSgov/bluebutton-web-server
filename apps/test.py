@@ -40,18 +40,19 @@ class BaseApiTest(TestCase):
             name=name, user=dev_user, client_type=client_type, authorization_grant_type=grant_type)
         return application
 
-    def _get_access_token(self, username, password):
+    def _get_access_token(self, username, password, application=None, **extra_fields):
         """
         Helper method that creates an access_token using the password grant.
         """
         # Create an application that supports password grant.
-        application = self._create_application('test')
+        application = application or self._create_application('test')
         data = {
             'grant_type': 'password',
             'username': username,
             'password': password,
             'client_id': application.client_id,
         }
+        data.update(extra_fields)
         # Request the access token
         response = self.client.post(reverse('oauth2_provider:token'), data=data)
         self.assertEqual(response.status_code, 200)
