@@ -45,6 +45,8 @@ INSTALLED_APPS = (
     'apps.accounts',
     'apps.home',
     'apps.api',
+    'apps.capabilities',
+    'apps.dot_ext',
     'corsheaders',
 )
 
@@ -150,42 +152,7 @@ AUTHENTICATION_BACKENDS = (
             'django.contrib.auth.backends.ModelBackend',
             )
 
-
-#Python-social-auth settings
-SOCIAL_AUTH_URL_NAMESPACE = 'social'
-
-#Instagram oauth - this works
-SOCIAL_AUTH_INSTAGRAM_KEY='38b495f6fa264851bd541ce183a58931'
-SOCIAL_AUTH_INSTAGRAM_SECRET='2eeed20dab5e4241901e8afb518c4444'
-SOCIAL_AUTH_INSTAGRAM_EXTRA_ARGUMENTS = {'scope': 'likes comments relationships'}
-
-
-#Myoauth Oauth2 - this doesn't work.
-SOCIAL_AUTH_MYOAUTH_KEY = 'NNB95dtMtiIhwxf8amhXaJfHG8SFMC7bWxUFWqNa'
-SOCIAL_AUTH_MYOAUTH_SECRET = 'wTupiam0f9IDXxHxOftLM18WLPSODdo0GL9OthcXwiS3zW8fl1VWr13lzFrW8jl7HQzxJnlu4WJfuLs9nnQiGyg0aYkASZun9M9PktYryN1lJm7zNemqeeZOiPLMDZdx'
-SOCIAL_AUTH_STRATEGY = 'social.strategies.django_strategy.DjangoStrategy'
-SOCIAL_AUTH_STORAGE = 'social.apps.django_app.default.models.DjangoStorage'
-PROPRIETARY_BACKEND_NAME = 'myoauth'
-# the trailing slash is necessary, because python-social-auth does not follow
-# redirects by default.
-MY_AUTHORIZATION_URL = 'http://127.0.0.1:8000/o/authorize/'
-MY_ACCESS_TOKEN_URL =  'http://127.0.0.1:8000/o/token/'
-
-SOCIAL_AUTH_PIPELINE = (
-    'social.pipeline.social_auth.social_details',
-    'social.pipeline.social_auth.social_uid',
-    'social.pipeline.social_auth.auth_allowed',
-    'social.pipeline.social_auth.social_user',
-    'social.pipeline.user.get_username',
-    'social.pipeline.mail.mail_validation',
-    'social.pipeline.user.create_user',
-    'social.pipeline.social_auth.associate_user',
-    'social.pipeline.debug.debug',
-    'social.pipeline.social_auth.load_extra_data',
-    'social.pipeline.user.user_details',
-    'social.pipeline.debug.debug'
-)
-
+OAUTH2_PROVIDER_APPLICATION_MODEL='dot_ext.Application'
 OAUTH2_PROVIDER = {
     'OAUTH2_VALIDATOR_CLASS': 'apps.accounts.oauth2_validators.SingleAccessTokenValidator',
 }

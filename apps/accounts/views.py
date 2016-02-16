@@ -73,17 +73,12 @@ def simple_login(request):
                    #The user exists but is_active=False
                    messages.error(request,
                         _("Your account is inactive so you may not log in."))
-                   messages.info(request,
-                        _("If you are having issues accesing you account, visit https://nppes.cms.hhs.gov/IAWeb for resolution."))
-
 
                    return render_to_response('accounts/login.html',
                                             {'form': form},
                                             RequestContext(request))
             else:
                 messages.error(request, _("Invalid username or password."))
-                messages.info(request,
-                        _("If you are having issues accesing you account, visit https://nppes.cms.hhs.gov/IAWeb for resolution."))
 
                 return render_to_response('accounts/login.html',
                                     {'form': form},
@@ -172,7 +167,7 @@ def password_reset_request(request):
 
 
 def create(request):
-    name = "Create an HHS oAuth2 Account"
+    name = "Create an CMS Developer Account"
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
@@ -216,6 +211,10 @@ def account_settings(request):
     name = _("Account Settings")
     up = get_object_or_404(UserProfile, user=request.user)
 
+    groups = request.user.groups.values_list('name',flat=True)
+    for g in groups:
+        messages.info(request, _("You are in the group: %s" % (g)))    
+
     if request.method == 'POST':
         form = AccountSettingsForm(request.POST)
         if form.is_valid():
@@ -246,7 +245,7 @@ def account_settings(request):
 
     #this is an HTTP GET
     return render_to_response('generic/bootstrapform.html',
-        {'name': name, 'form': AccountSettingsForm(
+                    {'name': name, 'form': AccountSettingsForm(
                               initial={ 'username':  request.user.username,
                                 'email':                    request.user.email,
                                 'organization_name':        up.organization_name,

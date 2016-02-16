@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load url from compat %}
+{% block Content %}
+
+      <div class="row">
+        <div class="col-lg-12">
+	      <ol class="breadcrumb">
+	        <li ><a href="/">Home</a></li>
+            <li ><a href="{% url "dote_list" %}">{% trans "Created Applications" %}</a></li>
+            <li class="active"><a href="." %}">{{ application.name }}</a></li>
+	      </ol>
+        </div>
+      </div>
+      
+
+    <div class="block-center">
+        <h3 class="block-center-heading">{{ application.name }}</h3>
+
+        <ul class="unstyled">
+            <li>
+                <p><b>{% trans "Client ID" %}</b></p>
+                <input class="input-block-level" type="text" value="{{ application.client_id }}" readonly>
+            </li>
+
+            <li>
+                <p><b>{% trans "Client Secret" %}</b></p>
+                <input class="input-block-level" type="text" value="{{ application.client_secret }}" readonly>
+            </li>
+
+            <li>
+                <p><b>{% trans "Client Type" %}</b></p>
+                <p>{{ application.client_type }}</p>
+            </li>
+			
+			
+			 <li>
+                <p><b>{% trans "Protected Capability Type" %}</b></p>
+                <p>{{ application.protected_capability }}</p>
+            </li>
+			 
+			<li>
+                <p><b>{% trans "URLs in this Capability" %}</b></p>
+                <p><pre>{{ application.protected_capability.protected_resources  }}</pre></p>
+            </li>
+			 
+			<li>
+                <p><b>{% trans "Software JWT" %}</b></p>
+                <p><pre>{{ application.jwt }}</pre></p>
+            </li>
+			 
+			
+
+            <li>
+                <p><b>{% trans "Authorization Grant Type" %}</b></p>
+                <p>{{ application.authorization_grant_type }}</p>
+            </li>
+
+            <li>
+                <p><b>{% trans "Redirect Uris" %}</b></p>
+                <textarea class="input-block-level" readonly>{{ application.redirect_uris }}</textarea>
+            </li>
+        </ul>
+
+        <div class="btn-toolbar">
+            <a class="btn" href="{% url "dote_list" %}">{% trans "Go Back" %}</a>
+            <a class="btn btn-primary" href="{% url "dote_update" application.id %}">{% trans "Edit" %}</a>
+            <a class="btn btn-danger" href="{% url "dote_delete" application.id %}">{% trans "Delete" %}</a>
+        </div>
+    </div>
+{% endblock Content %}

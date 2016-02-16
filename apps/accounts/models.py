@@ -7,31 +7,35 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import date, datetime, timedelta
 from localflavor.us.models import PhoneNumberField
-from localflavor.us.us_states import US_STATES
 import string
 import random
 import uuid
 from emails import send_password_reset_url_via_email, send_signup_key_via_email
 from django.core.mail import send_mail, EmailMessage
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import python_2_unicode_compatible
 
 
-USER_CHOICES     = ( ('V','Require-Verification'),
-                     ('A','No verification required (attestation)'))
+USER_CHOICES     = ( ('B','Beneficiary'),
+                     ('BAD','3rd Party Beneficiary Application Developer'),
+                     ('TTP','Trusted 3rd Party'),
+                     ('TFP','Trusted 1st Party'),
+                     )
 
+@python_2_unicode_compatible
 class UserProfile(models.Model):
     user                    = models.OneToOneField(User)
     organization_name       = models.CharField(max_length=256)
-    user_type               = models.CharField(default='V',
+    user_type               = models.CharField(default='BAD',
                                 choices=USER_CHOICES,
-                                max_length=1)
+                                max_length=5)
     access_key_id           = models.CharField(max_length=20, blank=True,)
     access_key_secret       = models.CharField(max_length=40, blank=True, )
     access_key_reset        = models.BooleanField(blank=True, default=False,
                                 help_text= _("Check this box to issue a new access key. Doing so invalidates the existing key."))
 
-    def __unicode__(self):
-        name = "%s %s" % (self.user.first_name, self.user.last_name)
+    def __str__(self):
+        name = "%s %s (%s)" % (self.user.first_name, self.user.last_name, self.user.username)
         return name
     
     def save(self, **kwargs):
@@ -39,20 +43,20 @@ class UserProfile(models.Model):
             self.access_key_id = random_key_id()
             self.access_key_secret = random_secret()   
         self.access_key_reset = False
-    
         super(UserProfile, self).save(**kwargs)
         
-
+@python_2_unicode_compatible
 class RequestInvite(models.Model):
     first_name     = models.CharField(max_length = 150)
     last_name      = models.CharField(max_length = 150)
     organization   = models.CharField(max_length = 150)
     email          = models.EmailField(max_length = 150)
     added          = models.DateField(auto_now_add=True)
-    def __unicode__(self):
+    def __str__(self):
         r = "%s %s" % (self.first_name, self.last_name)
         return r
 
+@python_2_unicode_compatible
 class Invitation(models.Model):
     code   = models.CharField(max_length = 10, unique=True)
     email  = models.EmailField(blank=True)
@@ -60,7 +64,7 @@ class Invitation(models.Model):
     added          = models.DateField(auto_now_add=True)
     
     
-    def __unicode__(self):
+    def __str__(self):
         return self.code
     
     def save(self, **kwargs):
@@ -94,14 +98,16 @@ class Invitation(models.Model):
             msg.send()
 
         super(Invitation, self).save(**kwargs)
-        
+
+
+@python_2_unicode_compatible        
 class ValidPasswordResetKey(models.Model):
     user               = models.ForeignKey(User)
     reset_password_key = models.CharField(max_length=50, blank=True)
     expires            = models.DateTimeField(default=datetime.now)
 
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s for user %s expires at %s' % (self.reset_password_key,
                                                  self.user.username,
                                                  self.expires)

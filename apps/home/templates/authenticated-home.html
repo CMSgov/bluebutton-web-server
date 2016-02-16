@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block Content %}
-{% load has_group %}
-<div class="container">
 
-    <div class="row">
-      <div class="col-lg-12">
-         <h1 class="page-header">Hello {{user|capfirst}}</h1>
-      </div>
-    </div>
+<div class="container">
       
+    <div class="row">
+        <div class="col-lg-12">
+	      <ol class="breadcrumb">
+	        <li class="active"><a href="/">Home</a></li>
+	      </ol>
+        </div>
+     </div>
+
 
     <div class="row">
       <div class="col-lg-10">
@@ -17,27 +19,30 @@
       </div>
     </div>
  
-	  
-      <div class="row">
+  
+    <div class="row text-center">
         <div class="col-lg-12">
-	      <ol class="breadcrumb">
-	        <li class="active"><a href="/">Home</a></li>
-	      </ol>
-        </div>
-      </div>
-    
-    <div class="row">
-        <div class="col-lg-12">
-		
- <a href="{% url 'oauth2_provider:authorized-token-list' %}" ><button type="button" class="btn btn-primary">Authorized Application Tokens</button></a>
-		</div>
-	   </div>
-	
-	
-	  
-    
- 
+			
+				<div class="btn-group-justified">	
+					<a href="{% url 'dote_authorized-token-list' %}" >
+					  <button type="button" class="btn btn-primary"> <i class="fa fa-legal"></i>  Applications You Have Given Access To	</button></a>
+					
+					<a href="{% url 'dote_list' %}">           
+						 <button type="button" class="btn btn-primary"> <i class="fa fa-key"></i> Applications You Have Created
+					</button></a>
+						   
+					<a href="/application-directory"> 	
+						 <button type="button" class="btn btn-primary"><i class="fa fa-list"></i> Application Directory
+					</button></a>
+				
+				</div>
+	    </div>
+	</div>
 
+
+	
+	
+	  
     </div><!-- /.container -->
 
   
