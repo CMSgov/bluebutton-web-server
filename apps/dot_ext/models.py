@@ -16,7 +16,7 @@ class Endorsement(models.Model):
     
 class Application(AbstractApplication):
     scope                  = models.ManyToManyField(ProtectedCapability)
-    endorsements           = models.ManyToManyField(Endorsement, blank=True, null=True)
+    endorsements           = models.ManyToManyField(Endorsement, blank=True)
     agree                  = models.BooleanField(default=False)
     
     def get_absolute_url(self):
