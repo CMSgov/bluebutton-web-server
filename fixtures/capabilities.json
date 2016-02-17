@@ -1,0 +1,78 @@
+[
+{
+    "fields": {
+        "name": "application.beneficary-user",
+        "permissions": []
+    },
+    "model": "auth.group",
+    "pk": 13
+},
+{
+    "fields": {
+        "name": "application.npi-push-bulk",
+        "permissions": []
+    },
+    "model": "auth.group",
+    "pk": 14
+},
+{
+    "fields": {
+        "name": "application-test-read",
+        "permissions": []
+    },
+    "model": "auth.group",
+    "pk": 15
+},
+{
+    "fields": {
+        "name": "application-test-write",
+        "permissions": []
+    },
+    "model": "auth.group",
+    "pk": 16
+},
+{
+    "fields": {
+        "description": "This capability allows a 3rd party application to access beneficiary data when authorized by the beneficiary.",
+        "protected_resources": "[\r\n\t[\"GET\", \"/fhir/v3/ExplanationOfBenefit/[id]\"],\r\n\t[\"GET\", \"/fhir/v3/ExplanationOfBenefit/[id]/_history\"],\r\n\t[\"GET\", \"/fhir/v3/ExplanationOfBenefit/[id]/_history/[vid]\"],\r\n\t[\"GET\", \"/fhir/v3/Contract/[id]\"],\r\n\t[\"GET\", \"/fhir/v3/Contract/[id]/_history\"],\r\n\t[\"GET\", \"/fhir/v3/Contract/[id]/_history/[vid]\"],\r\n\t[\"GET\", \"/fhir/v3/Patient/[id]\"],\r\n\t[\"GET\", \"/fhir/v3/Patient/[id]/_history\"],\r\n\t[\"GET\", \"/fhir/v3/Patient/[id]/_history/[vid]\"]\r\n]",
+        "group": 13,
+        "slug": "blue-button-read-only",
+        "title": "Beneficary Blue Button"
+    },
+    "model": "capabilities.protectedcapability",
+    "pk": 1
+},
+{
+    "fields": {
+        "description": "This capability allows an aggregator, such as a state or HIE, to push bulk updates to provided data.",
+        "protected_resources": "[\r\n\t[\"POST\", \"/fhir/v3/Practitioner\"],\r\n\t[\"PUT\", \"/fhir/v3/Practitioner/[id]\"],\r\n\t[\"POST\", \"/fhir/v3/Organization\"],\r\n\t[\"PUT\", \"/fhir/v3/Organization/[id]\"],\r\n\t[\"POST\", \"/npi/v1/update-all/[npi]\"],\r\n\t[\"POST\", \"/npi/v1/update-partial/[npi]\"],\r\n\t[\"GET\", \"/fhir/v3/metadata\"]\r\n]",
+        "group": 14,
+        "slug": "provider-data-push",
+        "title": "Provider Data Push"
+    },
+    "model": "capabilities.protectedcapability",
+    "pk": 2
+},
+{
+    "fields": {
+        "description": "A test read-only application on a single endpoint",
+        "protected_resources": "[\r\n[\"GET\", \"/api/read\"]\r\n]",
+        "group": 15,
+        "slug": "test-read",
+        "title": "Test Read"
+    },
+    "model": "capabilities.protectedcapability",
+    "pk": 3
+},
+{
+    "fields": {
+        "description": "A test write API.  The GET only displays a message.",
+        "protected_resources": "[\r\n[\"GET\",  \"/api/write\"],\r\n[\"POST\", \"/api/writel\"]\r\n]",
+        "group": 16,
+        "slug": "test-write",
+        "title": "Test Write"
+    },
+    "model": "capabilities.protectedcapability",
+    "pk": 4
+}
+]
