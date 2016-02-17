@@ -36,13 +36,18 @@
 			
 			
 			 <li>
-                <p><b>{% trans "Protected Capability Type" %}</b></p>
-                <p>{{ application.protected_capability }}</p>
+                <p><b>{% trans "Scopes" %}</b></p>
+                {% for s in application.scope.all %}
+				<p>{{ s.slug }}</p>
+				{% endfor %}
             </li>
 			 
 			<li>
-                <p><b>{% trans "URLs in this Capability" %}</b></p>
-                <p><pre>{{ application.protected_capability.protected_resources  }}</pre></p>
+                <p><b>{% trans "URLs within these Scopes" %}</b></p>
+				 {% for s in application.scope.all %}
+				
+                    <p><pre>{{ s.protected_resources }}</pre></p>
+				{% endfor %}	
             </li>
 			 
 			<li>

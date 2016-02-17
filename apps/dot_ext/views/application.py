@@ -31,7 +31,7 @@ class ApplicationRegistration(LoginRequiredMixin, CreateView):
         mff = modelform_factory(
             get_application_model(),
             fields=('name', 'client_id', 'client_secret', 'client_type',
-                    'authorization_grant_type', 'protected_capability', 'redirect_uris', )
+                    'authorization_grant_type', 'scope', 'redirect_uris', )
         )
         return mff
     

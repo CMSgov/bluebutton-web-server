@@ -18,11 +18,11 @@ class CustomRegisterApplicationForm(ModelForm):
             pcs = ProtectedCapability.objects.filter(group=g)
             for i in pcs:
                 choices.append([i.pk , i.title])
-         self.fields['protected_capability'].choices = choices
+         self.fields['scope'].choices = choices
     
     class Meta:
         model = get_application_model()
-        fields= ('jwt', 'protected_capability','name', 'client_id', 'client_secret', 'client_type',
+        fields= ('scope', 'name', 'client_id', 'client_secret', 'client_type',
                  'authorization_grant_type','redirect_uris')
    
     required_css_class = 'required'

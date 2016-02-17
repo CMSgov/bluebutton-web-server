@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 @python_2_unicode_compatible
 class ProtectedCapability(models.Model):
     title               = models.CharField(max_length=256, default="", unique=True)
-    slug                = models.SlugField(max_length=100, default="", unique=True)
+    slug                = models.SlugField(verbose_name="Scope", max_length=100, default="", unique=True)
     group               = models.ForeignKey(Group)
     protected_resources = models.TextField(max_length=10240,
                             help_text="""A JSON list of pairs containing HTTP method and URL.
@@ -17,6 +17,9 @@ class ProtectedCapability(models.Model):
     
     def __str__(self):
         return self.title
+    
+    def scope(self):
+        return self.slug
     
     class Meta:
         verbose_name_plural = "Protected Capabilities"

@@ -6,9 +6,15 @@ import json
 
 from oauth2_provider.decorators import protected_resource
 
-# Hey Evonove - These are two sample RESTFul endpoints I'd like to protect as an example.
-# Ideally we would use some sort of a decorator.  When the oauth request fails I want to
-# return JSON (unless you think otherwise)
+
+#Not sure this is necessary.
+http_method_to_scope = {"GET":    "read",
+                        "HEAD":   "read",
+                        "PUT":    "write",
+                        "POST":   "write",
+                        "DELETE": "write",
+                        }
+
 
 @protected_resource()
 def api_read(request):
@@ -39,7 +45,6 @@ def api_write(request):
         errors =[]
         try:
             j =json.loads(request.body, object_pairs_hook=OrderedDict)
-            print type(j)
 
             if type(j) !=  type(OrderedDict()):
                 errors.append("The string did not contain a JSON object.")
