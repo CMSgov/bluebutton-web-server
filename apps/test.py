@@ -53,7 +53,7 @@ class BaseApiTest(TestCase):
         """
         group, _ = Group.objects.get_or_create(name='test')
         capability = ProtectedCapability.objects.create(
-            title=name, protected_resources=urls, group=group)
+            title=name, protected_resources=json.dumps(urls), group=group)
         return capability
 
     def _get_access_token(self, username, password, application=None, **extra_fields):
