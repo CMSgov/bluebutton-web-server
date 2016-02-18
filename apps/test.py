@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 import json
 
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.test import TestCase
 
-from oauth2_provider.models import Application
+from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.models import Application
 
 
 class BaseApiTest(TestCase):
@@ -24,10 +25,11 @@ class BaseApiTest(TestCase):
         user = User.objects.create_user(username, password=password, **extra_fields)
         return user
 
-    def _create_application(self, name, client_type=None, grant_type=None):
+    def _create_application(self, name, client_type=None, grant_type=None, capability=None):
+
         """
         Helper method that creates an application instance
-        with `name`, `client_type` and `grant_type`.
+        with `name`, `client_type` and `grant_type` and `capability`.
 
         The default client_type is 'public'.
         The default grant_type is 'password'.
@@ -37,8 +39,22 @@ class BaseApiTest(TestCase):
         # This is the user to whom the application is bound.
         dev_user = self._create_user('dev', '123456')
         application = Application.objects.create(
-            name=name, user=dev_user, client_type=client_type, authorization_grant_type=grant_type)
+            name=name, user=dev_user, client_type=client_type,
+            authorization_grant_type=grant_type)
+        # add capability
+        if capability:
+            application.scope.add(capability)
         return application
+
+    def _create_capability(self, name, urls):
+        """
+        Helper method that creates a ProtectedCapability instance
+        that controls the access for the set of `urls`.
+        """
+        group, _ = Group.objects.get_or_create(name='test')
+        capability = ProtectedCapability.objects.create(
+            title=name, protected_resources=json.dumps(urls), group=group)
+        return capability
 
     def _get_access_token(self, username, password, application=None, **extra_fields):
         """
