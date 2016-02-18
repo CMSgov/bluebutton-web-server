@@ -1,10 +1,16 @@
-from django.shortcuts import render
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
+import json
 from collections import OrderedDict
+
+from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
 
 from oauth2_provider.decorators import protected_resource
+
+from apps.dot_ext.decorators import capability_protected_resource
 
 
 #Not sure this is necessary.
@@ -16,7 +22,7 @@ http_method_to_scope = {"GET":    "read",
                         }
 
 
-@protected_resource()
+@capability_protected_resource()
 def api_read(request):
     od = OrderedDict()
     od['hello']="World"
