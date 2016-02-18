@@ -4,11 +4,7 @@ from __future__ import unicode_literals
 import json
 from collections import OrderedDict
 
-from django.shortcuts import render
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-
-from oauth2_provider.decorators import protected_resource
 
 from apps.dot_ext.decorators import capability_protected_resource
 
@@ -44,7 +40,7 @@ def api_read(request):
 # "write": true
 
 
-@protected_resource()
+@capability_protected_resource()
 def api_write(request):
     if request.method == 'POST':
 
