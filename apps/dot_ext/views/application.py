@@ -6,6 +6,8 @@ from braces.views import LoginRequiredMixin
 
 from oauth2_provider.models import get_application_model
 
+from ..forms import CustomRegisterApplicationForm
+
 
 class ApplicationOwnerIsUserMixin(LoginRequiredMixin):
     """
@@ -27,15 +29,15 @@ class ApplicationRegistration(LoginRequiredMixin, CreateView):
         """
         Returns the form class for the application model
         """
-        
+
         mff = modelform_factory(
             get_application_model(),
             fields=('name', 'client_id', 'client_secret', 'client_type',
                     'authorization_grant_type', 'scope', 'redirect_uris', )
         )
         return mff
-    
-    
+
+
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -73,3 +75,15 @@ class ApplicationUpdate(ApplicationOwnerIsUserMixin, UpdateView):
     """
     context_object_name = 'application'
     template_name = "application_form.html"
+
+    fields = None
+    form_class = CustomRegisterApplicationForm
+
+    def get_form_kwargs(self):
+        """
+        Add `user` to kwargs because it is required by the constructor of
+        CustomRegisterApplicationForm class.
+        """
+        kwargs = super(ApplicationUpdate, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
