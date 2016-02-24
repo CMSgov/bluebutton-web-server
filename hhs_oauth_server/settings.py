@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'bootstrapform',
     #django oAuth Toolkit
     'oauth2_provider',
+    'apps.core',
     'apps.accounts',
     'apps.home',
     'apps.api',
@@ -161,10 +162,6 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
-        },
-        'syslog': {
-            'class': 'logging.handlers.SysLogHandler',
-            'formatter': 'syslog',
         },
     },
     'loggers': {
