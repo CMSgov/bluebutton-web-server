@@ -146,6 +146,35 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(name)s [%(process)d] %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(name)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'syslog': {
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'syslog',
+        },
+    },
+    'loggers': {
+        'hhs_server': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
+
 MIN_PASSWORD_LEN = 8
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
