@@ -36,10 +36,10 @@ def capability_protected_resource(scopes=None, validator_cls=OAuth2Validator, se
                 # note that `oauthlib_req.client` is the instance of the application
                 # used to issue the token.
                 if not oauthlib_req.client.allow_resource(request.method, request.path):
-                    return HttpResponseForbidden()
+                    return HttpResponseForbidden('token has no capability to access the resource')
 
                 request.resource_owner = oauthlib_req.user
                 return view_func(request, *args, **kwargs)
-            return HttpResponseForbidden()
+            return HttpResponseForbidden('token authentication failed')
         return _validate
     return decorator
