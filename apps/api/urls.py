@@ -7,8 +7,8 @@ from views import *
 
 urlpatterns = patterns('',
     #Read -----------------------------------
-    url(r'^read', api_read, name="api_read"),
-   
+    url(r'^read/$', api_read, name="api_read"),
+
     #Write-----------------------------------
-    url(r'^write$', api_write, name="api_write"),
+    url(r'^write/$', api_write, name="api_write"),
     )
