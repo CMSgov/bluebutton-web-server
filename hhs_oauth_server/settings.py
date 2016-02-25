@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'bootstrapform',
     #django oAuth Toolkit
     'oauth2_provider',
+    'apps.core',
     'apps.accounts',
     'apps.home',
     'apps.api',
@@ -145,6 +146,39 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(name)s [%(process)d] %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(name)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'hhs_server': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        'oauth2_provider': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'oauthlib': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
 
 MIN_PASSWORD_LEN = 8
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'

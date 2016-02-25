@@ -50,10 +50,11 @@ class Application(AbstractApplication):
         for scope in self.scope.all():
             resources = scope.resources_as_dict()
             logger.debug("application '%s': checking access with scope '%s'", self.name, resources)
-            # TODO: should we normalize path, here?? trailing slash??
-            if path in resources.get(method):
-                logger.info(self._messages['resource_allowed'], self.name, method, path)
-                return True
+            # both paths are normalized removing trailing slash
+            for allowed_path in resources.get(method, []):
+                if path.rstrip('/') == allowed_path.rstrip('/'):
+                    logger.info(self._messages['resource_allowed'], self.name, method, path)
+                    return True
 
         logger.info(self._messages['resource_forbidden'], self.name, method, path)
         return False

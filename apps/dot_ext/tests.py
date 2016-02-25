@@ -25,3 +25,19 @@ class TestApplicationUpdateView(BaseApiTest):
         response = self.client.get(reverse('dote_update', args=[app.pk]))
         self.assertContains(response, 'Read-Scope')
         self.assertNotContains(response, 'Write-Scope')
+
+
+class TestApplicationModel(BaseApiTest):
+    def test_allow_resource_method_return_false_for_forbidden_resource(self):
+        # create an empty capability
+        capability = self._create_capability('Capability', [])
+        # create an application with the capability
+        app = self._create_application('john_app', capability=capability)
+        self.assertFalse(app.allow_resource('GET', '/api/foo/'))
+
+    def test_allow_resource_method_return_true_for_allowed_resource(self):
+        # create an empty capability
+        capability = self._create_capability('Capability', [['GET', '/api/foo/']])
+        # create an application with the capability
+        app = self._create_application('john_app', capability=capability)
+        self.assertTrue(app.allow_resource('GET', '/api/foo/'))

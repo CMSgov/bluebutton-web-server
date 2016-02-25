@@ -2,11 +2,16 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import json
+import logging
 from collections import OrderedDict
 
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.dot_ext.decorators import capability_protected_resource
+
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 #Not sure this is necessary.
@@ -41,9 +46,9 @@ def api_read(request):
 
 
 @capability_protected_resource()
+@csrf_exempt
 def api_write(request):
     if request.method == 'POST':
-
         errors =[]
         try:
             j =json.loads(request.body, object_pairs_hook=OrderedDict)
