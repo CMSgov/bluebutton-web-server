@@ -16,13 +16,24 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # create application.read group and application.write group
-        read_group, _ = Group.objects.get_or_create(name='application.test_read')
-        write_group, _ = Group.objects.get_or_create(name='application.test_write')
-        self._log('read and write groups created')
+        try:
+            read_group = Group.objects.get(name='application.test_read')
+            self._log('read group exists')
+        except Group.DoesNotExist:
+            read_group = Group.objects.create(name='application.test_read')
+            self._log('read group created')
+
+        try:
+            write_group = Group.objects.get(name='application.test_write')
+            self._log('write groups exist')
+        except Group.DoesNotExist:
+            write_group = Group.objects.create(name='application.test_write')
+            self._log('write groups created')
 
         # create test_dev user and add to both groups
         try:
             test_dev = User.objects.get(username='test_dev')
+            self._log('test_user dev exist')
         except User.DoesNotExist:
             test_dev = User.objects.create_user('test_dev', password='foobarbaz')
             self._log('test_dev user created and added to read and write groups')
@@ -33,8 +44,11 @@ class Command(BaseCommand):
         # create test_user
         try:
             test_user = User.objects.get(username='test_user')
+            self._log('test_user user exist')
         except User.DoesNotExist:
-            test_user = User.objects.create_user('test_user', password='foobarbaz')
+            test_user = User.objects.create_user(
+                'test_user', password='foobarbaz', first_name='Test',
+                last_name='User', email='test_user@a.com')
             self._log('test_user user created')
 
         # create read capability
