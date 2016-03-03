@@ -55,3 +55,61 @@ class TestApplicationModel(BaseApiTest):
         self.assertFalse(app.allow_resource('GET', '/api/foo/'))
         self.assertTrue(app.allow_resource('GET', '/api/foo/1/'))
         self.assertTrue(app.allow_resource('GET', '/api/foo/1/bar/2'))
+
+
+class TestDOTTemplates(BaseApiTest):
+    def test_application_list_template_override(self):
+        """
+        Test that the application list template is overridden.
+        """
+        user = self._create_user('john', '123456')
+        self.client.login(username='john', password='123456')
+        response = self.client.get(reverse("dote_list"))
+        self.assertContains(response, '<nav class="navbar')
+        self.assertContains(response, '<ol class="breadcrumb">')
+
+    def test_application_detail_template_override(self):
+        """
+        Test that the application detail is overridden.
+        """
+        user = self._create_user('john', '123456')
+        self.client.login(username='john', password='123456')
+        # create an application
+        app = self._create_application('john_app', user=user)
+        response = self.client.get(reverse("dote_detail", args=[app.pk]))
+        self.assertContains(response, '<nav class="navbar')
+        self.assertContains(response, '<ol class="breadcrumb">')
+
+    def test_application_confirm_delete_template_override(self):
+        """
+        Test that the application confirm_delete is overridden.
+        """
+        user = self._create_user('john', '123456')
+        self.client.login(username='john', password='123456')
+        # create an application
+        app = self._create_application('john_app', user=user)
+        response = self.client.get(reverse("dote_delete", args=[app.pk]))
+        self.assertContains(response, '<nav class="navbar')
+        self.assertContains(response, '<ol class="breadcrumb">')
+
+    def test_application_update_template_override(self):
+        """
+        Test that the application update is overridden.
+        """
+        user = self._create_user('john', '123456')
+        self.client.login(username='john', password='123456')
+        # create an application
+        app = self._create_application('john_app', user=user)
+        response = self.client.get(reverse("dote_update", args=[app.pk]))
+        self.assertContains(response, '<nav class="navbar')
+        self.assertContains(response, '<ol class="breadcrumb">')
+
+    def test_application_registration_template_override(self):
+        """
+        Test that the application registration is overridden.
+        """
+        user = self._create_user('john', '123456')
+        self.client.login(username='john', password='123456')
+        response = self.client.get(reverse("dote_register"))
+        self.assertContains(response, '<nav class="navbar')
+        self.assertContains(response, '<ol class="breadcrumb">')
