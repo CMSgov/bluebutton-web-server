@@ -16,17 +16,18 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 
 
-USER_CHOICES     = ( ('B','Beneficiary'),
-                     ('BAD','3rd Party Beneficiary Application Developer'),
-                     ('TTP','Trusted 3rd Party'),
-                     ('TFP','Trusted 1st Party'),
+USER_CHOICES     = ( ('0','LOA-0'),
+                     ('1','LOA-1'),
+                     ('2','LOA-2'),
+                     ('3','LOA-3'),
+                      ('4','LOA-4'),
                      )
 
 @python_2_unicode_compatible
 class UserProfile(models.Model):
     user                    = models.OneToOneField(User)
     organization_name       = models.CharField(max_length=256)
-    user_type               = models.CharField(default='BAD',
+    user_type               = models.CharField(default='0',
                                 choices=USER_CHOICES,
                                 max_length=5)
     access_key_id           = models.CharField(max_length=20, blank=True,)
@@ -69,33 +70,34 @@ class Invitation(models.Model):
     
     def save(self, **kwargs):
         
-         #send the verification email.
-        msg = """
-        <html>
-        <head>
-        </head>
-        <body>
-        Congratulations. You have been invited to join the Enumeration API Alpha.<br>
-        
-        You may now <a href="%s">register</a>
-        with the invitation code: 
-        
-        <h2>
-        %s
-        </h2>
-        
-        - NPPES Modernization Team 
-        </body>
-        </html>
-        """ % (settings.HOSTNAME_URL, self.code,)
-        if settings.SEND_EMAIL:
-            subj = "[%s] Invitation Code: %s" % (settings.ORGANIZATION_NAME,
-                                                    self.code)
+        if self.valid:
+            #send the verification email.
+            msg = """
+            <html>
+            <head>
+            </head>
+            <body>
+            Congratulations. You have been invited to join the oAuth2 Server demonstration Alpha.<br>
             
-            msg = EmailMessage(subj, msg, settings.EMAIL_HOST_USER,
-                           [self.email, ])            
-            msg.content_subtype = "html"  # Main content is now text/html
-            msg.send()
+            You may now <a href="%s">register</a>
+            with the invitation code: 
+            
+            <h2>
+            %s
+            </h2>
+            
+            - The Videntity Team 
+            </body>
+            </html>
+            """ % (settings.HOSTNAME_URL, self.code,)
+            if settings.SEND_EMAIL:
+                subj = "[%s] Invitation Code: %s" % (settings.ORGANIZATION_NAME,
+                                                        self.code)
+                
+                msg = EmailMessage(subj, msg, settings.EMAIL_HOST_USER,
+                               [self.email, ])            
+                msg.content_subtype = "html"  # Main content is now text/html
+                msg.send()
 
         super(Invitation, self).save(**kwargs)
 
