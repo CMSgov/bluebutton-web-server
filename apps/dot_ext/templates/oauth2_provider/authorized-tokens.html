@@ -1,16 +1,16 @@
-{% extends "base.html" %}
+{% extends "oauth2_provider/base.html" %}
 
 {% load i18n %}
 {% load url from compat %}
 {% block Content %}
 
 
-	  
+
       <div class="row">
         <div class="col-lg-12">
 	      <ol class="breadcrumb">
 	        <li ><a href="/">Home</a></li>
-            <li class="active"><a href="{% url 'dote_authorized-token-list' %}">{% trans "Authorized Applications" %}</a></li>
+            <li class="active"><a href="{% url 'oauth2_provider:authorized-token-list' %}">{% trans "Authorized Applications" %}</a></li>
 	      </ol>
         </div>
       </div>
@@ -22,7 +22,7 @@
         {% for authorized_token in authorized_tokens %}
             <li>
                 {{ authorized_token.application }}
-                (<a href="{% url 'dote_authorized-token-delete' authorized_token.pk %}">revoke</a>)
+                (<a href="{% url 'oauth2_provider:authorized-token-delete' authorized_token.pk %}">revoke</a>)
             </li>
             <ul>
             {% for scope_name, scope_description in authorized_token.scopes.items %}

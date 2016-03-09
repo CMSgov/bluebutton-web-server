@@ -10,14 +10,14 @@ from ..forms import CustomRegisterApplicationForm
 
 @login_required
 def RegisterApplication(request):
-    template_name = "application_registration_form.html"
+    template_name = "oauth2_provider/application_registration_form.html"
     if request.method == 'POST':
         form = CustomRegisterApplicationForm(request.user, request.POST)
         if form.is_valid():
             cra = form.save(commit = False)
             cra.user=request.user
             cra.save()
-            return HttpResponseRedirect(reverse('dote_list'))
+            return HttpResponseRedirect(reverse('oauth2_provider:list'))
         else:
             #The form is invalid
              return render( request, template_name, {'form': form})

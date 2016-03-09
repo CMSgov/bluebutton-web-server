@@ -19,7 +19,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 class Endorsement(models.Model):
     title   = models.TextField(max_length=256, default="")
     iss     = models.TextField(max_length=512, default="", verbose_name="Issuer",
-                               help_text= "Must contain a QDN")
+                               help_text="Must contain a QDN")
     jws     = models.TextField(max_length=10240, default="")
 
     def __str__(self):
@@ -37,7 +37,7 @@ class Application(AbstractApplication):
     }
 
     def get_absolute_url(self):
-        return reverse('dote_detail', args=[str(self.id)])
+        return reverse('oauth2_provider:detail', args=[str(self.id)])
 
     def allow_resource(self, method, path):
         """

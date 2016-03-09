@@ -8,12 +8,10 @@ from apps.accounts.urls import api_urls
 
 urlpatterns = [
     url(r'^admin/',         include(admin.site.urls)),
-    url(r'^o/',             include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(r'^$',              include('apps.home.urls')),
     url(r'^accounts/',      include('apps.accounts.urls')),
     url(r'^api/',           include('apps.api.urls')),
     url(r'^api/',           include(api_urls)),
     url(r'^capabilities/',  include('apps.capabilities.urls')),
-    url(r'^dote/',          include('apps.dot_ext.urls')),
-
+    url(r'^o/',             include('apps.dot_ext.urls')),
 ]

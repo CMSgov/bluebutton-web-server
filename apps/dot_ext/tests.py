@@ -22,7 +22,7 @@ class TestApplicationUpdateView(BaseApiTest):
         app = self._create_application('john_app', user=user)
         # render the edit view for the app
         self.client.login(username=user.username, password='123456')
-        response = self.client.get(reverse('dote_update', args=[app.pk]))
+        response = self.client.get(reverse('oauth2_provider:update', args=[app.pk]))
         self.assertContains(response, 'Read-Scope')
         self.assertNotContains(response, 'Write-Scope')
 
@@ -64,7 +64,7 @@ class TestDOTTemplates(BaseApiTest):
         """
         user = self._create_user('john', '123456')
         self.client.login(username='john', password='123456')
-        response = self.client.get(reverse("dote_list"))
+        response = self.client.get(reverse("oauth2_provider:list"))
         self.assertContains(response, '<nav class="navbar')
         self.assertContains(response, '<ol class="breadcrumb">')
 
@@ -76,7 +76,7 @@ class TestDOTTemplates(BaseApiTest):
         self.client.login(username='john', password='123456')
         # create an application
         app = self._create_application('john_app', user=user)
-        response = self.client.get(reverse("dote_detail", args=[app.pk]))
+        response = self.client.get(reverse("oauth2_provider:detail", args=[app.pk]))
         self.assertContains(response, '<nav class="navbar')
         self.assertContains(response, '<ol class="breadcrumb">')
 
@@ -88,7 +88,7 @@ class TestDOTTemplates(BaseApiTest):
         self.client.login(username='john', password='123456')
         # create an application
         app = self._create_application('john_app', user=user)
-        response = self.client.get(reverse("dote_delete", args=[app.pk]))
+        response = self.client.get(reverse("oauth2_provider:delete", args=[app.pk]))
         self.assertContains(response, '<nav class="navbar')
         self.assertContains(response, '<ol class="breadcrumb">')
 
@@ -100,7 +100,7 @@ class TestDOTTemplates(BaseApiTest):
         self.client.login(username='john', password='123456')
         # create an application
         app = self._create_application('john_app', user=user)
-        response = self.client.get(reverse("dote_update", args=[app.pk]))
+        response = self.client.get(reverse("oauth2_provider:update", args=[app.pk]))
         self.assertContains(response, '<nav class="navbar')
         self.assertContains(response, '<ol class="breadcrumb">')
 
@@ -110,6 +110,6 @@ class TestDOTTemplates(BaseApiTest):
         """
         user = self._create_user('john', '123456')
         self.client.login(username='john', password='123456')
-        response = self.client.get(reverse("dote_register"))
+        response = self.client.get(reverse("oauth2_provider:register"))
         self.assertContains(response, '<nav class="navbar')
         self.assertContains(response, '<ol class="breadcrumb">')
