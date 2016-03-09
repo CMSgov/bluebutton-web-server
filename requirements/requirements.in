@@ -5,3 +5,5 @@ django-localflavor
 django-oauth-toolkit
 python-openid
 oauthlib
+tox
+django-debug-toolbar
