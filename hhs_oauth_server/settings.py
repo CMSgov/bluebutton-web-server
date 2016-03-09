@@ -40,7 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrapform',
-
+    'apps.signups',
     'apps.core',
     'apps.accounts',
     'apps.home',
@@ -183,6 +183,17 @@ LOGGING = {
         },
     },
 }
+
+#Email Sending Opts
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
+HOSTNAME_URL = "https://oauth.npi.io"
+SEND_EMAIL= True
+ORGANIZATION_NAME = "oAuth2"
+EMAIL_BACKEND = 'django_ses.SESBackend'
+SIGNUP_TIMEOUT_DAYS = 3
+EMAIL_HOST_USER = 'directca@videntity.com'
+INVITE_REQUEST_ADMIN = 'sales@videntity.com'
 
 MIN_PASSWORD_LEN = 8
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'

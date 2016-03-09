@@ -1,5 +1,5 @@
-HHS oAuth Server - An oAuth Provider Sample Project
-====================================================
+oAuth Server - An oAuth Provider Sample Project
+===============================================
 
 Quick Setup
 -----------

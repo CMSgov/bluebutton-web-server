@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^api/',           include(api_urls)),
     url(r'^capabilities/',  include('apps.capabilities.urls')),
     url(r'^o/',             include('apps.dot_ext.urls')),
+    url(r'^signups/',       include('apps.signups.urls')),
 ]
