@@ -40,8 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrapform',
-    #django oAuth Toolkit
-    'oauth2_provider',
+
     'apps.core',
     'apps.accounts',
     'apps.home',
@@ -49,6 +48,11 @@ INSTALLED_APPS = (
     'apps.capabilities',
     'apps.dot_ext',
     'corsheaders',
+
+    # DOT must be installed after apps.dot_ext in order to override templates
+    'oauth2_provider',
+
+    'debug_toolbar',
 )
 
 

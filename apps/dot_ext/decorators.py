@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from functools import wraps
 
 from django.http import HttpResponseForbidden
-from django.core.exceptions import ImproperlyConfigured
 
 from oauthlib.oauth2 import Server
 

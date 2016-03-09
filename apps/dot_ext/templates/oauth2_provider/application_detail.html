@@ -1,19 +1,17 @@
-{% extends "base.html" %}
+{% extends "oauth2_provider/base.html" %}
 
 {% load i18n %}
 {% load url from compat %}
-{% block Content %}
-
-      <div class="row">
+{% block content %}
+    <div class="row">
         <div class="col-lg-12">
-	      <ol class="breadcrumb">
-	        <li ><a href="/">Home</a></li>
-            <li ><a href="{% url "dote_list" %}">{% trans "Created Applications" %}</a></li>
-            <li class="active"><a href="." %}">{{ application.name }}</a></li>
-	      </ol>
+            <ol class="breadcrumb">
+                <li ><a href="/">Home</a></li>
+                <li ><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
+                <li class="active"><a href=".">{{ application.name }}</a></li>
+            </ol>
         </div>
-      </div>
-      
+    </div>
 
     <div class="block-center">
         <h3 class="block-center-heading">{{ application.name }}</h3>
@@ -33,37 +31,37 @@
                 <p><b>{% trans "Client Type" %}</b></p>
                 <p>{{ application.client_type }}</p>
             </li>
-			
-			<li>
-                <p><b>{% trans "Scope Tags" %}</b></p>
-                
-				  <p>
-					{% for s in application.scope.all %}
-					    <strong>{{ s.slug }}, </strong>
-				  {% endfor %}
-				  </p>
 
-				
+            <li>
+                <p><b>{% trans "Scope Tags" %}</b></p>
+
+                <p>
+                {% for s in application.scope.all %}
+                <strong>{{ s.slug }}, </strong>
+                {% endfor %}
+                </p>
+
+
             </li>
-			
-			
-			
-			 <li>
+
+
+
+            <li>
                 <p><b>{% trans "Scopes Detail" %}</b></p>
                 {% for s in application.scope.all %}
-				  <p>Tag: <strong>{{ s.slug }}</strong></p>
-				  <p>URLs for <strong>{{ s.slug }}</strong>:</p>
-				  <p><pre>{{ s.protected_resources }}</pre></p>
-				{% endfor %}
+                <p>Tag: <strong>{{ s.slug }}</strong></p>
+                <p>URLs for <strong>{{ s.slug }}</strong>:</p>
+                <p><pre>{{ s.protected_resources }}</pre></p>
+                {% endfor %}
             </li>
-			 
-			 
-			<li>
+
+
+            <li>
                 <p><b>{% trans "Software JWT" %}</b></p>
                 <p><pre>{{ application.jwt }}</pre></p>
             </li>
-			 
-			
+
+
 
             <li>
                 <p><b>{% trans "Authorization Grant Type" %}</b></p>
@@ -77,9 +75,9 @@
         </ul>
 
         <div class="btn-toolbar">
-            <a class="btn" href="{% url "dote_list" %}">{% trans "Go Back" %}</a>
-            <a class="btn btn-primary" href="{% url "dote_update" application.id %}">{% trans "Edit" %}</a>
-            <a class="btn btn-danger" href="{% url "dote_delete" application.id %}">{% trans "Delete" %}</a>
+            <a class="btn" href="{% url "oauth2_provider:list" %}">{% trans "Go Back" %}</a>
+            <a class="btn btn-primary" href="{% url "oauth2_provider:update" application.id %}">{% trans "Edit" %}</a>
+            <a class="btn btn-danger" href="{% url "oauth2_provider:delete" application.id %}">{% trans "Delete" %}</a>
         </div>
     </div>
-{% endblock Content %}
+{% endblock content %}

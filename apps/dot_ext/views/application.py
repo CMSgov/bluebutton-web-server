@@ -1,89 +1,36 @@
-from django.core.urlresolvers import reverse_lazy
-from django.forms.models import modelform_factory
-from django.views.generic import CreateView, DetailView, DeleteView, ListView, UpdateView
+from __future__ import absolute_import
+from __future__ import unicode_literals
 
-from braces.views import LoginRequiredMixin
-
-from oauth2_provider.models import get_application_model
+from oauth2_provider import views as oauth2_views
 
 from ..forms import CustomRegisterApplicationForm
 
 
-class ApplicationOwnerIsUserMixin(LoginRequiredMixin):
-    """
-    This mixin is used to provide an Application queryset filtered by the current request.user.
-    """
-    fields = '__all__'
-
-    def get_queryset(self):
-        return get_application_model().objects.filter(user=self.request.user)
-
-
-class ApplicationRegistration(LoginRequiredMixin, CreateView):
-    """
-    View used to register a new Application for the request.user
-    """
-    template_name = "application_registration_form.html"
-
-    def get_form_class(self):
-        """
-        Returns the form class for the application model
-        """
-
-        mff = modelform_factory(
-            get_application_model(),
-            fields=('name', 'client_id', 'client_secret', 'client_type',
-                    'authorization_grant_type', 'scope', 'redirect_uris', )
-        )
-        return mff
-
-
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super(ApplicationRegistration, self).form_valid(form)
-
-
-class ApplicationDetail(ApplicationOwnerIsUserMixin, DetailView):
-    """
-    Detail view for an application instance owned by the request.user
-    """
-    context_object_name = 'application'
-    template_name = "application_detail.html"
-
-
-class ApplicationList(ApplicationOwnerIsUserMixin, ListView):
-    """
-    List view for all the applications owned by the request.user
-    """
-    context_object_name = 'applications'
-    template_name = "application_list.html"
-
-
-class ApplicationDelete(ApplicationOwnerIsUserMixin, DeleteView):
-    """
-    View used to delete an application owned by the request.user
-    """
-    context_object_name = 'application'
-    success_url = reverse_lazy('dote_list')
-    template_name = "application_confirm_delete.html"
-
-
-class ApplicationUpdate(ApplicationOwnerIsUserMixin, UpdateView):
-    """
-    View used to update an application owned by the request.user
-    """
-    context_object_name = 'application'
-    template_name = "application_form.html"
-
-    fields = None
-    form_class = CustomRegisterApplicationForm
-
+class CustomFormMixin(object):
     def get_form_kwargs(self):
         """
         Add `user` to kwargs because it is required by the constructor of
         CustomRegisterApplicationForm class.
         """
-        kwargs = super(ApplicationUpdate, self).get_form_kwargs()
+        kwargs = super(CustomFormMixin, self).get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+
+class ApplicationRegistration(CustomFormMixin, oauth2_views.ApplicationRegistration):
+    """
+    View used to register a new Application for the request.user
+    """
+    def get_form_class(self):
+        """
+        Returns the form class for the application model
+        """
+        return CustomRegisterApplicationForm
+
+
+class ApplicationUpdate(CustomFormMixin, oauth2_views.ApplicationUpdate):
+    """
+    View used to update an application owned by the request.user
+    """
+    fields = None
+    form_class = CustomRegisterApplicationForm

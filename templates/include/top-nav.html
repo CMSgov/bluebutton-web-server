@@ -15,20 +15,20 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse navbar-ex1-collapse">
           <ul class="nav navbar-nav navbar-right">
-            
+
             {% if user.is_authenticated %}
-             
-             
+
+
              <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ user }} <b class="caret"></b></a>
               <ul class="dropdown-menu">
 
-               
+
                 <li><a href="/accounts/settings"> <i class="fa fa-gears"></i> Account Settings</a></li>
-               	 <li><a href="{% url 'dote_authorized-token-list' %}"> <i class="fa fa-legal"></i>  Applications You Have Given Access To</a>
-		           <li><a href="{% url 'dote_list' %}">  <i class="fa fa-key"></i> Applications You Have Created</a>
-		        
-               
+               	 <li><a href="{% url 'oauth2_provider:authorized-token-list' %}"> <i class="fa fa-legal"></i>  Applications You Have Given Access To</a>
+		           <li><a href="{% url 'oauth2_provider:list' %}">  <i class="fa fa-key"></i> Applications You Have Created</a>
+
+
                 <li><a href="/accounts/logout">  <i class="fa fa-sign-out"></i>  Logout</a></li>
 
               </ul>
@@ -51,7 +51,7 @@
                <li><a href="/accounts/logout"><i class="fa fa-sign-out"></i></a></li>
           {% else %}
              <li><a href="/accounts/login"><i class="fa fa-sign-in"></i></a></li>
-            {% endif %} 
+            {% endif %}
 
           </ul>
         </div><!-- /.navbar-collapse -->
