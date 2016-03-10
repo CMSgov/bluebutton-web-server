@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrapform',
+    'fhir',
     'apps.signups',
     'apps.core',
     'apps.accounts',
