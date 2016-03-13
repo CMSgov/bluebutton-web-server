@@ -12,7 +12,7 @@ urlpatterns = [
     url(r'^accounts/',      include('apps.accounts.urls')),
     url(r'^api/',           include('apps.api.urls')),
     url(r'^api/',           include(api_urls)),
-    url(r'^fhir/',          include('fhir.urls')),
+    url(r'^fhir/v3/',       include('fhir.urls')),
     url(r'^capabilities/',  include('apps.capabilities.urls')),
     url(r'^o/',             include('apps.dot_ext.urls')),
     url(r'^signups/',       include('apps.signups.urls')),
