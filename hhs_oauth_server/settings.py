@@ -205,6 +205,7 @@ AUTHENTICATION_BACKENDS = (
 OAUTH2_PROVIDER_APPLICATION_MODEL='dot_ext.Application'
 OAUTH2_PROVIDER = {
     'OAUTH2_VALIDATOR_CLASS': 'apps.accounts.oauth2_validators.SingleAccessTokenValidator',
+    'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
 }
 
 try:
