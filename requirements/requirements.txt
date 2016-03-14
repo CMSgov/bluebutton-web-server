@@ -4,13 +4,18 @@
 #
 #    pip-compile requirements.in
 #
+boto==2.39.0
 django-bootstrap-form==3.2
 django-braces==1.8.1      # via django-oauth-toolkit
 django-cors-headers==1.1.0
 django-debug-toolbar==1.4
+django-fhir==0.0.0.5
 django-localflavor==1.2
 django-oauth-toolkit==0.10.0
-Django==1.8.5             # via django-bootstrap-form, django-debug-toolbar, django-oauth-toolkit
+django-ses==0.7.0
+Django==1.8.5             # via django-bootstrap-form, django-debug-toolbar, django-fhir, django-oauth-toolkit
+functools32==3.2.3.post2  # via jsonschema
+jsonschema==2.5.1         # via django-fhir
 oauthlib==1.0.3
 pluggy==0.3.1             # via tox
 py==1.4.31                # via tox
