@@ -22,8 +22,8 @@ class ProtectedCapability(models.Model):
     slug                = models.SlugField(verbose_name="Scope", max_length=100, default="", unique=True)
     group               = models.ForeignKey(Group)
     protected_resources = models.TextField(max_length=10240,
-                            help_text="""A JSON list of pairs containing HTTP method and URL.
-                            Example: [["GET","/api/task1"], ["POST","/api/task2"]]
+                            help_text="""A JSON list of pairs containing HTTP method and URL. It may contain [id] placeholders for wildcards
+                            Example: [["GET","/api/task1"], ["POST","/api/task2/[id]"]]
                             """, default="""[["GET", "/some-url"]]""")
     description         = models.TextField(max_length=10240, blank=True, default="")
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from views import *
 
 
-urlpatterns = patterns('',
+urlpatterns = [
 
     url(r'login', simple_login,  name="login"),
     url(r'create', create,  name="accounts_create"),
@@ -29,7 +29,7 @@ urlpatterns = patterns('',
     url(r'reissue-api-keys$', reissue_api_keys,
         name='reissue_api_keys'),
 
-)
+]
 
 # these are the api endpoints exposed by the accounts application
 api_urls = [

@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'bootstrapform',
     'fhir',
+    'apps.nppes_handler',
     'apps.signups',
     'apps.core',
     'apps.accounts',
@@ -52,7 +53,6 @@ INSTALLED_APPS = (
 
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
-
     'debug_toolbar',
 )
 
