@@ -34,8 +34,8 @@ class BaseApiTest(TestCase):
         group, _ = Group.objects.get_or_create(name=name)
         return group
 
-    def _create_application(self, name, client_type=None, grant_type=None, capability=None, user=None):
-
+    def _create_application(self, name, client_type=None, grant_type=None,
+                            capability=None, user=None, **kwargs):
         """
         Helper method that creates an application instance
         with `name`, `client_type` and `grant_type` and `capability`.
@@ -49,7 +49,7 @@ class BaseApiTest(TestCase):
         dev_user = user or self._create_user('dev', '123456')
         application = Application.objects.create(
             name=name, user=dev_user, client_type=client_type,
-            authorization_grant_type=grant_type)
+            authorization_grant_type=grant_type, **kwargs)
         # add capability
         if capability:
             application.scope.add(capability)
