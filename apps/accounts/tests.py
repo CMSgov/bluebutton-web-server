@@ -74,8 +74,12 @@ class TestSingleAccessTokenValidator(BaseApiTest):
         """
         # create the user
         user = self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
-        # create a oauth2 application
+        # create read and write capabilities
+        read_capability = self._create_capability('Read', [])
+        write_capability = self._create_capability('Write', [])
+        # create a oauth2 application and add capabilities
         application = self._create_application('test')
+        application.scope.add(read_capability, write_capability)
         # get the first access token for the user 'john'
         first_access_token = self._get_access_token('john', '123456', application, scope='read write')
         # request another access token for the same user/application
@@ -91,8 +95,12 @@ class TestSingleAccessTokenValidator(BaseApiTest):
         """
         # create the user
         user = self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
-        # create a oauth2 application
+        # create read and write capabilities
+        read_capability = self._create_capability('Read', [])
+        write_capability = self._create_capability('Write', [])
+        # create a oauth2 application and add capabilities
         application = self._create_application('test')
+        application.scope.add(read_capability, write_capability)
         # get the first access token for the user 'john'
         first_access_token = self._get_access_token('john', '123456', application, scope='read')
         # request another access token for the same user/application

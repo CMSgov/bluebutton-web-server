@@ -10,6 +10,8 @@ from oauthlib.oauth2 import Server
 from oauth2_provider.oauth2_validators import OAuth2Validator
 from oauth2_provider.oauth2_backends import OAuthLibCore
 
+from .permissions import allow_resource
+
 
 def capability_protected_resource(scopes=None, validator_cls=OAuth2Validator, server_cls=Server):
     """
@@ -31,10 +33,8 @@ def capability_protected_resource(scopes=None, validator_cls=OAuth2Validator, se
             core = OAuthLibCore(server_cls(validator))
             valid, oauthlib_req = core.verify_request(request, scopes=_scopes)
             if valid:
-                # here we check if the access to resource is allowed by the application.
-                # note that `oauthlib_req.client` is the instance of the application
-                # used to issue the token.
-                if not oauthlib_req.client.allow_resource(request.method, request.path):
+                # here we check if the access to resource is allowed by the token's scope.
+                if not allow_resource(oauthlib_req.access_token, request.method, request.path):
                     return HttpResponseForbidden('token has no capability to access the resource')
 
                 request.resource_owner = oauthlib_req.user

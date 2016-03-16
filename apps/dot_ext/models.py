@@ -31,28 +31,5 @@ class Application(AbstractApplication):
     endorsements           = models.ManyToManyField(Endorsement, blank=True)
     agree                  = models.BooleanField(default=False)
 
-    _messages = {
-        "resource_allowed": "application '%s': access to resource '%s %s' allowed",
-        "resource_forbidden": "application '%s': access to resource '%s %s' forbidden",
-    }
-
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
-
-    def allow_resource(self, method, path):
-        """
-        Return True when this applications has capability to allow
-        request to `path` with method `method`.
-        """
-        logger.debug("application '%s': checking access to resource '%s %s' is allowed",
-                     self.name, method, path)
-
-        for scope in self.scope.all():
-            logger.debug("application '%s': checking access with scope '%s'",
-                         self.name, scope.protected_resources)
-            if scope.allow(method, path):
-                logger.info(self._messages['resource_allowed'], self.name, method, path)
-                return True
-
-        logger.info(self._messages['resource_forbidden'], self.name, method, path)
-        return False

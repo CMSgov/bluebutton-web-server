@@ -1,6 +1,8 @@
 {% extends "oauth2_provider/base.html" %}
 
 {% load i18n %}
+{% load bootstrap %}
+
 {% block content %}
     <div class="block-center">
         {% if not error %}
@@ -15,13 +17,8 @@
                 {% endfor %}
 
                 <p>{% trans "Application requires following permissions" %}</p>
-                <ul>
-                    {% for scope in scopes_descriptions %}
-                        <li>{{ scope }}</li>
-                    {% endfor %}
-                </ul>
+                {{ form.scope|bootstrap }}
 
-                {{ form.errors }}
                 {{ form.non_field_errors }}
 
                 <div class="control-group">
