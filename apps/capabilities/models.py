@@ -19,7 +19,7 @@ from django.utils.lru_cache import lru_cache
 @python_2_unicode_compatible
 class ProtectedCapability(models.Model):
     title               = models.CharField(max_length=256, default="", unique=True)
-    slug                = models.SlugField(verbose_name="Scope", max_length=100, default="", unique=True)
+    slug                = models.CharField(verbose_name="Scope", max_length=100, default="", unique=True)
     group               = models.ForeignKey(Group)
     protected_resources = models.TextField(max_length=10240,
                             help_text="""A JSON list of pairs containing HTTP method and URL. It may contain [id] placeholders for wildcards
@@ -55,6 +55,12 @@ class ProtectedCapability(models.Model):
 
     def scope(self):
         return self.slug
+    
+    
+    def save(self, *args, **kwargs):
+        self.slug = self.slug.replace(" ", "-")
+        super(ProtectedCapability, self).save(**kwargs)
+        
 
     class Meta:
         verbose_name_plural = "Protected Capabilities"
