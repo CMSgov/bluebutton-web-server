@@ -40,7 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrapform',
-    'fhir',
+    'apps.fhir',
     'apps.nppes_handler',
     'apps.signups',
     'apps.core',
@@ -193,7 +193,7 @@ SEND_EMAIL= True
 ORGANIZATION_NAME = "oAuth2"
 EMAIL_BACKEND = 'django_ses.SESBackend'
 SIGNUP_TIMEOUT_DAYS = 3
-EMAIL_HOST_USER = 'directca@videntity.com'
+EMAIL_HOST_USER = 'sales@videntity.com'
 INVITE_REQUEST_ADMIN = 'sales@videntity.com'
 
 MIN_PASSWORD_LEN = 8

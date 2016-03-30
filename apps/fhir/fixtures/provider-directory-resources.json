@@ -1,0 +1,36 @@
+[
+{
+    "fields": {
+        "search": true,
+        "resource_name": "Practitioner",
+        "get": true,
+        "read": true,
+        "create": true,
+        "history": true,
+        "update": true,
+        "json_schema": "{}",
+        "put": true,
+        "vread": true,
+        "delete": true
+    },
+    "model": "fhir.supportedresourcetype",
+    "pk": 1
+},
+{
+    "fields": {
+        "search": false,
+        "resource_name": "Organization",
+        "get": false,
+        "read": false,
+        "create": false,
+        "history": false,
+        "update": false,
+        "json_schema": "{}",
+        "put": false,
+        "vread": false,
+        "delete": false
+    },
+    "model": "fhir.supportedresourcetype",
+    "pk": 2
+}
+]
