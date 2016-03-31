@@ -6,6 +6,8 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from ..models import SupportedResourceType
 from .utils import check_access_interaction_and_resource_type
+from ..mongofhirutils import update_mongo_fhir
+from collections import OrderedDict
 
 @csrf_exempt
 def update(request, resource_type, id):
@@ -19,13 +21,29 @@ def update(request, resource_type, id):
     if deny:
         #If not allowed, return a 4xx error.
         return deny
+    
+    od = update_mongo_fhir(json.loads(request.body, object_pairs_hook=OrderedDict), "fhir", resource_type, id)
 
-    # Replace Section below with call to function in fhir_io_mongo or pluggable backend
-    od = OrderedDict()
-    od['request_method']= request.method
-    od['interaction_type'] = "update"
-    od['resource_type']    = resource_type
-    od['id'] = id
-    od['note'] = "This is only a stub for future implementation"
-    return HttpResponse(json.dumps(od, indent=4),
-                        content_type="application/json")
+    if od['code']==200:
+        return HttpResponse(json.dumps(od['result'], indent=4),
+                        status=od['code'], content_type="application/json")    
+    else:
+        oo = OrderedDict()
+        oo['resourceType']= "OperationOutcome"
+        oo['issue'] = []
+        issue = OrderedDict()
+        
+        if od['code']==500:
+            issue['severity']='fatal'
+            issue['code']='exception'
+            issue['details']= od['details']
+         
+        if od['code']==400:
+            issue['severity']='fatal'
+            issue['code']='invalid'
+            issue['details']= od['details']           
+        oo['issue'].append(issue)
+        
+      
+        return HttpResponse(json.dumps(oo, indent=4),
+                        status=od['code'], content_type="application/json")         
