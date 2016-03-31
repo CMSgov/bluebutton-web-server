@@ -15,6 +15,5 @@ urlpatterns = [
     url(r'^capabilities/',  include('apps.capabilities.urls')),
     url(r'^o/',             include('apps.dot_ext.urls')),
     url(r'^signups/',       include('apps.signups.urls')),
-    url(r'^fhir/',          include('apps.fhir.urls')),
     url(r'^',               include('apps.home.urls')),
 ]

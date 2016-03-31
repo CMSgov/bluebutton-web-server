@@ -9,9 +9,10 @@ from .update import update
 from .delete import delete
 from .read import read
 from apps.dot_ext.decorators import capability_protected_resource
+from django.views.decorators.csrf import csrf_exempt
 
 
-
+@csrf_exempt
 @require_POST
 @capability_protected_resource()
 def oauth_create(request, resource_type):
@@ -20,11 +21,11 @@ def oauth_create(request, resource_type):
     return HttpResponse(status=501)
 
 
-
+@csrf_exempt
 @capability_protected_resource()
 def oauth_read_or_update_or_delete(request, resource_type, id):
     """Route to read, update, or delete based on HTTP method FHIR Interaction"""
-     
+    print "here" 
     if request.method == 'GET':
         # Read
         return read(request, resource_type, id)
@@ -41,7 +42,7 @@ def oauth_read_or_update_or_delete(request, resource_type, id):
 
 
 
-
+@csrf_exempt
 @capability_protected_resource()
 def oauth_view(request, resource_type):
     if request.method == "GET":
