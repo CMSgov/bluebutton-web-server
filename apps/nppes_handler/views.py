@@ -14,7 +14,6 @@ from apps.dot_ext.decorators import capability_protected_resource
 @capability_protected_resource()
 @csrf_exempt
 def nppes_update(request):
-    print "here"
     
     if request.method == 'POST':
         errors =[]
