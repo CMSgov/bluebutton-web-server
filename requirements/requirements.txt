@@ -12,6 +12,8 @@ https://github.com/evonove/django-oauth-toolkit/archive/scopes-backend.zip
 django-debug-toolbar
 django-fhir
 django-localflavor
+django-debug-toolbar==1.4
+django-localflavor==1.2
 django-ses==0.7.0
 Django>=1.9             # via django-bootstrap-form, django-debug-toolbar, django-fhir, django-oauth-toolkit
 #functools32==3.2.3.post2  # via jsonschema
@@ -24,3 +26,5 @@ python-openid==2.2.5
 sqlparse==0.1.19          # via django-debug-toolbar
 tox==2.3.1
 virtualenv==15.0.0        # via tox
+pymongo
+pdt
