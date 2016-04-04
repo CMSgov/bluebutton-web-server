@@ -10,7 +10,6 @@ django-braces==1.8.1      # via django-oauth-toolkit
 django-cors-headers==1.1.0
 https://github.com/evonove/django-oauth-toolkit/archive/scopes-backend.zip
 django-debug-toolbar==1.4
-django-fhir==0.0.0.5
 django-localflavor==1.2
 django-ses==0.7.0
 Django==1.8.5             # via django-bootstrap-form, django-debug-toolbar, django-fhir, django-oauth-toolkit
@@ -24,3 +23,5 @@ six==1.10.0               # via django-braces, django-oauth-toolkit
 sqlparse==0.1.19          # via django-debug-toolbar
 tox==2.3.1
 virtualenv==15.0.0        # via tox
+pymongo
+pdt
