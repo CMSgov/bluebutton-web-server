@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 from django.contrib.messages import constants as messages
 from django.conf import global_settings
+from django.utils.translation import ugettext_lazy as _
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -204,9 +205,19 @@ AUTHENTICATION_BACKENDS = (
 
 OAUTH2_PROVIDER_APPLICATION_MODEL='dot_ext.Application'
 OAUTH2_PROVIDER = {
-    'OAUTH2_VALIDATOR_CLASS': 'apps.accounts.oauth2_validators.SingleAccessTokenValidator',
+    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
+    'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
 }
+
+# These choices will be available in the expires_in field
+# of the oauth2 authorization page.
+DOT_EXPIRES_IN = (
+    (86400, _("1 Day")),
+    (86400*7, _("1 Week")),
+    (86400*365, _("1 Year")),
+    (86400*365*100, _("Forever")),
+)
 
 try:
     from settings_local import *

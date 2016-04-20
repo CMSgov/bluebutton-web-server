@@ -18,6 +18,7 @@
 
                 <p>{% trans "Application requires following permissions" %}</p>
                 {{ form.scope|bootstrap }}
+                {{ form.expires_in|bootstrap }}
 
                 {{ form.non_field_errors }}
 

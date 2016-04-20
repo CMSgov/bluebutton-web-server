@@ -2,8 +2,9 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from django.utils import timezone
+from django.utils.timezone import timedelta
 
-from oauth2_provider.models import AccessToken
+from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
 
@@ -47,4 +48,30 @@ class SingleAccessTokenValidator(OAuth2Validator):
                     return
 
         # default behaviour when no old token is found
-        super(SingleAccessTokenValidator, self).save_bearer_token(token, request, *args, **kwargs)
+        if request.refresh_token:
+            # remove used refresh token
+            try:
+                RefreshToken.objects.get(token=request.refresh_token).revoke()
+            except RefreshToken.DoesNotExist:
+                assert()  # TODO though being here would be very strange, at least log the error
+
+        expires = timezone.now() + timedelta(seconds=token['expires_in'])
+        if request.grant_type == 'client_credentials':
+            request.user = None
+
+        access_token = AccessToken(
+            user=request.user,
+            scope=token['scope'],
+            expires=expires,
+            token=token['access_token'],
+            application=request.client)
+        access_token.save()
+
+        if 'refresh_token' in token:
+            refresh_token = RefreshToken(
+                user=request.user,
+                token=token['refresh_token'],
+                application=request.client,
+                access_token=access_token
+            )
+            refresh_token.save()

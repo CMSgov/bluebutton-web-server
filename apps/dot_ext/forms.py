@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from django import forms
+from django.conf import settings
 
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
@@ -31,6 +32,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
 class AllowForm(DotAllowForm):
     scope = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
+    expires_in = forms.TypedChoiceField(choices=settings.DOT_EXPIRES_IN, coerce=int,
+                                        empty_value=None)
 
     def __init__(self, *args, **kwargs):
         application = kwargs.pop('application', None)
