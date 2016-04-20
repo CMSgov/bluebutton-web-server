@@ -5,8 +5,11 @@ import logging
 
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
+from oauth2_provider.exceptions import OAuthToolkitError
+from oauth2_provider.http import HttpResponseUriRedirect
 
 from ..forms import AllowForm
+from ..models import ExpiresIn
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -18,6 +21,35 @@ class AuthorizationView(DotAuthorizationView):
     use the custom AllowForm.
     """
     form_class = AllowForm
+
+    def form_valid(self, form):
+        try:
+            credentials = {
+                'client_id': form.cleaned_data.get('client_id'),
+                'redirect_uri': form.cleaned_data.get('redirect_uri'),
+                'response_type': form.cleaned_data.get('response_type', None),
+                'state': form.cleaned_data.get('state', None),
+                'form_expires_in': form.cleaned_data.get('expires_in'),
+            }
+
+            scopes = form.cleaned_data.get('scope')
+            allow = form.cleaned_data.get('allow')
+            uri, headers, body, status = self.create_authorization_response(
+                request=self.request, scopes=scopes, credentials=credentials, allow=allow)
+            self.success_url = uri
+
+            # here we save the expires_in choice from the allow form
+            # into the expires cache table.
+            expires_in = form.cleaned_data.get('expires_in')
+            client_id = form.cleaned_data.get('client_id')
+            user_id = self.request.user.pk
+            ExpiresIn.objects.set_expires_in(client_id, user_id, expires_in)
+
+            logger.debug("Success url for the request: {0}".format(self.success_url))
+            return HttpResponseUriRedirect(self.success_url)
+
+        except OAuthToolkitError as error:
+            return self.error_response(error)
 
     def get_form_kwargs(self):
         kwargs = super(AuthorizationView, self).get_form_kwargs()
