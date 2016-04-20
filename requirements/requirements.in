@@ -1,4 +1,4 @@
-Django<1.9
+Django
 django-bootstrap-form
 django-cors-headers
 django-localflavor
@@ -9,4 +9,4 @@ tox
 django-debug-toolbar
 boto
 django-ses
-django-fhir
+#django-fhir
