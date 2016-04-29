@@ -4,10 +4,9 @@
 from django.conf import settings
 import json
 from django.contrib.auth import login, authenticate
-from httpauth import HttpBasicAuthentication
 from django.http import HttpResponse
 
-
+from .httpauth import HttpBasicAuthentication
 
 
 def authorize(request):

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4
+from datetime import datetime
+
 from django.shortcuts import render_to_response, get_object_or_404, get_list_or_404
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
@@ -8,17 +10,17 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonRespons
 from django.http import HttpResponseNotAllowed,  HttpResponseForbidden
 from django.views.decorators.http import require_POST, require_GET
 from django.db.models import Sum
-from models import *
-from forms import *
 from django.core.urlresolvers import reverse
-from utils import verify
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
-from datetime import datetime
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-from emails import send_invite_request_notices
+
+from .emails import send_invite_request_notices
+from .forms import *
+from .models import *
+from .utils import verify
 
 from oauth2_provider.decorators import protected_resource
 

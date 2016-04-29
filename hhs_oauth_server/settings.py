@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrapform',
+    #'localflavor',
     'apps.fhir',
     'apps.nppes_handler',
     'apps.signups',
@@ -51,6 +52,7 @@ INSTALLED_APPS = (
     'apps.capabilities',
     'apps.dot_ext',
     'corsheaders',
+    'pymongo',
 
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
