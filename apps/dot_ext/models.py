@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import logging
+import sys
 
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -48,6 +49,9 @@ class ExpiresInManager(models.Manager):
         Generate a unique key using client_id and user_id args.
         """
         arg = "%s_%s" % (client_id, user_id)
+        # Python 3 - avoid TypeError: Unicode-objects must be encoded before hashing
+        if sys.version_info > (3, 2):
+            arg = arg.encode('utf-8')
         return hashlib.sha256(arg).hexdigest()
 
     def set_expires_in(self, client_id, user_id, expires_in):
