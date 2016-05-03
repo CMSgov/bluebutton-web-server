@@ -51,7 +51,11 @@ def api_write(request):
     if request.method == 'POST':
         errors =[]
         try:
-            j =json.loads(request.body, object_pairs_hook=OrderedDict)
+            if type(request.body) == bytes:
+                decoded = request.body.decode('utf-8')
+            else:
+                decoded = request.body
+            j =json.loads(decoded, object_pairs_hook=OrderedDict)
 
             if type(j) !=  type(OrderedDict()):
                 errors.append("The string did not contain a JSON object.")

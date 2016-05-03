@@ -7,6 +7,7 @@ import os, json, sys
 import datetime
 from bson.code import Code
 from bson.objectid import ObjectId
+from bson import json_util
 from pymongo import MongoClient, DESCENDING
 from collections import OrderedDict
 
@@ -40,8 +41,8 @@ def update_mongo_pjson(document, database_name="nppes", collection_name="pjson")
             myobjectid=collection.save(document)
             response_dict['code']=200
     except:
-        print "Error reading from Mongo"
-        print str(sys.exc_info())
+        print("Error reading from Mongo")
+        print(str(sys.exc_info()))
         response_dict['code'] = 500
         response_dict['errors']=[ str(sys.exc_info()), ]
 

@@ -8,18 +8,20 @@
     REsponse with JSON instead of standard login redirect.
 """
 
+import json, string, random
 import urlparse
-from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.utils.decorators import available_attrs
-from functools import update_wrapper, wraps
+
+from django.conf import settings
+from django.contrib.auth import login, authenticate, REDIRECT_FIELD_NAME
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.conf import settings
-from django.contrib.auth import authenticate, login
-import json, string, random
-from django.contrib.auth import login, authenticate
-from django.http import HttpResponse
+from django.utils.decorators import available_attrs
+
 from datetime import date
+from functools import update_wrapper, wraps
+
+from .httpauth import HttpBasicAuthentication
+
 
 def json_login_required(func):
     """
@@ -38,7 +40,7 @@ def json_login_required(func):
             (username, password) = auth.split(':', 1)
 
         
-            #print username, password  
+            #(print username, password)
             user = authenticate(username=username, password=password)
         
         if not user or not user.is_active:
@@ -48,7 +50,6 @@ def json_login_required(func):
         return func(request, *args, **kwargs)
 
     return update_wrapper(wrapper, func)
-
 
 
 def authorize(request):
@@ -62,6 +63,7 @@ def authorize(request):
         else:
             auth=False
     return auth
+
 
 def unauthorized_json_response(additional_info=None):
     body={"code": 401,

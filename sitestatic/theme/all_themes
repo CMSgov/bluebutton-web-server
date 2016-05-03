@@ -1,0 +1,17 @@
+echo Downloading themes...
+./get_theme cerulean
+./get_theme cosmo
+./get_theme cyborg
+./get_theme darkly
+./get_theme flatly
+./get_theme journal
+./get_theme lumen
+./get_theme paper
+./get_theme readable
+./get_theme sandstone
+./get_theme simplex
+./get_theme slate
+./get_theme spacelab
+./get_theme superhero
+./get_theme united
+./get_theme yeti

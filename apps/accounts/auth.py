@@ -8,7 +8,7 @@ from django.core.urlresolvers import get_callable
 from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from models import UserProfile
+from .models import UserProfile
 
 
 class HTTPAuthBackend(object):

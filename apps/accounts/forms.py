@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 from django import forms
-from  models import *
-#from django.contrib.admin import widgets
-from django.contrib.auth.models import User
-from localflavor.us.forms import USPhoneNumberField
 
-from localflavor.us.us_states import US_STATES
+# from django.contrib.admin import widgets
+from django.contrib.auth.models import User
+# from localflavor.us.forms import USPhoneNumberField
+
+# from localflavor.us.us_states import US_STATES
 
 from django.conf import settings
 from django.core.mail import mail_admins
 from django.utils.translation import ugettext_lazy as _
-from models import Invitation, RequestInvite, UserProfile
 
-
+from .models import Invitation, RequestInvite, UserProfile
 
 
 class RequestInviteForm(forms.ModelForm):

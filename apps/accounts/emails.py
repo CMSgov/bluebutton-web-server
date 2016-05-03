@@ -42,8 +42,7 @@ def send_password_reset_url_via_email(user, reset_key):
 
 
 def send_signup_key_via_email(user, signup_key):
-    
-    
+
     if settings.SEND_EMAIL:
         subject = "[%s]Verify your email to get started." % (settings.ORGANIZATION_NAME)    
         from_email = settings.EMAIL_HOST_USER
