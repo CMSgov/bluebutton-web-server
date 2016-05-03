@@ -1,24 +1,48 @@
 {% load staticfiles %}
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content
+         must come *after* these tags -->
+
 <meta name="description" content="CMS oAuth2 Server"/>
-<meta name="author" content="Alan Viars">
+<meta name="author" content="Alan Viars/Mark Scrimshire">
+
 <link href="{% static "img/favicon.png" %}" rel="shortcut icon" type="image/x-icon" />
 
+<link rel="apple-touch-icon" sizes="57x57" href="{% static 'img/favicon/apple-icon-57x57.png' %}">
+<link rel="apple-touch-icon" sizes="60x60" href="{% static 'img/favicon/apple-icon-60x60.png' %}">
+<link rel="apple-touch-icon" sizes="72x72" href="{% static 'img/favicon/apple-icon-72x72.png' %}">
+<link rel="apple-touch-icon" sizes="76x76" href="{% static 'img/favicon/apple-icon-76x76.png' %}">
+<link rel="apple-touch-icon" sizes="114x114" href="{% static 'img/favicon/apple-icon-114x114.png' %}">
+<link rel="apple-touch-icon" sizes="120x120" href="{% static 'img/favicon/apple-icon-120x120.png' %}">
+<link rel="apple-touch-icon" sizes="144x144" href="{% static 'img/favicon/apple-icon-144x144.png' %}">
+<link rel="apple-touch-icon" sizes="152x152" href="{% static 'img/favicon/apple-icon-152x152.png' %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-icon-180x180.png' %}">
+<link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/favicon/android-icon-192x192.png' %}">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
+<link rel="icon" type="image/png" sizes="96x96" href="{% static 'img/favicon/favicon-96x96.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon/favicon-16x16.png' %}">
+<link rel="manifest" href="{%  static 'img/favicon/manifest.json' %}">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="{% static 'img/favicon/ms-icon-144x144.png' %}">
+<meta name="theme-color" content="#ffffff">
+
 <!-- Custom Fonts -->
-    <link href="{% static "modern-business/font-awesome-4.1.0/css/font-awesome.min.css" %}" rel="stylesheet" type="text/css">
+    <link href="{% static "font-awesome/css/font-awesome.min.css" %}" rel="stylesheet" type="text/css">
 
-<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-
-
-    <title>CMS oAuth2 Server</title>
+    <title>{{ settings.APPLICATION_TITLE }}</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="{% static "modern-business/css/bootstrap.css" %}" rel="stylesheet">
-   <link href="{% static "modern-business/css/modern-business.css" %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/boostrap.min.css' %}"
+          rel="stylesheet">
+
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}"
+          rel="stylesheet">
+
+    {% with settings.STATIC_URL|add:settings.THEME.PATH|add:'bootstrap.min.css' as theme_css_static %}
+   <link href="{% static theme_css_static %}" rel="stylesheet">
+    {% endwith %}
 
 
     <!-- Add custom CSS here -->
