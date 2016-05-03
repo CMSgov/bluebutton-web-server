@@ -6,11 +6,12 @@ from datetime import timedelta, date
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date, datetime, timedelta
-from localflavor.us.models import PhoneNumberField
+# to activate locaflavor add to INSTALLED_APPS
+# from localflavor.us.models import PhoneNumberField
 import string
 import random
 import uuid
-from emails import send_password_reset_url_via_email, send_signup_key_via_email
+from .emails import send_password_reset_url_via_email, send_signup_key_via_email
 from django.core.mail import send_mail, EmailMessage
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible

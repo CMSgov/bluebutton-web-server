@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrapform',
+    #'localflavor',
     'apps.fhir',
     'apps.nppes_handler',
     'apps.signups',
@@ -51,6 +52,7 @@ INSTALLED_APPS = (
     'apps.capabilities',
     'apps.dot_ext',
     'corsheaders',
+    'pymongo',
 
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
@@ -69,6 +71,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 )
+
 CORS_ORIGIN_ALLOW_ALL = True
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
@@ -78,14 +81,22 @@ TEMPLATES = [
         'DIRS': [
                  os.path.join(BASE_DIR, 'templates'),
                  ],
-        'APP_DIRS': True,
+        #'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django_settings_export.settings_export',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.core.context_processors.media',
+                'django.core.context_processors.static',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'loaders': [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ],
+            'debug': DEBUG
         },
     },
 ]
@@ -99,9 +110,6 @@ MESSAGE_TAGS ={ messages.DEBUG:   'debug',
                 messages.WARNING: 'warning',
                 messages.ERROR:   'danger'
                 }
-
-
-
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
@@ -127,6 +135,71 @@ USE_L10N = True
 
 USE_TZ = True
 
+THEMES = {"0": {'NAME': "Default-Readable",
+                'PATH':"theme/default/",
+                'INFO': "Readable san-serif base theme"},
+
+          "3": {'NAME': "Readable",
+                'PATH': "theme/readable/",
+                'INFO': "Easy to read Bootswatch Theme"},
+          "4": {'NAME': "Cerulean",
+                'PATH': "theme/cerulean/",
+                'INFO': "Blue Bootswatch theme theme"},
+          "5": {'NAME': "Cosmo",
+                'PATH': "theme/cosmo/",
+                'INFO': "Cosmo bootswatch theme"},
+          "6": {'NAME': "Cyborg",
+                'PATH': "theme/cyborg/",
+                'INFO': "Cyborg bootswatch theme"},
+          "7": {'NAME': "Darkly",
+                'PATH': "theme/darkly/",
+                'INFO': "Darkly bootswatch theme"},
+          "8": {'NAME': "Flatly",
+                'PATH': "theme/flatly/",
+                'INFO': "Flatly bootswatch theme"},
+          "9": {'NAME': "Journal",
+                'PATH': "theme/journal/",
+                'INFO': "Journal bootswatch theme"},
+          "10":{'NAME': "Lumen",
+                'PATH': "theme/lumen/",
+                'INFO': "Lumen bootswatch theme"},
+          "11": {'NAME': "Paper",
+                 'PATH': "theme/paper/",
+                 'INFO': "Paper bootswatch theme"},
+          "12": {'NAME': "Sandstone",
+                 'PATH': "theme/sandstone/",
+                 'INFO': "Sandstone bootswatch theme"},
+          "13": {'NAME': "Simplex",
+                 'PATH': "theme/simplex/",
+                 'INFO': "Simplex bootswatch theme"},
+          "14": {'NAME': "Slate",
+                 'PATH': "theme/slate/",
+                 'INFO': "Slate bootswatch theme"},
+          "15": {'NAME': "Spacelab",
+                 'PATH': "theme/spacelab/",
+                 'INFO': "Spacelab bootswatch theme"},
+          "16": {'NAME': "Superhero",
+                 'PATH': "theme/superhero/",
+                 'INFO': "Superhero bootswatch theme"},
+          "17": {'NAME': "United",
+                 'PATH': "theme/united/",
+                 'INFO': "United bootswatch theme"},
+          "18": {'NAME': "Yeti",
+                 'PATH': "theme/yeti/",
+                 'INFO': "Yeti bootswatch theme"},
+          "SELECTED": "0"}
+
+if THEMES['SELECTED'] not in THEMES:
+    THEME_SELECTED = "0"
+else:
+    THEME_SELECTED = THEMES["SELECTED"]
+
+THEME = THEMES[THEME_SELECTED]
+
+if DEBUG:
+    print("THEME:", THEME)
+
+APPLICATION_TITLE = "CMS OAuth2 Server"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -218,6 +291,14 @@ DOT_EXPIRES_IN = (
     (86400*365, _("1 Year")),
     (86400*365*100, _("Forever")),
 )
+
+SETTINGS_EXPORT = [
+    'DEBUG',
+    'APPLICATION_TITLE',
+    'THEME',
+    'STATIC_URL',
+]
+
 
 try:
     from settings_local import *

@@ -5,9 +5,10 @@
 from django.conf import settings
 import os, json, sys
 import datetime
+from pymongo import MongoClient, DESCENDING
+
 from bson.code import Code
 from bson.objectid import ObjectId
-from pymongo import MongoClient, DESCENDING
 from collections import OrderedDict
 
 
@@ -85,8 +86,8 @@ def update_mongo_fhir(document, database_name, collection_name, id):
         
             
     except:
-        #print "Error reading from Mongo"
-        #print str(sys.exc_info())
+        #print("Error reading from Mongo")
+        #print(str(sys.exc_info()))
         response_dict['code']=500
         response_dict['details']=str(sys.exc_info())
     return response_dict

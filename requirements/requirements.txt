@@ -6,6 +6,7 @@
 #
 
 boto==2.39.0
+bson==1.1.0
 django-bootstrap-form==3.2
 django-braces==1.8.1      # via django-oauth-toolkit
 django-cors-headers==1.1.0
@@ -13,10 +14,14 @@ django-debug-toolbar==1.4
 django-localflavor==1.2
 django-oauth-toolkit==0.10.0
 django-ses==0.7.1
+django-settings-export==1.1.0
 Django==1.8.12            # via django-bootstrap-form, django-debug-toolbar, django-oauth-toolkit
+jsonschema==2.5.1
 oauthlib==1.0.3
+pdt==0.7.0
 pluggy==0.3.1             # via tox
 py==1.4.31                # via tox
+pymongo==3.2.2
 python-openid==2.2.5
 six==1.10.0               # via django-braces, django-oauth-toolkit
 sqlparse==0.1.19          # via django-debug-toolbar

@@ -1,0 +1,16 @@
+if ["z$1" == "z" ]; then
+	$0 readable
+else
+	echo downloading bootswatch theme: $1
+	mkdir $1
+	cd $1
+	wget http://bootswatch.com/$1/bootstrap.css
+	wget http://bootswatch.com/$1/bootstrap.min.css
+	wget http://bootswatch.com/$1/variables.less
+	wget http://bootswatch.com/$1/bootswatch.less
+	wget http://bootswatch.com/$1/_variables.scss
+	wget http://bootswatch.com/$1/_bootswatch.scss
+	cd ..
+	echo $1 done...
+fi
+

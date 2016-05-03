@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import ValidPasswordResetKey, Invitation, RequestInvite, UserProfile
+from .models import ValidPasswordResetKey, Invitation, RequestInvite, UserProfile
 
 
 admin.site.register(ValidPasswordResetKey)

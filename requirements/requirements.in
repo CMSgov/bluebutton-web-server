@@ -1,8 +1,11 @@
+bson
 Django
 django-bootstrap-form
 django-cors-headers
 django-localflavor
 django-oauth-toolkit
+django-settings-export
+jsonschema
 python-openid
 oauthlib
 tox
