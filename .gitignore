@@ -4,4 +4,6 @@
 *.db
 db.sqlite3
 .tox/
-settings_local.py
+local.py
+.DS_Store
+collectedstatic/
