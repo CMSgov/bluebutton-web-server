@@ -1,13 +1,62 @@
 oAuth Server - An oAuth Provider Sample Project
 ===============================================
+The project is based in Python 3 and Django 1.9.5.
+
+It consists of an OAuth2 server and a FHIR server that serves specific resources.
+ This application will handle the OAuth 2 handshaking and configuration with CMS Medicare 
+beneficiaries and Registered Developers.
+
+The prototype application will be served from an AWS instance (https://dev.bbonfhir.com).
+   
+
 
 Quick Setup
 -----------
 
-    git clone https://github.com/videntity/hhs_oauth_server.git
+These instructions provide a quick start for developers new to the project.
+Follow these steps on the command line.
+
+
+    git clone https://github.com/transparenthealth.org/hhs_oauth_server.git
+    cd hhs_oauth_server
+    mkvirtualenv oauth_server --python=/path/to/python3-binary
     pip install -r requirements/requirements.txt
     python manage.py migrate
     python manage.py runserver
+    
+    
+Note you can find the path to your Python3 binary by typing `which python3`.    
+
+Getting your Django Settings squared away
+-------------------------------------------
+
+Add this to `~/.bash_profile`  in iOS or `~/.bashrc` in Linux using your favorite text editor.
+
+
+   export DJANGO_SETTINGS_MODULE='_start.settings.local'
+
+Now activate the changes.
+
+
+   source ~/.bash_profile
+
+--or--
+
+
+    source ~/.bashrc
+
+
+Note that if you skip the previous step you will need to add `--settings=_start.settings.local`
+to any management command.
+
+Settings are inside the the folder `_start/settings/local.py`.  `local.py` extends `base.py`.
+Use `test.py` to test production and `test_local`to test locally in
+a development environment.  Included in `_start/settings/` you will find a folder
+called `examples` that can help you get started with your own `local.py` file.
+
+Passwords and other environment-dependent settings shall NOT be stored in the base settings
+file `base.py`. Instead security and environment settings should be set in `_start/settings/local.py`.
+Anything added to local.py will override the base settings.
 
 Running Tests
 -------------

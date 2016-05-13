@@ -76,21 +76,21 @@ def simple_login(request):
                    messages.error(request,
                         _("Your account is inactive so you may not log in."))
 
-                   return render_to_response('accounts/login.html',
+                   return render_to_response('login.html',
                                             {'form': form},
                                             RequestContext(request))
             else:
                 messages.error(request, _("Invalid username or password."))
 
-                return render_to_response('accounts/login.html',
+                return render_to_response('login.html',
                                     {'form': form},
                                     RequestContext(request))
 
         else:
-         return render_to_response('accounts/login.html',
+         return render_to_response('login.html',
                               RequestContext(request, {'form': form}))
     #this is a GET
-    return render_to_response('accounts/login.html',
+    return render_to_response('login.html',
                               {'form': LoginForm()},
                               context_instance = RequestContext(request))
 
@@ -110,11 +110,11 @@ def reset_password(request, reset_password_key=None):
             messages.success(request, _("Your password has been reset."))
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render_to_response('accounts/reset-password.html',
+            return render_to_response('reset-password.html',
                         RequestContext(request, {'form': form,
                             'reset_password_key': reset_password_key}))
 
-    return render_to_response('accounts/reset-password.html',
+    return render_to_response('reset-password.html',
                               RequestContext(request,
                                     {'form': PasswordResetForm(),
                                     'reset_password_key': reset_password_key}))
@@ -123,7 +123,7 @@ def reset_password(request, reset_password_key=None):
 def display_api_keys(request):
 
     up = get_object_or_404(UserProfile, user=request.user)
-    return render_to_response('accounts/display-api-keys.html',
+    return render_to_response('display-api-keys.html',
                               RequestContext(request,
                                     {'up': up}))
 
@@ -161,7 +161,7 @@ def password_reset_request(request):
                                       RequestContext(request, {'form': form}))
 
     else:
-        return render_to_response('accounts/password-reset-request.html',
+        return render_to_response('password-reset-request.html',
                              {'form': PasswordResetRequestForm()},
                               context_instance = RequestContext(request))
 
@@ -192,7 +192,7 @@ def create(request):
 
 
 def verify_email(request, verification_key,
-                 template_name='accounts/activate.html',
+                 template_name='activate.html',
                  extra_context=None):
     verification_key = verification_key.lower() # Normalize before trying anything with it.
     account = verify(verification_key)
@@ -264,7 +264,7 @@ def signup_verify(request, signup_key=None):
         messages.success(request, "Your account has been activated. You may now login.")
         return HttpResponseRedirect(reverse('login'))
     else:
-        return render_to_response('accounts/invalid-key.html',
+        return render_to_response('invalid-key.html',
                               RequestContext(request,
                                              {}))
 

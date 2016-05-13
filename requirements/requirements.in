@@ -3,7 +3,7 @@ Django
 django-bootstrap-form
 django-cors-headers
 django-localflavor
-django-oauth-toolkit
+https://github.com/evonove/django-oauth-toolkit/archive/scopes-backend.zip
 django-settings-export
 jsonschema
 python-openid
