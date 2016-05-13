@@ -12,7 +12,7 @@ django-braces==1.8.1      # via django-oauth-toolkit
 django-cors-headers==1.1.0
 django-debug-toolbar==1.4
 django-localflavor==1.2
-django-oauth-toolkit==0.10.0
+https://github.com/evonove/django-oauth-toolkit/archive/scopes-backend.zip
 django-ses==0.7.1
 django-settings-export==1.1.0
 Django==1.8.12            # via django-bootstrap-form, django-debug-toolbar, django-oauth-toolkit

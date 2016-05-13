@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block Content %}
+
+
+  <div class="container">
+    
+      <div class="row">
+         <div class="col-lg-8">
+           {% include "include/messages.html" %}
+         </div>
+       </div>
+    
+
+      <div class="hero-unit">
+      <h1>{% trans "Login" %}</h1>
+    <br>
+      
+      <div class="row">
+      <div class="span7 center">
+        <form class="well" method="post" action="">
+          {% csrf_token %}
+          <table>
+          
+          {% load bootstrap %}
+          {{ form|bootstrap }}
+  
+          </table>
+          <input type="submit" class="btn-large btn-primary" value="{% trans 'Login' %}" />
+        </form>
+      </div>
+    </div>
+  
+  <div class="row">
+   <small><a href="/accounts/register">
+   {% trans "Register here" %}</a> with an invitation code. {{account_request_text}}
+   Need an invite code? <a href="/accounts/request-invite">{% trans "Get that here." %}</a>
+   </small>
+
+    </div> 
+
+    
+{% endblock %}
+
