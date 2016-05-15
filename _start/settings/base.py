@@ -22,7 +22,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '732r4vhk)qku7^if#@2ea@0#c1)wk@py$lp8psp5*s+1f9r%4r'
+SECRET_KEY = 'FAKE_VALUE_REAL_VALUE_SET_FROM_CUSTOM_SETTINGS.PY'
+# I recommend setting a default/false value here
+# and then overwriting in local/custom settings.
+# This keeps the app functional if anyone clones the repository
+# You can generate a new SECRET_KEY using tools such as
+# http://www.miniwebtool.com/django-secret-key-generator/
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -57,16 +63,21 @@ INSTALLED_APPS = [
     
 ]
 
+# CorsMiddleware needs to come before Django's CommonMiddleware if you are using Django's
+# USE_ETAGS = True setting,
+# otherwise the CORS headers will be lost from the 304 not-modified responses,
+# causing errors in some browsers.
+# See https://github.com/ottoyiu/django-cors-headers for more information.
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -147,6 +158,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+# URL prefix for admin static files -- CSS, JavaScript and images.
+# Make sure to use a trailing slash.
+# Examples: "http://foo.com/static/admin/", "/static/admin/".
+ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
@@ -160,7 +175,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, '..', 'sitestatic'),
 ]
 
-
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS =[
@@ -168,7 +182,6 @@ STATICFILES_FINDERS =[
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 ]
-
 
 LOGGING = {
     'version': 1,
@@ -309,8 +322,8 @@ SETTINGS_EXPORT = [
 ]
 
 
-try:
-    from .local import *
-except:
-    pass
-
+# try:
+#     from .local import *
+# except:
+#     pass
+#

@@ -1,3 +1,5 @@
 from .base import *
 
-SECRET_KEY = "BBOAUTH2-PROD-_cdlv24!g$4)b&wq9fjn)p!vrs729idssk2qp7iyddd"
+DEBUG = True
+
+SECRET_KEY = "BBOAUTH2-LOCAL-_CHANGE_THIS_FAKE_KEY_TO_YOUR_OWN_SECRET_KEY"
