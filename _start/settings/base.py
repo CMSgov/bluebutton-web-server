@@ -35,6 +35,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+ADMINS = (
+     ('Alan Viars', 'aviars@videntity.com'),
+    ('Mark Scrimshire', 'mark@ekivemark.com'),
+)
+
+MANAGERS = ADMINS
+
 
 # Application definition
 
