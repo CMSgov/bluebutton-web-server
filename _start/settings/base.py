@@ -17,7 +17,6 @@ from django.utils.translation import ugettext_lazy as _
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
@@ -29,19 +28,22 @@ SECRET_KEY = 'FAKE_VALUE_REAL_VALUE_SET_FROM_CUSTOM_SETTINGS.PY'
 # You can generate a new SECRET_KEY using tools such as
 # http://www.miniwebtool.com/django-secret-key-generator/
 
+SETTINGS_MODE = os.environ.setdefault("DJANGO_SETTINGS_MODULE", "_start.settings.base")
+SETTINGS_MODE = SETTINGS_MODE.upper().split('.')
+SETTINGS_MODE = SETTINGS_MODE[-1]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Update Allowed Hosts to control access more closely.
+ALLOWED_HOSTS = ['*']
 
+# Set ADMINS and MANAGERS in your custom settings file. eg. local.py
 ADMINS = (
      ('Alan Viars', 'aviars@videntity.com'),
     ('Mark Scrimshire', 'mark@ekivemark.com'),
 )
-
 MANAGERS = ADMINS
-
 
 # Application definition
 
@@ -326,6 +328,7 @@ SETTINGS_EXPORT = [
     'APPLICATION_TITLE',
     'THEME',
     'STATIC_URL',
+    'SETTINGS_MODE',
 ]
 
 
