@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% block extrahead %}
+    <script src="{% static 'js/switch_content.js' %}"></script>
+{% endblock %}
+{% block title %}{% trans "Activate Advanced Blue Button API" %}{% endblock %}
+{% block breadcrumbs %}
+    <div class="container">
+        <ul class="breadcrumb">
+            <li><a href="{% url 'home' %}">Home</a></li>
+
+            <li class="active">Learn</li>
+        </ul>
+    </div>
+{% endblock %}
+{% block pagename %}Activate Advanced Blue Button API (2){% endblock %}
+{% block Content %}
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h1>It's Your Data</h1>
+
+                <h3>Taking Your Data with you</h3>
+
+                <p>The CMS Advanced BlueButton Service makes it easy for you to control
+                    the applications, services or research programs that can connect to
+                    your claims information.
+                    <br/>
+                    It is important to realize that, just like handing your downloaded
+                    BlueButton text file to someone else, once you have allowed an application
+                    to connect to your information they have a copy.
+                    <br/>
+                    Before you connect an application to your MyMedicare information always
+                    make sure that you trust the application to take good care of your information.
+                    <br/>
+                    But remember, if you change your mind you can come
+                    back to your My Account dashboard on MyMedicare.gov and disconnect the
+                    applications you want to stop using. When you update your connected applications
+                    settings the disconnection immediately stops any new data from flowing to the
+                    application you disconnected.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="pagination pagination-lg">
+                    <li>
+                        <a href="{% url 'learn_0' %}">Prev</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_0' %}">1</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_1' %}">2</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_2' %}">3</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_2' %}">Next</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{%  endblock %}
