@@ -17,10 +17,10 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
-from .emails import send_invite_request_notices
-from .forms import *
-from .models import *
-from .utils import verify
+from apps.accounts.emails import send_invite_request_notices
+from apps.accounts.forms import *
+from apps.accounts.models import *
+from apps.accounts.utils import verify
 
 from oauth2_provider.decorators import protected_resource
 
@@ -158,7 +158,7 @@ def password_reset_request(request):
 
         else:
              return render_to_response('generic/bootstrapform.html',
-                                      RequestContext(request, {'form': form}))
+                                       RequestContext(request, {'form': form}))
 
     else:
         return render_to_response('password-reset-request.html',
@@ -232,22 +232,22 @@ def account_settings(request):
             up.save()
             messages.success(request,'Your account settings have been updated.')
             return render_to_response('generic/bootstrapform.html',
-                            {'form': form,
+                                      {'form': form,
                              'name': name,
                              },
-                            RequestContext(request))
+                                      RequestContext(request))
         else:
             #the form had errors
             return render_to_response('generic/bootstrapform.html',
-                            {'form': form,
+                                      {'form': form,
                              'name': name,
                              },
-                            RequestContext(request))
+                                      RequestContext(request))
 
 
     #this is an HTTP GET
     return render_to_response('generic/bootstrapform.html',
-                    {'name': name, 'form': AccountSettingsForm(
+                              {'name': name, 'form': AccountSettingsForm(
                               initial={ 'username':  request.user.username,
                                 'email':                    request.user.email,
                                 'organization_name':        up.organization_name,

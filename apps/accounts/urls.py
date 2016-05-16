@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls import include, url
-from .views import *
+from .views.views import *
+from .views.learn import (learn_0,
+                          learn_1,
+                          learn_2)
 
 
 urlpatterns = [
@@ -28,6 +31,16 @@ urlpatterns = [
 
     url(r'reissue-api-keys$', reissue_api_keys,
         name='reissue_api_keys'),
+
+    url(r'^learn/0/$',
+        learn_0,
+        name='learn_0'),
+    url(r'^learn/1/$',
+        learn_1,
+        name='learn_1'),
+    url(r'^learn/2/$',
+        learn_2,
+        name='learn_2'),
 
 ]
 

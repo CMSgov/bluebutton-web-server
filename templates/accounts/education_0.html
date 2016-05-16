@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% block extrahead %}
+    <script src="{% static 'js/switch_content.js' %}"></script>
+{% endblock %}
+{% block title %}{% trans "Activate Advanced Blue Button API" %}{% endblock %}
+{% block breadcrumbs %}
+    <div class="container">
+        <ul class="breadcrumb">
+            <li><a href="{% url 'home' %}">Home</a></li>
+
+            <li class="active">Learn</li>
+        </ul>
+    </div>
+{% endblock %}
+{% block pagename %}Activate Advanced Blue Button API (1){% endblock %}
+
+{% block Content %}
+
+            <div class="jqueryOptions col-md-6">
+                <h1>A New Generation of BlueButton</h1>
+
+                <h3>Put your health information to work for you or donate it to research</h3>
+
+                 <p>MyMedicare.gov introduces a new, advanced BlueButton
+                    service. It complements the existing BlueButton Text and
+                    PDF file download options.
+                    <br/>
+                    The new service is a programmable interface. It enables
+                    organizations to create web and mobile applications that
+                    help you manage your health information.  This lets you choose which
+                    applications you want to share your Medicare claims data with.
+                    <br/>
+                    Once you choose to share with an application it does all the
+                    hard work of downloading and understanding your data. It can do this
+                    automatically on your behalf so that your information is ready prepared for
+                    you when you open the app.
+                    <br/>
+                    This advanced interface lets you share information without having to share your
+                    password. Each application or service you connect is given a unique key that you
+                    control. You can delete their key at any time. Just login to MyMedicare.gov,
+                    access the "Connected Apps" panel in "My Account" and remove their key.
+
+                </p>
+            </div>
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="pagination pagination-lg">
+                    <li>
+                        <a href="#">&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_0' %}">1</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_1' %}">2</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_2' %}">3</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_1' %}">Next</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

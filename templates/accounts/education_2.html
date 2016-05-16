@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% block extrahead %}
+    <script src="{% static 'js/switch_content.js' %}"></script>
+{% endblock %}
+{% block title %}{% trans "Activate Advanced Blue Button API" %}{% endblock %}
+{% block breadcrumbs %}
+    <div class="container">
+        <ul class="breadcrumb">
+            <li><a href="{% url 'home' %}">Home</a></li>
+
+            <li class="active">Learn</li>
+        </ul>
+    </div>
+{% endblock %}
+{% block pagename %}Activate Advanced Blue Button API (3){% endblock %}
+{% block Content %}
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h1>So you want to share your information</h1>
+
+                <h3>Here are the next steps:</h3>
+
+                <p><b>1.</b>We will ask you to "sign" this form by entering your password.
+                   <br/>
+                    <b>2.</b>We will send you an email to your registered email account.
+                    This will contain a link. <br/>
+                    <b>3.</b>Click on the link in the email. This will bring you back to
+                    the login page of the Advanced BlueButton Service.
+                    <br/>
+                    <b>4.</b>Login to complete the activation of the service.
+                    <br/>
+
+                    <b>5.</b> We will ask you to update your profile with
+                    phone information. This will let us offer you the option
+                    to use a pin code as an extra layer of
+                    security when connecting an application to your
+                    MyMedicare information.
+                    <br/>
+                    <b>6.</b>We will send you a message to your registered email
+                    address to confirm that activation is complete.
+                    <br/>
+
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <a href="{% url 'accounts_create' %}" class="active btn btn-block btn-lg btn-success">
+                    Yes, Activate my Advanced Blue Button!</a>
+            </div>
+            <div class="col-md-2">
+                <a href="{% url 'home' %}" class="btn btn-danger btn-lg">Cancel</a>
+            </div>
+            <div class="col-md-5"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-12"></div>
+        </div>
+    </div>
+</div>
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="pagination pagination-lg">
+                    <li>
+                        <a href="{% url 'learn_1' %}">Prev</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_0' %}">1</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_1' %}">2</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'learn_2' %}">3</a>
+                    </li>
+                    <li>
+                        <a href="#">&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
