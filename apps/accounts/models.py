@@ -17,7 +17,12 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 
 
-USER_CHOICES     = ( ('0','LOA-0'),
+USER_CHOICES     = ( ('BEN','Beneficiary'),
+                     ('DEV','Developer'),
+                   )
+
+
+LOA_CHOICES = ( ('0','LOA-0'),
                      ('1','LOA-1'),
                      ('2','LOA-2'),
                      ('3','LOA-3'),
@@ -28,7 +33,10 @@ USER_CHOICES     = ( ('0','LOA-0'),
 class UserProfile(models.Model):
     user                    = models.OneToOneField(User)
     organization_name       = models.CharField(max_length=256)
-    user_type               = models.CharField(default='0',
+    loa               = models.CharField(default='0',
+                                choices=LOA_CHOICES,
+                                max_length=5)
+    user_type         = models.CharField(default='DEV',
                                 choices=USER_CHOICES,
                                 max_length=5)
     access_key_id           = models.CharField(max_length=20, blank=True,)
@@ -78,16 +86,13 @@ class Invitation(models.Model):
             <head>
             </head>
             <body>
-            Congratulations. You have been invited to join the oAuth2 Server demonstration Alpha.<br>
+            Congratulations. You have been invited to join the OAuth2 Server Alpha.<br>
             
-            You may now <a href="%s">register</a>
-            with the invitation code: 
+            You may now <a href="%s">register</a> with the invitation code: 
             
-            <h2>
-            %s
-            </h2>
+            <h2>%s</h2>
             
-            - The Videntity Team 
+            - The Team 
             </body>
             </html>
             """ % (settings.HOSTNAME_URL, self.code,)
