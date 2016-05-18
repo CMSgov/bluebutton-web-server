@@ -15,13 +15,13 @@ def send_password_reset_url_via_email(user, reset_key):
         html_content = """"
         <P>
         Click on the following link to reset your password.<br>
-        <a HREF="%s/accounts/reset-password/%s">%s/accounts/reset-password/%s</a>
+        <a HREF="%s/accounts/reset-password/%s/">%s/accounts/reset-password/%s</a>
         </p>
         <p>
         Thank you,
         </p>
         <p>
-        The Videntity Team
+        The Team
         
         </P>
         """ % (settings.HOSTNAME_URL , reset_key, settings.HOSTNAME_URL, reset_key)
@@ -33,7 +33,7 @@ def send_password_reset_url_via_email(user, reset_key):
         
         Thank you,
         
-        The Videntity Team
+        The Team
         
         """ % (settings.HOSTNAME_URL , reset_key,)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to,])
@@ -51,22 +51,22 @@ def send_signup_key_via_email(user, signup_key):
         
         html_content = """
         <P>
-        You're almost done.  Please click the link to activate your account.<br>
+        Hi There.  Please click the link to activate your account.<br>
         <a HREF="%s/accounts/signup-verify/%s">%s/accounts/signup-verify/%s</a>
         
         Thank you,
         
-        The Videntity Team
+        The Team
         </P>
         """ % (settings.HOSTNAME_URL, signup_key, settings.HOSTNAME_URL, signup_key)
        
         text_content="""
-        You're almost done.  Please click the link to activate your account.
+        Hi there. Please click the link to activate your account.
         %s/accounts/signup-verify/%s
         
         Thank you,
         
-        The Videntity Team
+        The Team
         
         
         """ % (settings.HOSTNAME_URL, signup_key,)
@@ -87,20 +87,20 @@ def send_invite_request_notices(invite_request):
         Hello: %s %s,
         </p>
         <p>
-        Your request for an invite to the oAuth2 Server demonstration (%s) has been received.
+        Your request for an invite to the OAuth2 Server (%s) has been received.
         </p>
         <p>
         Thank You,
         </p>
         <p>
-        The Videntity Team
+        The Team
         </p>
         """ % (invite_request.first_name,
                invite_request.last_name,
                settings.HOSTNAME_URL, )
        
         text_content="""Hello: %s %s,
-    Your request for an invite to oAuth2 Server demonstration  (%s) has been received.
+    Your request for an invite to OAuth2 Server (%s) has been received.
         """ % (invite_request.first_name,
                invite_request.last_name,
                settings.HOSTNAME_URL, )
