@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'apps.capabilities', # Define scopes and related protected resource URLs.
     'apps.dot_ext', # Custom extensions to DOT 
     'apps.home', # Landing pages, etc.
+    'apps.education',
      # TODO Add apps.fhir 
      #apps.fhir,
    
