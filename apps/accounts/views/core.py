@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4
-from datetime import datetime
 
-from django.shortcuts import render_to_response, get_object_or_404, get_list_or_404
-from django.template import RequestContext
+from datetime import datetime
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonResponse
-from django.http import HttpResponseNotAllowed,  HttpResponseForbidden
+from django.http import HttpResponseRedirect
 from django.views.decorators.http import require_POST, require_GET
-from django.db.models import Sum
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
@@ -17,13 +14,10 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
-from apps.accounts.emails import send_invite_request_notices
-from apps.accounts.forms import *
-from apps.accounts.models import *
-from apps.accounts.utils import verify
-
-from oauth2_provider.decorators import protected_resource
-
+from ..emails import send_invite_request_notices
+from ..forms import *
+from ..models import *
+from ..utils import verify
 
 def request_invite(request):
     name='Request an Invite'
@@ -37,12 +31,11 @@ def request_invite(request):
           messages.success(request, _("Your invite request has been received.  You will be contacted by email when your invitation is ready."))
           return HttpResponseRedirect(reverse('login'))
         else:
-            return render_to_response('generic/bootstrapform.html',
-                                      RequestContext(request, {'name': name,'form': form}))
+            return render(request, 'generic/bootstrapform.html', {'name': name,'form': form})
     else:
        #this is an HTTP  GET
-       return render_to_response('generic/bootstrapform.html',
-                                 RequestContext(request, {'name': name, 'form': RequestInviteForm()}))
+       return render(request,'generic/bootstrapform.html',
+                    {'name': name, 'form': RequestInviteForm()})
 
 
 
@@ -76,25 +69,16 @@ def simple_login(request):
                    messages.error(request,
                         _("Your account is inactive so you may not log in."))
 
-                   return render_to_response('login.html',
-                                            {'form': form},
-                                            RequestContext(request))
+                   return render(request, 'login.html', {'form': form})
             else:
                 messages.error(request, _("Invalid username or password."))
 
-                return render_to_response('login.html',
-                                    {'form': form},
-                                    RequestContext(request))
+                return render(request, 'login.html',{'form': form})
 
         else:
-         return render_to_response('login.html',
-                              RequestContext(request, {'form': form}))
+         return render(request, 'login.html',{'form': form})
     #this is a GET
-    return render_to_response('login.html',
-                              {'form': LoginForm()},
-                              context_instance = RequestContext(request))
-
-
+    return render(request, 'login.html', {'form': LoginForm()})
 
 
 def reset_password(request, reset_password_key=None):
@@ -110,22 +94,22 @@ def reset_password(request, reset_password_key=None):
             messages.success(request, _("Your password has been reset."))
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render_to_response('reset-password.html',
-                        RequestContext(request, {'form': form,
-                            'reset_password_key': reset_password_key}))
+            return render(request, 'reset-password.html',
+                          {
+                           'form': form,
+                           'reset_password_key': reset_password_key
+                           })
 
-    return render_to_response('reset-password.html',
-                              RequestContext(request,
-                                    {'form': PasswordResetForm(),
-                                    'reset_password_key': reset_password_key}))
+    return render(request, 'reset-password.html',
+                  {'form': PasswordResetForm(),
+                   'reset_password_key': reset_password_key
+                  })
 
 @login_required
 def display_api_keys(request):
 
     up = get_object_or_404(UserProfile, user=request.user)
-    return render_to_response('display-api-keys.html',
-                              RequestContext(request,
-                                    {'up': up}))
+    return render(request, 'display-api-keys.html',{'up': up})
 
 @login_required
 def reissue_api_keys(request):
@@ -138,11 +122,12 @@ def reissue_api_keys(request):
 
 
 
-def password_reset_request(request):
+def forgot_password(request):
+    name=_("Forgot Password")
     if request.method == 'POST':
 
         form = PasswordResetRequestForm(request.POST)
-
+       
         if form.is_valid():
             data = form.cleaned_data
 
@@ -157,13 +142,11 @@ def password_reset_request(request):
             return HttpResponseRedirect(reverse('login'))
 
         else:
-             return render_to_response('generic/bootstrapform.html',
-                                       RequestContext(request, {'form': form}))
+             return render(request,'generic/bootstrapform.html', {'name': name,'form': form})
 
     else:
-        return render_to_response('password-reset-request.html',
-                             {'form': PasswordResetRequestForm()},
-                              context_instance = RequestContext(request))
+        return render(request, 'generic/bootstrapform.html',
+                             {'name': name, 'form': PasswordResetRequestForm()})
 
 
 
@@ -179,16 +162,13 @@ def create(request):
           return HttpResponseRedirect(reverse('login'))
         else:
             #return the bound form with errors
-            return render_to_response('generic/bootstrapform.html',
-                                      RequestContext(request, {'name': name,
-                                                               'form': form}))
+            return render(request, 'generic/bootstrapform.html',
+                     {'name': name,'form': form})
     else:
        #this is an HTTP  GET
        messages.info(request, _("An invitation code is required to register."))
-       return render_to_response('generic/bootstrapform.html',
-                                 RequestContext(request,
-                                {'name': name,
-                                 'form': SignupForm()}))
+       return render(request,'generic/bootstrapform.html',
+                               {'name': name, 'form': SignupForm()})
 
 
 def verify_email(request, verification_key,
@@ -231,22 +211,16 @@ def account_settings(request):
             up.organization_name        = data['organization_name']
             up.save()
             messages.success(request,'Your account settings have been updated.')
-            return render_to_response('generic/bootstrapform.html',
-                                      {'form': form,
-                             'name': name,
-                             },
-                                      RequestContext(request))
+            return render(request, 'generic/bootstrapform.html',
+                        {'form': form, 'name': name })
         else:
             #the form had errors
-            return render_to_response('generic/bootstrapform.html',
-                                      {'form': form,
-                             'name': name,
-                             },
-                                      RequestContext(request))
+            return render(request,'generic/bootstrapform.html',
+                            {'form': form,'name': name })
 
 
     #this is an HTTP GET
-    return render_to_response('generic/bootstrapform.html',
+    return render(request, 'generic/bootstrapform.html',
                               {'name': name, 'form': AccountSettingsForm(
                               initial={ 'username':  request.user.username,
                                 'email':                    request.user.email,
@@ -254,8 +228,7 @@ def account_settings(request):
                                 'last_name':                request.user.last_name,
                                 'first_name':               request.user.first_name,
                                 'access_key_reset':         up.access_key_reset,
-                                })},
-                              RequestContext(request))
+                                })})
 
 
 def signup_verify(request, signup_key=None):
@@ -264,24 +237,6 @@ def signup_verify(request, signup_key=None):
         messages.success(request, "Your account has been activated. You may now login.")
         return HttpResponseRedirect(reverse('login'))
     else:
-        return render_to_response('invalid-key.html',
-                              RequestContext(request,
-                                             {}))
+        return render(request,'invalid-key.html',{})
 
 
-@require_GET
-@protected_resource()
-def user_self(request):
-    """
-    Views that returns a json representation of the current user's details.
-    """
-    user = request.resource_owner
-    data = {
-        'id': user.pk,
-        'username': user.username,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'email': user.email,
-        'created': user.date_joined,
-    }
-    return JsonResponse(data)

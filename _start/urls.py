@@ -1,15 +1,15 @@
-"""sample_oauth_server URL Configuration
-"""
 from django.conf.urls import include, url
 from django.contrib import admin
 admin.autodiscover()
-from apps.accounts.urls import api_urls
+from apps.accounts.views.oauth2_profile import user_self
 
 urlpatterns = [
     url(r'^admin/',         include(admin.site.urls)),
     url(r'^accounts/',      include('apps.accounts.urls')),
+    url(r'^education/',     include('apps.education.urls')),
+    url(r'^profile/me$',    user_self, name='user_self'),
     url(r'^api/',           include('apps.api.urls')),
-    url(r'^api/',           include(api_urls)),
+    #url(r'^api/',           include(api_urls)),
     #url(r'^fhir/v3/',       include('apps.fhir.urls')),
     url(r'^capabilities/',  include('apps.capabilities.urls')),
     url(r'^o/',             include('apps.dot_ext.urls')),
