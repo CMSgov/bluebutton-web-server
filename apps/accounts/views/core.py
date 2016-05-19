@@ -152,12 +152,11 @@ def forgot_password(request):
 
 
 def create(request):
-    name = "Create an CMS Developer Account"
+    name = "Create a Blue Button Developer Account"
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
           new_user = form.save()
-          up, created = UserProfile.objects.get_or_create(user=new_user)
           messages.success(request, _("Account created. What are you waiting for? Log in!"))
           return HttpResponseRedirect(reverse('login'))
         else:
