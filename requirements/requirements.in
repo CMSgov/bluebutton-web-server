@@ -13,3 +13,4 @@ django-debug-toolbar
 boto
 django-ses
 #django-fhir
+requests

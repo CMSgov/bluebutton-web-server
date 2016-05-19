@@ -61,8 +61,10 @@ INSTALLED_APPS = [
     'apps.dot_ext', # Custom extensions to DOT 
     'apps.home', # Landing pages, etc.
     'apps.education',
-     # TODO Add apps.fhir 
-     #apps.fhir,
+    # 'apps.fhir',
+    'apps.fhir.core',
+    'apps.fhir.server',
+    'apps.fhir.bluebutton',
    
     #3rd Party ---------------------
     'corsheaders',
@@ -223,6 +225,11 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
+        'tests': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        }
+
     },
 }
 
@@ -325,6 +332,8 @@ THEME = THEMES[THEME_SELECTED]
 
 APPLICATION_TITLE = "CMS OAuth2 Server"
 
+# Set the default Encoding standard. typically 'utf-8'
+ENCODING = 'utf-8'
 
 SETTINGS_EXPORT = [
     'DEBUG',
