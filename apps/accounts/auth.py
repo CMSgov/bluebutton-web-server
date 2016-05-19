@@ -1,58 +1,48 @@
-import binascii
-from django.http import HttpResponse, HttpResponseRedirect
-from django.contrib.auth.models import User, AnonymousUser
-from django.contrib.auth.decorators import login_required
-from django.template import loader
-from django.contrib.auth import authenticate
-from django.core.urlresolvers import get_callable
-from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.conf import settings
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import User
 from .models import UserProfile
+from django.contrib.auth.models import Group
 
 
-class HTTPAuthBackend(object):
-    
-    supports_object_permissions=False
-    supports_anonymous_user=False
-    
+
+class SettingsBackend(object):
+    """
+    Authenticate against the settings SLS_USER and SLS_PASSWORD.
+
+    Use the login name, and a hash of the password. For example:
+
+    SLS_USER = 'ben'
+    SLS_PASSWORD = 'pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aaTohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys='
+    """
+
     def authenticate(self, username=None, password=None):
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return None
-
-        if user.check_password(password):
+        login_valid = (settings.SLS_USER == username)
+        pwd_valid = check_password(password, settings.SLS_PASSWORD)        
+        if login_valid and pwd_valid:
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                # Create a new user. Note that we can set password
+                # to anything, because it won't be checked; the password
+                # from settings.py will.
+                user = User(username=username, password='flubbernubber',
+                            first_name=settings.SLS_FIRST_NAME,
+                            last_name=settings.SLS_LAST_NAME,
+                            email=settings.SLS_EMAIL)
+                user.save()
+                up, created = UserProfile.objects.get_or_create(user=user, user_type="BEN")
+                group = Group.objects.get(name='BlueButton')
+                user.groups.add(group)
+                
+                
+                
             return user
+        return None
 
     def get_user(self, user_id):
         try:
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
-    
-    
-class HTTPAuthBackendWithAccessTokens(object):
-    
-    supports_object_permissions=False
-    supports_anonymous_user=False
-    
-    def authenticate(self, username=None, password=None):
-        
-        try:
-            up = UserProfile.objects.get(access_key_id=username)
-            username = up.user.username
-        except UserProfile.DoesNotExist:
-            return None
-        
-        if up.access_key_secret == password:
-            return up.user
-
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return None
-
-
 

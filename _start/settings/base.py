@@ -241,6 +241,8 @@ MIN_PASSWORD_LEN = 8
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
             'django.contrib.auth.backends.ModelBackend',
+            'apps.accounts.auth.SettingsBackend',
+            
             )
 
 OAUTH2_PROVIDER_APPLICATION_MODEL='dot_ext.Application'
@@ -332,6 +334,13 @@ SETTINGS_EXPORT = [
     'SETTINGS_MODE',
 ]
 
+#Stub for Custom Authentication Backend (This will change/be removed..just framing)
+
+SLS_USER       = "ben"
+SLS_PASSWORD   = "pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aaTohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys="
+SLS_FIRST_NAME = "Ben"
+SLS_LAST_NAME  = "Barker"
+SLS_EMAIL      = "ben@example.com"
 
 # try:
 #     from .local import *
