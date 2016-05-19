@@ -1,5 +1,5 @@
-oAuth Server - An oAuth Provider Sample Project
-===============================================
+OAuth Server - An OAuth Provider Project
+========================================
 The project is based in Python 3 and Django 1.9.5.
 
 It consists of an OAuth2 server and a FHIR server that serves specific resources.
@@ -22,6 +22,7 @@ Follow these steps on the command line.
     mkvirtualenv oauth_server --python=/path/to/python3-binary
     pip install -r requirements/requirements.txt
     python manage.py migrate
+    python manage.py loaddata apps/accounts/fixtures/BlueButtonGroup.json
     python manage.py runserver
     
     
