@@ -32,7 +32,7 @@ LOA_CHOICES = ( ('0','LOA-0'),
 @python_2_unicode_compatible
 class UserProfile(models.Model):
     user                    = models.OneToOneField(User)
-    organization_name       = models.CharField(max_length=256)
+    organization_name       = models.CharField(max_length=256, blank=True, default="")
     loa               = models.CharField(default='0',
                                 choices=LOA_CHOICES,
                                 max_length=5)

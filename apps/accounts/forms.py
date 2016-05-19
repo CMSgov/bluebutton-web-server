@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 from django import forms
 
-# from django.contrib.admin import widgets
+
 from django.contrib.auth.models import User
-# from localflavor.us.forms import USPhoneNumberField
-
-# from localflavor.us.us_states import US_STATES
-
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.core.mail import mail_admins
 from django.utils.translation import ugettext_lazy as _
 
@@ -69,7 +66,9 @@ class SignupForm(forms.Form):
     email           = forms.EmailField(max_length=75, label=_("Email"))
     first_name      = forms.CharField(max_length=100, label=_("First Name"))
     last_name       = forms.CharField(max_length=100, label=_("Last Name"))
-    organization_name  = forms.CharField(max_length=100, label=_("Organization Name"))
+    organization_name  = forms.CharField(max_length=100, label=_("Organization Name"),
+                                         required=False
+                                         )
     password1       = forms.CharField(widget=forms.PasswordInput, max_length=30,
                                 label=_("Password"))
     password2       = forms.CharField(widget=forms.PasswordInput, max_length=30,
@@ -118,8 +117,6 @@ class SignupForm(forms.Form):
         invite.valid=False
         invite.save()
             
-        
-        
         new_user = User.objects.create_user(
                         username=self.cleaned_data['username'],
                         first_name=self.cleaned_data['first_name'],
@@ -128,8 +125,12 @@ class SignupForm(forms.Form):
                         email=self.cleaned_data['email'])
         
         up = UserProfile.objects.create(user=new_user,
-                                        organization_name=self.cleaned_data['organization_name'])         
+                                        organization_name=self.cleaned_data['organization_name'],
+                                        user_type="DEV")         
 
+        group = Group.objects.get(name='BlueButton')
+        new_user.groups.add(group)
+        
         
         return new_user
     
@@ -139,7 +140,9 @@ class AccountSettingsForm(forms.Form):
     email                   = forms.CharField(max_length=30, label=_("Email"))
     first_name              = forms.CharField(max_length=100, label=_("First Name"))
     last_name               = forms.CharField(max_length=100, label=_("Last Name"))
-    organization_name       = forms.CharField(max_length=100, label=_("Organization Name"))
+    organization_name       = forms.CharField(max_length=100, label=_("Organization Name"),
+                                              required= False
+                                              )
 
     required_css_class      = 'required'
     

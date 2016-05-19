@@ -16,7 +16,9 @@
         {% if applications %}
             <ul>
                 {% for application in applications %}
-                    <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a></li>
+                    <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a> |
+                    <a href="{% url endorsement_list application.id }}">Endorsements</a>
+                    </li>
                 {% endfor %}
             </ul>
 
