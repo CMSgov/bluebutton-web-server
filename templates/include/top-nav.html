@@ -24,14 +24,42 @@
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse navbar-ex1-collapse">
+
+          <ul class="nav navbar-nav ">
+              {% if not user.is_authenticated %}
+                  <li class="dropdown" id="menu1">
+                <a href="#" class="btn dropdown-toggle"
+                   data-toggle="dropdown"><i class="fa fa-question-circle"></i> Help<span
+                        class="caret"></span></a>
+                      <ul class="dropdown-menu" id="menu1" role="menu">
+                        <li><a href="/education/learn/0/" class="">Learn more...</a>
+                        </li>
+
+                        {# TODO: Create /accounts/documentation page  #}
+                        <li><a href="/api/documentation" class="">Documentation</a>
+                        </li>
+                    {# TODO: /accounts/support page  #}
+                        <li><a href="/support" class="">Support</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a href="/api/developer_intro"
+                               class="" contenteditable="false">Developer Intro</a>
+                        </li>
+
+               </ul>
+            </li>
+              {% endif %}
+          </ul>
+
+
           <ul class="nav navbar-nav navbar-right">
 
             {% if user.is_authenticated %}
 
 
-             <li class="dropdown">
+             <li class="dropdown" id="menu2">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ user }} <b class="caret"></b></a>
-              <ul class="dropdown-menu">
+              <ul class="dropdown-menu" id="menu2" role="menu">
 
 
                 <li><a href="{% url 'account_settings' %}"> <i class="fa fa-gears"></i> Account Settings</a></li>

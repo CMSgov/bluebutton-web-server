@@ -17,13 +17,16 @@
 {% block pagename %}Activate Advanced Blue Button API (1){% endblock %}
 
 {% block Content %}
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-sm-12">
 
-            <div class="jqueryOptions col-md-6">
-                <h1>A New Generation of BlueButton</h1>
+                <h1>A New Generation of Blue Button</h1>
 
-                <h3>Put your health information to work for you or donate it to research</h3>
+                <h4>Put your health information to work for you, or donate it to research</h4>
 
-                 <p>MyMedicare.gov introduces a new, advanced BlueButton
+                 <p>CMS and MyMedicare.gov introduces a new, advanced Blue Button
                     service. It complements the existing BlueButton Text and
                     PDF file download options.
                     <br/>
@@ -33,17 +36,25 @@
                     applications you want to share your Medicare claims data with.
                     <br/>
                     Once you choose to share with an application it does all the
-                    hard work of downloading and understanding your data. It can do this
-                    automatically on your behalf so that your information is ready prepared for
-                    you when you open the app.
+                    hard work of downloading and understanding your data. This can be done
+                    automatically for you so that your information is ready when you need it.
                     <br/>
-                    This advanced interface lets you share information without having to share your
-                    password. Each application or service you connect is given a unique key that you
-                    control. You can delete their key at any time. Just login to MyMedicare.gov,
-                    access the "Connected Apps" panel in "My Account" and remove their key.
+                    The advanced Blue Button service lets you share information without having
+                    to share your password. Each application is given a unique key that you
+                    control. You can delete that key at any time. Just login to MyMedicare.gov,
+                    access the "Connected Apps" panel in "My Account" and remove the key and
+                    data stops flowing to the disconnected application.
 
                 </p>
             </div>
+            <div class="col-md-4 col-sm-12">
+                <img src="{% static 'img/layout/blue-button.png' %}"
+                    style="height:300px">
+            </div>
+
+        </div>
+    </div>
+</div>
 <div class="section">
     <div class="container">
         <div class="row">
