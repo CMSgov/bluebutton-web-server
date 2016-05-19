@@ -21,8 +21,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 class Endorsement(models.Model):
     title   = models.TextField(max_length=256, default="")
     iss     = models.TextField(max_length=512, default="", verbose_name="Issuer",
-                               help_text="Must contain a QDN")
-    jws     = models.TextField(max_length=10240, default="")
+                               help_text="Must contain a FQDN")
+    jwt     = models.TextField(max_length=10240, default="")
 
     def __str__(self):
         return self.title
