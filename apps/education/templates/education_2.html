@@ -20,37 +20,35 @@
 <div class="section">
     <div class="container">
         <div class="row">
-            <div class="col-md-6">
-                <h1>So you want to share your information</h1>
+            <div class="col-md-8 col-sm-12">
+                <h3>So you want to share your information...</h3>
 
-                <h3>Here are the next steps:</h3>
+                <h4>Here are the steps:</h4>
 
-                <p><b>1.</b>We will ask you to "sign" this form by entering your password.
-                   <br/>
-                    <b>2.</b>We will send you an email to your registered email account.
-                    This will contain a link. <br/>
-                    <b>3.</b>Click on the link in the email. This will bring you back to
-                    the login page of the Advanced BlueButton Service.
+                <p> <b>1. </b>Click "Yes" below.
                     <br/>
-                    <b>4.</b>Login to complete the activation of the service.
+                    <b>2. </b>Fill in and "sign" the Activation form.
                     <br/>
-
-                    <b>5.</b> We will ask you to update your profile with
-                    phone information. This will let us offer you the option
-                    to use a pin code as an extra layer of
-                    security when connecting an application to your
-                    MyMedicare information.
+                    <b>3. </b>We will send you an email with an Activation link.
                     <br/>
-                    <b>6.</b>We will send you a message to your registered email
-                    address to confirm that activation is complete.
+                    <b>4. </b>Click on the link in the email. This will bring you back to
+                    the CMS Advanced BlueButton Service.
+                    <br/>
+                    <b>5. </b>Login to complete the activation.
+                    <br/>
+                    <b>6. </b>We will send you an email so that you know it all worked.
                     <br/>
 
+            </div>
+            <div class="col-md-4 col-sm-12">
+                <img src="{% static 'img/layout/blue-button.png' %}"
+                    style="height:300px">
             </div>
 
         </div>
         <div class="row">
-            <div class="col-md-5">
-                <a href="{% url 'accounts_create' %}" class="active btn btn-block btn-lg btn-success">
+            <div class="col-md-6">
+                <a href="{% url 'accounts_create' %}" class="active btn btn-block btn-lg btn-primary">
                     Yes, Activate my Advanced Blue Button!</a>
             </div>
             <div class="col-md-2">
