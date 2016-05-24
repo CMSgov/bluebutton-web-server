@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% block pretitle %}{% endblock %}
+{% block extra_head %}
+{% endblock %}
+
+{% block breadcrumbs %}
+       <div class="container">
+        <ul class="breadcrumb">
+            <li class="active">Home</li>
+        </ul>
+    </div>
+{% endblock %}
+{% block pagename %}Welcome to Blue Button On FHIR{% endblock %}
+{% block Content %}
+
+
+    <div class="hero-unit">
+
+        <div class="container-fluid">
+                <p>
+
+                </p>
+            <div class="col-md-8">
+                <h4>Why use the Advanced CMS Blue Button?</h4>
+                <p>
+                    The CMS Blue Button Services makes it easy for you to send your claims
+                    information to applications, services or research programs
+                    that YOU trust.
+                </p>
+                <h4>Your Information is easier to use</h4>
+                <p>
+                    We have enhanced security while making it easier to put your information
+                    to work. Use it to help manage your health using tools and
+                    applications that work for you.
+                </p>
+                <h4>Improve the security of your data</h4>
+                <p>
+                    Do you want better security for your information? Choose to connect
+                    your mobile phone to your account. Then enter the pin code that is sent
+                    to your mobile phone whenever you login to the Blue Button service.
+                </p>
+                <h4>Powerful technology working for you</h4>
+                <p>
+                    Under the hood the technology is designed to make it easier for
+                    application developers to work with the information you authorize them to
+                    receive. This lets them create applications that are useful to you.
+                </p>
+                <p>
+                    &nbsp;
+                </p>
+                <div class="col-md-12 well">
+                <h4>Are you an Innovative Software Developer?</h4>
+                    <div>
+                        <p>
+                            <a href="#">Sign up as a developer</a>
+                        </p>
+                    </div>
+                    <p>
+                        Check out the
+                        <a href="#">
+                            Introduction for Developers</a> and
+                        learn how you can enable Medicare Beneficiaries to connect their
+                        claims information to your application, service or research program.
+                        Use the CMS Blue Button on FHIR API to create applications that empower
+                        our beneficiaries to live better because your innovative ideas put
+                        their data to work.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4"><img
+                    src="{% static 'img/layout/blue-button.png' %}"
+                    style="height:300px">
+            </div>
+
+        </div>
+    </div>
+
+
+{% endblock %}

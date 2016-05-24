@@ -11,8 +11,12 @@ urlpatterns = [
     url(r'^api/',           include('apps.api.urls')),
     #url(r'^api/',           include(api_urls)),
     url(r'^fhir/v3/',       include('apps.fhir.server.urls')),
+    url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
     url(r'^capabilities/',  include('apps.capabilities.urls')),
     url(r'^o/',             include('apps.dot_ext.urls')),
     url(r'^',               include('apps.home.urls')),
     # url(r'^fhir/api/v1/',   include('apps.fhir.bluebutton')),
+    # Admin
+    url(r'^admin/', include(admin.site.urls)),
+
 ]
