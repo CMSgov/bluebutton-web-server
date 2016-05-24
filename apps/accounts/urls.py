@@ -4,7 +4,8 @@
 from django.conf.urls import include, url
 from .views.core import (simple_login, create, account_settings, reissue_api_keys,
                          request_invite, mylogout, forgot_password,
-                         reset_password, signup_verify, display_api_keys)
+                         reset_password,  display_api_keys,
+                         send_activation_key_via_email, activation_verify)
 
 urlpatterns = [
    
@@ -27,9 +28,9 @@ urlpatterns = [
     url(r'reset-password/(?P<reset_password_key>[^/]+)/', reset_password,
         name='reset_password'),
 
-    #Verify th account
-    url(r'signup-verify/(?P<signup_key>[^/]+)/', signup_verify,
-        name='signup_verify'),
+    #Verify the account
+    url(r'activation-verify/(?P<activation_key>[^/]+)/', activation_verify,
+        name='activation_verify'),
     
     url(r'display-api-keys$', display_api_keys,
         name='display_api_keys'),
