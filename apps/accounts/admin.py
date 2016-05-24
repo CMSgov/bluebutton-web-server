@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import ValidPasswordResetKey, Invitation, RequestInvite, UserProfile
+from .models import ValidPasswordResetKey, Invitation, RequestInvite, UserProfile, ActivationKey
 
-
+admin.site.register(ActivationKey)
 admin.site.register(ValidPasswordResetKey)
 
 class InvitationAdmin(admin.ModelAdmin):

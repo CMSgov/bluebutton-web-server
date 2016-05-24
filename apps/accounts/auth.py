@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from .models import UserProfile
 from django.contrib.auth.models import Group
-
+from .utils import create_signup_key
 
 
 class SettingsBackend(object):
@@ -25,17 +25,18 @@ class SettingsBackend(object):
             except User.DoesNotExist:
                 # Create a new user. Note that we can set password
                 # to anything, because it won't be checked; the password
-                # from settings.py will.
+                # from the external backend is checked (coming from settings).
                 user = User(username=username, password='flubbernubber',
                             first_name=settings.SLS_FIRST_NAME,
                             last_name=settings.SLS_LAST_NAME,
-                            email=settings.SLS_EMAIL)
+                            email=settings.SLS_EMAIL,
+                            is_active=False)
                 user.save()
                 up, created = UserProfile.objects.get_or_create(user=user, user_type="BEN")
                 group = Group.objects.get(name='BlueButton')
                 user.groups.add(group)
-                
-                
+                # Send verification email
+                create_signup_key(user)
                 
             return user
         return None

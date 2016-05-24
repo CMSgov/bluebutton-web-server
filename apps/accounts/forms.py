@@ -9,7 +9,7 @@ from django.core.mail import mail_admins
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Invitation, RequestInvite, UserProfile
-
+from .emails import send_activation_key_via_email
 
 class RequestInviteForm(forms.ModelForm):
     class Meta:
@@ -122,7 +122,8 @@ class SignupForm(forms.Form):
                         first_name=self.cleaned_data['first_name'],
                         last_name=self.cleaned_data['last_name'],
                         password=self.cleaned_data['password1'],
-                        email=self.cleaned_data['email'])
+                        email=self.cleaned_data['email'],
+                        is_active=False)
         
         up = UserProfile.objects.create(user=new_user,
                                         organization_name=self.cleaned_data['organization_name'],
@@ -131,6 +132,8 @@ class SignupForm(forms.Form):
         group = Group.objects.get(name='BlueButton')
         new_user.groups.add(group)
         
+        #Send a verification email
+        send_signup_key_via_email(new_user)
         
         return new_user
     
@@ -141,8 +144,7 @@ class AccountSettingsForm(forms.Form):
     first_name              = forms.CharField(max_length=100, label=_("First Name"))
     last_name               = forms.CharField(max_length=100, label=_("Last Name"))
     organization_name       = forms.CharField(max_length=100, label=_("Organization Name"),
-                                              required= False
-                                              )
+                                required= False )
 
     required_css_class      = 'required'
     
