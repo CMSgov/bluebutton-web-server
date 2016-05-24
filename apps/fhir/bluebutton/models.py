@@ -11,14 +11,93 @@ Created: 5/19/16 12:27 PM
 """
 __author__ = 'Mark Scrimshire:@ekivemark'
 
-from django.db import models
+import json
 
 # Create your models here.
 
 from django.conf import settings
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+
+from apps.fhir.server.models import SupportedResourceType
 
 
+@python_2_unicode_compatible
+class ResourceTypeControl(models.Model):
+    resource_name      = models.ForeignKey(SupportedResourceType)
+    override_url_id    = models.BooleanField(help_text="Does this resource need to mask "
+                                                       "the id in the url?")
+    override_search    = models.BooleanField(help_text="Do search parameters need to be "
+                                                       "filtered to avoid revealing "
+                                                       "other people's data?")
+    search_block       = models.TextField(max_length=5120,
+                                          blank=True, default="",
+                                          help_text="list of values that need to be removed "
+                                                    "from search parameters. eg. Patient")
+    search_add         = models.TextField(max_length=200,
+                                          blank=True, default="",
+                                          help_text="list of keys that need to be added to"
+                                                    "search parameters to filter information"
+                                                    "that is returned. eg. eg. "
+                                                    "Patient=%PATIENT%")
+    group_allow        = models.TextField(max_length=100, blank=True, default="",
+                                          help_text="groups permitted to access resource.")
+    group_exclude      = models.TextField(max_length=100, blank=True, default="",
+                                          help_text="groups blocked from accessing resource.")
+    default_url        = models.URLField(verbose_name="Default FHIR URL with terminating / ",
+                                         blank=True)
+    # Add default_url unless the resource is defined via crosswalk
+
+
+    # Python2 uses __unicode__(self):
+    def __str__(self):
+        return self.resource_name.resource_name
+
+    def set_search_block(self, x):
+        self.search_block = json.dumps(x)
+
+    def get_search_block(self):
+        if self.search_block == "":
+            search_list = []
+        else:
+            search_list = self.search_block
+        return json.loads(search_list)
+
+    def set_search_add(self, x):
+        self.search_add = json.dumps(x)
+
+    def get_search_add(self):
+        if self.search_add == "":
+            search_list = []
+        else:
+            search_list = self.search_add
+        return json.loads(search_list)
+
+    def replace_url_id(self):
+        return self.override_url_id
+
+    def set_group_allow(self, x):
+        self.group_allow = json.dumps(x)
+
+    def get_group_allow(self):
+        if self.group_allow == "":
+            group_list = []
+        else:
+            group_list = self.group_allow
+        return json.loads(group_list)
+
+    def set_group_exclude(self, x):
+        self.group_exclude = json.dumps(x)
+
+    def get_group_exclude(self):
+        if self.group_exclude == "":
+            group_list = []
+        else:
+            group_list = self.group_exclude
+        return json.loads(group_list)
+
+
+@python_2_unicode_compatible
 class FhirServer(models.Model):
     """
     Server URL at Profile level
@@ -41,6 +120,7 @@ class FhirServer(models.Model):
         return self.name
 
 
+@python_2_unicode_compatible
 class Crosswalk(models.Model):
     """
 
@@ -86,7 +166,7 @@ class Crosswalk(models.Model):
         return full_url
 
 
-    def get_fhir_resource_url(self, resource):
+    def get_fhir_resource_url(self, resource_type):
         # Return the fhir server url
 
         full_url = self.fhir_source.fhir_url
@@ -94,5 +174,8 @@ class Crosswalk(models.Model):
             pass
         else:
             full_url += "/"
+
+        if resource_type:
+            full_url += resource_type + "/"
 
         return full_url

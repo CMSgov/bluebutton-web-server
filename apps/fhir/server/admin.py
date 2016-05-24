@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.fhir.server.models import SupportedResourceType, ResourceTypeControl
+from apps.fhir.server.models import SupportedResourceType
 
 
 class SupportedResourceTypeAdmin(admin.ModelAdmin):
@@ -9,12 +9,6 @@ class SupportedResourceTypeAdmin(admin.ModelAdmin):
     search_fields = ('resource_name', )
     
 
-class ResourceTypeControlAdmin(admin.ModelAdmin):
-
-    list_display = ('resource_name',)
-    search_fields = ('resource_name', 'search_block', 'search_add')
-
 
 admin.site.register(SupportedResourceType, SupportedResourceTypeAdmin)
-admin.site.register(ResourceTypeControl, ResourceTypeControlAdmin)
 

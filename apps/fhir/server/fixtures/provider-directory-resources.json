@@ -1,3 +1,9 @@
+#==========================================================
+# CMS Blue Button on FHIR
+# Mode: LOCAL
+# running on 3.5.1
+# Application Managers: (('Mark Scrimshire', 'mark@ekivemark.com'),)
+#==========================================================
 [
 {
     "fields": {

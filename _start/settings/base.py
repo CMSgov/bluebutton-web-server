@@ -333,11 +333,13 @@ else:
 
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = "CMS OAuth2 Server"
+APPLICATION_TITLE = "CMS Blue Button on FHIR"
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
 
+# include settings values in SETTING_EXPORT to use values in Templates.
+# eg. {{ settings.APPLICATION_TITLE }}
 SETTINGS_EXPORT = [
     'DEBUG',
     'APPLICATION_TITLE',
@@ -346,7 +348,7 @@ SETTINGS_EXPORT = [
     'SETTINGS_MODE',
 ]
 
-#Stub for Custom Authentication Backend (This will change/be removed..just framing)
+# Stub for Custom Authentication Backend (This will change/be removed..just framing)
 
 SLS_USER       = "ben"
 SLS_PASSWORD   = "pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aaTohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys="
@@ -354,8 +356,20 @@ SLS_FIRST_NAME = "Ben"
 SLS_LAST_NAME  = "Barker"
 SLS_EMAIL      = "alan.viars@videntity.com"
 
-try:
-    from .local import *
-except:
-     pass
+# try:
+#     from .local import *
+# except:
+#      pass
 
+# Default FHIR Server if none defined in Crosswalk or FHIR Server model
+# We will need to add REWRITE_FROM and REWRITE_TO to models to enable search and replace
+# in content returned from backend server. Otherwise source server address is exposed to
+# external users.
+FHIR_SERVER_CONF = {"SERVER":"http://fhir.bbonfhir.com/",
+                    "PATH":"fhir-p/",
+                    "RELEASE":"baseDstu2/",
+                    "REWRITE_FROM":"http://ip-172-31-45-177.ec2.internal:8080/baseDstu2",
+                    "REWRITE_TO":"http://localhost:8000/api/v1"}
+
+
+# End of Base.py
