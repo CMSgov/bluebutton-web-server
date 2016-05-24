@@ -14,7 +14,6 @@ def create_signup_key(user):
 
 def validate_activation_key(activation_key):
     utc=pytz.UTC
-    print('here')
     try:
         vc=ActivationKey.objects.get(key=activation_key)
         now=datetime.now().replace(tzinfo=utc)
@@ -30,8 +29,5 @@ def validate_activation_key(activation_key):
     #The key exists and has not expired. 
     vc.user.is_active=True
     vc.user.save()
-    print(vc.user.is_active)
-    
-    
     vc.delete()
     return True

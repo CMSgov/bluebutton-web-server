@@ -33,9 +33,10 @@
     </div>
   
   <div class="row">
-   <small><a href="/accounts/register">
-   {% trans "Register here" %}</a> with an invitation code. {{account_request_text}}
-   Need an invite code? <a href="/accounts/request-invite">{% trans "Get that here." %}</a>
+   <small><a href="{% url 'accounts_create' %}">
+   {% trans "Create an Account " %}</a>{{account_request_text}} | 
+   <a href="{% url 'request_invite' %}">{% trans "Get Invited" %}</a> | 
+   <a href="{% url 'forgot_password' %}">Forgot Password?</a>
    </small>
 
     </div> 

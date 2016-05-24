@@ -14,11 +14,11 @@ def send_password_reset_url_via_email(user, reset_key):
         from_email = settings.EMAIL_HOST_USER
         to = user.email
         headers = {'Reply-To': from_email}
-        
+        link = "%s%s" % (settings.HOSTNAME_URL , reverse('password_reset_email_verify', args = (reset_key,) ))
         html_content = """"
         <P>
-        Click on the following link to reset your password.<br>
-        <a HREF="%s/accounts/reset-password/%s/">%s/accounts/reset-password/%s</a>
+        Click on the link to reset your password.<br>
+        <a href="%s"> %s</a>
         </p>
         <p>
         Thank you,
@@ -27,18 +27,18 @@ def send_password_reset_url_via_email(user, reset_key):
         The Team
         
         </P>
-        """ % (settings.HOSTNAME_URL , reset_key, settings.HOSTNAME_URL, reset_key)
+        """ % (link, link)
        
         text_content="""
-        Click on the following link to reset your password.
-        %s/accounts/reset-password/%s
+        Click on the link to reset your password.
+        %s
         
         
         Thank you,
         
         The Team
         
-        """ % (settings.HOSTNAME_URL , reset_key,)
+        """ % (link)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to,])
         msg.attach_alternative(html_content, "text/html")
         msg.send()

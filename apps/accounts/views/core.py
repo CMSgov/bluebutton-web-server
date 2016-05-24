@@ -77,7 +77,7 @@ def simple_login(request):
     return render(request, 'login.html', {'form': LoginForm()})
 
 
-def reset_password(request, reset_password_key=None):
+def password_reset_email_verify(request, reset_password_key=None):
 
     vprk = get_object_or_404(ValidPasswordResetKey, reset_password_key=reset_password_key)
     if request.method == 'POST':
@@ -90,11 +90,11 @@ def reset_password(request, reset_password_key=None):
             messages.success(request, _("Your password has been reset."))
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render(request, 'reset-password.html',
+            return render(request, 'generic/bootstrapform.html',
                           {'form': form,
                            'reset_password_key': reset_password_key })
 
-    return render(request, 'reset-password.html',
+    return render(request, 'generic/bootstrapform.html',
                   {'form': PasswordResetForm(),
                    'reset_password_key': reset_password_key })
 
@@ -145,7 +145,7 @@ def forgot_password(request):
 
 
 def create(request):
-    name = "Create a Blue Button Developer Account"
+    name = "Create a Developer Account"
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
@@ -168,7 +168,7 @@ def account_settings(request):
     name = _("Account Settings")
     up = get_object_or_404(UserProfile, user=request.user)
 
-    groups = request.user.groups.values_list('name',flat=True)
+    groups = request.user.groups.values_list('name', flat=True)
     for g in groups:
         messages.info(request, _("You are in the group: %s" % (g)))    
 
@@ -209,7 +209,7 @@ def account_settings(request):
 def activation_verify(request, activation_key):
 
     if validate_activation_key(activation_key):
-        messages.success(request, "Your account has been activated and you may now login.")
+        messages.success(request, "Your account has been activated. You may now login.")
     else:
         messages.error(request, "This key does not exist or has already been used.")
 
