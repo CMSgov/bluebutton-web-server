@@ -1,10 +1,13 @@
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 
-from ..test import BaseApiTest
+from apps.test import BaseApiTest
+
+ENCODED = settings.ENCODING
 
 
 class TestUserSelfEndpoint(BaseApiTest):
@@ -49,7 +52,7 @@ class TestUserSelfEndpoint(BaseApiTest):
             'email': user.email,
             'created': DjangoJSONEncoder().default(user.date_joined),
         }
-        self.assertJSONEqual(response.content, expected_json)
+        self.assertJSONEqual(response.content.decode(ENCODED), expected_json)
 
 
 class TestSingleAccessTokenValidator(BaseApiTest):

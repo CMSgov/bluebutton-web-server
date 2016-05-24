@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta
 import string
 import random
 import uuid
-from .emails import send_password_reset_url_via_email, send_signup_key_via_email
+from .emails import send_password_reset_url_via_email, send_activation_key_via_email
 from django.core.mail import send_mail, EmailMessage
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
@@ -106,6 +106,31 @@ class Invitation(models.Model):
                 msg.send()
 
         super(Invitation, self).save(**kwargs)
+
+
+@python_2_unicode_compatible
+class ActivationKey(models.Model):
+    user        = models.ForeignKey(User)
+    key         = models.CharField(default=uuid.uuid4, max_length=40)
+    expires     = models.DateTimeField(blank=True)
+                           
+
+    def __str__(self):
+        return 'Key for %s expires at %s' % (self.user.username,
+                                         self.expires)
+        
+    def save(self, **kwargs):
+        
+        self.signup_key=str(uuid.uuid4())
+        now = datetime.now()
+        expires=now+timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
+        self.expires=expires
+        
+        #send an email with reset url
+        send_activation_key_via_email(self.user, self.key)
+        super(ActivationKey, self).save(**kwargs)
+
+
 
 
 @python_2_unicode_compatible        

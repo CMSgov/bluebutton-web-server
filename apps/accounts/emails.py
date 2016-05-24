@@ -3,7 +3,10 @@
 # vim: ai ts=4 sts=4 et sw=4
 from django.conf import settings
 from django.core.mail import EmailMessage,  EmailMultiAlternatives
+from django.core.urlresolvers import reverse
 
+def random_secret(y=40):
+    return ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for x in range(y))
 
 def send_password_reset_url_via_email(user, reset_key):
     if settings.SEND_EMAIL:
@@ -11,11 +14,11 @@ def send_password_reset_url_via_email(user, reset_key):
         from_email = settings.EMAIL_HOST_USER
         to = user.email
         headers = {'Reply-To': from_email}
-        
+        link = "%s%s" % (settings.HOSTNAME_URL , reverse('password_reset_email_verify', args = (reset_key,) ))
         html_content = """"
         <P>
-        Click on the following link to reset your password.<br>
-        <a HREF="%s/accounts/reset-password/%s/">%s/accounts/reset-password/%s</a>
+        Click on the link to reset your password.<br>
+        <a href="%s"> %s</a>
         </p>
         <p>
         Thank you,
@@ -24,90 +27,91 @@ def send_password_reset_url_via_email(user, reset_key):
         The Team
         
         </P>
-        """ % (settings.HOSTNAME_URL , reset_key, settings.HOSTNAME_URL, reset_key)
+        """ % (link, link)
        
         text_content="""
-        Click on the following link to reset your password.
-        %s/accounts/reset-password/%s
+        Click on the link to reset your password.
+        %s
         
         
         Thank you,
         
         The Team
         
-        """ % (settings.HOSTNAME_URL , reset_key,)
+        """ % (link)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to,])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
 
 
-def send_signup_key_via_email(user, signup_key):
+def send_activation_key_via_email(user, signup_key):
+    """Do not call this directly.  Instead use create_signup_key in utils."""
+    subject = "[%s]Verify your email." % (settings.ORGANIZATION_NAME)    
+    from_email = settings.EMAIL_HOST_USER
+    to = user.email
+    headers = {'Reply-To': from_email}
+    activation_link = "%s%s" % (settings.HOSTNAME_URL, reverse('activation_verify', args=(signup_key,)))
 
-    if settings.SEND_EMAIL:
-        subject = "[%s]Verify your email to get started." % (settings.ORGANIZATION_NAME)    
-        from_email = settings.EMAIL_HOST_USER
-        to = user.email
-        headers = {'Reply-To': from_email}
-        
-        html_content = """
-        <P>
-        Hi There.  Please click the link to activate your account.<br>
-        <a HREF="%s/accounts/signup-verify/%s">%s/accounts/signup-verify/%s</a>
-        
-        Thank you,
-        
-        The Team
-        </P>
-        """ % (settings.HOSTNAME_URL, signup_key, settings.HOSTNAME_URL, signup_key)
+
+    html_content = """
+       <p>
+       Hello %s. Please click the link to activate your account.<br>
+       <a href=%s a> %s</a><br>
        
-        text_content="""
-        Hi there. Please click the link to activate your account.
-        %s/accounts/signup-verify/%s
-        
-        Thank you,
-        
-        The Team
-        
-        
-        """ % (settings.HOSTNAME_URL, signup_key,)
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [to,])
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
+       Thank you,<br>
+       
+       The Team
+       </p>
+       """ % (user.first_name, activation_link, activation_link )
+       
+    text_content="""
+       Hello %s. Please click the link to activate your account.
+       
+        %s
+       
+       Thank you,
+       
+       The Team
+       
+       """ % (user.first_name, activation_link)
+    msg = EmailMultiAlternatives(subject, text_content, from_email, [to,])
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
 
 
 def send_invite_request_notices(invite_request):
-    if settings.SEND_EMAIL:
-        subject = "[%s]Invitation Request Received" % (settings.ORGANIZATION_NAME)    
-        from_email = settings.EMAIL_HOST_USER
-        to = invite_request.email 
-        headers = {'Reply-To': from_email}
-        
-        html_content = """
-        <p>
-        Hello: %s %s,
-        </p>
-        <p>
-        Your request for an invite to the OAuth2 Server (%s) has been received.
-        </p>
-        <p>
-        Thank You,
-        </p>
-        <p>
-        The Team
-        </p>
-        """ % (invite_request.first_name,
-               invite_request.last_name,
-               settings.HOSTNAME_URL, )
+
+       subject = "[%s]Invitation Request Received" % (settings.ORGANIZATION_NAME)    
+       from_email = settings.EMAIL_HOST_USER
+       to = invite_request.email 
+       headers = {'Reply-To': from_email}
        
-        text_content="""Hello: %s %s,
-    Your request for an invite to OAuth2 Server (%s) has been received.
-        """ % (invite_request.first_name,
-               invite_request.last_name,
-               settings.HOSTNAME_URL, )
-        msg = EmailMultiAlternatives(subject, text_content, from_email,
-                                     [to,settings.INVITE_REQUEST_ADMIN, ])
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
+       html_content = """
+       <p>
+       Hello: %s %s,
+       </p>
+       <p>
+       Your request for an invite to the OAuth2 Server (%s) has been received.
+       </p>
+       <p>
+       Thank You,
+       </p>
+       <p>
+       The Team
+       </p>
+       """ % (invite_request.first_name,
+              invite_request.last_name,
+              settings.HOSTNAME_URL, )
+       
+       text_content="""Hello: %s %s,
+       Your request for an invite to OAuth2 Server (%s) has been received.
+       """ % (invite_request.first_name,
+              invite_request.last_name,
+              settings.HOSTNAME_URL, )
+       msg = EmailMultiAlternatives(subject, text_content, from_email,
+                                    [to,settings.INVITE_REQUEST_ADMIN, ])
+       msg.attach_alternative(html_content, "text/html")
+       msg.send()
 
     
 

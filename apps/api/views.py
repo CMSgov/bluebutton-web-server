@@ -5,11 +5,13 @@ import json
 import logging
 from collections import OrderedDict
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.dot_ext.decorators import capability_protected_resource
 
+ENCODED = settings.ENCODING
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -52,7 +54,7 @@ def api_write(request):
         errors =[]
         try:
             if type(request.body) == bytes:
-                decoded = request.body.decode('utf-8')
+                decoded = request.body.decode(ENCODED)
             else:
                 decoded = request.body
             j =json.loads(decoded, object_pairs_hook=OrderedDict)
