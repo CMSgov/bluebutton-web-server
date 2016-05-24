@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from ..emails import send_invite_request_notices
 from ..forms import *
 from ..models import *
-from ..utils import verify
+from ..utils import validate_activation_key 
 
 def request_invite(request):
     name='Request an Invite'
@@ -37,14 +37,10 @@ def request_invite(request):
        return render(request,'generic/bootstrapform.html',
                     {'name': name, 'form': RequestInviteForm()})
 
-
-
 def mylogout(request):
     logout(request)
     messages.success(request, _("You have been logged out."))
     return HttpResponseRedirect(reverse('login'))
-
-
 def simple_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -67,7 +63,7 @@ def simple_login(request):
                 else:
                    #The user exists but is_active=False
                    messages.error(request,
-                        _("Your account is inactive so you may not log in."))
+                        _("Please check your email for a link to activate your account."))
 
                    return render(request, 'login.html', {'form': form})
             else:
@@ -81,7 +77,7 @@ def simple_login(request):
     return render(request, 'login.html', {'form': LoginForm()})
 
 
-def reset_password(request, reset_password_key=None):
+def password_reset_email_verify(request, reset_password_key=None):
 
     vprk = get_object_or_404(ValidPasswordResetKey, reset_password_key=reset_password_key)
     if request.method == 'POST':
@@ -94,16 +90,13 @@ def reset_password(request, reset_password_key=None):
             messages.success(request, _("Your password has been reset."))
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render(request, 'reset-password.html',
-                          {
-                           'form': form,
-                           'reset_password_key': reset_password_key
-                           })
+            return render(request, 'generic/bootstrapform.html',
+                          {'form': form,
+                           'reset_password_key': reset_password_key })
 
-    return render(request, 'reset-password.html',
+    return render(request, 'generic/bootstrapform.html',
                   {'form': PasswordResetForm(),
-                   'reset_password_key': reset_password_key
-                  })
+                   'reset_password_key': reset_password_key })
 
 @login_required
 def display_api_keys(request):
@@ -152,12 +145,12 @@ def forgot_password(request):
 
 
 def create(request):
-    name = "Create a Blue Button Developer Account"
+    name = "Create a Developer Account"
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
           new_user = form.save()
-          messages.success(request, _("Account created. What are you waiting for? Log in!"))
+          messages.success(request, _("Your account was created. Please check your email to verify your account."))
           return HttpResponseRedirect(reverse('login'))
         else:
             #return the bound form with errors
@@ -170,29 +163,12 @@ def create(request):
                                {'name': name, 'form': SignupForm()})
 
 
-def verify_email(request, verification_key,
-                 template_name='activate.html',
-                 extra_context=None):
-    verification_key = verification_key.lower() # Normalize before trying anything with it.
-    account = verify(verification_key)
-
-    if extra_context is None:
-        extra_context = {}
-    context = RequestContext(request)
-    for key, value in extra_context.items():
-        context[key] = callable(value) and value() or value
-    return render_to_response(template_name,
-                              { 'account': account},
-                              context_instance=context)
-
-
-
 @login_required
 def account_settings(request):
     name = _("Account Settings")
     up = get_object_or_404(UserProfile, user=request.user)
 
-    groups = request.user.groups.values_list('name',flat=True)
+    groups = request.user.groups.values_list('name', flat=True)
     for g in groups:
         messages.info(request, _("You are in the group: %s" % (g)))    
 
@@ -230,12 +206,11 @@ def account_settings(request):
                                 })})
 
 
-def signup_verify(request, signup_key=None):
+def activation_verify(request, activation_key):
 
-    if validate_signup(signup_key=signup_key):
+    if validate_activation_key(activation_key):
         messages.success(request, "Your account has been activated. You may now login.")
-        return HttpResponseRedirect(reverse('login'))
     else:
-        return render(request,'invalid-key.html',{})
+        messages.error(request, "This key does not exist or has already been used.")
 
-
+    return HttpResponseRedirect(reverse('login'))

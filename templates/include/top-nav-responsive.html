@@ -1,0 +1,83 @@
+{% load i18n %}
+{% load static %}
+{% load has_group %}
+<!-- Fixed navbar -->
+
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a href="{% url 'home' %}" contenteditable="false"
+            class="navbar-brand"
+            style="vertical-align:top;max-height:100%;max-width:100%">
+            <img src="{% static 'img/layout/blue-button-trim.png' %}"
+                 style="vertical-align:text-top;max-height:100%;max-width:100%"></a>
+        <a href="{% url 'home' %}" contenteditable="false"
+           class="navbar-brand"
+           alt="{{ settings.APPLICATION_TITLE }}">
+                <strong>{{ settings.APPLICATION_TITLE }}</strong>
+        </a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+          <li class="inactive"><a href="#"><i class="fa fa-home"></i> Home</a></li>
+          <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help & more <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li class="dropdown-header">Help</li>
+            <li><a href="#"><i class="fa fa-question-circle"></i> Beneficiary Help</a></li>
+            <li><a href="#"><i class="fa fa-gears"></i>Developer Help</a></li>
+            <li><a href="#"><i class="fa fa-gears"></i>API Documentation</a></li>
+
+            <li class="divider"></li>
+            <li class="dropdown-header">Learn more</li>
+            <li><a href="#">About Blue Button</a></li>
+            <li><a href="/education/learn/0/">Activate Blue Button </a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+
+        {% if user.is_authenticated %}
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ user }} <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li><a href="{% url 'account_settings' %}"> <i class="fa fa-gears"></i> Account Settings</a></li>
+            <li><a href="{% url 'oauth2_provider:authorized-token-list' %}"> <i class="fa fa-plug"></i> Connected Applications</a>
+		    <li><a href="{% url 'oauth2_provider:list' %}">  <i class="fa fa-key"></i> Applications You Have Created</a>
+
+            <li><a href="{% url 'mylogout' %}">Logout <i class="fa fa-sign-out"></i></a></li>
+
+          </ul>
+        </li>
+
+        {% else %}
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user"></i> Account <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="{% url 'login' %}"> <i class="fa fa-sign-in"></i>  Login</a></li>
+                <li><a href="{% url 'request_invite' %}"><i class="fa fa-commenting-o"></i> Request an Invite</a></li>
+                <li><a href="{% url 'accounts_create' %}"> <i class="fa fa-user"></i> Create an Account</a></li>
+                <li><a href="{% url 'forgot_password' %}"><i class="fa fa-question-circle"></i> Forgot Password</a></li>
+
+              </ul>
+            </li>
+
+        {% endif %}
+        {% if user.is_authenticated %}
+            <li><a href="/accounts/logout">Logout <i class="fa fa-sign-out"></i></a></li>
+        {% else %}
+            <li><a href="/accounts/login"><i class="fa fa-sign-in"></i> Login</a></li>
+        {% endif %}
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div>
+</nav>

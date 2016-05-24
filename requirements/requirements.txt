@@ -23,6 +23,7 @@ pluggy==0.3.1             # via tox
 py==1.4.31                # via tox
 pymongo==3.2.2
 python-openid==2.2.5
+requests==2.10.0
 six==1.10.0               # via django-braces, django-oauth-toolkit
 sqlparse==0.1.19          # via django-debug-toolbar
 tox==2.3.1

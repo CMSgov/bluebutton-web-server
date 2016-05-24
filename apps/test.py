@@ -14,7 +14,7 @@ from apps.dot_ext.models import Application
 
 class BaseApiTest(TestCase):
     """
-    This class contains some helper methods usefull to test API endpoints
+    This class contains some helper methods useful to test API endpoints
     protected with oauth2 using DOT.
     """
 

@@ -61,8 +61,10 @@ INSTALLED_APPS = [
     'apps.dot_ext', # Custom extensions to DOT 
     'apps.home', # Landing pages, etc.
     'apps.education',
-     # TODO Add apps.fhir 
-     #apps.fhir,
+    # 'apps.fhir',
+    'apps.fhir.core',
+    'apps.fhir.server',
+    'apps.fhir.bluebutton',
    
     #3rd Party ---------------------
     'corsheaders',
@@ -223,6 +225,11 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
+        'tests': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        }
+
     },
 }
 
@@ -230,6 +237,9 @@ LOGGING = {
 AWS_ACCESS_KEY_ID     = os.environ.get('AWS_ACCESS_KEY_ID', 'your-key-here')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'your-secret-here')
 HOSTNAME_URL          = os.environ.get('HOSTNAME_URL', 'http://127.0.0.1:8000')
+SIGNUP_TIMEOUT_DAYS   = os.environ.get('SIGNUP_TIMEOUT_DAYS', 3)
+
+
 SEND_EMAIL            = True
 ORGANIZATION_NAME = os.environ.get('ORGANIZATION_NAME', 'CMS OAuth2 Server')
 EMAIL_BACKEND = 'django_ses.SESBackend'
@@ -325,6 +335,8 @@ THEME = THEMES[THEME_SELECTED]
 
 APPLICATION_TITLE = "CMS OAuth2 Server"
 
+# Set the default Encoding standard. typically 'utf-8'
+ENCODING = 'utf-8'
 
 SETTINGS_EXPORT = [
     'DEBUG',
@@ -340,10 +352,10 @@ SLS_USER       = "ben"
 SLS_PASSWORD   = "pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aaTohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys="
 SLS_FIRST_NAME = "Ben"
 SLS_LAST_NAME  = "Barker"
-SLS_EMAIL      = "ben@example.com"
+SLS_EMAIL      = "alan.viars@videntity.com"
 
-# try:
-#     from .local import *
-# except:
-#     pass
-#
+try:
+    from .local import *
+except:
+     pass
+

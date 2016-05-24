@@ -3,9 +3,12 @@ from __future__ import unicode_literals
 
 import json
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from ..test import BaseApiTest
+
+ENCODED = settings.ENCODING
 
 
 class TestApi(BaseApiTest):
@@ -51,7 +54,11 @@ class TestApi(BaseApiTest):
         auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
         response = self.client.get(reverse('api_read'), **auth_headers)
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(response.content, {'hello': 'World', 'oauth2': True})
+
+        print("Response Content:", response.content)
+
+        self.assertJSONEqual(response.content.decode(ENCODED),
+                             {'hello': 'World', 'oauth2': True})
 
     def test_api_write_get_fails_without_credentials(self):
         """
@@ -98,6 +105,10 @@ class TestApi(BaseApiTest):
         data = json.dumps({'test': 'data'})
         # Authenticate the request with the bearer access token
         auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
-        response = self.client.post(reverse('api_write'), data=data, content_type='application/json', **auth_headers)
+        response = self.client.post(reverse('api_write'),
+                                    data=data,
+                                    content_type='application/json',
+                                    **auth_headers)
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(response.content, {'test': 'data', 'write': True})
+        self.assertJSONEqual(response.content.decode(ENCODED),
+                             {'test': 'data', 'write': True})
