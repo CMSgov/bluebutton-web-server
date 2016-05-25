@@ -368,8 +368,7 @@ SLS_EMAIL      = "alan.viars@videntity.com"
 FHIR_SERVER_CONF = {"SERVER":"http://fhir.bbonfhir.com/",
                     "PATH":"fhir-p/",
                     "RELEASE":"baseDstu2/",
-                    "REWRITE_FROM":"http://ip-172-31-45-177.ec2.internal:8080/baseDstu2",
-                    "REWRITE_TO":"http://localhost:8000/api/v1"}
-
+                    "REWRITE_FROM":"http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2",
+                    "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
 
 # End of Base.py

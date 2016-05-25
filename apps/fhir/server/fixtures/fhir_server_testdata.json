@@ -1,10 +1,3 @@
-#==========================================================
-# CMS Blue Button on FHIR
-# Mode: LOCAL
-# running on 3.5.1
-# Application Managers: (('Mark Scrimshire', 'mark@ekivemark.com'),)
-# python manage.py dumpdata --format=json server > ./apps/fhir/server/fixtures/fhir_server_testdata.json
-#==========================================================
 [
  {"model": "server.supportedresourcetype",
   "pk": 1,
