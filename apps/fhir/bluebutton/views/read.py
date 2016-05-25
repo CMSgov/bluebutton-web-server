@@ -23,15 +23,19 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 
-from apps.fhir.bluebutton.utils import (build_params,
-                                        FhirServerUrl)
 from apps.fhir.core.utils import (error_status)
 
 from apps.fhir.bluebutton.utils import (check_access_interaction_and_resource_type,
                                         check_rt_controls,
                                         masked,
                                         masked_id,
-                                        strip_oauth)
+                                        strip_oauth,
+                                        mask_with_this_url,
+                                        build_params,
+                                        FhirServerUrl,
+                                        mask_list_with_host,
+                                        get_host_url,
+                                        )
 
 from apps.fhir.bluebutton.models import Crosswalk
 
@@ -67,8 +71,6 @@ def generic_read(request, interaction_type, resource_type, id, vid=None, *args, 
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
 
     """
-    # quick patch to get request.GET for testing
-    print("request.GET:\n", request.GET)
 
     # interaction_type = 'read' or '_history' or 'vread'
     logger.debug("interaction_type: %s" % interaction_type)
@@ -104,19 +106,29 @@ def generic_read(request, interaction_type, resource_type, id, vid=None, *args, 
 
     fhir_url = ""
     # get the default_url from ResourceTypeControl
+
+    rewrite_url_list = []
+
     if srtc:
         logger.debug('SRTC:%s' % srtc)
         if srtc.default_url == "":
             fhir_url = FhirServerUrl() + resource_type + "/"
+            rewrite_url_list.append(FhirServerUrl())
+
         else:
             fhir_url = srtc.default_url + resource_type + "/"
+            rewrite_url_list.append(srtc.default_url)
+
     else:
         logger.debug('CX:%s' % cx)
         if cx:
             fhir_url = cx.get_fhir_resource_url(resource_type)
+            rewrite_url_list.append(fhir_url.replace(resource_type+"/", ""))
         else:
             logger.debug('FHIRServer:%s' % FhirServerUrl())
             fhir_url = FhirServerUrl() + resource_type + "/"
+            if not FhirServerUrl() in rewrite_url_list:
+                rewrite_url_list.append(FhirServerUrl())
 
     logger.debug("FHIR URL:%s" % fhir_url)
 
@@ -148,7 +160,7 @@ def generic_read(request, interaction_type, resource_type, id, vid=None, *args, 
     if interaction_type == "vread":
         pass_to = fhir_url + "_history" + "/" + vid
     elif interaction_type == "_history":
-        pass_to = fhir_url + "/" + "_history"
+        pass_to = fhir_url + "_history"
     else:  # interaction_type == "read":
         pass_to = fhir_url
 
@@ -172,15 +184,34 @@ def generic_read(request, interaction_type, resource_type, id, vid=None, *args, 
     text_out = ""
     logger.debug("r:%s" % r.text)
 
+    if srtc !=None:
+        # Replace the default_url
+        if srtc.default_url:
+            logger.debug("We will replace url:%s" % (srtc.default_url))
+            if not srtc.default_url in rewrite_url_list:
+                rewrite_url_list.append(srtc.default_url)
+
+    if cx != None:
+        # replace the crosswalk fhir url
+        if cx.fhir_source.fhir_url:
+            logger.debug("we will replace %s" % (cx.fhir_source.fhir_url))
+            if not cx.fhir_source.fhir_url in rewrite_url_list:
+                rewrite_url_list.append(cx.fhir_source.fhir_url)
+
+    host_path = get_host_url(request, resource_type)[:-1]
+    logger.debug("host path:%s" % host_path)
+
+
     if '_format=xml' in pass_params.lower():
         # We will add xml support later
-        pass
 
-        text_out = r.text
-        # text_out= minidom.parseString(r.text).toprettyxml()
+        text_out = mask_list_with_host(request, host_path, r.text, rewrite_url_list)
+        # text_out= minidom.parseString(text_out).toprettyxml()
     else:
         # dealing with json
-        text_out = r.json()
+        # text_out = r.json()
+        pre_text = mask_list_with_host(request, host_path, r.text, rewrite_url_list)
+        text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
 
     od = OrderedDict()
     if DF_EXTRA_INFO:
@@ -212,7 +243,6 @@ def generic_read(request, interaction_type, resource_type, id, vid=None, *args, 
         od['note'] = 'This is the %s Pass Thru (%s) ' % (resource_type, key)
         if settings.DEBUG:
             od['note'] += 'using: %s ' % (pass_to)
-            print(od)
 
     if fmt == "xml":
         logger.debug("We got xml back in od")
