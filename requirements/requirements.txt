@@ -5,28 +5,27 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 
-boto==2.39.0
+-e git+https://github.com/evonove/django-oauth-toolkit.git@scopes-backend#egg=dot_scopes_backend
+boto==2.40.0
 bson==1.1.0
 configparser==3.5.0
-django-bootstrap-form==3.2
-django-braces==1.8.1      # via django-oauth-toolkit
+django-bootstrap-form==3.2.1
+django-braces==1.9.0
 django-cors-headers==1.1.0
 django-debug-toolbar==1.4
-django-localflavor==1.2
-https://github.com/evonove/django-oauth-toolkit/archive/scopes-backend.zip
+django-localflavor==1.3
 django-ses==0.7.1
 django-settings-export==1.1.0
-Django==1.9.5            # via django-bootstrap-form, django-debug-toolbar, django-oauth-toolkit
+Django==1.9.7             # via django-bootstrap-form, django-debug-toolbar, django-localflavor, django-settings-export
 jsonschema==2.5.1
 oauthlib==1.0.3
-pdt==0.7.0
 pluggy==0.3.1             # via tox
 py==1.4.31                # via tox
 pymongo==3.2.2
 python-openid==2.2.5
 pytz==2016.4
 requests==2.10.0
-six==1.10.0               # via django-braces, django-oauth-toolkit
+six==1.10.0
 sqlparse==0.1.19          # via django-debug-toolbar
 tox==2.3.1
-virtualenv==15.0.1        # via tox
+virtualenv==15.0.2        # via tox
