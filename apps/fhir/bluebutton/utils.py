@@ -48,26 +48,29 @@ def notNone(value=None, default=None):
         return value
 
 
-def strip_oauth(get):
+def strip_oauth(get={}):
     """ Remove OAuth values from URL Parameters being sent to backend """
 
     # access_token can be passed in as a part of OAuth protected request.
     # as can: state=random_state_string&response_type=code&client_id=ABCDEF
     # Remove them before passing url through to FHIR Server
 
+    if get == {}:
+        return get
+
     strip_parms = ['access_token', 'state', 'response_type', 'client_id']
 
-    logger.debug("Removing:%s from: %s" % (strip_parms, get))
+    # logger.debug("Removing:%s from: %s" % (strip_parms, get))
 
     strip_oauth = get_url_query_string(get, strip_parms)
 
-    logger.debug("resulting url parameters:%s" % strip_oauth)
+    # logger.debug("resulting url parameters:%s" % strip_oauth)
 
     return strip_oauth
 
 
 def block_params(get, srtc):
-    """ strip parameters from search string """
+    """ strip parameters from search string - get is a dict """
 
     # Get parameters
     # split on &
@@ -230,20 +233,13 @@ def get_format(in_get):
     if "_format" in got_get:
         # we have something to process
 
-        # if settings.DEBUG:
-        #    print("In Get:",in_get)
         fmt = got_get.get('_format','').lower()
-
-        # if settings.DEBUG:
-        #    print("Format Returned:", fmt)
 
         # Check for a valid lower case value
         if fmt in FORMAT_OPTIONS_CHOICES:
             result = fmt
         else:
             pass
-            # if settings.DEBUG:
-            #    print("No Match with Format Options:", fmt)
 
     return result
 
@@ -256,8 +252,6 @@ def get_to_lower(in_get):
     """
 
     if not in_get:
-        # if settings.DEBUG:
-        #    print("get_to_lower: Nothing to process")
         return in_get
 
     got_get = OrderedDict()
@@ -266,11 +260,7 @@ def get_to_lower(in_get):
     for value in in_get:
 
         got_get[value.lower()] = in_get.get(value,"")
-        # if settings.DEBUG:
-        #     print("Got key", value.lower(), ":", got_get[value.lower()] )
 
-    # if settings.DEBUG:
-    #    print("Returning lowercase request.GET", got_get)
 
     return got_get
 
@@ -291,7 +281,7 @@ def get_url_query_string(get, skip_parm=[]):
     :param skip_parm: []
     :return: Query_String (QS)
     """
-    logger.debug("Evaluating: %s to remove:%s" % (get,skip_parm))
+    # logger.debug("Evaluating: %s to remove:%s" % (get,skip_parm))
 
     filtered_dict = OrderedDict()
 
@@ -303,7 +293,7 @@ def get_url_query_string(get, skip_parm=[]):
 
     for k, v in get.items():
 
-        logger.debug("K/V: [%s/%s]" % (k,v))
+        # logger.debug("K/V: [%s/%s]" % (k,v))
 
         if k in skip_parm:
             pass
@@ -314,7 +304,7 @@ def get_url_query_string(get, skip_parm=[]):
     # qs = urlencode(filtered_dict)
     qs = filtered_dict
 
-    logger.debug("Filtered parameters:%s from:%s" % (qs, filtered_dict))
+    # logger.debug("Filtered parameters:%s from:%s" % (qs, filtered_dict))
     return qs
 
 
@@ -409,3 +399,64 @@ def masked_id(crosswalk, srtc, resource_type, orig_id, slash=True):
     return id
 
 
+def mask_with_this_url(request, host_path="", in_text="", find_url=""):
+    """ find_url in in_text and replace with url for this server """
+
+    if in_text == "":
+        # No text to evaluate
+        return in_text
+
+    if find_url == "":
+        # no string to find
+        return in_text
+
+    # Now we have something to do
+    # Get the host name
+    # replace_text = request.get_host()
+    if host_path.endswith("/"):
+        host_path = host_path[:-1]
+
+    out_text = in_text.replace(find_url, host_path)
+
+    logger.debug("Replacing: [%s] with [%s]" % (find_url, host_path))
+
+    return out_text
+
+
+def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
+    """ Replace a series of URLs with the host_name """
+
+    if in_text == "":
+        # No text to evaluate
+        return in_text
+
+    if len(urls_be_gone) == 0:
+        # Nothing in the list to be replaced
+        return in_text
+
+    if not settings.FHIR_SERVER_CONF['REWRITE_FROM'] in urls_be_gone:
+        urls_be_gone.append(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
+
+    for kill_url in urls_be_gone:
+        # work through the list making replacements
+        if kill_url.endswith("/"):
+            kill_url = kill_url[:-1]
+        in_text = mask_with_this_url(request, host_path, in_text, kill_url)
+
+    return in_text
+
+
+def get_host_url(request, resource_type):
+    """ get the full url and split on resource_type """
+
+    if request.is_secure():
+        http_mode = "https://"
+    else:
+        http_mode = "http://"
+
+    full_url =  http_mode + request.get_host() + request.get_full_path()
+    full_url_list = full_url.split(resource_type)
+
+    logger.debug("Full_url as list:%s" % full_url_list)
+
+    return full_url_list[0]
