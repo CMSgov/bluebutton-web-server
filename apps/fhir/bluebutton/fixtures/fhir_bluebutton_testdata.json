@@ -1,11 +1,19 @@
-#==========================================================
-# CMS Blue Button on FHIR
-# Mode: LOCAL
-# running on 3.5.1
-# Application Managers: (('Mark Scrimshire', 'mark@ekivemark.com'),)
-# python manage.py dumpdata --format=json bluebutton > ./apps/fhir/bluebutton/fixtures/fhir_bluebutton_testdata.json
-#==========================================================
-[{"model": "bluebutton.resourcetypecontrol",
+[{"model": "server.supportedresourcetype",
+  "pk": 1,
+  "fields": {"resource_name": "Patient",
+             "json_schema": "{}",
+             "get": true,
+             "put": false,
+             "create": false,
+             "read": true,
+             "vread": true,
+             "update": false,
+             "delete": false,
+             "search": true,
+             "history": true
+            }
+ },
+  {"model": "bluebutton.resourcetypecontrol",
   "pk": 1,
   "fields": {"resource_name": 1,
              "override_url_id": true,

@@ -25,12 +25,16 @@ import logging
 
 logger = logging.getLogger('tests.%s' % __name__)
 
-from apps.fhir.bluebutton.utils import notNone
+from apps.fhir.bluebutton.utils import (notNone,
+                                        strip_oauth)
 
 ENCODED = settings.ENCODING
 
 
 class bluebutton_utils_simple_TestCase(TestCase):
+
+    fixtures = ['fhir_bluebutton_testdata.json']
+
     def test_notNone(self):
         """ Test notNone return values """
 
@@ -80,4 +84,48 @@ class bluebutton_utils_simple_TestCase(TestCase):
         response = notNone(listing, "number")
         logger.debug("Testing Response:%s" % response)
         self.assertEqual(response, listing)
+
+    def test_strip_oauth(self):
+        """ test request.GET removes OAuth parameters """
+
+        # <QueryDict: {'_format': ['json']}>
+        get_ish_1 = {'_format': ['json'],
+                    'access_token': ['some_Token'],
+                    'state': ['some_State'],
+                    'response_type': ['some_Response_Type'],
+                    'client_id':['Some_Client_id'],
+                    'Keep': ['keep_this']}
+
+        get_ish_2 = {'_format': ['json'],
+                     'Keep':    ['keep_this']}
+
+        get_ish_3 = {'access_token': ['some_Token'],
+                    'state': ['some_State'],
+                    'response_type': ['some_Response_Type'],
+                    'client_id':['Some_Client_id'],
+                    }
+
+        get_ish_4 = {}
+
+        response = strip_oauth(get_ish_1)
+        self.assertEqual(response, get_ish_2, "Successful removal")
+
+        response = strip_oauth(get_ish_3)
+        self.assertEqual(response, get_ish_4, "Successful removal of all items")
+
+        response = strip_oauth(get_ish_2)
+        self.assertEqual(response, get_ish_2, "Nothing removed")
+
+        response = strip_oauth(get_ish_4)
+        self.assertEqual(response, get_ish_4, "Empty dict - nothing to do")
+
+        response = strip_oauth()
+        self.assertEqual(response, {}, "Empty dict - nothing to do")
+
+
+    def test_block_params(self):
+        """ strip parameters from get dict based on list in ResoureTypeControl record """
+
+
+
 
