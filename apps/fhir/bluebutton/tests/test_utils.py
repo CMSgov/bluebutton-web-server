@@ -539,4 +539,63 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         self.assertEquals(response, expected)
 
     def test_check_access_interaction_and_resource_type(self):
-        """  """
+        """ test resource_type and interaction_type from SupportedResourceType """
+
+        """ Test 1: Patient GET = True """
+        resource_type = "Patient"
+        interaction_type = "get" # True
+
+        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        # print("Response for ", interaction_type, "=", response)
+
+        self.assertEquals(response, False)
+
+        """ Test 2: Patient get = True """
+        resource_type = "Patient"
+        interaction_type = "GET" # True
+
+        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        # print("Response for ", interaction_type, "=", response)
+        self.assertEquals(response, False)
+
+        """ Test 3: Patient UPdate = False """
+        resource_type = "Patient"
+        interaction_type = "UPdate" # False
+
+        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        # print("Response for ", interaction_type, "=", response)
+        self.assertEquals(response.status_code,  403)
+
+        """ Test 4: Patient UPdate = False """
+        resource_type = "BadResourceName"
+        interaction_type = "get" # False
+
+        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        # print("Response for ", interaction_type, "=", response)
+        self.assertEquals(response.status_code,  404)
+
+
+class bluebutton_utils_rt_TestCase(TestCase):
+
+    fixtures = ['fhir_bluebutton_test_rt.json']
+
+    def test_check_rt_controls(self):
+        """ Get ResourceTypeControl via SupportedResourceType from resource_type """
+
+        """ Test 1: Good Resource """
+        resource_type = "Patient"
+
+        response = check_rt_controls(resource_type)
+        expected = SupportedResourceType.objects.get(resource_name=resource_type)
+        print("Resource:", response.resource_name.id,"=", expected.id)
+
+        self.assertEquals(response.resource_name.id, expected.id)
+
+        """ Test 2: Bad Resource """
+        resource_type = "BadResource"
+
+        response = check_rt_controls(resource_type)
+
+        self.assertEquals(response, None)
+
+

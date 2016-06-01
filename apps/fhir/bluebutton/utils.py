@@ -316,7 +316,8 @@ def FhirServerUrl(server=None,path=None, release=None ):
 def check_access_interaction_and_resource_type(resource_type, interaction_type):
     try:
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
-        if interaction_type not in rt.get_supported_interaction_types():
+        # force comparison to lower case to make case insensitive check
+        if interaction_type.lower() not in map(str.lower, rt.get_supported_interaction_types()):
             msg = "The interaction: %s is not permitted on %s FHIR " \
                   "resources on this FHIR sever." % (interaction_type,
                                                      resource_type)
@@ -330,11 +331,14 @@ def check_access_interaction_and_resource_type(resource_type, interaction_type):
 
 def check_rt_controls(resource_type):
     # Check for controls to apply to this resource_type
-    logger.debug("Resource_Type =%s" % resource_type)
-
-    rt = SupportedResourceType.objects.get(resource_name=resource_type)
-
-    logger.debug("Working with SupportedResourceType:%s" % rt)
+    # logger.debug("Resource_Type =%s" % resource_type)
+    try:
+        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+    except SupportedResourceType.DoesNotExist:
+        srtc = None
+        return srtc
+        
+    # logger.debug("Working with SupportedResourceType:%s" % rt)
 
     try:
         srtc = ResourceTypeControl.objects.get(resource_name=rt)
