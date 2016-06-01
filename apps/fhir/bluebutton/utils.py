@@ -88,10 +88,13 @@ def block_params(get, srtc):
         if srtc.override_search:
             search_params = get_url_query_string(get, srtc.get_search_block())
 
+    # do we need to convert result to json. source could be OrderedDict or string
+    # search_params_result = json.dumps(search_params)
+
+    # return search_params_result
     return search_params
 
-
-def add_params(srtc, key):
+def add_params(srtc, key=None):
     """ Add filtering parameters to search string """
 
     # srtc.get_search_add will return a list
@@ -99,25 +102,36 @@ def add_params(srtc, key):
     # Replaceable parameters can be included
     # Currently Supported Replaceable Parameters are:
     # %PATIENT% = key
+    # key = FHIR_ID for search parameter. eg. patient= Patient profile Id
     # modify this function to add more Replaceable Parameters
 
+    # Returns List
+
     # add_params = ""
-    add_params = OrderedDict()
+    add_params = []
 
     if srtc:
         if srtc.override_search:
             params_list = srtc.get_search_add()
 
-            logger.debug("Parameters to add:%s" % params_list)
+            # logger.debug("Parameters to add:%s" % params_list)
 
+            add_params = []
             for item in params_list:
                 # Run through list and do variable replacement
                 if "%PATIENT%" in item:
-                    item.replace('%PATIENT%', key)
+                    if key == None:
+                        key_str = ""
+                    else:
+                        key_str = str(key)
+                    item = item.replace('%PATIENT%', key_str)
+                    if "%PATIENT%" in item:
+                        # Still there we need to remove
+                        item = item.replace('%PATIENT%', '')
 
-            add_params = params_list
+                add_params.append(item)
 
-            logger.debug("Resulting additional parameters:%s" % add_params)
+            # logger.debug("Resulting additional parameters:%s" % add_params)
 
     return add_params
 
@@ -130,20 +144,38 @@ def concat_parms(front_part={}, back_part={}):
 
     joined_parms = OrderedDict()
 
-    logger.debug("Joining %s with: %s" % (front_part, back_part))
+    # logger.debug("Joining %s with: %s" % (front_part, back_part))
     if len(front_part) > 0:
-        for k, v in front_part.items():
-            # append front items
-            joined_parms[k] = v
+        if isinstance(front_part, dict):
+            for k, v in front_part.items():
+                # append back items
+                joined_parms[k] = v
+        elif isinstance(front_part, list):
+            for item in front_part:
+                # split item  on '=' eg. patient=4995802
+                item_split = item.split('=')
+                if len(item_split) > 1:
+                    joined_parms[item_split[0]] = item_split[1]
+                else:
+                    joined_parms[item_split[0]] = ""
 
     if len(back_part) > 0:
-        for k, v in back_part.items():
-            # append back items
-            joined_parms[k] = v
+        if isinstance(back_part, dict ):
+            for k, v in back_part.items():
+                # append back items
+                joined_parms[k] = v
+        elif isinstance(back_part, list):
+            for item in back_part:
+                # split item  on '=' eg. patient=4995802
+                item_split = item.split('=')
+                if len(item_split) > 1:
+                    joined_parms[item_split[0]] = item_split[1]
+                else:
+                    joined_parms[item_split[0]] = ""
 
     concat_parms = "?" + urlencode(joined_parms)
 
-    logger.debug("resulting string:%s" % concat_parms)
+    # logger.debug("resulting string:%s" % concat_parms)
 
     # We have to do something
     # joined_parms = "?"
@@ -182,14 +214,14 @@ def build_params(get, srtc, key ):
     # leading ? and parameters joined by &
     all_param = concat_parms(url_param, add_param)
 
-    logger.debug("Parameter (post block/add):%s" % all_param)
+    # logger.debug("Parameter (post block/add):%s" % all_param)
 
     # now we check for _format being specified. Otherwise we get back html
     # by default we will process json unless _format is already set.
 
     all_param = add_format(all_param)
 
-    logger.debug("add_Format returned:%s" % all_param)
+    # logger.debug("add_Format returned:%s" % all_param)
 
     return all_param
 
@@ -217,54 +249,6 @@ def add_format(all_param=""):
     return all_param
 
 
-def get_format(in_get):
-    """
-    Receive request.GET and check for _format
-    if json or xml return .lower()
-    if none return "json"
-    :param in_get:
-    :return: "json" or "xml"
-    """
-    got_get = get_to_lower(in_get)
-
-    # set default to return
-    result = ""
-
-    if "_format" in got_get:
-        # we have something to process
-
-        fmt = got_get.get('_format','').lower()
-
-        # Check for a valid lower case value
-        if fmt in FORMAT_OPTIONS_CHOICES:
-            result = fmt
-        else:
-            pass
-
-    return result
-
-
-def get_to_lower(in_get):
-    """
-    Force the GET parameter keys to lower case
-    :param in_get:
-    :return:
-    """
-
-    if not in_get:
-        return in_get
-
-    got_get = OrderedDict()
-    # Deal with capitalization in request.GET.
-    # force to lower
-    for value in in_get:
-
-        got_get[value.lower()] = in_get.get(value,"")
-
-
-    return got_get
-
-
 def get_url_query_string(get, skip_parm=[]):
     """
     Receive the request.GET Query Dict
@@ -288,6 +272,8 @@ def get_url_query_string(get, skip_parm=[]):
     # Check we got a get dict
     if not get:
         return filtered_dict
+    if not isinstance(get, dict):
+        return filtered_dict
 
     # Now we work through the parameters
 
@@ -310,7 +296,7 @@ def get_url_query_string(get, skip_parm=[]):
 
 def FhirServerUrl(server=None,path=None, release=None ):
     # fhir_server_configuration = {"SERVER":"http://fhir-test.bbonfhir.com:8081",
-    #                              "PATH":"",
+    #                              "PATH":"/",
     #                              "RELEASE":"/baseDstu2"}
     # FHIR_SERVER_CONF = fhir_server_configuration
     # FHIR_SERVER = FHIR_SERVER_CONF['SERVER'] + FHIR_SERVER_CONF['PATH']
