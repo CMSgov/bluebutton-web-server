@@ -11,6 +11,7 @@ Created: 5/16/16 12:10 AM
 """
 __author__ = 'Mark Scrimshire:@ekivemark'
 
+import sys
 from .base import *
 from platform import python_version
 
@@ -26,7 +27,10 @@ MANAGERS = ADMINS
 
 ALLOWED_HOSTS = ['*']
 
-if DEBUG:
+# Suppress printing for dumpdata to avoid polluting dump files
+SUPPRESS_PRINT = ['dumpdata',]  # 'runserver'
+
+if DEBUG and not sys.argv[1].lower() in SUPPRESS_PRINT:
     print("==========================================================")
     # APPLICATION_TITLE is set in .base
     print(APPLICATION_TITLE)
