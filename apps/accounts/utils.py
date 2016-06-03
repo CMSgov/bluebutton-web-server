@@ -6,7 +6,7 @@ from datetime import datetime
 import pytz
 
 
-def create_signup_key(user):
+def create_activation_key(user):
     #Create an new activation key and send the email.
     k = ActivationKey.objects.create(user=user)
     return k

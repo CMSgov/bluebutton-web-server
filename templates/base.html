@@ -51,7 +51,12 @@
       
         {% include "include/top-nav-responsive.html" %}
      
-
+    <div class="col-lg-12">
+        {% block breadcrumbs %}
+        {% endblock %}
+    </div>
+{% block messages %}
+{% endblock %}
       {% block Content %}
         {% if template %}{% include template %}{% endif %}
         {{ content|safe }}

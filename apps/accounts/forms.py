@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 from django import forms
-
-
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.mail import mail_admins
 from django.utils.translation import ugettext_lazy as _
-
+from django.contrib.auth.password_validation import validate_password
 from .models import Invitation, RequestInvite, UserProfile
 from .emails import send_activation_key_via_email
-
+from .utils import create_activation_key
+from django.core.exceptions import ValidationError
 class RequestInviteForm(forms.ModelForm):
     class Meta:
         model = RequestInvite
@@ -43,10 +42,12 @@ class PasswordResetForm(forms.Form):
         password1 = self.cleaned_data.get("password1", "")
         password2 = self.cleaned_data["password2"]
         if password1 != password2:
-            raise forms.ValidationError(_("The two passwords didn't match."))
-        if len(password1) < settings.MIN_PASSWORD_LEN:
-            msg=_("Password must be at least %s characters long. Be tricky!") % (settings.MIN_PASSWORD_LEN)
-            raise forms.ValidationError(msg)
+            raise forms.ValidationError(_("The two password fields didn't match."))
+        
+        try:
+            validate_password(password1)
+        except ValidationError as err:            
+            raise forms.ValidationError(err.error_list[0])
         return password2
 
 
@@ -81,9 +82,12 @@ class SignupForm(forms.Form):
         password2 = self.cleaned_data["password2"]
         if password1 != password2:
             raise forms.ValidationError(_("The two password fields didn't match."))
-        if len(password1) < settings.MIN_PASSWORD_LEN:
-            msg=_("Password must be at least %s characters long.  Be tricky!") % (settings.MIN_PASSWORD_LEN)
-            raise forms.ValidationError(msg)
+        
+        try:
+            validate_password(password1)
+        except ValidationError as err:            
+            raise forms.ValidationError(err.error_list[0])
+            
         return password2
     
     def clean_email(self):
@@ -133,7 +137,7 @@ class SignupForm(forms.Form):
         new_user.groups.add(group)
         
         #Send a verification email
-        send_signup_key_via_email(new_user)
+        ak = create_activation_key(new_user)
         
         return new_user
     
