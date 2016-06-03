@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
 from .models import UserProfile
 from django.contrib.auth.models import Group
-from .utils import create_signup_key
+from .utils import create_activation_key
 
 
 class SettingsBackend(object):
@@ -36,7 +36,7 @@ class SettingsBackend(object):
                 group = Group.objects.get(name='BlueButton')
                 user.groups.add(group)
                 # Send verification email
-                create_signup_key(user)
+                create_activation_key(user)
                 
             return user
         return None
