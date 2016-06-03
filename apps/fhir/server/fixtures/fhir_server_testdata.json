@@ -1,0 +1,17 @@
+[
+ {"model": "server.supportedresourcetype",
+  "pk": 1,
+  "fields": {"resource_name": "Patient",
+             "json_schema": "{}",
+             "get": true,
+             "put": false,
+             "create": false,
+             "read": true,
+             "vread": true,
+             "update": false,
+             "delete": false,
+             "search": true,
+             "history": true
+            }
+ }
+]
