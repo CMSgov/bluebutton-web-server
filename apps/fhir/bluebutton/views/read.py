@@ -60,7 +60,7 @@ def read(request, resource_type, id, *args, **kwargs):
     return read
 
 
-def generic_read(request, interaction_type, resource_type, id, vid=None, *args, **kwargs):
+def generic_read(request, interaction_type, resource_type, id=None, vid=None, *args, **kwargs):
     """
     Read from remote FHIR Server
     :param resourcetype:
@@ -72,7 +72,7 @@ def generic_read(request, interaction_type, resource_type, id, vid=None, *args, 
 
     """
 
-    # interaction_type = 'read' or '_history' or 'vread'
+    # interaction_type = 'read' or '_history' or 'vread' or 'search'
     logger.debug("interaction_type: %s" % interaction_type)
 
     #Check if this interaction type and resource type combo is allowed.
@@ -132,10 +132,13 @@ def generic_read(request, interaction_type, resource_type, id, vid=None, *args, 
 
     logger.debug("FHIR URL:%s" % fhir_url)
 
-    key = masked_id(cx, srtc, resource_type, id, slash=False)
-    fhir_url += key + "/"
+    if interaction_type == 'search':
+        key = None
+    else:
+        key = masked_id(cx, srtc, resource_type, id, slash=False)
+        fhir_url += key + "/"
 
-    ####
+    ###########################
 
     # Now we get to process the API Call.
 
@@ -154,6 +157,10 @@ def generic_read(request, interaction_type, resource_type, id, vid=None, *args, 
 
     # Remove the oauth elements from the GET
     pass_params = strip_oauth(request.GET)
+
+    if interaction_type == "search":
+        if cx != None:
+            id  = cx.fhir_id
 
     pass_params = build_params(pass_params, srtc, id)
 
