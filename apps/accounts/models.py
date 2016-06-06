@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 # to activate locaflavor add to INSTALLED_APPS
 # from localflavor.us.models import PhoneNumberField
 import string
+import pytz
 import random
 import uuid
 from .emails import send_password_reset_url_via_email, send_activation_key_via_email
@@ -122,7 +123,8 @@ class ActivationKey(models.Model):
     def save(self, **kwargs):
         
         self.signup_key=str(uuid.uuid4())
-        now = datetime.now()
+        
+        now = pytz.utc.localize( datetime.utcnow() ) 
         expires=now+timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
         self.expires=expires
         
@@ -161,3 +163,10 @@ def random_key_id(y=20):
     
 def random_secret(y=40):
        return ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for x in range(y))
+    
+    
+    
+def create_activation_key(user):
+    #Create an new activation key and send the email.
+    k = ActivationKey.objects.create(user=user)
+    return k

@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, create_activation_key
 from django.contrib.auth.models import Group
-from .utils import create_activation_key
+
 
 
 class SettingsBackend(object):

@@ -41,6 +41,7 @@ def mylogout(request):
     logout(request)
     messages.success(request, _("You have been logged out."))
     return HttpResponseRedirect(reverse('login'))
+
 def simple_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
