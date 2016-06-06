@@ -2,7 +2,8 @@ from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import Group
 from django.core.urlresolvers import reverse
-from apps.accounts.models import Invitation
+from apps.accounts.models import Invitation, UserProfile
+
 
 class CreateAccountTestCase(TestCase):
     """Test Account Creation"""
@@ -24,8 +25,6 @@ class CreateAccountTestCase(TestCase):
                      "last_name": "Flinstone"
                      }
         response = self.client.post(self.url, form_data, follow=True)
-        #print(response.content)
-        
         
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Please check your email to verify your account.")
@@ -57,3 +56,20 @@ class CreateAccountTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "too common")
    
+   
+   
+   
+    def test_valid_account_create_is_a_developer(self):
+        """Account Created on site is a developer and not a benny"""
+        form_data = {"invitation_code": "1234",
+                     "email": "fred@example.com",
+                     "username":"fred",
+                     "password1":"bedrocks",
+                     "password2":"bedrocks",
+                     "first_name": "Fred",
+                     "last_name": "Flinstone"
+                     }
+        response = self.client.post(self.url, form_data, follow=True)
+        up = UserProfile.objects.get(user__username="fred")
+        self.assertEqual(up.user_type, "DEV")
+
