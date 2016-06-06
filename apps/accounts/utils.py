@@ -6,12 +6,6 @@ from datetime import datetime
 import pytz
 
 
-def create_activation_key(user):
-    #Create an new activation key and send the email.
-    k = ActivationKey.objects.create(user=user)
-    return k
-
-
 def validate_activation_key(activation_key):
     utc=pytz.UTC
     try:

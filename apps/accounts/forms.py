@@ -6,9 +6,8 @@ from django.contrib.auth.models import Group
 from django.core.mail import mail_admins
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.password_validation import validate_password
-from .models import Invitation, RequestInvite, UserProfile
+from .models import Invitation, RequestInvite, UserProfile, create_activation_key
 from .emails import send_activation_key_via_email
-from .utils import create_activation_key
 from django.core.exceptions import ValidationError
 class RequestInviteForm(forms.ModelForm):
     class Meta:
