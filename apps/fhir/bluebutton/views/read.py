@@ -135,7 +135,7 @@ def generic_read(request, interaction_type, resource_type, id=None, vid=None, *a
     if interaction_type == 'search':
         key = None
     else:
-        key = masked_id(cx, srtc, resource_type, id, slash=False)
+        key = masked_id(resource_type, cx, srtc, id, slash=False)
         fhir_url += key + "/"
 
     ###########################
