@@ -4,13 +4,15 @@ from __future__ import unicode_literals
 import hashlib
 import logging
 import sys
-
+import requests
+from requests.exceptions import ConnectionError, TooManyRedirects, Timeout
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
-
+import jwt
+import datetime 
 from oauth2_provider.models import AbstractApplication
-
+from poetri.verify_poet import verify_poet
 from apps.capabilities.models import ProtectedCapability
 
 
@@ -19,13 +21,70 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 @python_2_unicode_compatible
 class Endorsement(models.Model):
-    title   = models.TextField(max_length=256, default="")
-    iss     = models.TextField(max_length=512, default="", verbose_name="Issuer",
-                               help_text="Must contain a FQDN")
+    title   = models.CharField(max_length=256, default="")
     jwt     = models.TextField(max_length=10240, default="")
+    iss     = models.CharField(max_length=512, default="", verbose_name="Issuer",
+                               help_text="Must contain a FQDN", editable=False)
+    iat     = models.DateTimeField(verbose_name="Issued At",
+                            editable=False)
+    exp     = models.DateTimeField(verbose_name="Expires",
+                            editable=False)
+
 
     def __str__(self):
         return self.title
+    
+    def signature_verified(self):
+        url = "http://%s/.wellknown/poet.pem" % (self.iss)
+        
+        try: 
+            r = requests.get(url)
+            if r.status_code==200:
+                payload = verify_poet(self.jwt, r.text)
+                if "iss" in payload:
+                    return True
+        except ConnectionError:
+            pass
+        
+
+
+        url = "http://%s/.wellknown/poet.jwks" % (self.iss)
+        try: 
+            r = requests.get(url)
+            if r.status_code==200:
+                payload = verify_poet(self.jwt, r.text)
+                if "iss" in payload:
+                    return True
+        except ConnectionError:
+            pass
+        try:
+            url = "https://%s/.wellknown/poet.pem" % (self.iss)
+            r = requests.get(url,verify=False, timeout=1)
+
+            if r.status_code==200:
+                 payload = verify_poet(self.jwt, r.text)
+                 if "iss" in payload:
+                     return True
+        except ConnectionError:
+            pass
+        # 
+        # url = "https://%s/.wellknown/poet.jwks" % (self.iss)
+        # r = requests.get(url)
+        # print(r.status_code)
+        # if r.status_code==200:
+        #     payload = verify_poet(self.jwt, r.text)
+        #     if "iss" in payload:
+        #         return True
+        
+        return False
+
+    def save(self, commit=True, **kwargs):
+        if commit:
+            payload  = jwt.decode(self.jwt, verify=False)
+            self.iss = payload["iss"]
+            self.iat = datetime.datetime.fromtimestamp(int(payload["iat"])).strftime('%Y-%m-%d %H:%M:%S')       
+            self.exp = datetime.datetime.fromtimestamp(int(payload["exp"])).strftime('%Y-%m-%d %H:%M:%S')
+            super(Endorsement, self).save(**kwargs)
 
 
 class Application(AbstractApplication):
