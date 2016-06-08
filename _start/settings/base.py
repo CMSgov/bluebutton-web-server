@@ -120,12 +120,12 @@ WSGI_APPLICATION = '_start.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE':   os.environ.get('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME':     os.environ.get('DATABASE_NAME', os.path.join(BASE_DIR, '..',   'db.sqlite3')),
-        'USER':     os.environ.get('DATABASE_USER', ''),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD', ''),
-        'HOST':     os.environ.get('DATABASE_HOST', ''),
-        'PORT':     os.environ.get('DATABASE_PORT', ''),
+        'ENGINE':   os.environ.get('DJANGO_DATABASE_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME':     os.environ.get('DJANGO_DATABASE_NAME', os.path.join(BASE_DIR, '..',   'db.sqlite3')),
+        'USER':     os.environ.get('DJANGO_DATABASE_USER', ''),
+        'PASSWORD': os.environ.get('DJANGO_DATABASE_PASSWORD', ''),
+        'HOST':     os.environ.get('DJANGO_DATABASE_HOST', ''),
+        'PORT':     os.environ.get('DJANGO_DATABASE_PORT', ''),
     
     }
 }

@@ -118,6 +118,17 @@
              "group_exclude": "[]",
              "default_url": ""
              }
+ },
+ {"model": "bluebutton.resourcetypecontrol",
+  "pk": 4,
+  "fields": {"resource_name": 4,
+             "override_url_id": false,
+             "override_search": false,
+             "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
+             "search_add": "[]",
+             "group_allow": "[]",
+             "group_exclude": "[]",
+             "default_url": ""
+             }
  }
-
 ]
