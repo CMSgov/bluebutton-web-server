@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block Content %}
+    <div class="row">
+        <div class="col-lg-10">
+            {% include "include/messages.html" %}
+        </div>
+    </div>
+
+    <div class="container">
+        {% block content %}
+        {% endblock content %}
+    </div>
+{% endblock Content %}

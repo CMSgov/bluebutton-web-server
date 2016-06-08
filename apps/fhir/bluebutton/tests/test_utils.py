@@ -587,7 +587,7 @@ class bluebutton_utils_rt_TestCase(TestCase):
 
         response = check_rt_controls(resource_type)
         expected = SupportedResourceType.objects.get(resource_name=resource_type)
-        print("Resource:", response.resource_name.id,"=", expected.id)
+        # print("Resource:", response.resource_name.id,"=", expected.id)
 
         self.assertEquals(response.resource_name.id, expected.id)
 
@@ -598,4 +598,276 @@ class bluebutton_utils_rt_TestCase(TestCase):
 
         self.assertEquals(response, None)
 
+    def test_masked(self):
+        """ Checking for srtc.override_url_id """
+
+        """ Test:1 srtc with valid override_url_id=True """
+
+        srtc = ResourceTypeControl.objects.get(pk=1)
+
+        response = masked(srtc)
+        expected = True
+
+        self.assertEqual(response, expected)
+
+        """ Test:2 srtc with valid override_url_id=False """
+
+        srtc = ResourceTypeControl.objects.get(pk=4)
+
+        response = masked(srtc)
+        expected = False
+
+        self.assertEqual(response, expected)
+
+        """ Test:3 srtc =None """
+
+        srtc = ResourceTypeControl.objects.get(pk=1)
+
+        response = masked(None)
+        expected = False
+
+        self.assertEqual(response, expected)
+
+
+        """ Test:4 No SRTC """
+
+        # srtc = ResourceTypeControl.objects.get(pk=1)
+
+        response = masked()
+        expected = False
+
+        self.assertEqual(response, expected)
+
+
+    def test_masked_id(self):
+        """ Get the correct id using masking """
+
+        """ Test 1: Patient replace 1 with 49995802/ """
+
+        resource_type = "Patient"
+        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        id = 1
+
+        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        cx = Crosswalk.objects.get(user=1)
+
+        response = masked_id(resource_type, cx, srtc, id )
+        expected = "4995802/"
+
+        self.assertEqual(response, expected)
+
+
+        """ Test 2: Patient replace 1 with 49995802 """
+
+        resource_type = "Patient"
+        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        id = 1
+
+        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        cx = Crosswalk.objects.get(user=1)
+
+        response = masked_id(resource_type, cx, srtc, id, False)
+        expected = "4995802"
+
+        self.assertEqual(response, expected)
+
+
+        """ Test 3: ClaimResponse Don't replace id just add slash """
+
+        resource_type = "ClaimResponse"
+        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        id = 1
+
+        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        cx = Crosswalk.objects.get(user=1)
+
+        response = masked_id(resource_type, cx, srtc, id )
+        expected = "1/"
+
+        self.assertEqual(response, expected)
+
+
+        """ Test 4: ClaimResponse Don't replace id """
+
+        resource_type = "ClaimResponse"
+        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        id = 1
+
+        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        cx = Crosswalk.objects.get(user=1)
+
+        response = masked_id(resource_type, cx, srtc, id, False )
+        expected = "1"
+
+        self.assertEqual(response, expected)
+
+        """ Test 5: No Crosswalk """
+
+        resource_type = "ClaimResponse"
+        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        id = 1
+
+        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        cx = Crosswalk.objects.get(user=1)
+
+        response = masked_id(resource_type, None, srtc, id )
+        expected = "1/"
+
+        self.assertEqual(response, expected)
+
+        """ Test 6: No SRTC """
+
+        resource_type = "ClaimResponse"
+        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        id = 1
+
+        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        cx = Crosswalk.objects.get(user=1)
+
+        response = masked_id(resource_type, cx, None, id )
+        expected = "1/"
+
+        self.assertEqual(response, expected)
+
+
+    def test_mask_with_this_url(self):
+        """ Replace one url with another in a text string """
+
+        """ Test 1: No text to replace. No changes """
+
+        input_text = "dddd anything http://www.example.com:8000 will get replaced"
+        request = {}
+        response = mask_with_this_url(request,
+                                      host_path="http://www.replaced.com",
+                                      in_text="",
+                                      find_url="http://www.example.com:8000")
+
+        expected = ""
+
+        self.assertEqual(response, expected)
+
+        """ Test 2: No text to replace with. No changes """
+
+        input_text = "dddd anything http://www.example.com:8000 will get replaced"
+        request = {}
+        response = mask_with_this_url(request,
+                                      host_path="http://www.replaced.com",
+                                      in_text=input_text,
+                                      find_url="")
+
+        expected = input_text
+
+        self.assertEqual(response, expected)
+
+
+        """ Test 3: Replace text removing slash from end of replaced text """
+
+        input_text = "dddd anything http://www.example.com:8000 will get replaced"
+        request = {}
+        response = mask_with_this_url(request,
+                                      host_path="http://www.replaced.com/",
+                                      in_text=input_text,
+                                      find_url="http://www.example.com:8000")
+
+        expected = "dddd anything http://www.replaced.com will get replaced"
+
+        self.assertEqual(response, expected)
+
+        """ Test 4: Replace text """
+
+        input_text = "dddd anything http://www.example.com:8000 will get replaced"
+        request = {}
+        response = mask_with_this_url(request,
+                                      host_path="http://www.replaced.com",
+                                      in_text=input_text,
+                                      find_url="http://www.example.com:8000")
+
+        expected = "dddd anything http://www.replaced.com will get replaced"
+
+        self.assertEqual(response, expected)
+
+
+    def test_mask_list_with_host(self):
+        """ Replace urls in list with host_path in a text string """
+
+        # FHIR_SERVER_CONF = {"SERVER":       "http://fhir.bbonfhir.com/",
+        #                     "PATH":         "fhir-p/",
+        #                     "RELEASE":      "baseDstu2/",
+        #                     "REWRITE_FROM": "http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2",
+        #                     "REWRITE_TO":   "http://localhost:8000/bluebutton/fhir/v1"}
+
+        """ Test 1: No text to replace. No changes """
+
+        input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
+                     "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
+        request = {}
+        response = mask_list_with_host(request,
+                                       "http://www.replaced.com",
+                                       "",
+                                       ["http://www.example.com:8000","http://example.com"])
+
+        expected = ""
+        print("Response:",response)
+        print("expected:", expected)
+        self.assertEqual(response, expected)
+
+        """ Test 2: No text to replace with. Only replace FHIR_SERVER_CONF.REWRITE_FROM changes """
+
+        input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
+                     "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
+
+        request = {}
+        response = mask_list_with_host(request,
+                                       "http://www.replaced.com",
+                                       input_text,
+                                       [])
+
+        expected = input_text
+        print("Response:",response)
+        print("expected:", expected)
+
+        self.assertEqual(response, expected)
+
+        """ Test 3: Replace text removing slash from end of replaced text """
+
+        input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
+                     "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
+
+        request = {}
+        response = mask_list_with_host(request,
+                                       "http://www.replaced.com/",
+                                       input_text,
+                                       ["http://www.example.com:8000",
+                                        "http://example.com"])
+
+        expected = "dddd anything http://www.replaced.com will get replaced " \
+                   "more stuff http://www.replaced.com and http://www.replaced.com:8000/ okay"
+
+        print("Response:",response)
+        print("expected:", expected)
+
+
+        self.assertEqual(response, expected)
+
+        """ Test 4: Replace text """
+
+        input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
+                     "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
+
+        request = {}
+        response = mask_list_with_host(request,
+                                       "http://www.replaced.com",
+                                       input_text,
+                                       ["http://www.example.com:8000", "http://example.com"])
+
+        expected = "dddd anything http://www.replaced.com will get replaced " \
+                   "more stuff http://www.replaced.com and http://www.replaced.com:8000/ okay"
+
+        print("Response:",response)
+        print("expected:", expected)
+
+        self.assertEqual(response, expected)
+
+    def test_get_host_url(self):
+        """ Get the host url and split on resource_type """
 

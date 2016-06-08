@@ -358,7 +358,7 @@ def check_rt_controls(resource_type):
     return srtc
 
 
-def masked(srtc):
+def masked(srtc=None):
     """ check if force_url_override is set in SupportedResourceType """
 
 
@@ -370,17 +370,17 @@ def masked(srtc):
     return mask
 
 
-def masked_id(crosswalk, srtc, resource_type, orig_id, slash=True):
+def masked_id(resource_type, crosswalk=None, srtc=None, orig_id=None, slash=True):
     """ Get the correct id
      if crosswalk.fhir_source.shard_by == resource_type
 
      """
-    id = orig_id
+    id = str(orig_id)
     if srtc:
         if srtc.override_url_id:
             if crosswalk:
                 if resource_type.lower() == crosswalk.fhir_source.shard_by.lower():
-                    logger.debug("Replacing %s with %s" % (id, crosswalk.fhir_id))
+                    # logger.debug("Replacing %s with %s" % (id, crosswalk.fhir_id))
                     id = crosswalk.fhir_id
 
     if slash:
@@ -408,7 +408,7 @@ def mask_with_this_url(request, host_path="", in_text="", find_url=""):
 
     out_text = in_text.replace(find_url, host_path)
 
-    logger.debug("Replacing: [%s] with [%s]" % (find_url, host_path))
+    # logger.debug("Replacing: [%s] with [%s]" % (find_url, host_path))
 
     return out_text
 
