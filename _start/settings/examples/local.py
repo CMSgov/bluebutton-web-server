@@ -4,8 +4,12 @@
 
 """
 hhs_oauth_server
-FILE: local.py
+FILE: wsgi_test.py
 Created: 5/16/16 12:10 AM
+
+Use this for testing if the mod_wsgi app is working in the same way as
+python manage.py runserver
+ideas based on http://blog.dscpl.com.au/2010/03/improved-wsgi-script-for-use-with.html
 
 
 """
