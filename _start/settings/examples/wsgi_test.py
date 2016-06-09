@@ -3,14 +3,17 @@
 # vim: ai ts=4 sts=4 et sw=4
 
 """
-hhs_oauth_server
-FILE: local.py
+hhs_oauth_server._start.settings
+FILE: wsgi_test.py
 Created: 5/16/16 12:10 AM
 
-Copy to _start.settings folder
-then update DJANGO_SETTINGS_MODULE=_start.settings.wsgi_test
+Use this for testing if the mod_wsgi app is working in the same way as
+python manage.py runserver
+ideas based on http://blog.dscpl.com.au/2010/03/improved-wsgi-script-for-use-with.html
+
 
 """
+
 __author__ = 'Mark Scrimshire:@ekivemark'
 
 import os
@@ -27,9 +30,9 @@ print("sys.path =", repr(sys.path))
 print("sys.modules.keys() =", repr(sys.modules.keys()))
 print("sys.modules.has_key('hhs_oauth_server') =", sys.modules.has_key('mysite'))
 if sys.modules.has_key('hhs_oauth_server'):
-  print("sys.modules['hhs_oauth_server'].__name__ =", sys.modules['mysite'].__name__)
-  print("sys.modules['hhs_oauth_server'].__file__ =", sys.modules['mysite'].__file__)
-  print("os.environ['DJANGO_SETTINGS_MODULE'] =", os.environ.get('DJANGO_SETTINGS_MODULE', None))
+    print("sys.modules['hhs_oauth_server'].__name__ =", sys.modules['mysite'].__name__)
+    print("sys.modules['hhs_oauth_server'].__file__ =", sys.modules['mysite'].__file__)
+    print("os.environ['DJANGO_SETTINGS_MODULE'] =", os.environ.get('DJANGO_SETTINGS_MODULE', None))
 
 
 DEBUG = True
