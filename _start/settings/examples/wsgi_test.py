@@ -3,7 +3,7 @@
 # vim: ai ts=4 sts=4 et sw=4
 
 """
-hhs_oauth_server
+hhs_oauth_server._start.settings
 FILE: wsgi_test.py
 Created: 5/16/16 12:10 AM
 
@@ -13,17 +13,33 @@ ideas based on http://blog.dscpl.com.au/2010/03/improved-wsgi-script-for-use-wit
 
 
 """
+
 __author__ = 'Mark Scrimshire:@ekivemark'
 
+import os
 import sys
 from .base import *
 from platform import python_version
+
+print("__name__ =", __name__)
+print("__file__ =", __file__)
+print("os.getpid() =", os.getpid())
+print("os.getcwd() =", os.getcwd())
+print("os.curdir =", os.curdir)
+print("sys.path =", repr(sys.path))
+print("sys.modules.keys() =", repr(sys.modules.keys()))
+print("sys.modules.has_key('hhs_oauth_server') =", sys.modules.has_key('mysite'))
+if sys.modules.has_key('hhs_oauth_server'):
+    print("sys.modules['hhs_oauth_server'].__name__ =", sys.modules['mysite'].__name__)
+    print("sys.modules['hhs_oauth_server'].__file__ =", sys.modules['mysite'].__file__)
+    print("os.environ['DJANGO_SETTINGS_MODULE'] =", os.environ.get('DJANGO_SETTINGS_MODULE', None))
+
 
 DEBUG = True
 
 SECRET_KEY = "BBOAUTH2-LOCAL-_CHANGE_THIS_FAKE_KEY_TO_YOUR_OWN_SECRET_KEY"
 
-# define app managers 
+# define app managers
 ADMINS = (
     ('Mark Scrimshire', 'mark@ekivemark.com'),
 )

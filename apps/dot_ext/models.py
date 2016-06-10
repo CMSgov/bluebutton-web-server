@@ -38,46 +38,68 @@ class Endorsement(models.Model):
         url = "http://%s/.wellknown/poet.pem" % (self.iss)
         
         try: 
-            r = requests.get(url)
+            r = requests.get(url, timeout=1)
             if r.status_code==200:
                 payload = verify_poet(self.jwt, r.text)
                 if "iss" in payload:
                     return True
         except ConnectionError:
             pass
-        
-
+        except TooManyRedirects:
+            pass
+        except Timeout:
+            pass
 
         url = "http://%s/.wellknown/poet.jwks" % (self.iss)
         try: 
-            r = requests.get(url)
+            r = requests.get(url, timeout=1)
             if r.status_code==200:
                 payload = verify_poet(self.jwt, r.text)
                 if "iss" in payload:
                     return True
         except ConnectionError:
             pass
-        try:
+        except TooManyRedirects:
+            pass
+        except Timeout:
+            pass
+        
+        try:         
             url = "https://%s/.wellknown/poet.pem" % (self.iss)
             r = requests.get(url,verify=False, timeout=1)
-
             if r.status_code==200:
                  payload = verify_poet(self.jwt, r.text)
                  if "iss" in payload:
                      return True
         except ConnectionError:
             pass
-        # 
-        # url = "https://%s/.wellknown/poet.jwks" % (self.iss)
-        # r = requests.get(url)
-        # print(r.status_code)
-        # if r.status_code==200:
-        #     payload = verify_poet(self.jwt, r.text)
-        #     if "iss" in payload:
-        #         return True
+        except TooManyRedirects:
+            pass
+        except Timeout:
+            pass
+         
+        try:                 
+ 
+             url = "https://%s/.wellknown/poet.jwks" % (self.iss)
+             r   = requests.get(url, timeout=1)
+             if r.status_code==200:
+                 payload = verify_poet(self.jwt, r.text)
+                 if "iss" in payload:
+                     return True
+        except ConnectionError:
+            pass
+        except TooManyRedirects:
+            pass
+        except Timeout:
+            pass
         
         return False
 
+    def payload(self):
+        payload  = jwt.decode(self.jwt, verify=False)
+        return payload
+    
+    
     def save(self, commit=True, **kwargs):
         if commit:
             payload  = jwt.decode(self.jwt, verify=False)
