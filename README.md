@@ -1,6 +1,6 @@
 OAuth Server - An OAuth Provider Project
 ========================================
-The project is based in Python 3 and Django 1.9.5.
+The project is based in Python 3 and Django 1.8.12.
 
 It consists of an OAuth2 server and a FHIR server that serves specific resources.
  This application will handle the OAuth 2 handshaking and configuration with CMS Medicare 
@@ -31,7 +31,7 @@ Note you can find the path to your Python3 binary by typing `which python3`.
 Getting your Django Settings squared away
 -------------------------------------------
 
-Add this to `~/.bash_profile`  in iOS or `~/.bashrc` in Linux using your favorite text editor.
+Add this to `~/.bash_profile`  in macOS/OSX or `~/.bashrc` in Linux using your favorite text editor.
 
 
    export DJANGO_SETTINGS_MODULE='_start.settings.local'
