@@ -12,15 +12,39 @@
     </div>
 
     <div class="block-center">
-        <h3 class="block-center-heading">{% trans "Endorsements for" %} {{ application.name }}</h3>
+        <h3 class="block-center-heading">{% trans "Endorsements for" %}
+        <a href="{{ application.get_absolute_url }}">{{ application.name }}</a> 
+        
+       </h3>
         {% if endorsements %}
-            <ul>
-                {% for e in endorsements %}
-                   <li>
-                    {{e}} issued by {{e.iss}} and expires on {{e.exp}} 
-                    </li>
+             <table class="table table-condensed">
+            <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Details</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+            {% for e in endorsements %}
+                   <tr>
+                   <td>{{e}}</td>
+                   
+                   <td>
+                   Issued By: {{e.iss}}<br>
+                   Expires: {{e.exp}}<br>
+                   Signature Verified: {{e.signature_verified}}
+                   </td>
+                    
+                    <td>
+                        <a href="{% url "view_endorsement_payload" e.id  %}">Payload</a> |
+                        <a href="{% url "edit_endorsement" application.id e.id  %}">Edit</a> | 
+                        <a href="{% url "delete_endorsement" application.id e.id  %}">Delete</a>
+                        
+                    </td>
+                   
+                   </tr>
                 {% endfor %}
-            </ul>
+            </table>
 
             <a class="btn btn-success" href="{% url "add_endorsement" application.id  %}">New Endorsement</a>
         {% else %}
