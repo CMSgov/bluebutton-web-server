@@ -34,8 +34,16 @@ ALLOWED_HOSTS = ['*']
 # Suppress printing for dumpdata to avoid polluting dump files
 SUPPRESS_PRINT = ['dumpdata',]  # 'runserver'
 
-if DEBUG and not sys.argv[1].lower() in SUPPRESS_PRINT:
+# Todo: Fix error: if DEBUG and not sys.argv[1].lower() in SUPPRESS_PRINT:
+# IndexError: list index out of range
+if len(sys.argv) >= 2:
+    check_to_suppress = sys.argv[1].lower()
+else:
+    check_to_suppress = ""
+
+if DEBUG and not check_to_suppress in SUPPRESS_PRINT:
     print("==========================================================")
+    print("# Sys Args:", sys.argv)
     # APPLICATION_TITLE is set in .base
     print(APPLICATION_TITLE)
     # SETTINGS_MODE should be set in base to DJANGO_SETTINGS_MODULE
