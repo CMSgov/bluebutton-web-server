@@ -8,7 +8,7 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
 from .models import Endorsement
-from ..capabilities.models import ProtectedCapability
+from apps.capabilities.models import ProtectedCapability
 import jwt as jwtl
 
 

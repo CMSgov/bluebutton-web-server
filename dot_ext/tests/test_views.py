@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 
 from oauth2_provider.compat import parse_qs, urlparse
 
-from ...test import BaseApiTest
+from apps.test import BaseApiTest
 from ..models import Application
 
 

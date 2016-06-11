@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.core.urlresolvers import reverse
 
-from ...test import BaseApiTest
+from apps.test import BaseApiTest
 
 
 class TestDOTTemplates(BaseApiTest):

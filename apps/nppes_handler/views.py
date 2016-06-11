@@ -1,16 +1,15 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import json, sys
-import logging
+import json
 from collections import OrderedDict
 
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
-from apps.dot_ext.decorators import capability_protected_resource
-from .mongoutils import update_mongo_pjson
 from pdt.pjson.validate_pjson import validate_pjson
+
+from dot_ext.decorators import capability_protected_resource
+from .mongoutils import update_mongo_pjson
 
 
 @capability_protected_resource()
