@@ -39,11 +39,11 @@ def add_endorsement(request, application_id):
           messages.success(request, _("The endorsement was added."))
           return HttpResponseRedirect(reverse('endorsement_list', args=(application.id,)))
         else:
-            return render(request, 'generic/bootstrapform.html', {'name': name,'form': form})
+            return render(request, 'generic/bootstrapform.html', {'name': name, 'form': form})
     else:
        #this is an HTTP  GET
-       return render(request,'generic/bootstrapform.html',
-                    {'name': name, 'form': EndorsementForm()})
+       return render(request, 'generic/bootstrapform.html',
+                     {'name': name, 'form': EndorsementForm()})
 
 @login_required
 def edit_endorsement(request, application_id, endorsement_id):
@@ -58,11 +58,11 @@ def edit_endorsement(request, application_id, endorsement_id):
           messages.success(request, _("The endorsement was edited."))
           return HttpResponseRedirect(reverse('endorsement_list', args=(application.id,)))
         else:
-            return render(request, 'generic/bootstrapform.html', {'name': name,'form': form})
+            return render(request, 'generic/bootstrapform.html', {'name': name, 'form': form})
     else:
        #this is an HTTP  GET
-       return render(request,'generic/bootstrapform.html',
-                    {'name': name, 'form': EndorsementForm(instance=e)})
+       return render(request, 'generic/bootstrapform.html',
+                     {'name': name, 'form': EndorsementForm(instance=e)})
     
     
 

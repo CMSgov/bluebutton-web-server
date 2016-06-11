@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     #1st Party (in-house) -----------
     'apps.accounts', # Account related services
     'apps.capabilities', # Define scopes and related protected resource URLs.
-    'apps.dot_ext', # Custom extensions to DOT 
+    'dot_ext', # Custom extensions to DOT
     'apps.home', # Landing pages, etc.
     'apps.education',
     # 'apps.fhir',
@@ -257,9 +257,9 @@ AUTHENTICATION_BACKENDS = (
 
 OAUTH2_PROVIDER_APPLICATION_MODEL='dot_ext.Application'
 OAUTH2_PROVIDER = {
-    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
-    'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
-    'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
+    'OAUTH2_VALIDATOR_CLASS': 'dot_ext.oauth2_validators.SingleAccessTokenValidator',
+    'OAUTH2_SERVER_CLASS': 'dot_ext.oauth2_server.Server',
+    'SCOPES_BACKEND_CLASS': 'dot_ext.scopes.CapabilitiesScopes',
 }
 
 # These choices will be available in the expires_in field
