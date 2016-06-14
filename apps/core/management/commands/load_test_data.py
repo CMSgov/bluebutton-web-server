@@ -7,7 +7,7 @@ from django.contrib.auth.models import User, Group
 from django.core.management.base import BaseCommand
 
 from apps.capabilities.models import ProtectedCapability
-from dot_ext.models import Application
+from apps.dot_ext import Application
 
 
 class Command(BaseCommand):

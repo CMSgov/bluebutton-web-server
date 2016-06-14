@@ -9,7 +9,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from dot_ext.decorators import capability_protected_resource
+from ..dot_ext.decorators import capability_protected_resource
 
 ENCODED = settings.ENCODING
 

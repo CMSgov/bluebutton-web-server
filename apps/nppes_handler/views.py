@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from pdt.pjson.validate_pjson import validate_pjson
 
-from dot_ext.decorators import capability_protected_resource
+from apps.dot_ext import capability_protected_resource
 from .mongoutils import update_mongo_pjson
 
 
