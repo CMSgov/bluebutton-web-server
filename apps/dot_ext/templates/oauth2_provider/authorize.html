@@ -5,6 +5,35 @@
 
 {% block content %}
     <div class="block-center">
+        {% if not application.endorsements.all %}
+        <div class="alert alert-warning">
+              <a class="close" data-dismiss="alert">×</a>
+              WARNING - This application is not trusted by CMS or any 3rd party and could be malicious.  
+            </div>
+    
+        {% else %}
+        {% for e in application.endorsements.all%}
+          <div class="alert alert-info">
+              <a class="close" data-dismiss="alert">×</a>
+              The endorsement "{{e}}" issued by {{e.iss}} 
+                {% if e.signature_verified %}
+                     is verified.
+                 {% else %}
+                    cannot not verified.     
+                {% endif %}
+            </div>
+          
+          {% if e.is_expired %}
+            <div class="alert alert-warning">
+              <a class="close" data-dismiss="alert">×</a>
+              WARNING: The endorsement "{{e}}" is expired.
+            </div>
+          {% endif %}
+            
+        {% endfor %}
+        {% endif %}
+        
+        
         {% if not error %}
             <form id="authorizationForm" method="post">
                 <h3 class="block-center-heading">{% trans "Authorize" %} {{ application.name }}?</h3>
@@ -16,7 +45,7 @@
                     {% endif %}
                 {% endfor %}
 
-                <p>{% trans "Application requires following permissions" %}</p>
+                <p>{% trans "This application requires following permissions" %}</p>
                 {{ form.scope|bootstrap }}
                 {{ form.expires_in|bootstrap }}
 
