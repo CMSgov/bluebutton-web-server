@@ -10,11 +10,10 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 import jwt
-import datetime 
 from oauth2_provider.models import AbstractApplication
 from poetri.verify_poet import verify_poet
 from apps.capabilities.models import ProtectedCapability
-
+from django.utils import timezone
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -98,6 +97,13 @@ class Endorsement(models.Model):
     def payload(self):
         payload  = jwt.decode(self.jwt, verify=False)
         return payload
+    
+    def is_expired(self):
+        now = timezone.now()
+        if self.iat > now: 
+            return True
+        return False
+    
     
     
     def save(self, commit=True, **kwargs):
