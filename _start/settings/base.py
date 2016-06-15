@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
+    '_start',
     'apps.dot_ext.apps.dot_extConfig',
     'apps.home', # Landing pages, etc.
     'apps.education',
