@@ -1,17 +1,13 @@
-
-from oauth2_provider.decorators import protected_resource
-from django.views.decorators.http import require_POST
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
-from .create import create
-from .update import update
-from .delete import delete
-from .read import read
 from apps.dot_ext.decorators import capability_protected_resource
 from apps.fhir.core.utils import kickout_400
+from .create import create
+from .delete import delete
+from .read import read
+from .update import update
 
 
 @csrf_exempt

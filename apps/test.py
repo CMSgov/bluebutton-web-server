@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 
 import json
 
-from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User, Group
+from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils.text import slugify
 
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext.models import Application
+from apps.dot_ext import Application
 
 
 class BaseApiTest(TestCase):
