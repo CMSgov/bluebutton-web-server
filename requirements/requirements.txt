@@ -16,7 +16,7 @@ django-localflavor==1.2
 https://github.com/evonove/django-oauth-toolkit/archive/scopes-backend.zip
 django-ses==0.7.1
 django-settings-export==1.1.0
-Django==1.8.12            # via django-bootstrap-form, django-debug-toolbar, django-oauth-toolkit
+Django==1.9.5            # via django-bootstrap-form, django-debug-toolbar, django-oauth-toolkit
 jsonschema==2.5.1
 oauthlib==1.0.3
 pdt==0.7.0

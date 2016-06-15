@@ -58,7 +58,12 @@ INSTALLED_APPS = [
     #1st Party (in-house) -----------
     'apps.accounts', # Account related services
     'apps.capabilities', # Define scopes and related protected resource URLs.
-    'apps.dot_ext', # Custom extensions to DOT 
+    # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
+    # django.db.models.utils doesn't have more than 2 values
+    # There probably should be an edit to django.db so that the split
+    # could deal with apps.dot_ext.model_name when it encounters a string
+    '_start',
+    'apps.dot_ext.apps.dot_extConfig',
     'apps.home', # Landing pages, etc.
     'apps.education',
     # 'apps.fhir',
@@ -256,6 +261,7 @@ AUTHENTICATION_BACKENDS = (
             )
 
 OAUTH2_PROVIDER_APPLICATION_MODEL='dot_ext.Application'
+# removing apps. by using AppConfig for apps.dot_ext
 OAUTH2_PROVIDER = {
     'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',

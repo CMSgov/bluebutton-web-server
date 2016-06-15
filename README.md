@@ -31,7 +31,7 @@ Note you can find the path to your Python3 binary by typing `which python3`.
 Getting your Django Settings squared away
 -------------------------------------------
 
-Add this to `~/.bash_profile`  in iOS or `~/.bashrc` in Linux using your favorite text editor.
+Add this to `~/.bash_profile`  in macOS/OSX or `~/.bashrc` in Linux using your favorite text editor.
 
 
    export DJANGO_SETTINGS_MODULE='_start.settings.local'
