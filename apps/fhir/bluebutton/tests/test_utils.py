@@ -807,8 +807,7 @@ class bluebutton_utils_rt_TestCase(TestCase):
                                        ["http://www.example.com:8000","http://example.com"])
 
         expected = ""
-        print("Response:",response)
-        print("expected:", expected)
+
         self.assertEqual(response, expected)
 
         """ Test 2: No text to replace with. Only replace FHIR_SERVER_CONF.REWRITE_FROM changes """
@@ -823,8 +822,6 @@ class bluebutton_utils_rt_TestCase(TestCase):
                                        [])
 
         expected = input_text
-        print("Response:",response)
-        print("expected:", expected)
 
         self.assertEqual(response, expected)
 
@@ -843,10 +840,6 @@ class bluebutton_utils_rt_TestCase(TestCase):
         expected = "dddd anything http://www.replaced.com will get replaced " \
                    "more stuff http://www.replaced.com and http://www.replaced.com:8000/ okay"
 
-        print("Response:",response)
-        print("expected:", expected)
-
-
         self.assertEqual(response, expected)
 
         """ Test 4: Replace text """
@@ -863,11 +856,9 @@ class bluebutton_utils_rt_TestCase(TestCase):
         expected = "dddd anything http://www.replaced.com will get replaced " \
                    "more stuff http://www.replaced.com and http://www.replaced.com:8000/ okay"
 
-        print("Response:",response)
-        print("expected:", expected)
-
         self.assertEqual(response, expected)
 
     def test_get_host_url(self):
-        """ Get the host url and split on resource_type """
-
+        """
+        Get the host url and split on resource_type
+        """
