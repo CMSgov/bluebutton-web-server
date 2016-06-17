@@ -1,5 +1,6 @@
 # base packages
-Django
+django
+django-getenv
 django-bootstrap-form
 django-cors-headers
 django-localflavor
@@ -16,12 +17,15 @@ jsonschema
 requests
 pytz
 configparser
+dj-database-url
 
 # notifications
 django-ses
 
 # test and development
 tox
+flake8
+coverage
 django-debug-toolbar
 
 # security and identity system
