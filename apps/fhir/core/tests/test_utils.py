@@ -13,7 +13,7 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 
 from django.test import TestCase
 
-from apps.fhir.core.utils import check_access_interaction_and_resource_type
+from apps.fhir.bluebutton.utils import check_access_interaction_and_resource_type
 from apps.fhir.server.models import SupportedResourceType
 
 
