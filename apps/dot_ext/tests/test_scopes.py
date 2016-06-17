@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 from oauth2_provider.scopes import get_scopes_backend
 
-from apps.dot_ext import CapabilitiesScopes
+from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.test import BaseApiTest
 
 
