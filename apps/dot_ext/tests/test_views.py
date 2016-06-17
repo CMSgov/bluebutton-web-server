@@ -99,6 +99,7 @@ class TestAuthorizationView(BaseApiTest):
             'response_type': 'code',
             'redirect_uri': 'http://example.it',
             'scope': ['capability-a'],
+            'expires_in': 86400,
             'allow': True,
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
