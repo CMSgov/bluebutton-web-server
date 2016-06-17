@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 
 from ..test import BaseApiTest
 
+
 ENCODED = settings.ENCODING
 
 
@@ -31,7 +32,7 @@ class TestApi(BaseApiTest):
         a proper cabapility associated.
         """
         # Create the user to obtain the token
-        user = self._create_user('john', '123456')
+        self._create_user('john', '123456')
         capability = self._create_capability('test', [['GET', '/api/foo']])
         application = self._create_application('test', capability=capability)
         access_token = self._get_access_token('john', '123456', application=application)
@@ -45,7 +46,7 @@ class TestApi(BaseApiTest):
         Tests that api_read returns proper response.
         """
         # Create the user to obtain the token
-        user = self._create_user('john', '123456')
+        self._create_user('john', '123456')
         # Create an application with capability to read /api/read endpoint
         capability = self._create_capability('test', [['GET', '/api/read']])
         application = self._create_application('test', capability=capability)
@@ -81,7 +82,7 @@ class TestApi(BaseApiTest):
         a proper cabapility associated.
         """
         # Create the user to obtain the token
-        user = self._create_user('john', '123456')
+        self._create_user('john', '123456')
         capability = self._create_capability('test', [['GET', '/api/foo']])
         application = self._create_application('test', capability=capability)
         access_token = self._get_access_token('john', '123456', application=application)
@@ -95,7 +96,7 @@ class TestApi(BaseApiTest):
         Tests that api_write returns proper response.
         """
         # Create the user to obtain the token
-        user = self._create_user('john', '123456')
+        self._create_user('john', '123456')
         capability = self._create_capability('test', [['POST', '/api/write']])
         application = self._create_application('test', capability=capability)
         access_token = self._get_access_token('john', '123456', application=application)
