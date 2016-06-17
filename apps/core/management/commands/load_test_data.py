@@ -42,10 +42,10 @@ class Command(BaseCommand):
 
         # create test_user
         try:
-            test_user = User.objects.get(username='test_user')
+            User.objects.get(username='test_user')
             self._log('test_user user exist')
         except User.DoesNotExist:
-            test_user = User.objects.create_user(
+            User.objects.create_user(
                 'test_user', password='foobarbaz', first_name='Test',
                 last_name='User', email='test_user@a.com')
             self._log('test_user user created')
@@ -56,7 +56,7 @@ class Command(BaseCommand):
         except ProtectedCapability.DoesNotExist:
             read_urls = [['GET', '/api/read/']]
             read_capability = ProtectedCapability.objects.create(
-                title='read capability' , slug='read-capability',
+                title='read capability', slug='read-capability',
                 protected_resources=json.dumps(read_urls), group=read_group)
             self._log('read capability created')
 
@@ -98,10 +98,10 @@ class Command(BaseCommand):
 
         # create a base test app used for social login testing
         try:
-            base_application = Application.objects.get(name='test-app')
+            Application.objects.get(name='test-app')
             self._log('base application exist')
         except Application.DoesNotExist:
-            base_application = Application.objects.create(
+            Application.objects.create(
                 name='test-app', user=test_dev,
                 client_type=Application.CLIENT_PUBLIC,
                 authorization_grant_type=Application.GRANT_PASSWORD,
