@@ -1,21 +1,19 @@
 OAuth Server - An OAuth Provider Project
 ========================================
+
 The project is based in Python 3 and Django 1.9.5.
 
 It consists of an OAuth2 server and a FHIR server that serves specific resources.
- This application will handle the OAuth 2 handshaking and configuration with CMS Medicare 
+This application will handle the OAuth 2 handshaking and configuration with CMS Medicare
 beneficiaries and Registered Developers.
 
 The prototype application will be served from an AWS instance (https://dev.bbonfhir.com).
-   
-
 
 Quick Setup
 -----------
 
 These instructions provide a quick start for developers new to the project.
 Follow these steps on the command line.
-
 
     git clone https://github.com/transparenthealth.org/hhs_oauth_server.git
     cd hhs_oauth_server
@@ -24,28 +22,23 @@ Follow these steps on the command line.
     python manage.py migrate
     python manage.py loaddata apps/accounts/fixtures/BlueButtonGroup.json
     python manage.py runserver
-    
-    
-Note you can find the path to your Python3 binary by typing `which python3`.    
+
+Note you can find the path to your Python3 binary by typing `which python3`.
 
 Getting your Django Settings squared away
 -------------------------------------------
 
 Add this to `~/.bash_profile`  in macOS/OSX or `~/.bashrc` in Linux using your favorite text editor.
 
-
-   export DJANGO_SETTINGS_MODULE='_start.settings.local'
+    export DJANGO_SETTINGS_MODULE='_start.settings.local'
 
 Now activate the changes.
 
+    source ~/.bash_profile
 
-   source ~/.bash_profile
-
---or--
-
+-- or --
 
     source ~/.bashrc
-
 
 Note that if you skip the previous step you will need to add `--settings=_start.settings.local`
 to any management command.
@@ -75,13 +68,11 @@ Requirements
 
 To manage requirements we use [pip-tools][0] package.
 
-[0]: https://github.com/nvie/pip-tools
-
 ### Installation
 
 You can install `pip-tools` with:
 
-    pip install --upgrade pip  # pip-tools need pip>=6.1
+    pip install --upgrade pip==8.1.1  # pip-tools needs pip>=6.1 and pip<=8.1.1
     pip install pip-tools
 
 ### Usage
@@ -90,6 +81,8 @@ To add/update/remove requirements **always** change the `requirements/requiremen
 file. Then run:
 
     cd requirements/
-    pip-compile requirements.in
+    pip-compile --output-file requirements.txt requirements.in
 
-This will produce a new `requirements.txt` with all dependencies pinned.
+This will produce a new `requirements.txt` with all pinned dependencies.
+
+[0]: https://github.com/nvie/pip-tools
