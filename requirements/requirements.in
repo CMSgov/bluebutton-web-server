@@ -18,6 +18,7 @@ requests
 pytz
 configparser
 dj-database-url
+pyjwt
 
 # notifications
 django-ses
