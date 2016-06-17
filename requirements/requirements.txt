@@ -6,10 +6,13 @@
 #
 
 -e git+https://github.com/evonove/django-oauth-toolkit.git@scopes-backend#egg=dot_scopes_backend
+-e git+https://github.com/TransparentHealth/python-poetri@599b26975c1b7ce7e5e243b94016297790f44a22#egg=python_poetri
 boto==2.40.0
 bson==1.1.0
+cffi==1.6.0               # via cryptography
 configparser==3.5.0
 coverage==4.1
+cryptography==1.4
 dj-database-url==0.4.1
 django-bootstrap-form==3.2.1
 django-braces==1.9.0
@@ -21,19 +24,26 @@ django-ses==0.7.1
 django-settings-export==1.1.0
 Django==1.9.7             # via django-bootstrap-form, django-debug-toolbar, django-localflavor, django-settings-export
 flake8==2.6.0
+idna==2.1                 # via cryptography
 jsonschema==2.5.1
 mccabe==0.5.0             # via flake8
 oauthlib==1.0.3
 pluggy==0.3.1             # via tox
 py==1.4.31                # via tox
+pyasn1==0.1.9             # via cryptography
 pycodestyle==2.0.0        # via flake8
+pycparser==2.14           # via cffi
 pyflakes==1.2.3           # via flake8
 pyjwt==1.4.0
 pymongo==3.2.2
 python-openid==2.2.5
 pytz==2016.4
 requests==2.10.0
-six==1.10.0
+six==1.10.0               # via cryptography
 sqlparse==0.1.19          # via django-debug-toolbar
 tox==2.3.1
 virtualenv==15.0.2        # via tox
+
+# The following packages are commented out because they are
+# considered to be unsafe in a requirements file:
+# setuptools                # via cryptography
