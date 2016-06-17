@@ -55,8 +55,6 @@ class TestApi(BaseApiTest):
         response = self.client.get(reverse('api_read'), **auth_headers)
         self.assertEqual(response.status_code, 200)
 
-        print("Response Content:", response.content)
-
         self.assertJSONEqual(response.content.decode(ENCODED),
                              {'hello': 'World', 'oauth2': True})
 

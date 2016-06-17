@@ -28,24 +28,22 @@ def json_login_required(func):
         Put this decorator before your view to check if the user is logged in
         and return a JSON 401 error if he/she is not.
     """
-    
+
     def wrapper(request, *args, **kwargs):
         user= None
         #get the Basic username and password from the request.
         auth_string = request.META.get('HTTP_AUTHORIZATION', None)
-        
+
         if auth_string:
             (authmeth, auth) = auth_string.split(" ", 1)
             auth = auth.strip().decode('base64')
             (username, password) = auth.split(':', 1)
 
-        
-            #(print username, password)
             user = authenticate(username=username, password=password)
-        
+
         if not user or not user.is_active:
             return HttpResponse(unauthorized_json_response(),
-                    mimetype="application/json")          
+                    mimetype="application/json")
         login(request, user)
         return func(request, *args, **kwargs)
 

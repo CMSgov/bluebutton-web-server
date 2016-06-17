@@ -23,7 +23,6 @@ def oauth_create(request, resource_type):
 @capability_protected_resource()
 def oauth_read_or_update_or_delete(request, resource_type, id):
     """Route to read, update, or delete based on HTTP method FHIR Interaction"""
-    print("here")
     if request.method == 'GET':
         # Read
         return read(request, resource_type, id)
