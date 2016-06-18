@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls import include, url
-from .views.core import (simple_login, create, account_settings, reissue_api_keys,
-                         request_invite, mylogout, forgot_password,
+from .views.core import (simple_login, create, account_settings,
+                         reissue_api_keys, request_developer_invite,
+                         mylogout, forgot_password, request_user_invite,
                          password_reset_email_verify,  display_api_keys,
                          send_activation_key_via_email, activation_verify)
 
@@ -17,9 +18,12 @@ urlpatterns = [
     url(r'create', create,  name="accounts_create"),
     url(r'settings$', account_settings, name='account_settings'),
     
-    #Request an invite to signup ---------------------------
-    url(r'request-invite', request_invite, name="request_invite"),
-    
+    #Request a Developer invite to signup ---------------------------
+    url(r'request-developer-invite', request_developer_invite, name="request_developer_invite"),
+    # Request an invite to signup ---------------------------
+    url(r'request-user-invite', request_user_invite,
+        name="request_user_invite"),
+
     #Forgot password? ---------------------------------------
     url(r'forgot-password$', forgot_password, name='forgot_password'),
 
@@ -34,4 +38,6 @@ urlpatterns = [
     url(r'display-api-keys$', display_api_keys, name='display_api_keys'),
 
     url(r'reissue-api-keys$', reissue_api_keys, name='reissue_api_keys'),
+
+
 ]
