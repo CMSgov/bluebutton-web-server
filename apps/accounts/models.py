@@ -63,6 +63,10 @@ class RequestInvite(models.Model):
     organization   = models.CharField(max_length = 150)
     email          = models.EmailField(max_length = 150)
     added          = models.DateField(auto_now_add=True)
+    user_type = models.CharField(default='BEN',
+                                 choices=USER_CHOICES,
+                                 max_length=5)
+
     def __str__(self):
         r = "%s %s" % (self.first_name, self.last_name)
         return r

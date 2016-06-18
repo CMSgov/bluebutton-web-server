@@ -19,10 +19,11 @@ from ..forms import *
 from ..models import *
 from ..utils import validate_activation_key 
 
-def request_invite(request):
-    name='Request an Invite'
+def request_developer_invite(request):
+    name='Request a Developer Invite'
+    u_type = "DEV"
     if request.method == 'POST':
-        form = RequestInviteForm(request.POST)
+        form = RequestDeveloperInviteForm(request.POST)
         if form.is_valid():
           invite_request = form.save()
 
@@ -35,7 +36,28 @@ def request_invite(request):
     else:
        #this is an HTTP  GET
        return render(request,'generic/bootstrapform.html',
-                    {'name': name, 'form': RequestInviteForm()})
+                    {'name': name, 'form': RequestDeveloperInviteForm()})
+
+
+def request_user_invite(request):
+    name='Request an Invite to CMS BlueButton+'
+    u_type = "BEN"
+    if request.method == 'POST':
+        form = RequestUserInviteForm(request.POST)
+        if form.is_valid():
+          invite_request = form.save()
+
+          send_invite_request_notices(invite_request)
+
+          messages.success(request, _("Your invite request has been received.  You will be contacted by email when your invitation is ready."))
+          return HttpResponseRedirect(reverse('login'))
+        else:
+            return render(request, 'generic/bootstrapform.html', {'name': name,'form': form})
+    else:
+       #this is an HTTP  GET
+       return render(request,'generic/bootstrapform.html',
+                    {'name': name, 'form': RequestUserInviteForm()})
+
 
 def mylogout(request):
     logout(request)
@@ -99,11 +121,13 @@ def password_reset_email_verify(request, reset_password_key=None):
                   {'form': PasswordResetForm(),
                    'reset_password_key': reset_password_key })
 
+
 @login_required
 def display_api_keys(request):
 
     up = get_object_or_404(UserProfile, user=request.user)
     return render(request, 'display-api-keys.html',{'up': up})
+
 
 @login_required
 def reissue_api_keys(request):
@@ -113,7 +137,6 @@ def reissue_api_keys(request):
     up.save()
     messages.success(request, _("Your API credentials have been reissued."))
     return HttpResponseRedirect(reverse('display_api_keys'))
-
 
 
 def forgot_password(request):
@@ -143,12 +166,14 @@ def forgot_password(request):
                              {'name': name, 'form': PasswordResetRequestForm()})
 
 
+def create(request, user_type="user"):
+    if user_type == "developer":
+        name = "Create a Developer Account"
+    else:
+        name = "Create a BlueButton+ Account"
 
-
-def create(request):
-    name = "Create a Developer Account"
     if request.method == 'POST':
-        form = SignupForm(request.POST)
+        form = SignupForm(request.POST, user_type=user_type)
         if form.is_valid():
           new_user = form.save()
           messages.success(request, _("Your account was created. Please check your email to verify your account."))
@@ -156,12 +181,16 @@ def create(request):
         else:
             #return the bound form with errors
             return render(request, 'generic/bootstrapform.html',
-                     {'name': name,'form': form})
+                     {'name': name,
+                      'form': form,
+                      'user_type': user_type})
     else:
        #this is an HTTP  GET
        messages.info(request, _("An invitation code is required to register."))
        return render(request,'generic/bootstrapform.html',
-                               {'name': name, 'form': SignupForm()})
+                               {'name': name,
+                                'form': SignupForm(user_type=user_type),
+                                'user_type': user_type})
 
 
 @login_required

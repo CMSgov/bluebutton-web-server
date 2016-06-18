@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from random import randint
+
 from django import forms
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -9,22 +11,51 @@ from django.contrib.auth.password_validation import validate_password
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key
 from .emails import send_activation_key_via_email
 from django.core.exceptions import ValidationError
-class RequestInviteForm(forms.ModelForm):
+
+
+class RequestDeveloperInviteForm(forms.ModelForm):
     class Meta:
         model = RequestInvite
         fields = ('first_name', 'last_name', 'organization', 'email')
-    human = forms.CharField(max_length=30, label=_("What is 5 + 2?"),
-            help_text = "We are asking this to make sure you are human. Hint: the answer is 7.")
+
+    user_type = "DEV"
+    human_x = randint(1,9)
+    human_y = randint(1,9)
+    human_z = human_x + human_y
+    human_q = ("What is %s + %s?" % (human_x,human_y))
+    human = forms.CharField(max_length=30, label=_(human_q),
+            help_text = "We are asking this to make sure you are human. Hint: "
+                        "the answer is %s." % human_z)
     required_css_class = 'required'
+
     def clean_human(self):
         human = self.cleaned_data.get("human", "")
-        if str(human) != "7":
+        if str(human) != str(self.human_z):
             raise forms.ValidationError(_("You are either not human or just just really bad at math."))
         return human
-  
-    
-    
-    
+
+
+class RequestUserInviteForm(forms.ModelForm):
+    class Meta:
+        model = RequestInvite
+        fields = ('first_name', 'last_name', 'email')
+
+    user_type = "BEN"
+    human_x = randint(1,9)
+    human_y = randint(1,9)
+    human_z = human_x + human_y
+    human_q = ("What is %s + %s?" % (human_x,human_y))
+    human = forms.CharField(max_length=30, label=_(human_q),
+            help_text = "We are asking this to make sure you are human. Hint: "
+                        "the answer is %s." % human_z)
+    required_css_class = 'required'
+
+    def clean_human(self):
+        human = self.cleaned_data.get("human", "")
+        if str(human) != str(self.human_z):
+            raise forms.ValidationError(_("You are either not human or just just really bad at math."))
+        return human
+
 
 class PasswordResetRequestForm(forms.Form):
     email= forms.CharField(max_length=75, label=_("Email"))
@@ -57,25 +88,26 @@ class LoginForm(forms.Form):
     required_css_class = 'required'
 
 
+class SignupForm(forms.Form,):
 
+    invitation_code = forms.CharField(max_length=30, label=_("Invitation Code")
+                                     )
+    username = forms.CharField(max_length=30, label=_("User"))
+    email = forms.EmailField(max_length=75, label=_("Email"))
+    first_name = forms.CharField(max_length=100, label=_("First Name"))
+    last_name = forms.CharField(max_length=100, label=_("Last Name"))
 
-class SignupForm(forms.Form):
-    
-    invitation_code = forms.CharField(max_length=30, label=_("Invitation Code"))
-    username        = forms.CharField(max_length=30, label=_("User"))
-    email           = forms.EmailField(max_length=75, label=_("Email"))
-    first_name      = forms.CharField(max_length=100, label=_("First Name"))
-    last_name       = forms.CharField(max_length=100, label=_("Last Name"))
     organization_name  = forms.CharField(max_length=100, label=_("Organization Name"),
                                          required=False
                                          )
-    password1       = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password1 = forms.CharField(widget=forms.PasswordInput, max_length=30,
                                 label=_("Password"))
-    password2       = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password2 = forms.CharField(widget=forms.PasswordInput, max_length=30,
                                 label=_("Password (again)"))
     
     required_css_class = 'required'
-    
+
+
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1", "")
         password2 = self.cleaned_data["password2"]

@@ -13,7 +13,7 @@ admin.site.register(Invitation, InvitationAdmin)
 
 class RequestInviteAdmin(admin.ModelAdmin):
     
-    list_display =  ('first_name', 'last_name', 'organization', 'email', 'added')
+    list_display =  ('first_name', 'last_name', 'user_type', 'organization', 'email', 'added')
     search_fields = ('first_name', 'last_name', 'organization', 'email')
     
 admin.site.register(RequestInvite, RequestInviteAdmin)
@@ -21,6 +21,6 @@ admin.site.register(RequestInvite, RequestInviteAdmin)
 class UserProfileAdmin(admin.ModelAdmin):
     
     list_display =  ('user', 'organization_name', 'user_type', 'access_key_id')
-    search_fields = ('user',)
+    search_fields = ('user', 'organization_name')
     
 admin.site.register(UserProfile, UserProfileAdmin)
