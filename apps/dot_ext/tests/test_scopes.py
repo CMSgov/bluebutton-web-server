@@ -42,7 +42,7 @@ class TestScopesBackendClass(BaseApiTest):
         # create some capabilities
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
-        capability_c = self._create_capability('Capability C', [])
+        self._create_capability('Capability C', [])
         # create an application and bound scopes to it
         application = self._create_application('an app')
         application.scope.add(capability_a, capability_b)
@@ -58,7 +58,7 @@ class TestScopesBackendClass(BaseApiTest):
         # create some capabilities
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
-        capability_c = self._create_capability('Capability C', [])
+        self._create_capability('Capability C', [])
         # create an application and bound scopes to it
         application = self._create_application('an app')
         application.scope.add(capability_a, capability_b)

@@ -10,7 +10,7 @@ from ..permissions import allow_resource
 
 class TestPermissions(BaseApiTest):
     def test_allow_resource_method_return_false_for_forbidden_resource(self):
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
         # create an empty capability
         capability = self._create_capability('Capability', [])
         # create an application with the capability
@@ -21,7 +21,7 @@ class TestPermissions(BaseApiTest):
         self.assertFalse(allow_resource(access_token, 'GET', '/api/foo/'))
 
     def test_allow_resource_method_return_true_for_allowed_resource(self):
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
         # create a capability
         capability = self._create_capability('Capability', [['GET', '/api/foo/']])
         # create an application with the capability
@@ -32,7 +32,7 @@ class TestPermissions(BaseApiTest):
         self.assertTrue(allow_resource(access_token, 'GET', '/api/foo/'))
 
     def test_allow_resource_with_patterns(self):
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
         # create a capability that uses urls with '[*]' patterns
         capability = self._create_capability(
             'Capability', [

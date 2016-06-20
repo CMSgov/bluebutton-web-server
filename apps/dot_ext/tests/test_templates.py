@@ -11,7 +11,7 @@ class TestDOTTemplates(BaseApiTest):
         """
         Test that the application list template is overridden.
         """
-        user = self._create_user('john', '123456')
+        self._create_user('john', '123456')
         self.client.login(username='john', password='123456')
         response = self.client.get(reverse("oauth2_provider:list"))
         self.assertContains(response, '<nav class="navbar')
@@ -57,7 +57,7 @@ class TestDOTTemplates(BaseApiTest):
         """
         Test that the application registration is overridden.
         """
-        user = self._create_user('john', '123456')
+        self._create_user('john', '123456')
         self.client.login(username='john', password='123456')
         response = self.client.get(reverse("oauth2_provider:register"))
         self.assertContains(response, '<nav class="navbar')
