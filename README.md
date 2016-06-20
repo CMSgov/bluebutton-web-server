@@ -25,33 +25,6 @@ Follow these steps on the command line.
 
 Note you can find the path to your Python3 binary by typing `which python3`.
 
-Getting your Django Settings squared away
--------------------------------------------
-
-Add this to `~/.bash_profile`  in macOS/OSX or `~/.bashrc` in Linux using your favorite text editor.
-
-    export DJANGO_SETTINGS_MODULE='_start.settings.local'
-
-Now activate the changes.
-
-    source ~/.bash_profile
-
--- or --
-
-    source ~/.bashrc
-
-Note that if you skip the previous step you will need to add `--settings=_start.settings.local`
-to any management command.
-
-Settings are inside the the folder `_start/settings/local.py`.  `local.py` extends `base.py`.
-Use `test.py` to test production and `test_local`to test locally in
-a development environment.  Included in `_start/settings/` you will find a folder
-called `examples` that can help you get started with your own `local.py` file.
-
-Passwords and other environment-dependent settings shall NOT be stored in the base settings
-file `base.py`. Instead security and environment settings should be set in `_start/settings/local.py`.
-Anything added to local.py will override the base settings.
-
 Running Tests
 -------------
 
