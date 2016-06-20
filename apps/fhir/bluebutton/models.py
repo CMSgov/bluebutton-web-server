@@ -1,19 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
-"""
-hhs_oauth_server
-FILE: models
-Created: 5/19/16 12:27 PM
-
-
-"""
-__author__ = 'Mark Scrimshire:@ekivemark'
-
 import json
-
-# Create your models here.
 
 from django.conf import settings
 from django.db import models
@@ -75,7 +60,7 @@ class ResourceTypeControl(models.Model):
         self.search_block = json.dumps(x)
 
     def get_search_block(self):
-        if self.search_block == "":
+        if self.search_block == '':
             search_list = []
         else:
             search_list = self.search_block
@@ -85,7 +70,7 @@ class ResourceTypeControl(models.Model):
         self.search_add = json.dumps(x)
 
     def get_search_add(self):
-        if self.search_add == "":
+        if self.search_add == '':
             search_list = []
         else:
             search_list = self.search_add
@@ -98,7 +83,7 @@ class ResourceTypeControl(models.Model):
         self.group_allow = json.dumps(x)
 
     def get_group_allow(self):
-        if self.group_allow == "":
+        if self.group_allow == '':
             group_list = []
         else:
             group_list = self.group_allow
@@ -108,7 +93,7 @@ class ResourceTypeControl(models.Model):
         self.group_exclude = json.dumps(x)
 
     def get_group_exclude(self):
-        if self.group_exclude == "":
+        if self.group_exclude == '':
             group_list = []
         else:
             group_list = self.group_exclude
@@ -124,7 +109,6 @@ class FhirServer(models.Model):
     https://fhir-server2.bluebutton.cms.gov/fhir/stu3/
 
     ID will be used as reference in CrossWalk
-
     """
 
     name = models.CharField(max_length=254,
@@ -132,8 +116,8 @@ class FhirServer(models.Model):
     fhir_url = models.URLField(verbose_name="Full URL to FHIR API with "
                                             "terminating /")
     shard_by = models.CharField(max_length=80,
-                                default="Patient",
-                                verbose_name="Key Resource type")
+                                default='Patient',
+                                verbose_name='Key Resource type')
 
     def __str__(self):
         return self.name
@@ -142,12 +126,10 @@ class FhirServer(models.Model):
 @python_2_unicode_compatible
 class Crosswalk(models.Model):
     """
-
     HICN/BeneID to User to FHIR Source Crosswalk and back.
     Linked to User Account
     Use fhir_url_id for id
     use fhir for resource.identifier
-
     """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
@@ -162,39 +144,32 @@ class Crosswalk(models.Model):
     # when combined with fhir_source
     # eg. https://fhir-server1.bluebutton.cms.gov/fhir/baseDstu2/ + Patient/{fhir_id}
 
-
     def __str__(self):
-        return "%s %s" % (self.user.first_name,
-                          self.user.last_name,
-                         )
-
+        return '%s %s' % (self.user.first_name, self.user.last_name)
 
     def get_fhir_patient_url(self):
         # Return the fhir server url and {Resource_name}/{id}
-
         full_url = self.fhir_source.fhir_url
-        if full_url.endswith("/"):
+        if full_url.endswith('/'):
             pass
         else:
-            full_url += "/"
+            full_url += '/'
         if self.fhir_source.shard_by:
-            full_url += self.fhir_source.shard_by + "/"
+            full_url += self.fhir_source.shard_by + '/'
 
         full_url += self.fhir_id
 
         return full_url
 
-
     def get_fhir_resource_url(self, resource_type):
         # Return the fhir server url
-
         full_url = self.fhir_source.fhir_url
-        if full_url.endswith("/"):
+        if full_url.endswith('/'):
             pass
         else:
-            full_url += "/"
+            full_url += '/'
 
         if resource_type:
-            full_url += resource_type + "/"
+            full_url += resource_type + '/'
 
         return full_url

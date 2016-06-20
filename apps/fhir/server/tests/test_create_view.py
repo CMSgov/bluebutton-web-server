@@ -1,23 +1,11 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
-"""
-hhs_oauth_server
-FILE: apps.fhir.server.tests.test_create_view
-Created: 5/19/16 1:23 PM
-
-
-"""
-__author__ = 'Mark Scrimshire:@ekivemark'
+import base64
 
 from unittest import skip
 
-from django.test import TestCase
-from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.conf import settings
-import base64, json
+from django.test import TestCase
+from django.test.client import Client
 
 
 ENCODED = settings.ENCODING
@@ -84,7 +72,6 @@ class FHIRCreateTestCase(TestCase):
                           self.good_json,
                           content_type='application/json')
 
-        # print('Response: text:', response)
         # Check some response details
         self.assertEqual(response.status_code, 201)
 

@@ -1,15 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
-"""
-hhs_oauth_server
-FILE: apps.fhir.bluebutton.urls
-Created: 5/16/16 8:09 PM
-
-"""
-__author__ = 'Mark Scrimshire:@ekivemark'
-
 from django.conf.urls import url
 from django.contrib import admin
 
@@ -23,7 +11,6 @@ admin.autodiscover()
 
 
 urlpatterns = [
-
     # URLs with no authentication
     # Interactions on Resources
     # Vread GET --------------------------------
@@ -46,5 +33,4 @@ urlpatterns = [
     # Search  GET ------------------------------
     url(r'(?P<resource_type>[^/]+)?', search,
         name='bb_fhir_search'),
-
 ]
