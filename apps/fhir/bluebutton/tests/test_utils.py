@@ -18,7 +18,7 @@ import urllib.parse
 
 from collections import OrderedDict
 
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -730,13 +730,21 @@ class bluebutton_utils_rt_TestCase(TestCase):
         self.assertEqual(response, expected)
 
 
+
+class bluebutton_util_RequestTest(TestCase):
+
+    def setUp(self):
+        # Setup the RequestFactory
+        self.factory = RequestFactory()
+
+
     def test_mask_with_this_url(self):
         """ Replace one url with another in a text string """
 
         """ Test 1: No text to replace. No changes """
 
         input_text = "dddd anything http://www.example.com:8000 will get replaced"
-        request = {}
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path="http://www.replaced.com",
                                       in_text="",
@@ -749,7 +757,7 @@ class bluebutton_utils_rt_TestCase(TestCase):
         """ Test 2: No text to replace with. No changes """
 
         input_text = "dddd anything http://www.example.com:8000 will get replaced"
-        request = {}
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path="http://www.replaced.com",
                                       in_text=input_text,
@@ -763,7 +771,7 @@ class bluebutton_utils_rt_TestCase(TestCase):
         """ Test 3: Replace text removing slash from end of replaced text """
 
         input_text = "dddd anything http://www.example.com:8000 will get replaced"
-        request = {}
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path="http://www.replaced.com/",
                                       in_text=input_text,
@@ -776,7 +784,7 @@ class bluebutton_utils_rt_TestCase(TestCase):
         """ Test 4: Replace text """
 
         input_text = "dddd anything http://www.example.com:8000 will get replaced"
-        request = {}
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path="http://www.replaced.com",
                                       in_text=input_text,
@@ -798,17 +806,17 @@ class bluebutton_utils_rt_TestCase(TestCase):
 
         """ Test 1: No text to replace. No changes """
 
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+
         input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
                      "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
-        request = {}
+
         response = mask_list_with_host(request,
                                        "http://www.replaced.com",
                                        "",
                                        ["http://www.example.com:8000","http://example.com"])
 
         expected = ""
-        print("Response:",response)
-        print("expected:", expected)
         self.assertEqual(response, expected)
 
         """ Test 2: No text to replace with. Only replace FHIR_SERVER_CONF.REWRITE_FROM changes """
@@ -816,15 +824,13 @@ class bluebutton_utils_rt_TestCase(TestCase):
         input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
                      "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
 
-        request = {}
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        "http://www.replaced.com",
                                        input_text,
                                        [])
 
         expected = input_text
-        print("Response:",response)
-        print("expected:", expected)
 
         self.assertEqual(response, expected)
 
@@ -833,7 +839,7 @@ class bluebutton_utils_rt_TestCase(TestCase):
         input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
                      "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
 
-        request = {}
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        "http://www.replaced.com/",
                                        input_text,
@@ -843,10 +849,6 @@ class bluebutton_utils_rt_TestCase(TestCase):
         expected = "dddd anything http://www.replaced.com will get replaced " \
                    "more stuff http://www.replaced.com and http://www.replaced.com:8000/ okay"
 
-        print("Response:",response)
-        print("expected:", expected)
-
-
         self.assertEqual(response, expected)
 
         """ Test 4: Replace text """
@@ -854,7 +856,7 @@ class bluebutton_utils_rt_TestCase(TestCase):
         input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
                      "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
 
-        request = {}
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        "http://www.replaced.com",
                                        input_text,
@@ -863,11 +865,15 @@ class bluebutton_utils_rt_TestCase(TestCase):
         expected = "dddd anything http://www.replaced.com will get replaced " \
                    "more stuff http://www.replaced.com and http://www.replaced.com:8000/ okay"
 
-        print("Response:",response)
-        print("expected:", expected)
-
         self.assertEqual(response, expected)
 
     def test_get_host_url(self):
         """ Get the host url and split on resource_type """
 
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+
+        response = get_host_url(request,"Patient")
+
+        expected = "http://testserver/bluebutton/fhir/v1/"
+
+        self.assertEqual(response, expected)

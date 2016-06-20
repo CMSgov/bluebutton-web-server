@@ -339,7 +339,7 @@ else:
 
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = "CMS Blue Button on FHIR"
+APPLICATION_TITLE = "CMS BlueButton+"
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'

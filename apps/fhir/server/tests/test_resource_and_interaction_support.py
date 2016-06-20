@@ -25,7 +25,7 @@ class FHIR_CheckUnAuthInteraction_TestCase(TestCase):
     Test FHIR for Unauthorized Interaction
     """
 
-    #auth_headers = {"HTTP_AUTHORIZATION": "Basic "+base64.b64encode(user_password)}
+    # auth_headers = {"HTTP_AUTHORIZATION": "Basic "+base64.b64encode(user_password)}
     fixtures=['provider-directory-resources.json']
 
 
@@ -40,7 +40,7 @@ class FHIR_CheckUnAuthInteraction_TestCase(TestCase):
         self.resource_type = "Organization"
         self.client=Client()
         self.client.defaults['HTTP_AUTHORIZATION'] = self.authorization #'Basic ' + self.credentials
-        #self.client.defaults['HTTP_X_REQUESTED_WITH'] ='XMLHttpRequest'
+        # self.client.defaults['HTTP_X_REQUESTED_WITH'] ='XMLHttpRequest'
 
         self.url=reverse('fhir_create', args = (self.resource_type,)) + '?foo.bar'
 
@@ -49,6 +49,7 @@ class FHIR_CheckUnAuthInteraction_TestCase(TestCase):
         """test_fhir_create"""
         response = self.client.get(self.url)
 
+        print("unauth response:", response, "from:", self.url)
         # Check some response details
         self.assertEqual(response.status_code, 403)
 
@@ -57,7 +58,7 @@ class FHIR_CheckUnAuthResource_TestCase(TestCase):
     Test FHIR for Unsupported Resource
     """
 
-    #auth_headers = {"HTTP_AUTHORIZATION": "Basic "+base64.b64encode(user_password)}
+    # auth_headers = {"HTTP_AUTHORIZATION": "Basic "+base64.b64encode(user_password)}
     fixtures=['provider-directory-resources.json']
 
 
@@ -73,7 +74,7 @@ class FHIR_CheckUnAuthResource_TestCase(TestCase):
         self.client = Client()
         self.client.defaults['HTTP_AUTHORIZATION'] = self.authorization #'Basic ' + self.credentials
 
-        #self.client.defaults['HTTP_X_REQUESTED_WITH'] ='XMLHttpRequest'
+        # self.client.defaults['HTTP_X_REQUESTED_WITH'] ='XMLHttpRequest'
 
         self.url=reverse('fhir_create', args = (self.resource_type,)) + '?foo.bar'
 
@@ -82,6 +83,7 @@ class FHIR_CheckUnAuthResource_TestCase(TestCase):
         """test_unsupported_resource"""
         response = self.client.get(self.url)
 
+        print("Response:", response)
         # Check some response details
         self.assertEqual(response.status_code, 404)
 

@@ -20,14 +20,14 @@ def create(request, resource_type):
     # Example client use in curl:
     # curl -H "Content-Type: application/json" --data @test.json http://127.0.0.1:8000/fhir/Practitioner
     interaction_type = 'create'
-    #re-route to hello if no resource type is given:
+    # re-route to hello if no resource type is given:
     if not resource_type:
         return hello(request)
     
     try:
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         if interaction_type not in rt.get_supported_interaction_types()  and request.method == "GET":
-            #GET means that this is a search so re-route
+            # GET means that this is a search so re-route
             return search(request, resource_type)
 
         elif interaction_type not in rt.get_supported_interaction_types() :
@@ -44,34 +44,38 @@ def create(request, resource_type):
         return search(request, resource_type)
 
     if request.method == 'POST':
-                #Check if request body is JSON ------------------------
+        # Check if request body is JSON ------------------------
         try:
-            j =json.loads(request.body, object_pairs_hook=OrderedDict)
+            j =json.loads(request.body.decode('utf-8'), object_pairs_hook=OrderedDict)
             if type(j) !=  type({}):
                 kickout_400("The request body did not contain a JSON object i.e. {}.")
         except:
+
             return kickout_400("The request body did not contain valid JSON.")
-        
-        if j.has_key('id'):
+
+        if 'id' in j:
+        # if j.has_key('id'): # throws error if id not in OrderedDict
+
             return kickout_400("Create cannot have an id. Perhaps you meant to perform an update?")
         
-        #check json_schema is valid
+        # Check json_schema is valid
         try:
             json_schema = json.loads(rt.json_schema, object_pairs_hook=OrderedDict)
               
         except:
             return kickout_500("The JSON Schema on the server did not contain valid JSON.")
         
-        #Check jsonschema
+        # Check jsonschema
         if json_schema:
             try: 
                 validate(j, json_schema)
             except ValidationError:
                 msg = "JSON Schema Conformance Error. %s" % (str(sys.exc_info()[1][0]))
+
                 return kickout_400(msg)
                  
         
-        #write_to_mongo - TBD
+        # Write_to_mongo - TBD
         response = OrderedDict()
         response['id'] = str(uuid.uuid4())
         
@@ -98,12 +102,9 @@ def create(request, resource_type):
                          meta['id'],
                          meta['versionId'])
         return hr
-    
 
         
-        
-        
-    #This is something other than GET or POST (i.e. a  GET)
+    # This is something other than GET or POST (i.e. a  GET)
     if request.method not in ("GET", "POST"):
         od = OrderedDict()
         od['request_method']= request.method

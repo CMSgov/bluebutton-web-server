@@ -79,6 +79,7 @@ class FHIR_Create_TestCase(TestCase):
         response = c.post(self.url, self.good_json,
                           content_type="application/json")
 
+        print('Response: text:', response)
         # Check some response details
         self.assertEqual(response.status_code, 201)
 
