@@ -15,10 +15,17 @@ Quick Setup
 These instructions provide a quick start for developers new to the project.
 Follow these steps on the command line.
 
+    # prepare your repository folder
     git clone https://github.com/transparenthealth.org/hhs_oauth_server.git
     cd hhs_oauth_server
+
+    # create the virtualenv
     mkvirtualenv oauth_server --python=/path/to/python3-binary
+
+    # install the requirements
     pip install -r requirements/requirements.txt
+
+    # prepare Django
     python manage.py migrate
     python manage.py loaddata apps/accounts/fixtures/BlueButtonGroup.json
     python manage.py runserver
@@ -28,13 +35,9 @@ Note you can find the path to your Python3 binary by typing `which python3`.
 Running Tests
 -------------
 
-To run test first load test data into your environment
+Simply:
 
-    python manage.py load_test_data
-
-And then run:
-
-    python manage.py test
+    python runtests.py
 
 Requirements
 ------------
