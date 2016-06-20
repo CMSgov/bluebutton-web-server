@@ -1,2 +1,2 @@
-from .application import ApplicationRegistration, ApplicationUpdate
-from .authorization import AuthorizationView
+from .application import ApplicationRegistration, ApplicationUpdate  # NOQA
+from .authorization import AuthorizationView  # NOQA

@@ -16,9 +16,9 @@ class TestApplicationUpdateView(BaseApiTest):
         """
         """
         read_group = self._create_group('read')
-        read_capability = self._create_capability('Read-Scope', [], read_group)
+        self._create_capability('Read-Scope', [], read_group)
         write_group = self._create_group('write')
-        write_capability = self._create_capability('Write-Scope', [], write_group)
+        self._create_capability('Write-Scope', [], write_group)
         # create user and add it to the read group
         user = self._create_user('john', '123456')
         user.groups.add(read_group)
@@ -41,7 +41,7 @@ class TestAuthorizationView(BaseApiTest):
         to select scopes.
         """
         # create a user
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
         # create a couple of capabilities
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
@@ -82,7 +82,7 @@ class TestAuthorizationView(BaseApiTest):
         with the checked scopes only.
         """
         # create a user
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
         # create a couple of capabilities
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
