@@ -11,9 +11,11 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+
 from django.contrib.messages import constants as messages
 from django.conf import global_settings
 from django.utils.translation import ugettext_lazy as _
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -28,7 +30,8 @@ SECRET_KEY = 'FAKE_VALUE_REAL_VALUE_SET_FROM_CUSTOM_SETTINGS.PY'
 # You can generate a new SECRET_KEY using tools such as
 # http://www.miniwebtool.com/django-secret-key-generator/
 
-SETTINGS_MODE = os.environ.setdefault("DJANGO_SETTINGS_MODULE", "_start.settings.base")
+SETTINGS_MODE = os.environ.setdefault('DJANGO_SETTINGS_MODULE', 
+                                      '_start.settings.base')
 SETTINGS_MODE = SETTINGS_MODE.upper().split('.')
 SETTINGS_MODE = SETTINGS_MODE[-1]
 
@@ -41,7 +44,7 @@ ALLOWED_HOSTS = ['*']
 # Set ADMINS and MANAGERS in your custom settings file. eg. local.py
 ADMINS = (
      ('Alan Viars', 'aviars@videntity.com'),
-    ('Mark Scrimshire', 'mark@ekivemark.com'),
+     ('Mark Scrimshire', 'mark@ekivemark.com'),
 )
 MANAGERS = ADMINS
 
@@ -55,33 +58,32 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    #1st Party (in-house) -----------
-    'apps.accounts', # Account related services
-    'apps.capabilities', # Define scopes and related protected resource URLs.
+    # 1st Party (in-house) -----------
+    'apps.accounts',  # Account related services
+    'apps.capabilities',  # Define scopes and related protected resource URLs.
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
     '_start',
     'apps.dot_ext.apps.dot_extConfig',
-    'apps.home', # Landing pages, etc.
+    'apps.home',  # Landing pages, etc.
     'apps.education',
     # 'apps.fhir',
     'apps.fhir.core',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
    
-    #3rd Party ---------------------
+    # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
     
-     # DOT must be installed after apps.dot_ext in order to override templates
+    # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
-    
 ]
 
-# CorsMiddleware needs to come before Django's CommonMiddleware if you are using Django's
-# USE_ETAGS = True setting,
+# CorsMiddleware needs to come before Django's CommonMiddleware 
+# if you are using Django's USE_ETAGS = True setting,
 # otherwise the CORS headers will be lost from the 304 not-modified responses,
 # causing errors in some browsers.
 # See https://github.com/ottoyiu/django-cors-headers for more information.
@@ -103,7 +105,7 @@ ROOT_URLCONF = '_start.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, '..','templates'),],
+        'DIRS': [os.path.join(BASE_DIR, '..', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -125,8 +127,12 @@ WSGI_APPLICATION = '_start.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE':   os.environ.get('DJANGO_DATABASE_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME':     os.environ.get('DJANGO_DATABASE_NAME', os.path.join(BASE_DIR, '..',   'db.sqlite3')),
+        'ENGINE':   os.environ.get('DJANGO_DATABASE_ENGINE', 
+                                   'django.db.backends.sqlite3'),
+        'NAME':     os.environ.get('DJANGO_DATABASE_NAME', 
+                                   os.path.join(BASE_DIR, 
+                                                '..',
+                                                'db.sqlite3')),
         'USER':     os.environ.get('DJANGO_DATABASE_USER', ''),
         'PASSWORD': os.environ.get('DJANGO_DATABASE_PASSWORD', ''),
         'HOST':     os.environ.get('DJANGO_DATABASE_HOST', ''),
@@ -135,29 +141,32 @@ DATABASES = {
     }
 }
 
-#This helps Django messages format nicely with Bootstrap3. -AV
-MESSAGE_TAGS ={ messages.DEBUG:   'debug',
+# This helps Django messages format nicely with Bootstrap3. -AV
+MESSAGE_TAGS = {messages.DEBUG:   'debug',
                 messages.INFO:    'info',
                 messages.SUCCESS: 'success',
                 messages.WARNING: 'warning',
-                messages.ERROR:   'danger'
-                }
+                messages.ERROR:   'danger'}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.'
+                'UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.'
+                'MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.'
+                'CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.'
+                'NumericPasswordValidator',
     },
 ]
 
@@ -177,7 +186,7 @@ USE_TZ = True
 
 # URL prefix for admin static files -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.
-# Examples: "http://foo.com/static/admin/", "/static/admin/".
+# Examples: 'http://foo.com/static/admin/', '/static/admin/'.
 ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Static files (CSS, JavaScript, Images)
@@ -186,7 +195,7 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, '..', 'collectedstatic')
 STATICFILES_DIRS = [
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Put strings here, like '/home/html/static' or 'C:/www/django/static'.
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(BASE_DIR, '..', 'sitestatic'),
@@ -197,7 +206,7 @@ STATICFILES_DIRS = [
 STATICFILES_FINDERS =[
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 ]
 
 LOGGING = {
@@ -205,7 +214,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(name)s [%(process)d] %(message)s'
+            'format': '%(levelname)s %(asctime)s %(name)s '
+                      '[%(process)d] %(message)s'
         },
         'simple': {
             'format': '%(levelname)s %(name)s %(message)s'
@@ -238,17 +248,20 @@ LOGGING = {
     },
 }
 
-#Email Sending Opts
-AWS_ACCESS_KEY_ID     = os.environ.get('AWS_ACCESS_KEY_ID', 'your-key-here')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'your-secret-here')
-HOSTNAME_URL          = os.environ.get('HOSTNAME_URL', 'http://127.0.0.1:8000')
-SIGNUP_TIMEOUT_DAYS   = os.environ.get('SIGNUP_TIMEOUT_DAYS', 3)
+# Email Sending Opts
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', 
+                                   'your-key-here')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 
+                                       'your-secret-here')
+HOSTNAME_URL = os.environ.get('HOSTNAME_URL', 
+                              'http://127.0.0.1:8000')
+SIGNUP_TIMEOUT_DAYS = os.environ.get('SIGNUP_TIMEOUT_DAYS', 3)
 
 
-SEND_EMAIL            = True
+SEND_EMAIL = True
 ORGANIZATION_NAME = os.environ.get('ORGANIZATION_NAME', 'CMS OAuth2 Server')
 EMAIL_BACKEND = 'django_ses.SESBackend'
-SIGNUP_TIMEOUT_DAYS = 3
+# SIGNUP_TIMEOUT_DAYS = 3
 EMAIL_HOST_USER = 'sales@videntity.com'
 INVITE_REQUEST_ADMIN = 'sales@videntity.com'
 
@@ -256,14 +269,14 @@ MIN_PASSWORD_LEN = 8
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
             'django.contrib.auth.backends.ModelBackend',
-            'apps.accounts.auth.SettingsBackend',
-            
+            'apps.accounts.auth.SettingsBackend',          
             )
 
-OAUTH2_PROVIDER_APPLICATION_MODEL='dot_ext.Application'
+OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
 # removing apps. by using AppConfig for apps.dot_ext
 OAUTH2_PROVIDER = {
-    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
+    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.'
+                              'SingleAccessTokenValidator',
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
 }
@@ -271,75 +284,74 @@ OAUTH2_PROVIDER = {
 # These choices will be available in the expires_in field
 # of the oauth2 authorization page.
 DOT_EXPIRES_IN = (
-    (86400, _("1 Day")),
-    (86400*7, _("1 Week")),
-    (86400*365, _("1 Year")),
-    (86400*365*100, _("Forever")),
+    (86400, _('1 Day')),
+    (86400*7, _('1 Week')),
+    (86400*365, _('1 Year')),
+    (86400*365*100, _('Forever')),
 )
 
 
-THEMES = {"0": {'NAME': "Default-Readable",
-                'PATH':"theme/default/",
-                'INFO': "Readable san-serif base theme"},
-
-          "3": {'NAME': "Readable",
-                'PATH': "theme/readable/",
-                'INFO': "Easy to read Bootswatch Theme"},
-          "4": {'NAME': "Cerulean",
-                'PATH': "theme/cerulean/",
-                'INFO': "Blue Bootswatch theme theme"},
-          "5": {'NAME': "Cosmo",
-                'PATH': "theme/cosmo/",
-                'INFO': "Cosmo bootswatch theme"},
-          "6": {'NAME': "Cyborg",
-                'PATH': "theme/cyborg/",
-                'INFO': "Cyborg bootswatch theme"},
-          "7": {'NAME': "Darkly",
-                'PATH': "theme/darkly/",
-                'INFO': "Darkly bootswatch theme"},
-          "8": {'NAME': "Flatly",
-                'PATH': "theme/flatly/",
-                'INFO': "Flatly bootswatch theme"},
-          "9": {'NAME': "Journal",
-                'PATH': "theme/journal/",
-                'INFO': "Journal bootswatch theme"},
-          "10":{'NAME': "Lumen",
-                'PATH': "theme/lumen/",
-                'INFO': "Lumen bootswatch theme"},
-          "11": {'NAME': "Paper",
-                 'PATH': "theme/paper/",
-                 'INFO': "Paper bootswatch theme"},
-          "12": {'NAME': "Sandstone",
-                 'PATH': "theme/sandstone/",
-                 'INFO': "Sandstone bootswatch theme"},
-          "13": {'NAME': "Simplex",
-                 'PATH': "theme/simplex/",
-                 'INFO': "Simplex bootswatch theme"},
-          "14": {'NAME': "Slate",
-                 'PATH': "theme/slate/",
-                 'INFO': "Slate bootswatch theme"},
-          "15": {'NAME': "Spacelab",
-                 'PATH': "theme/spacelab/",
-                 'INFO': "Spacelab bootswatch theme"},
-          "16": {'NAME': "Superhero",
-                 'PATH': "theme/superhero/",
-                 'INFO': "Superhero bootswatch theme"},
-          "17": {'NAME': "United",
-                 'PATH': "theme/united/",
-                 'INFO': "United bootswatch theme"},
-          "18": {'NAME': "Yeti",
-                 'PATH': "theme/yeti/",
-                 'INFO': "Yeti bootswatch theme"},
-          "SELECTED": "0"}
+THEMES = {'0': {'NAME': 'Default-Readable',
+                'PATH': 'theme/default/',
+                'INFO': 'Readable san-serif base theme'},
+          '3': {'NAME': 'Readable',
+                'PATH': 'theme/readable/',
+                'INFO': 'Easy to read Bootswatch Theme'},
+          '4': {'NAME': 'Cerulean',
+                'PATH': 'theme/cerulean/',
+                'INFO': 'Blue Bootswatch theme theme'},
+          '5': {'NAME': 'Cosmo',
+                'PATH': 'theme/cosmo/',
+                'INFO': 'Cosmo bootswatch theme'},
+          '6': {'NAME': 'Cyborg',
+                'PATH': 'theme/cyborg/',
+                'INFO': 'Cyborg bootswatch theme'},
+          '7': {'NAME': 'Darkly',
+                'PATH': 'theme/darkly/',
+                'INFO': 'Darkly bootswatch theme'},
+          '8': {'NAME': 'Flatly',
+                'PATH': 'theme/flatly/',
+                'INFO': 'Flatly bootswatch theme'},
+          '9': {'NAME': 'Journal',
+                'PATH': 'theme/journal/',
+                'INFO': 'Journal bootswatch theme'},
+          '10': {'NAME': 'Lumen',
+                 'PATH': 'theme/lumen/',
+                 'INFO': 'Lumen bootswatch theme'},
+          '11': {'NAME': 'Paper',
+                 'PATH': 'theme/paper/',
+                 'INFO': 'Paper bootswatch theme'},
+          '12': {'NAME': 'Sandstone',
+                 'PATH': 'theme/sandstone/',
+                 'INFO': 'Sandstone bootswatch theme'},
+          '13': {'NAME': 'Simplex',
+                 'PATH': 'theme/simplex/',
+                 'INFO': 'Simplex bootswatch theme'},
+          '14': {'NAME': 'Slate',
+                 'PATH': 'theme/slate/',
+                 'INFO': 'Slate bootswatch theme'},
+          '15': {'NAME': 'Spacelab',
+                 'PATH': 'theme/spacelab/',
+                 'INFO': 'Spacelab bootswatch theme'},
+          '16': {'NAME': 'Superhero',
+                 'PATH': 'theme/superhero/',
+                 'INFO': 'Superhero bootswatch theme'},
+          '17': {'NAME': 'United',
+                 'PATH': 'theme/united/',
+                 'INFO': 'United bootswatch theme'},
+          '18': {'NAME': 'Yeti',
+                 'PATH': 'theme/yeti/',
+                 'INFO': 'Yeti bootswatch theme'},
+          'SELECTED': '0'}
 
 if THEMES['SELECTED'] not in THEMES:
-    THEME_SELECTED = "0"
+    THEME_SELECTED = '0'
 else:
-    THEME_SELECTED = THEMES["SELECTED"]
+    THEME_SELECTED = THEMES['SELECTED']
 
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = "CMS BlueButton+"
+APPLICATION_TITLE = 'CMS BlueButton+'
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
@@ -354,13 +366,15 @@ SETTINGS_EXPORT = [
     'SETTINGS_MODE',
 ]
 
-# Stub for Custom Authentication Backend (This will change/be removed..just framing)
+# Stub for Custom Authentication Backend 
+# (This will change/ be removed..just framing)
 
-SLS_USER       = "ben"
-SLS_PASSWORD   = "pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aaTohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys="
-SLS_FIRST_NAME = "Ben"
-SLS_LAST_NAME  = "Barker"
-SLS_EMAIL      = "alan.viars@videntity.com"
+SLS_USER = 'ben'
+SLS_PASSWORD = 'pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aa' \
+               'TohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys='
+SLS_FIRST_NAME = 'Ben'
+SLS_LAST_NAME = 'Barker'
+SLS_EMAIL = 'alan.viars@videntity.com'
 
 # try:
 #     from .local import *
@@ -368,13 +382,15 @@ SLS_EMAIL      = "alan.viars@videntity.com"
 #      pass
 
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
-# We will need to add REWRITE_FROM and REWRITE_TO to models to enable search and replace
-# in content returned from backend server. Otherwise source server address is exposed to
-# external users.
-FHIR_SERVER_CONF = {"SERVER":"http://fhir.bbonfhir.com/",
-                    "PATH":"fhir-p/",
-                    "RELEASE":"baseDstu2/",
-                    "REWRITE_FROM":"http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2",
-                    "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
+# We will need to add REWRITE_FROM and REWRITE_TO to models 
+# to enable search and replace
+# in content returned from backend server. Otherwise source server address 
+# is exposed to external users.
+FHIR_SERVER_CONF = {'SERVER': 'http://fhir.bbonfhir.com/',
+                    'PATH': 'fhir-p/',
+                    'RELEASE': 'baseDstu2/',
+                    'REWRITE_FROM': 'http://ec2-52-4-198-86.compute-1.'
+                                    'amazonaws.com:8080/baseDstu2',
+                    'REWRITE_TO': 'http://localhost:8000/bluebutton/fhir/v1'}
 
 # End of Base.py

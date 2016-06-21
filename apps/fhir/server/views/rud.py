@@ -6,10 +6,11 @@ from .read import read
 from django.views.decorators.csrf import csrf_exempt
 
 
-
 @csrf_exempt
 def read_or_update_or_delete(request, resource_type, id):
-    """Route to read, update, or delete based on HTTP method FHIR Interaction"""
+    """
+    Route to read, update, or delete based on HTTP method FHIR Interaction
+    """
 
     if request.method == 'GET':
         # Read
@@ -22,7 +23,7 @@ def read_or_update_or_delete(request, resource_type, id):
         return delete(request, resource_type, id)
     # else:
     # Not supported.
-    msg = "HTTP method %s not supported at this URL." % (request.method)
+    msg = 'HTTP method %s not supported at this URL.' % (request.method)
     return kickout_400(msg)
     
     

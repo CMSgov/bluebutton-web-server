@@ -7,7 +7,8 @@ from apps.fhir.server.views.create import create
 
 from apps.fhir.server.views.hello import hello
 from apps.fhir.server.views.history import history, vread
-from apps.fhir.server.views.oauth import oauth_create, oauth_read_or_update_or_delete
+from apps.fhir.server.views.oauth import (oauth_create,
+                                          oauth_read_or_update_or_delete)
 from apps.fhir.server.views.rud import read_or_update_or_delete
 from apps.fhir.server.views.search import search
 
@@ -15,7 +16,8 @@ from apps.fhir.server.views.search import search
 urlpatterns = [   
     
     # Hello
-    url(r'hello', hello,
+    url(r'hello',
+        hello,
         name='fhir_hello'),
 
     # oAuth2 URLs ------------------------------------
@@ -30,7 +32,8 @@ urlpatterns = [
         name='fhir_oauth_read_or_update_or_delete'),
     
     # create ------------------------------
-    url(r'oauth2/(?P<resource_type>[^/]+)', oauth_create,
+    url(r'oauth2/(?P<resource_type>[^/]+)',
+        oauth_create,
         name='fhir_oauth_create'),
     
     
@@ -44,11 +47,13 @@ urlpatterns = [
     # URLs with no authentication
     # Interactions on Resources
     # Vread GET --------------------------------
-    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)', vread,
+    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)',
+        vread,
         name='fhir_vread'),
 
     # History GET ------------------------------
-    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history', history,
+    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history',
+        history,
         name='fhir_history'),
     
     # ---------------------------------------
@@ -63,13 +68,14 @@ urlpatterns = [
     
 
     # Create  POST ------------------------------
-    url(r'(?P<resource_type>[^/]+)', create,
+    url(r'(?P<resource_type>[^/]+)',
+        create,
         name='fhir_create'),
     
     
     # Search  GET ------------------------------
-    url(r'(?P<resource_type>[^/]+)?', search,
+    url(r'(?P<resource_type>[^/]+)?',
+        search,
         name='fhir_search'),
-    
 
     ]
