@@ -9,7 +9,7 @@ from django.test import TestCase
 from django.utils.text import slugify
 
 from apps.capabilities.models import ProtectedCapability
-from apps.dot_ext import Application
+from apps.dot_ext.models import Application
 
 
 class BaseApiTest(TestCase):

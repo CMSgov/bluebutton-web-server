@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.conf import settings
 from oauth2_provider.scopes import get_scopes_backend
 
-from apps.dot_ext import CapabilitiesScopes
+from apps.dot_ext.scopes import CapabilitiesScopes
 from apps.test import BaseApiTest
 
 
@@ -42,7 +42,7 @@ class TestScopesBackendClass(BaseApiTest):
         # create some capabilities
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
-        capability_c = self._create_capability('Capability C', [])
+        self._create_capability('Capability C', [])
         # create an application and bound scopes to it
         application = self._create_application('an app')
         application.scope.add(capability_a, capability_b)
@@ -58,7 +58,7 @@ class TestScopesBackendClass(BaseApiTest):
         # create some capabilities
         capability_a = self._create_capability('Capability A', [])
         capability_b = self._create_capability('Capability B', [])
-        capability_c = self._create_capability('Capability C', [])
+        self._create_capability('Capability C', [])
         # create an application and bound scopes to it
         application = self._create_application('an app')
         application.scope.add(capability_a, capability_b)
