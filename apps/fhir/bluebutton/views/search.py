@@ -1,11 +1,11 @@
 import logging
 
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.fhir.bluebutton.views.read import generic_read
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
 
 DF_EXTRA_INFO = False
 
