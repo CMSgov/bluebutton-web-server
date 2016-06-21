@@ -882,10 +882,3 @@ class BlueButtonUtilRequestTest(TestCase):
     def test_get_host_url(self):
         """ Get the host url and split on resource_type """
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
-
-        response = get_host_url(request, 'Patient')
-
-        expected = 'http://testserver/bluebutton/fhir/v1/'
-
-        self.assertEqual(response, expected)
