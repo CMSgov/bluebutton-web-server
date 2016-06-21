@@ -2,6 +2,7 @@ import logging
 
 from django.views.decorators.csrf import csrf_exempt
 
+from apps.fhir.core.utils import kickout_400
 from apps.fhir.bluebutton.views.read import generic_read
 
 
@@ -16,7 +17,7 @@ def search_simple(request, resource_type):
 
     if request.method == 'GET':
         # Search
-        return read(request, resource_type, id)
+        return generic_read(request, resource_type, id)
     # elif request.method == 'PUT':
     #     # update
     #     return update(request, resource_type, id)

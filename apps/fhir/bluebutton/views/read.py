@@ -15,14 +15,13 @@ from apps.fhir.core.utils import (error_status, kickout_403)
 from apps.fhir.bluebutton.utils import (
     check_rt_controls,
     check_access_interaction_and_resource_type,
-    masked,
     masked_id,
     strip_oauth,
     build_params,
     FhirServerUrl,
     mask_list_with_host,
     get_host_url,
-    )
+)
 
 from apps.fhir.bluebutton.models import Crosswalk
 
@@ -158,9 +157,7 @@ def generic_read(request,
     logger.debug('Now we need to evaluate the parameters and arguments'
                  ' to work with %s and %s. GET parameters:%s' % (key, request.user, request.GET))
 
-    mask = masked(srtc)
     # Internal handling format is json
-    in_fmt = "json"
 
     # FIXME: variables not used
     # mask = masked(srtc)

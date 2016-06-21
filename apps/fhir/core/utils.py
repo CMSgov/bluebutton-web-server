@@ -6,9 +6,6 @@ from collections import OrderedDict
 from django.conf import settings
 from django.http import HttpResponse
 
-from apps.fhir.server.models import SupportedResourceType
-from apps.fhir.bluebutton.models import ResourceTypeControl
-
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -26,7 +23,7 @@ def kickout_301(reason, status_code=301):
 def kickout_400(reason, status_code=400):
     """ 400 Bad Request """
     oo = OrderedDict()
-    oo['resourceType']= 'OperationOutcome'
+    oo['resourceType'] = 'OperationOutcome'
     oo['code'] = status_code
     oo['issue'] = []
     issue = OrderedDict()
@@ -73,7 +70,7 @@ def kickout_402(reason, status_code=402):
 def kickout_403(reason, status_code=403):
     """ 403 Forbidden """
     oo = OrderedDict()
-    oo['resourceType']= 'OperationOutcome'
+    oo['resourceType'] = 'OperationOutcome'
     oo['code'] = status_code
     oo['issue'] = []
     issue = OrderedDict()
@@ -89,7 +86,7 @@ def kickout_403(reason, status_code=403):
 def kickout_404(reason, status_code=404):
     """ 404 Not Found """
     oo = OrderedDict()
-    oo['resourceType']= 'OperationOutcome'
+    oo['resourceType'] = 'OperationOutcome'
     oo['code'] = status_code
     oo['issue'] = []
     issue = OrderedDict()
@@ -105,7 +102,7 @@ def kickout_404(reason, status_code=404):
 def kickout_500(reason, status_code=500):
     """ 500 Internal Server Error """
     oo = OrderedDict()
-    oo['resourceType']= 'OperationOutcome'
+    oo['resourceType'] = 'OperationOutcome'
     oo['code'] = status_code
     oo['issue'] = []
     issue = OrderedDict()

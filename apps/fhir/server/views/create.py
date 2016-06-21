@@ -58,11 +58,10 @@ def create(request, resource_type):
         except:
             return kickout_400("The request body did not contain valid JSON.")
 
-        if 'id' in j:
         # if j.has_key('id'): # throws error if id not in OrderedDict
-
+        if 'id' in j:
             return kickout_400("Create cannot have an id. Perhaps you meant to perform an update?")
-        
+
         # Check json_schema is valid
         try:
             json_schema = json.loads(rt.json_schema, object_pairs_hook=OrderedDict)
