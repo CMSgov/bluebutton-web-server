@@ -1,65 +1,47 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
+import logging
 
-"""
-hhs_oauth_server
-FILE: apps.fhir.bluebutton.tests.test_utils
-Created: 5/24/16 9:29 AM
-
-run with
-
-python manage.py test apps.fhir.bluebutton.tests.test_utils
-
-"""
-__author__ = 'Mark Scrimshire:@ekivemark'
-
-import urllib.parse
+try:
+    from urllib.parse import urlparse, parse_qsl
+except ImportError:
+    from urlparse import urlparse, parse_qsl
+# Python 2 and 3: alternative 4
 
 from collections import OrderedDict
 
-from django.test import TestCase, RequestFactory
-from django.test.client import Client
-from django.core.urlresolvers import reverse
 from django.conf import settings
-
-from apps.test import BaseApiTest
-
-from django.contrib.auth.models import User
-
-import base64
-import json
-import logging
-
-logger = logging.getLogger('tests.%s' % __name__)
+from django.test import TestCase, RequestFactory
 
 from apps.fhir.bluebutton.models import (ResourceTypeControl,
                                          SupportedResourceType,
                                          Crosswalk,
                                          FhirServer)
 
-from apps.fhir.bluebutton.utils import (notNone,
-                                        strip_oauth,
-                                        block_params,
-                                        add_params,
-                                        concat_parms,
-                                        build_params,
-                                        add_format,
-                                        get_url_query_string,
-                                        FhirServerUrl,
-                                        check_access_interaction_and_resource_type,
-                                        check_rt_controls,
-                                        masked,
-                                        masked_id,
-                                        mask_with_this_url,
-                                        mask_list_with_host,
-                                        get_host_url)
+from apps.fhir.bluebutton.utils import (
+    notNone,
+    strip_oauth,
+    block_params,
+    add_params,
+    concat_parms,
+    build_params,
+    add_format,
+    get_url_query_string,
+    FhirServerUrl,
+    check_access_interaction_and_resource_type,
+    check_rt_controls,
+    masked,
+    masked_id,
+    mask_with_this_url,
+    mask_list_with_host,
+    get_host_url)
+
+from apps.test import BaseApiTest
+
+logger = logging.getLogger('tests.%s' % __name__)
 
 ENCODED = settings.ENCODING
 
 
-class bluebutton_utils_simple_TestCase(BaseApiTest):
-
+class BluebuttonUtilsSimpleTestCase(BaseApiTest):
     # Create a user
     # username = "bobby"
     # password = "password"
@@ -117,7 +99,7 @@ class bluebutton_utils_simple_TestCase(BaseApiTest):
         self.assertEqual(response, "default")
 
         # List returns list
-        listing = [1,2,3]
+        listing = [1, 2, 3]
         response = notNone(listing, "number")
         # logger.debug("Testing Response:%s" % response)
         self.assertEqual(response, listing)
@@ -127,79 +109,88 @@ class bluebutton_utils_simple_TestCase(BaseApiTest):
 
         # <QueryDict: {'_format': ['json']}>
         get_ish_1 = {'_format': ['json'],
-                    'access_token': ['some_Token'],
-                    'state': ['some_State'],
-                    'response_type': ['some_Response_Type'],
-                    'client_id':['Some_Client_id'],
-                    'Keep': ['keep_this']}
+                     'access_token': ['some_Token'],
+                     'state': ['some_State'],
+                     'response_type': ['some_Response_Type'],
+                     'client_id': ['Some_Client_id'],
+                     'Keep': ['keep_this']}
 
         get_ish_2 = {'_format': ['json'],
-                     'Keep':    ['keep_this']}
+                     'Keep': ['keep_this']}
 
         get_ish_3 = {'access_token': ['some_Token'],
-                    'state': ['some_State'],
-                    'response_type': ['some_Response_Type'],
-                    'client_id':['Some_Client_id'],
-                    }
+                     'state': ['some_State'],
+                     'response_type': ['some_Response_Type'],
+                     'client_id': ['Some_Client_id']}
 
         get_ish_4 = {}
 
         response = strip_oauth(get_ish_1)
-        self.assertEqual(response, get_ish_2, "Successful removal")
+        self.assertEqual(response,
+                         get_ish_2,
+                         "Successful removal")
 
         response = strip_oauth(get_ish_3)
-        self.assertEqual(response, get_ish_4, "Successful removal of all items")
+        self.assertEqual(response,
+                         get_ish_4,
+                         "Successful removal of all items")
 
         response = strip_oauth(get_ish_2)
-        self.assertEqual(response, get_ish_2, "Nothing removed")
+        self.assertEqual(response,
+                         get_ish_2,
+                         "Nothing removed")
 
         response = strip_oauth(get_ish_4)
-        self.assertEqual(response, get_ish_4, "Empty dict - nothing to do")
+        self.assertEqual(response,
+                         get_ish_4,
+                         "Empty dict - nothing to do")
 
         response = strip_oauth()
-        self.assertEqual(response, {}, "Empty dict - nothing to do")
-
+        self.assertEqual(response,
+                         {},
+                         "Empty dict - nothing to do")
 
     def test_block_params(self):
-        """ strip parameters from get dict based on list in ResoureTypeControl record """
-
+        """ strip parameters from get dict based on list in
+        ResoureTypeControl record
+        """
 
         srtc = ResourceTypeControl.objects.get(pk=2)
 
         # <QueryDict: {'_format': ['json']}>
         get_ish_1 = {'_format': ['json'],
-                    'access_token': ['some_Token'],
-                    'state': ['some_State'],
-                    'response_type': ['some_Response_Type'],
-                    'client_id':['Some_Client_id'],
-                    'keep': ['keep_this']}
+                     'access_token': ['some_Token'],
+                     'state': ['some_State'],
+                     'response_type': ['some_Response_Type'],
+                     'client_id': ['Some_Client_id'],
+                     'keep': ['keep_this']}
 
-        get_ish_2 = {'access_token':  ['some_Token'],
-                     'state':         ['some_State'],
-                     'client_id':     ['Some_Client_id'],
-                     'keep':          ['keep_this']}
+        get_ish_2 = {'access_token': ['some_Token'],
+                     'state': ['some_State'],
+                     'client_id': ['Some_Client_id'],
+                     'keep': ['keep_this']}
 
-        get_ish_3 = {'_format':       ['json'],
-                     'access_token':  ['some_Token'],
-                     'state':         ['some_State'],
-                     'claim':         ['some_Claim'],
+        get_ish_3 = {'_format': ['json'],
+                     'access_token': ['some_Token'],
+                     'state': ['some_State'],
+                     'claim': ['some_Claim'],
                      'claimresponse': ['some_ClaimResponse'],
                      'response_type': ['some_Response_Type'],
-                     'client_id':     ['Some_Client_id'],
-                     'keep':          ['keep_this']}
+                     'client_id': ['Some_Client_id'],
+                     'keep': ['keep_this']}
 
-        get_ish_4 = {'access_token':  ['some_Token'],
-                     'state':         ['some_State'],
+        get_ish_4 = {'access_token': ['some_Token'],
+                     'state': ['some_State'],
                      'claimresponse': ['some_ClaimResponse'],
                      'response_type': ['some_Response_Type'],
-                     'client_id':     ['Some_Client_id'],
-                     'keep':          ['keep_this']}
+                     'client_id': ['Some_Client_id'],
+                     'keep': ['keep_this']}
 
         response = block_params(get_ish_1, srtc)
         for k, v in response.items():
             if k in get_ish_2:
                 # print("Key [%s] matches [%s]" % (v, get_ish_2[k]))
-                self.assertEquals
+                self.assertEquals(v, get_ish_2[k])
 
         # print("Testing for claimresponse being untouched")
         srtc = ResourceTypeControl.objects.get(pk=3)
@@ -208,10 +199,10 @@ class bluebutton_utils_simple_TestCase(BaseApiTest):
         for k, v in response.items():
             if k in get_ish_4:
                 # print("Key [%s] matches [%s]" % (v, get_ish_4[k]))
-                self.assertEquals
+                self.assertEquals(v, get_ish_4[k])
 
 
-class bluebutton_utils_srtc_TestCase(TestCase):
+class BlueButtonUtilSrtcTestCase(TestCase):
 
     fixtures = ['fhir_bluebutton_testdata.json']
 
@@ -235,17 +226,17 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         srtc = ResourceTypeControl.objects.get(pk=1)
 
         key = Crosswalk.objects.get(pk=1)
-        fhir_id = "4995802"
+        fhir_id = '4995802'
 
         response = add_params(srtc, fhir_id)
 
-        self.assertEquals(response,['patient=4995802'])
+        self.assertEquals(response, ['patient=4995802'])
 
         # Test
         srtc = ResourceTypeControl.objects.get(pk=2)
 
         key = Crosswalk.objects.get(pk=1)
-        fhir_id = "4995802"
+        fhir_id = '4995802'
 
         response = add_params(srtc, fhir_id)
 
@@ -296,10 +287,10 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         # 5. Test front = List / back = List
 
         # Test 1
-        front = OrderedDict([('a',2),('b',"Bee"), ('c',True)])
-        back  = OrderedDict([('d',4),('e', "Eric"), ('f',False)])
+        front = OrderedDict([('a', 2), ('b', "Bee"), ('c', True)])
+        back = OrderedDict([('d', 4), ('e', "Eric"), ('f', False)])
 
-        result = "?a=2&b=Bee&c=True&d=4&e=Eric&f=False"
+        result = '?a=2&b=Bee&c=True&d=4&e=Eric&f=False'
 
         response = concat_parms(front, back)
 
@@ -308,9 +299,9 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         self.assertEquals(response, result)
 
         # Test 2
-        front = OrderedDict([('a', 2), ('b', "Bee"), ('c', True)])
+        front = OrderedDict([('a', 2), ('b', 'Bee'), ('c', True)])
 
-        result = "?a=2&b=Bee&c=True"
+        result = '?a=2&b=Bee&c=True'
 
         response = concat_parms(front)
 
@@ -319,10 +310,10 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         self.assertEquals(response, result)
 
         # Test 3
-        front = OrderedDict([('a',2),('b',"Bee"), ('c',True)])
-        back  = ["d=4",'e=Eric', 'f=False']
+        front = OrderedDict([('a', 2), ('b', 'Bee'), ('c', True)])
+        back = ['d=4', 'e=Eric', 'f=False']
 
-        result = "?a=2&b=Bee&c=True&d=4&e=Eric&f=False"
+        result = '?a=2&b=Bee&c=True&d=4&e=Eric&f=False'
 
         response = concat_parms(front, back)
 
@@ -330,12 +321,11 @@ class bluebutton_utils_srtc_TestCase(TestCase):
 
         self.assertEquals(response, result)
 
-
         # Test 4
-        front = OrderedDict([('a',2),('b',"Bee"), ('c',True)])
-        back  = ["d=4",'e=', 'f=False']
+        front = OrderedDict([('a', 2), ('b', 'Bee'), ('c', True)])
+        back = ['d=4', 'e=', 'f=False']
 
-        result = "?a=2&b=Bee&c=True&d=4&e=&f=False"
+        result = '?a=2&b=Bee&c=True&d=4&e=&f=False'
 
         response = concat_parms(front, back)
 
@@ -344,17 +334,16 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         self.assertEquals(response, result)
 
         # Test 5
-        front = ['a=2','b=Bee', 'c=True']
-        back  = ["d=4",'e=', 'f=False']
+        front = ['a=2', 'b=Bee', 'c=True']
+        back = ['d=4', 'e=', 'f=False']
 
-        result = "?a=2&b=Bee&c=True&d=4&e=&f=False"
+        result = '?a=2&b=Bee&c=True&d=4&e=&f=False'
 
         response = concat_parms(front, back)
 
         # logger.debug("Test 5:Response=%s" % response)
 
         self.assertEquals(response, result)
-
 
     def test_build_params(self):
         """ Test Build Params
@@ -368,19 +357,18 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         # Test 2: Get - No parameters, SRTC Valid, Key is good
         # Test 3: GET has parameters, SRTC is None, key is empty
 
-
         # Test 1: Get has parameters. SRTC is valid and Key (FHIR_ID) is good
 
         # <QueryDict: {'_format': ['json']}>
-        get_ish_1 = {'_format':       'json',
-                     'keep':          'keep_this',
-                     'claim':         '123456',
+        get_ish_1 = {'_format': 'json',
+                     'keep': 'keep_this',
+                     'claim': '123456',
                      'resource_type': 'some_resource'}
         srtc = ResourceTypeControl.objects.get(pk=4)
-        fhir_id = "4995802"
+        fhir_id = '4995802'
 
         response = build_params(get_ish_1, srtc, fhir_id)
-        expected = "?keep=keep_this&patient=4995802&_format=json"
+        expected = '?keep=keep_this&patient=4995802&_format=json'
 
         # logger.debug("BP Test 1: Response:%s" % response)
 
@@ -390,7 +378,7 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         get_ish_2 = {}
 
         response = build_params(get_ish_2, srtc, fhir_id)
-        expected = "?patient=4995802&_format=json"
+        expected = '?patient=4995802&_format=json'
 
         # logger.debug("BP Test 2: Response:%s / %s" % (response, expected))
 
@@ -399,11 +387,12 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         # Test 3: GET has parameters, SRTC is None, key is empty
 
         srtc = None
-        key = ""
+        key = ''
         response = build_params(get_ish_1, srtc, key)
-        resp_dict = dict(urllib.parse.parse_qsl(response[1:]))
-        expected = "?keep=keep_this&resource_type=some_resource&_format=json&claim=123456"
-        expe_dict = dict(urllib.parse.parse_qsl(expected[1:]))
+        resp_dict = dict(parse_qsl(response[1:]))
+        expected = '?keep=keep_this&resource_type=some_resource' \
+                   '&_format=json&claim=123456'
+        expe_dict = dict(parse_qsl(expected[1:]))
 
         # logger.debug("BP Test 3: Response:%s / %s" % (resp_dict,expe_dict))
 
@@ -412,48 +401,51 @@ class bluebutton_utils_srtc_TestCase(TestCase):
     def test_add_format(self):
         """ Check for _format and add """
 
-
         # Test 1: Empty encoded string, add _format=json
 
-        param_string = ""
+        param_string = ''
         response = add_format(param_string)
 
-        expected = "?_format=json"
+        expected = '?_format=json'
 
-        # logger.debug("add_format Test 1: Response:%s / %s" % (response, expected))
+        # logger.debug("add_format Test 1: Response:%s / %s" %
+        # (response, expected))
 
         self.assertEquals(response, expected)
 
         # Test 2: _format=xml, return unchanged
 
-        param_string = "keep=anything&_format=xml"
+        param_string = 'keep=anything&_format=xml'
         response = add_format(param_string)
 
-        expected = "keep=anything&_format=xml"
+        expected = 'keep=anything&_format=xml'
 
-        # logger.debug("add_format Test 2: Response:%s / %s" % (response, expected))
+        # logger.debug("add_format Test 2: Response:%s / %s" %
+        # (response, expected))
 
         self.assertEquals(response, expected)
 
         # Test 3: _format=json, return unchanged
 
-        param_string = "keep=anything&_format=json"
+        param_string = 'keep=anything&_format=json'
         response = add_format(param_string)
 
-        expected = "keep=anything&_format=json"
+        expected = 'keep=anything&_format=json'
 
-        # logger.debug("add_format Test 3: Response:%s / %s" % (response, expected))
+        # logger.debug("add_format Test 3: Response:%s / %s" %
+        # (response, expected))
 
         self.assertEquals(response, expected)
 
         # Test 4: _format=JSon, return unchanged
 
-        param_string = "keep=anything&_format=JSon"
+        param_string = 'keep=anything&_format=JSon'
         response = add_format(param_string)
 
-        expected = "keep=anything&_format=JSon"
+        expected = 'keep=anything&_format=JSon'
 
-        # logger.debug("add_format Test 4: Response:%s / %s" % (response, expected))
+        # logger.debug("add_format Test 4: Response:%s / %s" %
+        # (response, expected))
 
         self.assertEquals(response, expected)
 
@@ -461,12 +453,13 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         """ Test get_url_query_String """
 
         """ Test 1: """
-        get_ish_1 = {'_format':       ['json'], # will be removed
-                     'access_token':  ['some_Token'],
-                     'state':         ['some_State'],
-                     'resource_type': ['some_Resourse_Type'], # will be removed
-                     'client_id':     ['Some_Client_id'],
-                     'keep':          ['keep_this']}
+        get_ish_1 = {'_format': ['json'],  # will be removed
+                     'access_token': ['some_Token'],
+                     'state': ['some_State'],
+                     'resource_type': ['some_Resource_Type'],
+                     # resource_type will be removed
+                     'client_id': ['Some_Client_id'],
+                     'keep': ['keep_this']}
 
         srtc = ResourceTypeControl.objects.get(pk=2)
 
@@ -503,10 +496,9 @@ class bluebutton_utils_srtc_TestCase(TestCase):
 
         self.assertEquals(response, expected)
 
-
         """ Test 4 call with list """
 
-        response = get_url_query_string(['a=a','b=b','c=3'])
+        response = get_url_query_string(['a=a', 'b=b', 'c=3'])
 
         expected = OrderedDict()
 
@@ -516,12 +508,13 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         """ Build a fhir server url """
 
         """ Test 1: Pass all parameters """
-        response = FhirServerUrl("http://localhost:8000","/any_path","/release")
+        response = FhirServerUrl('http://localhost:8000',
+                                 '/any_path',
+                                 '/release')
 
-        expected = "http://localhost:8000/any_path/release/"
+        expected = 'http://localhost:8000/any_path/release/'
 
         self.assertEquals(response, expected)
-
 
         """ Test 2: Pass no parameters """
         response = FhirServerUrl()
@@ -530,69 +523,77 @@ class bluebutton_utils_srtc_TestCase(TestCase):
         # FHIR_SERVER_CONF = {"SERVER":"http://fhir.bbonfhir.com/",
         #            "PATH":"fhir-p/",
         #            "RELEASE":"baseDstu2/",
-        #            "REWRITE_FROM":"http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2",
+        #            "REWRITE_FROM":"http://ec2-52-4-198-86.compute-1.
+        #                            amazonaws.com:8080/baseDstu2",
         #            "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
 
-
-        expected = "http://fhir.bbonfhir.com/fhir-p/baseDstu2/"
+        expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
 
         self.assertEquals(response, expected)
 
     def test_check_access_interaction_and_resource_type(self):
-        """ test resource_type and interaction_type from SupportedResourceType """
+        """ test resource_type and interaction_type from
+        SupportedResourceType
+        """
 
         """ Test 1: Patient GET = True """
-        resource_type = "Patient"
-        interaction_type = "get" # True
+        resource_type = 'Patient'
+        interaction_type = 'get'  # True
 
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         # print("Response for ", interaction_type, "=", response)
 
         self.assertEquals(response, False)
 
         """ Test 2: Patient get = True """
-        resource_type = "Patient"
-        interaction_type = "GET" # True
+        resource_type = 'Patient'
+        interaction_type = 'GET'  # True
 
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         # print("Response for ", interaction_type, "=", response)
         self.assertEquals(response, False)
 
         """ Test 3: Patient UPdate = False """
-        resource_type = "Patient"
-        interaction_type = "UPdate" # False
+        resource_type = 'Patient'
+        interaction_type = 'UPdate'  # False
 
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         # print("Response for ", interaction_type, "=", response)
-        self.assertEquals(response.status_code,  403)
+        self.assertEquals(response.status_code, 403)
 
         """ Test 4: Patient UPdate = False """
-        resource_type = "BadResourceName"
-        interaction_type = "get" # False
+        resource_type = 'BadResourceName'
+        interaction_type = 'get'  # False
 
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         # print("Response for ", interaction_type, "=", response)
-        self.assertEquals(response.status_code,  404)
+        self.assertEquals(response.status_code, 404)
 
 
-class bluebutton_utils_rt_TestCase(TestCase):
+class BlueButtonUtilsRtTestCase(TestCase):
 
     fixtures = ['fhir_bluebutton_test_rt.json']
 
     def test_check_rt_controls(self):
-        """ Get ResourceTypeControl via SupportedResourceType from resource_type """
+        """ Get ResourceTypeControl via SupportedResourceType
+        from resource_type
+        """
 
         """ Test 1: Good Resource """
-        resource_type = "Patient"
+        resource_type = 'Patient'
 
         response = check_rt_controls(resource_type)
-        expected = SupportedResourceType.objects.get(resource_name=resource_type)
+        expect = SupportedResourceType.objects.get(resource_name=resource_type)
         # print("Resource:", response.resource_name.id,"=", expected.id)
 
-        self.assertEquals(response.resource_name.id, expected.id)
+        self.assertEquals(response.resource_name.id, expect.id)
 
         """ Test 2: Bad Resource """
-        resource_type = "BadResource"
+        resource_type = 'BadResource'
 
         response = check_rt_controls(resource_type)
 
@@ -628,7 +629,6 @@ class bluebutton_utils_rt_TestCase(TestCase):
 
         self.assertEqual(response, expected)
 
-
         """ Test:4 No SRTC """
 
         # srtc = ResourceTypeControl.objects.get(pk=1)
@@ -638,195 +638,200 @@ class bluebutton_utils_rt_TestCase(TestCase):
 
         self.assertEqual(response, expected)
 
-
     def test_masked_id(self):
         """ Get the correct id using masking """
 
         """ Test 1: Patient replace 1 with 49995802/ """
 
-        resource_type = "Patient"
+        resource_type = 'Patient'
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
-        id = 1
+        r_id = 1
 
         srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, srtc, id )
-        expected = "4995802/"
+        response = masked_id(resource_type, cx, srtc, r_id)
+        expected = '4995802/'
 
         self.assertEqual(response, expected)
-
 
         """ Test 2: Patient replace 1 with 49995802 """
 
-        resource_type = "Patient"
+        resource_type = 'Patient'
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
-        id = 1
+        r_id = 1
 
         srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, srtc, id, False)
-        expected = "4995802"
+        response = masked_id(resource_type, cx, srtc, r_id, False)
+        expected = '4995802'
 
         self.assertEqual(response, expected)
-
 
         """ Test 3: ClaimResponse Don't replace id just add slash """
 
-        resource_type = "ClaimResponse"
+        resource_type = 'ClaimResponse'
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
-        id = 1
+        r_id = 1
 
         srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, srtc, id )
-        expected = "1/"
+        response = masked_id(resource_type, cx, srtc, r_id)
+        expected = '1/'
 
         self.assertEqual(response, expected)
 
-
         """ Test 4: ClaimResponse Don't replace id """
 
-        resource_type = "ClaimResponse"
+        resource_type = 'ClaimResponse'
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
-        id = 1
+        r_id = 1
 
         srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, srtc, id, False )
-        expected = "1"
+        response = masked_id(resource_type, cx, srtc, r_id, False)
+        expected = '1'
 
         self.assertEqual(response, expected)
 
         """ Test 5: No Crosswalk """
 
-        resource_type = "ClaimResponse"
+        resource_type = 'ClaimResponse'
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
-        id = 1
+        r_id = 1
 
         srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, None, srtc, id )
-        expected = "1/"
+        response = masked_id(resource_type, None, srtc, r_id)
+        expected = '1/'
 
         self.assertEqual(response, expected)
 
         """ Test 6: No SRTC """
 
-        resource_type = "ClaimResponse"
+        resource_type = 'ClaimResponse'
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
-        id = 1
+        r_id = 1
 
         srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, None, id )
-        expected = "1/"
+        response = masked_id(resource_type, cx, None, r_id)
+        expected = '1/'
 
         self.assertEqual(response, expected)
 
 
-
-class bluebutton_util_RequestTest(TestCase):
+class BlueButtonUtilRequestTest(TestCase):
 
     def setUp(self):
         # Setup the RequestFactory
         self.factory = RequestFactory()
-
 
     def test_mask_with_this_url(self):
         """ Replace one url with another in a text string """
 
         """ Test 1: No text to replace. No changes """
 
-        input_text = "dddd anything http://www.example.com:8000 will get replaced"
+        input_text = 'dddd anything http://www.example.com:8000 ' \
+                     'will get replaced'
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_with_this_url(request,
-                                      host_path="http://www.replaced.com",
-                                      in_text="",
-                                      find_url="http://www.example.com:8000")
+                                      host_path='http://www.replaced.com',
+                                      in_text='',
+                                      find_url='http://www.example.com:8000')
 
-        expected = ""
+        expected = ''
 
         self.assertEqual(response, expected)
 
         """ Test 2: No text to replace with. No changes """
 
-        input_text = "dddd anything http://www.example.com:8000 will get replaced"
+        input_text = 'dddd anything http://www.example.com:8000 ' \
+                     'will get replaced'
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_with_this_url(request,
-                                      host_path="http://www.replaced.com",
+                                      host_path='http://www.replaced.com',
                                       in_text=input_text,
-                                      find_url="")
+                                      find_url='')
 
         expected = input_text
 
         self.assertEqual(response, expected)
 
-
         """ Test 3: Replace text removing slash from end of replaced text """
 
-        input_text = "dddd anything http://www.example.com:8000 will get replaced"
+        input_text = 'dddd anything http://www.example.com:8000 ' \
+                     'will get replaced'
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_with_this_url(request,
-                                      host_path="http://www.replaced.com/",
+                                      host_path='http://www.replaced.com/',
                                       in_text=input_text,
-                                      find_url="http://www.example.com:8000")
+                                      find_url='http://www.example.com:8000')
 
-        expected = "dddd anything http://www.replaced.com will get replaced"
+        expected = 'dddd anything http://www.replaced.com will get replaced'
 
         self.assertEqual(response, expected)
 
         """ Test 4: Replace text """
 
-        input_text = "dddd anything http://www.example.com:8000 will get replaced"
+        input_text = 'dddd anything http://www.example.com:8000 ' \
+                     'will get replaced'
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_with_this_url(request,
-                                      host_path="http://www.replaced.com",
+                                      host_path='http://www.replaced.com',
                                       in_text=input_text,
-                                      find_url="http://www.example.com:8000")
+                                      find_url='http://www.example.com:8000')
 
-        expected = "dddd anything http://www.replaced.com will get replaced"
+        expected = 'dddd anything http://www.replaced.com will get replaced'
 
         self.assertEqual(response, expected)
-
 
     def test_mask_list_with_host(self):
         """ Replace urls in list with host_path in a text string """
 
-        # FHIR_SERVER_CONF = {"SERVER":       "http://fhir.bbonfhir.com/",
-        #                     "PATH":         "fhir-p/",
-        #                     "RELEASE":      "baseDstu2/",
-        #                     "REWRITE_FROM": "http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2",
-        #                     "REWRITE_TO":   "http://localhost:8000/bluebutton/fhir/v1"}
+        # FHIR_SERVER_CONF = {
+        #   "SERVER": "http://fhir.bbonfhir.com/",
+        #   "PATH": "fhir-p/",
+        #   "RELEASE": "baseDstu2/",
+        #   "REWRITE_FROM": "http://ec2-52-4-198-86.compute-1.amazonaws.com" \
+        #                   ":8080/baseDstu2",
+        #   "REWRITE_TO": "http://localhost:8000/bluebutton/fhir/v1"}
 
         """ Test 1: No text to replace. No changes """
 
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
 
-        input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
-                     "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
+        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
+                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
+                     'more stuff http://www.example.com:8000 and ' \
+                     'http://example.com:8000/ okay'
 
         response = mask_list_with_host(request,
-                                       "http://www.replaced.com",
-                                       "",
-                                       ["http://www.example.com:8000","http://example.com"])
+                                       'http://www.replaced.com',
+                                       '',
+                                       ['http://www.example.com:8000',
+                                        'http://example.com'])
 
-        expected = ""
+        expected = ''
         self.assertEqual(response, expected)
 
-        """ Test 2: No text to replace with. Only replace FHIR_SERVER_CONF.REWRITE_FROM changes """
+        """ Test 2: No text to replace with. Only replace
+            FHIR_SERVER_CONF.REWRITE_FROM changes
+        """
 
-        input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
-                     "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
+        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
+                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
+                     'more stuff http://www.example.com:8000 and ' \
+                     'http://example.com:8000/ okay'
 
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_list_with_host(request,
-                                       "http://www.replaced.com",
+                                       'http://www.replaced.com',
                                        input_text,
                                        [])
 
@@ -836,34 +841,41 @@ class bluebutton_util_RequestTest(TestCase):
 
         """ Test 3: Replace text removing slash from end of replaced text """
 
-        input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
-                     "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
+        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
+                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
+                     'more stuff http://www.example.com:8000 and ' \
+                     'http://example.com:8000/ okay'
 
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_list_with_host(request,
-                                       "http://www.replaced.com/",
+                                       'http://www.replaced.com/',
                                        input_text,
-                                       ["http://www.example.com:8000",
-                                        "http://example.com"])
+                                       ['http://www.example.com:8000',
+                                        'http://example.com'])
 
-        expected = "dddd anything http://www.replaced.com will get replaced " \
-                   "more stuff http://www.replaced.com and http://www.replaced.com:8000/ okay"
+        expected = 'dddd anything http://www.replaced.com will get replaced ' \
+                   'more stuff http://www.replaced.com and ' \
+                   'http://www.replaced.com:8000/ okay'
 
         self.assertEqual(response, expected)
 
         """ Test 4: Replace text """
 
-        input_text = "dddd anything http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2 will get replaced " \
-                     "more stuff http://www.example.com:8000 and http://example.com:8000/ okay"
+        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
+                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
+                     'more stuff http://www.example.com:8000 and ' \
+                     'http://example.com:8000/ okay'
 
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
         response = mask_list_with_host(request,
-                                       "http://www.replaced.com",
+                                       'http://www.replaced.com',
                                        input_text,
-                                       ["http://www.example.com:8000", "http://example.com"])
+                                       ['http://www.example.com:8000',
+                                        'http://example.com'])
 
-        expected = "dddd anything http://www.replaced.com will get replaced " \
-                   "more stuff http://www.replaced.com and http://www.replaced.com:8000/ okay"
+        expected = 'dddd anything http://www.replaced.com will get replaced ' \
+                   'more stuff http://www.replaced.com and ' \
+                   'http://www.replaced.com:8000/ okay'
 
         self.assertEqual(response, expected)
 
@@ -872,8 +884,8 @@ class bluebutton_util_RequestTest(TestCase):
 
         request = self.factory.get('/bluebutton/fhir/v1/Patient')
 
-        response = get_host_url(request,"Patient")
+        response = get_host_url(request, 'Patient')
 
-        expected = "http://testserver/bluebutton/fhir/v1/"
+        expected = 'http://testserver/bluebutton/fhir/v1/'
 
         self.assertEqual(response, expected)

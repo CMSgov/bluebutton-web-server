@@ -29,7 +29,6 @@ class SupportedResourceType(models.Model):
                                                   help_text="FHIR Interaction Type")
 
     # Python2 uses __unicode__(self):
-
     def __str__(self):
         return self.resource_name
 

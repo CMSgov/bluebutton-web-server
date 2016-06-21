@@ -16,7 +16,7 @@ ENCODED = settings.ENCODING
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-#Not sure this is necessary.
+# Not sure this is necessary.
 http_method_to_scope = {"GET":    "read",
                         "HEAD":   "read",
                         "PUT":    "write",
@@ -73,10 +73,10 @@ def api_write(request):
             response['errors']= errors
             return HttpResponse(json.dumps(response, indent =4),
                                            content_type="application/json")
-        #A valid JSON object was provided.
+        # A valid JSON object was provided.
         return HttpResponse(json.dumps(j, indent =4),
                                            content_type="application/json")
-    #this is a GET
+    # this is a GET
     response = OrderedDict()
     response['code'] = 200
     response['message'] =  "POST JSON as the body of the request to this URL."

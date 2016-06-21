@@ -46,7 +46,6 @@ def update_mongo_pjson(document, database_name="nppes", collection_name="pjson")
         response_dict['code'] = 500
         response_dict['errors']=[ str(sys.exc_info()), ]
 
-    
     return response_dict
 
 

@@ -7,9 +7,9 @@ from .views import *
 
 
 urlpatterns = [
-    #Read -----------------------------------
+    # Read -----------------------------------
     url(r'^read/$', api_read, name="api_read"),
 
-    #Write-----------------------------------
+    # Write-----------------------------------
     url(r'^write/$', api_write, name="api_write"),
     ]

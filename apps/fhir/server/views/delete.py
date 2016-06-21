@@ -13,10 +13,10 @@ def delete(request, resource_type, id):
     # Example client use in curl:
     # curl -X DELETE -H "Content-Type: application/json" --data @test.json http://127.0.0.1:8000/fhir/Practitioner/12345 
     interaction_type = 'delete'
-    #Check if this interaction type and resource type combo is allowed.
+    # Check if this interaction type and resource type combo is allowed.
     deny = check_access_interaction_and_resource_type(resource_type, interaction_type)
     if deny:
-        #If not allowed, return a 4xx error.
+        # If not allowed, return a 4xx error.
         return deny
     
     od = OrderedDict()

@@ -64,7 +64,7 @@ def update_mongo_fhir(document, database_name, collection_name, id):
         
         written_object = history_collection.save(history_object)
        
-        #Check for meta and add if missing or increment if present
+        # Check for meta and add if missing or increment if present
         document['meta'] = OrderedDict()
         if existing_document.has_key('meta'):
             if existing_document['meta'].has_key('version'):
@@ -77,7 +77,7 @@ def update_mongo_fhir(document, database_name, collection_name, id):
         document['meta']["lastUpdated"]= "%sZ" % (datetime.datetime.utcnow().isoformat())        
        
         myobjectid=collection.save(document)        
-        #now fetch the record we just wrote so that we write it back to the DB.
+        # now fetch the record we just wrote so that we write it back to the DB.
         myobject=collection.find_one({'_id':myobjectid})
         response_dict['code']=200
         myobject['id'] =  str(myobjectid)
@@ -86,8 +86,8 @@ def update_mongo_fhir(document, database_name, collection_name, id):
         
             
     except:
-        #print("Error reading from Mongo")
-        #print(str(sys.exc_info()))
+        # print("Error reading from Mongo")
+        # print(str(sys.exc_info()))
         response_dict['code']=500
         response_dict['details']=str(sys.exc_info())
     return response_dict
