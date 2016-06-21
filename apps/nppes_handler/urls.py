@@ -6,6 +6,6 @@ from .views import *
 
 
 urlpatterns = [
-    #NPPES Update --------------------------------------
+    # NPPES Update --------------------------------------
     url(r'^update', nppes_update, name="nppes_update"),
     ]

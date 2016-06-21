@@ -1,0 +1,15 @@
+{%  extends "base_minimal.html" %}
+{% block content %}
+
+    <h1>{{ output.resource_type }} [{{ output.request_method }}/{{ output.interaction_type }}]</h1>
+    <h4>parameters: {{ output.parameters }}</h4>
+
+    <div class="col-lg-12 well">
+        {{ output.bundle|safe }}
+    </div>
+
+    <div class="col-lg-12">
+        {{ output.note }}
+    </div>
+
+{% endblock %}

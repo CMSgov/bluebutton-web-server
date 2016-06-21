@@ -14,7 +14,7 @@ from apps.fhir.server.views.search import search
 
 urlpatterns = [   
     
-    #Hello
+    # Hello
     url(r'hello', hello,
         name='fhir_hello'),
 
@@ -29,7 +29,7 @@ urlpatterns = [
         oauth_read_or_update_or_delete,
         name='fhir_oauth_read_or_update_or_delete'),
     
-    #create ------------------------------
+    # create ------------------------------
     url(r'oauth2/(?P<resource_type>[^/]+)', oauth_create,
         name='fhir_oauth_create'),
     
@@ -41,13 +41,13 @@ urlpatterns = [
     # 
     
     
-    #URLs with no authentication
-    #Interactions on Resources
-    #Vread GET --------------------------------
+    # URLs with no authentication
+    # Interactions on Resources
+    # Vread GET --------------------------------
     url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)', vread,
         name='fhir_vread'),
 
-    #History GET ------------------------------
+    # History GET ------------------------------
     url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history', history,
         name='fhir_history'),
     
@@ -62,12 +62,12 @@ urlpatterns = [
     
     
 
-    #Create  POST ------------------------------
+    # Create  POST ------------------------------
     url(r'(?P<resource_type>[^/]+)', create,
         name='fhir_create'),
     
     
-    #Search  GET ------------------------------
+    # Search  GET ------------------------------
     url(r'(?P<resource_type>[^/]+)?', search,
         name='fhir_search'),
     

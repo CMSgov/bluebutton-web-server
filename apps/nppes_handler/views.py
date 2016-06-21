@@ -41,10 +41,9 @@ def nppes_update(request):
             response['errors']= errors
             
         else:
-            #Looks good
+            # Looks good
             
             nppes_write_response = update_mongo_pjson(j)
-
             
             response['code']= nppes_write_response['code']
             if response['code'] == 200:
@@ -57,7 +56,7 @@ def nppes_update(request):
                 
         return HttpResponse(json.dumps(response, indent =4),
                                            content_type="application/json")
-    #this is a GET
+    # this is a GET
     response = OrderedDict()
     response['code'] = 200
     response['message'] =  "POST Provider JSON as the body of the request to this URL."

@@ -33,7 +33,7 @@ def oauth_read_or_update_or_delete(request, resource_type, id):
     elif request.method == 'DELETE':
         # delete
         return delete(request, resource_type, id)
-    #else:
+    # else:
     # Not supported.
     msg = "HTTP method %s not supported at this URL." % (request.method)
     return kickout_400(msg)

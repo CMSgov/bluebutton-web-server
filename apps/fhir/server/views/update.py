@@ -18,7 +18,7 @@ def update(request, resource_type, id):
     #Check if this interaction type and resource type combo is allowed.
     deny = check_access_interaction_and_resource_type(resource_type, interaction_type)
     if deny:
-        #If not allowed, return a 4xx error.
+        # If not allowed, return a 4xx error.
         return deny
     
     od = update_mongo_fhir(json.loads(request.body, object_pairs_hook=OrderedDict), "fhir", resource_type, id)

@@ -24,30 +24,48 @@ from apps.fhir.server.models import SupportedResourceType
 
 @python_2_unicode_compatible
 class ResourceTypeControl(models.Model):
-    resource_name      = models.ForeignKey(SupportedResourceType)
-    override_url_id    = models.BooleanField(help_text="Does this resource need to mask "
-                                                       "the id in the url?")
-    override_search    = models.BooleanField(help_text="Do search parameters need to be "
-                                                       "filtered to avoid revealing "
-                                                       "other people's data?")
-    search_block       = models.TextField(max_length=5120,
-                                          blank=True, default="",
-                                          help_text="list of values that need to be removed "
-                                                    "from search parameters. eg. Patient")
-    search_add         = models.TextField(max_length=200,
-                                          blank=True, default="",
-                                          help_text="list of keys that need to be added to"
-                                                    "search parameters to filter information"
-                                                    "that is returned. eg. eg. "
-                                                    "Patient=%PATIENT%")
-    group_allow        = models.TextField(max_length=100, blank=True, default="",
-                                          help_text="groups permitted to access resource.")
-    group_exclude      = models.TextField(max_length=100, blank=True, default="",
-                                          help_text="groups blocked from accessing resource.")
-    default_url        = models.URLField(verbose_name="Default FHIR URL with terminating / ",
-                                         blank=True)
+    resource_name = models.ForeignKey(SupportedResourceType)
+    override_url_id = models.BooleanField(help_text="Does this resource need "
+                                                    "to mask the id in the "
+                                                    "url?")
+    override_search = models.BooleanField(help_text="Do search parameters need "
+                                                    "to be filtered to avoid "
+                                                    "revealing other people's "
+                                                    "data?")
+    search_block = models.TextField(max_length=5120,
+                                    blank=True,
+                                    default="",
+                                    help_text="list of values that need to be "
+                                              "removed from search parameters. "
+                                              "eg. <b>Patient</b>")
+    search_add = models.TextField(max_length=200,
+                                  blank=True,
+                                  default="",
+                                  help_text="list of keys that need to be "
+                                            "added to search parameters to "
+                                            "filter information that is "
+                                            "returned. eg. "
+                                            "<b>Patient=%PATIENT%</b>")
+    group_allow = models.TextField(max_length=100,
+                                   blank=True,
+                                   default="",
+                                   help_text="groups permitted to access "
+                                             "resource.")
+    group_exclude = models.TextField(max_length=100,
+                                     blank=True,
+                                     default="",
+                                     help_text="groups blocked from accessing "
+                                               "resource.")
+    default_url = models.URLField(blank=True,
+                                  verbose_name="Default FHIR URL with "
+                                               "terminating /",
+                                  help_text="Exclude the resource. eg. "
+                                            "<b>https://fhirserver.com/fhir/"
+                                            "Patient/</b> is entered as "
+                                            "<b>https://fhirserver.com/fhir/"
+                                            "</b></br>Leave blank to accept "
+                                            "system default.")
     # Add default_url unless the resource is defined via crosswalk
-
 
     # Python2 uses __unicode__(self):
     def __str__(self):
@@ -111,7 +129,8 @@ class FhirServer(models.Model):
 
     name = models.CharField(max_length=254,
                             verbose_name="Friendly Server Name")
-    fhir_url = models.URLField(verbose_name="Full URL to FHIR API with terminating /")
+    fhir_url = models.URLField(verbose_name="Full URL to FHIR API with "
+                                            "terminating /")
     shard_by = models.CharField(max_length=80,
                                 default="Patient",
                                 verbose_name="Key Resource type")

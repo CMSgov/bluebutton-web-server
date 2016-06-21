@@ -103,7 +103,6 @@ def create(request, resource_type):
                          meta['versionId'])
         return hr
 
-        
     # This is something other than GET or POST (i.e. a  GET)
     if request.method not in ("GET", "POST"):
         od = OrderedDict()

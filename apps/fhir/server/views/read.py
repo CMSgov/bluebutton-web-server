@@ -12,10 +12,10 @@ def read(request, resource_type, id):
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
     
     interaction_type = 'read'
-    #Check if this interaction type and resource type combo is allowed.
+    # Check if this interaction type and resource type combo is allowed.
     deny = check_access_interaction_and_resource_type(resource_type, interaction_type)
     if deny:
-        #If not allowed, return a 4xx error.
+        # If not allowed, return a 4xx error.
         return deny
 
     od = OrderedDict()

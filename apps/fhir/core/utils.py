@@ -40,6 +40,7 @@ def kickout_400(reason, status_code=400):
     """ 400 Bad Request """
     oo = OrderedDict()
     oo['resourceType']= "OperationOutcome"
+    oo["code"] = status_code
     oo['issue'] = []
     issue = OrderedDict()
     issue['severity']='fatal'
@@ -54,6 +55,7 @@ def kickout_401(reason, status_code=401):
     """ 401 Unauthorized """
     oo = OrderedDict()
     oo['resourceType']= "OperationOutcome"
+    oo["code"] = status_code
     oo['issue'] = []
     issue = OrderedDict()
     issue['severity']='fatal'
@@ -69,6 +71,7 @@ def kickout_402(reason, status_code=402):
     """ 402 Payment Required """
     oo = OrderedDict()
     oo['resourceType']= "OperationOutcome"
+    oo["code"] = status_code
     oo['issue'] = []
     issue = OrderedDict()
     issue['severity']='fatal'
@@ -84,6 +87,7 @@ def kickout_403(reason, status_code=403):
     """ 403 Forbidden """
     oo = OrderedDict()
     oo['resourceType']= "OperationOutcome"
+    oo["code"] = status_code
     oo['issue'] = []
     issue = OrderedDict()
     issue['severity']='fatal'
@@ -99,6 +103,7 @@ def kickout_404(reason, status_code=404):
     """ 404 Not Found """
     oo = OrderedDict()
     oo['resourceType']= "OperationOutcome"
+    oo["code"] = status_code
     oo['issue'] = []
     issue = OrderedDict()
     issue['severity']='fatal'
@@ -114,6 +119,7 @@ def kickout_500(reason, status_code=500):
     """ 500 Internal Server Error """
     oo = OrderedDict()
     oo['resourceType']= "OperationOutcome"
+    oo["code"] = status_code
     oo['issue'] = []
     issue = OrderedDict()
     issue['severity']='fatal'
@@ -169,8 +175,9 @@ def error_status(r, status_code=404, reason="undefined error occured"):
     """
     Generate an error page
     based on fhir.utils.kickout_xxx
-    :param reason:
+    :param r:
     :param status_code:
+    :param reason:
     :return:
     """
     error_detail = r.text

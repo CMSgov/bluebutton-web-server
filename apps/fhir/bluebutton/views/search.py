@@ -26,7 +26,7 @@ DF_EXTRA_INFO = False
 
 
 @csrf_exempt
-def search(request, resource_type):
+def search_simple(request, resource_type):
     """Route to search FHIR Interaction"""
 
     if request.method == 'GET':
@@ -54,6 +54,12 @@ def search(request, resource_type, *args, **kwargs):
 
     interaction_type = 'search'
 
-    search = generic_read(request, interaction_type, resource_type, id, *args, **kwargs)
+    logger.debug("Interaction:%s. Calling generic_read")
+    search = generic_read(request,
+                          interaction_type,
+                          resource_type,
+                          id,
+                          *args,
+                          **kwargs)
 
     return search
