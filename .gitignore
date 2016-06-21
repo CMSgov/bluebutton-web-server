@@ -1,10 +1,20 @@
-/_start/settings/local.py
+# Generic
 *.pyc
 *.komodoproject
 *~
+.cache/
+
+# Django
+/_start/settings/local.py
+local.py
+collectedstatic/
+
+# Testing
+.tox/
+
+# Database
 *.db
 db.sqlite3
-.tox/
-local.py
+
+# System
 .DS_Store
-collectedstatic/
