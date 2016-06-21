@@ -92,8 +92,7 @@ class LoginForm(forms.Form):
 
 class SignupUserForm(forms.Form,):
 
-    invitation_code = forms.CharField(max_length=30, label=_("Invitation Code")
-                                     )
+    invitation_code = forms.CharField(max_length=30, label=_("Invitation Code"))
     username = forms.CharField(max_length=30, label=_("User"))
     email = forms.EmailField(max_length=75, label=_("Email"))
     first_name = forms.CharField(max_length=100, label=_("First Name"))
@@ -159,9 +158,9 @@ class SignupUserForm(forms.Form,):
             email=self.cleaned_data['email'],
             is_active=False,
         )
-        
-        up = UserProfile.objects.create(user=new_user,
-                                        user_type='BEN')
+
+        UserProfile.objects.create(user=new_user,
+                                   user_type='BEN')
 
         group = Group.objects.get(name='BlueButton')
         new_user.groups.add(group)
@@ -246,10 +245,9 @@ class SignupDeveloperForm(forms.Form, ):
             email=self.cleaned_data['email'],
             is_active=False)
 
-        up = UserProfile.objects.create(user=new_user,
-                                        organization_name=self.cleaned_data[
-                                            'organization_name'],
-                                        user_type="DEV")
+        UserProfile.objects.create(user=new_user,
+                                   organization_name=self.cleaned_data['organization_name'],
+                                   user_type="DEV")
 
         group = Group.objects.get(name='BlueButton')
         new_user.groups.add(group)

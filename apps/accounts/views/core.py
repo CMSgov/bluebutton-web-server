@@ -15,8 +15,8 @@ from ..utils import validate_activation_key
 
 
 def request_developer_invite(request):
-    name='Request a Developer Invite'
-    additional_info="""
+    name = 'Request a Developer Invite'
+    additional_info = """
     <p>BlueButton+ is a new feature from Medicare. BlueButton+
     enables beneficiaries to connect their data to applications and research
     programs they trust.</p>
@@ -29,7 +29,8 @@ def request_developer_invite(request):
     link.</p>
     <h4>Let's get started...</h4>
     """
-    u_type = "DEV"
+    # FIXME: variable not used
+    # u_type = 'DEV'
     if request.method == 'POST':
         form = RequestDeveloperInviteForm(request.POST)
         if form.is_valid():
@@ -43,21 +44,22 @@ def request_developer_invite(request):
             )
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render(request,
-                          'generic/bootstrapform.html',
-                          {'name': name,
-                           'form': form,
-                           'additional_info': additional_info})
+            return render(request, 'generic/bootstrapform.html', {
+                'name': name,
+                'form': form,
+                'additional_info': additional_info,
+            })
     else:
-       #this is an HTTP  GET
-       return render(request,'generic/bootstrapform.html',
-                    {'name': name,
-                     'form': RequestDeveloperInviteForm(),
-                     'additional_info': additional_info})
+        # this is an HTTP  GET
+        return render(request, 'generic/bootstrapform.html', {
+            'name': name,
+            'form': RequestDeveloperInviteForm(),
+            'additional_info': additional_info,
+        })
 
 
 def request_user_invite(request):
-    name='Request an Invite to CMS BlueButton+'
+    name = 'Request an Invite to CMS BlueButton+'
     additional_info = """
     <p>BlueButton+ is a new feature from Medicare. BlueButton+
     connects your data to applications and research programs you trust.</p>
@@ -70,7 +72,8 @@ def request_user_invite(request):
     Medicare account.</p>
     <h4>Let's get started...</h4>
     """
-    u_type = "BEN"
+    # FIXME: variable not used
+    # u_type = 'BEN'
     if request.method == 'POST':
         form = RequestUserInviteForm(request.POST)
         if form.is_valid():
@@ -84,17 +87,18 @@ def request_user_invite(request):
             )
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render(request,
-                          'generic/bootstrapform.html',
-                          {'name': name,
-                           'form': form,
-                           'additional_info': additional_info})
+            return render(request, 'generic/bootstrapform.html', {
+                'name': name,
+                'form': form,
+                'additional_info': additional_info,
+            })
     else:
-       #this is an HTTP  GET
-       return render(request,'generic/bootstrapform.html',
-                    {'name': name,
-                     'form': RequestUserInviteForm(),
-                     'additional_info': additional_info})
+        # this is an HTTP  GET
+        return render(request, 'generic/bootstrapform.html', {
+            'name': name,
+            'form': RequestUserInviteForm(),
+            'additional_info': additional_info,
+        })
 
 
 def mylogout(request):
@@ -204,51 +208,46 @@ def create_developer(request):
     if request.method == 'POST':
         form = SignupDeveloperForm(request.POST)
         if form.is_valid():
-          new_user = form.save()
-          messages.success(request, _("Your developer account was created. "
-                                      "Please check your email to "
-                                      "verify your account."))
-          return HttpResponseRedirect(reverse('login'))
+            form.save()
+            messages.success(request, _("Your developer account was created. Please check your email to verify your account."))
+            return HttpResponseRedirect(reverse('login'))
         else:
-            #return the bound form with errors
-            return render(request, 'generic/bootstrapform.html',
-                     {'name': name,
-                      'form': form,
-                      })
+            # return the bound form with errors
+            return render(request, 'generic/bootstrapform.html', {
+                'name': name,
+                'form': form,
+            })
     else:
-       #this is an HTTP  GET
-       messages.info(request, _("An invitation code is required to register."))
-       return render(request,'generic/bootstrapform.html',
-                               {'name': name,
-                                'form': SignupDeveloperForm(),
-                                })
+        # this is an HTTP  GET
+        messages.info(request, _("An invitation code is required to register."))
+        return render(request, 'generic/bootstrapform.html', {
+            'name': name,
+            'form': SignupDeveloperForm(),
+        })
 
 
 def create_user(request):
-
     name = "Create a BlueButton+ Account"
 
     if request.method == 'POST':
         form = SignupUserForm(request.POST)
         if form.is_valid():
-          new_user = form.save()
-          messages.success(request, _("Your account was created. "
-                                      "Please check your email to "
-                                      "verify your account."))
-          return HttpResponseRedirect(reverse('login'))
+            form.save()
+            messages.success(request, _("Your account was created. Please check your email to verify your account."))
+            return HttpResponseRedirect(reverse('login'))
         else:
-            #return the bound form with errors
-            return render(request, 'generic/bootstrapform.html',
-                     {'name': name,
-                      'form': form,
-                      })
+            # return the bound form with errors
+            return render(request, 'generic/bootstrapform.html', {
+                'name': name,
+                'form': form,
+            })
     else:
-       #this is an HTTP  GET
-       messages.info(request, _("An invitation code is required to register."))
-       return render(request,'generic/bootstrapform.html',
-                               {'name': name,
-                                'form': SignupUserForm(),
-                                })
+        # this is an HTTP  GET
+        messages.info(request, _("An invitation code is required to register."))
+        return render(request, 'generic/bootstrapform.html', {
+            'name': name,
+            'form': SignupUserForm(),
+        })
 
 
 @login_required

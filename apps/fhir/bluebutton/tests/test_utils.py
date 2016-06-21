@@ -1,4 +1,3 @@
-import logging
 import urllib
 
 from collections import OrderedDict
@@ -28,7 +27,7 @@ from apps.fhir.bluebutton.utils import (
     masked_id,
     mask_with_this_url,
     mask_list_with_host,
-    get_host_url)
+)
 
 
 ENCODED = settings.ENCODING

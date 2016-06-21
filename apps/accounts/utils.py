@@ -18,9 +18,9 @@ def validate_activation_key(activation_key):
             return False
     except(ActivationKey.DoesNotExist):
         # The key does not exist
-        return False  
+        return False
     # The key exists and has not expired.
-    vc.user.is_active=True
+    vc.user.is_active = True
     vc.user.save()
     vc.delete()
     return True
