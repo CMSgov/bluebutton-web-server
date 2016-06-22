@@ -15,11 +15,11 @@ def random_secret(y=40):
 def send_password_reset_url_via_email(user, reset_key):
     if settings.SEND_EMAIL:
         subject = '[%s]Your password ' \
-                  'reset request' % (settings.ORGANIZATION_NAME)
+                  'reset request' % settings.ORGANIZATION_NAME
         from_email = settings.EMAIL_HOST_USER
         to = user.email
         headers = {'Reply-To': from_email}
-        link = "%s%s" % (settings.HOSTNAME_URL,
+        link = '%s%s' % (settings.HOSTNAME_URL,
                          reverse('password_reset_email_verify',
                                  args=(reset_key,)))
         html_content = """"
@@ -53,11 +53,11 @@ def send_password_reset_url_via_email(user, reset_key):
 
 def send_activation_key_via_email(user, signup_key):
     """Do not call this directly.  Instead use create_signup_key in utils."""
-    subject = "[%s]Verify your email." % (settings.ORGANIZATION_NAME)    
+    subject = '[%s]Verify your email.' % (settings.ORGANIZATION_NAME)
     from_email = settings.EMAIL_HOST_USER
     to = user.email
     headers = {'Reply-To': from_email}
-    activation_link = "%s%s" % (settings.HOSTNAME_URL,
+    activation_link = '%s%s' % (settings.HOSTNAME_URL,
                                 reverse('activation_verify',
                                         args=(signup_key,)))
 
@@ -82,14 +82,14 @@ def send_activation_key_via_email(user, signup_key):
        The Team
        
        """ % (user.first_name, activation_link)
-    msg = EmailMultiAlternatives(subject, text_content, from_email, [to,])
-    msg.attach_alternative(html_content, "text/html")
+    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+    msg.attach_alternative(html_content, 'text/html')
     msg.send()
 
 
 def send_invite_request_notices(invite_request):
 
-    subject = "[%s]Invitation Request Received" % (settings.ORGANIZATION_NAME)
+    subject = '[%s]Invitation Request Received' % (settings.ORGANIZATION_NAME)
     from_email = settings.EMAIL_HOST_USER
     to = invite_request.email
     headers = {'Reply-To': from_email}
@@ -99,7 +99,8 @@ def send_invite_request_notices(invite_request):
        Hello: %s %s,
        </p>
        <p>
-       Your request for an invite to the OAuth2 Server (%s) has been received.
+       Your request for an invite to the BlueButton+ service
+       (%s) has been received.
        </p>
        <p>
        Thank You,
@@ -113,11 +114,14 @@ def send_invite_request_notices(invite_request):
        
     text_content = """
     Hello: %s %s,
-    Your request for an invite to OAuth2 Server (%s) has been received.
+    Your request for an invite to the BlueButton+ Service
+    (%s) has been received.
     """ % (invite_request.first_name,
            invite_request.last_name,
            settings.HOSTNAME_URL)
-    msg = EmailMultiAlternatives(subject, text_content, from_email,
-                                 [to,settings.INVITE_REQUEST_ADMIN])
+    msg = EmailMultiAlternatives(subject,
+                                 text_content,
+                                 from_email,
+                                 [to, settings.INVITE_REQUEST_ADMIN])
     msg.attach_alternative(html_content, 'text/html')
     msg.send()

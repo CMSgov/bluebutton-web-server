@@ -1,0 +1,68 @@
+[
+  {
+    "model": "capabilities.protectedcapability",
+    "pk": 1,
+    "fields": {
+      "title": "Beneficiary/Patient.read",
+      "slug": "patient/Patient.read",
+      "group": 1,
+      "protected_resources": "[[\"GET\", \"/Patient\"]]",
+      "description": "Patient Resource."
+    }
+  },
+  {
+    "model": "capabilities.protectedcapability",
+    "pk": 2,
+    "fields": {
+      "title": "Beneficiary/ExplanationOfBenefit.read",
+      "slug": "patient/ExplanationOfBenefit.read",
+      "group": 1,
+      "protected_resources": "[[\"GET\", \"/ExplanationOfBenefit\"]]",
+      "description": ""
+    }
+  },
+  {
+    "model": "capabilities.protectedcapability",
+    "pk": 3,
+    "fields": {
+      "title": "User/Practitioner.read",
+      "slug": "user/Practitioner/read",
+      "group": 1,
+      "protected_resources": "[[\"GET\", \"/Practitioner\"]]",
+      "description": ""
+    }
+  },
+  {
+    "model": "capabilities.protectedcapability",
+    "pk": 4,
+    "fields": {
+      "title": "User/Organization.read",
+      "slug": "User/Organization.read",
+      "group": 1,
+      "protected_resources": "[[\"GET\", \"/Organization\"]]",
+      "description": ""
+    }
+  },
+  {
+    "model": "capabilities.protectedcapability",
+    "pk": 5,
+    "fields": {
+      "title": "BeneficiaryConsent.*",
+      "slug": "patient/Consent.*",
+      "group": 1,
+      "protected_resources": "[[\"GET\", \"/Consent\"],[\"POST\",\"/Consent/[id]\"]]]",
+      "description": ""
+    }
+  },
+  {
+    "model": "capabilities.protectedcapability",
+    "pk": 6,
+    "fields": {
+      "title": "Beneficiary/MedicationOrder.read",
+      "slug": "patient/MedicationOrder.read",
+      "group": 1,
+      "protected_resources": "[[\"GET\", \"/MedicationOrder\"]]",
+      "description": ""
+    }
+  }
+]

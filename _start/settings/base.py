@@ -260,7 +260,16 @@ SIGNUP_TIMEOUT_DAYS = os.environ.get('SIGNUP_TIMEOUT_DAYS', 3)
 
 SEND_EMAIL = True
 ORGANIZATION_NAME = os.environ.get('ORGANIZATION_NAME', 'CMS OAuth2 Server')
-EMAIL_BACKEND = 'django_ses.SESBackend'
+# Email via AWS SES uses
+# EMAIL_BACKEND = 'django_ses.SESBackend'
+# Two options for testing:
+# 1. File-based output
+# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'app-email-messages')
+# 2. use console output (default)
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.'
+                                                'console.EmailBackend')
+
 # SIGNUP_TIMEOUT_DAYS = 3
 EMAIL_HOST_USER = 'sales@videntity.com'
 INVITE_REQUEST_ADMIN = 'sales@videntity.com'
