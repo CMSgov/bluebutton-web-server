@@ -1,17 +1,36 @@
-bson
-Django
+# base packages
+django
+django-getenv
 django-bootstrap-form
 django-cors-headers
 django-localflavor
-https://github.com/evonove/django-oauth-toolkit/archive/scopes-backend.zip
 django-settings-export
-jsonschema
-python-openid
-oauthlib
-tox
-django-debug-toolbar
+# django-fhir
+
+# backing services
+pymongo
+
+# support
 boto
-django-ses
-#django-fhir
+bson
+jsonschema
 requests
 pytz
+configparser
+dj-database-url
+pyjwt
+
+# notifications
+django-ses
+
+# test and development
+tox
+flake8
+coverage
+django-debug-toolbar
+
+# security and identity system
+oauthlib
+python-openid
+-e git+https://github.com/evonove/django-oauth-toolkit.git@scopes-backend#egg=dot_scopes_backend
+-e git+https://github.com/TransparentHealth/python-poetri@599b26975c1b7ce7e5e243b94016297790f44a22#egg=python_poetri
