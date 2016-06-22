@@ -2,8 +2,8 @@
 import os
 import sys
 
-if __name__ == '__main__':
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', '_start.settings.dev')
+if __name__ == "__main__":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hhs_oauth_server.settings.local")
 
     from django.core.management import execute_from_command_line
 
