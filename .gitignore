@@ -18,3 +18,5 @@ db.sqlite3
 
 # System
 .DS_Store
+/_start/app-email-messages/
+
