@@ -6,4 +6,3 @@ from .views import *
 
 
 urlpatterns = []
-

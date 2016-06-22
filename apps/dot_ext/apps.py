@@ -13,6 +13,7 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 
 from django.apps import AppConfig
 
+
 class dot_extConfig(AppConfig):
     name = 'apps.dot_ext'
     label = 'dot_ext'

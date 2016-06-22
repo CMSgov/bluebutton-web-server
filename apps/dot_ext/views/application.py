@@ -17,7 +17,8 @@ class CustomFormMixin(object):
         return kwargs
 
 
-class ApplicationRegistration(CustomFormMixin, oauth2_views.ApplicationRegistration):
+class ApplicationRegistration(CustomFormMixin,
+                              oauth2_views.ApplicationRegistration):
     """
     View used to register a new Application for the request.user
     """

@@ -12,30 +12,31 @@ from apps.capabilities.models import ProtectedCapability
 import jwt as jwtl
 
 
-
-
 class EndorsementForm(forms.ModelForm):
 
     class Meta:
         model = Endorsement
-        fields = ('title','jwt',)
+        fields = ('title', 'jwt',)
 
     required_css_class = 'required'
     
     def clean_jwt(self):
-        req = ("iss", "iat", "exp", "client_name", "redirect_uris", "client_uri")
+        req = ("iss",
+               "iat",
+               "exp",
+               "client_name",
+               "redirect_uris",
+               "client_uri")
         
         jwtc = self.cleaned_data.get('jwt')
         try:
             decoded_payload = jwtl.decode(jwtc, verify=False)
         except:
-           msg=_("Invalid JWT.")
-           raise forms.ValidationError(msg) 
-        
-        
+            msg = _("Invalid JWT.")
+            raise forms.ValidationError(msg)
 
-        if type (decoded_payload) != type({}):
-            msg=_("Invalid Payload.")
+        if not isinstance(decoded_payload, dict):
+            msg = _("Invalid Payload.")
             raise forms.ValidationError(msg)
         # for r in req: 
         #     if r not in decoded_payload:
@@ -44,7 +45,6 @@ class EndorsementForm(forms.ModelForm):
             
         return jwtc
         
-
 
 class CustomRegisterApplicationForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
@@ -67,7 +67,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
 class AllowForm(DotAllowForm):
     scope = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
-    expires_in = forms.TypedChoiceField(choices=settings.DOT_EXPIRES_IN, coerce=int,
+    expires_in = forms.TypedChoiceField(choices=settings.DOT_EXPIRES_IN,
+                                        coerce=int,
                                         empty_value=None)
 
     def __init__(self, *args, **kwargs):
@@ -76,13 +77,14 @@ class AllowForm(DotAllowForm):
         if application is None:
             super(AllowForm, self).__init__(*args, **kwargs)
         else:
-            # we use the application instance to get the list of available scopes
-            # because it is needed to create the choices list for the `scope` field.
-            available_scopes = get_scopes_backend().get_available_scopes(application)
+            # we use the application instance to get the list of available
+            # scopes because it is needed to create the choices list
+            # for the `scope` field.
+            av_scopes = get_scopes_backend().get_available_scopes(application)
 
             # set the available_scopes as the initial value so that
             # all checkboxes are checked
-            kwargs['initial']['scope'] = available_scopes
+            kwargs['initial']['scope'] = av_scopes
 
             # init the form to create self.fields
             super(AllowForm, self).__init__(*args, **kwargs)
@@ -90,5 +92,5 @@ class AllowForm(DotAllowForm):
             # get the list of all the scopes available in the system
             # to get the description of each available scope.
             all_scopes = get_scopes_backend().get_all_scopes()
-            choices = [(scope, all_scopes[scope]) for scope in available_scopes]
+            choices = [(scope, all_scopes[scope]) for scope in av_scopes]
             self.fields['scope'].choices = choices
