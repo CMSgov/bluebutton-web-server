@@ -1,15 +1,11 @@
+#!/usr/bin/env python
 from django.conf.urls import include, url
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import user_self
-
-
 admin.autodiscover()
 
 urlpatterns = [
-    # Django
     url(r'^admin/', include(admin.site.urls)),
-
-    # HHS OAuth Server
     url(r'^accounts/', include('apps.accounts.urls')),
     url(r'^education/', include('apps.education.urls')),
     url(r'^profile/me$', user_self, name='user_self'),
@@ -21,5 +17,8 @@ urlpatterns = [
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^o/', include('apps.dot_ext.urls')),
     url(r'^', include('apps.home.urls')),
-    # url(r'^fhir/api/v1/',   include('apps.fhir.bluebutton')),
+    # url(r'^fhir/api/v1/', include('apps.fhir.bluebutton')),
+    # Admin
+    url(r'^admin/', include(admin.site.urls)),
+
 ]
