@@ -12,7 +12,6 @@ BASE_DIR = os.path.join(BASE_DIR, '..')
 
 # Set ADMINS and MANAGERS
 ADMINS = (
-    ('Alan Viars', 'aviars@videntity.com'),
     ('Mark Scrimshire', 'mark@ekivemark.com'),
 )
 MANAGERS = ADMINS
@@ -42,7 +41,7 @@ ALLOWED_HOSTS = [
 DEBUG = env('DJANGO_DEBUG', False)
 
 # TODO: maybe they should be commented out
-SETTINGS_MODE = os.environ.setdefault('DJANGO_SETTINGS_MODULE', '_start.settings.base')
+SETTINGS_MODE = os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hhs_oauth_server.settings.base')
 SETTINGS_MODE = SETTINGS_MODE.upper().split('.')
 SETTINGS_MODE = SETTINGS_MODE[-1]
 
@@ -100,7 +99,7 @@ MIDDLEWARE_CLASSES = [
 
 CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', False)
 
-ROOT_URLCONF = '_start.urls'
+ROOT_URLCONF = 'hhs_oauth_server.urls'
 
 TEMPLATES = [
     {
@@ -119,7 +118,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = '_start.wsgi.application'
+WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
 # database configuration
 DATABASES_DEFAULT = 'sqlite:///{}/db.sqlite3'.format(BASE_DIR)
