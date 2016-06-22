@@ -1,10 +1,9 @@
-from django.views.decorators.csrf import csrf_exempt
-
-from apps.fhir.core.utils import kickout_400
-
+from django.shortcuts import render
+from apps.fhir.core.utils import (kickout_404, kickout_400, kickout_500)
 from .update import update
 from .delete import delete
 from .read import read
+from django.views.decorators.csrf import csrf_exempt
 
 
 @csrf_exempt
@@ -26,3 +25,5 @@ def read_or_update_or_delete(request, resource_type, id):
     # Not supported.
     msg = 'HTTP method %s not supported at this URL.' % (request.method)
     return kickout_400(msg)
+    
+    

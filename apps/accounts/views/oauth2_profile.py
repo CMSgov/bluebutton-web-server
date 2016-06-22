@@ -1,8 +1,10 @@
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim: ai ts=4 sts=4 et sw=4
 
+from django.http import  JsonResponse
 from oauth2_provider.decorators import protected_resource
-
+from django.views.decorators.http import require_GET
 
 @require_GET
 @protected_resource()

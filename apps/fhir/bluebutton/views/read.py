@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim: ai ts=4 sts=4 et sw=4
 import json
 import logging
 import requests
@@ -15,16 +18,16 @@ from apps.fhir.core.utils import (error_status, kickout_403)
 from apps.fhir.bluebutton.utils import (
     check_rt_controls,
     check_access_interaction_and_resource_type,
+    masked,
     masked_id,
     strip_oauth,
     build_params,
     FhirServerUrl,
     mask_list_with_host,
     get_host_url,
-)
+    )
 
 from apps.fhir.bluebutton.models import Crosswalk
-
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -78,7 +81,8 @@ def generic_read(request,
     logger.debug('interaction_type: %s' % interaction_type)
 
     # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type, interaction_type)
+    deny = check_access_interaction_and_resource_type(resource_type,
+                                                      interaction_type)
     if deny:
         # if not allowed, return a 4xx error.
         return deny
@@ -116,7 +120,7 @@ def generic_read(request,
     # if search_override strip search items (search_block)
     # if search_override add search keys
 
-    fhir_url = ''
+    fhir_url = ""
     # get the default_url from ResourceTypeControl
 
     rewrite_url_list = []
@@ -154,20 +158,19 @@ def generic_read(request,
 
     # Now we get to process the API Call.
 
-    logger.debug('Now we need to evaluate the parameters and arguments'
-                 ' to work with %s and %s. GET parameters:%s' % (key, request.user, request.GET))
+    logger.debug('Now we need to evaluate the parameters '
+                 'and arguments to work with %s and %s. '
+                 'GET parameters:%s' % (key, request.user, request.GET))
 
+    mask = masked(srtc)
     # Internal handling format is json
+    in_fmt = "json"
 
-    # FIXME: variables not used
-    # mask = masked(srtc)
-    # in_fmt = 'json'
-    # txn = {
-    #     'name': resource_type,
-    #     'display': resource_type,
-    #     'mask': mask,
-    #     'in_fmt': in_fmt,
-    # }
+    txn = {'name': resource_type,
+           'display': resource_type,
+           'mask': mask,
+           'in_fmt': in_fmt,
+           }
 
     # Remove the oauth elements from the GET
     pass_params = strip_oauth(request.GET)
@@ -182,10 +185,11 @@ def generic_read(request,
         pass_to = fhir_url + '_history' + '/' + vid
     elif interaction_type == '_history':
         pass_to = fhir_url + '_history'
-    else:  # interaction_type == 'read':
+    else:  # interaction_type == "read":
         pass_to = fhir_url
 
-    logger.debug('Here is the URL to send, %s now add GET parameters %s' % (pass_to, pass_params))
+    logger.debug('Here is the URL to send, %s now add '
+                 'GET parameters %s' % (pass_to, pass_params))
 
     if pass_params is not '':
         pass_to += pass_params
@@ -236,12 +240,18 @@ def generic_read(request,
     if '_format=xml' in pass_params.lower():
         # We will add xml support later
 
-        text_out = mask_list_with_host(request, host_path, r.text, rewrite_url_list)
+        text_out = mask_list_with_host(request,
+                                       host_path,
+                                       r.text,
+                                       rewrite_url_list)
         # text_out= minidom.parseString(text_out).toprettyxml()
     else:
         # dealing with json
         # text_out = r.json()
-        pre_text = mask_list_with_host(request, host_path, r.text, rewrite_url_list)
+        pre_text = mask_list_with_host(request,
+                                       host_path,
+                                       r.text,
+                                       rewrite_url_list)
         text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
 
     od = OrderedDict()
@@ -279,15 +289,15 @@ def generic_read(request,
         logger.debug('We got xml back in od')
         return HttpResponse(r.text, content_type='application/%s' % fmt)
         # return HttpResponse( tostring(dict_to_xml('content', od)),
-        #                      content_type='application/%s' % fmt)
+        #                      content_type="application/%s" % fmt)
     elif fmt == 'json':
         logger.debug('We got json back in od')
         return HttpResponse(json.dumps(od, indent=4),
                             content_type='application/%s' % fmt)
 
     logger.debug('We got a different format:%s' % fmt)
-    return render(
-        request,
-        'bluebutton/default.html',
-        {'content': json.dumps(od, indent=4), 'output': od},
-    )
+    return render(request,
+                  'bluebutton/default.html',
+                  {'content': json.dumps(od, indent=4),
+                   'output': od},
+                  )

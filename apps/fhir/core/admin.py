@@ -4,9 +4,10 @@
 
 """
 hhs_oauth_server
-FILE: __init__.py
-Created: 5/16/16 10:43 AM
+FILE: apps.fhir.core.admin
+Created: 5/19/16 12:56 PM
 
+register your models here
 
 """
 __author__ = 'Mark Scrimshire:@ekivemark'

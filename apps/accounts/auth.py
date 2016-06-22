@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import User, Group
-
+from django.contrib.auth.models import User
 from .models import UserProfile, create_activation_key
+from django.contrib.auth.models import Group
+
 
 
 class SettingsBackend(object):
@@ -17,7 +18,7 @@ class SettingsBackend(object):
 
     def authenticate(self, username=None, password=None):
         login_valid = (settings.SLS_USER == username)
-        pwd_valid = check_password(password, settings.SLS_PASSWORD)
+        pwd_valid = check_password(password, settings.SLS_PASSWORD)        
         if login_valid and pwd_valid:
             try:
                 user = User.objects.get(username=username)
@@ -31,12 +32,12 @@ class SettingsBackend(object):
                             email=settings.SLS_EMAIL,
                             is_active=False)
                 user.save()
-                up, created = UserProfile.objects.get_or_create(user=user, user_type='BEN')
+                up, created = UserProfile.objects.get_or_create(user=user, user_type="BEN")
                 group = Group.objects.get(name='BlueButton')
                 user.groups.add(group)
                 # Send verification email
                 create_activation_key(user)
-
+                
             return user
         return None
 
@@ -45,3 +46,4 @@ class SettingsBackend(object):
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
+

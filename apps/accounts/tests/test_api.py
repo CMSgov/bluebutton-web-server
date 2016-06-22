@@ -58,7 +58,7 @@ class TestUserSelfEndpoint(BaseApiTest):
 class TestSingleAccessTokenValidator(BaseApiTest):
     def test_single_access_token_issued(self):
         # create the user
-        self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
+        user = self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
         # create a oauth2 application
         application = self._create_application('test')
         # get the first access token for the user 'john'
@@ -76,7 +76,7 @@ class TestSingleAccessTokenValidator(BaseApiTest):
              new_token_scope = 'read'
         """
         # create the user
-        self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
+        user = self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
         # create read and write capabilities
         read_capability = self._create_capability('Read', [])
         write_capability = self._create_capability('Write', [])
@@ -97,7 +97,7 @@ class TestSingleAccessTokenValidator(BaseApiTest):
              new_token_scope = 'read write'
         """
         # create the user
-        self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
+        user = self._create_user('john', '123456', first_name='John', last_name='Smith', email='john@smith.net')
         # create read and write capabilities
         read_capability = self._create_capability('Read', [])
         write_capability = self._create_capability('Write', [])
