@@ -1,0 +1,155 @@
+[
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 1,
+    "fields": {
+      "resource_name": "Patient",
+      "json_schema": "{}",
+      "get": true,
+      "put": false,
+      "create": false,
+      "read": true,
+      "vread": true,
+      "update": false,
+      "delete": false,
+      "search": true,
+      "history": true
+    }
+  },
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 2,
+    "fields": {
+      "resource_name": "ExplanationOfBenefit",
+      "json_schema": "{}",
+      "get": true,
+      "put": false,
+      "create": false,
+      "read": true,
+      "vread": true,
+      "update": false,
+      "delete": false,
+      "search": true,
+      "history": true
+    }
+  },
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 3,
+    "fields": {
+      "resource_name": "Practitioner",
+      "json_schema": "{}",
+      "get": true,
+      "put": false,
+      "create": false,
+      "read": true,
+      "vread": true,
+      "update": false,
+      "delete": false,
+      "search": true,
+      "history": true
+    }
+  },
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 4,
+    "fields": {
+      "resource_name": "Organization",
+      "json_schema": "{}",
+      "get": true,
+      "put": false,
+      "create": false,
+      "read": true,
+      "vread": true,
+      "update": false,
+      "delete": false,
+      "search": true,
+      "history": true
+    }
+  },
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 5,
+    "fields": {
+      "resource_name": "Medication",
+      "json_schema": "{}",
+      "get": true,
+      "put": false,
+      "create": false,
+      "read": true,
+      "vread": true,
+      "update": false,
+      "delete": false,
+      "search": true,
+      "history": true
+    }
+  },
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 6,
+    "fields": {
+      "resource_name": "MedicationOrder",
+      "json_schema": "{}",
+      "get": true,
+      "put": false,
+      "create": false,
+      "read": true,
+      "vread": true,
+      "update": false,
+      "delete": false,
+      "search": true,
+      "history": true
+    }
+  },
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 7,
+    "fields": {
+      "resource_name": "Immunization",
+      "json_schema": "{}",
+      "get": true,
+      "put": false,
+      "create": false,
+      "read": true,
+      "vread": true,
+      "update": false,
+      "delete": false,
+      "search": true,
+      "history": true
+    }
+  },
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 8,
+    "fields": {
+      "resource_name": "ImmunizationRecommendation",
+      "json_schema": "{}",
+      "get": true,
+      "put": false,
+      "create": false,
+      "read": true,
+      "vread": true,
+      "update": false,
+      "delete": false,
+      "search": true,
+      "history": true
+    }
+  },
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 9,
+    "fields": {
+      "resource_name": "Consent",
+      "json_schema": "{}",
+      "get": true,
+      "put": true,
+      "create": true,
+      "read": true,
+      "vread": true,
+      "update": true,
+      "delete": true,
+      "search": true,
+      "history": true
+    }
+  }
+]
