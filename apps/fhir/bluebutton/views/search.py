@@ -1,10 +1,24 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim: ai ts=4 sts=4 et sw=4
+
+"""
+hhs_oauth_server
+FILE: search
+Created: 5/25/16 12:32 AM
+
+
+"""
+__author__ = 'Mark Scrimshire:@ekivemark'
+
 import logging
 
-from django.views.decorators.csrf import csrf_exempt
-
 from apps.fhir.core.utils import kickout_400
+# from apps.fhir.bluebutton.views.update import update
+# from apps.fhir.bluebutton.views.delete import delete
 from apps.fhir.bluebutton.views.read import generic_read
 
+from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -17,7 +31,7 @@ def search_simple(request, resource_type):
 
     if request.method == 'GET':
         # Search
-        return generic_read(request, resource_type, id)
+        return read(request, resource_type, id)
     # elif request.method == 'PUT':
     #     # update
     #     return update(request, resource_type, id)
@@ -39,6 +53,13 @@ def search(request, resource_type, *args, **kwargs):
     """
 
     interaction_type = 'search'
+
     logger.debug("Interaction:%s. Calling generic_read")
-    search = generic_read(request, interaction_type, resource_type, id, *args, **kwargs)
+    search = generic_read(request,
+                          interaction_type,
+                          resource_type,
+                          id,
+                          *args,
+                          **kwargs)
+
     return search

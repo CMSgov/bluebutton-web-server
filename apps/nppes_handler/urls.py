@@ -1,9 +1,13 @@
-from django.conf.urls import url
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from .views import nppes_update
+from django.conf.urls import url
+from .views import *
 
 
 urlpatterns = [
     # NPPES Update --------------------------------------
-    url(r'^update', nppes_update, name='nppes_update'),
-]
+    url(r'^update',
+        nppes_update,
+        name='nppes_update'),
+    ]

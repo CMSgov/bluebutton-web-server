@@ -1,4 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# vim: ai ts=4 sts=4 et sw=4
+
+"""
+hhs_oauth_server
+FILE: apps.fhir.bluebutton.utils
+Created: 5/19/16 12:35 PM
+
+
+"""
+__author__ = 'Mark Scrimshire:@ekivemark'
+
+import json
 import logging
+import time
 
 try:
     # python2
@@ -7,14 +22,14 @@ except ImportError:
     # python3
     from urllib.parse import urlencode
 
-from collections import OrderedDict
+from collections import (OrderedDict,
+                         defaultdict)
 
 from django.conf import settings
 
 from apps.fhir.core.utils import (kickout_404, kickout_403)
 from apps.fhir.server.models import SupportedResourceType
 from apps.fhir.bluebutton.models import ResourceTypeControl
-
 
 FORMAT_OPTIONS_CHOICES = ['json', 'xml']
 
@@ -45,11 +60,11 @@ def strip_oauth(get={}):
 
     strip_parms = ['access_token', 'state', 'response_type', 'client_id']
 
-    # logger.debug('Removing:%s from: %s' % (strip_parms, get))
+    # logger.debug("Removing:%s from: %s" % (strip_parms, get))
 
     strip_oauth = get_url_query_string(get, strip_parms)
 
-    # logger.debug('resulting url parameters:%s' % strip_oauth)
+    # logger.debug("resulting url parameters:%s" % strip_oauth)
 
     return strip_oauth
 
@@ -65,7 +80,7 @@ def block_params(get, srtc):
         search_params = get
     else:
         # No get parameters to process so return
-        search_params = ''
+        search_params = ""
         return search_params
 
     # Now we need to see if there are any get parameters to remove
@@ -79,12 +94,11 @@ def block_params(get, srtc):
     # return search_params_result
     return search_params
 
-
 def add_params(srtc, key=None):
     """ Add filtering parameters to search string """
 
     # srtc.get_search_add will return a list
-    # this will be in form 'Patient={Value}'
+    # this will be in form "Patient={Value}"
     # Replaceable parameters can be included
     # Currently Supported Replaceable Parameters are:
     # %PATIENT% = key
@@ -93,31 +107,31 @@ def add_params(srtc, key=None):
 
     # Returns List
 
-    # add_params = ''
+    # add_params = ""
     add_params = []
 
     if srtc:
         if srtc.override_search:
             params_list = srtc.get_search_add()
 
-            # logger.debug('Parameters to add:%s' % params_list)
+            # logger.debug("Parameters to add:%s" % params_list)
 
             add_params = []
             for item in params_list:
                 # Run through list and do variable replacement
-                if '%PATIENT%' in item:
-                    if key is None:
-                        key_str = ''
+                if "%PATIENT%" in item:
+                    if key == None:
+                        key_str = ""
                     else:
                         key_str = str(key)
                     item = item.replace('%PATIENT%', key_str)
-                    if '%PATIENT%' in item:
+                    if "%PATIENT%" in item:
                         # Still there we need to remove
                         item = item.replace('%PATIENT%', '')
 
                 add_params.append(item)
 
-            # logger.debug('Resulting additional parameters:%s' % add_params)
+            # logger.debug("Resulting additional parameters:%s" % add_params)
 
     return add_params
 
@@ -130,7 +144,7 @@ def concat_parms(front_part={}, back_part={}):
 
     joined_parms = OrderedDict()
 
-    # logger.debug('Joining %s with: %s' % (front_part, back_part))
+    # logger.debug("Joining %s with: %s" % (front_part, back_part))
     if len(front_part) > 0:
         if isinstance(front_part, dict):
             for k, v in front_part.items():
@@ -143,10 +157,10 @@ def concat_parms(front_part={}, back_part={}):
                 if len(item_split) > 1:
                     joined_parms[item_split[0]] = item_split[1]
                 else:
-                    joined_parms[item_split[0]] = ''
+                    joined_parms[item_split[0]] = ""
 
     if len(back_part) > 0:
-        if isinstance(back_part, dict):
+        if isinstance(back_part, dict ):
             for k, v in back_part.items():
                 # append back items
                 joined_parms[k] = v
@@ -157,14 +171,14 @@ def concat_parms(front_part={}, back_part={}):
                 if len(item_split) > 1:
                     joined_parms[item_split[0]] = item_split[1]
                 else:
-                    joined_parms[item_split[0]] = ''
+                    joined_parms[item_split[0]] = ""
 
-    concat_parms = '?' + urlencode(joined_parms)
+    concat_parms = "?" + urlencode(joined_parms)
 
-    # logger.debug('resulting string:%s' % concat_parms)
+    # logger.debug("resulting string:%s" % concat_parms)
 
     # We have to do something
-    # joined_parms = '?'
+    # joined_parms = "?"
     #
     # if len(front_part) != 0:
     #     joined_parms += front_part
@@ -173,12 +187,12 @@ def concat_parms(front_part={}, back_part={}):
     #     # nothing to add
     #     return joined_parms
     # else:
-    #     joined_parms += '&' + back_part
+    #     joined_parms += "&" + back_part
 
     return concat_parms
 
 
-def build_params(get, srtc, key):
+def build_params(get, srtc, key ):
     """
     Build the URL Parameters.
     We have to skip any in the skip list.
@@ -187,9 +201,8 @@ def build_params(get, srtc, key):
     :return:
     """
     # We will default to json for content handling
-    # FIXME: variables not used
-    # in_fmt = 'json'
-    # pass_to = ''
+    in_fmt = "json"
+    pass_to = ""
 
     # First we strip the parameters that need to be blocked
     url_param = block_params(get, srtc)
@@ -201,37 +214,37 @@ def build_params(get, srtc, key):
     # leading ? and parameters joined by &
     all_param = concat_parms(url_param, add_param)
 
-    # logger.debug('Parameter (post block/add):%s' % all_param)
+    # logger.debug("Parameter (post block/add):%s" % all_param)
 
     # now we check for _format being specified. Otherwise we get back html
     # by default we will process json unless _format is already set.
 
     all_param = add_format(all_param)
 
-    # logger.debug('add_Format returned:%s' % all_param)
+    # logger.debug("add_Format returned:%s" % all_param)
 
     return all_param
 
 
-def add_format(all_param=''):
+def add_format(all_param=""):
     """ Check for _format in parameters and add if missing """
 
-    if '_format' in all_param:
+    if "_format" in all_param:
         # We have a _format setting.
         # Let's check for xml or json.
-        if '_format=json' in all_param.lower():
+        if "_format=json" in all_param.lower():
             return all_param
-        elif '_format=xml' in all_param.lower():
+        elif "_format=xml" in all_param.lower():
             return all_param
 
     # no _format set.
     # Let's set _format=json.
-    if all_param != '':
-        all_param += '&'
+    if all_param != "":
+        all_param += "&"
     else:
-        all_param = '?'
+        all_param = "?"
 
-    all_param += '_format=json'
+    all_param += "_format=json"
 
     return all_param
 
@@ -252,7 +265,7 @@ def get_url_query_string(get, skip_parm=[]):
     :param skip_parm: []
     :return: Query_String (QS)
     """
-    # logger.debug('Evaluating: %s to remove:%s' % (get,skip_parm))
+    # logger.debug("Evaluating: %s to remove:%s" % (get,skip_parm))
 
     filtered_dict = OrderedDict()
 
@@ -266,7 +279,7 @@ def get_url_query_string(get, skip_parm=[]):
 
     for k, v in get.items():
 
-        # logger.debug('K/V: [%s/%s]' % (k,v))
+        # logger.debug("K/V: [%s/%s]" % (k,v))
 
         if k in skip_parm:
             pass
@@ -277,14 +290,14 @@ def get_url_query_string(get, skip_parm=[]):
     # qs = urlencode(filtered_dict)
     qs = filtered_dict
 
-    # logger.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
+    # logger.debug("Filtered parameters:%s from:%s" % (qs, filtered_dict))
     return qs
 
 
-def FhirServerUrl(server=None, path=None, release=None):
-    # fhir_server_configuration = {'SERVER':'http://fhir-test.bbonfhir.com:8081',
-    #                              'PATH':'/',
-    #                              'RELEASE':'/baseDstu2'}
+def FhirServerUrl(server=None,path=None, release=None ):
+    # fhir_server_configuration = {"SERVER":"http://fhir-test.bbonfhir.com:8081",
+    #                              "PATH":"/",
+    #                              "RELEASE":"/baseDstu2"}
     # FHIR_SERVER_CONF = fhir_server_configuration
     # FHIR_SERVER = FHIR_SERVER_CONF['SERVER'] + FHIR_SERVER_CONF['PATH']
 
@@ -295,7 +308,7 @@ def FhirServerUrl(server=None, path=None, release=None):
     fhir_release = notNone(release, settings.FHIR_SERVER_CONF['RELEASE'])
 
     if not fhir_release.endswith('/'):
-        fhir_release += '/'
+        fhir_release += "/"
 
     return fhir_server + fhir_path + fhir_release
 
@@ -305,12 +318,12 @@ def check_access_interaction_and_resource_type(resource_type, interaction_type):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         # force comparison to lower case to make case insensitive check
         if interaction_type.lower() not in map(str.lower, rt.get_supported_interaction_types()):
-            msg = 'The interaction: %s is not permitted on %s FHIR ' \
-                  'resources on this FHIR sever.' % (interaction_type,
+            msg = "The interaction: %s is not permitted on %s FHIR " \
+                  "resources on this FHIR sever." % (interaction_type,
                                                      resource_type)
             return kickout_403(msg)
     except SupportedResourceType.DoesNotExist:
-        msg = '%s is not a supported resource type on this FHIR server.' % resource_type
+        msg = "%s is not a supported resource type on this FHIR server." % resource_type
         return kickout_404(msg)
 
     return False
@@ -318,14 +331,14 @@ def check_access_interaction_and_resource_type(resource_type, interaction_type):
 
 def check_rt_controls(resource_type):
     # Check for controls to apply to this resource_type
-    # logger.debug('Resource_Type =%s' % resource_type)
+    # logger.debug("Resource_Type =%s" % resource_type)
     try:
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
     except SupportedResourceType.DoesNotExist:
         srtc = None
         return srtc
-
-    # logger.debug('Working with SupportedResourceType:%s' % rt)
+        
+    # logger.debug("Working with SupportedResourceType:%s" % rt)
 
     try:
         srtc = ResourceTypeControl.objects.get(resource_name=rt)
@@ -333,20 +346,22 @@ def check_rt_controls(resource_type):
         srtc = None
         # srtc = {}
         # srtc['empty'] = True
-        # srtc['resource_name'] = ''
+        # srtc['resource_name'] = ""
         # srtc['override_url_id'] = False
         # srtc['override_search'] = False
         # srtc['search_block'] = ['',]
         # srtc['search_add'] = ['',]
-        # srtc['group_allow'] = ''
-        # srtc['group_exclude'] = ''
-        # srtc['default_url'] = ''
+        # srtc['group_allow'] = ""
+        # srtc['group_exclude'] = ""
+        # srtc['default_url'] = ""
 
     return srtc
 
 
 def masked(srtc=None):
     """ check if force_url_override is set in SupportedResourceType """
+
+
     mask = False
     if srtc:
         if srtc.override_url_id:
@@ -365,35 +380,35 @@ def masked_id(resource_type, crosswalk=None, srtc=None, orig_id=None, slash=True
         if srtc.override_url_id:
             if crosswalk:
                 if resource_type.lower() == crosswalk.fhir_source.shard_by.lower():
-                    # logger.debug('Replacing %s with %s' % (id, crosswalk.fhir_id))
+                    # logger.debug("Replacing %s with %s" % (id, crosswalk.fhir_id))
                     id = crosswalk.fhir_id
 
     if slash:
-        id += '/'
+        id += "/"
 
     return id
 
 
-def mask_with_this_url(request, host_path='', in_text='', find_url=''):
+def mask_with_this_url(request, host_path="", in_text="", find_url=""):
     """ find_url in in_text and replace with url for this server """
 
-    if in_text == '':
+    if in_text == "":
         # No text to evaluate
         return in_text
 
-    if find_url == '':
+    if find_url == "":
         # no string to find
         return in_text
 
     # Now we have something to do
     # Get the host name
     # replace_text = request.get_host()
-    if host_path.endswith('/'):
+    if host_path.endswith("/"):
         host_path = host_path[:-1]
 
     out_text = in_text.replace(find_url, host_path)
 
-    # logger.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
+    # logger.debug("Replacing: [%s] with [%s]" % (find_url, host_path))
 
     return out_text
 
@@ -401,7 +416,7 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
 def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
     """ Replace a series of URLs with the host_name """
 
-    if in_text == '':
+    if in_text == "":
         # No text to evaluate
         return in_text
 
@@ -414,7 +429,7 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
 
     for kill_url in urls_be_gone:
         # work through the list making replacements
-        if kill_url.endswith('/'):
+        if kill_url.endswith("/"):
             kill_url = kill_url[:-1]
         in_text = mask_with_this_url(request, host_path, in_text, kill_url)
 
@@ -425,13 +440,13 @@ def get_host_url(request, resource_type):
     """ get the full url and split on resource_type """
 
     if request.is_secure():
-        http_mode = 'https://'
+        http_mode = "https://"
     else:
-        http_mode = 'http://'
+        http_mode = "http://"
 
-    full_url = http_mode + request.get_host() + request.get_full_path()
+    full_url =  http_mode + request.get_host() + request.get_full_path()
     full_url_list = full_url.split(resource_type)
 
-    logger.debug('Full_url as list:%s' % full_url_list)
+    logger.debug("Full_url as list:%s" % full_url_list)
 
     return full_url_list[0]

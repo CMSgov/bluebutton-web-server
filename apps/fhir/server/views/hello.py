@@ -1,5 +1,4 @@
 import json
-
 from collections import OrderedDict
 
 from django.http import HttpResponse
@@ -8,12 +7,10 @@ from apps.fhir.server.models import SupportedResourceType
 
 
 def hello(request):
-    """
-    Hello FHIR
-    Example client use in curl:
-    curl http://127.0.0.1:8000/fhir/hello
-    """
-    res_types = SupportedResourceType.objects.all()
+    """Hello FHIR"""
+    # Example client use in curl:
+    # curl http://127.0.0.1:8000/fhir/hello
+    res_types = SupportedResourceType.objects.all()    
     interactions = []
     for r in res_types:
         rt = OrderedDict()
