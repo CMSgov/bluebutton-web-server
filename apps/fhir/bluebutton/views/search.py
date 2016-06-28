@@ -39,6 +39,11 @@ def search(request, resource_type, *args, **kwargs):
     """
 
     interaction_type = 'search'
-    logger.debug("Interaction:%s. Calling generic_read")
-    search = generic_read(request, interaction_type, resource_type, id, *args, **kwargs)
+    # logger.debug("Interaction:%s. Calling generic_read" % interaction_type)
+    search = generic_read(request,
+                          interaction_type,
+                          resource_type,
+                          id,
+                          *args,
+                          **kwargs)
     return search
