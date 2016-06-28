@@ -73,7 +73,8 @@ def block_params(get, srtc):
         if srtc.override_search:
             search_params = get_url_query_string(get, srtc.get_search_block())
 
-    # do we need to convert result to json. source could be OrderedDict or string
+    # do we need to convert result to json. source could be
+    # OrderedDict or string
     # search_params_result = json.dumps(search_params)
 
     # return search_params_result
@@ -282,11 +283,16 @@ def get_url_query_string(get, skip_parm=[]):
 
 
 def FhirServerUrl(server=None, path=None, release=None):
-    # fhir_server_configuration = {'SERVER':'http://fhir-test.bbonfhir.com:8081',
+    # fhir_server_configuration =
+    # {'SERVER':'http://fhir-test.bbonfhir.com:8081',
     #                              'PATH':'/',
     #                              'RELEASE':'/baseDstu2'}
     # FHIR_SERVER_CONF = fhir_server_configuration
     # FHIR_SERVER = FHIR_SERVER_CONF['SERVER'] + FHIR_SERVER_CONF['PATH']
+
+    # print("server[%s] or %s" % (server,settings.FHIR_SERVER_CONF['SERVER']))
+    # print("path[%s]" % path)
+    # print("release[%s]" % release)
 
     fhir_server = notNone(server, settings.FHIR_SERVER_CONF['SERVER'])
 
@@ -294,23 +300,35 @@ def FhirServerUrl(server=None, path=None, release=None):
 
     fhir_release = notNone(release, settings.FHIR_SERVER_CONF['RELEASE'])
 
-    if not fhir_release.endswith('/'):
-        fhir_release += '/'
+    if fhir_release is not None:
+        if not fhir_release.endswith('/'):
+            fhir_release += '/'
 
-    return fhir_server + fhir_path + fhir_release
+    result = fhir_server
+    if result is not None:
+        result += fhir_path
+    if result is not None:
+        result += fhir_release
+    # Set to "" if still None
+    if result is None:
+        result = ""
+
+    return result
 
 
-def check_access_interaction_and_resource_type(resource_type, interaction_type):
+def check_access_interaction_and_resource_type(resource_type, intn_type):
     try:
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         # force comparison to lower case to make case insensitive check
-        if interaction_type.lower() not in map(str.lower, rt.get_supported_interaction_types()):
+        if intn_type.lower() not in map(str.lower,
+                                        rt.get_supported_interaction_types()):
             msg = 'The interaction: %s is not permitted on %s FHIR ' \
-                  'resources on this FHIR sever.' % (interaction_type,
+                  'resources on this FHIR sever.' % (intn_type,
                                                      resource_type)
             return kickout_403(msg)
     except SupportedResourceType.DoesNotExist:
-        msg = '%s is not a supported resource type on this FHIR server.' % resource_type
+        msg = '%s is not a supported resource ' \
+              'type on this FHIR server.' % resource_type
         return kickout_404(msg)
 
     return False
@@ -355,7 +373,11 @@ def masked(srtc=None):
     return mask
 
 
-def masked_id(resource_type, crosswalk=None, srtc=None, orig_id=None, slash=True):
+def masked_id(res_type,
+              crosswalk=None,
+              srtc=None,
+              orig_id=None,
+              slash=True):
     """ Get the correct id
      if crosswalk.fhir_source.shard_by == resource_type
 
@@ -364,8 +386,9 @@ def masked_id(resource_type, crosswalk=None, srtc=None, orig_id=None, slash=True
     if srtc:
         if srtc.override_url_id:
             if crosswalk:
-                if resource_type.lower() == crosswalk.fhir_source.shard_by.lower():
-                    # logger.debug('Replacing %s with %s' % (id, crosswalk.fhir_id))
+                if res_type.lower() == crosswalk.fhir_source.shard_by.lower():
+                    # logger.debug('Replacing %s
+                    # with %s' % (id, crosswalk.fhir_id))
                     id = crosswalk.fhir_id
 
     if slash:
@@ -409,13 +432,21 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         # Nothing in the list to be replaced
         return in_text
 
-    if not settings.FHIR_SERVER_CONF['REWRITE_FROM'] in urls_be_gone:
-        urls_be_gone.append(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
+    if isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], list):
+        for u in settings.FHIR_SERVER_CONF['REWRITE_FROM']:
+            if not u in urls_be_gone:
+                urls_be_gone.append(u)
+    elif isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], str):
+        if not settings.FHIR_SERVER_CONF['REWRITE_FROM'] in urls_be_gone:
+            urls_be_gone.append(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
 
     for kill_url in urls_be_gone:
         # work through the list making replacements
         if kill_url.endswith('/'):
             kill_url = kill_url[:-1]
+
+        # print("Replacing:%s" % kill_url)
+
         in_text = mask_with_this_url(request, host_path, in_text, kill_url)
 
     return in_text
@@ -432,6 +463,6 @@ def get_host_url(request, resource_type):
     full_url = http_mode + request.get_host() + request.get_full_path()
     full_url_list = full_url.split(resource_type)
 
-    logger.debug('Full_url as list:%s' % full_url_list)
+    # logger.debug('Full_url as list:%s' % full_url_list)
 
     return full_url_list[0]

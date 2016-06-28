@@ -2,6 +2,7 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import user_self
+from apps.fhir.bluebutton.views.home import fhir_search_home
 admin.autodiscover()
 
 urlpatterns = [
@@ -16,7 +17,8 @@ urlpatterns = [
     url(r'^capabilities/', include('apps.capabilities.urls')),
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^o/', include('apps.dot_ext.urls')),
-    url(r'^', include('apps.home.urls')),
+    url(r'^', fhir_search_home, name='home'),
+    # url(r'^', include('apps.home.urls')),
     # url(r'^fhir/api/v1/', include('apps.fhir.bluebutton')),
     # Admin
     url(r'^admin/', include(admin.site.urls)),
