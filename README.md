@@ -30,6 +30,7 @@ Follow these steps on the command line.
     # prepare Django
     python manage.py migrate
     python manage.py loaddata apps/accounts/fixtures/BlueButtonGroup.json
+    
     python manage.py runserver
 
 Note you can find the path to your Python3 binary by typing `which python3`.

@@ -1,5 +1,6 @@
 import os
 import dj_database_url
+import socket
 
 from getenv import env
 
@@ -17,31 +18,54 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # security
-SECRET_KEY = env('DJANGO_SECRET_KEY')
+# SECRET_KEY = env('DJANGO_SECRET_KEY')
+
+SECRET_KEY = env('DJANGO_SECRET_KEY',
+                 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR')
+if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
+    print("WARNING: Generate your secret key and set in environment "
+          "variable: DJANGO_SECRET_KEY")
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.'
+                'UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.'
+                'MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.'
+                'CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.'
+                'NumericPasswordValidator',
     },
 ]
 
-ALLOWED_HOSTS = [
-    env('DJANGO_ALLOWED_HOSTS'),
-]
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*',
+                                             socket.gethostname()])
 
-DEBUG = env('DJANGO_DEBUG', False)
+# if ALLOWED_HOSTS == ['*', socket.gethostname()]:
+#     print("WARNING: Set DJANGO_ALLOWED_HOSTS to the hostname "
+#           "for Production operation.\n"
+#           "         Currently defaulting to %s " % ALLOWED_HOSTS)
+# Warning: on macOS hostname is case sensitive
+
+# DEBUG = env('DJANGO_DEBUG', False)
+DEBUG = env('DJANGO_DEBUG', True)
+
+# if DEBUG:
+#     print("WARNING: Set DJANGO_DEBUG environment variable to False "
+#           "to run in production mode \n"
+#           "         and set DJANGO_ALLOWED_HOSTS to "
+#           "valid host names")
 
 # TODO: maybe they should be commented out
-SETTINGS_MODE = os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hhs_oauth_server.settings.base')
+SETTINGS_MODE = os.environ.setdefault('DJANGO_SETTINGS_MODULE',
+                                      'hhs_oauth_server.settings.base')
 SETTINGS_MODE = SETTINGS_MODE.upper().split('.')
 SETTINGS_MODE = SETTINGS_MODE[-1]
 
@@ -80,7 +104,8 @@ INSTALLED_APPS = [
     'oauth2_provider',
 ]
 
-# CorsMiddleware needs to come before Django's CommonMiddleware if you are using Django's
+# CorsMiddleware needs to come before Django's
+# CommonMiddleware if you are using Django's
 # USE_ETAGS = True setting,
 # otherwise the CORS headers will be lost from the 304 not-modified responses,
 # causing errors in some browsers.
@@ -167,7 +192,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(name)s [%(process)d] %(message)s'
+            'format': '%(levelname)s %(asctime)s %(name)s '
+                      '[%(process)d] %(message)s'
         },
         'simple': {
             'format': '%(levelname)s %(name)s %(message)s'
@@ -211,7 +237,8 @@ AUTHENTICATION_BACKENDS = (
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
 # removing apps. by using AppConfig for apps.dot_ext
 OAUTH2_PROVIDER = {
-    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.SingleAccessTokenValidator',
+    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.'
+                              'SingleAccessTokenValidator',
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
 }
@@ -348,16 +375,17 @@ SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
-# We will need to add REWRITE_FROM and REWRITE_TO to models to enable search and replace
-# in content returned from backend server. Otherwise source server address is exposed to
-# external users.
-FHIR_SERVER_CONF = {
-    'SERVER': env('DJANGO_FHIR_SERVER'),
-    'PATH': env('DJANGO_FHIR_PATH'),
-    'RELEASE': env('DJANGO_FHIR_RELEASE'),
-    'REWRITE_FROM': env('DJANGO_FHIR_REWRITE_FROM'),
-    'REWRITE_TO': env('DJANGO_FHIR_REWRITE_TO'),
-}
+# We will need to add REWRITE_FROM and REWRITE_TO to models
+# to enable search and replace in content returned from backend server.
+# Otherwise source server address is exposed to external users.
+
+FHIR_SERVER_CONF = {'SERVER': env('DJANGO_FHIR_SERVER'),
+                    'PATH': env('DJANGO_FHIR_PATH'),
+                    'RELEASE': env('DJANGO_FHIR_RELEASE'),
+                    'REWRITE_FROM': env('DJANGO_FHIR_REWRITE_FROM'),
+                    'REWRITE_TO': env('DJANGO_FHIR_REWRITE_TO'),
+                    # Minutes until search expires
+                    'SEARCH_EXPIRY': env('DJANGO_SEARCH_EXPIRY', 30)}
 
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 3)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS OAuth2 Server')
