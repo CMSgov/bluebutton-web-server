@@ -434,7 +434,7 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
 
     if isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], list):
         for u in settings.FHIR_SERVER_CONF['REWRITE_FROM']:
-            if not u in urls_be_gone:
+            if u not in urls_be_gone:
                 urls_be_gone.append(u)
     elif isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], str):
         if not settings.FHIR_SERVER_CONF['REWRITE_FROM'] in urls_be_gone:
