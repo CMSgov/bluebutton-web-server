@@ -27,8 +27,7 @@ from apps.fhir.bluebutton.utils import (
     build_params,
     FhirServerUrl,
     mask_list_with_host,
-    get_host_url,
-)
+    get_host_url)
 
 from apps.fhir.bluebutton.models import Crosswalk
 
@@ -287,7 +286,9 @@ def generic_read(request,
             'vid': vid
         }
         sesn_var = write_session(request, ikey, content, skey=SESSION_KEY)
-
+        if sesn_var:
+            logger.debug("Problem writing session variables."
+                         " Returned %s" % sesn_var)
     if fmt == 'xml':
         # logger.debug('We got xml back in od')
         return HttpResponse(r.text, content_type='application/%s' % fmt)
