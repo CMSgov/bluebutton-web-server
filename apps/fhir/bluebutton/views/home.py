@@ -14,16 +14,24 @@ import logging
 import requests
 
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import datetime
+try:
+    # python2
+    from urllib import urlencode
+except ImportError:
+    # python3
+    from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse_lazy
-from django.http import QueryDict
 
 from django.shortcuts import render, HttpResponseRedirect, HttpResponse
 
-from apps.fhir.bluebutton.utils import get_host_url, mask_list_with_host
+from apps.fhir.bluebutton.utils import (get_host_url,
+                                        mask_list_with_host,
+                                        strip_oauth)
+
 from apps.fhir.core.utils import (error_status,
                                   read_session,
                                   get_search_param_format,
@@ -76,7 +84,8 @@ def rebuild_fhir_search(request):
 
     """
 
-    now = str(datetime.now())
+
+    # now = str(datetime.now())
     ikey = ''
     if '_getpages' in request.GET:
         ikey = request.GET['_getpages']
@@ -103,7 +112,7 @@ def rebuild_fhir_search(request):
         except requests.ConnectionError:
             # logger.debug('Problem connecting to FHIR Server')
             messages.error(request, 'FHIR Server is unreachable.')
-            return HttpResponseRedirect(reverse_lazy('api:v1:home'))
+            return HttpResponseRedirect(reverse_lazy('authenticated_home'))
 
         if r.status_code in ERROR_CODE_LIST:
             return error_status(r, r.status_code)
@@ -168,3 +177,85 @@ def rebuild_fhir_search(request):
         )
 
     return authenticated_home(request)
+
+
+def fhir_conformance(request, *args, **kwargs):
+    """ Pull and filter fhir Conformance statement
+
+    metadata call
+
+    """
+    if request.user.is_authenticated():
+        resource_type = 'Conformance'
+        call_to = settings.FHIR_SERVER_CONF['SERVER']
+        call_to += settings.FHIR_SERVER_CONF['PATH']
+        call_to += settings.FHIR_SERVER_CONF['RELEASE']
+        call_to += '/metadata'
+
+        pass_params = urlencode(strip_oauth(request.GET))
+        if len(pass_params) > 0:
+            pass_params = '?' + pass_params
+        # print("Parameters:", pass_params)
+        logger.debug("Calling:%s" % call_to + pass_params)
+        try:
+            r = requests.get(call_to + pass_params)
+        except requests.ConnectionError:
+            # logger.debug('Problem connecting to FHIR Server')
+            messages.error(request, 'FHIR Server is unreachable.')
+            return HttpResponseRedirect(reverse_lazy('authenticated_home'))
+
+        if r.status_code in ERROR_CODE_LIST:
+            return error_status(r, r.status_code)
+
+        text_out = ''
+        host_path = get_host_url(request, '?')
+
+        # get 'xml' 'json' or ''
+        fmt = get_search_param_format(request.META['QUERY_STRING'])
+
+        rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
+        # print("Starting Rewrite_list:%s" % rewrite_url_list)
+
+        if fmt == 'xml':
+            # We will add xml support later
+
+            text_out = mask_list_with_host(request,
+                                           host_path,
+                                           r.text,
+                                           rewrite_url_list)
+            # text_out= minidom.parseString(text_out).toprettyxml()
+        else:
+            # dealing with json
+            # text_out = r.json()
+            pre_text = mask_list_with_host(request,
+                                           host_path,
+                                           r.text,
+                                           rewrite_url_list)
+            text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
+
+        od = text_out
+
+        if fmt == 'xml':
+            # logger.debug('We got xml back in od')
+            return HttpResponse(r.text, content_type='application/%s' % fmt)
+            # return HttpResponse( tostring(dict_to_xml('content', od)),
+            #                      content_type='application/%s' % fmt)
+        elif fmt == 'json':
+            # logger.debug('We got json back in od')
+            return HttpResponse(json.dumps(od, indent=4),
+                                content_type='application/%s' % fmt)
+
+        # logger.debug('We got a different format:%s' % fmt)
+
+
+        return render(
+            request,
+            'bluebutton/default.html',
+            {'output': json.dumps(od, indent=4),
+             'content': {'parameters': request.GET.urlencode(),
+                         'resource_type': 'Conformance',
+                         'request_method': "GET",
+                         'interaction_type': "metadata"}})
+
+    else:
+        return authenticated_home(request)

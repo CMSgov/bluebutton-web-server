@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.http import HttpResponse
 
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 ERROR_CODE_LIST = [301, 302, 400, 401, 402, 403, 404, 500, 501, 502, 503, 504]
@@ -299,7 +298,7 @@ def read_session(request, ikey, skey=SESSION_KEY):
     """
 
     result = {}
-    action = "GET"
+    # action = "GET"
     now = str(datetime.now())
 
     if skey in request.session:
@@ -313,20 +312,22 @@ def read_session(request, ikey, skey=SESSION_KEY):
                 # print("\nChecking for Expiry..")
                 if session_keys[ikey]['expires'] < now:
                     request.session[skey].pop(ikey, None)
-                    action = "DEL"
+
+                    # action = "DEL"
                     # print("\n\n Removed %s:%s" % (ikey, request.session[skey]))
                 else:
-                    action = "PULL"
+                    # action = "PULL"
                     result = session_keys[ikey]
             else:
                 # print("\n\nGetting Session Data:%s" % session_keys[ikey])
                 result = session_keys[ikey]
-                action = "UNEXPIRED"
+                # action = "UNEXPIRED"
         else:
             # print("\n%s not found" % ikey)
             pass
     else:
-        action = "SKIP"
+        # action = "SKIP"
+        pass
 
     # print("\n\nSession Key[%s]%s:%s:%s" % (skey, action, ikey, result))
     return result
