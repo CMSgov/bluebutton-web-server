@@ -3,8 +3,8 @@
 # vim: ai ts=4 sts=4 et sw=4
 
 from .base import *
-from platform import python_version
 
+print(base.ADMINS)
 DEBUG = True
 
 SECRET_KEY = "BBOAUTH2-LOCAL-_CHANGE_THIS_FAKE_KEY_TO_YOUR_OWN_SECRET_KEY"
