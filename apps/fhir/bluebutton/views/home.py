@@ -14,7 +14,7 @@ import logging
 import requests
 
 from collections import OrderedDict
-from datetime import datetime
+
 try:
     # python2
     from urllib import urlencode
@@ -83,7 +83,6 @@ def rebuild_fhir_search(request):
     Construct FHIR_Target_URL + search parameters
 
     """
-
 
     # now = str(datetime.now())
     ikey = ''
@@ -247,13 +246,12 @@ def fhir_conformance(request, *args, **kwargs):
 
         # logger.debug('We got a different format:%s' % fmt)
 
-
         return render(
             request,
             'bluebutton/default.html',
             {'output': json.dumps(od, indent=4),
              'content': {'parameters': request.GET.urlencode(),
-                         'resource_type': 'Conformance',
+                         'resource_type': resource_type,
                          'request_method': "GET",
                          'interaction_type': "metadata"}})
 
