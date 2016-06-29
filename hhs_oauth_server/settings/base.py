@@ -378,15 +378,13 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 # We will need to add REWRITE_FROM and REWRITE_TO to models
 # to enable search and replace in content returned from backend server.
 # Otherwise source server address is exposed to external users.
-FHIR_SERVER_CONF = {
-    'SERVER': env('DJANGO_FHIR_SERVER'),
-    'PATH': env('DJANGO_FHIR_PATH'),
-    'RELEASE': env('DJANGO_FHIR_RELEASE'),
-    'REWRITE_FROM': env('DJANGO_FHIR_REWRITE_FROM'),
-    'REWRITE_TO': env('DJANGO_FHIR_REWRITE_TO'),
-    # Minutes until search expires
-    'SEARCH_EXPIRY': env('DJANGO_SEARCH_EXPIRY', 30),
-    }
+FHIR_SERVER_CONF = {'SERVER': env('DJANGO_FHIR_SERVER'),
+                    'PATH': env('DJANGO_FHIR_PATH'),
+                    'RELEASE': env('DJANGO_FHIR_RELEASE'),
+                    'REWRITE_FROM': env('DJANGO_FHIR_REWRITE_FROM'),
+                    'REWRITE_TO': env('DJANGO_FHIR_REWRITE_TO'),
+                    # Minutes until search expires
+                    'SEARCH_EXPIRY': env('DJANGO_SEARCH_EXPIRY', 30)}
 
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 3)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS OAuth2 Server')
