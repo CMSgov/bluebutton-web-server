@@ -38,7 +38,8 @@ the email functions will not work.  anything defined in local.py overrides items
     python manage.py migrate
     python manage.py loaddata apps/accounts/fixtures/BlueButtonGroup.json
     
-    #Rund the development server
+
+    #Run the development server
     python manage.py runserver
 
 Note you can find the path to your Python3 binary by typing `which python3`.

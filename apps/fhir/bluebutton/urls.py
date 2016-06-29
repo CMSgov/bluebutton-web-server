@@ -5,6 +5,7 @@ from apps.fhir.bluebutton.views.history import history
 from apps.fhir.bluebutton.views.route_rud import read_or_update_or_delete
 from apps.fhir.bluebutton.views.vread import vread
 from apps.fhir.bluebutton.views.search import search
+from apps.fhir.bluebutton.views.home import fhir_conformance
 
 
 admin.autodiscover()
@@ -12,6 +13,9 @@ admin.autodiscover()
 
 urlpatterns = [
     # URLs with no authentication
+
+    # Conformance statement
+    url(r'(metadata[^/]+)?', fhir_conformance, name='bb_fhir_conformance'),
     # Interactions on Resources
     # Vread GET --------------------------------
     url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)', vread,

@@ -1,11 +1,15 @@
 {%  extends "base_minimal.html" %}
-{% block content %}
+{% block Content %}
 
-    <h1>{{ output.resource_type }} [{{ output.request_method }}/{{ output.interaction_type }}]</h1>
-    <h4>parameters: {{ output.parameters }}</h4>
-
+    <div class="col-lg-12">
+        <h2>{{ content.resource_type }} [{{ content.request_method }}/{{ content.interaction_type }}]</h2>
+        <h4>parameters: {{ content.parameters }}</h4>
+    </div>
     <div class="col-lg-12 well">
-        {{ output.bundle|safe }}
+{{ output.bundle|safe }}
+        <pre>
+{{ output|safe }}
+        </pre>
     </div>
 
     <div class="col-lg-12">
