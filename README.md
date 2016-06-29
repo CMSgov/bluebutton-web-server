@@ -27,9 +27,18 @@ Follow these steps on the command line.
     # install the requirements
     pip install -r requirements/requirements.txt
 
-    # prepare Django
+    # prepare Django settings
+    cp hhs_oauth_server/settings/local_example.py hhs_oauth_server/settings/local.py
+    
+Note that you will need to add valid AWS keys setup to use Simple Email Service (SES) in your local.py. If you do not,
+the email functions will not work.  anything defined in local.py overrides items in base.py.  
+
+
+    #Setup the database
     python manage.py migrate
     python manage.py loaddata apps/accounts/fixtures/BlueButtonGroup.json
+    
+    #Rund the development server
     python manage.py runserver
 
 Note you can find the path to your Python3 binary by typing `which python3`.
