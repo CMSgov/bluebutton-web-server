@@ -28,7 +28,7 @@ Follow these steps on the command line.
     pip install -r requirements/requirements.txt
 
     # prepare Django settings
-    cp hhs_oauth_server/settings/local_sample.py hhs_oauth_server/settings/local.py
+    cp hhs_oauth_server/settings/local_sample.txt hhs_oauth_server/settings/local.py
     
 Note that you will need to add valid AWS keys setup to use Simple Email Service (SES) in your local.py. If you do not,
 the email functions will not work.  anything defined in local.py overrides items in base.py.  
