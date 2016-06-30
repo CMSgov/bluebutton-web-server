@@ -33,4 +33,4 @@ django-debug-toolbar
 oauthlib
 python-openid
 -e git+https://github.com/evonove/django-oauth-toolkit.git@scopes-backend#egg=dot_scopes_backend
--e git+https://github.com/TransparentHealth/python-poetri@599b26975c1b7ce7e5e243b94016297790f44a22#egg=python_poetri
+poetri
