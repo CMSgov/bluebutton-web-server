@@ -6,7 +6,6 @@
 #
 
 -e git+https://github.com/evonove/django-oauth-toolkit.git@scopes-backend#egg=dot_scopes_backend
--e git+https://github.com/TransparentHealth/python-poetri@599b26975c1b7ce7e5e243b94016297790f44a22#egg=python_poetri
 boto==2.40.0
 bson==1.1.0
 cffi==1.6.0               # via cryptography
@@ -29,6 +28,7 @@ jsonschema==2.5.1
 mccabe==0.5.0             # via flake8
 oauthlib==1.0.3
 pluggy==0.3.1             # via tox
+poetri==0.0.1
 py==1.4.31                # via tox
 pyasn1==0.1.9             # via cryptography
 pycodestyle==2.0.0        # via flake8
