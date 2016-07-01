@@ -17,7 +17,7 @@ import logging
 
 from robobrowser import (RoboBrowser)
 
-from django.conf import settings
+# from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
@@ -56,6 +56,8 @@ def connect_first(request):
     except Crosswalk.DoesNotExist:
         xwalk = Crosswalk()
         xwalk.user = request.user
+        # We may want to add the default FHIR Server to the crosswalk entry
+        # before we save.
         # xwalk.fhir_source =
         xwalk.save()
 
@@ -87,10 +89,10 @@ def connect_first(request):
                     # we had a problem with login
                     messages.info(request,
                                   mark_safe("Do you need to connect to "
-                                  "<a href='https://mymedicare.gov' "
-                                  "target='_blank'>"
-                                  "MyMedicare.gov</a> to check your "
-                                  "account?"))
+                                            "<a href='https://mymedicare.gov'"
+                                            " target='_blank'>"
+                                            "MyMedicare.gov</a> to check your"
+                                            " account?"))
                     return render(request,
                                   'eimm/medicare_connect.html',
                                   {'form': form})
