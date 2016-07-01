@@ -48,6 +48,7 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 
 DF_EXTRA_INFO = False
 
+
 def fhir_search_home(request):
     """ Check if search parameters are in the GET
 
@@ -267,18 +268,9 @@ def conformance_filter(text_block):
 
     # Get a list of resource names
     resource_names = get_resource_names()
-    print("Resource Names:", resource_names)
-
-    rest = text_block['rest']
-    # print("TYPE:", type(rest), "items:", len(rest))
-    # print("Rest:", rest[0])
     ct = 0
     for k in text_block['rest']:
-        resource_block = []
-        print("K items:", len(k.items()))
-
         for i, v in k.items():
-
             if i == 'resource':
                 supported_resources = get_supported_resources(v,
                                                               resource_names)
@@ -286,6 +278,7 @@ def conformance_filter(text_block):
         ct += 1
 
     return text_block
+
 
 def get_resource_names():
     """ Get names for all approved resources """
@@ -298,17 +291,14 @@ def get_resource_names():
 
     return resource_names
 
+
 def get_supported_resources(resources, resource_names):
     """ Filter resources for resource type matches """
 
     resource_list = []
-
-    # loop through resources
-
     # if resource 'type in resource_names add resource to resource_list
-
     for item in resources:
-        for k,v in item.items():
+        for k, v in item.items():
             if k == 'type':
                 if v in resource_names:
                     resource_list.append(item)
@@ -321,5 +311,3 @@ def get_supported_resources(resources, resource_names):
           pretty_json(resource_list))
 
     return resource_list
-
-
