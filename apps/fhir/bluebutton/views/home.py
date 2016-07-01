@@ -28,9 +28,11 @@ from django.core.urlresolvers import reverse_lazy
 
 from django.shortcuts import render, HttpResponseRedirect, HttpResponse
 
+from apps.fhir.bluebutton.models import ResourceTypeControl
 from apps.fhir.bluebutton.utils import (get_host_url,
                                         mask_list_with_host,
-                                        strip_oauth)
+                                        strip_oauth,
+                                        pretty_json)
 
 from apps.fhir.core.utils import (error_status,
                                   read_session,
@@ -165,14 +167,14 @@ def rebuild_fhir_search(request):
             #                      content_type='application/%s' % fmt)
         elif fmt == 'json':
             # logger.debug('We got json back in od')
-            return HttpResponse(json.dumps(od, indent=4),
+            return HttpResponse(pretty_json(od),
                                 content_type='application/%s' % fmt)
 
         # logger.debug('We got a different format:%s' % fmt)
         return render(
             request,
             'bluebutton/default.html',
-            {'content': json.dumps(od, indent=4), 'output': od},
+            {'content': pretty_json(od), 'output': od},
         )
 
     return authenticated_home(request)
@@ -232,7 +234,7 @@ def fhir_conformance(request, *args, **kwargs):
                                            rewrite_url_list)
             text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
 
-        od = text_out
+            od = conformance_filter(text_out)
 
         if fmt == 'xml':
             # logger.debug('We got xml back in od')
@@ -241,7 +243,7 @@ def fhir_conformance(request, *args, **kwargs):
             #                      content_type='application/%s' % fmt)
         elif fmt == 'json':
             # logger.debug('We got json back in od')
-            return HttpResponse(json.dumps(od, indent=4),
+            return HttpResponse(pretty_json(od),
                                 content_type='application/%s' % fmt)
 
         # logger.debug('We got a different format:%s' % fmt)
@@ -249,7 +251,7 @@ def fhir_conformance(request, *args, **kwargs):
         return render(
             request,
             'bluebutton/default.html',
-            {'output': json.dumps(od, indent=4),
+            {'output': pretty_json(od),
              'content': {'parameters': request.GET.urlencode(),
                          'resource_type': resource_type,
                          'request_method': "GET",
@@ -257,3 +259,55 @@ def fhir_conformance(request, *args, **kwargs):
 
     else:
         return authenticated_home(request)
+
+
+def conformance_filter(text_block):
+    """ Filter FHIR Conformance Statement based on
+        supported ResourceTypes
+    """
+
+    # Get a list of resource names
+    resource_names = get_resource_names()
+    ct = 0
+    for k in text_block['rest']:
+        for i, v in k.items():
+            if i == 'resource':
+                supported_resources = get_supported_resources(v,
+                                                              resource_names)
+                text_block['rest'][ct]['resource'] = supported_resources
+        ct += 1
+
+    return text_block
+
+
+def get_resource_names():
+    """ Get names for all approved resources """
+
+    all_resources = ResourceTypeControl.objects.all()
+    resource_names = []
+    for name in all_resources:
+        # Get the resource names into a list
+        resource_names.append(name.resource_name.resource_name)
+
+    return resource_names
+
+
+def get_supported_resources(resources, resource_names):
+    """ Filter resources for resource type matches """
+
+    resource_list = []
+    # if resource 'type in resource_names add resource to resource_list
+    for item in resources:
+        for k, v in item.items():
+            if k == 'type':
+                if v in resource_names:
+                    resource_list.append(item)
+                else:
+                    print('\nDisposing of %s' % v)
+            else:
+                pass
+
+    print("\nSupported Resources:",
+          pretty_json(resource_list))
+
+    return resource_list

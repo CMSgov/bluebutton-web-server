@@ -18,7 +18,7 @@ These instructions provide a quick start for developers new to the project.
 Follow these steps on the command line.
 
     # prepare your repository folder
-    git clone https://github.com/transparenthealth.org/hhs_oauth_server.git
+    git clone https://github.com/transparenthealth/hhs_oauth_server.git
     cd hhs_oauth_server
 
     # create the virtualenv
@@ -28,7 +28,7 @@ Follow these steps on the command line.
     pip install -r requirements/requirements.txt
 
     # prepare Django settings
-    cp hhs_oauth_server/settings/local_example.py hhs_oauth_server/settings/local.py
+    cp hhs_oauth_server/settings/local_sample.txt hhs_oauth_server/settings/local.py
     
 Note that you will need to add valid AWS keys setup to use Simple Email Service (SES) in your local.py. If you do not,
 the email functions will not work.  anything defined in local.py overrides items in base.py.  
