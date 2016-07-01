@@ -7,9 +7,7 @@ from apps.fhir.bluebutton.views.vread import vread
 from apps.fhir.bluebutton.views.search import search
 from apps.fhir.bluebutton.views.home import fhir_conformance
 
-
 admin.autodiscover()
-
 
 urlpatterns = [
     # URLs with no authentication
