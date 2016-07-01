@@ -472,6 +472,7 @@ def get_host_url(request, resource_type=''):
 
     return full_url_list[0]
 
+
 def pretty_json(od, indent=PRETTY_JSON_INDENT):
     """ Print OrderedDict as pretty indented JSON """
 

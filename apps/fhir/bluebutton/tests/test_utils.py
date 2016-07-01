@@ -782,4 +782,3 @@ class BlueButtonUtilRequestTest(TestCase):
         expected = 'http://testserver/bluebutton/fhir/v1/Patient'
 
         self.assertEqual(response, expected)
-

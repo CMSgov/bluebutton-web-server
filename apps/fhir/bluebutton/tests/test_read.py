@@ -29,4 +29,3 @@ class ConformanceFilterTest(TestCase):
     # Make call to Conformance Statement
 
     # Test that Patient is only resource displayed
-
