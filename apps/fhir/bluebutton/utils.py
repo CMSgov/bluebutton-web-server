@@ -1,3 +1,4 @@
+import json
 import logging
 
 try:
@@ -15,6 +16,7 @@ from apps.fhir.core.utils import (kickout_404, kickout_403)
 from apps.fhir.server.models import SupportedResourceType
 from apps.fhir.bluebutton.models import ResourceTypeControl
 
+PRETTY_JSON_INDENT = 4
 
 FORMAT_OPTIONS_CHOICES = ['json', 'xml']
 
@@ -452,7 +454,7 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
     return in_text
 
 
-def get_host_url(request, resource_type):
+def get_host_url(request, resource_type=''):
     """ get the full url and split on resource_type """
 
     if request.is_secure():
@@ -461,8 +463,17 @@ def get_host_url(request, resource_type):
         http_mode = 'http://'
 
     full_url = http_mode + request.get_host() + request.get_full_path()
-    full_url_list = full_url.split(resource_type)
+    if resource_type == '':
+        return full_url
+    else:
+        full_url_list = full_url.split(resource_type)
 
     # logger.debug('Full_url as list:%s' % full_url_list)
 
     return full_url_list[0]
+
+
+def pretty_json(od, indent=PRETTY_JSON_INDENT):
+    """ Print OrderedDict as pretty indented JSON """
+
+    return json.dumps(od, indent=indent)
