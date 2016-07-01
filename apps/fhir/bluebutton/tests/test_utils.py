@@ -27,6 +27,8 @@ from apps.fhir.bluebutton.utils import (
     masked_id,
     mask_with_this_url,
     mask_list_with_host,
+    get_host_url,
+    pretty_json
 )
 
 
@@ -184,6 +186,15 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         for k, v in response.items():
             if k in get_ish_4:
                 self.assertEquals(v, get_ish_4[k])
+
+    def test_pretty_json(self):
+        """ Test text dict or list is converted to pretty json(indent=4) """
+
+        od = '{"format": ["application/xml+fhir","application/json+fhir"]}'
+        response = pretty_json(od, indent=5)
+        expected = '"{\\"format\\": [\\"application/xml+fhir\\",\\"application/json+fhir\\"]}"'
+
+        self.assertEqual(response, expected)
 
 
 class BlueButtonUtilSrtcTestCase(TestCase):
@@ -750,7 +761,24 @@ class BlueButtonUtilRequestTest(TestCase):
 
         self.assertEqual(response, expected)
 
-    def test_get_host_url(self):
+    def test_get_host_ur_good(self):
         """
         Get the host url and split on resource_type
         """
+
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        response = get_host_url(request, 'Patient')
+        expected = 'http://testserver/bluebutton/fhir/v1/'
+
+        self.assertEqual(response, expected)
+
+    def test_get_host_ur_no_rt(self):
+        """
+        Get the host url and split on empty resource_type
+        """
+        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+
+        response = get_host_url(request)
+        expected = 'http://testserver/bluebutton/fhir/v1/Patient'
+
+        self.assertEqual(response, expected)

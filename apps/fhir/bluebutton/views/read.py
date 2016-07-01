@@ -27,7 +27,8 @@ from apps.fhir.bluebutton.utils import (
     build_params,
     FhirServerUrl,
     mask_list_with_host,
-    get_host_url)
+    get_host_url,
+    pretty_json)
 
 from apps.fhir.bluebutton.models import Crosswalk
 
@@ -296,12 +297,12 @@ def generic_read(request,
         #                      content_type='application/%s' % fmt)
     elif fmt == 'json':
         # logger.debug('We got json back in od')
-        return HttpResponse(json.dumps(od, indent=4),
+        return HttpResponse(pretty_json(od),
                             content_type='application/%s' % fmt)
 
     # logger.debug('We got a different format:%s' % fmt)
     return render(
         request,
         'bluebutton/default.html',
-        {'content': json.dumps(od, indent=4), 'output': od},
+        {'content': pretty_json(od), 'output': od},
     )
