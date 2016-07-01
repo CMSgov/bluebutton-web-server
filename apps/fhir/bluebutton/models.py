@@ -105,8 +105,8 @@ class FhirServer(models.Model):
     """
     Server URL at Profile level
     eg.
-    https://fhir-server1.bluebutton.cms.gov/fhir/baseDstu2/
-    https://fhir-server2.bluebutton.cms.gov/fhir/stu3/
+    https://fhir-server1.cmsblue.cms.gov/fhir/baseDstu2/
+    https://fhir-server2.cmsblue.cms.gov/fhir/stu3/
 
     ID will be used as reference in CrossWalk
     """
@@ -133,16 +133,19 @@ class Crosswalk(models.Model):
     """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    fhir_source = models.ForeignKey(FhirServer)
+    fhir_source = models.ForeignKey(FhirServer, blank=True, null=True)
     fhir_id = models.CharField(max_length=80, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
+    mb_user = models.CharField(max_length=250, blank=True)
 
+    # mb_user = MyMedicare.gov user login name
     # fhir_id = Identifier used in the patient Profile URL
     # eg. /baseDstu2/Patient/{fhir_id}
     # This will allow us to construct a URL to make a call directly to
     # a record, rather than requiring a search
     # when combined with fhir_source
-    # eg. https://fhir-server1.bluebutton.cms.gov/fhir/baseDstu2/ + Patient/{fhir_id}
+    # eg. https://fhir-server1.bluebutton.cms.gov/fhir/baseDstu2/
+    # + Patient/{fhir_id}
 
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)

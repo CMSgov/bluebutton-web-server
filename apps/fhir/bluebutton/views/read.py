@@ -303,6 +303,6 @@ def generic_read(request,
     # logger.debug('We got a different format:%s' % fmt)
     return render(
         request,
-        'bluebutton/default.html',
+        'cmsblue/default.html',
         {'content': pretty_json(od), 'output': od},
     )
