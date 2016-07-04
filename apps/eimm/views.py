@@ -29,6 +29,7 @@ from apps.cmsblue.cms_parser import (cms_text_read,
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import pretty_json
 from .forms.medicare import Medicare_Connect
+from .utils import split_name
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -103,6 +104,7 @@ def connect_first(request):
                     mcare_prof['user'] = mmg['mmg_user']
                     mcare_prof['password'] = mmg['mmg_pwd']
                     mcare_prof['name'] = mmg['mmg_name']
+                    mcare_prof['HumanName'] = split_name(mmg['mmg_name'])
                     mcare_prof['account'] = mmg['mmg_account']
                     # need to check what is returned in mmg_account.
 

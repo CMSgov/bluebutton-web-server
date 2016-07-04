@@ -14,7 +14,7 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 from collections import OrderedDict
 
 
-def split_name(in_name):
+def split_name(in_name=''):
     """ Receive name and break into FHIR HumanName format """
 
     humanname = OrderedDict()

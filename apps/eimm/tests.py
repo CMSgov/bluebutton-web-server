@@ -49,9 +49,15 @@ class Utils_Test(TestCase):
         in_name = "JOHN Peter godfrey DOE"
         response = split_name(in_name)
         expected = OrderedDict([('resourceType', 'HumanName'),
-                              ('text', 'JOHN Peter Godfrey DOE'),
+                              ('text', 'JOHN Peter godfrey DOE'),
                               ('family', ['DOE']),
                               ('given', ['JOHN', 'Peter', 'godfrey'])])
 
+        self.assertEqual(response, expected)
 
+        in_name = ""
+        response = split_name(in_name)
+        expected = OrderedDict([('resourceType', 'HumanName')])
+
+        self.assertEqual(response, expected)
 
