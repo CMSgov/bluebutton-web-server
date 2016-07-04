@@ -11,6 +11,7 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 """
 import logging
 
+from collections import OrderedDict
 from apps.cmsblue.cms_parser_utilities import *
 from apps.cmsblue.cms_custom import *
 
@@ -27,9 +28,7 @@ def cms_file_read(inPath):
     # Add in claimNumber value to line_dict to simplify detail
     # downstream processing of lines
 
-    DBUG = False
-
-    ln_cntr = 0
+    ln_ct = 0
     blank_ln = 0
     f_lines = []
     set_level = 0
@@ -115,7 +114,7 @@ def cms_file_read(inPath):
                         set_header = "HEADER"
                     line_type = "BODY"
 
-                line_dict = {"key": ln_cntr,
+                line_dict = {"key": ln_ct,
                              "level": set_level,
                              "line": curr_seg,
                              "type": set_header,
@@ -139,25 +138,25 @@ def cms_file_read(inPath):
                     claim_number = kvs["v"]
                 if "CLAIM TYPE: PART D" in l.upper():
                     # We need to re-write the previous f_lines entry
-                    prev_line = f_lines[ln_cntr - 1]
-                    if DBUG:
-                        do_DBUG("prev_line:", prev_line)
-                    if prev_line[ln_cntr - 1]["line"].upper() == "CLAIM LINES FOR CLAIM NUMBER":
-                        prev_line[ln_cntr - 1]["line"] = "Part D Claims"
-                        f_lines[ln_cntr - 1] = prev_line
+                    prev_line = f_lines[ln_ct - 1]
+                    # logger.debug("prev_line:%s" % prev_line)
+                    if prev_line[ln_ct - 1]["line"].upper() == "CLAIM LINE" \
+                                                               "S FOR " \
+                                                               "CLAIM NUMBER":
+                        prev_line[ln_ct - 1]["line"] = "Part D Claims"
+                        f_lines[ln_ct - 1] = prev_line
 
-                        if DBUG:
-                            do_DBUG("re-wrote f_lines:",
-                                    f_lines[ln_cntr - 1])
-                line_dict = {"key": ln_cntr,
+                        # logger.debug("re-wrote f_lines"
+                        #              ":%s" % f_lines[ln_ct - 1])
+                line_dict = {"key": ln_ct,
                              "level": set_level + 1,
                              "line": l,
                              "type": set_header,
                              "claimNumber": claim_number}
 
-            f_lines.append({ln_cntr: line_dict})
+            f_lines.append({ln_ct: line_dict})
 
-            ln_cntr += 1
+            ln_ct += 1
 
     f.close()
 
@@ -179,9 +178,7 @@ def cms_text_read(inText):
     # Add in claimNumber value to line_dict to simplify detail
     # downstream processing of lines
 
-    DBUG = False
-
-    ln_cntr = 0
+    ln_ct = 0
     blank_ln = 0
     f_lines = []
     set_level = 0
@@ -201,8 +198,7 @@ def cms_text_read(inText):
                  "claimNumber": "",
                  "category": ""}
 
-    if DBUG:
-        print("In apps.cmsblue.cms_parser.cms_text_read")
+    # logger.debug("In apps.cmsblue.cms_parser.cms_text_read")
 
     i = 0
     for l in inText.split('\n'):
@@ -268,7 +264,7 @@ def cms_text_read(inText):
                     set_header = "HEADER"
                 line_type = "BODY"
 
-            line_dict = {"key": ln_cntr,
+            line_dict = {"key": ln_ct,
                          "level": set_level,
                          "line": curr_seg,
                          "type": set_header,
@@ -292,25 +288,25 @@ def cms_text_read(inText):
                 claim_number = kvs["v"]
             if "CLAIM TYPE: PART D" in l.upper():
                 # We need to re-write the previous f_lines entry
-                prev_line = f_lines[ln_cntr - 1]
-                logger.debug("prev_line:", prev_line)
-                if prev_line[ln_cntr - 1]["line"].upper() == "CLAIM LINES " \
-                                                             "FOR CLAIM " \
-                                                             "NUMBER":
-                    prev_line[ln_cntr - 1]["line"] = "Part D Claims"
-                    f_lines[ln_cntr - 1] = prev_line
+                prev_line = f_lines[ln_ct - 1]
+                # logger.debug("prev_line:%s" % prev_line)
+                if prev_line[ln_ct - 1]["line"].upper() == "CLAIM LINES " \
+                                                           "FOR CLAIM " \
+                                                           "NUMBER":
+                    prev_line[ln_ct - 1]["line"] = "Part D Claims"
+                    f_lines[ln_ct - 1] = prev_line
 
-                    logger.debug("re-wrote f_lines:",
-                                 f_lines[ln_cntr - 1])
-            line_dict = {"key": ln_cntr,
+                    # logger.debug("re-wrote f_lines:%s" %
+                    #              f_lines[ln_ct - 1])
+            line_dict = {"key": ln_ct,
                          "level": set_level + 1,
                          "line": l,
                          "type": set_header,
                          "claimNumber": claim_number}
 
-        f_lines.append({ln_cntr: line_dict})
+        f_lines.append({ln_ct: line_dict})
 
-        ln_cntr += 1
+        ln_ct += 1
         i += 1
 
     # print(i+1, "records")
@@ -330,10 +326,7 @@ def parse_lines(ln_list):
 
     # set variables
 
-    DBUG = False
-
-    if DBUG:
-        to_json(ln_list)
+    # logger.debug(to_json(ln_list))
 
     ln = {}
     ln_ctrl = {}
@@ -344,20 +337,20 @@ def parse_lines(ln_list):
 
     match_ln = [None, None, None, None, None, None, None, None, None, None]
 
-    # seg_dict = collections.OrderedDict()
-    out_dict = collections.OrderedDict()
+    # seg_dict = OrderedDict()
+    out_dict = OrderedDict()
     # Set starting point in list
 
-    logger.debug("Initializing Working Storage Arrays...",)
+    # logger.debug("Initializing Working Storage Arrays...",)
 
     block_limit = 9
-    block = collections.OrderedDict()
+    block = OrderedDict()
     n = 0
     while n <= block_limit:
-        block[n] = collections.OrderedDict()
+        block[n] = OrderedDict()
         n += 1
 
-    logger.debug("Done.")
+    # logger.debug("Done.")
 
     i = 0
 
@@ -367,7 +360,7 @@ def parse_lines(ln_list):
         # We need to deal with an empty dict
         ln = get_line_dict(ln_list, i)
         if ln == {}:
-            logger.debug("Empty Ln", "Line(i):", i, "ln:", ln)
+            # logger.debug("Empty Ln%s Line(i):%s" % (i, ln))
             i += 1
             # increment counter and go back to top of while loop
             continue
@@ -382,8 +375,8 @@ def parse_lines(ln_list):
 
         hdr_lk_up = headlessCamel(ln["line"])
 
-        logger.debug("Line(i):", i, "ln:", ln,
-                     "hdr_lk_up:", hdr_lk_up)
+        # logger.debug("Line(i):", i, "ln:", ln,
+        #              "hdr_lk_up:", hdr_lk_up)
 
         # lookup ln in SEG_DEF
 
@@ -396,12 +389,15 @@ def parse_lines(ln_list):
             # So we use SEG_DEF to tailor how we write the line and
             # section since a SEG_DEF defines special processing
 
-            logger.debug("CALLING PROCESS_HEADER===========================",
-                         "i:", i,
-                         "Match_ln:", match_ln,
-                         "ln-ctrl:", to_json(ln_ctrl),
-                         "ln_lvl:", ln["level"],
-                         "wrk_lvl:", wrk_lvl)
+            # logger.debug("CALLING PROCESS_HEADER======================="
+            #              "i:%s\nMatch_ln:%s"
+            #              "\nln-ctrl:%s"
+            #              "\nln_lvl:%s"
+            #              "\nwrk_lvl:%s" %
+            #              (i, match_ln,
+            #               to_json(ln_ctrl),
+            #               ln["level"],
+            #               wrk_lvl))
 
             i, sub_seg, seg_name = process_header(i,
                                                   ln_ctrl,
@@ -411,12 +407,12 @@ def parse_lines(ln_list):
             # Now load the info returned from process_header in out_dict
             out_dict[seg_name] = sub_seg[seg_name]
 
-            logger.debug("=============== RETURNED FROM PROCESS_HEADER",
-                         "line:", i,
-                         "ln_control:", ln_ctrl,
-                         "seg_name:", seg_name,
-                         "custom processing:", key_value("custom", ln_ctrl),
-                         "sub_seg:", to_json(sub_seg))
+            # logger.debug("=============== RETURNED FROM PROCESS_HEADER",
+            #              "line:", i,
+            #              "ln_control:", ln_ctrl,
+            #              "seg_name:", seg_name,
+            #              "custom processing:", key_value("custom", ln_ctrl),
+            #              "sub_seg:", to_json(sub_seg))
 
             if key_value("custom", ln_ctrl) == "":
                 # No custom processing required
@@ -448,10 +444,8 @@ def parse_lines(ln_list):
                                                           sub_seg,
                                                           seg_name)
 
-            logger.debug("---------------- RETURNED FROM PROCESS_BLOCK",
-                         "ctr: i:", i, "block_name:", block_name,
-                         "block_seg:", to_json(block_seg),
-                         )
+            # logger.debug("RETURNED FROM PROCESS_BLOCK: "
+            #              "i:%s block_name:%s" % (i, block_name))
 
             # if check_type(block_seg) != "DICT":
             #    logger.debug("((((((((((((((((((",
@@ -462,14 +456,14 @@ def parse_lines(ln_list):
             #                 "))))))))))))))))))")
 
             if check_type(block_seg) == "LIST":
-                logger.debug("LIST returned", block_seg)
+                # logger.debug("LIST returned")
                 if not block_seg == []:
                     out_dict[block_name] = block_seg[0]
             else:
-                logger.debug("Not List", block_seg)
+                # logger.debug("Not List:%s" % block_seg)
                 out_dict[block_name] = block_seg
 
-            logger.debug("out_dict[" + block_name + "]:", to_json(out_dict))
+            # logger.debug("out_dict[" + block_name + "]:", to_json(out_dict))
 
             # if (i + 1) <= (len(ln_list) - 1):
             #     We are not passed the end of the list
@@ -481,27 +475,20 @@ def parse_lines(ln_list):
             #                                           ln["level"],
             #                                           ln_list)
 
-            logger.debug("============================",
-                         "seg_name:", seg_name,
-                         "segment returned:", sub_seg,
-                         "Returned with counter-i:", i,
-                         "----------------------------",
-                         "out_dict[" + seg_name + "]",
-                         to_json(out_dict[seg_name]),
-                         "block_name:", block_name,
-                         "block_seg:", block_seg)
-
-        logger.debug("====================END of LOOP",
-                     "line number(i):", i,
-                     "out_dict", to_json(out_dict),
-                     "===============================")
+            # logger.debug("============================",
+            #              "seg_name:", seg_name,
+            #              "segment returned:", sub_seg,
+            #              "Returned with counter-i:", i,
+            #              "----------------------------",
+            #              "out_dict[" + seg_name + "]",
+            #              to_json(out_dict[seg_name]),
+            #              "block_name:", block_name,
+            #              "block_seg:", block_seg)
 
         # increment line counter
         i += 1
 
-    if DBUG:
-        do_DBUG("End of list:", i,
-                "out_dict", to_json(out_dict))
+    # logger.debug("End of list:", i, "out_dict", to_json(out_dict))
 
     return out_dict
 
@@ -514,7 +501,7 @@ def cms_file_parse2(inPath):
     # Set default variables on entry
     k = ""
     v = ""
-    items = collections.OrderedDict()
+    items = OrderedDict()
 
     first_header = True
     header_line = True
@@ -534,8 +521,8 @@ def cms_file_parse2(inPath):
     block_info = {}
 
     line_list = []
-    seg_dict = collections.OrderedDict()
-    sub_seg_dict = collections.OrderedDict()
+    seg_dict = OrderedDict()
+    sub_seg_dict = OrderedDict()
     sb_seg_lst = []
 
     # Open the file for reading
@@ -543,7 +530,7 @@ def cms_file_parse2(inPath):
         # get the line from the input file
         for i, l in enumerate(f):
             # reset line_dict
-            # line_dict = collections.OrderedDict()
+            # line_dict = OrderedDict()
 
             # remove blanks from end of line
             l = l.rstrip()
@@ -569,7 +556,7 @@ def cms_file_parse2(inPath):
                     #
                     items, seg_dict, line_list = write_segment(items, curr_seg, seg_dict, line_list, multi)
                     # Reset the Dict
-                    seg_dict = collections.OrderedDict()
+                    seg_dict = OrderedDict()
                     line_list = []
                     multi = False
                     ####################
@@ -708,7 +695,7 @@ def cms_file_parse2(inPath):
                                 if block_info["type"] == "dict":
                                     sub_seg_dict[block_info["name"]] = v
                                     seg_dict[block_info["dict_name"]] = sub_seg_dict
-                                    sub_seg_dict = collections.OrderedDict()
+                                    sub_seg_dict = OrderedDict()
 
                                 elif block_info["type"] == "list":
                                     sb_seg_lst.append({k: v})
@@ -724,7 +711,7 @@ def cms_file_parse2(inPath):
                             # print("seg_dict:[", seg_dict, "]")
                             if k in seg_dict:
                                 line_list.append(seg_dict)
-                                seg_dict = collections.OrderedDict()
+                                seg_dict = OrderedDict()
 
                         if not skip:
                             seg_dict[k] = v
@@ -758,17 +745,17 @@ def cms_file_parse(inPath):
     # Set default variables on entry
     k = ""
     v = ""
-    items = collections.OrderedDict()
+    items = OrderedDict()
     first_header = True
     header_line = True
     get_title = False
 
-    line_type = "Header"
-    seg_dict = collections.OrderedDict()
+    # line_type = "Header"
+    seg_dict = OrderedDict()
     curr_seg = ""
     segment_source = ""
     # previous_segment = curr_seg
-    line_dict = collections.OrderedDict()
+    line_dict = OrderedDict()
 
     # Open the file for reading
     with open(inPath, 'r') as f:
@@ -788,10 +775,10 @@ def cms_file_parse(inPath):
                 # print "empty line %s[%s] - skipping to next line" % (i,l)
                 continue
 
-            if header_line:
-                line_type = "Header"
-            else:
-                line_type = "Body"
+            # if header_line:
+            #     line_type = "Header"
+            # else:
+            #     line_type = "Body"
 
             # From now on We are dealing with a non-blank line
 
@@ -851,7 +838,7 @@ def cms_file_parse(inPath):
                 else:
                     # We didn't find a match so let's set it to "Other"
                     curr_seg = k.lower().replace(" ", "_")
-                    seg_dict = collections.OrderedDict()
+                    seg_dict = OrderedDict()
                     seg_dict[curr_seg] = {}
 
                 print("%s:curr_seg: %s" % (i, curr_seg))
@@ -859,10 +846,10 @@ def cms_file_parse(inPath):
                 # go to next line in file
                 continue
 
-            logger.debug("[%s:CSeg:%s|%s L:[%s]" % (i,
-                                                    curr_seg,
-                                                    line_type,
-                                                    l))
+            # logger.debug("[%s:CSeg:%s|%s L:[%s]" % (i,
+            #                                         curr_seg,
+            #                                         line_type,
+            #                                         l))
 
             # print("%s:Not a Heading Line" % i)
             ######################################
@@ -905,7 +892,7 @@ def cms_file_parse(inPath):
             seg_dict[curr_seg] = line_dict
 
             # reset the line_dict
-            line_dict = collections.OrderedDict()
+            line_dict = OrderedDict()
 
         # end of for loop
 

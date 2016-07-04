@@ -17,20 +17,17 @@ import logging
 
 from robobrowser import (RoboBrowser)
 
-# from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
-from django.template import RequestContext
-from django.utils.safestring import mark_safe
 
+from django.shortcuts import render
+
+from django.utils.safestring import mark_safe
 
 from apps.cmsblue.cms_parser import (cms_text_read,
                                      parse_lines)
 from apps.fhir.bluebutton.models import Crosswalk
-
+from apps.fhir.bluebutton.utils import pretty_json
 from .forms.medicare import Medicare_Connect
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -64,9 +61,8 @@ def connect_first(request):
     xwalk = Crosswalk.objects.get(user=request.user)
 
     form = Medicare_Connect()
-    logger.debug("In eimm.mym_login.connect_first\n",
-                 "User:", xwalk.user,
-                 "\nCrosswalk:", xwalk)
+    # logger.debug("In eimm.mym_login.connect_first:"
+    #              "User:%s \nCrosswalk:%s" % (xwalk.user, xwalk))
 
     if request.POST:
         form = Medicare_Connect(request.POST)
@@ -74,9 +70,9 @@ def connect_first(request):
             if form.cleaned_data['mmg_user'] and form.cleaned_data['mmg_pwd']:
                 context = {}
                 #  make the call
-                logger.debug("MAKING THE CALL with:",
-                             form.cleaned_data['mmg_user'],
-                             "and ", form.cleaned_data['mmg_pwd'])
+                # logger.debug("MAKING THE CALL with:",
+                #              form.cleaned_data['mmg_user'],
+                #              "and ", form.cleaned_data['mmg_pwd'])
 
                 mmg = {}
                 mmg['mmg_user'] = form.cleaned_data['mmg_user']
@@ -100,32 +96,45 @@ def connect_first(request):
                 mmg_bb = get_bluebutton(request, mmg)
 
                 # mmg_mail = {}
-                logger.debug("BlueButton returned:", mmg_bb)
+                # logger.debug("BlueButton returned:", mmg_bb)
 
-                medicare_profile = {}
+                mcare_prof = {}
                 if mmg_bb['status'] == "OK":
-                    medicare_profile['user'] = mmg['mmg_user']
-                    medicare_profile['password'] = mmg['mmg_pwd']
-                    medicare_profile['name'] = mmg['mmg_name']
-                    medicare_profile['account'] = mmg['mmg_account']
+                    mcare_prof['user'] = mmg['mmg_user']
+                    mcare_prof['password'] = mmg['mmg_pwd']
+                    mcare_prof['name'] = mmg['mmg_name']
+                    mcare_prof['account'] = mmg['mmg_account']
+                    # need to check what is returned in mmg_account.
+
+                    messages.success(request,
+                                     "Connection succeeded for " +
+                                     mcare_prof['name'] + "[" +
+                                     mcare_prof['user'] + "].")
 
                     # Update the Medicare user name to the Crosswalk
                     if xwalk.mb_user == '':
-                        xwalk.mb_user = medicare_profile['user']
+                        xwalk.mb_user = mcare_prof['user']
 
                     if mmg_bb['status'] == "OK":
                         # We need to save the BlueButton Text
                         # print("We are okay to update mmg_bbdata",
                         #      "\n with ", mmg_bb['mmg_bbdata'][:250])
-                        medicare_profile['bb_data'] = mmg_bb['mmg_bbdata']
+                        mcare_prof['bb_data'] = mmg_bb['mmg_bbdata']
 
                         result = bb_to_json(request,
                                             mmg_bb['mmg_bbdata'])
-                        logger.debug("BB Conversion:", result)
+                        # logger.debug("BB Conversion:", result)
                         if result['result'] == "OK":
-                            medicare_profile['bb_json'] = result['mmg_bbjson']
-                            logger.debug("returned json from xwalk:",
-                                         medicare_profile['bb_json'])
+                            mcare_prof['bb_json'] = result['mmg_bbjson']
+
+                            mcare_prof['email'] = get_bbemail(request,
+                                mcare_prof['bb_json'])
+                            mcare_prof['profile'] = get_bbprofile(request,
+                                mcare_prof['bb_json'])
+                            mcare_prof['claims'] = get_bbclaims(request,
+                                mcare_prof['bb_json'])
+
+                            # logger.debug("returned json from xwalk:", result)
 
                         #     for key, value in xwalk.mmg_bbjson.items():
                         #         # print("Key:", key)
@@ -148,13 +157,18 @@ def connect_first(request):
 
                     context['mmg'] = mmg
 
-                return HttpResponseRedirect(reverse('home'),
-                                            RequestContext(request), context)
+                return render(request,
+                              'eimm/bluebutton_analytics.html',
+                              {'content': context,
+                               'profile': mcare_prof,
+                               'profilep': pretty_json(mcare_prof['profile']),
+                               'claimsp': pretty_json(mcare_prof['claims'])
+                               })
 
     else:
         form = Medicare_Connect()
 
-        logger.debug("setting up the GET:")
+        # logger.debug("setting up the GET:")
 
     return render(request,
                   'eimm/medicare_connect.html',
@@ -245,20 +259,22 @@ def connect(request, mmg):
     # Prepare the form for submission
     form.serialize()
 
-    logger.debug("serialized form:", form)
+    # logger.debug("serialized form:", form)
 
     # submit the form
     rb.submit_form(form)
 
-    logger.debug("RB:", rb, "\nRB:", rb.__str__())
+    # logger.debug("RB:", rb, "\nRB:", rb.__str__())
 
     browser = RoboBrowser(history=True)
+    if browser:
+        pass
     # browser.parser = PARSER
 
-    logger.debug("Browser History:", browser.history,
-                 "\nBrowser parser:", browser.parser,
-                 # "\nPage html:", rb.parsed
-                 )
+    # logger.debug("Browser History:", browser.history,
+    #              "\nBrowser parser:", browser.parser,
+    #              # "\nPage html:", rb.parsed
+    #              )
 
     if not rb.url == "https://www.mymedicare.gov/dashboard.aspx":
         err_msg = rb.find("span",
@@ -308,8 +324,8 @@ def connect(request, mmg):
 
     mmg_back['robobrowser'] = rb
 
-    logger.debug("RB post sign-in:", rb,
-                 "rb url:", rb.url)
+    # logger.debug("RB post sign-in:", rb,
+    #              "rb url:", rb.url)
 
     return mmg_back
 
@@ -359,12 +375,12 @@ def get_bluebutton(request, mmg):
     rb.parser = PARSER
     rb.open(target_page)
 
-    logger.debug("RB in Get BlueButton:", rb.url,
-                 "================", "rb:", rb.parsed)
+    # logger.debug("RB in Get BlueButton:", rb.url,
+    #              "================", "rb:", rb.parsed)
 
     form = rb.get_form()
 
-    logger.debug("FORM:", form)
+    # logger.debug("FORM:", form)
     # <form name="formMyMedicare"
     # method="post"
     # action="applets/BlueButton/bluebuttonresp.aspx?guid=
@@ -432,7 +448,7 @@ def get_bluebutton(request, mmg):
 
     rb.submit_form(form)
 
-    logger.debug("RB:", rb.url)
+    # logger.debug("RB:", rb.url)
 
     bb_file_link = rb.find("a", {"id": "TXTHyperLink"})
     bb_link = bb_file_link.get('href')
@@ -440,8 +456,8 @@ def get_bluebutton(request, mmg):
     # We need to add the Medicare site prefix
     # So we can call RobBrowser.
     bb_link = "https://www.mymedicare.gov/" + bb_link
-    logger.debug("BlueButton Link:", bb_file_link,
-                 "\nhref:", bb_link)
+    # logger.debug("BlueButton Link:", bb_file_link,
+    #              "\nhref:", bb_link)
 
     mmg_back['status'] = "OK"
     # <a href="downloadinformation.aspx?SourcePage=BlueButton-Banner&amp;mode=
@@ -452,20 +468,19 @@ def get_bluebutton(request, mmg):
     # Get the BlueButton Text file content
     rb.open(bb_link)
 
-    logger.debug("\np:", rb.find("p").getText())
+    # logger.debug("\np:", rb.find("p").getText())
 
-    browser = RoboBrowser(history=True)
+    # browser = RoboBrowser(history=True)
     # browser.parser = PARSER
 
     # strip out just the text from inside the html/body/p tag
     mmg_back['mmg_bbdata'] = rb.find('p').getText()
 
-    logger.debug("Browser History:", browser.history,
-                 "\nBrowser parser:", browser.parser,
-                 # "\nPage html:", rb.parsed,
-                 "\nbb_link:", bb_link,
-                 "\nbb_file_link:", bb_file_link,
-                 "\nmmg_bbdata:", mmg_back['mmg_bbdata'])
+    # logger.debug("Browser History:%s\nBrowser parser:%s"
+    #              # "\nPage html:", rb.parsed,
+    #              "\nbb_link:%s\nbb_file_link:%s"
+    #              # "\nmmg_bbdata:", mmg_back['mmg_bbdata']
+    #              % (browser.history, browser.parser, bb_link, bb_file_link,))
 
     return mmg_back
 
@@ -485,24 +500,166 @@ def bb_to_json(request, bb_blob=''):
     result['result'] = "FAIL"
 
     xwalk = Crosswalk.objects.get(user=request.user)
+    # print("============================")
+    # print("bb_to_json: bb_blob:")
+    # print("============================")
+    # print(bb_blob)
+    # print("============================")
 
     if bb_blob is not '':
         # We have something to process
         bb_dict = cms_text_read(bb_blob)
 
-        logger.debug("bb_dict:", bb_dict)
+        # logger.debug("bb_dict:", bb_dict)
 
         json_stuff = parse_lines(bb_dict)
 
-        logger.debug("json:", json_stuff)
-        logger.debug("Json Length:", len(json_stuff))
+        # logger.debug("json:", json_stuff)
+        # logger.debug("Json Length:", len(json_stuff))
 
         result['mmg_bbjson'] = json_stuff
         result['description'] = "BlueButton converted to json and saved"
         messages.info(request, result['description'])
         result['result'] = "OK"
     else:
+        result['mmg_bbjson'] = {}
         messages.error(request,
                        "Nothing to process [" + xwalk.mmg_bbdata[:80] + "]")
 
+    # print("==================================")
+    # print("bb_to_json: mmg_bbjson/json_stuff:")
+    # print("==================================")
+    # print(pretty_json(result['mmg_bbjson']))
+    # print("==================================")
+
     return result
+
+
+@login_required
+def get_bbemail(request, bb_json):
+    """ Get the BB Json file and find email address"""
+
+    email = ''
+    if 'patient' in bb_json:
+        if 'email' in bb_json['patient']:
+            email = bb_json['patient']['email']
+
+    return email
+
+
+@login_required
+def get_bbprofile(request, bb_json):
+    """ Get Patient Profile section from BB Json file
+
+        "patient": {
+        "patient": {
+            "patient": "Demographic"
+        },
+        "source": "MyMedicare.gov",
+        "name": "JOHN DOE",
+        "dateOfBirth": "19100101",
+        "address": {
+            "addressType": "",
+            "addressLine1": "123 ANY ROAD",
+            "addressLine2": "",
+            "city": "ANYTOWN",
+            "state": "IN",
+            "zip": "46250"
+        },
+        "phoneNumber": [
+            "215-248-0684"
+        ],
+        "email": "rhall@cgifederal.com",
+        "medicare": {
+            "partAEffectiveDate": "20140201",
+            "partBEffectiveDate": "20140201"
+        }}
+
+    """
+
+    profile = {}
+    if 'patient' in bb_json:
+        profile = bb_json['patient']
+
+    return profile
+
+
+@login_required
+def get_bbclaims(request, bb_json):
+    """ Get claims numbers from BB_JSON file
+
+        "claims": [
+        {
+            "claims": "Claim Summary",
+            "claimNumber": "11122233320000",
+            "provider": "No Information Available",
+            "providerBillingAddress": "",
+            "date": {
+                "serviceStartDate": "20151010",
+                "serviceEndDate": "20151010"
+            },
+            "charges": {
+                "amountCharged": "$135.00",
+                "medicareApproved": "$90.45",
+                "providerPaid": "$72.36",
+                "youMayBeBilled": "$18.09"
+            },
+            "claimType": "DME",
+            "diagnosisCode1": "E785",
+            "diagnosisCode2": "M8458XA",
+            "category": "Claim Summary",
+            "source": "MyMedicare.gov",
+            "details": [
+                {
+                    "details": "Claim Lines for Claim Number",
+                    "lineNumber": "1",
+                    "dateOfServiceFrom": "20151010",
+                    "dateOfServiceTo": "20151010",
+                    "procedureCodeDescription": "E0601 - Continuous Positive Airway Pressure (Cpap) Device",
+                    "modifier1Description": "MS - Six Month Maintenance And Servicing Fee For Reasonable And Necessary Parts And Labor Which Are",
+                    "modifier2Description": "KX - Requirements Specified In The Medical Policy Have Been Met",
+                    "modifier3Description": "",
+                    "modifier4Description": "",
+                    "quantityBilledUnits": "1",
+                    "submittedAmountCharges": "$135.00",
+                    "allowedAmount": "$90.45",
+                    "nonCovered": "$44.55",
+                    "placeOfServiceDescription": "12 - Home",
+                    "typeOfServiceDescription": "R - Rental of DME",
+                    "renderingProviderNo": "DMEPROVIDR",
+                    "renderingProviderNpi": "9999999903",
+                    "category": "Claim Lines for Claim Number",
+                    "source": "MyMedicare.gov",
+                    "claimNumber": "11122233320000"
+                }]}
+
+    """
+
+    claim_info = []
+    if 'claims' in bb_json:
+        for claim in bb_json['claims']:
+            claim_summary = {}
+            if 'claimNumber' in claim:
+                claim_summary['claimNumber'] = claim['claimNumber']
+            else:
+                claim_summary['claimNumber'] = ''
+            if 'provider' in claim:
+                claim_summary['provider'] = claim['provider']
+            else:
+                claim_summary['provider'] = ''
+            if 'date' in claim:
+                claim_summary['date'] = claim['date']
+            else:
+                if 'serviceStartDate' in claim:
+                    service_start = claim['serviceStartDate']
+                else:
+                    service_start = ''
+                if 'serviceEndDate' in claim:
+                    service_end = claim['serviceEndDate']
+                else:
+                    service_end = ''
+                claim_summary['date'] = {'serviceStartDate': service_start,
+                                         'serviceEndDate': service_end}
+            claim_info.append(claim_summary)
+
+    return claim_info
