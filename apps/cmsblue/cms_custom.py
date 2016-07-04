@@ -9,6 +9,8 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 """
 import logging
 
+from collections import OrderedDict
+
 from apps.cmsblue.cms_parser_utilities import *
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -42,7 +44,7 @@ def custom_family_history(strt_ln,
     # seg_name = dict key in seg returned from process_header
 
     current_segment = seg_name
-    seg_type = check_type(seg[seg_name])
+    # seg_type = check_type(seg[seg_name])
     end_segment = False
     wrk_ln = strt_ln
 
@@ -60,15 +62,15 @@ def custom_family_history(strt_ln,
            "ln": 0,
            "category": ""}
 
-    wrk_segment = seg_name
+    # wrk_segment = seg_name
     # multi = key_is("multi", ln_control, "TRUE")
 
     save_to = seg[seg_name]
-    logger.debug("pre-load the data passed in to ", seg_type,
-                 "<<<<<<<<<<<<<<<<",
-                 "seg[" + seg_name + "]:", to_json(seg[seg_name]))
+    # logger.debug("pre-load the data passed in to ", seg_type,
+    #              "<<<<<<<<<<<<<<<<",
+    #              "seg[" + seg_name + "]:", to_json(seg[seg_name]))
 
-    process_dict = collections.OrderedDict()
+    process_dict = OrderedDict()
     process_list = []
 
     # get current line
@@ -83,15 +85,15 @@ def custom_family_history(strt_ln,
 
     type_count = 0
 
-    logger.debug(">>==>>==>>==>>==>>==>>==>>==>>==>>==>>==>>",
-                 "type:", seg_type,
-                 "seg:", seg,
-                 "seg_name:", seg_name,
-                 "ln_control:", to_json(ln_control),
-                 "strt_lvl:", strt_lvl,
-                 "match_ln:", match_ln,
-                 "current_line:", current_line,
-                 ">>==>>==>>==>>==>>==>>==>>==>>==>>==>>==>>")
+    # logger.debug(">>==>>==>>==>>==>>==>>==>>==>>==>>==>>==>>",
+    #              "type:", seg_type,
+    #              "seg:", seg,
+    #              "seg_name:", seg_name,
+    #              "ln_control:", to_json(ln_control),
+    #              "strt_lvl:", strt_lvl,
+    #              "match_ln:", match_ln,
+    #              "current_line:", current_line,
+    #              ">>==>>==>>==>>==>>==>>==>>==>>==>>==>>==>>")
 
     #############################################################
     #############################################################
@@ -144,7 +146,7 @@ def custom_family_history(strt_ln,
             # then add to process_list
             process_list.append(process_dict)
             # then clear down process_dict
-            process_dict = collections.OrderedDict({kvs["k"]: kvs["v"]})
+            process_dict = OrderedDict({kvs["k"]: kvs["v"]})
 
         # add line to dict
 
@@ -157,12 +159,12 @@ def custom_family_history(strt_ln,
 
         # end of line assignment
 
-        logger.debug("Current_line:", current_line,
-                     "match_ln:", match_ln,
-                     "kvs:", kvs,
-                     "process_dict", process_dict,
-                     "is_line_seg_def:", is_line_seg_def,
-                     "wrk_seg_def:", wrk_seg_def)
+        # logger.debug("Current_line:", current_line,
+        #              "match_ln:", match_ln,
+        #              "kvs:", kvs,
+        #              "process_dict", process_dict,
+        #              "is_line_seg_def:", is_line_seg_def,
+        #              "wrk_seg_def:", wrk_seg_def)
 
         # increment the counter
         wrk_ln += 1
@@ -174,7 +176,7 @@ def custom_family_history(strt_ln,
             # We found the next header
             wrk_ln -= 1
             end_segment = True
-            logger.debug("Found next section!!!!!!!!")
+            # logger.debug("Found next section!!!!!!!!")
 
     # end of While not end_segment and (wrk_ln <= len(ln_list)-1):
 
@@ -204,17 +206,17 @@ def custom_family_history(strt_ln,
         # print("adding from process_dict")
         seg[seg_name] = process_dict
         pass
-    logger.debug("<<==<<==<<==<<==<<==<<==<<==<<==<<",
-                 "returning end_ln:", end_ln,
-                 "wrk_ln:", wrk_ln,
-                 "end_segment:", end_segment,
-                 "wrk_segment:", wrk_segment,
-                 "type:", wrk_seg_def,
-                 "ln_control[type]:", to_json(ln_control),
-                 "returning dict(current_line):", to_json(seg),
-                 "from process_dict:", to_json(process_dict),
-                 "from process_list:", process_list,
-                 "<<==<<==<<==<<==<<==<<==<<==<<==<<")
+    # logger.debug("<<==<<==<<==<<==<<==<<==<<==<<==<<",
+    #              "returning end_ln:", end_ln,
+    #              "wrk_ln:", wrk_ln,
+    #              "end_segment:", end_segment,
+    #              "wrk_segment:", wrk_segment,
+    #              "type:", wrk_seg_def,
+    #              "ln_control[type]:", to_json(ln_control),
+    #              "returning dict(current_line):", to_json(seg),
+    #              "from process_dict:", to_json(process_dict),
+    #              "from process_list:", process_list,
+    #              "<<==<<==<<==<<==<<==<<==<<==<<==<<")
     if len(save_to) == 1:
         save_to = seg[seg_name]
         # print ("seg:", seg)
@@ -246,12 +248,12 @@ def write_conditions(wrk_ln, kvs, wrk_seg_def, ln_list):
     kvs["k"] = "condition"
     kvs["v"] = []
 
-    process_dict = collections.OrderedDict()
+    process_dict = OrderedDict()
 
-    logger.debug("not eol:", not_eol,
-                 "current_line:", current_line,
-                 "kvs:", kvs,
-                 "sub_kvs:", sub_kvs)
+    # logger.debug("not eol:", not_eol,
+    #              "current_line:", current_line,
+    #              "kvs:", kvs,
+    #              "sub_kvs:", sub_kvs)
 
     while loop_more and not_eol and is_body(current_line):
         # break out of loop on following conditions:
@@ -262,12 +264,12 @@ def write_conditions(wrk_ln, kvs, wrk_seg_def, ln_list):
         # We come in with sub_kvs set
 
         if sub_kvs["k"] in process_dict:
-            logger.debug("process_dict:", process_dict,
-                         "sub_kvs:", sub_kvs,
-                         "kvs:", kvs)
+            # logger.debug("process_dict:", process_dict,
+            #              "sub_kvs:", sub_kvs,
+            #              "kvs:", kvs)
             process_dict = write_source(sub_kvs, process_dict)
             kvs["v"].append(process_dict)
-            process_dict = collections.OrderedDict()
+            process_dict = OrderedDict()
 
         process_dict[sub_kvs["k"]] = sub_kvs["k"]
 
@@ -285,11 +287,11 @@ def write_conditions(wrk_ln, kvs, wrk_seg_def, ln_list):
 
     # end while not end_segment
 
-    logger.debug("END OF WRITE_CONDITIONS",
-                 "wrk_ln:", wrk_ln,
-                 "kvs:", kvs,
-                 "sub_kvs:", sub_kvs,
-                 "process_dict:", process_dict)
+    # logger.debug("END OF WRITE_CONDITIONS",
+    #              "wrk_ln:", wrk_ln,
+    #              "kvs:", kvs,
+    #              "sub_kvs:", sub_kvs,
+    #              "process_dict:", process_dict)
 
     if len(process_dict) > 0:
         kvs["v"].append(process_dict)

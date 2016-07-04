@@ -17,7 +17,6 @@ from apps.cmsblue.usa_states import STATES
 import logging
 import re
 import json
-import collections
 import inspect
 import six
 
@@ -40,7 +39,8 @@ def process_header(strt_ln, ln_control, strt_lvl, ln_list):
     #    }
     # },
 
-    wrk_add_dict = collections.OrderedDict()
+    # unused = strt_lvl
+    wrk_add_dict = OrderedDict()
 
     # Setup
     # we dropped in to this function because we found a SEG_DEF dict
@@ -58,8 +58,13 @@ def process_header(strt_ln, ln_control, strt_lvl, ln_list):
     return strt_ln, wrk_add_dict, segment
 
 
-def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
-                   ln_list, seg, seg_name):
+def process_subseg(strt_ln,
+                   ln_control,
+                   match_ln,
+                   strt_lvl,
+                   ln_list,
+                   seg,
+                   seg_name):
     # Input:
     # strt_ln = current line number in the dict
     # ln_control = entry from SEG_DEF for the start_ln
@@ -146,7 +151,7 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
     # the lines
 
     current_segment = seg_name
-    seg_type = check_type(seg[seg_name])
+    # seg_type = check_type(seg[seg_name])
     end_segment = False
     wrk_ln = strt_ln
 
@@ -169,12 +174,12 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
     # Disable pre-writing of save_to and add to process_dict instead
     save_to = {}
 
-    logger.debug("pre-load data passed to " + seg_type + " <<<<<<<<<<<<<<<",
-                 "seg[" + seg_name + "]:",
-                 to_json(seg[seg_name]))
+    # logger.debug("pre-load data passed to " + seg_type + " <<<<<<<<<<<<<<<",
+    #              "seg[" + seg_name + "]:",
+    #              to_json(seg[seg_name]))
 
-    process_dict = collections.OrderedDict(seg[seg_name])
-    process_list = []
+    proc_dict = OrderedDict(seg[seg_name])
+    proc_list = []
 
     # get current line
     current_line = get_line_dict(ln_list, wrk_ln)
@@ -186,15 +191,15 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
     match_hdr = combined_match(wrk_ln_lvl, match_ln)
     # Find segment using combined header
 
-    logger.debug(">>==>>==>>==>>==>>==>>==>>==>>==>>==>>==>>",
-                 "type:", seg_type,
-                 "seg", to_json(seg),
-                 "seg_name:", seg_name,
-                 "ln_control:", to_json(ln_control),
-                 "wrk_ln:", wrk_ln,
-                 "strt_lvl:", strt_lvl,
-                 "match_ln:", match_ln,
-                 ">>==>>==>>==>>==>>==>>==>>==>>==>>==>>==>>")
+    # logger.debug(">>==>>==>>==>>==>>==>>==>>==>>==>>==>>==>>",
+    #              "type:", seg_type,
+    #              "seg", to_json(seg),
+    #              "seg_name:", seg_name,
+    #              "ln_control:", to_json(ln_control),
+    #              "wrk_ln:", wrk_ln,
+    #              "strt_lvl:", strt_lvl,
+    #              "match_ln:", match_ln,
+    #              ">>==>>==>>==>>==>>==>>==>>==>>==>>==>>==>>")
 
     while not end_segment and (wrk_ln <= len(ln_list)):
         if wrk_ln == len(ln_list):  # - 1:
@@ -202,25 +207,25 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
 
         # not at end of file
 
-        logger.debug(">>>>>TOP of while loop",
-                     "wrk_ln:", wrk_ln,
-                     "current_line:", to_json(current_line),
-                     "match_ln:", match_ln,
-                     "process_dict:", process_dict,
-                     # "process_list:", process_list,
-                     )
+        # logger.debug(">>>>>TOP of while loop",
+        #              "wrk_ln:", wrk_ln,
+        #              "current_line:", to_json(current_line),
+        #              "match_ln:", match_ln,
+        #              "process_dict:", proc_dict,
+        #              # "process_list:", proc_list,
+        #              )
 
         # update the match string in match_ln
 
         is_line_seg_def = find_segment(match_hdr, True)
         # Find SEG_DEF with match exact = True
 
-        logger.debug("*****************PRESET for line***********",
-                     "wrk_ln_lvl:", wrk_ln_lvl,
-                     "match_ln:", match_ln,
-                     "match_hdr:", match_hdr,
-                     "is_line_seg_def:", is_line_seg_def,
-                     "wrk_seg_def:", wrk_seg_def)
+        # logger.debug("*****************PRESET for line***********",
+        #              "wrk_ln_lvl:", wrk_ln_lvl,
+        #              "match_ln:", match_ln,
+        #              "match_hdr:", match_hdr,
+        #              "is_line_seg_def:", is_line_seg_def,
+        #              "wrk_seg_def:", wrk_seg_def)
 
         if is_line_seg_def:
             # We found an entry in SEG_DEF using match_hdr
@@ -237,61 +242,61 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
             wrk_ln_lvl = wrk_seg_def["level"]
             multi = key_is("multi", wrk_seg_def, "TRUE")
 
-            logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
-                         "is_line_seg_def:", is_line_seg_def,
-                         "wrk-seg_def:", to_json(wrk_seg_def),
-                         "match_ln:", match_ln,
-                         "wrk_ln:", wrk_ln,
-                         "strt_ln:", strt_ln,
-                         "current_line type:",
-                         current_line["type"])
+            # logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+            #              "is_line_seg_def:", is_line_seg_def,
+            #              "wrk-seg_def:", to_json(wrk_seg_def),
+            #              "match_ln:", match_ln,
+            #              "wrk_ln:", wrk_ln,
+            #              "strt_ln:", strt_ln,
+            #              "current_line type:",
+            #              current_line["type"])
 
             if (wrk_ln != strt_ln) and (is_head(current_line)):
                 # we found a new header
                 # We have to deal with claims lines and claims headers
                 # within claims. They have a different level value
                 # So test for level = strt_lvl
-                logger.debug("DEALING WITH NEW HEADER:",
-                             current_line["line"])
+                # logger.debug("DEALING WITH NEW HEADER:%s" %
+                #              current_line["line"])
 
                 # set wrk_ln_head = True
                 # Clean up the last section since we are in a
                 # new header
-                process_dict, process_list, = write_proc_dl(kvs,
-                                                            process_dict,
-                                                            process_list)
+                proc_dict, proc_list, = write_proc_dl(kvs,
+                                                      proc_dict,
+                                                      proc_list)
 
                 # Now clear down the dict and
                 # add the new item
 
-                process_dict = collections.OrderedDict()
+                proc_dict = OrderedDict()
 
-                wrk_segment, process_dict = segment_prefill(wrk_seg_def,
-                                                            process_dict)
+                wrk_segment, proc_dict = segment_prefill(wrk_seg_def,
+                                                         proc_dict)
 
                 # new fix end
                 wrk_ln_head = True
                 wrk_ln_lvl = get_level(wrk_seg_def)
 
-                logger.debug("RECURSIVE CALL",
-                             "wrk_ln:", wrk_ln,
-                             "wrk_seg_def:", wrk_seg_def,
-                             "match_ln:", match_ln,
-                             "wrk_ln_lvl:", wrk_ln_lvl,
-                             # "process_list:", process_list,
-                             "process_dict:", process_dict,
-                             "seg:", seg,
-                             "seg_name:", seg_name)
+                # logger.debug("RECURSIVE CALL",
+                #              "wrk_ln:", wrk_ln,
+                #              "wrk_seg_def:", wrk_seg_def,
+                #              "match_ln:", match_ln,
+                #              "wrk_ln_lvl:", wrk_ln_lvl,
+                #              # "process_list:", proc_list,
+                #              "process_dict:", proc_dict,
+                #              "seg:", seg,
+                #              "seg_name:", seg_name)
 
         else:
             # NOT is-line-seg_def
-            logger.debug("--------------------------------",
-                         "wrk_ln:", wrk_ln,
-                         "wrk_ln_head:", wrk_ln_head,
-                         "wrk_seg_def:", wrk_seg_def,
-                         "updating wrk_seg_def",
-                         "ln_control_alt:", ln_control_alt,
-                         "SETTING to ln_control_alt")
+            # logger.debug("--------------------------------",
+            #              "wrk_ln:", wrk_ln,
+            #              "wrk_ln_head:", wrk_ln_head,
+            #              "wrk_seg_def:", wrk_seg_def,
+            #              "updating wrk_seg_def",
+            #              "ln_control_alt:", ln_control_alt,
+            #              "SETTING to ln_control_alt")
             if not ln_control_alt == {}:
                 wrk_seg_def = ln_control_alt
             else:
@@ -302,14 +307,14 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
                                wrk_seg_def,
                                kvs)
 
-        logger.debug("wrk_ln_lvl:", wrk_ln_lvl, "match_hdr:", match_hdr,
-                     "kvs:", kvs,
-                     "Multi:", multi,
-                     "is_line_seg_def:", is_line_seg_def,
-                     "process_dict:", process_dict,
-                     # "process_list:", process_list,
-                     "end_segment:", end_segment,
-                     "wrk_ln_head:", wrk_ln_head)
+        # logger.debug("wrk_ln_lvl:", wrk_ln_lvl, "match_hdr:", match_hdr,
+        #              "kvs:", kvs,
+        #              "Multi:", multi,
+        #              "is_line_seg_def:", is_line_seg_def,
+        #              "process_dict:", proc_dict,
+        #              # "process_list:", proc_list,
+        #              "end_segment:", end_segment,
+        #              "wrk_ln_head:", wrk_ln_head)
 
         # Update kvs to dict or list
         if not end_segment:
@@ -317,44 +322,45 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
 
             # assign "pre" values from SEG_DEF
             # to work_add_dict
-            logger.debug("WRK_LN_HEAD:", wrk_ln_head,
-                         "wrk_seg_def:", wrk_seg_def,
-                         "process_dict:", process_dict,
-                         # "process_list:", process_list,
-                         )
+            # logger.debug("WRK_LN_HEAD:", wrk_ln_head,
+            #              "wrk_seg_def:", wrk_seg_def,
+            #              "process_dict:", proc_dict,
+            #              # "process_list:", proc_list,
+            #              )
 
             if wrk_ln_head:
                 # Post the dict to a list and clear down
                 # before writing pre-fill
-                # check for source and write it to process_dict
+                # check for source and write it to proc_dict
 
                 # Move to sub-function()
 
-                process_dict, process_list, = write_proc_dl(kvs,
-                                                            process_dict,
-                                                            process_list)
+                proc_dict, proc_list, = write_proc_dl(kvs,
+                                                      proc_dict,
+                                                      proc_list)
 
                 # Replace code with sub-function()
 
                 # Now clear down the dict and
                 # add the new item
 
-                process_dict = collections.OrderedDict()
+                proc_dict = OrderedDict()
 
-                wrk_segment, process_dict = segment_prefill(wrk_seg_def,
-                                                            process_dict)
+                wrk_segment, proc_dict = segment_prefill(wrk_seg_def,
+                                                         proc_dict)
 
-                logger.debug("Just ran segment_pre-fill:", wrk_ln_head,
-                             "wrk_segment:", wrk_segment,
-                             "process_dict:", process_dict,
-                             # "process_list:", process_list,
-                             )
+                # logger.debug("Just ran segment_pre-fill:", wrk_ln_head,
+                #              "wrk_segment:", wrk_segment,
+                #              "process_dict:", proc_dict,
+                #              # "process_list:", proc_list,
+                #              )
 
             else:  # NOT wrk_ln_head
-                logger.debug("wrk_ln_head:", wrk_ln_head,
-                             "process_dict:", process_dict,
-                             # "PROCESS_LIST:", process_list,
-                             )
+                # logger.debug("wrk_ln_head:", wrk_ln_head,
+                #              "process_dict:", proc_dict,
+                #              # "PROCESS_LIST:", proc_list,
+                #              )
+                pass
 
             # Do we need to override the key using field or name
             # from SEG_DEF?
@@ -378,12 +384,12 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
 
                 kvs["v"], wrk_ln = build_address(ln_list, wrk_ln)
                 kvs["k"] = "address"
-                logger.debug("Built Address wrk_ln now:",
-                             wrk_ln,
-                             "k:",
-                             kvs["k"],
-                             "v:",
-                             kvs["v"])
+                # logger.debug("Built Address wrk_ln now:",
+                #              wrk_ln,
+                #              "k:",
+                #              kvs["k"],
+                #              "v:",
+                #              kvs["v"])
 
             if "COMMENTS" in kvs["k"].upper() and not wrk_ln_head:
                 # print "We found a comment", kvs["k"],":", kvs["v"]
@@ -392,90 +398,92 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
                 # if comments already present
                 # if so, add to the list
 
-                process_dict = write_comment(process_dict, kvs)
+                proc_dict = write_comment(proc_dict, kvs)
 
-                logger.debug("is_line_seg_def:", is_line_seg_def,
-                             "wrk_seg_def", wrk_seg_def,
-                             "wrk_ln:", wrk_ln,
-                             "kvs:", kvs,
-                             "current_line:", current_line,
-                             "process_dict:", process_dict)
+                # logger.debug("is_line_seg_def:", is_line_seg_def,
+                #              "wrk_seg_def", wrk_seg_def,
+                #              "wrk_ln:", wrk_ln,
+                #              "kvs:", kvs,
+                #              "current_line:", current_line,
+                #              "process_dict:", proc_dict)
 
             if multi:
-                logger.debug("******************************",
-                             "MULTI:", multi)
+                # logger.debug("******************************",
+                #              "MULTI:", multi)
                 if key_is("type", wrk_seg_def, "LIST"):
                     if key_is("sub_type", wrk_seg_def, "DICT"):
-                        logger.debug("LIST and sub_type: DICT",
-                                     "current_line:", current_line,
-                                     "process_dict:", process_dict,
-                                     # "process_list:", process_list,
-                                     "kvs:", kvs)
-                        if kvs["k"] in process_dict:
-                            logger.debug("k:", kvs["k"],
-                                         "in:", process_dict)
+                        # logger.debug("LIST and sub_type: DICT",
+                        #              "current_line:", current_line,
+                        #              "process_dict:", proc_dict,
+                        #              # "process_list:", proc_list,
+                        #              "kvs:", kvs)
+                        if kvs["k"] in proc_dict:
+                            # logger.debug("k:", kvs["k"],
+                            #              "in:", proc_dict)
 
-                            process_dict, process_list = write_proc_dl(kvs,
-                                                                       process_dict,
-                                                                       process_list)
+                            proc_dict, proc_list = write_proc_dl(kvs,
+                                                                 proc_dict,
+                                                                 proc_list)
                             # Now clear down the dict and
                             # add the new item
 
-                            process_dict = collections.OrderedDict()
+                            proc_dict = OrderedDict()
 
                             if not kvs["k"].upper() == "COMMENTS":
                                 # print "skipping comments"
-                                process_dict[kvs["k"]] = kvs["v"]
-                            # print "process_dict (after write):", \
-                            #    process_dict
+                                proc_dict[kvs["k"]] = kvs["v"]
+                            # print "proc_dict (after write):", \
+                            #    proc_dict
                         else:
                             if not kvs["k"].upper() in ["CATEGORY",
                                                         "SOURCE"]:
-                                process_dict[kvs["k"]] = kvs["v"]
-                                logger.debug("After " + kvs["k"] +
-                                             " not found",
-                                             "in process_dict:",
-                                             process_dict,
-                                             "SO IT WAS ADDED -" +
-                                             " if not CATEGORY")
+                                proc_dict[kvs["k"]] = kvs["v"]
+                                # logger.debug("After " + kvs["k"] +
+                                #              " not found",
+                                #              "in process_dict:",
+                                #              proc_dict,
+                                #              "SO IT WAS ADDED -" +
+                                #              " if not CATEGORY")
                     else:
                         if key_is_in("sub_type", wrk_seg_def):
-                            logger.debug("wrk_seg_def sub_type:",
-                                         wrk_seg_def["sub_type"])
+                            # logger.debug("wrk_seg_def sub_type:",
+                            #              wrk_seg_def["sub_type"])
+                            pass
 
-                        process_dict[kvs["k"]] = [kvs["v"]]
-                        # print("process_dict:", process_dict)
+                        proc_dict[kvs["k"]] = [kvs["v"]]
+                        # print("proc_dict:", proc_dict)
                         # TESTING disabling save_to write
-                        # save_to = write_save_to(save_to, process_dict)
+                        # save_to = write_save_to(save_to, proc_dict)
 
                 elif key_is("type", wrk_seg_def, "DICT"):
                     # print("wrk-seg_def:", wrk_seg_def)
                     if key_is("sub_type", wrk_seg_def, "DICT"):
-                        logger.debug("DICT and sub_type: DICT",
-                                     "write " + wrk_seg_def["name"] + ":",
-                                     kvs["v"],
-                                     "ln_control:", to_json(ln_control),
-                                     "wrk_seg_def:", to_json(wrk_seg_def),
-                                     "current_line:", to_json(current_line),
-                                     "process_dict:", to_json(process_dict),
-                                     # "process_list:", process_list,
-                                     "kvs:", kvs)
+                        # logger.debug("DICT and sub_type: DICT",
+                        #              "write " + wrk_seg_def["name"] + ":",
+                        #              kvs["v"],
+                        #              "ln_control:", to_json(ln_control),
+                        #              "wrk_seg_def:", to_json(wrk_seg_def),
+                        #              "current_line:", to_json(current_line),
+                        #              "process_dict:", to_json(proc_dict),
+                        #              # "process_list:", proc_list,
+                        #              "kvs:", kvs)
 
                         # Write what
                         if not kvs["k"].upper() == "SOURCE":
-                            # process_dict[wrk_seg_def["name"]] = kvs["v"]
-                            process_dict[kvs["k"]] = kvs["v"]
-                        logger.debug("just wrote non-source line",
-                                     "process_dict:", process_dict)
+                            # proc_dict[wrk_seg_def["name"]] = kvs["v"]
+                            proc_dict[kvs["k"]] = kvs["v"]
+                        # logger.debug("just wrote non-source line",
+                        #              "process_dict:", proc_dict)
 
                     else:
-                        logger.debug("No sub_type")
+                        # logger.debug("No sub_type")
                         if key_is_in("sub_type", wrk_seg_def):
-                            logger.debug("type: DICT and sub_type:",
-                                         wrk_seg_def["sub_type"])
+                            # logger.debug("type: DICT and sub_type:%s" %
+                            #              wrk_seg_def["sub_type"])
+                            pass
                         else:
-                            logger.debug("writing to process_dict:",
-                                         process_dict)
+                            # logger.debug("writing to proc_dict:%s" %
+                            #              proc_dict)
 
                             # type: dict
                             # dict_name: phone
@@ -483,123 +491,122 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
                             # k: homePhone v = ""
                             # needs to get written as
                             # phone {"home": "", "work": "", "mobile": ""}
-                            # process_dict[wrk_seg_def["dict_name"]] =
+                            # proc_dict[wrk_seg_def["dict_name"]] =
                             #               {wrk_seg_def["field"]: kvs["v"]
                             # follow on elements need to check:
                             # wrk_seg_def["dict_name"] or kvs["k"]
 
-                            if key_is_in_subdict(kvs["k"], process_dict):
+                            if key_is_in_subdict(kvs["k"], proc_dict):
                                 # write the source first
-                                logger.debug("roll a new process_dict")
-                                process_dict = write_source(kvs,
-                                                            process_dict)
+                                # logger.debug("roll a new process_dict")
+                                proc_dict = write_source(kvs,
+                                                         proc_dict)
                                 # Append to the list
-                                process_list.append(process_dict)
+                                proc_list.append(proc_dict)
                                 # Now clear down the dict and
                                 # add the new item
-                                process_dict = collections.OrderedDict()
-                                process_dict[kvs["k"]] = kvs["v"]
+                                proc_dict = OrderedDict()
+                                proc_dict[kvs["k"]] = kvs["v"]
 
-                            logger.debug("didn't find:", kvs["k"],
-                                         "is_line_seg_def:",
-                                         is_line_seg_def)
+                            # logger.debug("didn't find:%s \nis_"
+                            #              "line_seg_def:%s" % (kvs["k"],
+                            #                                   is_line_seg_def))
 
                             if is_line_seg_def and key_is_in("dict_name",
                                                              wrk_seg_def):
-                                logger.debug("got dict_name:",
-                                             wrk_seg_def["dict_name"])
+                                # logger.debug("got dict_name:",
+                                #              wrk_seg_def["dict_name"])
                                 if not key_is_in(wrk_seg_def["dict_name"],
-                                                 process_dict):
-                                    logger.debug("no dict_name")
+                                                 proc_dict):
+                                    # logger.debug("no dict_name")
                                     if wrk_seg_def["dict_name"] == wrk_seg_def["name"]:
                                         # fix to write "contactName"
                                         # sections consistently
-                                        process_dict[wrk_seg_def["dict_name"]] = kvs["v"]
+                                        proc_dict[wrk_seg_def["dict_name"]] = kvs["v"]
                                     else:
-                                        process_dict[wrk_seg_def["dict_name"]] = {wrk_seg_def["name"]: kvs["v"]}
+                                        proc_dict[wrk_seg_def["dict_name"]] = {wrk_seg_def["name"]: kvs["v"]}
                                     # process_dict[kvs["k"]] = kvs["v"]
                                 else:
-                                    logger.debug("updating process_dict:",
-                                                 process_dict,
-                                                 "with kvs:", kvs)
-                                    # process_dict[wrk_seg_def
+                                    # logger.debug("updating proc_dict:"
+                                    #              "%s\nwith kvs:"
+                                    #              "%s" % (proc_dict, kvs))
+                                    # proc_dict[wrk_seg_def
                                     # ["dict_name"]] =kvs["v"]
-                                    if check_type(process_dict[wrk_seg_def["dict_name"]]) == "DICT":
-                                        process_dict[wrk_seg_def["dict_name"]].update({wrk_seg_def["name"]: kvs["v"]})
+                                    if check_type(proc_dict[wrk_seg_def["dict_name"]]) == "DICT":
+                                        proc_dict[wrk_seg_def["dict_name"]].update({wrk_seg_def["name"]: kvs["v"]})
                                     else:
-                                        process_dict[wrk_seg_def["dict_name"]] = kvs["v"]
+                                        proc_dict[wrk_seg_def["dict_name"]] = kvs["v"]
                             else:
-                                logger.debug("didn't get dict_name:", kvs)
-                                # process_dict[kvs["k"]] = kvs["v"]
+                                # logger.debug("didn't get dict_name:%s" % kvs)
+                                # proc_dict[kvs["k"]] = kvs["v"]
 
                                 # ## TESTING disabling SAVE_TO
                                 # save_to[kvs["k"]] = kvs["v"]
-                                process_dict.update({kvs["k"]: kvs["v"]})
-                                logger.debug("process_dict updated to:",
-                                             process_dict)
+                                proc_dict.update({kvs["k"]: kvs["v"]})
+                                # logger.debug("proc_dict updated to:%s" %
+                                #              proc_dict)
 
                 else:
                     if key_is_in("type", wrk_seg_def):
-                        logger.debug("wrk-seg_def - Type is:",
-                                     wrk_seg_def["type"],
-                                     "KVS:", kvs)
+                        # logger.debug("wrk-seg_def - Type is:",
+                        #              wrk_seg_def["type"],
+                        #              "KVS:", kvs)
+                        pass
 
             else:  # not multi
                 if key_is("type", wrk_seg_def, "DICT"):
 
-                    logger.debug("Multi:", multi, " and type: DICT")
+                    # logger.debug("Multi:", multi, " and type: DICT")
 
                     if kvs["k"].upper() == "COMMENTS" and \
                             key_is_in("comments",
-                                      process_dict):
+                                      proc_dict):
                         pass
                     else:
                         if not is_line_seg_def:
                             # We have no special processing rules for
                             # this line
-                            logger.debug("is_line_seg_def:",
-                                         is_line_seg_def,
-                                         "kvs:", kvs)
-                            process_dict[kvs["k"]] = kvs["v"]
+                            # logger.debug("is_line_seg_def: %s"
+                            #              "\nkvs:%s" % (is_line_seg_def, kvs))
+                            proc_dict[kvs["k"]] = kvs["v"]
                             # save_to[kvs["k"]] = kvs["v"]
 
                         elif key_is_in("dict_name", wrk_seg_def):
-                            logger.debug("processing:",
-                                         wrk_seg_def["dict_name"],
-                                         "kvs:", kvs,
-                                         "process_dict:", process_dict)
+                            # logger.debug("processing:",
+                            #              wrk_seg_def["dict_name"],
+                            #              "kvs:", kvs,
+                            #              "process_dict:", proc_dict)
                             if key_is_in(wrk_seg_def["dict_name"],
-                                         process_dict):
-                                process_dict[
+                                         proc_dict):
+                                proc_dict[
                                     wrk_seg_def["dict_name"]].update(
                                     {kvs["k"]: kvs["v"]})
                             else:
-                                logger.debug("wrk_seg_def:", wrk_seg_def,
-                                             "kvs:", kvs)
-                                process_dict[wrk_seg_def["dict_name"]] = \
-                                    collections.OrderedDict(
-                                        {kvs["k"]: kvs["v"]})
+                                # logger.debug("wrk_seg_def:", wrk_seg_def,
+                                #              "kvs:", kvs)
+                                proc_dict[wrk_seg_def["dict_name"]] = \
+                                    OrderedDict({kvs["k"]: kvs["v"]})
                         else:
-                            process_dict[kvs["k"]] = kvs["v"]
+                            proc_dict[kvs["k"]] = kvs["v"]
 
                 elif key_is("type", wrk_seg_def, "LIST"):
-                    logger.debug("Multi:", multi,
-                                 " and type: LIST",
-                                 "process_dict:", to_json(process_dict))
-                    process_dict = update_save_to(process_dict, kvs,
-                                                  kvs["k"], "v")
+                    # logger.debug("Multi:%s and type: LIST\n"
+                    #              "\nproc_dict:%s" % (multi,
+                    #                                  to_json(proc_dict)))
+                    proc_dict = update_save_to(proc_dict, kvs,
+                                               kvs["k"], "v")
                     # save_to.extend([kvs["k"],kvs["v"]])
 
-                logger.debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
-                             "WHAT GETS WRITTEN HERE?",
-                             "MULTI:", multi,
-                             "kvs:", kvs,
-                             "ln_control:", to_json(ln_control),
-                             "wrk_seg_def:", to_json(wrk_seg_def),
-                             "current_line:", to_json(current_line),
-                             "process_dict:", to_json(process_dict),
-                             # "process_list:", process_list,
-                             "save_to:", to_json(save_to))
+                # logger.debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+                #              "WHAT GETS WRITTEN HERE?",
+                #              "MULTI:", multi,
+                #              "kvs:", kvs,
+                #              "ln_control:", to_json(ln_control),
+                #              "wrk_seg_def:", to_json(wrk_seg_def),
+                #              "current_line:", to_json(current_line),
+                #              "proc_dict:", to_json(proc_dict),
+                #              # "proc_list:", proc_list,
+                #              "save_to:", to_json(save_to))
 
         wrk_ln_head = False
         # reset the Header indicator
@@ -628,57 +635,61 @@ def process_subseg(strt_ln, ln_control, match_ln, strt_lvl,
 
             if is_head(current_line) and (wrk_ln_lvl == strt_lvl):
                 end_segment = True
-            logger.debug("current_line-head:", is_head(current_line),
-                         "current_line:", current_line,
-                         "wrk_seg_def:", wrk_seg_def,
-                         "match_hdr:", match_hdr,
-                         "match_ln:", match_ln,
-                         "wrk_ln_lvl:", wrk_ln_lvl,
-                         "process_dict:", process_dict,
-                         "end_segment:", end_segment)
+            # logger.debug("current_line-head: %s\ncurrent_line:%s"
+            #              "\nwrk_seg_def:%s\nmatch_hdr:%s"
+            #              "\nmatch_ln:%s\nnwrk_ln_lvl:%s"
+            #              "\nproc_dict:%s\n"
+            #              "end_segment:%s" %  (is_head(current_line),
+            #                                   current_line,
+            #                                   wrk_seg_def,
+            #                                   match_hdr,
+            #                                   match_ln,
+            #                                   wrk_ln_lvl,
+            #                                   proc_dict,
+            #                                   end_segment))
     # end while loop
 
     end_ln = wrk_ln - 1
 
     if key_is("type", ln_control, "LIST"):
         # print("-------------------------")
-        if len(process_dict) > 0:
+        if len(proc_dict) > 0:
             ############################################
-            # if there is something in process_dict
-            # we need to add to process_list using
+            # if there is something in proc_dict
+            # we need to add to proc_list using
             # write_proc_dl
             # it will deal with source addition
             # etc.
             ############################################
 
-            process_dict, process_list = write_proc_dl(kvs,
-                                                       process_dict,
-                                                       process_list)
+            proc_dict, proc_list = write_proc_dl(kvs,
+                                                 proc_dict,
+                                                 proc_list)
 
-        logger.debug("seg:", seg, "adding from process_list")
+        # logger.debug("seg: %s adding from proc_list" % seg)
 
         if check_type(seg[seg_name]) == "LIST":
-            seg[seg_name].append(process_list)
+            seg[seg_name].append(proc_list)
 
-        logger.debug("seg_name:", seg_name)
+        # logger.debug("seg_name:%s" % seg_name)
 
     elif key_is("type", ln_control, "DICT"):
-        seg[seg_name] = process_dict
-        logger.debug("Type is DICT",
-                     "adding from process_dict",
-                     "process_dict:", process_dict,
-                     "seg_name:", seg_name)
+        seg[seg_name] = proc_dict
+        # logger.debug("Type is DICT",
+        #              "adding from proc_dict",
+        #              "process_dict:", proc_dict,
+        #              "seg_name:", seg_name)
 
-    logger.debug("returning end_ln:", end_ln,
-                 "wrk_ln:", wrk_ln,
-                 "end_segment:", end_segment,
-                 "wrk_segment:", wrk_segment,
-                 "type:", wrk_seg_def,
-                 "current_line:", current_line,
-                 "ln_control[type]:", to_json(ln_control),
-                 "returning dict(current_line):", to_json(seg),
-                 "from process_dict:", to_json(process_dict),
-                 "len(save_to):", len(save_to))
+    # logger.debug("returning end_ln:", end_ln,
+    #              "wrk_ln:", wrk_ln,
+    #              "end_segment:", end_segment,
+    #              "wrk_segment:", wrk_segment,
+    #              "type:", wrk_seg_def,
+    #              "current_line:", current_line,
+    #              # "ln_control[type]:", to_json(ln_control),
+    #              # "returning dict(current_line):", to_json(seg),
+    #              # "from proc_dict:", to_json(proc_dict),
+    #              "len(save_to):", len(save_to))
 
     if len(save_to) <= 1:
         save_to = seg[seg_name]
@@ -703,8 +714,8 @@ def adjusted_level(lvl, match_ln):
         if key_is_in("level", seg_info):
             result = max(lvl, seg_info["level"])
 
-    logger.debug("Level(lvl):", lvl, "Result:", result,
-                 "Using match_ln:", to_json(match_ln))
+    # logger.debug("Level(lvl): %s \nResult:%s"
+    #              "\nUsing match_ln:%s" % (lvl, result, to_json(match_ln)))
 
     return result
 
@@ -717,8 +728,8 @@ def assign_key_value(line_dict, wrk_seg_def, kvs):
     claim = line_dict["claimNumber"]
 
     if kvs["ln"] > 140 and kvs["ln"] < 199:
-        logger.debug("line_dict:", line_dict,
-                     "kvs:", kvs, )
+        # logger.debug("line_dict:%s kvs:%s" % (line_dict, kvs))
+        pass
 
     line_source = full_line.split(":")
     if len(line_source) > 1:
@@ -779,7 +790,8 @@ def assign_key_value(line_dict, wrk_seg_def, kvs):
         kvs["claimNumber"] = claim
 
     if kvs["ln"] > 140 and kvs["ln"] < 199:
-        logger.debug("kvs:", kvs)
+        # logger.debug("kvs:s" % kvs)
+        pass
 
     return kvs
 
@@ -809,12 +821,12 @@ def build_address(ln_list, wk_ln):
     # so read until k.upper() == "ZIP"
     # then return address block and work_ln reached
 
-    addr_block = collections.OrderedDict([("addressType", ""),
-                                          ("addressLine1", ""),
-                                          ("addressLine2", ""),
-                                          ("city", ""),
-                                          ("state", ""),
-                                          ("zip", "")])
+    addr_block = OrderedDict([("addressType", ""),
+                              ("addressLine1", ""),
+                              ("addressLine2", ""),
+                              ("city", ""),
+                              ("state", ""),
+                              ("zip", "")])
 
     end_block = False
     while not end_block:
@@ -837,9 +849,10 @@ def build_address(ln_list, wk_ln):
     # sometimes the city, state, zip is entered in the addressLine1/2
 
     if len(addr_block["city"] + addr_block["state"] + addr_block["zip"]) < 2:
-        logger.debug("Empty city, state, zip: ", len(addr_block["city"] +
-                                                     addr_block["state"] +
-                                                     addr_block["zip"]))
+        # logger.debug("Empty city, state, zip: "
+        #              "%s" % len(addr_block["city"] +
+        #                          addr_block["state"] +
+        #                          addr_block["zip"]))
 
         patch_addr = (
             addr_block["addressLine1"] + " " + addr_block[
@@ -889,9 +902,8 @@ def build_address(ln_list, wk_ln):
                 # the zip and state came from addressLine1
                 addr_block["addrLine1"] = patch_addr.rstrip()
 
-    logger.debug("ADDRESS BLOCK---------",
-                 to_json(addr_block),
-                 "wk_ln:", wk_ln - 1)
+    # logger.debug("ADDRESS BLOCK---------\n%s"
+    #              "\nwk_ln: %s" % (to_json(addr_block), wk_ln - 1))
 
     return addr_block, wk_ln - 1
 
@@ -930,8 +942,8 @@ def combined_match(lvl, match_ln):
     combined_header = ""
     # print(match_ln)
 
-    logger.debug("lvl:", lvl, "match_ln:", match_ln,
-                 "combined_header:", combined_header)
+    # logger.debug("lvl: %s\nmatch_ln: %s"
+    #              "\ncombined_header:%s" % (lvl, match_ln, combined_header))
 
     while ctr <= lvl:
         if ctr == 0:
@@ -944,8 +956,8 @@ def combined_match(lvl, match_ln):
 
         ctr += 1
 
-    logger.debug("lvl:", lvl, "match_ln:", match_ln,
-                 "combined_header:", combined_header)
+    # logger.debug("lvl: %s\nmatch_ln: %s"
+    #              "\ncombined_header:%s" % (lvl, match_ln, combined_header))
 
     return combined_header
 
@@ -959,8 +971,8 @@ def dict_in_list(ln_control):
         if ln_control["sub_type"].upper() == "DICT":
             result = True
 
-    logger.debug("ln_control:", to_json(ln_control),
-                 "result:", result)
+    # logger.debug("ln_control:%s"
+    #              "\nresult: %s" % (to_json(ln_control), result))
 
     return result
 
@@ -1012,10 +1024,10 @@ def find_segment(title, exact=False):
                 result = True
                 break
 
-    logger.debug("title:", title,
-                 "match exact:", exact,
-                 "ky in SEG_DEF:", ky,
-                 "result:", result)
+    # logger.debug("title: %s."
+    #              "\nmatch exact:%s"
+    #              "ky in SEG_DEF:%s"
+    #              "\nresult:%s" %  (title, exact, ky, result))
 
     return result
 
@@ -1030,8 +1042,8 @@ def get_dict_name(wrk_seg_def):
         key_is_in("name", wrk_seg_def)
         dict_name = wrk_seg_def["name"]
 
-    logger.debug("wrk_seg_def:", to_json(wrk_seg_def),
-                 "dict_name:", dict_name)
+    # logger.debug("wrk_seg_def:%s. dict_name:%s" % (to_json(wrk_seg_def),
+    #                                                dict_name))
 
     return dict_name
 
@@ -1064,21 +1076,19 @@ def get_line_dict(ln, i):
         prev_i = max(0, i - 1)
         prev_line = ln[prev_i][prev_i]
 
-        logger.debug("ln[" + str(prev_i) + "]:",
-                     ln[prev_i],
-                     prev_line)
+        # logger.debug("ln[%s]:%s/%s" % (str(prev_i), ln[prev_i], prev_line))
         if prev_line == {}:
-            logger.debug("Previous Line was empty", prev_i)
+            # logger.debug("Previous Line was empty:%s " % prev_i)
             pass
         elif prev_line["line"].upper() == "CLAIM HEADER" or \
                 "SOURCE:" in prev_line["line"].upper():
-            logger.debug("We found claim Number with previous claimHeader")
+            # logger.debug("We found claim Number with previous claimHeader")
             pass
         else:
-            logger.debug("MISSING PREVIOUS CLAIM HEADER",
-                         "Extract line:", extract_line,
-                         "Previous Line:", prev_line,
-                         "Changing TYPE")
+            # logger.debug("MISSING PREVIOUS CLAIM HEADER",
+            #              "Extract line:", extract_line,
+            #              "Previous Line:", prev_line,
+            #              "Changing TYPE")
             extract_line["type"] = "HEADER"
 
     return extract_line
@@ -1100,8 +1110,8 @@ def get_rest_of_line(kvs, line_source):
             line_value = line_value + ":" + line_source[piece]
             piece += 1
 
-    logger.debug("piece:", piece, "line_value:", line_value,
-                 "Line_Source:", line_source)
+    # logger.debug("piece:", piece, "line_value:", line_value,
+    #              "Line_Source:", line_source)
 
     kvs["v"] = line_value.lstrip()
 
@@ -1125,10 +1135,8 @@ def get_segment(title, exact=False):
                 result = ky
                 break
 
-    logger.debug("title:", title,
-                 "match exact:", exact,
-                 "ky in SEG_DEF:", ky,
-                 "result:", result)
+    # logger.debug("title:%s, \nmatch exact:%s"
+    #              "ky in SEG_DEF: %s, result:%s" % (title, exact, ky, result))
 
     return result
 
@@ -1145,7 +1153,7 @@ def headlessCamel(In_put):
 
     result = Camel[0].lower() + Camel[1:len(Camel)]
 
-    logger.debug("In_put:", In_put, "headlessCamel:", result)
+    # logger.debug("In_put:%s \nheadlessCamel:%s" % (In_put, result))
 
     return result
 
@@ -1158,7 +1166,7 @@ def is_body(ln):
         if ln["type"].upper() == "BODY":
             result = True
 
-    logger.debug("is_body:", result)
+    # logger.debug("is_body:%s" % result)
 
     return result
 
@@ -1183,13 +1191,13 @@ def is_head(ln):
 
     if key_is_in("type", ln):
 
-        logger.debug("Matching HEAD in:", ln["type"])
+        # logger.debug("Matching HEAD in:%s" % ln["type"])
 
         if "HEAD" in ln["type"].upper():
             # match on "HEAD", "HEADING" or "HEADER"
             result = True
 
-    logger.debug("is_header:", result)
+    # logger.debug("is_header:%s" % result)
 
     return result
 
@@ -1206,8 +1214,8 @@ def is_multi(ln_dict):
     else:
         result = False
 
-    logger.debug("result:", result,
-                 "ln_dict:", to_json(ln_dict))
+    # logger.debug("result:%s"
+    #              "\nln_dict:%s" % (result, to_json(ln_dict)))
 
     return result
 
@@ -1222,10 +1230,10 @@ def key_is(ky, dt, val):
             if dt[ky].upper() == val.upper():
                 result = True
 
-    logger.debug("ky:", ky,
-                 "dict:", to_json(dt),
-                 "val:", val,
-                 "result:", result)
+    # logger.debug("ky:", ky,
+    #              "dict:", to_json(dt),
+    #              "val:", val,
+    #              "result:", result)
     return result
 
 
@@ -1236,9 +1244,8 @@ def key_is_in(ky, dt):
     if ky in dt:
         result = True
 
-    logger.debug("ky:", ky,
-                 "dict:", to_json(dt),
-                 "result:", result)
+    # logger.debug("ky:%s dict:%s result:%s" % (ky, to_json(dt), result))
+
     return result
 
 
@@ -1274,10 +1281,8 @@ def key_is_in_subdict(ky, dt):
 
                         # end of for subkey
     # end of for key
-    logger.debug("ky:", ky,
-                 "key:", key,
-                 "dict:", to_json(dt),
-                 "result:", result)
+    # logger.debug("ky:%s key:%s dict:%s "
+    #              "result:%s" % (ky, key, to_json(dt), result))
 
     return result
 
@@ -1292,9 +1297,7 @@ def key_value(ky, dt):
     if ky in dt:
         result = dt[ky]
 
-    logger.debug("ky:", ky,
-                 "dict:", to_json(dt),
-                 "result:", result)
+    # logger.debug("ky:%s dict:%s result:%s" % (ky, to_json(dt), result))
     return result
 
 
@@ -1315,16 +1318,20 @@ def overide_fieldname(lvl, match_ln, current_fld):
         elif key_is_in("name", tmp_seg_def):
             result = tmp_seg_def["name"]
 
-        logger.debug("lvl:", lvl, "Match_ln", to_json(match_ln),
-                     "title:", title, "tmp_seg_def", to_json(tmp_seg_def),
-                     "Result:", result)
+        # logger.debug("lvl: %s \nMatch_ln:%s"
+        #              "title:%s \ntmp_seg_def:%s"
+        #              "\nResult:%s" % (lvl,
+        #                               match_ln,
+        #                               to_json(tmp_seg_def),
+        #                               title,
+        #                               result))
     return result
 
 
 def parse_date(d):
     # convert date to json format
 
-    logger.debug("Date to parse:", d)
+    # logger.debug("Date to parse:%s" % d)
     result = ""
 
     d = d.strip()
@@ -1333,7 +1340,7 @@ def parse_date(d):
         date_value = datetime.strptime(d, "%m/%d/%Y")
         result = date_value.strftime("%Y%m%d")
 
-    logger.debug("Result:", result)
+    # logger.debug("Result:%s" % result)
 
     return result
 
@@ -1341,46 +1348,42 @@ def parse_date(d):
 def parse_time(t):
     # convert time to  json format
 
-    logger.debug("Time to parse:", t)
+    # logger.debug("Time to parse:%s" % t)
     t = t.strip()
     time_value = datetime.strptime(t, "%m/%d/%Y %I:%M %p")
     # print(time_value)
     result = time_value.strftime("%Y%m%d%H%M%S+0500")
 
-    logger.debug("Result:", result)
+    # logger.debug("Result:%s" % result)
 
     return result
 
 
-def segment_prefill(wrk_seg_def, segment_dict):
+def segment_prefill(wrk_seg_def, seg_dict):
     # Receive the Segment information for a header line
     # get the seg["pre"] and iterate through the dict
     # assigning to segment_dict
     # First we reset the segment_dict as an OrderedDict
 
-    if len(segment_dict) > 0:
-
-        logger.debug("Pre-fill- segment_dict:", segment_dict, "NOT EMPTY")
-
+    if len(seg_dict) > 0:
+        # logger.debug("Pre-fill- segment_dict:%s NOT EMPTY" % seg_dict)
         pass
     else:
-        segment_dict = collections.OrderedDict()
+        seg_dict = OrderedDict()
 
-    logger.debug("seg", to_json(wrk_seg_def))
+    # logger.debug("seg:%s" % to_json(wrk_seg_def))
 
-    current_segment = wrk_seg_def["name"]
+    cur_seg = wrk_seg_def["name"]
 
     if key_is_in("pre", wrk_seg_def):
-
         if "pre" in wrk_seg_def:
             pre = wrk_seg_def["pre"]
             for pi, pv in pre.items():
-                segment_dict[pi] = pv
+                seg_dict[pi] = pv
 
-    logger.debug("Current_Segment:", current_segment,
-                 "segment_dict", segment_dict)
+    # logger.debug("Current_Segment:%s segment_dict:%s" % (cur_seg, seg_dict))
 
-    return current_segment, segment_dict
+    return cur_seg, seg_dict
 
 
 def set_source(kvs):
@@ -1419,17 +1422,19 @@ def setup_header(ln_ctrl, wrk_ln_dict):
         if ln_ctrl["type"].lower() == "list":
             wrk_add_dict[seg_name] = []
         elif ln_ctrl["type"].lower() == "dict":
-            wrk_add_dict[seg_name] = collections.OrderedDict()
+            wrk_add_dict[seg_name] = OrderedDict()
             if key_is_in("pre", ln_ctrl):
                 ret_seg, wrk_add_dict[seg_name] = segment_prefill(ln_ctrl, {})
         else:
             wrk_add_dict[seg_name] = wrk_ln_dict["line"]
 
-    logger.debug("Assigning Header========================",
-                 # "Sub_KVS:", sub_kvs,
-                 "from wrk_ln_dict:", to_json(wrk_ln_dict),
-                 "using ln_ctrl:", to_json(ln_ctrl),
-                 "returning wrk_add_dict:", to_json(wrk_add_dict))
+    # logger.debug("Assigning Header========================"
+    #              # "Sub_KVS:", sub_kvs,
+    #              "\nfrom wrk_ln_dict:%s"
+    #              "\nusing ln_ctrl:%s"
+    #              "\nreturning wrk_add_dict:%s" % (to_json(wrk_ln_dict),
+    #                                               to_json(ln_ctrl),
+    #                                               to_json(wrk_add_dict)))
 
     return wrk_add_dict
 
@@ -1465,8 +1470,6 @@ def update_match(lvl, txt, match_ln):
     # txt = line to check (received in headlessCamel format)
     # match_ln = list
 
-    DBUG = False
-
     line = txt.split(":")
     if len(line) > 1:
         keym = line[0]
@@ -1478,10 +1481,14 @@ def update_match(lvl, txt, match_ln):
     # set the lvl position in the match_ln list
     match_ln[lvl] = keym
 
-    if DBUG:
-        do_DBUG("update_match(lvl, txt, match_ln)", lvl, txt, match_ln,
-                "keym:", keym, "match_ln[" + str(lvl) + "]:",
-                match_ln[lvl])
+    # logger.debug("update_match(lvl, txt,"
+    #              "match_ln):%s ,%s, %s \nkeym:%s \nmatch_ln"
+    #              "[%s]:%s" % (lvl,
+    #                           txt,
+    #                           match_ln,
+    #                           keym,
+    #                           str(lvl),
+    #                           match_ln[lvl]))
 
     return match_ln
 
@@ -1489,18 +1496,12 @@ def update_match(lvl, txt, match_ln):
 def update_save_to(target, src, key, val_fld):
     # Test the target and update with source
 
-    DBUG = False
-
     target_type = check_type(target)
     save_to = target
 
-    if DBUG:
-        do_DBUG("save_to:", save_to,
-                "using source:", src,
-                "key:", key,
-                "val_fld:", val_fld,
-                "and target:", target,
-                "with target_type:", target_type)
+    # logger.debug("save_to:%s \nusing source:%s \n key:%s"
+    #              "\nval_fld:%s and target:%s with target_"
+    #              "type:%s" % (save_to, src, key, val_fld, target, target_type))
 
     if target_type == "DICT":
         # print(save_to[key])
@@ -1520,12 +1521,14 @@ def update_save_to(target, src, key, val_fld):
     else:
         save_to[key] = src[val_fld]
 
-    if DBUG:
-        do_DBUG("returning save_to:", save_to,
-                "using source:", src,
-                "and val_fld:", val_fld,
-                "and target:", target,
-                "with target_type:", target_type)
+    # logger.debug("returning save_to:%s \nusing source:%s"
+    #              " and val_fld:%s"
+    #              " and target:%s "
+    #              " with target_type:%s" % (save_to,
+    #                                        src,
+    #                                        val_fld,
+    #                                        target,
+    #                                        target_type))
 
     return save_to
 
@@ -1535,11 +1538,8 @@ def write_comment(wrk_add_dict, kvs):
     # if comments already present
     # if so, add to the list
 
-    DBUG = False
-
-    if DBUG:
-        do_DBUG("IN WRITE COMMENTS", "wrk_add_dict:",
-                to_json(wrk_add_dict), "kvs:", to_json(kvs))
+    # logger.debug("IN WRITE COMMENTS\nwrk_add_dict:"
+    #              "kvs:%s" % (to_json(kvs)))
 
     if not key_is_in(kvs["k"], wrk_add_dict):
         # print(kvs["k"]," NOT in wrk_add_dict")
@@ -1561,26 +1561,17 @@ def write_comment(wrk_add_dict, kvs):
 
     # kvs["comments"].append(kvs["v"])
 
-    if DBUG:
-        do_DBUG("k:", kvs["k"], "v:", kvs["v"],
-                "wrk_add_dict[" + kvs["k"] + "]:",
-                wrk_add_dict[kvs["k"]],
-                "wrk_add_dict:", to_json(wrk_add_dict))
-
     return wrk_add_dict
 
 
 def write_proc_dl(kvs, process_dict, process_list):
     # standardize the update of Process_dict and process_list
 
-    DBUG = False
-
     # Write source and comments to the dict
     if len(process_dict) < 1:
         # Do nothing
-        if DBUG:
-            do_DBUG("Process_dict:", process_dict)
-
+        # logger.debug("Process_dict:%s " % process_dict)
+        pass
     else:
         # There is something to process
         process_dict = write_source(kvs, process_dict)
@@ -1588,14 +1579,12 @@ def write_proc_dl(kvs, process_dict, process_list):
         last_item = len(process_list) - 1
 
         if key_is_in("details", process_dict):
-            if DBUG:
-                do_DBUG("COUNT OF LIST ITEMS:", last_item)
+            # logger.debug("COUNT OF LIST ITEMS:%s" % last_item)
 
             process_list[max(last_item, 0)]["details"] = [process_dict]
 
         elif key_is_in("lineNumber", process_dict):
-            if DBUG:
-                do_DBUG("COUNT of LIST ITEMS FOR EXTRA LINES:", last_item)
+            # logger.debug("COUNT of LIST ITEMS FOR EXTRA LINES:%s" % last_item)
 
             if key_is_in("details", process_list[max(last_item, 0)]):
                 process_list[max(last_item, 0)]["details"].append(process_dict)
@@ -1605,10 +1594,9 @@ def write_proc_dl(kvs, process_dict, process_list):
 
         else:
             process_list.append(process_dict)
-            if DBUG:
-                do_DBUG("details NOT found in process_dict",
-                        "appended process_dict to process_list",
-                        process_list)
+            # logger.debug("details NOT found in process_dict "
+            #              "appended process_dict to process_list:%s" %
+            #              process_list)
 
     return process_dict, process_list
 
@@ -1622,10 +1610,7 @@ def write_save_to(save_to, pd):
     :param pd:
     :return:
     """
-    DBUG = False
-
-    if DBUG:
-        do_DBUG("pd:", pd)
+    # logger.debug("pd:%s" % pd)
 
     # i = 0
     for item in pd.items():
@@ -1635,9 +1620,7 @@ def write_save_to(save_to, pd):
         # print("item:", item[1])
         save_to[key] = item[1]
 
-    if DBUG:
-        do_DBUG("pd:", pd,
-                "save_to:", to_json(save_to))
+    # logger.debug("pd:%s \nsave_to:%s" % (pd, to_json(save_to)))
 
     return save_to
 
@@ -1645,13 +1628,9 @@ def write_save_to(save_to, pd):
 def write_segment(itm, sgmnt, sgmnt_dict, ln_list, multi):
     # Write the segment to items dict
 
-    DBUG = False
-
-    if DBUG:
-        do_DBUG("Item:", itm, "Writing Segment:", sgmnt,
-                "Writing dict:", sgmnt_dict,
-                "Multi:", multi,
-                "ln_list:", ln_list)
+    # logger.debug("Item:%s Writing Segment:%s"
+    #              "\nWriting dict:%s \nMulti:%s"
+    #              "ln_list:%s" %(itm, sgmnt, sgmnt_dict, multi, ln_list))
     if multi:
         ln_list.append(sgmnt_dict)
         # print("Multi List:", ln_list)
@@ -1665,10 +1644,7 @@ def write_segment(itm, sgmnt, sgmnt_dict, ln_list, multi):
 def write_source(kvs, dt):
     # Write source and comments to dt
 
-    DBUG = False
-
-    if DBUG:
-        do_DBUG("kvs:", kvs)
+    # logger.debug("kvs:%s"% kvs)
 
     if kvs["category"]:
         # write category
@@ -1711,6 +1687,7 @@ def string_to_ordereddict(txt):
     od_start = "OrderedDict(["
     od_end = '])'
 
+    txt = txt.decode('utf-8')
     first_index = txt.find(od_start)
     last_index = txt.rfind(od_end)
 
