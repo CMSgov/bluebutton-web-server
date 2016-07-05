@@ -99,42 +99,43 @@ def connect_first(request):
                 # mmg_mail = {}
                 # logger.debug("BlueButton returned:", mmg_bb)
 
-                mcare_prof = {}
+                mc_prof = {}
                 if mmg_bb['status'] == "OK":
-                    mcare_prof['user'] = mmg['mmg_user']
-                    mcare_prof['password'] = mmg['mmg_pwd']
-                    mcare_prof['name'] = mmg['mmg_name']
-                    mcare_prof['HumanName'] = split_name(mmg['mmg_name'])
-                    mcare_prof['account'] = mmg['mmg_account']
+                    pretty_name = pretty_json(split_name(mmg['mmg_name']))
+                    mc_prof['user'] = mmg['mmg_user']
+                    mc_prof['password'] = mmg['mmg_pwd']
+                    mc_prof['name'] = mmg['mmg_name']
+                    mc_prof['HumanName'] = pretty_name
+                    mc_prof['account'] = mmg['mmg_account']
                     # need to check what is returned in mmg_account.
 
                     messages.success(request,
                                      "Connection succeeded for " +
-                                     mcare_prof['name'] + "[" +
-                                     mcare_prof['user'] + "].")
+                                     mc_prof['name'] + "[" +
+                                     mc_prof['user'] + "].")
 
                     # Update the Medicare user name to the Crosswalk
                     if xwalk.mb_user == '':
-                        xwalk.mb_user = mcare_prof['user']
+                        xwalk.mb_user = mc_prof['user']
 
                     if mmg_bb['status'] == "OK":
                         # We need to save the BlueButton Text
                         # print("We are okay to update mmg_bbdata",
                         #      "\n with ", mmg_bb['mmg_bbdata'][:250])
-                        mcare_prof['bb_data'] = mmg_bb['mmg_bbdata']
+                        mc_prof['bb_data'] = mmg_bb['mmg_bbdata']
 
                         result = bb_to_json(request,
                                             mmg_bb['mmg_bbdata'])
                         # logger.debug("BB Conversion:", result)
                         if result['result'] == "OK":
-                            mcare_prof['bb_json'] = result['mmg_bbjson']
+                            mc_prof['bb_json'] = result['mmg_bbjson']
 
-                            mcare_prof['email'] = get_bbemail(request,
-                                mcare_prof['bb_json'])
-                            mcare_prof['profile'] = get_bbprofile(request,
-                                mcare_prof['bb_json'])
-                            mcare_prof['claims'] = get_bbclaims(request,
-                                mcare_prof['bb_json'])
+                            mc_prof['email'] = get_bbemail(request,
+                                                           mc_prof['bb_json'])
+                            mc_prof['profile'] = get_bbprof(request,
+                                                            mc_prof['bb_json'])
+                            mc_prof['claims'] = getbbclm(request,
+                                                         mc_prof['bb_json'])
 
                             # logger.debug("returned json from xwalk:", result)
 
@@ -162,9 +163,9 @@ def connect_first(request):
                 return render(request,
                               'eimm/bluebutton_analytics.html',
                               {'content': context,
-                               'profile': mcare_prof,
-                               'profilep': pretty_json(mcare_prof['profile']),
-                               'claimsp': pretty_json(mcare_prof['claims'])
+                               'profile': mc_prof,
+                               'profilep': pretty_json(mc_prof['profile']),
+                               'claimsp': pretty_json(mc_prof['claims'])
                                })
 
     else:
@@ -550,7 +551,7 @@ def get_bbemail(request, bb_json):
 
 
 @login_required
-def get_bbprofile(request, bb_json):
+def get_bbprof(request, bb_json):
     """ Get Patient Profile section from BB Json file
 
         "patient": {
@@ -587,7 +588,7 @@ def get_bbprofile(request, bb_json):
 
 
 @login_required
-def get_bbclaims(request, bb_json):
+def getbbclm(request, bb_json):
     """ Get claims numbers from BB_JSON file
 
         "claims": [
@@ -617,9 +618,15 @@ def get_bbclaims(request, bb_json):
                     "lineNumber": "1",
                     "dateOfServiceFrom": "20151010",
                     "dateOfServiceTo": "20151010",
-                    "procedureCodeDescription": "E0601 - Continuous Positive Airway Pressure (Cpap) Device",
-                    "modifier1Description": "MS - Six Month Maintenance And Servicing Fee For Reasonable And Necessary Parts And Labor Which Are",
-                    "modifier2Description": "KX - Requirements Specified In The Medical Policy Have Been Met",
+                    "procedureCodeDescription": "E0601 - Continuous Positive "
+                                                 "Airway Pressure (Cpap) "
+                                                 "Device",
+                    "modifier1Description": "MS - Six Month Maintenance And "
+                                            "Servicing Fee For Reasonable And "
+                                            "Necessary Parts And Labor "
+                                            "Which Are",
+                    "modifier2Description": "KX - Requirements Specified In "
+                                            "The Medical Policy Have Been Met",
                     "modifier3Description": "",
                     "modifier4Description": "",
                     "quantityBilledUnits": "1",

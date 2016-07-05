@@ -23,7 +23,7 @@ def split_name(in_name=''):
         return humanname
 
     humanname['text'] = in_name
-    name = in_name.split(' ')
+    name = in_name.rstrip().split(' ')
 
     humanname['family'] = [name[len(name) - 1]]
     humanname['given'] = []
