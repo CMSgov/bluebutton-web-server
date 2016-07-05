@@ -6,7 +6,8 @@ from collections import OrderedDict
 from django.test import TestCase
 
 from .utils import split_name
-from apps.fhir.bluebutton.utils import pretty_json
+# from apps.fhir.bluebutton.utils import pretty_json
+
 
 class Utils_Test(TestCase):
     """ test eimm utils """
@@ -17,7 +18,7 @@ class Utils_Test(TestCase):
         in_name = "JOHN A. DOE"
 
         response = split_name(in_name)
-        result = pretty_json(response)
+        # result = pretty_json(response)
         expect = OrderedDict([('resourceType', 'HumanName'),
                               ('text', 'JOHN A. DOE'),
                               ('family', ['DOE']),
@@ -40,18 +41,18 @@ class Utils_Test(TestCase):
         in_name = "JOHN DOE"
         response = split_name(in_name)
         expected = OrderedDict([('resourceType', 'HumanName'),
-                              ('text', 'JOHN DOE'),
-                              ('family', ['DOE']),
-                              ('given', ['JOHN'])])
+                                ('text', 'JOHN DOE'),
+                                ('family', ['DOE']),
+                                ('given', ['JOHN'])])
 
         self.assertEqual(response, expected)
 
         in_name = "JOHN Peter godfrey DOE"
         response = split_name(in_name)
         expected = OrderedDict([('resourceType', 'HumanName'),
-                              ('text', 'JOHN Peter godfrey DOE'),
-                              ('family', ['DOE']),
-                              ('given', ['JOHN', 'Peter', 'godfrey'])])
+                                ('text', 'JOHN Peter godfrey DOE'),
+                                ('family', ['DOE']),
+                                ('given', ['JOHN', 'Peter', 'godfrey'])])
 
         self.assertEqual(response, expected)
 
@@ -61,3 +62,11 @@ class Utils_Test(TestCase):
 
         self.assertEqual(response, expected)
 
+        in_name = "JOHN Peter godfrey DOE "
+        response = split_name(in_name)
+        expected = OrderedDict([('resourceType', 'HumanName'),
+                                ('text', 'JOHN Peter godfrey DOE'),
+                                ('family', ['DOE']),
+                                ('given', ['JOHN', 'Peter', 'godfrey'])])
+
+        self.assertEqual(response, expected)
