@@ -69,4 +69,7 @@ class Utils_Test(TestCase):
                                 ('family', ['DOE']),
                                 ('given', ['JOHN', 'Peter', 'godfrey'])])
 
+        # print("\nR:", response)
+        # print("\nE:", expected)
+
         self.assertEqual(response, expected)
