@@ -83,11 +83,15 @@ INSTALLED_APPS = [
     'apps.accounts',
     # Define scopes and related protected resource URLs.
     'apps.capabilities',
+    # BlueButton Text file parsing code
+    'apps.cmsblue',
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
     'apps.dot_ext.apps.dot_extConfig',
+    # MyMedicare.gov Enhanced Validated Identity Linkage
+    'apps.eimm',
     # Landing pages, etc.
     'apps.home',
     'apps.education',

@@ -621,7 +621,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text='',
@@ -635,7 +635,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text=input_text,
@@ -649,7 +649,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com/',
                                       in_text=input_text,
@@ -663,7 +663,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text=input_text,
@@ -686,7 +686,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         """ Test 1: No text to replace. No changes """
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
         input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
                      'amazonaws.com:8080/baseDstu2 will get replaced ' \
@@ -711,7 +711,7 @@ class BlueButtonUtilRequestTest(TestCase):
                      'more stuff http://www.example.com:8000 and ' \
                      'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com',
                                        input_text,
@@ -728,7 +728,7 @@ class BlueButtonUtilRequestTest(TestCase):
                      'more stuff http://www.example.com:8000 and ' \
                      'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com/',
                                        input_text,
@@ -748,7 +748,7 @@ class BlueButtonUtilRequestTest(TestCase):
                      'more stuff http://www.example.com:8000 and ' \
                      'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com',
                                        input_text,
@@ -766,9 +766,9 @@ class BlueButtonUtilRequestTest(TestCase):
         Get the host url and split on resource_type
         """
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = get_host_url(request, 'Patient')
-        expected = 'http://testserver/bluebutton/fhir/v1/'
+        expected = 'http://testserver/cmsblue/fhir/v1/'
 
         self.assertEqual(response, expected)
 
@@ -776,9 +776,9 @@ class BlueButtonUtilRequestTest(TestCase):
         """
         Get the host url and split on empty resource_type
         """
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
         response = get_host_url(request)
-        expected = 'http://testserver/bluebutton/fhir/v1/Patient'
+        expected = 'http://testserver/cmsblue/fhir/v1/Patient'
 
         self.assertEqual(response, expected)
