@@ -14,11 +14,15 @@ urlpatterns = [
 
     # create and update account info -----------------------
     url(r'create-user', create_user, name='accounts_create_user'),
-    url(r'create-developer', create_developer, name='accounts_create_developer'),
+    url(r'create-developer',
+        create_developer,
+        name='accounts_create_developer'),
     url(r'settings$', account_settings, name='account_settings'),
 
     # Request a Developer invite to signup ---------------------------
-    url(r'request-developer-invite', request_developer_invite, name='request_developer_invite'),
+    url(r'request-developer-invite',
+        request_developer_invite,
+        name='request_developer_invite'),
     # Request an invite to signup ---------------------------
     url(r'request-user-invite', request_user_invite,
         name='request_user_invite'),
@@ -27,7 +31,8 @@ urlpatterns = [
     url(r'forgot-password$', forgot_password, name='forgot_password'),
 
     # Change password using reset token ------------------------
-    url(r'password-reset-email-verify/(?P<reset_password_key>[^/]+)/', password_reset_email_verify,
+    url(r'password-reset-email-verify/(?P<reset_password_key>[^/]+)/',
+        password_reset_email_verify,
         name='password_reset_email_verify'),
 
     # Verify the account

@@ -56,7 +56,7 @@ class LoginTestCase(TestCase):
         """
         When user is authenticated by external source then presumed a benny
         """
-        form_data = {'username': 'ben', 'password': 'cmsblue'}
+        form_data = {'username': 'ben', 'password': 'bluebutton'}
         response = self.client.post(self.url, form_data, follow=True)
         up = UserProfile.objects.get(user__username='ben')
         # User is a beneficiary ()
