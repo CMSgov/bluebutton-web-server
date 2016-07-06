@@ -85,6 +85,9 @@ INSTALLED_APPS = [
     'apps.capabilities',
     # BlueButton Text file parsing code
     'apps.cmsblue',
+
+    # Endorsement example
+    'apps.endorse',
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
@@ -95,7 +98,6 @@ INSTALLED_APPS = [
     # Landing pages, etc.
     'apps.home',
     'apps.education',
-    # 'apps.fhir',
     'apps.fhir.core',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
