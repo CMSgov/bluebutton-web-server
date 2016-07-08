@@ -412,7 +412,9 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         """ Build a fhir server url """
 
         """ Test 1: Pass all parameters """
-        response = FhirServerUrl('http://localhost:8000', '/any_path', '/release')
+        response = FhirServerUrl('http://localhost:8000',
+                                 '/any_path',
+                                 '/release')
         expected = 'http://localhost:8000/any_path/release/'
         self.assertEquals(response, expected)
 
@@ -427,34 +429,47 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         #                            amazonaws.com:8080/baseDstu2",
         #            "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
 
-        expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
+        expected = settings.FHIR_SERVER_CONF['SERVER']
+        expected += settings.FHIR_SERVER_CONF['PATH']
+        expected += settings.FHIR_SERVER_CONF['RELEASE']
+        if expected.endswith('/'):
+            pass
+        else:
+            expected += '/'
+        # expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
+
         self.assertEquals(response, expected)
 
     def test_check_access_interaction_and_resource_type(self):
-        """ test resource_type and interaction_type from SupportedResourceType """
+        """ test resource_type and interaction_type from
+        SupportedResourceType """
 
         """ Test 1: Patient GET = True """
         resource_type = 'Patient'
         interaction_type = 'get'  # True
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         self.assertEquals(response, False)
 
         """ Test 2: Patient get = True """
         resource_type = 'Patient'
         interaction_type = 'GET'  # True
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         self.assertEquals(response, False)
 
         """ Test 3: Patient UPdate = False """
         resource_type = 'Patient'
         interaction_type = 'UPdate'  # False
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         self.assertEquals(response.status_code, 403)
 
         """ Test 4: Patient UPdate = False """
         resource_type = 'BadResourceName'
         interaction_type = 'get'  # False
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         self.assertEquals(response.status_code, 404)
 
 
@@ -463,7 +478,8 @@ class BlueButtonUtilsRtTestCase(TestCase):
     fixtures = ['fhir_bluebutton_test_rt.json']
 
     def test_check_rt_controls(self):
-        """ Get ResourceTypeControl via SupportedResourceType from resource_type """
+        """ Get ResourceTypeControl via SupportedResourceType
+        from resource_type """
 
         """ Test 1: Good Resource """
         resource_type = 'Patient'
@@ -546,7 +562,11 @@ class BlueButtonUtilsRtTestCase(TestCase):
         srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, srtc, r_id, False)
+        response = masked_id(resource_type,
+                             cx,
+                             srtc,
+                             r_id,
+                             False)
         expected = '4995802'
 
         self.assertEqual(response, expected)
@@ -574,7 +594,11 @@ class BlueButtonUtilsRtTestCase(TestCase):
         srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, srtc, r_id, False)
+        response = masked_id(resource_type,
+                             cx,
+                             srtc,
+                             r_id,
+                             False)
         expected = '1'
 
         self.assertEqual(response, expected)
@@ -621,7 +645,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text='',
@@ -635,7 +659,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text=input_text,
@@ -649,7 +673,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com/',
                                       in_text=input_text,
@@ -663,7 +687,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text=input_text,
@@ -686,12 +710,16 @@ class BlueButtonUtilRequestTest(TestCase):
 
         """ Test 1: No text to replace. No changes """
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
-                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
-                     'more stuff http://www.example.com:8000 and ' \
-                     'http://example.com:8000/ okay'
+        default_url = settings.FHIR_SERVER_CONF['REWRITE_FROM']
+        # print("\n\n", default_url)
+
+        input_text = 'dddd anything '
+        input_text += default_url[0]
+        input_text += ' will get replaced more stuff '
+        input_text += 'http://www.example.com:8000 and '
+        input_text += 'http://example.com:8000/ okay'
 
         response = mask_list_with_host(request,
                                        'http://www.replaced.com',
@@ -706,12 +734,13 @@ class BlueButtonUtilRequestTest(TestCase):
             FHIR_SERVER_CONF.REWRITE_FROM changes
         """
 
-        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
-                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
-                     'more stuff http://www.example.com:8000 and ' \
-                     'http://example.com:8000/ okay'
+        input_text = 'dddd anything '
+        input_text += default_url[0]
+        input_text += ' will get replaced more stuff '
+        input_text += 'http://www.example.com:8000 and '
+        input_text += 'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com',
                                        input_text,
@@ -723,12 +752,13 @@ class BlueButtonUtilRequestTest(TestCase):
 
         """ Test 3: Replace text removing slash from end of replaced text """
 
-        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
-                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
-                     'more stuff http://www.example.com:8000 and ' \
-                     'http://example.com:8000/ okay'
+        input_text = 'dddd anything '
+        input_text += default_url[0]
+        input_text += ' will get replaced more stuff '
+        input_text += 'http://www.example.com:8000 and '
+        input_text += 'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com/',
                                        input_text,
@@ -739,16 +769,20 @@ class BlueButtonUtilRequestTest(TestCase):
                    'more stuff http://www.replaced.com and ' \
                    'http://www.replaced.com:8000/ okay'
 
+        # print("\n\n\nResponse:", response)
+        # print("\n\n\nExpected:", expected)
+
         self.assertEqual(response, expected)
 
         """ Test 4: Replace text """
 
-        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
-                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
-                     'more stuff http://www.example.com:8000 and ' \
-                     'http://example.com:8000/ okay'
+        input_text = 'dddd anything '
+        input_text += default_url[0]
+        input_text += ' will get replaced more stuff '
+        input_text += 'http://www.example.com:8000 and '
+        input_text += 'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com',
                                        input_text,
@@ -766,9 +800,9 @@ class BlueButtonUtilRequestTest(TestCase):
         Get the host url and split on resource_type
         """
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = get_host_url(request, 'Patient')
-        expected = 'http://testserver/bluebutton/fhir/v1/'
+        expected = 'http://testserver/cmsblue/fhir/v1/'
 
         self.assertEqual(response, expected)
 
@@ -776,9 +810,9 @@ class BlueButtonUtilRequestTest(TestCase):
         """
         Get the host url and split on empty resource_type
         """
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
         response = get_host_url(request)
-        expected = 'http://testserver/bluebutton/fhir/v1/Patient'
+        expected = 'http://testserver/cmsblue/fhir/v1/Patient'
 
         self.assertEqual(response, expected)

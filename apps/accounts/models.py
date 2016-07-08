@@ -31,23 +31,30 @@ LOA_CHOICES = (
 @python_2_unicode_compatible
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
-    organization_name = models.CharField(max_length=256, blank=True, default='')
+    organization_name = models.CharField(max_length=255,
+                                         blank=True,
+                                         default='')
     loa = models.CharField(default='0',
                            choices=LOA_CHOICES,
                            max_length=5)
     user_type = models.CharField(default='DEV',
                                  choices=USER_CHOICES,
                                  max_length=5)
-    access_key_id = models.CharField(max_length=20, blank=True)
-    access_key_secret = models.CharField(max_length=40, blank=True)
+    access_key_id = models.CharField(max_length=20,
+                                     blank=True)
+    access_key_secret = models.CharField(max_length=40,
+                                         blank=True)
     access_key_reset = models.BooleanField(
         blank=True,
         default=False,
-        help_text=_('Check this box to issue a new access key. Doing so invalidates the existing key.'),
+        help_text=_('Check this box to issue a new access key. '
+                    'Doing so invalidates the existing key.'),
     )
 
     def __str__(self):
-        name = '%s %s (%s)' % (self.user.first_name, self.user.last_name, self.user.username)
+        name = '%s %s (%s)' % (self.user.first_name,
+                               self.user.last_name,
+                               self.user.username)
         return name
 
     def save(self, **kwargs):
@@ -92,7 +99,8 @@ class Invitation(models.Model):
             <head>
             </head>
             <body>
-            Congratulations. You have been invited to join the OAuth2 Server Alpha.<br>
+            Congratulations. You have been invited to join the
+            OAuth2 Server Alpha.<br>
 
             You may now <a href='%s'>register</a> with the invitation code:
 
@@ -103,10 +111,14 @@ class Invitation(models.Model):
             </html>
             """ % (settings.HOSTNAME_URL, self.code,)
             if settings.SEND_EMAIL:
-                subj = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
-                                                     self.code)
+                subj = '[%s] Invitation ' \
+                       'Code: %s' % (settings.ORGANIZATION_NAME,
+                                     self.code)
 
-                msg = EmailMessage(subj, msg, settings.EMAIL_HOST_USER, [self.email])
+                msg = EmailMessage(subj,
+                                   msg,
+                                   settings.EMAIL_HOST_USER,
+                                   [self.email])
                 # Main content is now text/html
                 msg.content_subtype = 'html'
                 msg.send()
@@ -159,11 +171,14 @@ class ValidPasswordResetKey(models.Model):
 
 
 def random_key_id(y=20):
-    return ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for x in range(y))
+    return ''.join(random.choice('ABCDEFGHIJKLM'
+                                 'NOPQRSTUVWXYZ') for x in range(y))
 
 
 def random_secret(y=40):
-    return ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for x in range(y))
+    return ''.join(random.choice('abcdefghijklmnopqrstuvwxyz'
+                                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                                 '0123456789') for x in range(y))
 
 
 def create_activation_key(user):
