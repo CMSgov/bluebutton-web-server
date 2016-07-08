@@ -13,16 +13,16 @@ class ResourceTypeControl(models.Model):
     override_url_id = models.BooleanField(help_text="Does this resource need "
                                                     "to mask the id in the "
                                                     "url?")
-    override_search = models.BooleanField(help_text="Do search parameters need "
-                                                    "to be filtered to avoid "
-                                                    "revealing other people's "
-                                                    "data?")
+    override_search = models.BooleanField(help_text="Do search parameters "
+                                                    "need to be filtered "
+                                                    "to avoid revealing "
+                                                    "other people's data?")
     search_block = models.TextField(max_length=5120,
                                     blank=True,
                                     default="",
                                     help_text="list of values that need to be "
-                                              "removed from search parameters. "
-                                              "eg. <b>Patient</b>")
+                                              "removed from search "
+                                              "parameters. eg. <b>Patient</b>")
     search_add = models.TextField(max_length=200,
                                   blank=True,
                                   default="",

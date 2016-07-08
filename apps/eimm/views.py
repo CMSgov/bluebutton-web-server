@@ -672,3 +672,446 @@ def getbbclm(request, bb_json):
             claim_info.append(claim_summary)
 
     return claim_info
+
+
+def eval_claims(claims, patient):
+    """ Receive Claims and make call to backend to match claims
+
+        param: claims = [{"claimNumber": "",
+                          "provider": "",
+                          "date": {"serviceStartDate": "",
+                                   "serviceEndDate": ""}}]
+
+        param: patient = "patient": {
+        "patient": {
+            "patient": "Demographic"
+        },
+        "source": "MyMedicare.gov",
+        "name": "JOHN DOE",
+        "dateOfBirth": "19100101",
+        "address": {
+            "addressType": "",
+            "addressLine1": "123 ANY ROAD",
+            "addressLine2": "",
+            "city": "ANYTOWN",
+            "state": "IN",
+            "zip": "46250"
+        },
+        "phoneNumber": [
+            "215-248-0684"
+        ],
+        "email": "rhall@cgifederal.com",
+        "medicare": {
+            "partAEffectiveDate": "20140201",
+            "partBEffectiveDate": "20140201"
+        }}
+
+
+    """
+
+    fhir_claims = []
+    for claim in claims:
+        for c in claim:
+            if c['claimNumber']:
+                fhir_claim = get_fhir_claim(c['claimNumber'])
+                if fhir_claim['found']:
+                    patient_match = check_patient(fhir_claim['patient'],
+                                                  patient)
+                    if patient_match:
+                        fhir_claims.append(fhir_claim)
+
+    return fhir_claims
+
+
+def get_fhir_claim(claim_number):
+    """ Search for Claim Number in FHIR Backend
+
+    Sample Search Specification:
+     http://bluebuttonhapi-test.hhsdevcloud.us/baseDstu2/
+     ExplanationOfBenefit
+     ?identifier=CCW_PTA_FACT.CLM_ID|542612281109054
+
+    Nothing found result:
+     {"resourceType":"Bundle",
+      "id":"62fe7fe3-9dca-4114-b753-6d7e874c34c5",
+      "meta":{"lastUpdated":"2016-07-07T13:43:55.066+00:00"},
+      "type":"searchset",
+      "total":0,
+      "link":[{"relation":"self",
+               "url":"http://bluebuttonhapi-test.hhsdevcloud.us:80/baseDstu2/
+               ExplanationOfBenefit
+               ?identifier=CCW_PTA_FACT.CLM_ID%7C542612281109055"}]}
+
+    Sample EOB Records
+    {
+            "fullUrl":"http://bluebuttonhapi-test.hhsdevcloud.us:80/baseDstu2/ExplanationOfBenefit/10",
+            "resource":{
+                "resourceType":"ExplanationOfBenefit",
+                "id":"10",
+                "extension":[
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#claimType",
+                        "valueCoding":{
+                            "system":"http://bluebutton.cms.hhs.gov/coding#claimType",
+                            "code":"40",
+                            "display":"Outpatient claim"
+                        }
+                    },
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#attendingPhysician",
+                        "valueReference":{
+                            "reference":"Practitioner/12"
+                        }
+                    },
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#operatingPhysician",
+                        "valueReference":{
+                            "reference":"Practitioner/13"
+                        }
+                    },
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#otherPhysician",
+                        "valueReference":{
+                            "reference":"Practitioner/14"
+                        }
+                    },
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#admittingDiagnosis",
+                        "valueCoding":{
+                            "system":"http://hl7.org/fhir/sid/icd-9-cm/diagnosis"
+                        }
+                    }
+                ],
+                "meta":{
+                    "versionId":"1",
+                    "lastUpdated":"2016-03-28T03:14:40.898+00:00"
+                },
+                "identifier":[
+                    {
+                        "system":"CCW_PTA_FACT.CLM_ID",
+                        "value":"542612281109054"
+                    }
+                ],
+                "billablePeriod":{
+                    "start":"2008-11-15T00:00:00+00:00",
+                    "end":"2008-11-15T00:00:00+00:00"
+                },
+                "provider":{
+                    "reference":"Practitioner/11"
+                },
+                "diagnosis":[
+                    {
+                        "sequence":0,
+                        "diagnosis":{
+                            "system":"http://hl7.org/fhir/sid/icd-9-cm/diagnosis",
+                            "code":"7137"
+                        }
+                    },
+                    {
+                        "sequence":1,
+                        "diagnosis":{
+                            "system":"http://hl7.org/fhir/sid/icd-9-cm/diagnosis",
+                            "code":"72190"
+                        }
+                    }
+                ],
+                "patient":{
+                    "reference":"Patient/1"
+                },
+                "coverage":{
+                    "coverage":{
+                        "reference":"Coverage/4"
+                    }
+                },
+                "item":[
+                    {
+                        "type":{
+                            "system":"http://hl7.org/fhir/ValueSet/v3-ActInvoiceGroupCode",
+                            "code":"CSPINV"
+                        },
+                        "adjudication":[
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"Line NCH Payment Amount"
+                                },
+                                "amount":{
+                                    "value":10.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            },
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"NCH Primary Payer Claim Paid Amount"
+                                },
+                                "amount":{
+                                    "value":0.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            },
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"NCH Beneficiary Blood Deductible Liability Amount"
+                                },
+                                "amount":{
+                                    "value":0.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            },
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"NCH Beneficiary Part B Deductible Amount"
+                                },
+                                "amount":{
+                                    "value":0.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            },
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"NCH Beneficiary Part B Coinsurance Amount"
+                                },
+                                "amount":{
+                                    "value":0.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            }
+                        ],
+                        "detail":[
+                            {
+                                "extension":[
+                                    {
+                                        "url":"http://bluebutton.cms.hhs.gov/extensions#diagnosisLinkId",
+                                        "valueInteger":0
+                                    },
+                                    {
+                                        "url":"http://bluebutton.cms.hhs.gov/extensions#diagnosisLinkId",
+                                        "valueInteger":1
+                                    }
+                                ],
+                                "sequence":1,
+                                "type":{
+                                    "system":"http://hl7.org/fhir/ValueSet/v3-ActInvoiceGroupCode",
+                                    "code":"CSPINV"
+                                },
+                                "service":{
+                                    "system":"HCPCS",
+                                    "code":"73564"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "search":{
+                "mode":"match"
+            }
+        },
+        {
+            "fullUrl":"http://bluebuttonhapi-test.hhsdevcloud.us:80/baseDstu2/ExplanationOfBenefit/15",
+            "resource":{
+                "resourceType":"ExplanationOfBenefit",
+                "id":"15",
+                "extension":[
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#claimType",
+                        "valueCoding":{
+                            "system":"http://bluebutton.cms.hhs.gov/coding#claimType",
+                            "code":"40",
+                            "display":"Outpatient claim"
+                        }
+                    },
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#attendingPhysician",
+                        "valueReference":{
+                            "reference":"Practitioner/17"
+                        }
+                    },
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#operatingPhysician",
+                        "valueReference":{
+                            "reference":"Practitioner/18"
+                        }
+                    },
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#otherPhysician",
+                        "valueReference":{
+                            "reference":"Practitioner/19"
+                        }
+                    },
+                    {
+                        "url":"http://bluebutton.cms.hhs.gov/extensions#admittingDiagnosis",
+                        "valueCoding":{
+                            "system":"http://hl7.org/fhir/sid/icd-9-cm/diagnosis"
+                        }
+                    }
+                ],
+                "meta":{
+                    "versionId":"1",
+                    "lastUpdated":"2016-03-28T03:14:40.898+00:00"
+                },
+                "identifier":[
+                    {
+                        "system":"CCW_PTA_FACT.CLM_ID",
+                        "value":"542062281310767"
+                    }
+                ],
+                "billablePeriod":{
+                    "start":"2009-02-02T00:00:00+00:00",
+                    "end":"2009-02-02T00:00:00+00:00"
+                },
+                "provider":{
+                    "reference":"Practitioner/16"
+                },
+                "diagnosis":[
+                    {
+                        "sequence":0,
+                        "diagnosis":{
+                            "system":"http://hl7.org/fhir/sid/icd-9-cm/diagnosis",
+                            "code":"49321"
+                        }
+                    }
+                ],
+                "patient":{
+                    "reference":"Patient/1"
+                },
+                "coverage":{
+                    "coverage":{
+                        "reference":"Coverage/4"
+                    }
+                },
+                "item":[
+                    {
+                        "type":{
+                            "system":"http://hl7.org/fhir/ValueSet/v3-ActInvoiceGroupCode",
+                            "code":"CSPINV"
+                        },
+                        "adjudication":[
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"Line NCH Payment Amount"
+                                },
+                                "amount":{
+                                    "value":900.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            },
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"NCH Primary Payer Claim Paid Amount"
+                                },
+                                "amount":{
+                                    "value":0.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            },
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"NCH Beneficiary Blood Deductible Liability Amount"
+                                },
+                                "amount":{
+                                    "value":0.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            },
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"NCH Beneficiary Part B Deductible Amount"
+                                },
+                                "amount":{
+                                    "value":0.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            },
+                            {
+                                "category":{
+                                    "system":"CMS Adjudications",
+                                    "code":"NCH Beneficiary Part B Coinsurance Amount"
+                                },
+                                "amount":{
+                                    "value":20.00,
+                                    "system":"urn:std:iso:4217",
+                                    "code":"USD"
+                                }
+                            }
+                        ],
+                        "detail":[
+                            {
+                                "extension":[
+                                    {
+                                        "url":"http://bluebutton.cms.hhs.gov/extensions#diagnosisLinkId",
+                                        "valueInteger":0
+                                    }
+                                ],
+                                "sequence":1,
+                                "type":{
+                                    "system":"http://hl7.org/fhir/ValueSet/v3-ActInvoiceGroupCode",
+                                    "code":"CSPINV"
+                                },
+                                "service":{
+                                    "system":"HCPCS",
+                                    "code":"99214"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "search":{
+                "mode":"match"
+            }
+        },
+
+
+    """
+
+    # Get the FHIR Server URL
+    # Construct the Search for ExplanationOfBenefit / PatientClaimSummary
+
+    # FHIR_URL + PATH + RELEASE + ExplanationOfBenefit?
+    # claimIdentifier=claim_number
+    # &_format=json
+
+    fhir_claim = {}
+    fhir_claim['claimNumber'] = claim_number
+    fhir_claim['found'] = False
+
+    # If claim is found:
+    # fhir_claim['found'] =  True
+    # fhir_claim['claimIdentifier'] = ExplanationOfBenefit.claimIdentifier
+    # fhir_claim['identifier'] = ExplanationOfBenefit.identifier
+    # fhir_claim['provider'] = ExplanationOfBenefit.providerIdentifier
+    # fhir_claim['patient'] = ExplanationOfBenefit.patientIdentifier
+    # fhir_claim['timingPeriod'] = ExplanationOfBenefit.timingPeriod
+
+    return fhir_claim
+
+
+def check_patient(fhir_patient, patient):
+    """ Compare Patient Info """
+
+    # Get the FHIR Patient Resources
+    # Compare to patient information from blue button file
+
+    matched = False
+    # if match:
+    #     matched = True
+
+    return matched

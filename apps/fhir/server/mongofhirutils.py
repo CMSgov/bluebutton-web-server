@@ -21,7 +21,9 @@ def update_mongo_fhir(document, database_name, collection_name, id):
     invalid = False
     existing_document = None
     try:
-        mc = MongoClient(host='127.0.0.1', port=27017, document_class=OrderedDict)
+        mc = MongoClient(host='127.0.0.1',
+                         port=27017,
+                         document_class=OrderedDict)
         db = mc[database_name]
         collection = db[collection_name]
 
@@ -38,7 +40,8 @@ def update_mongo_fhir(document, database_name, collection_name, id):
 
         if invalid:
             response_dict['code'] = 400
-            response_dict['details'] = 'id was missing, incorrect, or malformed. id length must be 24.'
+            response_dict['details'] = 'id was missing, incorrect, or ' \
+                                       'malformed. id length must be 24.'
             return response_dict
 
         if not existing_document:

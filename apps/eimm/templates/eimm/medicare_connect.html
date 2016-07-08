@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Medicare Connector" %}{% endblock %}
+{% block title %}{% trans "Medicare Blue Button Connector" %}{% endblock %}
 {% block breadcrumbs %}
     <div class="container">
         <ul class="breadcrumb">
@@ -10,7 +10,7 @@
         </ul>
     </div>
 {% endblock %}
-{% block pagename %}Medicare Connector{% endblock %}
+{% block pagename %}Medicare Blue Button Connector{% endblock %}
 {% block Content %}
       <div class="container">
 
@@ -22,27 +22,36 @@
 
 
       <div class="hero-unit">
-      <h1>{% trans "Login" %}</h1>
+      <h2>{% trans "MyMedicare.gov Blue Button Connector" %}</h2>
     <br>
 
       <div class="row">
       <div class="span7 center">
         <form class="well" method="post" action="">
           {% csrf_token %}
+        <p>In this next step we will link your Medicare account to
+            the Blue Button API.<br/>To make the link we must take a
+            one-time snapshot of your current Blue Button file.<br/>
+            This requires you to enter your&nbsp;
+            <a href="https://www.mymedicare.gov" target="_blank">
+                MyMedicare.gov</a> Username and Password in the form below.
+            <br/>
+            <i>Your password is not stored.</i>
+        </p>
            <table>
           {% load bootstrap %}
           {{ form|bootstrap }}
            </table>
         <p>
-         By clicking <b>"Connect"</b> you are agreeing to allow the Blue Button API
-            to connect to your MyMedicare.gov account to perform a one-time download
-            of your BlueButton file. This is necessary so that we can identify
-            your records in our new Blue Button system.
+         By clicking <b>"Connect"</b> you are agreeing to allow the Blue Button
+            API to connect to your MyMedicare.gov account to perform a
+            one-time download of your BlueButton file. This is necessary
+            so that we can identify your records in our new Blue Button system.
             <br/>
             The process will take a few minutes to download your Medicare
             Blue Button file and analyze it to find your claims data.<br/>
-            it will then use the claims numbers to find
-            matching claims in the new Blue Button API.<br/>
+            it will then use the claims numbers to find matching claims
+            in the new Blue Button API.<br/>
             Once a link is made you will be able to connect health
             applications and research trials to your health data quickly and
             easily.<br/>
