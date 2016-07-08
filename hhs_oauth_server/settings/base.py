@@ -375,6 +375,9 @@ SETTINGS_EXPORT = [
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
+# enclose value for DJANGO_SLS_PASSWORD in single quotes to preserve
+# special characters eg. $
+# eg. export DJANGO_SLS_PASSWORD='$pecial_CharacterPre$erved'
 SLS_PASSWORD = env('DJANGO_SLS_PASSWORD')
 SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
@@ -389,6 +392,7 @@ FHIR_SERVER_CONF = {'SERVER': env('DJANGO_FHIR_SERVER'),
                     'PATH': env('DJANGO_FHIR_PATH'),
                     'RELEASE': env('DJANGO_FHIR_RELEASE'),
                     'REWRITE_FROM': env('DJANGO_FHIR_REWRITE_FROM'),
+                    # RERITE_FROM should be a list
                     'REWRITE_TO': env('DJANGO_FHIR_REWRITE_TO'),
                     # Minutes until search expires
                     'SEARCH_EXPIRY': env('DJANGO_SEARCH_EXPIRY', 30)}

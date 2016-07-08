@@ -14,6 +14,7 @@ class SettingsBackend(object):
     SLS_USER = 'ben'
     SLS_PASSWORD = 'pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aa'
                    'TohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys='
+
     """
 
     def authenticate(self, username=None, password=None):

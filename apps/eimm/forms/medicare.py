@@ -17,5 +17,7 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 class Medicare_Connect(forms.Form):
     # Get MyMedicare.gov credentials
 
-    mmg_user = forms.CharField(max_length=250)
-    mmg_pwd = forms.CharField(widget=forms.widgets.PasswordInput)
+    mmg_user = forms.CharField(max_length=250,
+                               label="MyMedicare.gov Username:")
+    mmg_pwd = forms.CharField(widget=forms.widgets.PasswordInput,
+                              label="MyMedicare.gov Password:")
