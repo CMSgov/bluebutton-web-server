@@ -32,7 +32,8 @@ def json_login_required(func):
             user = authenticate(username=username, password=password)
 
         if not user or not user.is_active:
-            return HttpResponse(unauthorized_json_response(), mimetype='application/json')
+            return HttpResponse(unauthorized_json_response(),
+                                mimetype='application/json')
         login(request, user)
         return func(request, *args, **kwargs)
 

@@ -73,7 +73,7 @@ def rebuild_fhir_search(request):
     We will start to use a session variable
 
     We received:
-    http://localhost:8000/bluebutton/fhir/v1
+    http://localhost:8000/cmsblue/fhir/v1
     ?_getpages=61c6e2d1-2b7c-49c3-a083-3d5b3874d4ff&_getpagesoffset=10
     &_count=10&_format=json&_pretty=true&_bundletype=searchset
 
@@ -173,7 +173,7 @@ def rebuild_fhir_search(request):
         # logger.debug('We got a different format:%s' % fmt)
         return render(
             request,
-            'bluebutton/default.html',
+            'cmsblue/default.html',
             {'content': pretty_json(od), 'output': od},
         )
 
@@ -250,7 +250,7 @@ def fhir_conformance(request, *args, **kwargs):
 
         return render(
             request,
-            'bluebutton/default.html',
+            'cmsblue/default.html',
             {'output': pretty_json(od),
              'content': {'parameters': request.GET.urlencode(),
                          'resource_type': resource_type,

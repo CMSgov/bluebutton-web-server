@@ -7,6 +7,8 @@ from .base import *
 print(base.ADMINS)
 DEBUG = True
 
+# Generate your own secret key using:
+# http://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = "BBOAUTH2-LOCAL-_CHANGE_THIS_FAKE_KEY_TO_YOUR_OWN_SECRET_KEY"
 
 # define app managers
