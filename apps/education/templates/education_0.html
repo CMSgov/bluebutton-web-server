@@ -4,7 +4,7 @@
 {% block extrahead %}
     <script src="{% static 'js/switch_content.js' %}"></script>
 {% endblock %}
-{% block title %}{% trans "Activate Advanced Blue Button API" %}{% endblock %}
+{% block title %}{% trans "Activate CMS Blue Button API" %}{% endblock %}
 {% block breadcrumbs %}
     <div class="container">
         <ul class="breadcrumb">
@@ -14,7 +14,7 @@
         </ul>
     </div>
 {% endblock %}
-{% block pagename %}Activate Advanced Blue Button API (1){% endblock %}
+{% block pagename %}Activate the CMS Blue Button API (1){% endblock %}
 
 {% block Content %}
 <div class="section">
@@ -27,7 +27,8 @@
                 <h4>Put your health information to work for you, or donate it to research</h4>
 
                  <p>CMS and MyMedicare.gov introduces a new, advanced Blue Button
-                    service. It complements the existing BlueButton Text and
+                    service: The CMS Blue Button API (Application Programming Interface.
+                     It complements the existing Blue Button Text and
                     PDF file download options.
                     <br/>
                     The new service is a programmable interface. It enables
@@ -39,16 +40,27 @@
                     hard work of downloading and understanding your data. This can be done
                     automatically for you so that your information is ready when you need it.
                     <br/>
-                    The advanced Blue Button service lets you share information without having
+                    The CMS Blue Button API lets you share information without having
                     to share your password. Each application is given a unique key that you
                     control. You can delete that key at any time. Just login to MyMedicare.gov,
                     access the "Connected Apps" panel in "My Account" and remove the key and
                     data stops flowing to the disconnected application.
 
                 </p>
+                <h5>What is an API?</h5>
+                <p>Application Programming Interface: It is toolset that software developers
+                    use to create smartphone, web and other applications. The API defines
+                    how to interact with a system or service. Modern applications, Like this
+                    one, use hundreds of APIs to simplify the creation of applications.
+                </p>
+                <p>
+                   By publishing your information via an API we are making it easier for
+                    software developers to create solutions and services that help you make
+                    sense of and put your claims data to help you live healthier.
+                </p>
             </div>
             <div class="col-md-4 col-sm-12">
-                <img src="{% static 'img/layout/blue-button.png' %}"
+                <img src="{% static 'img/layout/bluebuttonapiv1.png' %}"
                     style="height:300px">
             </div>
 

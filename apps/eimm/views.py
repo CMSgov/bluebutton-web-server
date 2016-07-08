@@ -2,7 +2,7 @@
 apps.eimm
 Experimental Plan B Integration to MyMedicare.gov
 Uses RoboBrowser to do a behind the scenes login to MyMedicare.gov
-Grab the BlueButton file
+Grab the Blue Button file
 Extract a claim number and other information
 Make a search to backend and get FHIR Patient/Id
 
@@ -97,7 +97,7 @@ def connect_first(request):
                 mmg_bb = get_bluebutton(request, mmg)
 
                 # mmg_mail = {}
-                # logger.debug("BlueButton returned:", mmg_bb)
+                # logger.debug("Blue Button returned:", mmg_bb)
 
                 mc_prof = {}
                 if mmg_bb['status'] == "OK":
@@ -119,7 +119,7 @@ def connect_first(request):
                         xwalk.mb_user = mc_prof['user']
 
                     if mmg_bb['status'] == "OK":
-                        # We need to save the BlueButton Text
+                        # We need to save the Blue Button Text
                         # print("We are okay to update mmg_bbdata",
                         #      "\n with ", mmg_bb['mmg_bbdata'][:250])
                         mc_prof['bb_data'] = mmg_bb['mmg_bbdata']
@@ -378,7 +378,7 @@ def get_bluebutton(request, mmg):
     rb.parser = PARSER
     rb.open(target_page)
 
-    # logger.debug("RB in Get BlueButton:", rb.url,
+    # logger.debug("RB in Get Blue Button:", rb.url,
     #              "================", "rb:", rb.parsed)
 
     form = rb.get_form()
@@ -459,7 +459,7 @@ def get_bluebutton(request, mmg):
     # We need to add the Medicare site prefix
     # So we can call RobBrowser.
     bb_link = "https://www.mymedicare.gov/" + bb_link
-    # logger.debug("BlueButton Link:", bb_file_link,
+    # logger.debug("Blue Button Link:", bb_file_link,
     #              "\nhref:", bb_link)
 
     mmg_back['status'] = "OK"
@@ -468,7 +468,7 @@ def get_bluebutton(request, mmg):
     # id="TXTHyperLink"
     # title="Download TXT"><b>Download TXT</b></a>
 
-    # Get the BlueButton Text file content
+    # Get the Blue Button Text file content
     rb.open(bb_link)
 
     # logger.debug("\np:", rb.find("p").getText())

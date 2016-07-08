@@ -3,7 +3,7 @@ python-bluebutton
 FILE: file_def_cms
 Created: 3/6/15 10:42 PM
 
-Add Seg List for definition of CMS BlueButton file
+Add Seg List for definition of CMS Blue Button text file
 
 """
 __author__ = 'Mark Scrimshire:@ekivemark'
