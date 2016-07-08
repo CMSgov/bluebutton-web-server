@@ -3,7 +3,7 @@ python-bluebutton
 FILE: cms_custom
 Created: 3/26/15 9:39 AM
 
-Custom processing of sections of the CMS BlueButton file
+Custom processing of sections of the CMS Blue Button text file
 __author__ = 'Mark Scrimshire:@ekivemark'
 
 """
