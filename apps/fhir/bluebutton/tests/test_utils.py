@@ -430,9 +430,9 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         #                            amazonaws.com:8080/baseDstu2",
         #            "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
 
-        expected = env("DJANGO_FHIR_SERVER")
-        expected += env("DJANGO_FHIR_PATH")
-        expected += env("DJANGO_FHIR_RELEASE")
+        expected = settings.FHIR_SERVER_CONF['SERVER']
+        expected += settings.FHIR_SERVER_CONF['PATH']
+        expected += settings.FHIR_SERVER_CONF['RELEASE']
         expected += '/'
         # expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
 
@@ -710,7 +710,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        default_url = env("DJANGO_FHIR_REWRITE_FROM")
+        default_url = settings.FHIR_SERVER_CONF['REWRITE_FROM']
         # print("\n\n", default_url)
 
         input_text = 'dddd anything '
