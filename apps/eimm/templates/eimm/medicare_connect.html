@@ -30,7 +30,7 @@
         <form class="well" method="post" action="">
           {% csrf_token %}
         <p>In this next step we will link your Medicare account to
-            the Blue Button API.<br/>To make the link we must take a
+            the CMS Blue Button API.<br/>To make the link we must take a
             one-time snapshot of your current Blue Button file.<br/>
             This requires you to enter your&nbsp;
             <a href="https://www.mymedicare.gov" target="_blank">
@@ -43,15 +43,15 @@
           {{ form|bootstrap }}
            </table>
         <p>
-         By clicking <b>"Connect"</b> you are agreeing to allow the Blue Button
+         By clicking <b>"Connect"</b> you are agreeing to allow the CMS Blue Button
             API to connect to your MyMedicare.gov account to perform a
-            one-time download of your BlueButton file. This is necessary
+            one-time download of your Blue Button file. This is necessary
             so that we can identify your records in our new Blue Button system.
             <br/>
             The process will take a few minutes to download your Medicare
             Blue Button file and analyze it to find your claims data.<br/>
             it will then use the claims numbers to find matching claims
-            in the new Blue Button API.<br/>
+            in the CMS Blue Button API.<br/>
             Once a link is made you will be able to connect health
             applications and research trials to your health data quickly and
             easily.<br/>

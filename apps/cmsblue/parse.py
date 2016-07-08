@@ -2,6 +2,7 @@
 """
 convert bluebutton to json
 """
+import collections
 from apps.cmsblue.cms_parser import *
 from apps.cmsblue.file_def_cms import *
 
@@ -186,7 +187,7 @@ def section_parse(inPath):
 
 
 def bb_file_parse(inPath):
-    # Parse a CMS BlueButton
+    # Parse a CMS Blue Button text file
     # Using a redefined Parsing process
 
     # Set default variables on entry

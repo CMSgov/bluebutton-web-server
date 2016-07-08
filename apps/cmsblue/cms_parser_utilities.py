@@ -3,7 +3,7 @@ python-bluebutton
 FILE: cms_parser_utilities
 Created: 3/9/15 5:34 PM
 
-Takes CMS BlueButton v2.0 File and converts to JSON
+Takes CMS Blue Button v2.0 File and converts to JSON
 This provides partial compatibility with full JSON/XML format
 __author__ = 'Mark Scrimshire:@ekivemark'
 
@@ -140,7 +140,7 @@ def process_subseg(strt_ln,
 
     # FIXED: Last line in file was not being written
 
-    # The claims section of the CMS BlueButton file appears to have an
+    # The claims section of the CMS Blue Button file appears to have an
     # issue. The Claim Headers are not titled there is only the two
     # dashed lines BUT the last claim header does not get preceded by
     # the dashed lines. So there is nothing to indicate a new claim.

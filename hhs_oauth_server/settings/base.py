@@ -83,7 +83,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     # Define scopes and related protected resource URLs.
     'apps.capabilities',
-    # BlueButton Text file parsing code
+    # Blue Button Text file parsing code
     'apps.cmsblue',
 
     # Endorsement example
@@ -355,7 +355,7 @@ else:
 
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = 'CMS BlueButton+'
+APPLICATION_TITLE = 'CMS Blue Button API'
 
 HOSTNAME_URL = env('HOSTNAME_URL')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
