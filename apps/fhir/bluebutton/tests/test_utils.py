@@ -432,7 +432,10 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         expected = settings.FHIR_SERVER_CONF['SERVER']
         expected += settings.FHIR_SERVER_CONF['PATH']
         expected += settings.FHIR_SERVER_CONF['RELEASE']
-        expected += '/'
+        if expected.endswith('/'):
+            pass
+        else:
+            expected += '/'
         # expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
 
         self.assertEquals(response, expected)
