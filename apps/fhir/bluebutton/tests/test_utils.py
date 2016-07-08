@@ -1,6 +1,5 @@
 import urllib
 
-from getenv import env
 from collections import OrderedDict
 
 from django.conf import settings
