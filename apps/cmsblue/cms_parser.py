@@ -4,7 +4,7 @@ python-cmsblue
 FILE: cms_parser
 Created: 3/3/15 12:16 PM
 
-convert CMS BlueButton text to json
+convert CMS Blue Button text to json
 
 __author__ = 'Mark Scrimshire:@ekivemark'
 
@@ -494,7 +494,7 @@ def parse_lines(ln_list):
 
 
 def cms_file_parse2(inPath):
-    # Parse a CMS BlueButton file (inPath)
+    # Parse a CMS Blue Button text file (inPath)
 
     # result = cms_file_read(inPath)
 
@@ -739,7 +739,7 @@ def cms_file_parse2(inPath):
 
 
 def cms_file_parse(inPath):
-    # Parse a CMS BlueButton file (inPath)
+    # Parse a CMS Blue Button text file (inPath)
     # Using a redefined Parsing process
 
     # Set default variables on entry

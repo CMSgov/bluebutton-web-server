@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-# An Bluebutton parser command line utility.
+# A Blue button parser command line utility.
 # Alan Viars, Videntity 2011
-# Added CMS v2.0 BlueButton parsing by Mark Scrimshire (@ekivemark), 2015
+# Added CMS v2.0 Blue Button parsing by Mark Scrimshire (@ekivemark), 2015
 
 import sys
 

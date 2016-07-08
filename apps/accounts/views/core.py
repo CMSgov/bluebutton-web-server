@@ -15,18 +15,18 @@ from ..utils import validate_activation_key
 
 
 def request_developer_invite(request):
-    name = 'Request a Developer Invite'
+    name = 'Request a Developer Invite to the CMS Blue Button API'
     additional_info = """
-    <p>BlueButton+ is a new feature from Medicare. BlueButton+
-    enables beneficiaries to connect their data to applications and research
-    programs they trust.</p>
+    <p>The CMS Blue Button API is a new feature from Medicare. CMS Blue Button
+    API enables beneficiaries to connect their data to applications and
+    research programs they trust.</p>
     <p>Register an account and an application and you can empower beneficiaries
     to download their claims information to the innovative apps you create
     to help them stay healthy.</p>
-    <p>We are rolling out BlueButton+ in phases to gather feedback on the new
-    features. To become a BlueButton+ developer you must request an invitation
-    code by filling in this form. We will send you an email with the invitation
-    link.</p>
+    <p>We are rolling out CMS Blue Button API in phases to gather feedback on
+    the new features. To become a CMS Blue Button API developer you must
+    request an invitation code by filling in this form. We will send you an
+    email with the invitation link.</p>
     <h4>Let's get started...</h4>
     """
     # FIXME: variable not used
@@ -40,7 +40,9 @@ def request_developer_invite(request):
 
             messages.success(
                 request,
-                _('Your invite request has been received.  You will be contacted by email when your invitation is ready.'),
+                _('Your invite request has been received.  '
+                  'You will be contacted by email when your '
+                  'invitation is ready.'),
             )
             return HttpResponseRedirect(reverse('login'))
         else:
@@ -51,25 +53,25 @@ def request_developer_invite(request):
             })
     else:
         # this is an HTTP  GET
-        return render(request, 'generic/bootstrapform.html', {
-            'name': name,
-            'form': RequestDeveloperInviteForm(),
-            'additional_info': additional_info,
-        })
+        return render(request,
+                      'generic/bootstrapform.html',
+                      {'name': name,
+                       'form': RequestDeveloperInviteForm(),
+                       'additional_info': additional_info})
 
 
 def request_user_invite(request):
-    name = 'Request an Invite to CMS BlueButton+'
+    name = 'Request an Invite to CMS Blue Button API'
     additional_info = """
-    <p>BlueButton+ is a new feature from Medicare. BlueButton+
+    <p>CMS Blue Button API is a new feature from Medicare. CMS Blue Button API
     connects your data to applications and research programs you trust.</p>
     <p>Authorize an application and it will download data automatically on
     your behalf.</p>
-    <p>We are rolling out BlueButton+ in phases to gather feedback on the new
-    features. To try BlueButton+ for yourself you must request an invitation
-    code by filling in this form. We will send you an email with the invitation
-    link. You must click on the link in the email to add BlueButton+ to your
-    Medicare account.</p>
+    <p>We are rolling out CMS Blue Button API in phases to gather feedback on
+    the new features. To try CMS Blue Button API for yourself you must request
+    an invitation code by filling in this form. We will send you an email
+    with the invitation link. You must click on the link in the email to
+    add the CMS Blue Button API to your Medicare account.</p>
     <h4>Let's get started...</h4>
     """
     # FIXME: variable not used
@@ -83,22 +85,24 @@ def request_user_invite(request):
 
             messages.success(
                 request,
-                _('Your invite request has been received.  You will be contacted by email when your invitation is ready.'),
+                _('Your invite request has been received.  '
+                  'You will be contacted by email when your '
+                  'invitation is ready.'),
             )
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render(request, 'generic/bootstrapform.html', {
-                'name': name,
-                'form': form,
-                'additional_info': additional_info,
-            })
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'name': name,
+                           'form': form,
+                           'additional_info': additional_info})
     else:
         # this is an HTTP  GET
-        return render(request, 'generic/bootstrapform.html', {
-            'name': name,
-            'form': RequestUserInviteForm(),
-            'additional_info': additional_info,
-        })
+        return render(request,
+                      'generic/bootstrapform.html',
+                      {'name': name,
+                       'form': RequestUserInviteForm(),
+                       'additional_info': additional_info})
 
 
 def mylogout(request):
@@ -127,7 +131,9 @@ def simple_login(request):
                     return HttpResponseRedirect(reverse('home'))
                 else:
                     # The user exists but is_active=False
-                    messages.error(request, _('Please check your email for a link to activate your account.'))
+                    messages.error(request,
+                                   _('Please check your email for a link to '
+                                     'activate your account.'))
                     return render(request, 'login.html', {'form': form})
             else:
                 messages.error(request, _('Invalid username or password.'))
@@ -140,7 +146,8 @@ def simple_login(request):
 
 
 def password_reset_email_verify(request, reset_password_key=None):
-    vprk = get_object_or_404(ValidPasswordResetKey, reset_password_key=reset_password_key)
+    vprk = get_object_or_404(ValidPasswordResetKey,
+                             reset_password_key=reset_password_key)
     if request.method == 'POST':
         form = PasswordResetForm(request.POST)
         if form.is_valid():
@@ -151,15 +158,15 @@ def password_reset_email_verify(request, reset_password_key=None):
             messages.success(request, _('Your password has been reset.'))
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render(request, 'generic/bootstrapform.html', {
-                'form': form,
-                'reset_password_key': reset_password_key
-            })
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'form': form,
+                           'reset_password_key': reset_password_key})
 
-    return render(request, 'generic/bootstrapform.html', {
-        'form': PasswordResetForm(),
-        'reset_password_key': reset_password_key
-    })
+    return render(request,
+                  'generic/bootstrapform.html',
+                  {'form': PasswordResetForm(),
+                   'reset_password_key': reset_password_key})
 
 
 @login_required
@@ -188,17 +195,25 @@ def forgot_password(request):
             try:
                 u = User.objects.get(email=data['email'])
             except(User.DoesNotExist):
-                messages.error(request, 'A user with the email supplied does not exist.')
+                messages.error(request,
+                               'A user with the email supplied '
+                               'does not exist.')
                 return HttpResponseRedirect(reverse('password_reset_request'))
             # success
             ValidPasswordResetKey.objects.create(user=u)
-            messages.info(request, 'Please check your email for a special link to rest your password.')
+            messages.info(request,
+                          'Please check your email for a special link'
+                          ' to reset your password.')
             return HttpResponseRedirect(reverse('login'))
         else:
-            return render(request, 'generic/bootstrapform.html', {'name': name, 'form': form})
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'name': name, 'form': form})
 
     else:
-        return render(request, 'generic/bootstrapform.html', {'name': name, 'form': PasswordResetRequestForm()})
+        return render(request,
+                      'generic/bootstrapform.html',
+                      {'name': name, 'form': PasswordResetRequestForm()})
 
 
 def create_developer(request):
@@ -209,45 +224,47 @@ def create_developer(request):
         form = SignupDeveloperForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Your developer account was created. Please check your email to verify your account."))
+            messages.success(request,
+                             _("Your developer account was created. Please "
+                               "check your email to verify your account."))
             return HttpResponseRedirect(reverse('login'))
         else:
             # return the bound form with errors
-            return render(request, 'generic/bootstrapform.html', {
-                'name': name,
-                'form': form,
-            })
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'name': name, 'form': form})
     else:
         # this is an HTTP  GET
-        messages.info(request, _("An invitation code is required to register."))
-        return render(request, 'generic/bootstrapform.html', {
-            'name': name,
-            'form': SignupDeveloperForm(),
-        })
+        messages.info(request,
+                      _("An invitation code is required to register."))
+        return render(request,
+                      'generic/bootstrapform.html',
+                      {'name': name, 'form': SignupDeveloperForm()})
 
 
 def create_user(request):
-    name = "Create a BlueButton+ Account"
+    name = "Create a CMS Blue Button API Account"
 
     if request.method == 'POST':
         form = SignupUserForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Your account was created. Please check your email to verify your account."))
+            messages.success(request,
+                             _("Your account was created. Please check your "
+                               "email to verify your account."))
             return HttpResponseRedirect(reverse('login'))
         else:
             # return the bound form with errors
-            return render(request, 'generic/bootstrapform.html', {
-                'name': name,
-                'form': form,
-            })
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'name': name, 'form': form})
     else:
         # this is an HTTP  GET
-        messages.info(request, _("An invitation code is required to register."))
-        return render(request, 'generic/bootstrapform.html', {
-            'name': name,
-            'form': SignupUserForm(),
-        })
+        messages.info(request,
+                      _("An invitation code is required to register."))
+        return render(request,
+                      'generic/bootstrapform.html',
+                      {'name': name, 'form': SignupUserForm()})
 
 
 @login_required
@@ -272,11 +289,16 @@ def account_settings(request):
             # update the user profile
             up.organization_name = data['organization_name']
             up.save()
-            messages.success(request, 'Your account settings have been updated.')
-            return render(request, 'generic/bootstrapform.html', {'form': form, 'name': name})
+            messages.success(request,
+                             'Your account settings have been updated.')
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'form': form, 'name': name})
         else:
             # the form had errors
-            return render(request, 'generic/bootstrapform.html', {'form': form, 'name': name})
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'form': form, 'name': name})
 
     # this is an HTTP GET
     form = AccountSettingsForm(
@@ -289,13 +311,17 @@ def account_settings(request):
             'access_key_reset': up.access_key_reset,
         }
     )
-    return render(request, 'generic/bootstrapform.html', {'name': name, 'form': form})
+    return render(request,
+                  'generic/bootstrapform.html',
+                  {'name': name, 'form': form})
 
 
 def activation_verify(request, activation_key):
     if validate_activation_key(activation_key):
-        messages.success(request, 'Your account has been activated. You may now login.')
+        messages.success(request,
+                         'Your account has been activated. You may now login.')
     else:
-        messages.error(request, 'This key does not exist or has already been used.')
+        messages.error(request,
+                       'This key does not exist or has already been used.')
 
     return HttpResponseRedirect(reverse('login'))
