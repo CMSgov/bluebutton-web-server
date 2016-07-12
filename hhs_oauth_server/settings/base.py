@@ -85,7 +85,6 @@ INSTALLED_APPS = [
     'apps.capabilities',
     # Blue Button Text file parsing code
     'apps.cmsblue',
-
     # Endorsement example
     'apps.endorse',
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
@@ -238,6 +237,7 @@ AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
+    'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
