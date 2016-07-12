@@ -1,25 +1,16 @@
 from collections import OrderedDict
-
 from django.conf import settings
 from django.test import TestCase, RequestFactory
-
 from apps.test import BaseApiTest
-
 from apps.fhir.bluebutton.models import (ResourceTypeControl,
                                          SupportedResourceType,
                                          Crosswalk)
-
-
 try:
     # python2
-    from urllib import urlencode
     from urlparse import parse_qsl
 except ImportError:
     # python3
-    from urllib.parse import urlencode, parse_qsl
-
-
-
+    from urllib.parse import parse_qsl
 from apps.fhir.bluebutton.utils import (
     notNone,
     strip_oauth,
