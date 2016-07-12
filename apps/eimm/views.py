@@ -24,10 +24,10 @@ from django.shortcuts import render
 
 from django.utils.safestring import mark_safe
 
-from apps.cmsblue.cms_parser import (cms_text_read,
-                                     parse_lines)
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import pretty_json
+from ..cmsblue.cms_parser import (cms_text_read,
+                                  parse_lines)
+from ..fhir.bluebutton.models import Crosswalk
+from ..fhir.bluebutton.utils import pretty_json
 from .forms.medicare import Medicare_Connect
 from .utils import split_name
 

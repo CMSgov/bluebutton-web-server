@@ -201,11 +201,9 @@ def custom_family_history(strt_ln,
             seg[seg_name].append(process_list)
 
         # print(seg[seg_name])
-        pass
     elif key_is("type", ln_control, "DICT"):
         # print("adding from process_dict")
         seg[seg_name] = process_dict
-        pass
     # logger.debug("<<==<<==<<==<<==<<==<<==<<==<<==<<",
     #              "returning end_ln:", end_ln,
     #              "wrk_ln:", wrk_ln,
