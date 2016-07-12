@@ -85,7 +85,6 @@ INSTALLED_APPS = [
     'apps.capabilities',
     # Blue Button Text file parsing code
     'apps.cmsblue',
-
     # Endorsement example
     'apps.endorse',
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
@@ -128,7 +127,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', False)
+CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', True)
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
@@ -238,6 +237,7 @@ AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
+    'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'

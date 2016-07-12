@@ -2,8 +2,8 @@ from django.test import TestCase
 from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.urlresolvers import reverse
-
 from apps.accounts.models import UserProfile
+from getenv import env
 
 
 class LoginTestCase(TestCase):
@@ -78,3 +78,16 @@ class LoginTestCase(TestCase):
         # User is not yet active. Pending activation.
         self.assertContains(response, 'Please check your email')
         self.assertEqual(up.user.is_active, False)
+
+        def test_mymedicare_valid_login_succeeds(self):
+            """
+            Test Mymedicare valid login succeeds.
+            """
+        form_data = {'username': env('MM_USER', 'CHANGE_ME'),
+                     'password': env('MM_PASS', 'CHANGE_ME')}
+        response = self.client.post(self.url,
+                                    form_data,
+                                    follow=True)
+        up = UserProfile.objects.get(user__username=env('MM_USER', 'CHANGE_ME'))
+        # User is a beneficiary ()
+        self.assertEqual(up.user_type, 'BEN')

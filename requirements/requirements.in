@@ -34,3 +34,8 @@ oauthlib
 python-openid
 -e git+https://github.com/evonove/django-oauth-toolkit.git@scopes-backend#egg=dot_scopes_backend
 poetri
+
+
+# for screen scraping
+robobrowser
+lxml
