@@ -44,7 +44,7 @@ six==1.10.0               # via cryptography
 sqlparse==0.1.19          # via django-debug-toolbar
 tox==2.3.1
 virtualenv==15.0.2        # via tox
-
+lxml==3.6.0
 # The following packages are commented out because they are
 # considered to be unsafe in a requirements file:
 # setuptools                # via cryptography
