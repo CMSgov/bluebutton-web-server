@@ -1125,7 +1125,10 @@ def get_fhir_claim(request, claim_number):
         fhir_claim['provider'] = resource['provider']['reference']
         fhir_claim['patient'] = resource['patient']['reference']
         if 'billablePeriod' in resource:
-            fhir_claim['timingPeriod'] = json.loads(resource['billablePeriod'])
+            if isinstance(resource['billablePeriod'], dict):
+                fhir_claim['timingPeriod'] = dict(resource['billablePeriod'])
+            else:
+                fhir_claim['timingPeriod'] = resource['billablePeriod']
     # fhir_claim['claimIdentifier'] = ExplanationOfBenefit.claimIdentifier
     # fhir_claim['identifier'] = ExplanationOfBenefit.identifier
     # fhir_claim['provider'] = ExplanationOfBenefit.providerIdentifier
