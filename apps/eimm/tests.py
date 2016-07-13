@@ -1,5 +1,5 @@
 from collections import OrderedDict
-
+from unittest import skip
 from django.test import TestCase, RequestFactory
 
 from .views import get_fhir_claim
@@ -80,6 +80,7 @@ class EimmViewsRequestTest(TestCase):
         # Setup the RequestFactory
         self.factory = RequestFactory()
 
+    @skip
     def test_get_bb_claim(self):
         """
         Pass the blue button claim to backed and get result back
@@ -111,6 +112,7 @@ class EimmViewsRequestTest(TestCase):
             print('\nRT:', response['text'])
 
             self.assertEqual(response['text']['claimIdentifier'], claim)
+
 
     def test_unique_keys(self):
         """ Pass searched claims to unique_keys """
