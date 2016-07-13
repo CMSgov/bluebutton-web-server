@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from .views.core import (simple_login, create_user,
+from .views.core import (simple_login,
                          create_developer, account_settings,
                          reissue_api_keys, request_developer_invite,
                          mylogout, forgot_password, request_user_invite,
@@ -13,7 +13,6 @@ urlpatterns = [
     url(r'logout$', mylogout, name='mylogout'),
 
     # create and update account info -----------------------
-    url(r'create-user', create_user, name='accounts_create_user'),
     url(r'create-developer',
         create_developer,
         name='accounts_create_developer'),

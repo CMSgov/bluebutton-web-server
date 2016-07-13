@@ -51,6 +51,13 @@ class UserProfile(models.Model):
                     'Doing so invalidates the existing key.'),
     )
 
+    create_applications = models.BooleanField(
+        blank=True,
+        default=False,
+        help_text=_(
+            'Check this to allow the account to register applications.'),
+    )
+
     def __str__(self):
         name = '%s %s (%s)' % (self.user.first_name,
                                self.user.last_name,
