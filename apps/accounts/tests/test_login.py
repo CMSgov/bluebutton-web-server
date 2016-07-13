@@ -79,7 +79,8 @@ class LoginTestCase(TestCase):
         self.assertContains(response, 'Please check your email')
         self.assertEqual(up.user.is_active, False)
 
-    @skipUnless(env('MM_USER', ''), "Requires real MyMedicare credentials. Test locally")
+    @skipUnless(env('MM_USER', ''),
+                "Requires real MyMedicare credentials. Test locally")
     def test_mymedicare_valid_login_succeeds(self):
         """
         Test MyMedicare valid login succeeds.
@@ -90,7 +91,9 @@ class LoginTestCase(TestCase):
         response = self.client.post(self.url,
                                     form_data,
                                     follow=True)
-        up = UserProfile.objects.get(user__username=env('MM_USER', 'CHANGE_ME'))
+        up = UserProfile.objects.get(
+            user__username=env(
+                'MM_USER', 'CHANGE_ME'))
         # This user is a beneficiary.
         self.assertEqual(up.user_type, 'BEN')
         # The user is logged in
