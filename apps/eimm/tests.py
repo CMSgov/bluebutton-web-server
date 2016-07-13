@@ -101,15 +101,14 @@ class EimmViewsRequestTest(TestCase):
             '542612281109054',
             '233464492442129',  # CCW_PDE_FACT.PDE_ID / 263
             '233584489019874',  # CCW_PDE_FACT.PDE_ID / 259
-            ''
         ]
         request = {}
 
         response = {}
         for claim in claims:
             response['text'] = get_fhir_claim(request, claim)
-            print("\nclaim:", claim)
-            print('RT:', response['text'])
+            # print("\nclaim:", claim)
+            # print('\n\nRT:', response['text'])
 
             self.assertEqual(response['text']['claimIdentifier'], claim)
 
