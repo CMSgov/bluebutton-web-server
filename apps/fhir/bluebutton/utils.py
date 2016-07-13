@@ -13,7 +13,7 @@ from collections import OrderedDict
 
 from django.conf import settings
 from django.contrib import messages
-from django.core.urlresolvers import reverse_lazy
+# from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 
 from apps.fhir.core.utils import (kickout_404, kickout_403)

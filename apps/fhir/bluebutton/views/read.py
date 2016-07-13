@@ -1,6 +1,6 @@
 import json
 import logging
-import requests
+# import requests
 
 from collections import OrderedDict
 
