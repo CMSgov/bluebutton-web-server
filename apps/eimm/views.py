@@ -13,23 +13,27 @@ https://github.com/ekivemark/bbofuser/tree/master/apps/getbb
 requires: Werkzeug-0.11.10 robobrowser-0.5.3
 
 """
+import json
 import logging
 
+from collections import OrderedDict
 from robobrowser import (RoboBrowser)
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
 from django.shortcuts import render
-
 from django.utils.safestring import mark_safe
 
 from ..cmsblue.cms_parser import (cms_text_read,
                                   parse_lines)
 from ..fhir.bluebutton.models import Crosswalk
-from ..fhir.bluebutton.utils import pretty_json
+from ..fhir.bluebutton.utils import (request_call,
+                                     pretty_json,
+                                     FhirServerUrl)
+
 from .forms.medicare import Medicare_Connect
-from .utils import split_name
+from .utils import (split_name,
+                    unique_keys)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -715,15 +719,21 @@ def eval_claims(claims, patient):
             if c['claimNumber']:
                 fhir_claim = get_fhir_claim(c['claimNumber'])
                 if fhir_claim['found']:
-                    patient_match = check_patient(fhir_claim['patient'],
-                                                  patient)
-                    if patient_match:
-                        fhir_claims.append(fhir_claim)
+                    fhir_claims.append(fhir_claim)
+
+    # Now we look at Patient Information
+    # Do all claims refer to same Patient Id?
+    # Create a short list
+    patient_ids = unique_keys(fhir_claims, key="patient")
+    print("Patient ID List:", patient_ids)
+
+    # patient_match = check_patient(fhir_claim['patient'],
+    #                               patient)
 
     return fhir_claims
 
 
-def get_fhir_claim(claim_number):
+def get_fhir_claim(request, claim_number):
     """ Search for Claim Number in FHIR Backend
 
     Sample Search Specification:
@@ -1084,22 +1094,45 @@ def get_fhir_claim(claim_number):
 
     # Get the FHIR Server URL
     # Construct the Search for ExplanationOfBenefit / PatientClaimSummary
+    search_base = FhirServerUrl() + "ExplanationOfBenefit"
 
     # FHIR_URL + PATH + RELEASE + ExplanationOfBenefit?
     # claimIdentifier=claim_number
     # &_format=json
 
+    # http://bluebuttonhapi-test.hhsdevcloud.us/baseDstu2/
+    # ExplanationOfBenefit?identifier=CCW_PTA_FACT.CLM_ID|542882280967266
+
+    search_base += "?_format=json&identifier="  # CCW_PTA_FACT.CLM_ID|"
+
     fhir_claim = {}
     fhir_claim['claimNumber'] = claim_number
     fhir_claim['found'] = False
 
+    search_base += claim_number
+
+    # logger.debug('Calling request_call with %s' % search_base)
+    r = request_call(request, search_base)
+    # logger.debug("returned with %s" % r.text)
+    bundle = json.loads(r.text, object_pairs_hook=OrderedDict)
+
+    if bundle['total'] > 0:
+        resource = bundle['entry'][0]['resource']
     # If claim is found:
-    # fhir_claim['found'] =  True
+        fhir_claim['found'] = True
+        fhir_claim['claimIdentifier'] = resource['identifier'][0]['value']
+        fhir_claim['identifier'] = resource['id']
+        fhir_claim['provider'] = resource['provider']['reference']
+        fhir_claim['patient'] = resource['patient']['reference']
+        if 'billablePeriod' in resource:
+            fhir_claim['timingPeriod'] = json.loads(resource['billablePeriod'])
     # fhir_claim['claimIdentifier'] = ExplanationOfBenefit.claimIdentifier
     # fhir_claim['identifier'] = ExplanationOfBenefit.identifier
     # fhir_claim['provider'] = ExplanationOfBenefit.providerIdentifier
     # fhir_claim['patient'] = ExplanationOfBenefit.patientIdentifier
     # fhir_claim['timingPeriod'] = ExplanationOfBenefit.timingPeriod
+
+    # logger.debug('fhir_claim: %s' % fhir_claim)
 
     return fhir_claim
 
