@@ -4,7 +4,7 @@ from django.test import TestCase, RequestFactory
 
 from .views import get_fhir_claim
 from .utils import split_name
-from ..fhir.bluebutton.utils import pretty_json
+# from ..fhir.bluebutton.utils import pretty_json
 # from apps.fhir.bluebutton.utils import pretty_json
 
 
@@ -113,7 +113,6 @@ class EimmViewsRequestTest(TestCase):
 
             self.assertEqual(response['text']['claimIdentifier'], claim)
 
-
     def test_unique_keys(self):
         """ Pass searched claims to unique_keys """
 
@@ -131,3 +130,4 @@ class EimmViewsRequestTest(TestCase):
 
         ]
 
+        print(input_list)

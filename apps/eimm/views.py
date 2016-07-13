@@ -1119,7 +1119,7 @@ def get_fhir_claim(request, claim_number):
     if bundle['total'] > 0:
         resource = bundle['entry'][0]['resource']
     # If claim is found:
-        fhir_claim['found'] =  True
+        fhir_claim['found'] = True
         fhir_claim['claimIdentifier'] = resource['identifier'][0]['value']
         fhir_claim['identifier'] = resource['id']
         fhir_claim['provider'] = resource['provider']['reference']
