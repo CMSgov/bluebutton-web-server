@@ -39,11 +39,12 @@ pymongo==3.2.2
 python-openid==2.2.5
 pytz==2016.4
 requests==2.10.0
+robobrowser==0.5.3
 six==1.10.0               # via cryptography
 sqlparse==0.1.19          # via django-debug-toolbar
 tox==2.3.1
 virtualenv==15.0.2        # via tox
-
+lxml==3.6.0
 # The following packages are commented out because they are
 # considered to be unsafe in a requirements file:
 # setuptools                # via cryptography

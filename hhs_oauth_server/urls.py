@@ -16,6 +16,8 @@ urlpatterns = [
     url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
     url(r'^capabilities/', include('apps.capabilities.urls')),
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
+    url(r'^integration/', include('apps.eimm.urls')),
+    url(r'^endorse/', include('apps.endorse.urls')),
     url(r'^o/', include('apps.dot_ext.urls')),
     url(r'^', fhir_search_home, name='home'),
     # url(r'^', include('apps.home.urls')),

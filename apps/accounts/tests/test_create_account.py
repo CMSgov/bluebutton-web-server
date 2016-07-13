@@ -32,7 +32,8 @@ class CreateUserAccountTestCase(TestCase):
         response = self.client.post(self.url, form_data, follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Please check your email to verify your account.')
+        self.assertContains(response, 'Please check your email '
+                                      'to verify your account.')
 
     def test_account_create_shold_fail_when_password_too_short(self):
         """
@@ -112,7 +113,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         response = self.client.post(self.url, form_data, follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Please check your email to verify your account.')
+        self.assertContains(response, 'Please check your email '
+                                      'to verify your account.')
 
     def test_account_create_shold_fail_when_password_too_short(self):
         """

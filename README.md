@@ -10,6 +10,7 @@ This application will handle the OAuth 2 handshaking and configuration with CMS 
 beneficiaries and Registered Developers.
 
 The prototype application will be served from an AWS instance (https://dev.bbonfhir.com).
+The service will be known as the CMS Blue Button API.
 
 Quick Setup
 -----------

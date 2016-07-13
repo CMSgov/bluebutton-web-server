@@ -83,15 +83,20 @@ INSTALLED_APPS = [
     'apps.accounts',
     # Define scopes and related protected resource URLs.
     'apps.capabilities',
+    # Blue Button Text file parsing code
+    'apps.cmsblue',
+    # Endorsement example
+    'apps.endorse',
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
     'apps.dot_ext.apps.dot_extConfig',
+    # MyMedicare.gov Enhanced Validated Identity Linkage
+    'apps.eimm',
     # Landing pages, etc.
     'apps.home',
     'apps.education',
-    # 'apps.fhir',
     'apps.fhir.core',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
@@ -122,7 +127,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', False)
+CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', True)
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
@@ -232,6 +237,7 @@ AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
+    'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
@@ -349,7 +355,7 @@ else:
 
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = 'CMS BlueButton+'
+APPLICATION_TITLE = 'CMS Blue Button API'
 
 HOSTNAME_URL = env('HOSTNAME_URL')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
@@ -369,6 +375,9 @@ SETTINGS_EXPORT = [
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
+# enclose value for DJANGO_SLS_PASSWORD in single quotes to preserve
+# special characters eg. $
+# eg. export DJANGO_SLS_PASSWORD='$pecial_CharacterPre$erved'
 SLS_PASSWORD = env('DJANGO_SLS_PASSWORD')
 SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
@@ -383,6 +392,7 @@ FHIR_SERVER_CONF = {'SERVER': env('DJANGO_FHIR_SERVER'),
                     'PATH': env('DJANGO_FHIR_PATH'),
                     'RELEASE': env('DJANGO_FHIR_RELEASE'),
                     'REWRITE_FROM': env('DJANGO_FHIR_REWRITE_FROM'),
+                    # RERITE_FROM should be a list
                     'REWRITE_TO': env('DJANGO_FHIR_REWRITE_TO'),
                     # Minutes until search expires
                     'SEARCH_EXPIRY': env('DJANGO_SEARCH_EXPIRY', 30)}

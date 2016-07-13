@@ -16,7 +16,7 @@ class BlueButtonReadRequestTest(TestCase):
         Patient Not Allowed - No Crosswalk
         """
         # TODO: complete this test
-        self.factory.get('/bluebutton/fhir/v1/Patient')
+        self.factory.get('/cmsblue/fhir/v1/Patient')
 
 
 class ConformanceFilterTest(TestCase):
