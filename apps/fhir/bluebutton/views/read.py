@@ -1,25 +1,23 @@
 import json
 import logging
-import requests
+# import requests
 
 from collections import OrderedDict
 
 from django.conf import settings
-from django.contrib import messages
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.fhir.core.utils import (error_status,
-                                  kickout_403,
+from apps.fhir.core.utils import (kickout_403,
                                   write_session,
                                   find_ikey,
                                   get_search_param_format,
                                   get_target_url,
-                                  ERROR_CODE_LIST,
                                   SESSION_KEY)
 
 from apps.fhir.bluebutton.utils import (
+    request_call,
     check_rt_controls,
     check_access_interaction_and_resource_type,
     masked_id,
@@ -31,7 +29,6 @@ from apps.fhir.bluebutton.utils import (
     pretty_json)
 
 from apps.fhir.bluebutton.models import Crosswalk
-
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -199,16 +196,19 @@ def generic_read(request,
 
     # print("Making request:", pass_to)
     # Now make the call to the backend API
-    try:
-        r = requests.get(pass_to)
+    r = request_call(request, pass_to, reverse_lazy('api:v1:home'))
 
-    except requests.ConnectionError:
-        # logger.debug('Problem connecting to FHIR Server')
-        messages.error(request, 'FHIR Server is unreachable.')
-        return HttpResponseRedirect(reverse_lazy('api:v1:home'))
-
-    if r.status_code in ERROR_CODE_LIST:
-        return error_status(r, r.status_code)
+    # move to bluebutton.utils.request_call
+    # try:
+    #     r = requests.get(pass_to)
+    #
+    # except requests.ConnectionError:
+    #     # logger.debug('Problem connecting to FHIR Server')
+    #     messages.error(request, 'FHIR Server is unreachable.')
+    #     return HttpResponseRedirect(reverse_lazy('api:v1:home'))
+    #
+    # if r.status_code in ERROR_CODE_LIST:
+    #     return error_status(r, r.status_code)
 
     text_out = ''
     # logger.debug('r:%s' % r.text)
