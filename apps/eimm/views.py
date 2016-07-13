@@ -1115,7 +1115,7 @@ def get_fhir_claim(request, claim_number):
     r = request_call(request, search_base)
     # logger.debug("returned with %s" % r.text)
     bundle = json.loads(r.text, object_pairs_hook=OrderedDict)
-
+    resource = {}
     if bundle['total'] > 0:
         resource = bundle['entry'][0]['resource']
     # If claim is found:
