@@ -113,7 +113,6 @@ class EimmViewsRequestTest(TestCase):
 
             self.assertEqual(response['text']['claimIdentifier'], claim)
 
-
     def test_unique_keys(self):
         """ Pass searched claims to unique_keys """
 
