@@ -4,7 +4,7 @@
 
 from .base import *
 
-print(base.ADMINS)
+print(ADMINS)
 DEBUG = True
 
 # Generate your own secret key using:
@@ -21,3 +21,4 @@ ALLOWED_HOSTS = ['*']
 
 AWS_ACCESS_KEY_ID = 'ADD_YOUR_AWS_ACCESS_KEY_ID'
 AWS_SECRET_ACCESS_KEY = 'ADD_YOUR_AWS_SECRET_ACCESS_KEY'
+
