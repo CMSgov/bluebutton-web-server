@@ -22,14 +22,16 @@ class RequestDeveloperInviteForm(forms.ModelForm):
     human = forms.CharField(
         max_length=30,
         label=_(human_q),
-        help_text='We are asking this to make sure you are human. Hint: the answer is %s.' % human_z,
+        help_text='We are asking this to make sure you are human. '
+                  'Hint: the answer is %s.' % human_z,
     )
     required_css_class = 'required'
 
     def clean_human(self):
         human = self.cleaned_data.get('human', '')
         if str(human) != str(self.human_z):
-            raise forms.ValidationError(_('You are either not human or just just really bad at math.'))
+            raise forms.ValidationError(_('You are either not human or '
+                                          'just just really bad at math.'))
         return human
 
 
@@ -46,14 +48,16 @@ class RequestUserInviteForm(forms.ModelForm):
     human = forms.CharField(
         max_length=30,
         label=_(human_q),
-        help_text='We are asking this to make sure you are human. Hint: the answer is %s.' % human_z
+        help_text='We are asking this to make sure you are human. '
+                  'Hint: the answer is %s.' % human_z
     )
     required_css_class = 'required'
 
     def clean_human(self):
         human = self.cleaned_data.get('human', '')
         if str(human) != str(self.human_z):
-            raise forms.ValidationError(_('You are either not human or just just really bad at math.'))
+            raise forms.ValidationError(_('You are either not human or '
+                                          'just just really bad at math.'))
         return human
 
 
@@ -74,7 +78,8 @@ class PasswordResetForm(forms.Form):
         password1 = self.cleaned_data.get('password1', '')
         password2 = self.cleaned_data['password2']
         if password1 != password2:
-            raise forms.ValidationError(_('The two password fields didn\'t match.'))
+            raise forms.ValidationError(_('The two password fields '
+                                          'didn\'t match.'))
 
         try:
             validate_password(password1)
@@ -92,14 +97,16 @@ class LoginForm(forms.Form):
 
 class SignupUserForm(forms.Form,):
 
-    invitation_code = forms.CharField(max_length=30, label=_("Invitation Code"))
+    invitation_code = forms.CharField(max_length=30,
+                                      label=_("Invitation Code"))
     username = forms.CharField(max_length=30, label=_("User"))
     email = forms.EmailField(max_length=75, label=_("Email"))
     first_name = forms.CharField(max_length=100, label=_("First Name"))
     last_name = forms.CharField(max_length=100, label=_("Last Name"))
 
     # organization_name is not rquired for Beneficiary
-    # organization_name  = forms.CharField(max_length=100, label=_("Organization Name"),
+    # organization_name  = forms.CharField(max_length=100,
+    #                                      label=_("Organization Name"),
     #                                      required=False
     #                                      )
     password1 = forms.CharField(widget=forms.PasswordInput, max_length=30,
@@ -112,7 +119,8 @@ class SignupUserForm(forms.Form,):
         password1 = self.cleaned_data.get('password1', '')
         password2 = self.cleaned_data['password2']
         if password1 != password2:
-            raise forms.ValidationError(_('The two password fields didn\'t match.'))
+            raise forms.ValidationError(_('The two password fields '
+                                          'didn\'t match.'))
 
         try:
             validate_password(password1)
@@ -126,7 +134,8 @@ class SignupUserForm(forms.Form,):
         if email:
             username = self.cleaned_data.get('username')
             if email and User.objects.filter(email=email).exclude(username=username).count():
-                raise forms.ValidationError(_('This email address is already registered.'))
+                raise forms.ValidationError(_('This email address '
+                                              'is already registered.'))
             return email
         else:
             return email
@@ -139,7 +148,8 @@ class SignupUserForm(forms.Form,):
 
     def clean_invitation_code(self):
         invitation_code = self.cleaned_data['invitation_code']
-        if Invitation.objects.filter(valid=True, code=invitation_code).count() != 1:
+        if Invitation.objects.filter(valid=True,
+                                     code=invitation_code).count() != 1:
             raise forms.ValidationError(_('The invitation code is not valid.'))
         return invitation_code
 
@@ -263,7 +273,8 @@ class AccountSettingsForm(forms.Form):
     email = forms.CharField(max_length=30, label=_('Email'))
     first_name = forms.CharField(max_length=100, label=_('First Name'))
     last_name = forms.CharField(max_length=100, label=_('Last Name'))
-    organization_name = forms.CharField(max_length=100, label=_('Organization Name'),
+    organization_name = forms.CharField(max_length=100,
+                                        label=_('Organization Name'),
                                         required=False)
     required_css_class = 'required'
 
@@ -271,7 +282,8 @@ class AccountSettingsForm(forms.Form):
         email = self.cleaned_data.get('email')
         if email:
             if email and User.objects.filter(email=email).exclude(email=email).count():
-                raise forms.ValidationError(_('This email address is already registered.'))
+                raise forms.ValidationError(_('This email address is '
+                                              'already registered.'))
         return email
 
     def clean_username(self):

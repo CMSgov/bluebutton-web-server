@@ -6,15 +6,20 @@ from django.core.urlresolvers import reverse
 
 
 def random_secret(y=40):
-    return ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for x in range(y))
+    return ''.join(random.choice('abcdefghijklmnopqrstuvwxyz'
+                                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                                 '0123456789') for x in range(y))
 
 
 def send_password_reset_url_via_email(user, reset_key):
     if settings.SEND_EMAIL:
-        subject = '[%s]Your password reset request' % (settings.ORGANIZATION_NAME)
+        subject = '[%s]Your password ' \
+                  'reset request' % (settings.ORGANIZATION_NAME)
         from_email = settings.EMAIL_HOST_USER
         to = user.email
-        link = '%s%s' % (settings.HOSTNAME_URL, reverse('password_reset_email_verify', args=(reset_key,)))
+        link = '%s%s' % (settings.HOSTNAME_URL,
+                         reverse('password_reset_email_verify',
+                                 args=(reset_key,)))
         html_content = """'
         <P>
         Click on the link to reset your password.<br>
@@ -49,7 +54,9 @@ def send_activation_key_via_email(user, signup_key):
     subject = '[%s]Verify your email.' % (settings.ORGANIZATION_NAME)
     from_email = settings.EMAIL_HOST_USER
     to = user.email
-    activation_link = '%s%s' % (settings.HOSTNAME_URL, reverse('activation_verify', args=(signup_key,)))
+    activation_link = '%s%s' % (settings.HOSTNAME_URL,
+                                reverse('activation_verify',
+                                        args=(signup_key,)))
 
     html_content = """
        <p>

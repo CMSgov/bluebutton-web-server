@@ -18,14 +18,22 @@ from django.utils.lru_cache import lru_cache
 
 @python_2_unicode_compatible
 class ProtectedCapability(models.Model):
-    title = models.CharField(max_length=255, default='', unique=True)
-    slug = models.CharField(verbose_name='Scope', max_length=100, default='', unique=True)
+    title = models.CharField(max_length=255,
+                             default='',
+                             unique=True)
+    slug = models.CharField(verbose_name='Scope',
+                            max_length=100,
+                            default='',
+                            unique=True)
     group = models.ForeignKey(Group)
-    description = models.TextField(max_length=10240, blank=True, default='')
+    description = models.TextField(max_length=10240,
+                                   blank=True,
+                                   default='')
     protected_resources = models.TextField(
         max_length=10240,
-        help_text="""A JSON list of pairs containing HTTP method and URL. It may contain [id] placeholders for wildcards
-                     Example: [["GET","/api/task1"], ["POST","/api/task2/[id]"]]""",
+        help_text="""A JSON list of pairs containing HTTP method and URL.
+        It may contain [id] placeholders for wildcards
+        Example: [["GET","/api/task1"], ["POST","/api/task2/[id]"]]""",
         default="""[["GET", "/some-url"]]"""
     )
 
