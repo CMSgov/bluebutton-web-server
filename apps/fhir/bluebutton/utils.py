@@ -1,5 +1,6 @@
 import json
 import logging
+import requests
 
 try:
     # python2
@@ -11,16 +12,36 @@ except ImportError:
 from collections import OrderedDict
 
 from django.conf import settings
+from django.contrib import messages
+# from django.core.urlresolvers import reverse_lazy
+from django.http import HttpResponseRedirect
 
 from apps.fhir.core.utils import (kickout_404, kickout_403)
 from apps.fhir.server.models import SupportedResourceType
 from apps.fhir.bluebutton.models import ResourceTypeControl
+from apps.fhir.core.utils import (error_status, ERROR_CODE_LIST)
 
 PRETTY_JSON_INDENT = 4
 
 FORMAT_OPTIONS_CHOICES = ['json', 'xml']
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+def request_call(request, call_url, fail_redirect="/"):
+    """  call to request or redirect on fail"""
+    try:
+        r = requests.get(call_url)
+
+    except requests.ConnectionError:
+        # logger.debug('Problem connecting to FHIR Server')
+        messages.error(request, 'FHIR Server is unreachable.')
+        return HttpResponseRedirect(fail_redirect)
+
+    if r.status_code in ERROR_CODE_LIST:
+        return error_status(r, r.status_code)
+
+    return r
 
 
 def notNone(value=None, default=None):
