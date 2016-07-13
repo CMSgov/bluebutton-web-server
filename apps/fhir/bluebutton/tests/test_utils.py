@@ -1,4 +1,10 @@
-import urllib
+try:
+    # python2
+    from urllib import urlencode, parse_qsl
+except ImportError:
+    # python3
+    from urllib.parse import urlencode, parse_qsl
+
 
 from collections import OrderedDict
 
@@ -332,9 +338,9 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         srtc = None
         key = ''
         response = build_params(get_ish_1, srtc, key)
-        resp_dict = dict(urllib.parse.parse_qsl(response[1:]))
+        resp_dict = dict(parse_qsl(response[1:]))
         expected = '?keep=keep_this&resource_type=some_resource&_format=json&claim=123456'
-        expe_dict = dict(urllib.parse.parse_qsl(expected[1:]))
+        expe_dict = dict(parse_qsl(expected[1:]))
         self.assertDictEqual(resp_dict, expe_dict)
 
     def test_add_format(self):
