@@ -34,3 +34,15 @@ def split_name(in_name=''):
         ct += 1
 
     return humanname
+
+
+def unique_keys(claims, key="patient"):
+    """ Filter claims on key to return a list with duplicates removed """
+    unique_keys = []
+    for claim in claims:
+        if key in claim:
+            if claim[key] not in unique_keys:
+                unique_keys.append(claim[key])
+
+    print("Unique:", unique_keys)
+    return unique_keys
