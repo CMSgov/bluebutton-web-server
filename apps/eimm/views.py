@@ -21,19 +21,16 @@ from robobrowser import (RoboBrowser)
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
 from django.shortcuts import render
-
 from django.utils.safestring import mark_safe
 
-from apps.cmsblue.cms_parser import (cms_text_read,
-                                     parse_lines)
+from ..cmsblue.cms_parser import (cms_text_read,
+                                  parse_lines)
+from ..fhir.bluebutton.models import Crosswalk
+from ..fhir.bluebutton.utils import (request_call,
+                                     pretty_json,
+                                     FhirServerUrl)
 
-from apps.fhir.bluebutton.models import Crosswalk
-
-from apps.fhir.bluebutton.utils import (request_call,
-                                        pretty_json,
-                                        FhirServerUrl)
 from .forms.medicare import Medicare_Connect
 from .utils import (split_name,
                     unique_keys)
