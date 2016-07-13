@@ -1134,7 +1134,9 @@ def get_fhir_claim(request, claim_number):
     # fhir_claim['provider'] = ExplanationOfBenefit.providerIdentifier
     # fhir_claim['patient'] = ExplanationOfBenefit.patientIdentifier
     # fhir_claim['timingPeriod'] = ExplanationOfBenefit.timingPeriod
-
+    print("\nSearch for claim:", claim_number)
+    print("\Resources:", resource)
+    print("\nFound:", fhir_claim)
     # logger.debug('fhir_claim: %s' % fhir_claim)
 
     return fhir_claim
