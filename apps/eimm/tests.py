@@ -107,8 +107,8 @@ class EimmViewsRequestTest(TestCase):
         response = {}
         for claim in claims:
             response['text'] = get_fhir_claim(request, claim)
-            # print("\nclaim:", claim)
-            # print('\n\nRT:', response['text'])
+            print("\nclaim:", claim)
+            print('\nRT:', response['text'])
 
             self.assertEqual(response['text']['claimIdentifier'], claim)
 
