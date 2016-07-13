@@ -1,11 +1,10 @@
-# from django.test import TestCase
-
-# Create your tests here.
 from collections import OrderedDict
+from unittest import skip
+from django.test import TestCase, RequestFactory
 
-from django.test import TestCase
-
+from .views import get_fhir_claim
 from .utils import split_name
+# from ..fhir.bluebutton.utils import pretty_json
 # from apps.fhir.bluebutton.utils import pretty_json
 
 
@@ -73,3 +72,64 @@ class Utils_Test(TestCase):
         # print("\nE:", expected)
 
         self.assertEqual(response, expected)
+
+
+class EimmViewsRequestTest(TestCase):
+
+    def setUp(self):
+        # Setup the RequestFactory
+        self.factory = RequestFactory()
+
+    @skip
+    def test_get_bb_claim(self):
+        """
+        Pass the blue button claim to backed and get result back
+
+         "system":"CCW_PTA_FACT.CLM_ID",
+                        "value":"542882280967266"
+
+        Claims = [
+        '542882280967266',  # CCW_PTA_FACT.CLM_ID
+        '542612281109054',
+        '233464492442129',  # CCW_PDE_FACT.PDE_ID / 263
+        '233584489019874',  # CCW_PDE_FACT.PDE_ID / 259
+        '',
+        ]
+
+        """
+        claims = [
+            # '542882280967266',  # CCW_PTA_FACT.CLM_ID
+            # '542612281109054',
+            '233464492442129',  # CCW_PDE_FACT.PDE_ID / 263
+            '233584489019874',  # CCW_PDE_FACT.PDE_ID / 259
+        ]
+        request = {}
+
+        response = {}
+        for claim in claims:
+            response['text'] = get_fhir_claim(request, claim)
+            # print("\nclaim:", claim)
+            # print('\nRT:', response['text'])
+
+            self.assertEqual(response['text']['claimIdentifier'], claim)
+
+    def test_unique_keys(self):
+        """ Pass searched claims to unique_keys """
+
+        input_list = [
+            {'identifier': '5',
+             'provider': 'Practitioner/6',
+             'claimIdentifier': '542882280967266',
+             'claimNumber': '542882280967266',
+             'patient': 'Patient/1',
+             'timingPeriod': OrderedDict([('start',
+                                           '2008-05-03T00:00:00+00:00'),
+                                          ('end',
+                                           '2008-05-03T00:00:00+00:00')]),
+             'found': True},
+
+        ]
+
+        input_list = input_list
+
+        # print(input_list)

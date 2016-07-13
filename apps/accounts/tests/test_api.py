@@ -60,6 +60,7 @@ class TestUserSelfEndpoint(BaseApiTest):
 
 
 class TestSingleAccessTokenValidator(BaseApiTest):
+
     def test_single_access_token_issued(self):
         # create the user
         self._create_user('john',
