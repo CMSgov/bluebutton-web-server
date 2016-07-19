@@ -2,7 +2,7 @@ from collections import OrderedDict
 from unittest import skip
 from django.test import TestCase, RequestFactory
 
-from .views import get_fhir_claim
+from .views.base import get_fhir_claim
 from .utils import split_name
 # from ..fhir.bluebutton.utils import pretty_json
 # from apps.fhir.bluebutton.utils import pretty_json
