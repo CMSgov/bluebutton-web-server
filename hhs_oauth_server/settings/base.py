@@ -380,7 +380,6 @@ SESSION_COOKIE_AGE = 1800
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 
-
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
 # enclose value for DJANGO_SLS_PASSWORD in single quotes to preserve
