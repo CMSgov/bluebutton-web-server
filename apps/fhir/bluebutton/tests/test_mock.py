@@ -30,6 +30,7 @@ class UtilsTestCase(unittest.TestCase):
 
     def setUp(self):
         # Setup the RequestFactory
+        # I could probably update this to use a Mock()
         self.factory = RequestFactory()
 
     def test_post_process_request_json(self):
@@ -393,7 +394,7 @@ class UtilsTestCase(unittest.TestCase):
 
 
 class RequestCallMockTest(unittest.TestCase):
-    """ Testing patch to requsts.get in request_call """
+    """ Testing patch to requests.get in request_call """
 
     def setUp(self):
         # Setup the RequestFactory
