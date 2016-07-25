@@ -9,9 +9,7 @@ Created: 6/27/16 3:24 PM
 
 
 """
-import json
 import logging
-import requests
 
 from collections import OrderedDict
 
@@ -23,31 +21,28 @@ except ImportError:
     from urllib.parse import urlencode
 
 from django.conf import settings
-from django.contrib import messages
 from django.core.urlresolvers import reverse_lazy
-
-from django.shortcuts import render, HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, HttpResponse
 
 # from apps.fhir.bluebutton.models import ResourceTypeControl
-from apps.fhir.server.models import SupportedResourceType
-from apps.fhir.bluebutton.utils import (get_host_url,
-                                        mask_list_with_host,
+from apps.fhir.bluebutton.utils import (request_call,
+                                        FhirServerUrl,
+                                        get_host_url,
                                         strip_oauth,
+                                        build_output_dict,
+                                        prepend_q,
+                                        post_process_request,
                                         pretty_json)
-
-from apps.fhir.core.utils import (error_status,
-                                  read_session,
+from apps.fhir.core.utils import (read_session,
                                   get_search_param_format,
-                                  ERROR_CODE_LIST,
                                   SESSION_KEY)
+from apps.fhir.server.models import SupportedResourceType
 
 from apps.home.views import authenticated_home
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 __author__ = 'Mark Scrimshire:@ekivemark'
-
-DF_EXTRA_INFO = False
 
 
 def fhir_search_home(request):
@@ -109,57 +104,28 @@ def rebuild_fhir_search(request):
         vid = sn_vr['vid']
 
         logger.debug("Calling:%s" % url_call)
-        try:
-            r = requests.get(url_call)
-        except requests.ConnectionError:
-            # logger.debug('Problem connecting to FHIR Server')
-            messages.error(request, 'FHIR Server is unreachable.')
-            return HttpResponseRedirect(reverse_lazy('authenticated_home'))
+        r = request_call(request,
+                         url_call,
+                         reverse_lazy('authenticated_home'))
 
-        if r.status_code in ERROR_CODE_LIST:
-            return error_status(r, r.status_code)
-
-        text_out = ''
         host_path = get_host_url(request, '?')
 
         # get 'xml' 'json' or ''
         fmt = get_search_param_format(request.META['QUERY_STRING'])
 
-        if fmt == 'xml':
-            # We will add xml support later
-
-            text_out = mask_list_with_host(request,
-                                           host_path,
-                                           r.text,
-                                           rewrite_url_list)
-            # text_out= minidom.parseString(text_out).toprettyxml()
-        else:
-            # dealing with json
-            # text_out = r.json()
-            pre_text = mask_list_with_host(request,
-                                           host_path,
-                                           r.text,
-                                           rewrite_url_list)
-            text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
-
-        od = OrderedDict()
-        od['resource_type'] = resource_type
-        od['id'] = key
-        if vid is not None:
-            od['vid'] = vid
-
-        # logger.debug('Query List:%s' % request.META['QUERY_STRING'])
-
-        if DF_EXTRA_INFO:
-            od['request_method'] = request.method
-            od['interaction_type'] = interaction_type
-            od['parameters'] = request.GET.urlencode()
-            # logger.debug('or:%s' % od['parameters'])
-            od['format'] = fmt
-            od['note'] = 'This is the %s Pass Thru ' \
-                         '(%s) ' % (resource_type, key)
-
-        od['bundle'] = text_out
+        text_out = post_process_request(request,
+                                        fmt,
+                                        host_path,
+                                        r,
+                                        rewrite_url_list)
+        od = build_output_dict(request,
+                               OrderedDict(),
+                               resource_type,
+                               key,
+                               vid,
+                               interaction_type,
+                               fmt,
+                               text_out)
 
         if fmt == 'xml':
             # logger.debug('We got xml back in od')
@@ -174,7 +140,7 @@ def rebuild_fhir_search(request):
         # logger.debug('We got a different format:%s' % fmt)
         return render(
             request,
-            'cmsblue/default.html',
+            'bluebutton/default.html',
             {'content': pretty_json(od), 'output': od},
         )
 
@@ -191,25 +157,19 @@ def fhir_conformance(request, *args, **kwargs):
         return authenticated_home(request)
 
     resource_type = 'Conformance'
-    call_to = settings.FHIR_SERVER_CONF['SERVER']
-    call_to += settings.FHIR_SERVER_CONF['PATH']
-    call_to += settings.FHIR_SERVER_CONF['RELEASE']
+    call_to = FhirServerUrl()
     call_to += '/metadata'
 
     pass_params = urlencode(strip_oauth(request.GET))
-    if len(pass_params) > 0:
-        pass_params = '?' + pass_params
-    # print("Parameters:", pass_params)
-    logger.debug("Calling:%s" % call_to + pass_params)
-    try:
-        r = requests.get(call_to + pass_params)
-    except requests.ConnectionError:
-        # logger.debug('Problem connecting to FHIR Server')
-        messages.error(request, 'FHIR Server is unreachable.')
-        return HttpResponseRedirect(reverse_lazy('authenticated_home'))
 
-    if r.status_code in ERROR_CODE_LIST:
-        return error_status(r, r.status_code)
+    # Add ? to front of parameters if needed
+    pass_params = prepend_q(pass_params)
+
+    logger.debug("Calling:%s" % call_to + pass_params)
+
+    r = request_call(request,
+                     call_to + pass_params,
+                     reverse_lazy('authenticated_home'))
 
     text_out = ''
     host_path = get_host_url(request, '?')
@@ -220,30 +180,18 @@ def fhir_conformance(request, *args, **kwargs):
     rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
-    od = {}
+    text_out = post_process_request(request,
+                                    fmt,
+                                    host_path,
+                                    r.text,
+                                    rewrite_url_list)
 
-    if fmt == 'xml':
-        # We will add xml support later
-
-        text_out = mask_list_with_host(request,
-                                       host_path,
-                                       r.text,
-                                       rewrite_url_list)
-        # text_out= minidom.parseString(text_out).toprettyxml()
-    else:
-        # dealing with json
-        # text_out = r.json()
-        pre_text = mask_list_with_host(request,
-                                       host_path,
-                                       r.text,
-                                       rewrite_url_list)
-        text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
-
-        od = conformance_filter(text_out)
+    od = conformance_filter(text_out, fmt)
 
     if fmt == 'xml':
         # logger.debug('We got xml back in od')
-        return HttpResponse(r.text, content_type='application/%s' % fmt)
+        return HttpResponse(text_out,
+                            content_type='application/%s' % fmt)
         # return HttpResponse( tostring(dict_to_xml('content', od)),
         #                      content_type='application/%s' % fmt)
     elif fmt == 'json':
@@ -263,10 +211,13 @@ def fhir_conformance(request, *args, **kwargs):
                      'interaction_type': "metadata"}})
 
 
-def conformance_filter(text_block):
+def conformance_filter(text_block, fmt):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
+    if fmt == "xml":
+        # We will build xml filtering later
+        return text_block
 
     # Get a list of resource names
     resource_names = get_resource_names()
@@ -311,9 +262,6 @@ def get_supported_resources(resources, resource_names):
                     # print('\nDisposing of %s' % v)
             else:
                 pass
-
-    # print("\nSupported Resources:",
-    #       pretty_json(resource_list))
 
     return resource_list
 

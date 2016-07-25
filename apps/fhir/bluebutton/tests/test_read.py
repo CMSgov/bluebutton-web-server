@@ -1,8 +1,30 @@
+try:
+    # python 3
+    from unittest.mock import Mock, patch
+except ImportError:
+    # python 2
+    from mock import Mock, patch   # NOQA
+
+import apps.fhir.bluebutton.utils
 from django.test import TestCase, RequestFactory
 
+from .data_conformance import CONFORMANCE
 
-class BlueButtonReadRequestTest(TestCase):
+# from django.contrib.auth.models import User, Group
+# from django.test.client import Client
+# from django.core.urlresolvers import reverse
+# import responses
+# import requests
+#
+# import unittest
+#
+# from .data_conformance import CONFORMANCE
+#
+# from ..views.home import fhir_conformance
 
+
+class ConformanceReadRequestTest(TestCase):
+    """ Check the BlueButton API call  """
     def setUp(self):
         # Setup the RequestFactory
         self.factory = RequestFactory()
@@ -11,21 +33,21 @@ class BlueButtonReadRequestTest(TestCase):
             'fhir_server_testdata_prep.json',
         ]
 
-    def fhir_bluebutton_read_testcase(self):
-        """
-        Patient Not Allowed - No Crosswalk
-        """
-        # TODO: complete this test
-        self.factory.get('/cmsblue/fhir/v1/Patient')
+    @patch('apps.fhir.bluebutton.utils.requests')
+    def test_fhir_bluebutton_read_conformance_testcase(self, mock_requests):
+        """ Checking Conformance """
 
+        call_to = '/bluebutton/fhir/v1/metadata'
+        request = self.factory.get(call_to)
 
-class ConformanceFilterTest(TestCase):
-    """ Test that Conformance Statement is filtered """
+        mock_requests.get.return_value.status_code = 200
+        mock_requests.get.return_value.text = CONFORMANCE
+        mock_requests.get.return_value.json = {"field": "My text is here!!!!"}
 
-    # TODO: Write a test using Patient as supported resource.
+        result = apps.fhir.bluebutton.utils.request_call(request,
+                                                         call_to,
+                                                         fail_redirect="/")
 
-    # Setup Patient in Supported Resource
+        print("\nText:%s" % result.text)
 
-    # Make call to Conformance Statement
-
-    # Test that Patient is only resource displayed
+        self.assertEqual(result.text, CONFORMANCE)
