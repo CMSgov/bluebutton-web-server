@@ -28,6 +28,8 @@ from apps.fhir.bluebutton.utils import (
     mask_with_this_url,
     mask_list_with_host,
     get_host_url,
+    # post_process_request,
+    prepend_q,
     pretty_json
 )
 
@@ -471,6 +473,26 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         response = check_access_interaction_and_resource_type(resource_type,
                                                               interaction_type)
         self.assertEquals(response.status_code, 404)
+
+    def test_prepend_q_yes(self):
+        """ Check that ? is added to front of parameters if required """
+
+        pass_params = "test=one&test=2&test=3"
+        response = prepend_q(pass_params)
+
+        expected = "?" + pass_params
+
+        self.assertEquals(response, expected)
+
+    def test_prepend_q_no(self):
+        """ Check that ? is not added to front of parameters if required """
+
+        pass_params = "?test=one&test=2&test=3"
+        response = prepend_q(pass_params)
+
+        expected = pass_params
+
+        self.assertEquals(response, expected)
 
 
 class BlueButtonUtilsRtTestCase(TestCase):
