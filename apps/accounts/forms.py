@@ -7,9 +7,11 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key
+from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES
 
 
 class RequestDeveloperInviteForm(forms.ModelForm):
+
     class Meta:
         model = RequestInvite
         fields = ('first_name', 'last_name', 'organization', 'email')
@@ -36,6 +38,7 @@ class RequestDeveloperInviteForm(forms.ModelForm):
 
 
 class RequestUserInviteForm(forms.ModelForm):
+
     class Meta:
         model = RequestInvite
         fields = ('first_name', 'last_name', 'email')
@@ -61,8 +64,31 @@ class RequestUserInviteForm(forms.ModelForm):
         return human
 
 
+class SecretQuestionForm(forms.Form):
+    answer = forms.CharField(max_length=50)
+    required_css_class = 'required'
+
+
+class ChangeSecretQuestionsForm(forms.ModelForm):
+
+    class Meta:
+        model = UserProfile
+        fields = ('password_reset_question_1',
+                  'password_reset_answer_1',
+                  'password_reset_question_2',
+                  'password_reset_answer_2',
+                  'password_reset_question_3',
+                  'password_reset_answer_3')
+
+    def __init__(self, *args, **kwargs):
+        super(ChangeSecretQuestionsForm, self).__init__(*args, **kwargs)
+
+        for key in self.fields:
+            self.fields[key].required = True
+
+
 class PasswordResetRequestForm(forms.Form):
-    email = forms.CharField(max_length=75, label=_('Email'))
+    email = forms.CharField(max_length=75, label=_('Email or User Name'))
     required_css_class = 'required'
 
 
@@ -102,7 +128,6 @@ class SignupDeveloperForm(forms.Form):
     email = forms.EmailField(max_length=75, label=_("Email"))
     first_name = forms.CharField(max_length=100, label=_("First Name"))
     last_name = forms.CharField(max_length=100, label=_("Last Name"))
-
     organization_name = forms.CharField(max_length=100,
                                         label=_("Organization Name"),
                                         required=False
@@ -111,6 +136,12 @@ class SignupDeveloperForm(forms.Form):
                                 label=_("Password"))
     password2 = forms.CharField(widget=forms.PasswordInput, max_length=30,
                                 label=_("Password (again)"))
+    password_reset_question_1 = forms.ChoiceField(choices=QUESTION_1_CHOICES)
+    password_reset_answer_1 = forms.CharField(max_length=50)
+    password_reset_question_2 = forms.ChoiceField(choices=QUESTION_2_CHOICES)
+    password_reset_answer_2 = forms.CharField(max_length=50)
+    password_reset_question_3 = forms.ChoiceField(choices=QUESTION_3_CHOICES)
+    password_reset_answer_3 = forms.CharField(max_length=50)
 
     required_css_class = 'required'
 
@@ -170,10 +201,23 @@ class SignupDeveloperForm(forms.Form):
             is_active=False)
 
         UserProfile.objects.create(user=new_user,
-                                   organization_name=self.cleaned_data['organization_name'],
+                                   organization_name=self.cleaned_data[
+                                       'organization_name'],
                                    user_type="DEV",
-                                   create_applications=True)
-
+                                   create_applications=True,
+                                   password_reset_question_1=self.cleaned_data[
+                                       'password_reset_question_1'],
+                                   password_reset_answer_1=self.cleaned_data[
+                                       'password_reset_answer_1'],
+                                   password_reset_question_2=self.cleaned_data[
+                                       'password_reset_question_2'],
+                                   password_reset_answer_2=self.cleaned_data[
+                                       'password_reset_answer_2'],
+                                   password_reset_question_3=self.cleaned_data[
+                                       'password_reset_question_3'],
+                                   password_reset_answer_3=self.cleaned_data[
+                                       'password_reset_answer_3']
+                                   )
         group = Group.objects.get(name='BlueButton')
         new_user.groups.add(group)
 
@@ -198,13 +242,15 @@ class AccountSettingsForm(forms.Form):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if email:
-            if email and User.objects.filter(email=email).exclude(email=email).count():
+            if email and User.objects.filter(
+                    email=email).exclude(email=email).count():
                 raise forms.ValidationError(_('This email address is '
                                               'already registered.'))
         return email
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
-        if username and User.objects.filter(username=username).exclude(username=username).count():
+        if username and User.objects.filter(
+                username=username).exclude(username=username).count():
             raise forms.ValidationError(_('This username is already taken.'))
         return username
