@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
@@ -145,30 +144,6 @@ def simple_login(request):
     return render(request, 'login.html', {'form': LoginForm()})
 
 
-def password_reset_email_verify(request, reset_password_key=None):
-    vprk = get_object_or_404(ValidPasswordResetKey,
-                             reset_password_key=reset_password_key)
-    if request.method == 'POST':
-        form = PasswordResetForm(request.POST)
-        if form.is_valid():
-            vprk.user.set_password(form.cleaned_data['password1'])
-            vprk.user.save()
-            vprk.delete()
-            logout(request)
-            messages.success(request, _('Your password has been reset.'))
-            return HttpResponseRedirect(reverse('login'))
-        else:
-            return render(request,
-                          'generic/bootstrapform.html',
-                          {'form': form,
-                           'reset_password_key': reset_password_key})
-
-    return render(request,
-                  'generic/bootstrapform.html',
-                  {'form': PasswordResetForm(),
-                   'reset_password_key': reset_password_key})
-
-
 @login_required
 def display_api_keys(request):
     up = get_object_or_404(UserProfile, user=request.user)
@@ -182,38 +157,6 @@ def reissue_api_keys(request):
     up.save()
     messages.success(request, _('Your API credentials have been reissued.'))
     return HttpResponseRedirect(reverse('display_api_keys'))
-
-
-def forgot_password(request):
-    name = _('Forgot Password')
-    if request.method == 'POST':
-        form = PasswordResetRequestForm(request.POST)
-
-        if form.is_valid():
-            data = form.cleaned_data
-
-            try:
-                u = User.objects.get(email=data['email'])
-            except(User.DoesNotExist):
-                messages.error(request,
-                               'A user with the email supplied '
-                               'does not exist.')
-                return HttpResponseRedirect(reverse('password_reset_request'))
-            # success
-            ValidPasswordResetKey.objects.create(user=u)
-            messages.info(request,
-                          'Please check your email for a special link'
-                          ' to reset your password.')
-            return HttpResponseRedirect(reverse('login'))
-        else:
-            return render(request,
-                          'generic/bootstrapform.html',
-                          {'name': name, 'form': form})
-
-    else:
-        return render(request,
-                      'generic/bootstrapform.html',
-                      {'name': name, 'form': PasswordResetRequestForm()})
 
 
 def create_developer(request):
@@ -268,12 +211,12 @@ def account_settings(request):
             messages.success(request,
                              'Your account settings have been updated.')
             return render(request,
-                          'generic/bootstrapform.html',
+                          'account-settings.html',
                           {'form': form, 'name': name})
         else:
             # the form had errors
             return render(request,
-                          'generic/bootstrapform.html',
+                          'account-settings.html',
                           {'form': form, 'name': name})
 
     # this is an HTTP GET
@@ -289,7 +232,7 @@ def account_settings(request):
         }
     )
     return render(request,
-                  'generic/bootstrapform.html',
+                  'account-settings.html',
                   {'name': name, 'form': form})
 
 

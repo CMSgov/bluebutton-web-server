@@ -30,6 +30,12 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'bedrocks',
             'first_name': 'Fred',
             'last_name': 'Flinstone',
+            'password_reset_question_1': '1',
+            'password_reset_answer_1': 'blue',
+            'password_reset_question_2': '2',
+            'password_reset_answer_2': 'Jason',
+            'password_reset_question_3': '3',
+            'password_reset_answer_3': 'Jeep'
         }
         response = self.client.post(self.url, form_data, follow=True)
 
@@ -49,6 +55,12 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'p',
             'first_name': 'Fred',
             'last_name': 'Flinstone',
+            'password_reset_question_1': '1',
+            'password_reset_answer_1': 'blue',
+            'password_reset_question_2': '2',
+            'password_reset_answer_2': 'Jason',
+            'password_reset_question_3': '3',
+            'password_reset_answer_3': 'Jeep'
         }
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -66,6 +78,12 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'password',
             'first_name': 'Fred',
             'last_name': 'Flinstone',
+            'password_reset_question_1': '1',
+            'password_reset_answer_1': 'blue',
+            'password_reset_question_2': '2',
+            'password_reset_answer_2': 'Jason',
+            'password_reset_question_3': '3',
+            'password_reset_answer_3': 'Jeep'
         }
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -84,6 +102,12 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'bedrocks',
             'first_name': 'Fred',
             'last_name': 'Flinstone',
+            'password_reset_question_1': '1',
+            'password_reset_answer_1': 'blue',
+            'password_reset_question_2': '2',
+            'password_reset_answer_2': 'Jason',
+            'password_reset_question_3': '3',
+            'password_reset_answer_3': 'Jeep'
         }
         self.client.post(self.url, form_data, follow=True)
         up = UserProfile.objects.get(user__username='fred')
