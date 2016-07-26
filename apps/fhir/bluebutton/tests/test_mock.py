@@ -416,4 +416,4 @@ class RequestCallMockTest(unittest.TestCase):
         # print("\nResp.text:\n%s" % resp.text)
         # print("\nResp.json:\n%s" % resp.json)
 
-        self.assertEqual(resp.json, {"field": "My text is here!!!!"})
+        self.assertEqual(resp.text[:100], CONFORMANCE[:100])
