@@ -194,7 +194,8 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
 
         od = '{"format": ["application/xml+fhir","application/json+fhir"]}'
         response = pretty_json(od, indent=5)
-        expected = '"{\\"format\\": [\\"application/xml+fhir\\",\\"application/json+fhir\\"]}"'
+        expected = '"{\\"format\\": [\\"application/xml+fhir\\",' \
+                   '\\"application/json+fhir\\"]}"'
 
         self.assertEqual(response, expected)
 

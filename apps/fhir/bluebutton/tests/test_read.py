@@ -5,11 +5,19 @@ except ImportError:
     # python 2 - Mock needs to be pip installed
     from mock import Mock, patch   # NOQA
 
+# from collections import OrderedDict
+import json
+
 import apps.fhir.bluebutton.utils
+from apps.fhir.bluebutton.utils import pretty_json
+import apps.fhir.bluebutton.views.home
+from apps.fhir.bluebutton.views.home import (conformance_filter)
+
 from django.test import TestCase, RequestFactory
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
+# from .data_conformance_filtered import FILTERED_CONFORMANCE
 
 
 class ConformanceReadRequestTest(TestCase):
@@ -20,6 +28,7 @@ class ConformanceReadRequestTest(TestCase):
         self.fixtures = [
             'fhir_bluebutton_testdata_prep.json',
             'fhir_server_testdata_prep.json',
+            'fhir_bluebutton_test_rt.json'
         ]
 
     @patch('apps.fhir.bluebutton.utils.requests')
@@ -36,7 +45,6 @@ class ConformanceReadRequestTest(TestCase):
         # Now we can setup the responses we want to the call
         mock_requests.get.return_value.status_code = 200
         mock_requests.get.return_value.text = CONFORMANCE
-        mock_requests.get.return_value.json = {"field": "My text is here!!!!"}
 
         # Make the call to request_call which uses requests.get
         # patch will intercept the call to requests.get and
@@ -50,3 +58,26 @@ class ConformanceReadRequestTest(TestCase):
 
         # Test for a match
         self.assertEqual(result.text, CONFORMANCE)
+
+    @patch('apps.fhir.bluebutton.views.home.get_resource_names')
+    def test_fhir_conformance_filter(self, mock_get_resource_names):
+        """ Check filtering of Conformance Statement """
+
+        # call_to = '/bluebutton/fhir/v1/metadata'
+        # request = self.factory.get(call_to)
+
+        # Now we can setup the responses we want to the call
+        mock_get_resource_names.return_value = ['ExplanationOfBenefit',
+                                                'Patient']
+
+        conform_out = json.loads(CONFORMANCE)
+        result = conformance_filter(conform_out,
+                                    "json")
+
+        print("\nResult from Filter:%s" % pretty_json(result))
+        if "vision" in result['rest'][0]['resource']:
+            filter_works = False
+        else:
+            filter_works = True
+
+        self.assertEqual(filter_works, True)

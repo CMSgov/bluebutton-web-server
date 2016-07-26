@@ -55,7 +55,7 @@
  },
   {"model": "server.supportedresourcetype",
   "pk": 3,
-  "fields": {"resource_name": "Claim",
+  "fields": {"resource_name": "ExplanationOfBenefit",
              "json_schema": "{}",
              "get": true,
              "put": false,
@@ -113,7 +113,7 @@
              "override_url_id": true,
              "override_search": false,
              "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
-             "search_add": "[]",
+             "search_add": "[\"patient=%PATIENT%\"]",
              "group_allow": "[]",
              "group_exclude": "[]",
              "default_url": ""

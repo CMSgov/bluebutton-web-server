@@ -222,6 +222,7 @@ def conformance_filter(text_block, fmt):
     # Get a list of resource names
     resource_names = get_resource_names()
     ct = 0
+
     for k in text_block['rest']:
         for i, v in k.items():
             if i == 'resource':
@@ -256,7 +257,7 @@ def get_supported_resources(resources, resource_names):
                 if v in resource_names:
                     filtered_item = get_interactions(v, item)
                     logger.debug("Filtered Item:%s" % filtered_item)
-                    resource_list.append(item)
+                    resource_list.append(filtered_item)
                 else:
                     pass
                     # print('\nDisposing of %s' % v)

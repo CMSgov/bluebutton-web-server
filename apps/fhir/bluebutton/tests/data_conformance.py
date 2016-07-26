@@ -7,16 +7,18 @@ hhs_oauth_server
 FILE: data_conformance
 Created: 7/19/16 6:37 PM
 
-File created by: ''
+File created by: Mark Scirmshire @ekivemark
+
 """
+# TODO: Could be problem dealing with \" embedded in Conformance Response
 
 # flake8: noqa
 
-CONFORMANCE="""
+CONFORMANCE = """
 {
     "resourceType":"Conformance",
     "publisher":"Not provided",
-    "date":"2016-07-19T22:37:51+00:00",
+    "date":"2016-07-25T19:45:42+00:00",
     "kind":"instance",
     "software":{
         "name":"HAPI FHIR Server",
@@ -2639,12 +2641,12 @@ CONFORMANCE="""
                         {
                             "name":"composition",
                             "type":"reference",
-                            "documentation":"The first resource in the bundle, if the bundle type is \"document\" - this is a composition, and this parameter provides access to searches its contents"
+                            "documentation":"The first resource in the bundle, if the bundle type is 'document' - this is a composition, and this parameter provides access to searches its contents"
                         },
                         {
                             "name":"message",
                             "type":"reference",
-                            "documentation":"The first resource in the bundle, if the bundle type is \"message\" - this is a message header, and this parameter provides access to search its contents"
+                            "documentation":"The first resource in the bundle, if the bundle type is 'message' - this is a message header, and this parameter provides access to search its contents"
                         },
                         {
                             "name":"type",
@@ -3086,7 +3088,7 @@ CONFORMANCE="""
                         {
                             "name":"performer",
                             "type":"reference",
-                            "documentation":"Matches if the practitioner is listed as a performer in any of the \"simple\" activities.  (For performers of the detailed activities, chain through the activitydetail search parameter.)",
+                            "documentation":"Matches if the practitioner is listed as a performer in any of the 'simple' activities.  (For performers of the detailed activities, chain through the activitydetail search parameter.)",
                             "target":[
                                 "Practitioner",
                                 "Organization",
@@ -16777,7 +16779,7 @@ CONFORMANCE="""
                         {
                             "name":"receiver",
                             "type":"reference",
-                            "documentation":"Intended \"real-world\" recipient for the data",
+                            "documentation":"Intended 'real-world' recipient for the data",
                             "target":[
                                 "Practitioner",
                                 "Organization"
