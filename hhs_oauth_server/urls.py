@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import user_self
@@ -6,7 +7,6 @@ from apps.fhir.bluebutton.views.home import fhir_search_home
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('apps.accounts.urls')),
     url(r'^education/', include('apps.education.urls')),
     url(r'^profile/me$', user_self, name='user_self'),
@@ -19,10 +19,18 @@ urlpatterns = [
     url(r'^integration/', include('apps.eimm.urls')),
     url(r'^endorse/', include('apps.endorse.urls')),
     url(r'^o/', include('apps.dot_ext.urls')),
-    url(r'^', fhir_search_home, name='home'),
-    # url(r'^', include('apps.home.urls')),
     # url(r'^fhir/api/v1/', include('apps.fhir.bluebutton')),
     # Admin
     url(r'^admin/', include(admin.site.urls)),
 
+]
+# if 'apps.fhir.testac' in settings.INSTALLED_APPS:
+urlpatterns += [
+    url(r'^create_test_account/', include('apps.fhir.testac.urls')),
+]
+
+urlpatterns += [
+    # Catch all
+    url(r'^', fhir_search_home, name='home'),
+    # url(r'^', include('apps.home.urls')),
 ]
