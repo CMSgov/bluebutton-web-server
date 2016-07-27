@@ -11,7 +11,13 @@ File created by: ''
 """
 import json
 import unittest
-from mock import patch
+try:
+    # python 3 - Mock is now a standard module in unittest
+    from unittest.mock import patch
+except ImportError:
+    # python 2 - Mock needs to be pip installed
+    from mock import patch   # NOQA
+
 from collections import OrderedDict
 from django.test import RequestFactory
 
