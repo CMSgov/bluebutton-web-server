@@ -10,7 +10,7 @@ except ImportError:
 import json
 
 import apps.fhir.bluebutton.utils
-from apps.fhir.bluebutton.utils import pretty_json
+# from apps.fhir.bluebutton.utils import pretty_json
 import apps.fhir.bluebutton.views.home
 from apps.fhir.bluebutton.views.home import (conformance_filter)
 
