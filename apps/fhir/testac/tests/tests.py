@@ -1,11 +1,11 @@
-from django.conf import settings
+# from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.http import HttpRequest
 from django.test import TestCase, RequestFactory
-from unittest.mock import MagicMock, patch
+# from unittest.mock import MagicMock, patch
 
-import apps.fhir.testac.views
+# import apps.fhir.testac.views
 
 
 from apps.fhir.bluebutton.models import Crosswalk
@@ -16,8 +16,8 @@ from apps.fhir.testac.utils.sample_data_bb import SAMPLE_BB_TEXT
 
 
 class FakeMessages:
-    ''' mocks the Django message framework, makes it easier to get
-        the messages out '''
+    """ mocks the Django message framework, makes it easier to get
+        the messages out """
 
     messages = []
 
@@ -89,7 +89,6 @@ class PostBlueButtonFileTest(TestCase):
         self.assertEqual(result.status_code,
                          200)
 
-
     def test_user_logged_in_success_json(self):
         """ BBUpload - User Logged in """
 
@@ -105,6 +104,7 @@ class PostBlueButtonFileTest(TestCase):
 
         self.assertEqual(result.status_code,
                          200)
+
 
 class CheckCrossWalkForRequestUserTest(TestCase):
     """ Check Crosswalk before giving access to bbupload """
@@ -136,14 +136,13 @@ class CheckCrossWalkForRequestUserTest(TestCase):
         request = self.factory.get('/create_test_account/bb_upload/')
         request.user = self.user
 
-
         result = check_crosswalk(request)
 
         # print("No Crosswalk Result:%s" % result.content)
 
         self.assertContains(result,
                             'Paste the contents of a Blue Button Text File',
-                            count=None,status_code=200)
+                            count=None, status_code=200)
 
     def test_user_logged_in_crosswalk_no_fhir_id(self):
         """ check_crosswalk - User Logged in. Entry in xwalk. No fhir_id """
@@ -165,7 +164,7 @@ class CheckCrossWalkForRequestUserTest(TestCase):
 
         self.assertContains(result,
                             'Paste the contents of a Blue Button Text File',
-                            count=None,status_code=200)
+                            count=None, status_code=200)
 
     # @patch('apps.fhir.testac.views.messages')
     def test_user_logged_in_crosswalk_fhir_id(self):
@@ -186,8 +185,10 @@ class CheckCrossWalkForRequestUserTest(TestCase):
         expected = 'Account is already linked to a FHIR resource.'
 
         result = check_crosswalk(request)
+        result = result
 
-        # print("Crosswalk found with FHIR ID Result:%s" % request._messages.pop)
+        # print("Crosswalk found "
+        #       "with FHIR ID Result:%s" % request._messages.pop)
 
         self.assertEqual(request._messages.pop, expected)
 
@@ -195,4 +196,3 @@ class CheckCrossWalkForRequestUserTest(TestCase):
 
         # self.assertContains(result,
         #                     'Home Page')
-
