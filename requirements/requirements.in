@@ -12,7 +12,6 @@ pymongo
 
 # support
 boto
-bson
 jsonschema
 requests
 pytz
