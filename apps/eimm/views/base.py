@@ -131,7 +131,7 @@ def connect_first(request):
                         mc_prof['bb_data'] = mmg_bb['mmg_bbdata']
 
                         # Save the Blue Button text to the Crosswalk
-                        xwalk.blue_button = mmg_bb['mmg_bbdata']
+                        xwalk.bb_text = mmg_bb['mmg_bbdata']
 
                         # Convert the text to JSON
                         result = bb_to_json(request,
@@ -742,7 +742,7 @@ def eval_claims(request, claims):
 
 @login_required
 def convert_bb(request):
-    """ Read blue_button from CrossWalk
+    """ Read bb_text from CrossWalk
         Convert to JSON (bb_to_json)
         Analyze JSON
         Get Claims
@@ -764,11 +764,11 @@ def convert_bb(request):
         xwalk.save()
 
     # Do we have Blue Button text to work with?
-    if not xwalk.blue_button:
+    if not xwalk.bb_text:
         return HttpResponseRedirect(reverse('home'))
 
     # Convert from text to JSON
-    bb_result = bb_to_json(request, xwalk.blue_button)
+    bb_result = bb_to_json(request, xwalk.bb_text)
     bb_json = bb_result['mmg_bbjson']
     # print("JSON:", bb_result['mmg_bbjson'])
 

@@ -139,12 +139,12 @@ class Crosswalk(models.Model):
     fhir_id = models.CharField(max_length=80, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     mb_user = models.CharField(max_length=250, blank=True)
-    blue_button = models.TextField(verbose_name="Blue Button Text File",
-                                   blank=True,
-                                   null=True,
-                                   help_text=_("The MyMedicare.gov Blue "
-                                               "Button text file is "
-                                               "stored here."))
+    bb_text = models.TextField(verbose_name="Blue Button Text File",
+                               blank=True,
+                               null=True,
+                               help_text=_("The MyMedicare.gov Blue "
+                                           "Button text file is "
+                                           "stored here."))
 
     # mb_user = MyMedicare.gov user login name
     # fhir_id = Identifier used in the patient Profile URL
