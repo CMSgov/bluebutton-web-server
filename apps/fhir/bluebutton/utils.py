@@ -25,6 +25,8 @@ PRETTY_JSON_INDENT = 4
 
 FORMAT_OPTIONS_CHOICES = ['json', 'xml']
 
+DF_EXTRA_INFO = False
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
@@ -492,6 +494,82 @@ def get_host_url(request, resource_type=''):
     # logger.debug('Full_url as list:%s' % full_url_list)
 
     return full_url_list[0]
+
+
+def build_conformance_url():
+    """ Build the Conformance URL call string """
+
+    call_to = settings.FHIR_SERVER_CONF['SERVER']
+    call_to += settings.FHIR_SERVER_CONF['PATH']
+    call_to += settings.FHIR_SERVER_CONF['RELEASE']
+    call_to += '/metadata'
+
+    return call_to
+
+
+def build_output_dict(request,
+                      od,
+                      resource_type,
+                      key,
+                      vid,
+                      interaction_type,
+                      fmt,
+                      text_out):
+    """ Create the output as an OrderedDict """
+
+    od['resource_type'] = resource_type
+    od['id'] = key
+    if vid is not None:
+        od['vid'] = vid
+
+    # logger.debug('Query List:%s' % request.META['QUERY_STRING'])
+
+    if DF_EXTRA_INFO:
+        od['request_method'] = request.method
+        od['interaction_type'] = interaction_type
+        od['parameters'] = request.GET.urlencode()
+        # logger.debug('or:%s' % od['parameters'])
+        od['format'] = fmt
+        od['note'] = 'This is the %s Pass Thru ' \
+                     '(%s) ' % (resource_type, key)
+
+    od['bundle'] = text_out
+
+    return od
+
+
+def post_process_request(request, fmt, host_path, r_text, rewrite_url_list):
+    """ Process request based on xml or json fmt """
+    if fmt.lower() == 'xml':
+        # We will add xml support later
+
+        text_out = mask_list_with_host(request,
+                                       host_path,
+                                       r_text,
+                                       rewrite_url_list)
+        # text_out= minidom.parseString(text_out).toprettyxml()
+    else:
+        # dealing with json
+        # text_out = r.json()
+        pre_text = mask_list_with_host(request,
+                                       host_path,
+                                       r_text,
+                                       rewrite_url_list)
+        # print("\n\nPRE_TEXT:%s\n\n" % pre_text)
+        text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
+
+    return text_out
+
+
+def prepend_q(pass_params):
+    """ Add ? to parameters if needed """
+    if len(pass_params) > 0:
+        if pass_params.startswith('?'):
+            pass
+        else:
+            pass_params = '?' + pass_params
+    # print("Parameters:", pass_params)
+    return pass_params
 
 
 def pretty_json(od, indent=PRETTY_JSON_INDENT):

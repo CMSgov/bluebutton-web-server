@@ -7,6 +7,13 @@ from .base import *
 print(ADMINS)
 DEBUG = True
 
+# Add testac to Test environments only
+if 'apps.fhir.testac' not in INSTALLED_APPS:
+    INSTALLED_APPS = INSTALLED_APPS + [
+        'apps.fhir.testac',
+    ]
+
+
 # Generate your own secret key using:
 # http://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = "BBOAUTH2-LOCAL-_CHANGE_THIS_FAKE_KEY_TO_YOUR_OWN_SECRET_KEY"
