@@ -14,13 +14,14 @@ File created by: Mark Scrimshire @ekivemark
 from django.conf.urls import url
 from django.contrib import admin
 
-from .views import bb_upload
+from .views import check_crosswalk
 
 admin.autodiscover()
 
 urlpatterns = [
     # Upload a BlueButton Text File
+    # check Crosswalk before giving access to upload
     url(r'bb_upload/',
-        bb_upload,
+        check_crosswalk,
         name='bb_upload'),
 ]

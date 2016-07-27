@@ -8,9 +8,11 @@ print(ADMINS)
 DEBUG = True
 
 # Add testac to Test environments only
-INSTALLED_APPS = INSTALLED_APPS + [
-    'apps.fhir.testac',
-]
+if 'apps.fhir.testac' not in INSTALLED_APPS:
+    INSTALLED_APPS = INSTALLED_APPS + [
+        'apps.fhir.testac',
+    ]
+
 
 # Generate your own secret key using:
 # http://www.miniwebtool.com/django-secret-key-generator/
