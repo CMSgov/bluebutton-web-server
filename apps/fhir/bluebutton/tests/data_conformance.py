@@ -15,23 +15,14 @@ File created by: Mark Scirmshire @ekivemark
 
 # flake8: noqa
 
+
+# flake8: noqa
+
 CONFORMANCE = """
 {
     "resourceType":"Conformance",
     "publisher":"Not provided",
-    "date":"2016-07-25T19:45:42+00:00",
-=======
-File created by: ''
-"""
-
-# flake8: noqa
-
-CONFORMANCE="""
-{
-    "resourceType":"Conformance",
-    "publisher":"Not provided",
     "date":"2016-07-19T22:37:51+00:00",
->>>>>>> 6afca6e6b45ada2aa62414592e9c4f37c44448c1
     "kind":"instance",
     "software":{
         "name":"HAPI FHIR Server",
@@ -2654,20 +2645,13 @@ CONFORMANCE="""
                         {
                             "name":"composition",
                             "type":"reference",
-<<<<<<< HEAD
+
                             "documentation":"The first resource in the bundle, if the bundle type is 'document' - this is a composition, and this parameter provides access to searches its contents"
-=======
-                            "documentation":"The first resource in the bundle, if the bundle type is \"document\" - this is a composition, and this parameter provides access to searches its contents"
->>>>>>> 6afca6e6b45ada2aa62414592e9c4f37c44448c1
                         },
                         {
                             "name":"message",
                             "type":"reference",
-<<<<<<< HEAD
                             "documentation":"The first resource in the bundle, if the bundle type is 'message' - this is a message header, and this parameter provides access to search its contents"
-=======
-                            "documentation":"The first resource in the bundle, if the bundle type is \"message\" - this is a message header, and this parameter provides access to search its contents"
->>>>>>> 6afca6e6b45ada2aa62414592e9c4f37c44448c1
                         },
                         {
                             "name":"type",
@@ -3109,11 +3093,7 @@ CONFORMANCE="""
                         {
                             "name":"performer",
                             "type":"reference",
-<<<<<<< HEAD
                             "documentation":"Matches if the practitioner is listed as a performer in any of the 'simple' activities.  (For performers of the detailed activities, chain through the activitydetail search parameter.)",
-=======
-                            "documentation":"Matches if the practitioner is listed as a performer in any of the \"simple\" activities.  (For performers of the detailed activities, chain through the activitydetail search parameter.)",
->>>>>>> 6afca6e6b45ada2aa62414592e9c4f37c44448c1
                             "target":[
                                 "Practitioner",
                                 "Organization",
@@ -16804,11 +16784,7 @@ CONFORMANCE="""
                         {
                             "name":"receiver",
                             "type":"reference",
-<<<<<<< HEAD
                             "documentation":"Intended 'real-world' recipient for the data",
-=======
-                            "documentation":"Intended \"real-world\" recipient for the data",
->>>>>>> 6afca6e6b45ada2aa62414592e9c4f37c44448c1
                             "target":[
                                 "Practitioner",
                                 "Organization"
@@ -25543,8 +25519,4 @@ CONFORMANCE="""
         }
     ]
 }
-<<<<<<< HEAD
 """
-=======
-"""
->>>>>>> 6afca6e6b45ada2aa62414592e9c4f37c44448c1

@@ -28,19 +28,27 @@ Activate User
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import (render,
-                              HttpResponse)
+                              HttpResponse,
+                              HttpResponseRedirect)
 from django.utils.translation import ugettext_lazy as _
 
 from ...cmsblue.cms_parser import (cms_text_read,
                                    parse_lines)
 from ..bluebutton.utils import pretty_json
 from .forms import input_packet
+from apps.fhir.bluebutton.models import Crosswalk
 
 
 @login_required
 def bb_upload(request, *args, **kwargs):
-    """ Paste a BlueButton File for processing to FHIR """
+    """ Paste a BlueButton File for processing to FHIR
+
+        access via check_crosswalk first to make sure a
+        link to the FHIR backend is not in place.
+
+    """
 
     name = 'Upload Blue Button Text Content'
     additional_info = """
@@ -76,7 +84,7 @@ def bb_upload(request, *args, **kwargs):
                               'testac/output.html',
                               {'content': pretty_json(json_stuff),
                                'output': json_stuff,
-                               'subname': "Create FHIR Test Data",
+                               'subname': "Upload BlueButton Text",
                                'button': "Check record again",
                                'button_link': "/"}
                               )
@@ -93,3 +101,32 @@ def bb_upload(request, *args, **kwargs):
                       {'name': name,
                        'form': input_packet(),
                        'additional_info': additional_info})
+
+
+@login_required
+def check_crosswalk(request, *args, **kwargs):
+    """ Check for CrossWalk for this user """
+
+    try:
+        xwalk = Crosswalk.objects.get(user=request.user)
+
+        if xwalk.fhir_id:
+            # print("FHIR_ID:%s" % xwalk.fhir_id)
+            messages.error(request,
+                           _('Account is already linked to a FHIR resource.'))
+            return HttpResponseRedirect(reverse_lazy('home'))
+        # Crosswalk record exists but fhir_id is not defined
+
+    except Crosswalk.DoesNotExist:
+        # No record in Crosswalk
+        # Create a Crosswalk record
+        xwalk = Crosswalk()
+        xwalk.user = request.user
+        # We may want to add the default FHIR Server to the crosswalk entry
+        # before we save.
+        # xwalk.fhir_source =
+        xwalk.save()
+
+    # We didn't find a Crosswalk entry so we can go ahead and do an upload
+
+    return bb_upload(request, *args, **kwargs)

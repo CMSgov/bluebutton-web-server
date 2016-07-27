@@ -187,7 +187,6 @@ def fhir_conformance(request, *args, **kwargs):
                                     rewrite_url_list)
 
     od = conformance_filter(text_out, fmt)
-<<<<<<< HEAD
 
     if fmt == 'xml':
         # logger.debug('We got xml back in od')
@@ -202,22 +201,6 @@ def fhir_conformance(request, *args, **kwargs):
 
     # logger.debug('We got a different format:%s' % fmt)
 
-=======
-
-    if fmt == 'xml':
-        # logger.debug('We got xml back in od')
-        return HttpResponse(text_out,
-                            content_type='application/%s' % fmt)
-        # return HttpResponse( tostring(dict_to_xml('content', od)),
-        #                      content_type='application/%s' % fmt)
-    elif fmt == 'json':
-        # logger.debug('We got json back in od')
-        return HttpResponse(pretty_json(od),
-                            content_type='application/%s' % fmt)
-
-    # logger.debug('We got a different format:%s' % fmt)
-
->>>>>>> 6afca6e6b45ada2aa62414592e9c4f37c44448c1
     return render(
         request,
         'bluebutton/default.html',
@@ -273,12 +256,9 @@ def get_supported_resources(resources, resource_names):
             if k == 'type':
                 if v in resource_names:
                     filtered_item = get_interactions(v, item)
-                    logger.debug("Filtered Item:%s" % filtered_item)
-<<<<<<< HEAD
+                    # logger.debug("Filtered Item:%s" % filtered_item)
+
                     resource_list.append(filtered_item)
-=======
-                    resource_list.append(item)
->>>>>>> 6afca6e6b45ada2aa62414592e9c4f37c44448c1
                 else:
                     pass
                     # print('\nDisposing of %s' % v)
