@@ -3,12 +3,6 @@
 # vim: ai ts=4 sts=4 et sw=4
 
 """
-hhs_oauth_server
-FILE: apps.fhir.testac.views
-Created: 7/25/16 4:21 PM
-
-File created by: Mark Scrimshire @ekivemark
-
 Activate User
 
 - Create Crosswalk
@@ -24,7 +18,6 @@ Activate User
 - Create FHIR EOBs
 - Post to back-end FHIR server
 
-
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -38,7 +31,7 @@ from ...cmsblue.cms_parser import (cms_text_read,
                                    parse_lines)
 from ..bluebutton.utils import pretty_json
 from .forms import input_packet
-from apps.fhir.bluebutton.models import Crosswalk
+from ..bluebutton.models import Crosswalk
 
 
 @login_required
