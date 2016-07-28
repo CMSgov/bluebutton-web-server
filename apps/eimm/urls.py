@@ -12,7 +12,7 @@ Created: 7/1/16 12:51 PM
 from django.conf.urls import url
 from django.contrib import admin
 
-from .views import connect_first
+from .views.base import connect_first, convert_bb
 
 __author__ = 'Mark Scrimshire:@ekivemark'
 
@@ -25,5 +25,8 @@ urlpatterns = [
     url(r'mymedicare-connect$',
         connect_first,
         name='eimm_connectfirst'),
+    url(r'convert_bluebutton/$',
+        convert_bb,
+        name="integrate_convert_bluebutton")
 
 ]
