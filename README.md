@@ -25,6 +25,11 @@ Follow these steps on the command line.
     # create the virtualenv
     mkvirtualenv oauth_server --python=/path/to/python3-binary
 
+    # Install any pre-requisites  (C headers, etc. This is OS specific)
+    # Ubuntu example
+    sudo apt-get install python3-dev libxml2-dev libxslt1-dev
+    
+
     # install the requirements
     pip install -r requirements/requirements.txt
 
