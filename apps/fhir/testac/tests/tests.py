@@ -21,7 +21,7 @@ class PostBlueButtonFileTest(TestCase):
         # I could probably update this to use a Mock()
         self.factory = RequestFactory()
         self.user = User.objects.create_user(
-            username='jacob', email='jacob@…', password='top_secret')
+            username='jacob', email='jacob@...', password='top_secret')
 
     def test_not_logged_in_fail(self):
         """ BBUpload - User not logged in """
@@ -81,7 +81,7 @@ class CheckCrossWalkForRequestUserTest(TestCase):
         self.factory = RequestFactory()
         self.messages = MessagingRequest()
         self.user = User.objects.create_user(
-            username='jacob', email='jacob@…', password='top_secret')
+            username='jacob', email='jacob@...', password='top_secret')
 
     def test_not_logged_in_fail(self):
         """ check_crosswalk - User not logged in """
