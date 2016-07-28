@@ -28,6 +28,25 @@ LOA_CHOICES = (
 )
 
 
+QUESTION_1_CHOICES = (
+    ('1', 'What is your favorite color?'),
+    ('2', 'What is your favorite vegetable?'),
+    ('3', 'What is your favorite movie?'),
+)
+
+QUESTION_2_CHOICES = (
+    ('1', 'What was the name of your best friend from childhood?'),
+    ('2', 'What was the name of your elementary school?'),
+    ('3', 'What was the name of your favorite pet?'),
+)
+
+QUESTION_3_CHOICES = (
+    ('1', 'What was the make of your first automobile?'),
+    ('2', "What was your maternal grandmother's maiden name?"),
+    ('3', "What was your paternal grandmother's maiden name?"),
+)
+
+
 @python_2_unicode_compatible
 class UserProfile(models.Model):
     user = models.OneToOneField(User)
@@ -57,6 +76,24 @@ class UserProfile(models.Model):
         help_text=_(
             'Check this to allow the account to register applications.'),
     )
+    password_reset_question_1 = models.CharField(default='1',
+                                                 choices=QUESTION_1_CHOICES,
+                                                 max_length=1)
+    password_reset_answer_1 = models.CharField(default='',
+                                               blank=True,
+                                               max_length=50)
+    password_reset_question_2 = models.CharField(default='1',
+                                                 choices=QUESTION_2_CHOICES,
+                                                 max_length=1)
+    password_reset_answer_2 = models.CharField(default='',
+                                               blank=True,
+                                               max_length=50)
+    password_reset_question_3 = models.CharField(default='1',
+                                                 choices=QUESTION_3_CHOICES,
+                                                 max_length=1)
+    password_reset_answer_3 = models.CharField(default='',
+                                               blank=True,
+                                               max_length=50)
 
     def __str__(self):
         name = '%s %s (%s)' % (self.user.first_name,

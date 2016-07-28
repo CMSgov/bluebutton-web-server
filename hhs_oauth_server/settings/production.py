@@ -1,6 +1,5 @@
 from .base import *
 
-
 # security enforcement
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = env('DJANGO_SECURE_SSL_REDIRECT', True)

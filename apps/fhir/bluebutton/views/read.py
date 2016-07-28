@@ -1,6 +1,4 @@
-import json
 import logging
-# import requests
 
 from collections import OrderedDict
 
@@ -24,15 +22,14 @@ from apps.fhir.bluebutton.utils import (
     strip_oauth,
     build_params,
     FhirServerUrl,
-    mask_list_with_host,
     get_host_url,
+    build_output_dict,
+    post_process_request,
     pretty_json)
 
 from apps.fhir.bluebutton.models import Crosswalk
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-DF_EXTRA_INFO = False
 
 
 def read(request, resource_type, r_id, *args, **kwargs):
@@ -165,12 +162,6 @@ def generic_read(request,
 
     # Now we get to process the API Call.
 
-    # logger.debug('Now we need to evaluate the parameters and
-    #              'arguments to work with %s and '
-    #              '%s. GET parameters:%s' % (key,
-    #                                         request.user,
-    #                                         request.GET))
-
     # Internal handling format is json
     # Remove the oauth elements from the GET
     pass_params = strip_oauth(request.GET)
@@ -198,34 +189,8 @@ def generic_read(request,
     # Now make the call to the backend API
     r = request_call(request, pass_to, reverse_lazy('api:v1:home'))
 
-    # move to bluebutton.utils.request_call
-    # try:
-    #     r = requests.get(pass_to)
-    #
-    # except requests.ConnectionError:
-    #     # logger.debug('Problem connecting to FHIR Server')
-    #     messages.error(request, 'FHIR Server is unreachable.')
-    #     return HttpResponseRedirect(reverse_lazy('api:v1:home'))
-    #
-    # if r.status_code in ERROR_CODE_LIST:
-    #     return error_status(r, r.status_code)
-
     text_out = ''
     # logger.debug('r:%s' % r.text)
-
-    # if srtc is not None:
-    #     # Replace the default_url
-    #     if srtc.default_url:
-    #         logger.debug('We will replace url srtc:%s' % srtc.default_url)
-    #         if srtc.default_url not in rewrite_url_list:
-    #             rewrite_url_list.append(srtc.default_url)
-    #
-    # if cx is not None:
-    #     # replace the crosswalk fhir url
-    #     if cx.fhir_source.fhir_url:
-    #         logger.debug('we will replace cx:%s' % (cx.fhir_source.fhir_url))
-    #         if cx.fhir_source.fhir_url not in rewrite_url_list:
-    #             rewrite_url_list.append(cx.fhir_source.fhir_url)
 
     # logger.debug('Rewrite List:%s' % rewrite_url_list)
 
@@ -235,42 +200,20 @@ def generic_read(request,
     # get 'xml' 'json' or ''
     fmt = get_search_param_format(pass_params)
 
-    if fmt == 'xml':
-        # We will add xml support later
+    text_out = post_process_request(request,
+                                    fmt,
+                                    host_path,
+                                    r.text,
+                                    rewrite_url_list)
 
-        text_out = mask_list_with_host(request,
-                                       host_path,
-                                       r.text,
-                                       rewrite_url_list)
-        # text_out= minidom.parseString(text_out).toprettyxml()
-    else:
-        # dealing with json
-        # text_out = r.json()
-        pre_text = mask_list_with_host(request,
-                                       host_path,
-                                       r.text,
-                                       rewrite_url_list)
-        text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
-
-    od = OrderedDict()
-    od['resource_type'] = resource_type
-    od['id'] = key
-    if vid is not None:
-        od['vid'] = vid
-
-    # logger.debug('Query List:%s' % request.META['QUERY_STRING'])
-
-    if DF_EXTRA_INFO:
-        od['request_method'] = request.method
-        od['interaction_type'] = interaction_type
-        od['parameters'] = request.GET.urlencode()
-        # logger.debug('or:%s' % od['parameters'])
-        od['format'] = fmt
-        od['note'] = 'This is the %s Pass Thru (%s) ' % (resource_type, key)
-        if settings.DEBUG:
-            od['note'] += 'using: %s ' % (pass_to)
-
-    od['bundle'] = text_out
+    od = build_output_dict(request,
+                           OrderedDict(),
+                           resource_type,
+                           key,
+                           vid,
+                           interaction_type,
+                           fmt,
+                           text_out)
 
     # write session variables if _getpages was found
     ikey = find_ikey(r.text)

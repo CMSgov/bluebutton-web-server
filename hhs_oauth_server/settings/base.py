@@ -373,6 +373,13 @@ SETTINGS_EXPORT = [
     'SETTINGS_MODE',
 ]
 
+# Make sessions die out fast for more security ------------------
+# Logout after 30 minutes of inactivity
+SESSION_COOKIE_AGE = 1800
+# Logout if the browser is closed
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
 # enclose value for DJANGO_SLS_PASSWORD in single quotes to preserve

@@ -3,9 +3,17 @@ from django.conf.urls import url
 from .views.core import (simple_login,
                          create_developer, account_settings,
                          reissue_api_keys, request_developer_invite,
-                         mylogout, forgot_password, request_user_invite,
-                         password_reset_email_verify, display_api_keys,
+                         mylogout, request_user_invite,
+                         display_api_keys,
                          activation_verify)
+
+from .views.password_reset import (change_secret_questions,
+                                   forgot_password,
+                                   password_reset_email_verify,
+                                   secret_question_challenge,
+                                   secret_question_challenge_1,
+                                   secret_question_challenge_2,
+                                   secret_question_challenge_3)
 
 urlpatterns = [
     # login and Logout ------------------------------------
@@ -29,10 +37,26 @@ urlpatterns = [
     # Forgot password? ---------------------------------------
     url(r'forgot-password$', forgot_password, name='forgot_password'),
 
+    url(r'change-secret-questions$', change_secret_questions,
+        name='change_secret_questions'),
+
     # Change password using reset token ------------------------
     url(r'password-reset-email-verify/(?P<reset_password_key>[^/]+)/',
         password_reset_email_verify,
         name='password_reset_email_verify'),
+
+    # Secret Question Challenge
+    url(r'secret-question-challenge/(?P<username>[^/]+)/', secret_question_challenge,
+        name='secret_question_challenge'),
+
+    url(r'secret-question-challenge-1/(?P<username>[^/]+)/', secret_question_challenge_1,
+        name='secret_question_challenge_1'),
+
+    url(r'secret-question-challenge-2/(?P<username>[^/]+)/', secret_question_challenge_2,
+        name='secret_question_challenge_2'),
+
+    url(r'secret-question-challenge-3/(?P<username>[^/]+)/', secret_question_challenge_3,
+        name='secret_question_challenge_3'),
 
     # Verify the account
     url(r'activation-verify/(?P<activation_key>[^/]+)/', activation_verify,

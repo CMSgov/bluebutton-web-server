@@ -2,7 +2,7 @@ from collections import OrderedDict
 from unittest import skip
 from django.test import TestCase, RequestFactory
 
-from .views import get_fhir_claim
+from .views.base import get_fhir_claim
 from .utils import split_name
 # from ..fhir.bluebutton.utils import pretty_json
 # from apps.fhir.bluebutton.utils import pretty_json
@@ -74,14 +74,17 @@ class Utils_Test(TestCase):
         self.assertEqual(response, expected)
 
 
+@skip
 class EimmViewsRequestTest(TestCase):
 
     def setUp(self):
+        print('here1')
         # Setup the RequestFactory
         self.factory = RequestFactory()
+        print('here2')
 
-    @skip
     def test_get_bb_claim(self):
+        print('here')
         """
         Pass the blue button claim to backed and get result back
 
@@ -115,7 +118,7 @@ class EimmViewsRequestTest(TestCase):
 
     def test_unique_keys(self):
         """ Pass searched claims to unique_keys """
-
+        print('3')
         input_list = [
             {'identifier': '5',
              'provider': 'Practitioner/6',
