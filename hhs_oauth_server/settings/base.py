@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'apps.fhir.core',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
+    'apps.fhir.build_fhir',
 
     # 3rd Party ---------------------
     'corsheaders',

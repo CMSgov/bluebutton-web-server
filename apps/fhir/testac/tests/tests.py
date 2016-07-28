@@ -1,50 +1,16 @@
 # from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
-from django.contrib.messages.storage.fallback import FallbackStorage
-from django.http import HttpRequest
 from django.test import TestCase, RequestFactory
 # from unittest.mock import MagicMock, patch
 
 # import apps.fhir.testac.views
 
-
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.testac.views import bb_upload, check_crosswalk
+from apps.fhir.testac.views.base import bb_upload, check_crosswalk
+from .test_harness import FakeMessages, MessagingRequest
 # Create your tests here.
 
 from apps.fhir.testac.utils.sample_data_bb import SAMPLE_BB_TEXT
-
-
-class FakeMessages:
-    """ mocks the Django message framework, makes it easier to get
-        the messages out """
-
-    messages = []
-
-    def add(self, level, message, extra_tags):
-        self.messages.append(str(message))
-
-    @property
-    def pop(self):
-        return self.messages.pop()
-
-
-class MessagingRequest(HttpRequest):
-    session = 'session'
-
-    def __init__(self):
-        super(MessagingRequest, self).__init__()
-        self._messages = FallbackStorage(self)
-
-    def add(self, level, message, extra_tags):
-        print("Adding Message: %s:%s[%s]" % (level, message, extra_tags))
-        return "%s:%s[%s]" % (level, message, extra_tags)
-
-    def get_messages(self):
-        return getattr(self._messages, '_queued_messages')
-
-    def get_message_strings(self):
-        return [str(m) for m in self.get_messages()]
 
 
 class PostBlueButtonFileTest(TestCase):
