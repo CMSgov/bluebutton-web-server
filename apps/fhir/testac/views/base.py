@@ -34,10 +34,10 @@ from django.shortcuts import (render,
                               HttpResponseRedirect)
 from django.utils.translation import ugettext_lazy as _
 
-from ...cmsblue.cms_parser import (cms_text_read,
-                                   parse_lines)
-from ..bluebutton.utils import pretty_json
-from .forms import input_packet
+from apps.cmsblue.cms_parser import (cms_text_read,
+                                     parse_lines)
+from apps.fhir.bluebutton.utils import pretty_json
+from apps.fhir.testac.forms import input_packet
 from apps.fhir.bluebutton.models import Crosswalk
 
 
@@ -130,3 +130,41 @@ def check_crosswalk(request, *args, **kwargs):
     # We didn't find a Crosswalk entry so we can go ahead and do an upload
 
     return bb_upload(request, *args, **kwargs)
+
+def fhir_build_patient(request, bb_json):
+    """ Construct a FHIR Patient Resource from bb_json
+
+    "patient": {
+        "patient": {
+            "patient": "Demographic"
+        },
+        "source": "MyMedicare.gov",
+        "name": "JOHN DOE",
+        "dateOfBirth": "19100101",
+        "address": {
+            "addressType": "",
+            "addressLine1": "123 ANY ROAD",
+            "addressLine2": "",
+            "city": "ANYTOWN",
+            "state": "VA",
+            "zip": "00001"
+        },
+        "phoneNumber": [
+            "123-456-7890"
+        ],
+        "email": "JOHNDOE@example.com",
+        "medicare": {
+            "partAEffectiveDate": "20120101",
+            "partBEffectiveDate": "20120101"
+        }
+    },
+
+
+    """
+
+    if "patient" in bb_json:
+        pass
+    else:
+        return None
+
+    # Process the patient segment in bb_json

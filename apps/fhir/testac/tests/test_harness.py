@@ -10,6 +10,26 @@ Created: 7/27/16 8:20 AM
 
 Created by: ''
 """
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.http import HttpRequest
+
+
+class MessagingRequest(HttpRequest):
+    session = 'session'
+
+    def __init__(self):
+        super(MessagingRequest, self).__init__()
+        self._messages = FallbackStorage(self)
+
+    def add(self, level, message, extra_tags):
+        print("Adding Message: %s:%s[%s]" % (level, message, extra_tags))
+        return "%s:%s[%s]" % (level, message, extra_tags)
+
+    def get_messages(self):
+        return getattr(self._messages, '_queued_messages')
+
+    def get_message_strings(self):
+        return [str(m) for m in self.get_messages()]
 
 
 class FakeMessages:
@@ -20,6 +40,9 @@ class FakeMessages:
 
     def add(self, level, message, extra_tags):
         self.messages.append(str(message))
+
+    def list(self):
+        return self.messages
 
     @property
     def pop(self):
