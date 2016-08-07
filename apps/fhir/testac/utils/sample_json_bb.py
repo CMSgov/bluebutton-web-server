@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4
+# flake8: noqa
 
 """
 Project: hhs_oauth_server
@@ -12,6 +13,15 @@ Created by: Mark Scirmshire @ekivemark
 
 """
 
+SAMPLE_FHIR_CREATE_SUCCESS = """
+{"issue": [{"severity": "information",
+            "code": "informational",
+            "diagnostics": "Successfully created resource \\"Patient/9334211/_history/1\\" in 47ms"
+           }
+          ],
+ "resourceType": "OperationOutcome"
+ }
+"""
 
 SAMPLE_BB_JSON = """
 {
@@ -33,7 +43,7 @@ SAMPLE_BB_JSON = """
             "**********CONFIDENTIAL***********",
             "Produced by the Blue Button (v2.0)"
         ],
-        "languageCode": "code=\"en-US\"",
+        "languageCode": "code='en-US'",
         "confidentialityCode": {
             "code": "N",
             "codeSystem": "2.16.840.1.113883.5.25"

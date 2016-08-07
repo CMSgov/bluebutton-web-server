@@ -13,17 +13,30 @@ Created by: Mark Scrimshire @ekivemark, Medyear
 Construct Fhir Data Type elements
 
 """
-import json
+import logging
+import re
+
 from collections import OrderedDict
 from datetime import datetime
 from pytz import timezone
 
 from django.conf import settings
+from django.utils.timezone import get_current_timezone
 
-from ...bluebutton.utils import pretty_json
-from .utils import humanname_use, build_list_from
+from .fhir_code_sets import (FHIR_IDENTIFIER_USE_CODE,
+                             FHIR_CONTACTPOINT_SYSTEM_CODE,
+                             FHIR_ADDRESS_USE_CODE,
+                             FHIR_ADDRESS_TYPE_CODE)
 
-def dt_meta(vid=None, ):
+from .utils import (human_name_use,
+                    build_list_from,
+                    use_code,
+                    )
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+def dt_meta(vid=None, last_updated=None):
     """ Construct Meta data type
 
 {
@@ -42,13 +55,21 @@ def dt_meta(vid=None, ):
     else:
         str_vid = "1"
     dt["versionId"] = str_vid
-    dt["lastUpdated"] = dt_instant()
+    my_now = dt_instant(my_now=last_updated)
 
-    return pretty_json(dt)
+    # print("\nSource DateTime:%s" % last_updated)
+    # print("My_now:%s" % my_now)
+
+    dt["lastUpdated"] = my_now
+
+    # print("dt:%s" % dt)
+
+    # return pretty_json(dt)
+    return dt
 
 
 def dt_identifier(id_value,
-                  id_use="temp",
+                  id_use=None,
                   id_type=None,
                   id_system=None,
                   id_period=None,
@@ -73,21 +94,35 @@ def dt_identifier(id_value,
 
     """
 
+    if not id_value:
+        return
+
+    # We have a value to represent
+
     dt = OrderedDict()
-    dt['use'] = id_use
-    if id_type:
+
+    if id_use:
+        dt_use = use_code(id_use, FHIR_IDENTIFIER_USE_CODE)
+        dt['use'] = dt_use
         if isinstance(id_type, dict):
             dt['type'] = id_type
         else:
-            dt['type'] = dt_codeable_concept(id_type)
+            dt_type = dt_codeable_concept(id_type)
+            if dt_type:
+                dt['type'] = dt_type
     if id_system:
         dt['system'] = id_system
+
+    dt['value'] = str(id_value)
+
     if id_period:
         dt['period'] = id_period
     if id_assigner:
         dt['assigner'] = id_assigner
+        # TODO: Define dt_organization
 
-    return pretty_json(dt)
+    # return pretty_json(dt)
+    return dt
 
 
 def dt_codeable_concept(concept):
@@ -106,16 +141,20 @@ def dt_codeable_concept(concept):
         dt = concept
     elif isinstance(concept, list):
         for c in concept:
-            # Must have coding and text in list item
-            if isinstance(c, dict):
-                dt.append(c)
-            else:
-                dt.append({"text": c})
+            for k, v in c:
+                # Must have coding and text in list item
+                if isinstance(v, dict):
+                    dt[k] = v
+                else:
+                    dt['text'] = v
+    elif isinstance(concept, str):
+        dt["text"] = concept
 
     if len(dt) == 0:
-        return None
+        return
 
-    return pretty_json(dt)
+    # return pretty_json(dt)
+    return dt
 
 
 def dt_instant(my_now=None):
@@ -134,6 +173,7 @@ def dt_instant(my_now=None):
     format_now = now_is.isoformat()
 
     return format_now
+
 
 def dt_human_name(id_name=None,
                   id_use=None,
@@ -163,16 +203,16 @@ def dt_human_name(id_name=None,
 
     """
     if id_name is None:
-        return None
+        return
     elif id_name == "":
-        return None
+        return
 
     HumanName = OrderedDict()
     HumanName["resourceType"] = "HumanName"
     if id_use:
-        set_use = humanname_use(id_use)
+        set_use = human_name_use(id_use)
         if set_use:
-            HumanName["use"] = set_use["use"]
+            HumanName["use"] = set_use
 
     HumanName['text'] = id_name.rstrip()
     name = id_name.rstrip().split(' ')
@@ -194,4 +234,313 @@ def dt_human_name(id_name=None,
     if id_period:
         HumanName['period'] = id_period
 
-    return pretty_json(HumanName)
+    # return pretty_json(HumanName)
+    return HumanName
+
+
+def dt_coding(coding_dict=None):
+    """ Construct a Coding Data Type
+
+{
+  // from Element: extension
+  "system" : "<uri>", // Identity of the terminology system
+  "version" : "<string>", // Version of the system - if relevant
+  "code" : "<code>", // Symbol in syntax defined by the system
+  "display" : "<string>", // Representation defined by the system
+  "userSelected" : <boolean> // If this coding was chosen directly by the user
+}
+
+    All fields are optional
+
+    """
+    dt = OrderedDict()
+
+    if coding_dict is None:
+        return None
+
+    if not isinstance(coding_dict, dict):
+
+        return None
+
+    # We have something to code
+
+    if 'system' in coding_dict:
+        dt['system'] = coding_dict['system']
+    if 'version' in coding_dict:
+        dt['version'] = coding_dict['version']
+    if 'code' in coding_dict:
+        dt['code'] = coding_dict['code']
+    if 'display' in coding_dict:
+        dt['display'] = coding_dict['display']
+    if 'userSelected' in coding_dict:
+        dt['userSelected'] = coding_dict['userSelected']
+
+    # return pretty_json(dt)
+    return dt
+
+
+def dt_period(start_date=None, end_date=None):
+    """ Create a Period Data Type
+
+{
+  // from Element: extension
+  "start" : "<dateTime>", // C? Starting time with inclusive boundary
+  "end" : "<dateTime>" // C? End time with inclusive boundary, if not ongoing
+}
+    """
+
+    if not start_date and not end_date:
+        # Nothing to do
+        return None
+
+    dt = OrderedDict()
+    if isinstance(start_date, datetime):
+        # We have a datetime to deal with
+        dt['start'] = dt_instant(start_date)
+
+    elif isinstance(start_date, str):
+        # It is already a string
+        # We will assume it in the correct format
+        # as returned from dt_instant()
+
+        dt['start'] = start_date
+
+    if isinstance(end_date, datetime):
+        # we have an end date
+        # We will assume it in the correct format
+        # as returned from dt_instant()
+        dt['end'] = dt_instant(end_date)
+
+    elif isinstance(end_date, str):
+        dt['end'] = end_date
+
+    #  We now need to check that start_date < end_date
+
+    if start_date and end_date:
+        if start_date > end_date:
+            # We have an error situation
+            logger.error("%s > %s" % (start_date,
+                                      end_date))
+
+    # return pretty_json(dt)
+    return dt
+
+
+def dt_contactpoint(cp_value, cp_system, use=None, rank=None, period=None):
+    """ Create a ContactPoint Data Type
+
+{
+  "resourceType" : "ContactPoint",
+  // from Element: extension
+  "system" : "<code>", // C? phone | fax | email | pager | other
+  "value" : "<string>", // The actual contact point details
+  "use" : "<code>", // home | work | temp | old | mobile - purpose of this contact point
+  "rank" : "<positiveInt>", // Specify preferred order of use (1 = highest)
+  "period" : { Period } // Time period when the contact point was/is in use
+}
+
+    https://www.hl7.org/fhir/datatypes.html#ContactPoint
+
+     """
+
+    dt = OrderedDict()
+    dt['resourceType'] = "ContactPoint"
+
+    # system required if value is provided
+
+    if cp_value:
+        dt_system = use_code(cp_system,
+                             code_set=FHIR_CONTACTPOINT_SYSTEM_CODE)
+        if dt_system and cp_value:
+            dt['system'] = dt_system
+            dt['value'] = str(cp_value)
+        else:
+            logger.error("%s needs a system "
+                         "definition. (%s) not found "
+                         "in [%s]" % (cp_value,
+                                      dt_system,
+                                      FHIR_CONTACTPOINT_SYSTEM_CODE))
+            return
+    if use:
+        dt_use = use_code(use, code_set=FHIR_IDENTIFIER_USE_CODE)
+        if dt_use:
+            dt['use'] = dt_use
+
+    if rank:
+        dt['rank'] = str(rank)
+
+    if period:
+        dt['period'] = period
+
+    # return pretty_json(dt)
+    return dt
+
+
+def dt_address(a_address, a_use=None, a_type=None, a_text=None):
+    """ Create Address Data Type
+{
+  "resourceType" : "Address",
+  // from Element: extension
+  "use" : "<code>", // home | work | temp | old - purpose of this address
+  "type" : "<code>", // postal | physical | both
+  "text" : "<string>", // Text representation of the address
+  "line" : ["<string>"], // Street name, number, direction & P.O. Box etc.
+  "city" : "<string>", // Name of city, town etc.
+  "district" : "<string>", // District name (aka county)
+  "state" : "<string>", // Sub-unit of country (abbreviations ok)
+  "postalCode" : "<string>", // Postal code for area
+  "country" : "<string>", // Country (can be ISO 3166 3 letter code)
+  "period" : { Period } // Time period when address was/is in use
+}
+
+pt_json['patient]:
+        "address": {
+            "addressType": "",
+            "addressLine1": "123 ANY ROAD",
+            "addressLine2": "",
+            "city": "ANYTOWN",
+            "state": "VA",
+            "zip": "00001"
+        },
+
+    """
+
+    dt = OrderedDict()
+    dt['resourceType'] = "Address"
+
+    if a_use:
+        dt_use = use_code(a_use, code_set=FHIR_ADDRESS_USE_CODE)
+        if dt_use:
+            dt['use'] = dt_use
+
+    if a_type:
+        dt_type = use_code(a_type, code_set=FHIR_ADDRESS_TYPE_CODE)
+        if dt_type:
+            dt['type'] = dt_type
+
+    if a_text:
+        dt['text'] = a_text
+
+    if a_address:
+        if 'addressType' in a_address:
+            dt_type = use_code(a_address['addressType'],
+                               code_set=FHIR_ADDRESS_TYPE_CODE)
+            if dt_type:
+                dt['type'] = dt_type
+        a_line = []
+        if 'addressLine1' in a_address:
+            a_line.append(a_address['addressLine1'])
+        if 'addressLine2' in a_address:
+            a_line.append(a_address['addressLine2'])
+        if len(a_line) > 0:
+            dt['line'] = a_line
+
+        if 'city' in a_address:
+            dt['city'] = a_address['city']
+
+        if 'state' in a_address:
+            dt['state'] = a_address['state']
+
+        if 'zip' in a_address:
+            dt['postalCode'] = str(a_address['zip'])
+
+        if 'country' in a_address:
+            dt['country'] = a_address['country']
+
+        if 'period' in a_address:
+            dt['period'] = a_address['period']
+
+    if len(dt) > 1:
+        # return pretty_json(dt)
+        return dt
+
+    return
+
+
+def date_yymmdd(t_date=None):
+    """ Convert Text Date in YYMMDD to dt_instant """
+
+    if not t_date:
+        return
+
+    format = "%Y%m%d"
+    tz = get_current_timezone()
+
+    now_is = datetime.strptime(t_date, format)
+    my_now = tz.localize(now_is)
+
+    d_date = dt_instant(my_now)
+
+    return d_date
+
+
+def name_drop_md(name):
+    """ Drop the MD from the end of a name
+
+        This is needed so that name split doesn't give everyone
+        a lastname/surname of MD
+
+    """
+
+    if not name:
+        return
+
+    if name.upper().endswith(' MD'):
+        re_name = name[:-3]
+    else:
+        return name
+
+    return re_name
+
+
+def address_split(address, addressType="Official"):
+    """ Split a single line address to
+
+        addressType:
+        addressLine1
+        addressLine2
+        City
+        state
+        zip
+
+        input sample1 = "1 BATES BLVD SUITE 100 ORINDA CA 945633309"
+        input sample2 = "PO BOX 619092 ROSEVILLE CA 95661-9092"
+
+    """
+
+    if not address:
+        return
+    zip = zipcode_from_text(address)
+
+    # split address on spaces.
+    a = address.split(" ")
+    # print("\nAddress is now:%s" % a)
+    # work from back to front
+    if zip:
+        state = a[-2]
+        city = a[-3]
+        addressLine1 = ' '.join(a[:-3])
+    else:
+        state = a[-1]
+        city = a[-2]
+        addressLine1 = ' '.join(a[:-2])
+
+    addr = {"addressType": addressType,
+            "addressLine1": addressLine1,
+            "city": city,
+            "state": state,
+            "zip": zip}
+
+    # print("\nAddress dict is:%s" % addr)
+    return addr
+
+
+def zipcode_from_text(address):
+    """ Get zip code from end of text string """
+
+    postal_code = re.search('(\d{5})([- ])?(\d{4})?$', address)
+    if postal_code is not None:
+        # print("\nPostalCode:%s" % postal_code.group(0))
+        return postal_code.group(0)
+
+    return

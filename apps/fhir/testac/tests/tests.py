@@ -1,3 +1,5 @@
+import json
+
 # from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.test import TestCase, RequestFactory
@@ -6,11 +8,15 @@ from django.test import TestCase, RequestFactory
 # import apps.fhir.testac.views
 
 from apps.fhir.bluebutton.models import Crosswalk
+# from apps.fhir.bluebutton.utils import pretty_json
 from apps.fhir.testac.views.base import bb_upload, check_crosswalk
 from .test_harness import FakeMessages, MessagingRequest
 # Create your tests here.
 
-from apps.fhir.testac.utils.sample_data_bb import SAMPLE_BB_TEXT
+from ..utils.sample_data_bb import SAMPLE_BB_TEXT
+from ..utils.sample_json_bb import SAMPLE_BB_JSON
+# from ..utils.sample_json_bb_claim import SAMPLE_BB_CLAIM_PART_A
+from ..views.base import bb_to_eob
 
 
 class PostBlueButtonFileTest(TestCase):
@@ -162,3 +168,20 @@ class CheckCrossWalkForRequestUserTest(TestCase):
 
         # self.assertContains(result,
         #                     'Home Page')
+
+
+class TestBBClaimsToEOB(TestCase):
+    """ Test conversion of BB_Json to FHIR Patient and EOB """
+
+    def test_bb_2_patient_eob(self):
+        """ Test writing Patient and EOBs """
+
+        patient = "Patient/123456789"
+        bb_claims = json.loads(SAMPLE_BB_JSON)
+
+        result = bb_to_eob(patient, bb_claims)
+        # print("\n:EOB Write Result:%s"  % pretty_json(result))
+        expected = 5
+
+        self.assertEqual(len(result['resourceId']), expected)
+        self.assertEqual(len(result['resource']), expected)
