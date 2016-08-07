@@ -19,6 +19,9 @@ Activate User
 - Post to back-end FHIR server
 
 """
+import json
+import requests
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
@@ -29,10 +32,18 @@ from django.utils.translation import ugettext_lazy as _
 
 
 from apps.cmsblue.cms_parser import (cms_text_read,
-                                   parse_lines)
-from ...bluebutton.utils import pretty_json
+                                     parse_lines)
+from ...bluebutton.utils import pretty_json, FhirServerUrl
 from ..forms import input_packet
 from ...bluebutton.models import Crosswalk
+
+from ...build_fhir.utils.fhir_resource_version import FHIR_CONTENT_TYPE_JSON
+from ...build_fhir.views.base import build_patient
+from ..utils.utils import (get_posted_resource_id,
+                           update_crosswalk,
+                           get_bb_claims)
+
+from ...build_fhir.views.rt_explanationofbenefit import build_eob
 
 
 @login_required
@@ -62,13 +73,12 @@ def bb_upload(request, *args, **kwargs):
             content = form.cleaned_data['bb_text']
 
             # Now send to Blue Button parser
-            bb_dict = cms_text_read(content)
-            json_stuff = parse_lines(bb_dict)
+            json_stuff = bb_to_xwalk(request, content)
 
             if "json" in output_fmt:
                 # print("We got some BlueButton Text")
                 return HttpResponse(pretty_json(json_stuff),
-                                    content_type="application/json")
+                                    content_type=FHIR_CONTENT_TYPE_JSON)
             else:
                 messages.success(
                     request,
@@ -125,6 +135,7 @@ def check_crosswalk(request, *args, **kwargs):
 
     return bb_upload(request, *args, **kwargs)
 
+
 def fhir_build_patient(request, bb_json):
     """ Construct a FHIR Patient Resource from bb_json
 
@@ -155,10 +166,106 @@ def fhir_build_patient(request, bb_json):
 
 
     """
-
-    if "patient" in bb_json:
-        pass
-    else:
-        return None
-
     # Process the patient segment in bb_json
+    if "patient" in bb_json:
+        fhir_patient = pretty_json(build_patient(bb_json))
+    else:
+        return
+
+    # print("\nFHIR_Patient:%s" % fhir_patient)
+
+    fhir_server = FhirServerUrl() + "Patient"
+    # print("Target URL:%s" % fhir_server)
+
+    headers = {'content-type': FHIR_CONTENT_TYPE_JSON}
+    fhir_result = requests.post(fhir_server,
+                                data=fhir_patient,
+                                headers=headers)
+
+    # print("FHIR_Result:%s" % fhir_result.text)
+
+    return fhir_result
+
+
+def bb_to_xwalk(request, content):
+    """ process bbfile to xwalk """
+
+    # Now send to Blue Button parser
+    bb_dict = cms_text_read(content)
+    json_stuff = parse_lines(bb_dict)
+
+    # Use json_stuff to build Patient Record
+    outcome = fhir_build_patient(request,
+                                 json.loads(json_stuff))
+    id = get_posted_resource_id(outcome.json(), outcome.status_code)
+    if id:
+        # Now we can update the Crosswalk with patient_id
+        cx = update_crosswalk(request, id)
+        # We now have the Crosswalk updated
+
+    else:
+        messages.error(request, ("We had a problem allocating "
+                       "a Patient/ID %s" % id))
+        return json_stuff
+
+    # We have a patient/id
+    # Next we can write the EOBs
+    eob_stuff = bb_to_eob(id, json_stuff)
+    if 'resourceId' in eob_stuff:
+        eob_stuff['resourceId'].append(cx.fhir_id)
+    fhir_stuff = eob_stuff
+    # Get Patient Resource add to fhir-stuff
+
+    # Get EOBs for Patient - add to fhir_stuff
+
+    return fhir_stuff
+
+
+def bb_to_eob(patient_id, json_stuff):
+    """ Take BB claims and create EOBs for Patient/id """
+
+    eob_stuff = {}
+    eob_resource = []
+    eob_id = []
+    claims = get_bb_claims(json_stuff)
+
+    for claim in claims:
+        # Construct data for EOB
+        # eob_info =
+        # write EOB
+        rt = build_eob(patient_id, claim)
+        rt_id = None
+        if rt:
+            # Get EOB/Id
+            rt_id = write_resource(rt)
+            if rt_id:
+                eob_resource.append(rt)
+                eob_id.append(rt_id)
+        # Read EOB and add to eob_stuff
+
+    eob_stuff = {"resourceId": eob_id,
+                 "resource": eob_resource}
+    return eob_stuff
+
+
+def write_resource(rt):
+    """ Write a Resource and get the Id """
+
+    if "resourceType" not in rt:
+        # No resource to deal with
+        return
+
+    fhir_server = FhirServerUrl() + rt['resourceType']
+    # print("Target URL:%s" % fhir_server)
+
+    headers = {'content-type': FHIR_CONTENT_TYPE_JSON}
+
+    outcome = requests.post(fhir_server,
+                            data=pretty_json(rt),
+                            headers=headers)
+
+    # print("\nOutcome of write for [%s]:%s" % (rt['resourceType'],
+    #                                           outcome.json()))
+    id = get_posted_resource_id(outcome.json(), outcome.status_code)
+
+    return id

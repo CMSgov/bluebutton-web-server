@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4
-
+# flake8: noqa
 """
 hhs_oauth_server
 apps.fhir.testac.utils
