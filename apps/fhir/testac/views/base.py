@@ -170,7 +170,8 @@ def fhir_build_patient(request, bb_json):
     """
     # Process the patient segment in bb_json
     if "patient" in bb_json:
-        fhir_patient = pretty_json(build_patient(bb_json))
+        pt = build_patient(bb_json)
+        fhir_patient = pretty_json(pt)
     else:
         return
 
@@ -186,7 +187,7 @@ def fhir_build_patient(request, bb_json):
 
     # print("FHIR_Result:%s" % fhir_result.text)
 
-    return fhir_result
+    return fhir_result, pt
 
 
 def bb_to_xwalk(request, content):
@@ -197,8 +198,8 @@ def bb_to_xwalk(request, content):
     json_stuff = parse_lines(bb_dict)
 
     # Use json_stuff to build Patient Record
-    outcome = fhir_build_patient(request,
-                                 json.loads(json_stuff))
+    outcome, f_patient = fhir_build_patient(request,
+                                            json_stuff)
     id = get_posted_resource_id(outcome.json(), outcome.status_code)
     if id:
         # Now we can update the Crosswalk with patient_id
@@ -212,10 +213,18 @@ def bb_to_xwalk(request, content):
 
     # We have a patient/id
     # Next we can write the EOBs
+    fhir_stuff = {}
+    fhir_stuff['resource'] = [f_patient, ]
+    fhir_stuff['resourceId'] = [cx.fhir_id, ]
+
     eob_stuff = bb_to_eob(id, json_stuff)
+    if 'resource' in eob_stuff:
+        for r in eob_stuff['resource']:
+            fhir_stuff['resource'].append(r)
     if 'resourceId' in eob_stuff:
-        eob_stuff['resourceId'].append(cx.fhir_id)
-    fhir_stuff = eob_stuff
+        for i in eob_stuff['resourceId']:
+            fhir_stuff['resourceId'].append(i)
+
     # Get Patient Resource add to fhir-stuff
 
     # Get EOBs for Patient - add to fhir_stuff

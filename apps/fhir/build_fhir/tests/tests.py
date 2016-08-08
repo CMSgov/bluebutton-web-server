@@ -94,7 +94,8 @@ class TestBuildFHIRPatient(TestCase):
         request.user = self.user
         request._messages = FakeMessages()
 
-        result = fhir_build_patient(request, json.loads(SAMPLE_BB_JSON))
+        result, pt = fhir_build_patient(request,
+                                        json.loads(SAMPLE_BB_JSON))
 
         # print("\nResult:%s" % result)
         self.assertEqual(result.status_code, 201)
@@ -124,7 +125,8 @@ class TestWriteFHIRPatient(TestCase):
         request._messages = FakeMessages()
         # url = FhirServerUrl() + "Patient"
         # headers = {'content-type': 'application/json'}
-        result = fhir_build_patient(request, json.loads(SAMPLE_BB_JSON))
+        result, pt = fhir_build_patient(request,
+                                        json.loads(SAMPLE_BB_JSON))
 
         # print("\nPayload:%s" % result)
 
