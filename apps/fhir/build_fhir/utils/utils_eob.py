@@ -17,14 +17,20 @@ from .fhir_resource_version import V_DSTU21
 from .utils_fhir_dt import (dt_meta,
                             dt_identifier,
                             dt_human_name,
+                            dt_coding_list,
                             dt_coding,
+                            dt_adjudication_list,
+                            # dt_adjudication,
                             dt_period,
                             dt_address,
+                            dt_diagnosis,
+                            dt_simple_quantity,
                             date_yymmdd,
                             name_drop_md,
                             address_split)
 
 from ..views.rt_practitioner import build_practitioner_dstu2
+from ..views.rt_medicationorder import rt_medicationorder
 
 
 def build_eob_v21(patient,
@@ -297,6 +303,12 @@ def build_eob_v21(patient,
         elif bb_claim['claimType'] == "Part D":
             coding_dict = {"code": "D",
                            "display": "Part D"}
+            # write prescription info as Medication Order
+            prescription = rt_medicationorder(bb_claim, patient)
+            if prescription:
+                rt['prescriptionReference'] = prescription
+            # create item and write careteam
+
         else:
             coding_dict = {"code": bb_claim['claimType'],
                            "display": bb_claim['claimType']}
@@ -316,6 +328,11 @@ def build_eob_v21(patient,
         end_date = date_yymmdd(bb_claim['date']['serviceEndDate'])
         rt['billablePeriod'] = dt_period(start_date, end_date)
 
+    # Part D Service Date
+    if 'claimServiceDate' in bb_claim:
+        start_date = date_yymmdd(bb_claim['claimServiceDate'])
+        rt['billablePeriod'] = dt_period(start_date)
+
     if 'provider' in bb_claim:
         if "no information available" not in bb_claim['provider'].lower():
             doc_name = name_drop_md(bb_claim['provider'])
@@ -328,5 +345,200 @@ def build_eob_v21(patient,
     # Patient ID should be in form Patient/123456
     rt['patientIdentifier'] = patient
 
+    diag_list = []
+    if "diagnosisCode1" in bb_claim:
+        diag_list.append(bb_claim['diagnosisCode1'])
+    if "diagnosisCode2" in bb_claim:
+        diag_list.append(bb_claim['diagnosisCode2'])
+    if "diagnosisCode3" in bb_claim:
+        diag_list.append(bb_claim['diagnosisCode3'])
+    if len(diag_list) > 0:
+        rt['diagnosis'] = dt_diagnosis(diag_list)
+
+    if 'details' in bb_claim:
+        rt['item'] = build_eob_detail_v21(bb_claim['details'])
+
     # Return the resourceType
     return rt
+
+
+def build_eob_detail_v21(details):
+    """ Create item entries in EOB
+
+    "item" : [{ // Goods and Services
+    "sequence" : "<positiveInt>", // R!  Service instance
+    "careTeam" : [{ //
+      // provider[x]: . One of these 2:
+      "providerIdentifier" : { Identifier },
+      "providerReference" : { Reference(Practitioner|Organization) },
+      "responsible" : <boolean>, // Billing practitioner
+      "role" : { Coding }, // Role on the team
+      "qualification" : { Coding } // Type, classification or Specialization
+    }],
+    "diagnosisLinkId" : ["<positiveInt>"], // Applicable diagnoses
+    "revenue" : { Coding }, // Revenue or cost center code
+    "category" : { Coding }, // Type of service or product
+    "service" : { Coding }, // Billing Code
+    "modifier" : [{ Coding }], // Service/Product billing modifiers
+    "programCode" : [{ Coding }], // Program specific reason for item inclusion
+    // serviced[x]: Date or dates of Service. One of these 2:
+    "servicedDate" : "<date>",
+    "servicedPeriod" : { Period },
+    // location[x]: Place of service. One of these 3:
+    "locationCoding" : { Coding },
+    "locationAddress" : { Address },
+    "locationReference" : { Reference(Location) },
+    "quantity" : { Quantity(SimpleQuantity) }, // Count of Products or Services
+    "unitPrice" : { Money }, // Fee, charge or cost per point
+    "factor" : <decimal>, // Price scaling factor
+    "points" : <decimal>, // Difficulty scaling factor
+    "net" : { Money }, // Total item cost
+    "udi" : [{ Reference(Device) }], // Unique Device Identifier
+    "bodySite" : { Coding }, // Service Location
+    "subSite" : [{ Coding }], // Service Sub-location
+    "noteNumber" : ["<positiveInt>"], // List of note numbers which apply
+    "adjudication" : [{ // Adjudication details
+      "category" : { Coding }, // R!  Adjudication category such as co-pay, eligible, benefit, etc.
+      "reason" : { Coding }, // Adjudication reason
+      "amount" : { Money }, // Monetary amount
+      "value" : <decimal> // Non-monitory value
+    }],
+    "detail" : [{ // Additional items
+      "sequence" : "<positiveInt>", // R!  Service instance
+      "type" : { Coding }, // R!  Group or type of product or service
+      "revenue" : { Coding }, // Revenue or cost center code
+      "category" : { Coding }, // Type of service or product
+      "service" : { Coding }, // Billing Code
+      "modifier" : [{ Coding }], // Service/Product billing modifiers
+      "programCode" : [{ Coding }], // Program specific reason for item inclusion
+      "quantity" : { Quantity(SimpleQuantity) }, // Count of Products or Services
+      "unitPrice" : { Money }, // Fee, charge or cost per point
+      "factor" : <decimal>, // Price scaling factor
+      "points" : <decimal>, // Difficulty scaling factor
+      "net" : { Money }, // Total additional item cost
+      "udi" : [{ Reference(Device) }], // Unique Device Identifier
+      "noteNumber" : ["<positiveInt>"], // List of note numbers which apply
+      "adjudication" : [{ Content as for ExplanationOfBenefit.item.adjudication }], // Detail adjudication
+      "subDetail" : [{ // Additional items
+        "sequence" : "<positiveInt>", // R!  Service instance
+        "type" : { Coding }, // R!  Type of product or service
+        "revenue" : { Coding }, // Revenue or cost center code
+        "category" : { Coding }, // Type of service or product
+        "service" : { Coding }, // Billing Code
+        "modifier" : [{ Coding }], // Service/Product billing modifiers
+        "programCode" : [{ Coding }], // Program specific reason for item inclusion
+        "quantity" : { Quantity(SimpleQuantity) }, // Count of Products or Services
+        "unitPrice" : { Money }, // Fee, charge or cost per point
+        "factor" : <decimal>, // Price scaling factor
+        "points" : <decimal>, // Difficulty scaling factor
+        "net" : { Money }, // Net additional item cost
+        "udi" : [{ Reference(Device) }], // Unique Device Identifier
+        "noteNumber" : ["<positiveInt>"], // List of note numbers which apply
+        "adjudication" : [{ Content as for ExplanationOfBenefit.item.adjudication }] // SubDetail adjudication
+      }]
+    }],
+    "prosthesis" : { // Prosthetic details
+      "initial" : <boolean>, // Is this the initial service
+      "priorDate" : "<date>", // Initial service Date
+      "priorMaterial" : { Coding } // Prosthetic Material
+    }
+  }]
+
+    """
+
+    if not details:
+        return
+
+    items = []
+
+    ct = 1
+
+    for d in details:
+        item = OrderedDict()
+        item['sequence'] = str(ct)
+
+        # CareTeam / Provider
+        # TODO: Create CareTeam DataType
+
+        careteam = []
+        cm = {}
+        if 'renderingProviderNpi' in d:
+            cm['providerIdentifier'] = dt_identifier(d['renderingProviderNpi'])
+        if cm:
+            careteam.append(cm)
+            item['careTeam'] = careteam
+
+        if 'revenueCodeDescription' in d:
+            if d['revenueCodeDescription']:
+                rcd = {"display": d['revenueCodeDescription']}
+                item['revenue'] = dt_coding(rcd)
+
+        if 'procedureCodeDescription' in d:
+            if d['procedureCodeDescription']:
+                billing_list = [{"display": d['procedureCodeDescription']}]
+                item['service'] = dt_coding_list(billing_list)
+
+        # Modifier
+        mod_list = []
+        if 'modifier1Description' in d:
+            if d['modifier1Description']:
+                mod_list.append({"display": d['modifier1Description']})
+        if 'modifier2Description' in d:
+            if d['modifier2Description']:
+                mod_list.append({"display": d['modifier2Description']})
+        if 'modifier3Description' in d:
+            if d['modifier3Description']:
+                mod_list.append({"display": d['modifier3Description']})
+        if 'modifier4Description' in d:
+            if d['modifier4Description']:
+                mod_list.append({"display": d['modifier4Description']})
+        if len(mod_list) > 0:
+            item['modifier'] = dt_coding_list(mod_list)
+
+        # ServiceDates / ServicePeriod
+        service_dates = 0
+        if 'dateOfServiceFrom' in d:
+            if d['dateOfServiceFrom']:
+                service_dates += 1
+        if 'dateOfServiceTo' in d:
+            if d['dateOfServiceTo']:
+                service_dates += 10
+        if service_dates == 11:
+            # Both dates
+            service_start = date_yymmdd(d['dateOfServiceFrom'])
+            service_end = date_yymmdd(d['dateOfServiceTo'])
+            item['servicePeriod'] = dt_period(service_start, service_end)
+        elif service_dates == 1:
+            # From only
+            item['serviceDate'] = date_yymmdd(d['dateOfServiceFrom'])
+        elif service_dates == 10:
+            # To only
+            item['serviceDate'] = date_yymmdd(d['dateOfServiceTo'])
+
+        # Quantity
+        if 'quantityBilledUnits' in d:
+            if d['quantityBilledUnits']:
+                item['quantity'] = dt_simple_quantity(d['quantityBilledUnits'])
+
+        # Adjudication
+        adjn = {}
+        if 'submittedAmountCharges' in d:
+            if d['submittedAmountCharges']:
+                adjn['submittedAmountCharges'] = d['submittedAmountCharges']
+        if 'allowedAmount' in d:
+            if d['allowedAmount']:
+                adjn['allowedAmount'] = d['allowedAmount']
+        if 'nonCovered' in d:
+            if d['nonCovered']:
+                adjn['nonCovered'] = d['nonCovered']
+
+        item['adjudication'] = dt_adjudication_list(adjn)
+
+        items.append(item)
+        ct += 1
+    if items:
+
+        return items
+
+    else:
+        return

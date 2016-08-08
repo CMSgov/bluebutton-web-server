@@ -180,7 +180,7 @@ class TestBBClaimsToEOB(TestCase):
         bb_claims = json.loads(SAMPLE_BB_JSON)
 
         result = bb_to_eob(patient, bb_claims)
-        # print("\n:EOB Write Result:%s"  % pretty_json(result))
+        # print("\n:EOB Write Result:%s" % pretty_json(result))
         expected = 5
 
         self.assertEqual(len(result['resourceId']), expected)

@@ -238,6 +238,28 @@ def dt_human_name(id_name=None,
     return HumanName
 
 
+def dt_coding_list(coding_list=None):
+    """ Construct a List of Codes """
+
+    if not coding_list:
+        return
+
+    c_list = []
+    for c in coding_list:
+        coded = {}
+        if isinstance(c, dict):
+            coded = dt_coding(c)
+        elif isinstance(c, str):
+            coded = dt_coding({"display": c})
+        if coded:
+            c_list.append(coded)
+
+    if len(c_list) > 0:
+        return c_list
+
+    return
+
+
 def dt_coding(coding_dict=None):
     """ Construct a Coding Data Type
 
@@ -457,6 +479,161 @@ pt_json['patient]:
     return
 
 
+def dt_diagnosis(diag_list):
+    """ Convert a list of Diagnoses to a Diagnosis data type
+
+    "diagnosis" : [{ // Diagnosis
+    "sequence" : "<positiveInt>", // R!  Number to covey order of diagnosis
+    "diagnosis" : { Coding }, // R!  Patient's list of diagnosis
+    "type" : [{ Coding }], // Type of Diagnosis
+    "drg" : { Coding } // Diagnosis Related Group
+  }]
+    """
+    # Set a counter for the sequence number
+    ct = 1
+    dt = []
+    for d in diag_list:
+        l = {"sequence": str(ct),
+             "diagnosis": {"system": "http://hl7.org/fhir/sid/icd-9-cm/diagnosis",
+                           "code": d}}
+        dt.append(l)
+        ct += 1
+
+    return dt
+
+
+def dt_adjudication_list(charges):
+    """ Convert a dict of charges to an Adjudication datatype
+
+    "adjudication" : [{ // Adjudication details
+      "category" : { Coding }, // R!  Adjudication category such as co-pay,
+                                      eligible, benefit, etc.
+      "reason" : { Coding }, // Adjudication reason
+      "amount" : { Money }, // Monetary amount
+      "value" : <decimal> // Non-monitory value
+      }]
+
+    Claim Header Input:
+    "charges": {
+                "amountCharged": "$504.80",
+                "medicareApproved": "$504.80",
+                "providerPaid": "$126.31",
+                "youMayBeBilled": "$38.84"
+            }
+    Claim Line Input:
+    "submittedAmountCharges": "$175.50",
+    "allowedAmount": "$175.50",
+    "nonCovered": "$0.00",
+    """
+
+    if not charges:
+        return
+
+    dt = []
+    key = which_key_in_dict(["amountCharged",
+                             "submittedAmountCharges"],
+                            charges)
+    if key:
+        k_sys = "CMS Adjudications"
+        k_code = "Line Submitted Charge Amount"
+        k_amount = charges[key]
+        dt.append(dt_adjudication(k_code, k_amount, k_sys))
+
+    key = which_key_in_dict(["medicareApproved",
+                             "allowedAmount"],
+                            charges)
+
+    if key:
+        k_sys = "CMS Adjudications"
+        k_code = "Line Beneficiary Primary Payer Paid Amount"
+        k_amount = charges[key]
+        dt.append(dt_adjudication(k_code, k_amount, k_sys))
+
+    key = which_key_in_dict(["youMayBeBilled",
+                             "nonCovered"],
+                            charges)
+
+    if key:
+        k_sys = "CMS Adjudications"
+        k_code = "Line Beneficiary Non Covered"
+        k_amount = charges[key]
+        dt.append(dt_adjudication(k_code, k_amount, k_sys))
+
+    return dt
+
+
+def dt_adjudication(key, amount, key_sys=None, reason=None, val=None):
+    """ build an Adjudication data element """
+
+    dt = {}
+
+    if amount:
+        dt_amount = dt_money(amount)
+        if dt_amount:
+            dt['amount'] = dt_amount
+            if key:
+                dt['category'] = dt_coding({"code": key,
+                                            "system": key_sys})
+
+        if reason:
+            dt['reason'] = dt_coding({"display": reason})
+        if val:
+            dt['value'] = val
+
+        return dt
+
+    return
+
+
+def dt_simple_quantity(value, code=None, code_sys=None):
+    """ Create Quantity DataType
+
+{
+  // from Element: extension
+  "value" : <decimal>, // Numerical value (with implicit precision)
+  "comparator" : "<code>", // < | <= | >= | > - how to understand the value
+  "unit" : "<string>", // Unit representation
+  "system" : "<uri>", // C? System that defines coded unit form
+  "code" : "<code>" // Coded form of the unit
+}
+    """
+
+    if not value:
+        return
+    dt = {}
+    dt['value'] = value
+    if code:
+        dt['code'] = code
+    if code_sys:
+        dt['system'] = code_sys
+
+    if dt:
+        return dt
+
+    return
+
+
+def dt_money(amount, code="USD", code_sys="urn:std:iso:4217"):
+    """ Create a money type
+
+    """
+    if amount:
+        # Remove any leading $
+        amount = amount.strip('$')
+        try:
+            dec_amount = float(amount)
+        except ValueError:
+            dec_amount = 0.0
+
+        # print("\n:Money as Decimal:%s" % dec_amount)
+
+        dt = dt_simple_quantity(dec_amount, code, code_sys)
+
+        return dt
+
+    return
+
+
 def date_yymmdd(t_date=None):
     """ Convert Text Date in YYMMDD to dt_instant """
 
@@ -542,5 +719,27 @@ def zipcode_from_text(address):
     if postal_code is not None:
         # print("\nPostalCode:%s" % postal_code.group(0))
         return postal_code.group(0)
+
+    return
+
+
+def all_keys_in_dict(keys, d):
+    """ Check all keys in list are in the dict """
+
+    all_found = True
+    for k in keys:
+        if k not in d:
+            all_found = False
+            return all_found
+
+    return all_found
+
+
+def which_key_in_dict(keys, d):
+    """ Return the key name found in dict. Return first found """
+
+    for k in keys:
+        if k in d:
+            return k
 
     return
