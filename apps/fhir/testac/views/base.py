@@ -289,4 +289,3 @@ def write_resource(rt):
         return id
     else:
         return
-    
