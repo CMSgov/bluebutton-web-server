@@ -19,7 +19,7 @@ Activate User
 - Post to back-end FHIR server
 
 """
-import json
+# import json
 import logging
 import requests
 
