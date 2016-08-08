@@ -20,6 +20,7 @@ Activate User
 
 """
 import json
+import logging
 import requests
 
 from django.contrib import messages
@@ -44,6 +45,7 @@ from ..utils.utils import (get_posted_resource_id,
                            get_bb_claims)
 
 from ...build_fhir.views.rt_explanationofbenefit import build_eob
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @login_required
@@ -263,6 +265,12 @@ def write_resource(rt):
     outcome = requests.post(fhir_server,
                             data=pretty_json(rt),
                             headers=headers)
+
+    # logger.debug("status_code:%s"
+    #              "\nOutcome:%s"
+    #              "\nPost:%s" % (outcome.status_code,
+    #                             outcome.json(),
+    #                             pretty_json(rt)))
 
     # print("\nOutcome of write for [%s]:%s" % (rt['resourceType'],
     #                                           outcome.json()))

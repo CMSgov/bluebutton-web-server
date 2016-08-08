@@ -121,42 +121,53 @@ pt_json =
 
     # Format name as proper case.
     # print("\nPatient:%s" % pt_json['patient']['name'])
+    phone = {}
+    email = {}
+    if 'patient' in pt_json:
+        if 'name' in pt_json['patient']:
+            id_name = title_string(pt_json['patient']['name'])
 
-    id_name = title_string(pt_json['patient']['name'])
+            # Write Name
+            name = dt_human_name(id_name=id_name)
+            if name:
+                # rt["name"] = json.loads(name)
+                rt["name"] = name
 
-    # Write Name
-    name = dt_human_name(id_name=id_name)
-    if name:
-        # rt["name"] = json.loads(name)
-        rt["name"] = name
-    # Write Telecom - Phone
-    # phone = json.loads(dt_contactpoint(pt_json['patient']['phoneNumber'],
-    #                                    "phone"))
-    phone = dt_contactpoint(pt_json['patient']['phoneNumber'], "phone")
-    # Write Telecom - Email
-    # email = json.loads(dt_contactpoint(pt_json['patient']['email'],
-    #                                    "email"))
+        # Write Telecom - Phone
+        # phone = json.loads(dt_contactpoint(pt_json['patient']['phoneNumber'],
+        #                                    "phone"))
+        if 'phoneNumber' in pt_json['patient']:
+            phone = dt_contactpoint(pt_json['patient']['phoneNumber'],
+                                    "phone")
+            # Write Telecom - Email
+            # email = json.loads(dt_contactpoint(pt_json['patient']['email'],
+            #                                    "email"))
 
-    email = dt_contactpoint(pt_json['patient']['email'], "email")
+        if 'email' in pt_json['patient']:
+            email = dt_contactpoint(pt_json['patient']['email'],
+                                    "email")
 
-    telecom_list = []
-    if phone:
-        telecom_list.append(phone)
-    if email:
-        telecom_list.append(email)
-    if len(telecom_list) > 0:
-        rt['telecom'] = telecom_list
-    # Write birthDate
-    # "dateOfBirth": "19100101"
-    # convert to "yyyy-mm-dd" format
-    dob = str(pt_json['patient']['dateOfBirth'])
-    if dob:
-        rt['birthDate'] = dob_to_fhir(dob)
+        telecom_list = []
+        if phone:
+            telecom_list.append(phone)
+        if email:
+            telecom_list.append(email)
+        if len(telecom_list) > 0:
+            rt['telecom'] = telecom_list
+        # Write birthDate
+        # "dateOfBirth": "19100101"
+        # convert to "yyyy-mm-dd" format
+        if 'dateOfBirth' in pt_json['patient']:
+            dob = str(pt_json['patient']['dateOfBirth'])
+            if dob:
+                rt['birthDate'] = dob_to_fhir(dob)
 
-    # Write Address
-    if pt_json['patient']['address']:
-        # rt['address'] = json.loads(dt_address(pt_json['patient']['address']))
-        rt['address'] = dt_address(pt_json['patient']['address'])
+        # Write Address
+        if 'address' in pt_json['patient']:
+            if pt_json['patient']['address']:
+                # rt['address'] = json.loads(dt_address(pt_json['patient']
+                #                                               ['address']))
+                rt['address'] = dt_address(pt_json['patient']['address'])
 
     return rt
 

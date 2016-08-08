@@ -22,13 +22,17 @@ from django.utils.timezone import get_current_timezone
 
 from unittest import TestCase
 
+# from apps.fhir.bluebutton.utils import pretty_json
+
 from apps.fhir.build_fhir.utils.utils_fhir_dt import (dt_instant,
                                                       dt_meta,
                                                       dt_codeable_concept,
                                                       dt_coding,
                                                       dt_identifier,
                                                       dt_address,
-                                                      dt_period)
+                                                      dt_period,
+                                                      dt_diagnosis,
+                                                      dt_money)
 
 
 class FHIRDataTypeUtilsTest(TestCase):
@@ -229,3 +233,32 @@ class FHIRDataTypeUtilsTest(TestCase):
         self.assertEqual(result['value'], "123456")
         self.assertEqual(result['use'], "official")
         self.assertEqual(result['system'], "http://example.com/")
+
+    def test_diagnosis(self):
+        """ Test diagnosis dt """
+
+        diag_list = ["V123", "D12345", "E7654"]
+
+        result = dt_diagnosis(diag_list)
+
+        expected = {"sequence": "2",
+                    "diagnosis": {"system": "http://hl7.org/fhir/"
+                                            "sid/icd-9-cm/diagnosis",
+                                  "code": "D12345"}}
+
+        # print("\nDiagnoses:%s" % result)
+        self.assertEqual(result[1], expected)
+
+    def test_money(self):
+        """ Test Money dataType """
+
+        money = "$100.99"
+        result = dt_money(money)
+
+        expected = {"value": 100.99,
+                    "system": "urn:std:iso:4217",
+                    "code": "USD"}
+
+        # print("\nMoney:%s" % pretty_json(result))
+
+        self.assertEqual(result, expected)
