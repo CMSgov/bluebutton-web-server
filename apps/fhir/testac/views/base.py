@@ -283,6 +283,10 @@ def write_resource(rt):
 
     # print("\nOutcome of write for [%s]:%s" % (rt['resourceType'],
     #                                           outcome.json()))
-    id = get_posted_resource_id(outcome.json(), outcome.status_code)
+    if outcome:
+        id = get_posted_resource_id(outcome.json(), outcome.status_code)
 
-    return id
+        return id
+    else:
+        return
+    
