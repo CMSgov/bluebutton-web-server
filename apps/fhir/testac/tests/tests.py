@@ -23,7 +23,6 @@ from ..utils.sample_data_bb import SAMPLE_BB_TEXT
 from ..utils.sample_json_bb import SAMPLE_BB_JSON
 # from ..utils.sample_json_bb_claim import SAMPLE_BB_CLAIM_PART_A
 from ..views.base import bb_to_eob
-import apps.fhir.testac.views.base
 
 
 class PostBlueButtonFileTest(TestCase):
@@ -217,9 +216,9 @@ def custom_msg():
     custom_msg += str(randrange(0, 100))
     custom_msg += '/_history/1\" in 14ms'
     result = {"resourceType": "OperationOutcome",
-              "issue":        [{"severity":    "information",
-                                "diagnostics": custom_msg,
-                                "code":        "informational"}]}
+              "issue": [{"severity": "information",
+                         "diagnostics": custom_msg,
+                         "code": "informational"}]}
 
     return result
 
