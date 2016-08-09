@@ -14,7 +14,7 @@ File created by: Mark Scrimshire @ekivemark
 from django.conf.urls import url
 from django.contrib import admin
 
-from .views import check_crosswalk
+from .views.base import check_crosswalk
 
 admin.autodiscover()
 

@@ -47,3 +47,20 @@ class FakeMessages:
     @property
     def pop(self):
         return self.messages.pop()
+
+
+def mocked_requests_post(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "http://someurl.com/test.json":
+        return MockResponse({"key1": "value1"}, 201)
+    else:
+        return MockResponse({"key2": "value2"}, 201)
+
+    return MockResponse({}, 404)
