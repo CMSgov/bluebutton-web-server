@@ -774,14 +774,14 @@ def convert_bb(request):
 
     # Extract Claims from bb_json
     bb_claims = getbbclm(request, bb_result['mmg_bbjson'])
-    print("\nClaims:", bb_claims)
+    # print("\nClaims:", bb_claims)
 
     fhir_claims = eval_claims(request, bb_claims)
 
     # Take bb_claims and get a unique list of patients
     # Hopefully we only have ONE
     bb_patient_ids = unique_keys(fhir_claims, key="patient")
-    print("Patient IDs:", bb_patient_ids)
+    # print("Patient IDs:", bb_patient_ids)
 
     if len(bb_patient_ids) is 0:
         # We have a problem...
