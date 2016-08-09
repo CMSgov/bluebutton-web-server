@@ -1,50 +1,28 @@
+import json
+from random import randrange
+
 # from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
-from django.contrib.messages.storage.fallback import FallbackStorage
-from django.http import HttpRequest
 from django.test import TestCase, RequestFactory
-# from unittest.mock import MagicMock, patch
+try:
+    # python 3 - Mock is now a standard module in unittest
+    from unittest.mock import patch
+except ImportError:
+    # python 2 - Mock needs to be pip installed
+    from mock import patch   # NOQA
 
 # import apps.fhir.testac.views
 
-
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.testac.views import bb_upload, check_crosswalk
+from apps.fhir.bluebutton.utils import pretty_json
+from apps.fhir.testac.views.base import bb_upload, check_crosswalk
+from .test_harness import FakeMessages, MessagingRequest
 # Create your tests here.
 
-from apps.fhir.testac.utils.sample_data_bb import SAMPLE_BB_TEXT
-
-
-class FakeMessages:
-    """ mocks the Django message framework, makes it easier to get
-        the messages out """
-
-    messages = []
-
-    def add(self, level, message, extra_tags):
-        self.messages.append(str(message))
-
-    @property
-    def pop(self):
-        return self.messages.pop()
-
-
-class MessagingRequest(HttpRequest):
-    session = 'session'
-
-    def __init__(self):
-        super(MessagingRequest, self).__init__()
-        self._messages = FallbackStorage(self)
-
-    def add(self, level, message, extra_tags):
-        print("Adding Message: %s:%s[%s]" % (level, message, extra_tags))
-        return "%s:%s[%s]" % (level, message, extra_tags)
-
-    def get_messages(self):
-        return getattr(self._messages, '_queued_messages')
-
-    def get_message_strings(self):
-        return [str(m) for m in self.get_messages()]
+from ..utils.sample_data_bb import SAMPLE_BB_TEXT
+from ..utils.sample_json_bb import SAMPLE_BB_JSON
+# from ..utils.sample_json_bb_claim import SAMPLE_BB_CLAIM_PART_A
+from ..views.base import bb_to_eob
 
 
 class PostBlueButtonFileTest(TestCase):
@@ -196,3 +174,73 @@ class CheckCrossWalkForRequestUserTest(TestCase):
 
         # self.assertContains(result,
         #                     'Home Page')
+
+
+def mocked_requests_post(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.content = pretty_json(json_data)
+            self.json_data = json_data
+            self.status_code = status_code
+            self.ct = 1
+
+        def json(self):
+            return self.json_data
+
+    if "Patient" in args[0]:
+        custom_msg = 'Successfully created resource \"Patient/'
+        custom_msg += str(randrange(0, 100))
+        custom_msg += '/_history/1\" in 14ms'
+        result = {"resourceType": "OperationOutcome",
+                  "issue": [{"severity": "information",
+                             "diagnostics": custom_msg,
+                             "code": "informational"}]}
+
+        return MockResponse(result, 201)
+    elif "ExplanationOfBenefit" in args[0]:
+        custom_msg = 'Successfully created resource \"ExplanationOfBenefit/'
+        custom_msg += str(randrange(0, 100))
+        custom_msg += '/_history/1\" in 14ms'
+        result = {"resourceType": "OperationOutcome",
+                  "issue": [{"severity": "information",
+                             "diagnostics": custom_msg,
+                             "code": "informational"}]}
+
+        return MockResponse(result, 201)
+
+    return MockResponse({}, 404)
+
+
+def custom_msg():
+    custom_msg = 'Successfully created resource \"ExplanationOfBenefit/'
+    custom_msg += str(randrange(0, 100))
+    custom_msg += '/_history/1\" in 14ms'
+    result = {"resourceType": "OperationOutcome",
+              "issue": [{"severity": "information",
+                         "diagnostics": custom_msg,
+                         "code": "informational"}]}
+
+    return result
+
+
+class TestBBClaimsToEOB(TestCase):
+    """ Test conversion of BB_Json to FHIR Patient and EOB """
+
+    @patch('apps.fhir.testac.views.base.requests.post')
+    def test_bb_2_patient_eob(self, r_post):
+        """ Test writing Patient and EOBs
+    http://bluebuttonhapi-test.hhsdevcloud.us/baseDstu2/ExplanationOfBenefit
+        """
+
+        r_post.return_value.json.return_value = custom_msg()
+        r_post.return_value.status_code = 201
+        patient = "Patient/123456789"
+        bb_claims = json.loads(SAMPLE_BB_JSON)
+
+        result = bb_to_eob(patient, bb_claims)
+
+        # print("\n:EOB Write Result:%s" % pretty_json(result))
+        expected = 5
+
+        self.assertEqual(len(result['resourceId']), expected)
+        self.assertEqual(len(result['resource']), expected)
