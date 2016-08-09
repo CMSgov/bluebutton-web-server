@@ -286,7 +286,9 @@ def write_resource(rt):
     try:
         got_json = outcome.json()
         if outcome:
+            # print("We have an outcome:%s" % outcome.status_code)
             id = get_posted_resource_id(got_json, outcome.status_code)
+            # print("\nID:%s" % id)
             return id
     except ValueError:
         return

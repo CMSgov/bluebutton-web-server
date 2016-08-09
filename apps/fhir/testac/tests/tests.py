@@ -1,14 +1,20 @@
 import json
+from random import randrange
 
 # from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.test import TestCase, RequestFactory
-# from unittest.mock import MagicMock, patch
+try:
+    # python 3 - Mock is now a standard module in unittest
+    from unittest.mock import patch
+except ImportError:
+    # python 2 - Mock needs to be pip installed
+    from mock import patch   # NOQA
 
 # import apps.fhir.testac.views
 
 from apps.fhir.bluebutton.models import Crosswalk
-# from apps.fhir.bluebutton.utils import pretty_json
+from apps.fhir.bluebutton.utils import pretty_json
 from apps.fhir.testac.views.base import bb_upload, check_crosswalk
 from .test_harness import FakeMessages, MessagingRequest
 # Create your tests here.
@@ -17,6 +23,7 @@ from ..utils.sample_data_bb import SAMPLE_BB_TEXT
 from ..utils.sample_json_bb import SAMPLE_BB_JSON
 # from ..utils.sample_json_bb_claim import SAMPLE_BB_CLAIM_PART_A
 from ..views.base import bb_to_eob
+import apps.fhir.testac.views.base
 
 
 class PostBlueButtonFileTest(TestCase):
@@ -170,16 +177,69 @@ class CheckCrossWalkForRequestUserTest(TestCase):
         #                     'Home Page')
 
 
+def mocked_requests_post(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.content = pretty_json(json_data)
+            self.json_data = json_data
+            self.status_code = status_code
+            self.ct = 1
+
+        def json(self):
+            return self.json_data
+
+    if "Patient" in args[0]:
+        custom_msg = 'Successfully created resource \"Patient/'
+        custom_msg += str(randrange(0, 100))
+        custom_msg += '/_history/1\" in 14ms'
+        result = {"resourceType": "OperationOutcome",
+                  "issue": [{"severity": "information",
+                             "diagnostics": custom_msg,
+                             "code": "informational"}]}
+
+        return MockResponse(result, 201)
+    elif "ExplanationOfBenefit" in args[0]:
+        custom_msg = 'Successfully created resource \"ExplanationOfBenefit/'
+        custom_msg += str(randrange(0, 100))
+        custom_msg += '/_history/1\" in 14ms'
+        result = {"resourceType": "OperationOutcome",
+                  "issue": [{"severity": "information",
+                             "diagnostics": custom_msg,
+                             "code": "informational"}]}
+
+        return MockResponse(result, 201)
+
+    return MockResponse({}, 404)
+
+
+def custom_msg():
+    custom_msg = 'Successfully created resource \"ExplanationOfBenefit/'
+    custom_msg += str(randrange(0, 100))
+    custom_msg += '/_history/1\" in 14ms'
+    result = {"resourceType": "OperationOutcome",
+              "issue":        [{"severity":    "information",
+                                "diagnostics": custom_msg,
+                                "code":        "informational"}]}
+
+    return result
+
+
 class TestBBClaimsToEOB(TestCase):
     """ Test conversion of BB_Json to FHIR Patient and EOB """
 
-    def test_bb_2_patient_eob(self):
-        """ Test writing Patient and EOBs """
+    @patch('apps.fhir.testac.views.base.requests.post')
+    def test_bb_2_patient_eob(self, r_post):
+        """ Test writing Patient and EOBs
+    http://bluebuttonhapi-test.hhsdevcloud.us/baseDstu2/ExplanationOfBenefit
+        """
 
+        r_post.return_value.json.return_value = custom_msg()
+        r_post.return_value.status_code = 201
         patient = "Patient/123456789"
         bb_claims = json.loads(SAMPLE_BB_JSON)
 
         result = bb_to_eob(patient, bb_claims)
+
         # print("\n:EOB Write Result:%s" % pretty_json(result))
         expected = 5
 
