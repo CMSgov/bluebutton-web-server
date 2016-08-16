@@ -10,8 +10,10 @@ from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
-
-from .emails import send_password_reset_url_via_email, send_activation_key_via_email
+import boto3
+from .emails import (send_password_reset_url_via_email,
+                     send_activation_key_via_email,
+                     mfa_via_email)
 
 
 USER_CHOICES = (
@@ -45,6 +47,11 @@ QUESTION_3_CHOICES = (
     ('2', "What was your maternal grandmother's maiden name?"),
     ('3', "What was your paternal grandmother's maiden name?"),
 )
+MFA_CHOICES = (
+    ('', 'None'),
+    ('EMAIL', "Email"),
+    ('SMS', "Text Message (SMS)"),
+)
 
 
 @python_2_unicode_compatible
@@ -76,6 +83,20 @@ class UserProfile(models.Model):
         help_text=_(
             'Check this to allow the account to register applications.'),
     )
+
+    mfa_login_mode = models.CharField(
+        blank=True,
+        default="",
+        max_length=5,
+        choices=MFA_CHOICES,
+    )
+
+    mobile_phone_number = models.CharField(
+        max_length=12,
+        blank=True,
+        help_text=_('US numbers only.'),
+    )
+
     password_reset_question_1 = models.CharField(default='1',
                                                  choices=QUESTION_1_CHOICES,
                                                  max_length=1)
@@ -107,6 +128,68 @@ class UserProfile(models.Model):
             self.access_key_secret = random_secret()
         self.access_key_reset = False
         super(UserProfile, self).save(**kwargs)
+
+
+@python_2_unicode_compatible
+class MFACode(models.Model):
+    user = models.ForeignKey(User)
+    uid = models.CharField(blank=True,
+                           default=uuid.uuid4,
+                           max_length=36, editable=False)
+    tries_counter = models.IntegerField(default=0, editable=False)
+    code = models.CharField(blank=True, max_length=4, editable=False)
+    mode = models.CharField(max_length=5, default="",
+                            choices=MFA_CHOICES)
+    valid = models.BooleanField(default=True)
+    expires = models.DateTimeField(blank=True)
+    added = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        name = 'To %s via %s' % (self.user,
+                                 self.mode)
+        return name
+
+    def endpoint(self):
+        e = ""
+        up = UserProfile.objects.get(user=self.user)
+        if self.mode == "SMS" and up.mobile_phone_number:
+            e = up.mobile_phone_number
+        if self.mode == "EMAIL" and self.user.email:
+            e = self.user.email
+        return e
+
+    def save(self, **kwargs):
+        if not self.id:
+            now = pytz.utc.localize(datetime.utcnow())
+            expires = now + timedelta(days=1)
+            self.expires = expires
+            self.code = str(random.randint(1000, 9999))
+            up = UserProfile.objects.get(user=self.user)
+
+            if self.mode == "SMS" and up.mobile_phone_number:
+                # Send SMS to up.mobile_phone_number
+                sns = boto3.client('sns', region_name='eu-west-1')
+                number = "+1%s" % (up.mobile_phone_number)
+                sns.publish(
+                    PhoneNumber=number,
+                    Message="Your code is : %s" % (self.code),
+                    MessageAttributes={
+                        'AWS.SNS.SMS.SenderID': {
+                            'DataType': 'String',
+                            'StringValue': 'MySenderID'
+                        }
+                    }
+                )
+            elif self.mode == "SMS" and not up.mobile_phone_number:
+                print("Cannot send SMS. No phone number on file.")
+            elif self.mode == "EMAIL" and self.user.email:
+                # "Send SMS to self.user.email
+                mfa_via_email(self.user, self.code)
+            elif self.mode == "EMAIL" and not self.user.email:
+                print("Cannot send email. No email_on_file.")
+            else:
+                print("No MFA code sent")
+        super(MFACode, self).save(**kwargs)
 
 
 @python_2_unicode_compatible
