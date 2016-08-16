@@ -165,10 +165,14 @@ class MFACode(models.Model):
             self.expires = expires
             self.code = str(random.randint(1000, 9999))
             up = UserProfile.objects.get(user=self.user)
-
-            if self.mode == "SMS" and up.mobile_phone_number:
+            if self.mode == "SMS" and \
+               up.mobile_phone_number and \
+               settings.SEND_SMS:
                 # Send SMS to up.mobile_phone_number
-                sns = boto3.client('sns', region_name='us-east-1')
+                sns = boto3.client('sns',
+                                   aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                   region_name='us-east-1')
                 number = "+1%s" % (up.mobile_phone_number)
                 sns.publish(
                     PhoneNumber=number,
@@ -188,7 +192,8 @@ class MFACode(models.Model):
             elif self.mode == "EMAIL" and not self.user.email:
                 print("Cannot send email. No email_on_file.")
             else:
-                print("No MFA code sent")
+                """No MFA code sent"""
+                pass
         super(MFACode, self).save(**kwargs)
 
 
