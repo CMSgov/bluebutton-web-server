@@ -23,7 +23,7 @@ def password_reset_email_verify(request, reset_password_key=None):
             vprk.delete()
             logout(request)
             messages.success(request, _('Your password has been reset.'))
-            return HttpResponseRedirect(reverse('login'))
+            return HttpResponseRedirect(reverse('mfa_login'))
         else:
             return render(request,
                           'generic/bootstrapform.html',
@@ -124,7 +124,7 @@ def secret_question_challenge_1(request, username):
                 messages.info(request,
                               'Please check your email for a special link'
                               ' to reset your password.')
-                return HttpResponseRedirect(reverse('login'))
+                return HttpResponseRedirect(reverse('mfa_login'))
             else:
                 messages.error(request,
                                'Wrong answer. Please try again.')
@@ -151,7 +151,7 @@ def secret_question_challenge_2(request, username):
                 messages.info(request,
                               'Please check your email for a special link'
                               ' to reset your password.')
-                return HttpResponseRedirect(reverse('login'))
+                return HttpResponseRedirect(reverse('mfa_login'))
             else:
                 messages.error(request,
                                'Wrong answer. Please try again.')
@@ -176,7 +176,7 @@ def secret_question_challenge_3(request, username):
                 messages.info(request,
                               'Please check your email for a special link'
                               ' to reset your password.')
-                return HttpResponseRedirect(reverse('login'))
+                return HttpResponseRedirect(reverse('mfa_login'))
             else:
                 messages.error(request,
                                'Wrong answer. Please try again.')
