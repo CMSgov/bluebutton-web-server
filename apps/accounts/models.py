@@ -168,7 +168,7 @@ class MFACode(models.Model):
 
             if self.mode == "SMS" and up.mobile_phone_number:
                 # Send SMS to up.mobile_phone_number
-                sns = boto3.client('sns', region_name='eu-west-1')
+                sns = boto3.client('sns', region_name='us-east-1')
                 number = "+1%s" % (up.mobile_phone_number)
                 sns.publish(
                     PhoneNumber=number,
