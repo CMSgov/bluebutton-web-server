@@ -107,7 +107,7 @@ def request_user_invite(request):
 def mylogout(request):
     logout(request)
     messages.success(request, _('You have been logged out.'))
-    return HttpResponseRedirect(reverse('login'))
+    return HttpResponseRedirect(reverse('mfa_login'))
 
 
 def simple_login(request):
@@ -170,7 +170,7 @@ def create_developer(request):
             messages.success(request,
                              _("Your developer account was created. Please "
                                "check your email to verify your account."))
-            return HttpResponseRedirect(reverse('login'))
+            return HttpResponseRedirect(reverse('mfa_login'))
         else:
             # return the bound form with errors
             return render(request,
@@ -207,6 +207,8 @@ def account_settings(request):
             # update the user profile
             up.organization_name = data['organization_name']
             up.create_applications = data['create_applications']
+            up.mfa_login_mode = data['mfa_login_mode']
+            up.mobile_phone_number = data['mobile_phone_number']
             up.save()
             messages.success(request,
                              'Your account settings have been updated.')
@@ -225,6 +227,8 @@ def account_settings(request):
             'username': request.user.username,
             'email': request.user.email,
             'organization_name': up.organization_name,
+            'mfa_login_mode': up.mfa_login_mode,
+            'mobile_phone_number': up.mobile_phone_number,
             'create_applications': up.create_applications,
             'last_name': request.user.last_name,
             'first_name': request.user.first_name,
@@ -244,4 +248,4 @@ def activation_verify(request, activation_key):
         messages.error(request,
                        'This key does not exist or has already been used.')
 
-    return HttpResponseRedirect(reverse('login'))
+    return HttpResponseRedirect(reverse('mfa_login'))

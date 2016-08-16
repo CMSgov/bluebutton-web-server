@@ -9,7 +9,7 @@ from unittest import skipUnless
 
 class LoginTestCase(TestCase):
     """
-    Test login and logout
+    Test Non-MFA login and logout
     """
 
     def _create_user(self, username, password, **extra_fields):
@@ -25,8 +25,10 @@ class LoginTestCase(TestCase):
     def setUp(self):
         self._create_user('fred', 'bedrocks', first_name='Fred',
                           last_name='Flinstone', email='fred@example.com')
+        user = User.objects.get(username='fred')
+        UserProfile.objects.create(user=user)
         self.client = Client()
-        self.url = reverse('login')
+        self.url = reverse('mfa_login')
         Group.objects.create(name='BlueButton')
 
     def test_valid_login(self):
