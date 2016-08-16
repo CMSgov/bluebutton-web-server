@@ -60,6 +60,7 @@ class MFALoginTestCase(TestCase):
         """
         # Change the user p to use SMS
         self.up.mfa_login_mode = "SMS"
+        self.up.save()
         form_data = {'username': 'fred', 'password': 'bedrocks'}
         response = self.client.post(self.url, form_data, follow=True)
         last_url, status_code = response.redirect_chain[-1]
