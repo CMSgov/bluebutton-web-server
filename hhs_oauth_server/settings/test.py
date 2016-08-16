@@ -8,3 +8,5 @@ from .dev import *
 
 # disabling loggers
 del LOGGING['loggers']
+# SMS
+SEND_SMS = False
