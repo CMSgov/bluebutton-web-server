@@ -187,10 +187,19 @@ STATICFILES_DIRS = [
 
 # emails
 SEND_EMAIL = env('DJANGO_SEND_EMAIL', True)
-DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL')
-
+# If using AWS SES, the email below must first be verified.
+DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
+# The console.EmailBackend backend prints to the console.
+# Redefine this for SES or other email delivery mechanism
 EMAIL_BACKEND_DEFAULT = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
+
+# SMS
+SEND_SMS = env('DJANGO_SEND_SMS', False)
+
+# AWS Credentials need to support SES, SQS and SNS
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
 
 # logging
 LOGGING = {
