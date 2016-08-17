@@ -38,11 +38,13 @@ class BaseDIRTest(TestCase):
         base = settings.BASE_DIR
         expect = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         expected = os.path.join(base, '..')
+        if expect == expected:
+            pass
         # print("\nBASE_DIR:%s" % base)
         # print("\nabspath:%s" % expect)
         # print("\nparent:%s" % expected)
 
-        self.assertEqual(base.endswith(".."), True )
+        self.assertEqual(base.endswith(".."), True)
 
 
 class PostBlueButtonFileTest(TestCase):
