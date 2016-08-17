@@ -13,6 +13,9 @@ except ImportError:
 
 # import apps.fhir.testac.views
 
+import os
+
+from django.conf import settings
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import pretty_json
 from apps.fhir.testac.views.base import bb_upload, check_crosswalk
@@ -23,6 +26,25 @@ from ..utils.sample_data_bb import SAMPLE_BB_TEXT
 from ..utils.sample_json_bb import SAMPLE_BB_JSON
 # from ..utils.sample_json_bb_claim import SAMPLE_BB_CLAIM_PART_A
 from ..views.base import bb_to_eob
+
+
+class BaseDIRTest(TestCase):
+    """ Check the settings.BASEDIR """
+
+    def test_basedir(self):
+        """
+        Check the BASEDIR in settings
+        """
+        base = settings.BASE_DIR
+        expect = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        expected = os.path.join(base, '..')
+        if expect == expected:
+            pass
+        # print("\nBASE_DIR:%s" % base)
+        # print("\nabspath:%s" % expect)
+        # print("\nparent:%s" % expected)
+
+        self.assertEqual(base.endswith(".."), True)
 
 
 class PostBlueButtonFileTest(TestCase):
