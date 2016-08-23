@@ -122,7 +122,7 @@ if TEMPLATE_MODE:
     # should we add a test for __init__.py in apps.{TEMPLATE_MODE}?
     INSTALLED_APPS += [
         # Site Specific based on TEMPLATE_MODE -----------------
-        'apps.'+ TEMPLATE_MODE.lower(),
+        'apps.' + TEMPLATE_MODE.lower(),
     ]
 
 # CorsMiddleware needs to come before Django's

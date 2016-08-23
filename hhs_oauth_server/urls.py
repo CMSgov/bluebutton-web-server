@@ -40,4 +40,3 @@ urlpatterns += [
     url(r'^', fhir_search_home, name='home'),
     # url(r'^', include('apps.home.urls')),
 ]
-
