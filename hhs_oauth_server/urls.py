@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # from django.conf import settings
 from django.conf.urls import include, url
+from django.conf import settings
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import user_self
 from apps.fhir.bluebutton.views.home import fhir_search_home
@@ -29,8 +30,14 @@ urlpatterns += [
     url(r'^create_test_account/', include('apps.fhir.testac.urls')),
 ]
 
+if settings.TEMPLATE_MODE.upper() == "EXTAPI":
+    urlpatterns += [
+        url(r'^extapi/', include('apps.extapi.urls')),
+    ]
+
 urlpatterns += [
     # Catch all
     url(r'^', fhir_search_home, name='home'),
     # url(r'^', include('apps.home.urls')),
 ]
+

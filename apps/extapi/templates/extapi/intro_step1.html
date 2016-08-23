@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% block title %}{{ settings.APPLICATION_TITLE }}{% endblock %}
+{% block pretitle %}{% endblock %}
+{% block extra_head %}
+{% endblock %}
+
+{% block breadcrumbs %}
+       <div class="container">
+        <ul class="breadcrumb">
+            <li><a href="{% url "home" %}">Home</a></li>
+            <li class="active">Get Started</li>
+
+        </ul>
+    </div>
+{% endblock %}
+{% block pagename %}Welcome to Blue Button On FHIR{% endblock %}
+{% block Content %}
+<div class="container-fluid">
+
+
+    <div class="col-lg-12">
+        <div class="col-lg-1"2>
+            <p>
+                This is an open experimental platform that uses synthetic data to simulate
+                the interactions available to application developers and beneficiaries on
+                the production CMS Bluebutton api platform.
+            </p>
+            <p>
+                <b>Data stored on this system can be deleted, or reset, at any time.</b>
+            </p>
+            <p>Using this test service requires two types of account:
+                <li>Developer</li>
+                <li>Beneficiary</li>
+            </p>
+            <p>
+
+            </p>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
