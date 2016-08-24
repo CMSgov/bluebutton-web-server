@@ -11,6 +11,7 @@ from ..forms import *
 from ..models import *
 from ..emails import send_invite_request_notices
 from ..utils import validate_activation_key
+from django.conf import settings
 
 
 def request_developer_invite(request):
@@ -43,7 +44,10 @@ def request_developer_invite(request):
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
-            return HttpResponseRedirect(reverse('login'))
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
         else:
             return render(request, 'generic/bootstrapform.html', {
                 'name': name,
@@ -88,7 +92,10 @@ def request_user_invite(request):
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
-            return HttpResponseRedirect(reverse('login'))
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
         else:
             return render(request,
                           'generic/bootstrapform.html',
@@ -107,7 +114,10 @@ def request_user_invite(request):
 def mylogout(request):
     logout(request)
     messages.success(request, _('You have been logged out.'))
-    return HttpResponseRedirect(reverse('mfa_login'))
+    if settings.MFA:
+        return HttpResponseRedirect(reverse('mfa_login'))
+    else:
+        return HttpResponseRedirect(reverse('login'))
 
 
 def simple_login(request):
@@ -170,7 +180,10 @@ def create_developer(request):
             messages.success(request,
                              _("Your developer account was created. Please "
                                "check your email to verify your account."))
-            return HttpResponseRedirect(reverse('mfa_login'))
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
         else:
             # return the bound form with errors
             return render(request,
@@ -247,5 +260,7 @@ def activation_verify(request, activation_key):
     else:
         messages.error(request,
                        'This key does not exist or has already been used.')
-
-    return HttpResponseRedirect(reverse('mfa_login'))
+    if settings.MFA:
+        return HttpResponseRedirect(reverse('mfa_login'))
+    else:
+        return HttpResponseRedirect(reverse('login'))
