@@ -22,7 +22,8 @@
         <div class="container-fluid">
                 <div class="col-md-8">
 
-                {% if settings.TEMPLATE_MODE == "EXTAPI" %}
+                {% if "apps.extapi" in active_apps %}
+
                     {%  include "extapi/get_started.html" %}
                 {% endif %}
 
