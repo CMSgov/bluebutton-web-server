@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
+from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 
 from ..forms import *
 from ..models import *
@@ -52,7 +53,8 @@ def request_developer_invite(request):
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
-            if settings.TEMPLATE_MODE == "EXTAPI":
+            if IsAppInstalled('apps.extapi'):
+                # Installation Specific code
                 logger.debug("email to invite:%s" % invited_email)
                 issued_invite = issue_invite(invited_email, user_type="DEV")
                 if issued_invite:

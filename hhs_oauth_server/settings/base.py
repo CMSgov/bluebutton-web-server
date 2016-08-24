@@ -63,14 +63,6 @@ DEBUG = env('DJANGO_DEBUG', True)
 #           "         and set DJANGO_ALLOWED_HOSTS to "
 #           "valid host names")
 
-# TODO: maybe they should be commented out
-SETTINGS_MODE = os.environ.setdefault('DJANGO_SETTINGS_MODULE',
-                                      'hhs_oauth_server.settings.base')
-SETTINGS_MODE = SETTINGS_MODE.upper().split('.')
-SETTINGS_MODE = SETTINGS_MODE[-1]
-
-TEMPLATE_MODE = os.environ.setdefault('DJANGO_TEMPLATE_MODE', "EXTAPI")
-
 # apps and middlewares
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -110,20 +102,16 @@ INSTALLED_APPS = [
 
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
-
 ]
 
-# Add the app for site specific extensions
-# a module under apps folder should exist to match template_mode.
-# eg. TEMPLATE_MODE = BASE
-# Should have an app : apps.base
+# Add apps for Site/Installation specific implementation here:
+# The hhs_oauth_server.hhs_oauth_server_context
 
-if TEMPLATE_MODE:
-    # should we add a test for __init__.py in apps.{TEMPLATE_MODE}?
-    INSTALLED_APPS += [
-        # Site Specific based on TEMPLATE_MODE -----------------
-        'apps.' + TEMPLATE_MODE.lower(),
-    ]
+INSTALLATION_SPECIFIC_APPS = [
+    # Installation/Site Specific apps based on  -----------------
+    'apps.extapi',
+]
+INSTALLED_APPS += INSTALLATION_SPECIFIC_APPS
 
 # CorsMiddleware needs to come before Django's
 # CommonMiddleware if you are using Django's
@@ -147,6 +135,18 @@ CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', True)
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
+# TEMPLATES.context_processor:
+# 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
+# enables custom code to be branched in templates eg.
+#                 {% if "apps.extapi" in active_apps %}
+#
+#                     {%  include "extapi/get_started.html" %}
+#                 {% endif %}
+# Place all environment/installation specific code in a separate app
+# hhs_oauth_server.hhs_oauth_server_context.py also
+# includes IsAppInstalled to check for target_app in INSTALLED_APPS
+# This enables implementation specific code to be branched inside views and
+# functions.
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -159,6 +159,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django_settings_export.settings_export',
+                'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
         },
     },
@@ -411,8 +412,6 @@ SETTINGS_EXPORT = [
     'APPLICATION_TITLE',
     'THEME',
     'STATIC_URL',
-    'SETTINGS_MODE',
-    'TEMPLATE_MODE',
     'MFA'
 ]
 
