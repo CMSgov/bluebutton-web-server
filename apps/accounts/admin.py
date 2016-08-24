@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (ValidPasswordResetKey, Invitation, RequestInvite,
-                     UserProfile, ActivationKey, MFACode)
+                     UserProfile, ActivationKey, MFACode, InvitesAvailable)
 
 
 class RequestInviteAdmin(admin.ModelAdmin):
@@ -44,3 +44,11 @@ class MFACodeAdmin(admin.ModelAdmin):
     search_fields = ('mode', 'endpoint')
 
 admin.site.register(MFACode, MFACodeAdmin)
+
+
+class InvitesAvailableAdmin(admin.ModelAdmin):
+    list_display = ('user_type', 'issued', 'available', 'last_issued')
+
+    search_fields = ('user_type', 'last_issued')
+
+admin.site.register(InvitesAvailable, InvitesAvailableAdmin)
