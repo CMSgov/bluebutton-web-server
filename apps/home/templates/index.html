@@ -20,9 +20,13 @@
     <div class="hero-unit">
 
         <div class="container-fluid">
-                <p>
+                <div class="col-md-8">
 
-                </p>
+                {% if settings.TEMPLATE_MODE == "EXTAPI" %}
+                    {%  include "extapi/get_started.html" %}
+                {% endif %}
+
+                </div>
             <div class="col-md-8">
                 <h4>Why use the Advanced CMS Blue Button API?</h4>
                 <p>

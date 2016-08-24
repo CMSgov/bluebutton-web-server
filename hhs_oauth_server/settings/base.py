@@ -69,6 +69,8 @@ SETTINGS_MODE = os.environ.setdefault('DJANGO_SETTINGS_MODULE',
 SETTINGS_MODE = SETTINGS_MODE.upper().split('.')
 SETTINGS_MODE = SETTINGS_MODE[-1]
 
+TEMPLATE_MODE = os.environ.setdefault('DJANGO_TEMPLATE_MODE', "EXTAPI")
+
 # apps and middlewares
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -108,7 +110,20 @@ INSTALLED_APPS = [
 
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
+
 ]
+
+# Add the app for site specific extensions
+# a module under apps folder should exist to match template_mode.
+# eg. TEMPLATE_MODE = BASE
+# Should have an app : apps.base
+
+if TEMPLATE_MODE:
+    # should we add a test for __init__.py in apps.{TEMPLATE_MODE}?
+    INSTALLED_APPS += [
+        # Site Specific based on TEMPLATE_MODE -----------------
+        'apps.' + TEMPLATE_MODE.lower(),
+    ]
 
 # CorsMiddleware needs to come before Django's
 # CommonMiddleware if you are using Django's
@@ -152,7 +167,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
 # database configuration
-DATABASES_DEFAULT = 'sqlite:///{}/db.sqlite3'.format(BASE_DIR)
+
+if os.environ.get('DATABASES_CUSTOM'):
+    print("working with %s" % os.environ.get('DATABASES_CUSTOM'))
+    DATABASES_DEFAULT = os.environ.get('DATABASES_CUSTOM')
+    print("DATABASES_DEFAULT=%s" % DATABASES_DEFAULT)
+else:
+    DATABASES_DEFAULT = 'sqlite:///{}/db.sqlite3'.format(BASE_DIR)
+
 DATABASES = {
     'default': dj_database_url.config(default=DATABASES_DEFAULT),
 }
@@ -381,6 +403,7 @@ SETTINGS_EXPORT = [
     'THEME',
     'STATIC_URL',
     'SETTINGS_MODE',
+    'TEMPLATE_MODE',
 ]
 
 # Make sessions die out fast for more security ------------------
