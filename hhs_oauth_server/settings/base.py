@@ -219,6 +219,15 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
 # SMS
 SEND_SMS = env('DJANGO_SEND_SMS', False)
 
+# MFA - Active or Not or False
+# If using MFA enabled login this value is used to determin if
+# reverse with mfa_login or reverse with login is called
+#     if settings.MFA:
+#         return HttpResponseRedirect(reverse('mfa_login'))
+#     else:
+#         return HttpResponseRedirect(reverse('login'))
+MFA = True
+
 # AWS Credentials need to support SES, SQS and SNS
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
@@ -404,6 +413,7 @@ SETTINGS_EXPORT = [
     'STATIC_URL',
     'SETTINGS_MODE',
     'TEMPLATE_MODE',
+    'MFA'
 ]
 
 # Make sessions die out fast for more security ------------------
