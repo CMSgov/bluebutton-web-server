@@ -76,7 +76,7 @@ def generic_read(request,
 
     """
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
-    # logger.debug('interaction_type: %s' % interaction_type)
+    logger.debug('interaction_type: %s' % interaction_type)
 
     # Check if this interaction type and resource type combo is allowed.
     deny = check_access_interaction_and_resource_type(resource_type,
@@ -88,7 +88,7 @@ def generic_read(request,
     srtc = check_rt_controls(resource_type)
     # We get back a Supported ResourceType Control record or None
 
-    # logger.debug('srtc: %s' % srtc)
+    logger.debug('srtc: %s' % srtc)
 
     try:
         cx = Crosswalk.objects.get(user=request.user)
@@ -127,7 +127,7 @@ def generic_read(request,
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
     if srtc:
-        # logger.debug('SRTC:%s' % srtc)
+        logger.debug('SRTC:%s' % srtc)
         if srtc.default_url == '':
             fhir_url = FhirServerUrl() + resource_type + '/'
             if FhirServerUrl()[:-1] not in rewrite_url_list:
@@ -149,14 +149,21 @@ def generic_read(request,
             if FhirServerUrl()[:-1] not in rewrite_url_list:
                 rewrite_url_list.append(FhirServerUrl())
 
-    # logger.debug('FHIR URL:%s' % fhir_url)
-    # logger.debug('Rewrite List:%s' % rewrite_url_list)
+    logger.debug('FHIR URL:%s' % fhir_url)
+    logger.debug('Rewrite List:%s' % rewrite_url_list)
 
     if interaction_type == 'search':
         key = None
     else:
         key = masked_id(resource_type, cx, srtc, r_id, slash=False)
+        if fhir_url.endswith(resource_type + '/'):
+            # we need to make sure we don't specify resource_type twice in URL
+            if key.startswith(resource_type + '/'):
+                key = key.replace(resource_type + '/', '')
+
         fhir_url += key + '/'
+
+    logger.debug('FHIR URL with key:%s' % fhir_url)
 
     ###########################
 
@@ -168,9 +175,18 @@ def generic_read(request,
 
     if interaction_type == 'search':
         if cx is not None:
-            r_id = cx.fhir_id
+            logger.debug("cx.fhir_id=%s" % cx.fhir_id)
+            r_id = cx.fhir_id.split('/')[1]
+            logger.debug("Patient Id:%s" % r_id)
 
-    pass_params = build_params(pass_params, srtc, r_id)
+    if resource_type == "Patient":
+        key = r_id
+
+    pass_params = build_params(pass_params,
+                               srtc,
+                               # key,
+                               r_id,
+                               )
 
     if interaction_type == 'vread':
         pass_to = fhir_url + '_history' + '/' + vid
@@ -179,23 +195,26 @@ def generic_read(request,
     else:  # interaction_type == 'read':
         pass_to = fhir_url
 
-    # logger.debug('Here is the URL to send, %s now add '
-    #              'GET parameters %s' % (pass_to, pass_params))
+    logger.debug('Here is the URL to send, %s now add '
+                 'GET parameters %s' % (pass_to, pass_params))
 
     if pass_params is not '':
         pass_to += pass_params
 
-    # print("Making request:", pass_to)
+    logger.debug("Making request:%s" % pass_to)
     # Now make the call to the backend API
     r = request_call(request, pass_to, reverse_lazy('api:v1:home'))
 
     text_out = ''
-    # logger.debug('r:%s' % r.text)
+    if 'text' in r:
+        logger.debug('r:%s' % r.text)
+    else:
+        logger.debug("r not returning text:%s" % r)
 
     # logger.debug('Rewrite List:%s' % rewrite_url_list)
 
     host_path = get_host_url(request, resource_type)[:-1]
-    # logger.debug('host path:%s' % host_path)
+    logger.debug('host path:%s' % host_path)
 
     # get 'xml' 'json' or ''
     fmt = get_search_param_format(pass_params)
