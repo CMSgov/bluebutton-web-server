@@ -128,7 +128,7 @@ def add_params(srtc, key=None):
             if isinstance(params_list, list):
                 pass
             else:
-                params_list = [params_list,]
+                params_list = [params_list, ]
 
             logger.debug('Parameters to add:%s' % params_list)
             logger.debug('key to replace: %s' % key)
@@ -193,7 +193,7 @@ def concat_parms(front_part={}, back_part={}):
     concat_parm = '?' + urlencode(joined_parms)
     logger.debug("Concat_parm:%s" % concat_parm)
     if concat_parm.startswith('?='):
-        concat_parms = '?'+ concat_parm[3:]
+        concat_parms = '?' + concat_parm[3:]
     else:
         concat_parms = concat_parm
     # logger.debug('resulting string:%s' % concat_parms)
