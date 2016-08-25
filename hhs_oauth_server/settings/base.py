@@ -13,13 +13,12 @@ BASE_DIR = os.path.join(BASE_DIR, '..')
 
 # Set ADMINS and MANAGERS
 ADMINS = (
-    ('Mark Scrimshire', 'mark@ekivemark.com'),
+    os.environ.get('DJANGO_APP_ADMINS', "('Mark Scrimshire', 'mark@ekivemark.com')"),
 )
 MANAGERS = ADMINS
 
 # security
 # SECRET_KEY = env('DJANGO_SECRET_KEY')
-
 SECRET_KEY = env('DJANGO_SECRET_KEY',
                  'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR')
 if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
@@ -168,11 +167,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
 # database configuration
-
 if os.environ.get('DATABASES_CUSTOM'):
-    print("working with %s" % os.environ.get('DATABASES_CUSTOM'))
     DATABASES_DEFAULT = os.environ.get('DATABASES_CUSTOM')
-    print("DATABASES_DEFAULT=%s" % DATABASES_DEFAULT)
 else:
     DATABASES_DEFAULT = 'sqlite:///{}/db.sqlite3'.format(BASE_DIR)
 
@@ -197,6 +193,9 @@ USE_L10N = True
 USE_TZ = True
 
 # static files and media
+# Don't use BASE_DIR because for Production Environmnts
+# Static Files may be located on an entirely different server.
+# But the default can be BASE_DIR Setting
 ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', BASE_DIR)
 
 STATIC_URL = '/static/'
@@ -397,9 +396,9 @@ else:
 
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = 'CMS Blue Button API'
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
 
-HOSTNAME_URL = env('HOSTNAME_URL')
+HOSTNAME_URL = env('HOSTNAME_URL', '127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 
 # Set the default Encoding standard. typically 'utf-8'
