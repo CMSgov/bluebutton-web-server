@@ -11,16 +11,15 @@ admin.autodiscover()
 
 urlpatterns = [
     # URLs with no authentication
-
-    # Conformance statement
-    url(r'(metadata[^/]+)?', fhir_conformance, name='bb_fhir_conformance'),
     # Interactions on Resources
     # Vread GET --------------------------------
-    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)', vread,
+    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)',
+        vread,
         name='bb_fhir_vread'),
 
     # History GET ------------------------------
-    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history', history,
+    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history',
+        history,
         name='bb_fhir_history'),
 
     # ---------------------------------------
@@ -35,4 +34,10 @@ urlpatterns = [
     # Search  GET ------------------------------
     url(r'(?P<resource_type>[^/]+)?', search,
         name='bb_fhir_search'),
+
+    # Conformance statement
+    url(r'(metadata[^/]+)?',
+        fhir_conformance,
+        name='bb_fhir_conformance'),
+
 ]
