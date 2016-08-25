@@ -158,7 +158,10 @@ def fhir_conformance(request, *args, **kwargs):
 
     resource_type = 'Conformance'
     call_to = FhirServerUrl()
-    call_to += '/metadata'
+    if call_to.endswith('/'):
+        call_to += 'metadata'
+    else:
+        call_to += '/metadata'
 
     pass_params = urlencode(strip_oauth(request.GET))
 
