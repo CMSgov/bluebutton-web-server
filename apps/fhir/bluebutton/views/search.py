@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.fhir.core.utils import kickout_400
 from apps.fhir.bluebutton.views.read import generic_read
-
+from apps.fhir.bluebutton.views.home import fhir_conformance
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -39,7 +39,24 @@ def search(request, resource_type, *args, **kwargs):
     """
 
     interaction_type = 'search'
-    # logger.debug("Interaction:%s. Calling generic_read" % interaction_type)
+
+    logger.debug("Received:%s" % resource_type)
+
+    conformance = False
+    if resource_type is None:
+        conformance = True
+    elif resource_type.lower() == 'metadata':
+        conformance = True
+    elif resource_type.lower == 'conformance':
+        conformance = True
+
+    if conformance:
+        return fhir_conformance(request, resource_type, *args, **kwargs)
+
+    logger.debug("Interaction:%s. "
+                 "Calling generic_read for %s" % (interaction_type,
+                                                  resource_type))
+
     search = generic_read(request,
                           interaction_type,
                           resource_type,

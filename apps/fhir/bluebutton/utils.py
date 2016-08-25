@@ -36,7 +36,7 @@ def request_call(request, call_url, fail_redirect="/"):
         r = requests.get(call_url)
 
     except requests.ConnectionError:
-        # logger.debug('Problem connecting to FHIR Server')
+        logger.debug('Problem connecting to FHIR Server')
         messages.error(request, 'FHIR Server is unreachable.')
         return HttpResponseRedirect(fail_redirect)
 
@@ -125,8 +125,13 @@ def add_params(srtc, key=None):
     if srtc:
         if srtc.override_search:
             params_list = srtc.get_search_add()
+            if isinstance(params_list, list):
+                pass
+            else:
+                params_list = [params_list,]
 
-            # logger.debug('Parameters to add:%s' % params_list)
+            logger.debug('Parameters to add:%s' % params_list)
+            logger.debug('key to replace: %s' % key)
 
             add_params = []
             for item in params_list:
@@ -143,7 +148,7 @@ def add_params(srtc, key=None):
 
                 add_params.append(item)
 
-            # logger.debug('Resulting additional parameters:%s' % add_params)
+            logger.debug('Resulting additional parameters:%s' % add_params)
 
     return add_params
 
@@ -185,8 +190,12 @@ def concat_parms(front_part={}, back_part={}):
                 else:
                     joined_parms[item_split[0]] = ''
 
-    concat_parms = '?' + urlencode(joined_parms)
-
+    concat_parm = '?' + urlencode(joined_parms)
+    logger.debug("Concat_parm:%s" % concat_parm)
+    if concat_parm.startswith('?='):
+        concat_parms = '?'+ concat_parm[3:]
+    else:
+        concat_parms = concat_parm
     # logger.debug('resulting string:%s' % concat_parms)
 
     # We have to do something
@@ -227,7 +236,7 @@ def build_params(get, srtc, key):
     # leading ? and parameters joined by &
     all_param = concat_parms(url_param, add_param)
 
-    # logger.debug('Parameter (post block/add):%s' % all_param)
+    logger.debug('Parameter (post block/add):%s' % all_param)
 
     # now we check for _format being specified. Otherwise we get back html
     # by default we will process json unless _format is already set.
