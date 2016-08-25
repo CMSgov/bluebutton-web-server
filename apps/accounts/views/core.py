@@ -215,6 +215,36 @@ def create_developer(request):
                       {'name': name, 'form': SignupDeveloperForm()})
 
 
+def create_user(request):
+
+    name = "Create a Medicare Beneficiary Account"
+
+    if request.method == 'POST':
+        form = SignupUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request,
+                             _("Your account was created. Please "
+                               "check your email to verify your account."))
+
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
+        else:
+            # return the bound form with errors
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'name': name, 'form': form})
+    else:
+        # this is an HTTP  GET
+        messages.info(request,
+                      _("An invitation code is required to register."))
+        return render(request,
+                      'generic/bootstrapform.html',
+                      {'name': name, 'form': SignupUserForm()})
+
+
 @login_required
 def account_settings(request):
     name = _('Account Settings')

@@ -1,11 +1,16 @@
 from django.conf.urls import url
 
-from .views.core import (  # simple_login,
-    create_developer, account_settings,
-    reissue_api_keys, request_developer_invite,
-    mylogout, request_user_invite,
-    display_api_keys,
-    activation_verify)
+from .views.core import (create_developer,
+                         create_user,
+                         account_settings,
+                         reissue_api_keys,
+                         request_developer_invite,
+                         mylogout,
+                         request_user_invite,
+                         display_api_keys,
+                         activation_verify,
+                         # simple_login,
+                         )
 
 from .views.password_reset import (change_secret_questions,
                                    forgot_password,
@@ -19,13 +24,15 @@ from .views.mfa import mfa_code_confirm, mfa_login
 
 urlpatterns = [
     # login and Logout ------------------------------------
-
     url(r'^logout$', mylogout, name='mylogout'),
     # url(r'^login$', simple_login, name='login'),
     # create and update account info -----------------------
     url(r'^create-developer$',
         create_developer,
         name='accounts_create_developer'),
+    url(r'^create-user$',
+        create_user,
+        name='accounts_create_user'),
     url(r'^settings$', account_settings, name='account_settings'),
 
     # MFA URLs ------------------------------------------
