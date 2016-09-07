@@ -249,7 +249,7 @@ class Invitation(models.Model):
 
                 msg = EmailMessage(subj,
                                    msg,
-                                   settings.EMAIL_HOST_USER,
+                                   settings.DEFAULT_FROM_EMAIL,
                                    [self.email])
                 # Main content is now text/html
                 msg.content_subtype = 'html'
@@ -302,6 +302,25 @@ class ValidPasswordResetKey(models.Model):
         super(ValidPasswordResetKey, self).save(**kwargs)
 
 
+@python_2_unicode_compatible
+class InvitesAvailable(models.Model):
+    """ Stores BEN / DEV unused Invites """
+    user_type = models.CharField(default='DEV',
+                                 choices=USER_CHOICES,
+                                 max_length=5)
+    issued = models.IntegerField()
+    available = models.IntegerField()
+    last_issued = models.EmailField(blank=True)
+
+    def __str__(self):
+        u_t = self.user_type
+        for k, v in USER_CHOICES:
+            if self.user_type == k:
+                u_t = v
+        return '%s invites available for %s' % ((self.available - self.issued),
+                                                u_t)
+
+
 def random_key_id(y=20):
     return ''.join(random.choice('ABCDEFGHIJKLM'
                                  'NOPQRSTUVWXYZ') for x in range(y))
@@ -311,6 +330,12 @@ def random_secret(y=40):
     return ''.join(random.choice('abcdefghijklmnopqrstuvwxyz'
                                  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                                  '0123456789') for x in range(y))
+
+
+def random_code(y=10):
+    return ''.join(random.choice('ABCDEFGHIJKLM'
+                                 'NOPQRSTUVWXYZ'
+                                 '234679') for x in range(y))
 
 
 def create_activation_key(user):

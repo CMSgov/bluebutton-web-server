@@ -39,3 +39,6 @@ poetri
 # for screen scraping
 robobrowser
 lxml
+
+# mySQL
+mysqlclient

@@ -4,6 +4,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import user_self
 from apps.fhir.bluebutton.views.home import fhir_search_home
+from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 admin.autodiscover()
 
 urlpatterns = [
@@ -28,6 +29,11 @@ urlpatterns = [
 urlpatterns += [
     url(r'^create_test_account/', include('apps.fhir.testac.urls')),
 ]
+
+if IsAppInstalled("apps.extapi"):
+    urlpatterns += [
+        url(r'^extapi/', include('apps.extapi.urls')),
+    ]
 
 urlpatterns += [
     # Catch all

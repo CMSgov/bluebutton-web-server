@@ -54,8 +54,6 @@ if DEBUG and not sys.argv[1].lower() in SUPPRESS_PRINT:
     print("==========================================================")
     # APPLICATION_TITLE is set in .base
     print(APPLICATION_TITLE)
-    # SETTINGS_MODE should be set in base to DJANGO_SETTINGS_MODULE
-    print("Mode:", SETTINGS_MODE)
     print("running on", python_version())
     # We should add note to base.py to make sure
     # ADMINS and MANAGERS are set in the custom settings file
