@@ -13,13 +13,12 @@ BASE_DIR = os.path.join(BASE_DIR, '..')
 
 # Set ADMINS and MANAGERS
 ADMINS = (
-    ('Mark Scrimshire', 'mark@ekivemark.com'),
+    os.environ.get('DJANGO_APP_ADMINS', "('Mark Scrimshire', 'mark@ekivemark.com')"),
 )
 MANAGERS = ADMINS
 
 # security
 # SECRET_KEY = env('DJANGO_SECRET_KEY')
-
 SECRET_KEY = env('DJANGO_SECRET_KEY',
                  'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR')
 if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
@@ -63,12 +62,6 @@ DEBUG = env('DJANGO_DEBUG', True)
 #           "         and set DJANGO_ALLOWED_HOSTS to "
 #           "valid host names")
 
-# TODO: maybe they should be commented out
-SETTINGS_MODE = os.environ.setdefault('DJANGO_SETTINGS_MODULE',
-                                      'hhs_oauth_server.settings.base')
-SETTINGS_MODE = SETTINGS_MODE.upper().split('.')
-SETTINGS_MODE = SETTINGS_MODE[-1]
-
 # apps and middlewares
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -110,6 +103,15 @@ INSTALLED_APPS = [
     'oauth2_provider',
 ]
 
+# Add apps for Site/Installation specific implementation here:
+# The hhs_oauth_server.hhs_oauth_server_context
+
+INSTALLATION_SPECIFIC_APPS = [
+    # Installation/Site Specific apps based on  -----------------
+    'apps.extapi',
+]
+INSTALLED_APPS += INSTALLATION_SPECIFIC_APPS
+
 # CorsMiddleware needs to come before Django's
 # CommonMiddleware if you are using Django's
 # USE_ETAGS = True setting,
@@ -132,6 +134,18 @@ CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', True)
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
+# TEMPLATES.context_processor:
+# 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
+# enables custom code to be branched in templates eg.
+#                 {% if "apps.extapi" in active_apps %}
+#
+#                     {%  include "extapi/get_started.html" %}
+#                 {% endif %}
+# Place all environment/installation specific code in a separate app
+# hhs_oauth_server.hhs_oauth_server_context.py also
+# includes IsAppInstalled to check for target_app in INSTALLED_APPS
+# This enables implementation specific code to be branched inside views and
+# functions.
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -144,6 +158,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django_settings_export.settings_export',
+                'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
         },
     },
@@ -152,7 +167,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
 # database configuration
-DATABASES_DEFAULT = 'sqlite:///{}/db.sqlite3'.format(BASE_DIR)
+if os.environ.get('DATABASES_CUSTOM'):
+    DATABASES_DEFAULT = os.environ.get('DATABASES_CUSTOM')
+else:
+    DATABASES_DEFAULT = 'sqlite:///{}/db.sqlite3'.format(BASE_DIR)
+
 DATABASES = {
     'default': dj_database_url.config(default=DATABASES_DEFAULT),
 }
@@ -174,6 +193,9 @@ USE_L10N = True
 USE_TZ = True
 
 # static files and media
+# Don't use BASE_DIR because for Production Environmnts
+# Static Files may be located on an entirely different server.
+# But the default can be BASE_DIR Setting
 ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', BASE_DIR)
 
 STATIC_URL = '/static/'
@@ -196,6 +218,15 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
 
 # SMS
 SEND_SMS = env('DJANGO_SEND_SMS', False)
+
+# MFA - Active or Not or False
+# If using MFA enabled login this value is used to determin if
+# reverse with mfa_login or reverse with login is called
+#     if settings.MFA:
+#         return HttpResponseRedirect(reverse('mfa_login'))
+#     else:
+#         return HttpResponseRedirect(reverse('login'))
+MFA = True
 
 # AWS Credentials need to support SES, SQS and SNS
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
@@ -365,9 +396,9 @@ else:
 
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = 'CMS Blue Button API'
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
 
-HOSTNAME_URL = env('HOSTNAME_URL')
+HOSTNAME_URL = env('HOSTNAME_URL', '127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 
 # Set the default Encoding standard. typically 'utf-8'
@@ -380,7 +411,7 @@ SETTINGS_EXPORT = [
     'APPLICATION_TITLE',
     'THEME',
     'STATIC_URL',
-    'SETTINGS_MODE',
+    'MFA'
 ]
 
 # Make sessions die out fast for more security ------------------

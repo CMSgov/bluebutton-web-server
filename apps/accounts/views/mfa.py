@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import authenticate, login
@@ -17,7 +18,7 @@ def mfa_code_confirm(request, uid):
             code = form.cleaned_data['code']
 
             if code != mfac.code:
-                mfac. tries_counter = mfac.tries_counter + 1
+                mfac.tries_counter = mfac.tries_counter + 1
                 if mfac.tries_counter > 3:
                     messages.error(request,
                                    _('Maximum tries reached. The authentication attempt has been invalidated.'))
@@ -72,7 +73,7 @@ def mfa_login(request):
                     # Get User profile
                     up, g_o_c = UserProfile.objects.get_or_create(user=user)
                     # If MFA, send code and redirect
-                    if up.mfa_login_mode in ("SMS", "EMAIL"):
+                    if up.mfa_login_mode in ("SMS", "EMAIL") and settings.MFA:
                         # Create an MFA message
                         mfac = MFACode.objects.create(
                             user=up.user, mode=up.mfa_login_mode)

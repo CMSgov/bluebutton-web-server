@@ -9,7 +9,7 @@ It consists of an OAuth2 server and a FHIR server that serves specific resources
 This application will handle the OAuth 2 handshaking and configuration with CMS Medicare
 beneficiaries and Registered Developers.
 
-The prototype application will be served from an AWS instance (https://dev.bbonfhir.com).
+The prototype application will be served from an AWS instance (https://api.bbonfhir.com).
 The service will be known as the CMS Blue Button API.
 
 Quick Setup
@@ -161,3 +161,77 @@ transaction. For example:
   a filter using the user's Patient ID.
 
 NOTE: Capitalization is important when referencing FHIR resources.
+
+# Isolating Configuration Information
+
+This project creates a default setup that will run locally after a standard setup for a 
+Python application. ie:
+
+    - git clone
+    - pip install -r requirements/requirements.txt
+    - python manage.py makemigrations
+    - python manage.py migrate
+    - python manage.py createsuperuser
+    - python manage.py runserver
+    
+Configuration settings are defined in: 
+
+    - hhs_oauth_server.settings.base.
+
+Installation specific configurations can be defined in other settings files
+stored in hhs_oauth_server.settings.
+
+Sensitive values, such as the SECRET_KEY should NOT be stored in files that
+are stored in to the repository. This project has created a structure that
+enables sensitive values to be defined via Environment Variables. The convention
+we have used is as follows:
+
+    - A file "custom-envvars.py" is defined in the parent directory. ie. Where
+    the project is git cloned from.
+    - Custom-envvars.py is a python file that will set an environment variable
+    if it has not already been defined.
+    - If the custom-envvars file exists it is called from manage.py and  wsgi.py
+    - the base.py settings will then define various settings using an 
+    environment variable, or a default if a variable is not found.
+    
+An example of a custom-envvars.py file is shown below:
+
+    import os
+
+    def no_overwrite(env_var, env_val):
+        """ Do not overwrite ENV VAR if it exists """
+        check_for = os.environ.get(env_var)
+        if check_for:
+            # print("%s already set" % env_var)
+            return
+        else:
+            # Not set
+            os.environ.setdefault(env_var, env_val)
+            # print("%s set to %s" % (env_var, env_val))
+        return
+
+
+    no_overwrite('DJANGO_SECRET_KEY', 'YOUR_LOCAL_SECRET_KEY')
+    no_overwrite('DJANGO_SETTINGS_MODULE', 'hhs_oauth_server.settings.base')
+    no_overwrite('DJANGO_APP_ADMINS', "('Mark A Scrimshire', 'mark@healthca.mp')")
+    no_overwrite('HOSTNAME_URL', 'http://127.0.0.1:8000')
+    
+    # PostgreSQL
+    # postgres://USER:PASSWORD@HOST:PORT/NAME
+
+    # MySQL
+    # mysql://USER:PASSWORD@HOST:PORT/NAME
+
+    # SQLite
+    # sqlite:///PATH
+    DEFAULT_DB_SET="sqlite:///" 
+
+    DJANGO_BASE_DIR="Project_Directory"
+    DEFAULT_DB_SET += DJANGO_BASE_DIR
+    DEFAULT_DB_SET += "db.sqlite3"
+
+    # Using dj_database_url in settings
+    no_overwrite('DATABASES_CUSTOM', DEFAULT_DB_SET )
+
+    # Uncomment the next line if you want to prove that this file is being run as part of wsgi.py
+    # print("Variables set for server:%s" % os.environ.get('HOSTNAME_URL'))

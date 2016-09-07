@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
@@ -6,11 +7,15 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
+from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 
 from ..forms import *
 from ..models import *
 from ..emails import send_invite_request_notices
 from ..utils import validate_activation_key
+from django.conf import settings
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def request_developer_invite(request):
@@ -33,7 +38,12 @@ def request_developer_invite(request):
     if request.method == 'POST':
         form = RequestDeveloperInviteForm(request.POST)
         if form.is_valid():
+
             invite_request = form.save()
+            # Set the invite user_type to DEV
+            invite_request.user_type = "DEV"
+            invited_email = invite_request.email
+            invite_request.save()
 
             send_invite_request_notices(invite_request)
 
@@ -43,7 +53,17 @@ def request_developer_invite(request):
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
-            return HttpResponseRedirect(reverse('login'))
+            if IsAppInstalled('apps.extapi'):
+                # Installation Specific code
+                logger.debug("email to invite:%s" % invited_email)
+                issued_invite = issue_invite(invited_email, user_type="DEV")
+                if issued_invite:
+                    logger.debug("Invite Code:%s" % issued_invite)
+                    return HttpResponseRedirect(reverse('accounts_create_developer'))
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
         else:
             return render(request, 'generic/bootstrapform.html', {
                 'name': name,
@@ -88,7 +108,10 @@ def request_user_invite(request):
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
-            return HttpResponseRedirect(reverse('login'))
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
         else:
             return render(request,
                           'generic/bootstrapform.html',
@@ -107,7 +130,10 @@ def request_user_invite(request):
 def mylogout(request):
     logout(request)
     messages.success(request, _('You have been logged out.'))
-    return HttpResponseRedirect(reverse('mfa_login'))
+    if settings.MFA:
+        return HttpResponseRedirect(reverse('mfa_login'))
+    else:
+        return HttpResponseRedirect(reverse('login'))
 
 
 def simple_login(request):
@@ -170,7 +196,11 @@ def create_developer(request):
             messages.success(request,
                              _("Your developer account was created. Please "
                                "check your email to verify your account."))
-            return HttpResponseRedirect(reverse('mfa_login'))
+
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
         else:
             # return the bound form with errors
             return render(request,
@@ -183,6 +213,36 @@ def create_developer(request):
         return render(request,
                       'generic/bootstrapform.html',
                       {'name': name, 'form': SignupDeveloperForm()})
+
+
+def create_user(request):
+
+    name = "Create a Medicare Beneficiary Account"
+
+    if request.method == 'POST':
+        form = SignupUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request,
+                             _("Your account was created. Please "
+                               "check your email to verify your account."))
+
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
+        else:
+            # return the bound form with errors
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'name': name, 'form': form})
+    else:
+        # this is an HTTP  GET
+        messages.info(request,
+                      _("An invitation code is required to register."))
+        return render(request,
+                      'generic/bootstrapform.html',
+                      {'name': name, 'form': SignupUserForm()})
 
 
 @login_required
@@ -247,5 +307,48 @@ def activation_verify(request, activation_key):
     else:
         messages.error(request,
                        'This key does not exist or has already been used.')
+    if settings.MFA:
+        return HttpResponseRedirect(reverse('mfa_login'))
+    else:
+        return HttpResponseRedirect(reverse('login'))
 
-    return HttpResponseRedirect(reverse('mfa_login'))
+
+def issue_invite(email, user_type="BEN"):
+    """ Check if an invite is available """
+    if invite_available(email, user_type):
+        invitation = Invitation()
+        invitation.code = random_code()
+        invitation.valid = True
+        invitation.email = email
+        invitation.save()
+
+        logger.debug("Invitation %s created: %s" % (invitation.code,
+                                                    invitation.email))
+        return invitation
+    else:
+        return
+
+
+def invite_available(email, user_type="BEN"):
+    """" Update the issued counter """
+
+    try:
+        ia = InvitesAvailable.objects.get(user_type=user_type)
+    except InvitesAvailable.DoesNotExist:
+        return
+
+    if ia.available <= ia.issued:
+        logger.debug("No invites available for %s: %s/%s" % (ia.user_type,
+                                                             ia.issued,
+                                                             ia.available
+                                                             ))
+        return
+    else:
+        ia.issued += 1
+        ia.email = email
+        ia.save()
+
+        logger.debug("%s invitation:%s to %s" % (ia.user_type,
+                                                 ia.issued,
+                                                 ia.email))
+        return ia
