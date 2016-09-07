@@ -249,7 +249,7 @@ class Invitation(models.Model):
 
                 msg = EmailMessage(subj,
                                    msg,
-                                   settings.EMAIL_HOST_USER,
+                                   settings.DEFAULT_FROM_EMAIL,
                                    [self.email])
                 # Main content is now text/html
                 msg.content_subtype = 'html'
