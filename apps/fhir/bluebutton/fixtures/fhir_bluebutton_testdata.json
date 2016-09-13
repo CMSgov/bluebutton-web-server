@@ -89,8 +89,8 @@
              "override_url_id": true,
              "override_search": true,
              "search_block": "[\"patient\"]",
-             "search_add": "[\"patient=%PATIENT%\"]",
-             "group_allow": "[]",
+             "search_add": "patient=%PATIENT%",
+             "group_allow": "",
              "group_exclude": "[]",
              "default_url": ""
              }
@@ -101,7 +101,7 @@
              "override_url_id": true,
              "override_search": true,
              "search_block": "[\"patient\",\"_format\",\"resource_type\"]",
-             "search_add": "[]",
+             "search_add": "",
              "group_allow": "[]",
              "group_exclude": "[]",
              "default_url": ""
@@ -113,7 +113,7 @@
              "override_url_id": true,
              "override_search": false,
              "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
-             "search_add": "[]",
+             "search_add": "",
              "group_allow": "[]",
              "group_exclude": "[]",
              "default_url": ""
@@ -127,7 +127,7 @@
       "override_url_id": true,
       "override_search": true,
       "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
-      "search_add": "[\"patient=%PATIENT%\"]",
+      "search_add": "patient=%PATIENT%",
       "group_allow": "[]",
       "group_exclude": "[]",
       "default_url": ""
