@@ -25,7 +25,7 @@ from .views.mfa import mfa_code_confirm, mfa_login
 urlpatterns = [
     # login and Logout ------------------------------------
     url(r'^logout$', mylogout, name='mylogout'),
-    
+
     # Simple login is deprecated. mfa_login will work like
     # simple_login when settings.MFA = False or user has
     # MFA disabled.
