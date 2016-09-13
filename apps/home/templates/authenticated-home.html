@@ -35,7 +35,13 @@
 
 				</div>
 	    </div>
-	</div>
+    </div>
+    <div class="col-lg-12 well">
+        {% if "apps.extapi" in active_apps %}
+            {%  include "extapi/setup_user.html" %}
+        {% endif %}
+    </div>
+
 
 
 
