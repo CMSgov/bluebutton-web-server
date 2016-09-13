@@ -343,7 +343,10 @@ def build_eob_v21(patient,
             rt['providerReference'] = build_practitioner_dstu2(practitioner)
 
     # Patient ID should be in form Patient/123456
-    rt['patientIdentifier'] = patient
+    rt['patientReference'] = [{"resourceType": "Patient",
+                               "identifier": [{"use": "official",
+                                               "value": patient}]}]
+    # rt['patientIdentifier'] = patient
 
     diag_list = []
     if "diagnosisCode1" in bb_claim:

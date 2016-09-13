@@ -75,8 +75,8 @@ class ResourceTypeControl(models.Model):
         if self.search_add == '':
             search_list = []
         else:
-            search_list = self.search_add
-        return json.loads(search_list)
+            search_list = [self.search_add, ]
+        return search_list
 
     def replace_url_id(self):
         return self.override_url_id
