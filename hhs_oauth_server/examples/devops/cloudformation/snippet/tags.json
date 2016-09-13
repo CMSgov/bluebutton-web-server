@@ -1,0 +1,38 @@
+{ "Parameters": {
+     "InstanceName" : {
+        "Description" : "Easily recognizable name in the EC2 Instance List",
+        "Type" : "String",
+        "Default" : "Change_this_name_to_Something_unique"
+     },
+     "TagKeyStack": {
+         "Description": "Application Stack IDentifier",
+         "Type": "String",
+         "Default": "dev",
+         "AllowedValues": ["sbx", "prod", "dev", "test", "impl", "tools"]
+     },
+     "TagKeyLayer": {
+          "Description": "Application Layer Identifier",
+          "Type": "String",
+          "Default": "app",
+          "AllowedValues": ["web" , "data", "app", "nat", "jump", "tools"]
+
+     },
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+      "Type": "String",
+      "Default": "cms_bluebutton_fe_dev",
+      "AllowedValues": [
+        "cms_bluebutton_fe_dev"
+      ]
+    },
+
+  "Properties": {
+     "Tags": [
+       {"Key": "Name", "Value": "LatestLaunch"},
+       {"Key": "business", "Value": "oeda"},
+       {"Key": "application", "Value": "bluebutton"},
+       {"Key": "stack", "Value": {"Ref": "TagKeyStack" }},
+       {"Key": "layer", "Value": {"Ref": "TagKeyLayer"}}
+     ]
+  }
+}
