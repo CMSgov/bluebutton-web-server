@@ -1,5 +1,5 @@
 from django.conf.urls import url
-
+from axes.decorators import watch_login
 from .views.core import (create_developer,
                          create_user,
                          account_settings,
@@ -25,7 +25,11 @@ from .views.mfa import mfa_code_confirm, mfa_login
 urlpatterns = [
     # login and Logout ------------------------------------
     url(r'^logout$', mylogout, name='mylogout'),
-    # url(r'^login$', simple_login, name='login'),
+
+    # Simple login is deprecated. mfa_login will work like
+    # simple_login when settings.MFA = False or user has
+    # MFA disabled.
+    # url(r'^login$', watch_login(simple_login), name='login'),
     # create and update account info -----------------------
     url(r'^create-developer$',
         create_developer,
@@ -36,10 +40,11 @@ urlpatterns = [
     url(r'^settings$', account_settings, name='account_settings'),
 
     # MFA URLs ------------------------------------------
+    url(r'^mfa/login$', watch_login(mfa_login), name='mfa_login'),
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
         mfa_code_confirm, name='mfa_code_confirm'),
-    url(r'^mfa/login$', mfa_login, name='mfa_login'),
+
 
     # Request a Developer invite to signup ---------------------------
     url(r'^request-developer-invite$',
