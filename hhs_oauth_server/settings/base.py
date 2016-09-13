@@ -98,7 +98,7 @@ INSTALLED_APPS = [
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
-
+    'axes',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 ]
@@ -273,7 +273,6 @@ LOGGING = {
 }
 
 # third parties
-MIN_PASSWORD_LEN = env('DJANGO_MIN_PASSWORD_LEN', 8)
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
