@@ -47,19 +47,20 @@ def get_posted_resource_id(outcome, status_code):
     return
 
 
-def update_crosswalk(request, id):
+def update_crosswalk(user, server, id):
     """ Look up Crosswalk for user and add patient_id """
 
     try:
-        xwalk = Crosswalk.objects.get(user=request.user)
+        xwalk = Crosswalk.objects.get(user=user)
     except Crosswalk.DoesNotExist:
         xwalk = Crosswalk()
-        xwalk.user = request.user
+        xwalk.user = user
 
     if xwalk.fhir_id:
         return xwalk
     else:
         xwalk.fhir_id = id
+        xwalk.fhir_source = server
         xwalk.save()
 
     return xwalk

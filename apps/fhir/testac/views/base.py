@@ -36,7 +36,7 @@ from apps.cmsblue.cms_parser import (cms_text_read,
                                      parse_lines)
 from ...bluebutton.utils import pretty_json, FhirServerUrl
 from ..forms import input_packet
-from ...bluebutton.models import Crosswalk
+from ...bluebutton.models import Crosswalk, FhirServer
 
 from ...build_fhir.utils.fhir_resource_version import FHIR_CONTENT_TYPE_JSON
 from ...build_fhir.views.base import build_patient
@@ -202,8 +202,9 @@ def bb_to_xwalk(request, content):
                                             json_stuff)
     id = get_posted_resource_id(outcome.json(), outcome.status_code)
     if id:
+        server = FhirServer.objects.get(fhir_url=FhirServerUrl())
         # Now we can update the Crosswalk with patient_id
-        cx = update_crosswalk(request, id)
+        cx = update_crosswalk(request.user, server, id)
         # We now have the Crosswalk updated
 
     else:
@@ -275,11 +276,11 @@ def write_resource(rt):
                             data=pretty_json(rt),
                             headers=headers)
 
-    # logger.debug("status_code:%s"
-    #              "\nOutcome:%s"
-    #              "\nPost:%s" % (outcome.status_code,
-    #                             outcome.json(),
-    #                             pretty_json(rt)))
+    logger.debug("status_code:%s"
+                 "\nOutcome:%s"
+                 "\nPost:%s" % (outcome.status_code,
+                                outcome.json(),
+                                pretty_json(rt)))
 
     # print("\nOutcome of write for [%s]:%s" % (rt['resourceType'],
     #                                           outcome.json()))
