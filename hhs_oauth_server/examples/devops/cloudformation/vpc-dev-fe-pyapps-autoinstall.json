@@ -207,6 +207,11 @@
     }
   },
   "Parameters": {
+     "EnvSubnetId" : {
+      "Type" : "String",
+      "Default": "subnet-80ecfbaa",
+      "Description" : "Subnet EC2 Instance will be connected to"
+     },
      "InstanceName" : {
         "Description" : "Easily recognizable name in the EC2 Instance List",
         "Type" : "String",
@@ -357,6 +362,15 @@
       "Metadata": {
         "AWS::CloudFormation::Designer": {
           "id": "c3783791-0069-4324-8453-123708403b5f"
+        }
+      }
+    },
+    "InstanceNI" : {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "Description": "Network interface",
+        "SubnetId": {
+          "Ref": "EnvSubnetId"
         }
       }
     },

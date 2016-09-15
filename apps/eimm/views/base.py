@@ -28,8 +28,11 @@ from django.utils.safestring import mark_safe
 
 from apps.cmsblue.cms_parser import (cms_text_read,
                                      parse_lines)
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import pretty_json
+from apps.fhir.bluebutton.models import (Crosswalk,
+                                         )
+from apps.fhir.bluebutton.utils import (pretty_json,
+                                        bb_update_or_create,
+                                        check_for_bb_text)
 
 from apps.eimm.forms.medicare import Medicare_Connect
 from apps.eimm.utils import (split_name,
@@ -131,11 +134,19 @@ def connect_first(request):
                         mc_prof['bb_data'] = mmg_bb['mmg_bbdata']
 
                         # Save the Blue Button text to the Crosswalk
-                        xwalk.bb_text = mmg_bb['mmg_bbdata']
+                        # TODO: Save to BlueButtonText
+                        write_bb_text = bb_update_or_create(xwalk.user,
+                                                            mmg_bb['mmg_bbdata'])
+                        # xwalk.bb_text = mmg_bb['mmg_bbdata']
+
+                        if write_bb_text:
+                            bb_text = mmg_bb['mmg_bbdata']
+                        else:
+                            bb_text = '{}'
 
                         # Convert the text to JSON
                         result = bb_to_json(request,
-                                            mmg_bb['mmg_bbdata'])
+                                            bb_text)
 
                         # logger.debug("BB Conversion:", result)
                         if result['result'] == "OK":
@@ -764,11 +775,12 @@ def convert_bb(request):
         xwalk.save()
 
     # Do we have Blue Button text to work with?
-    if not xwalk.bb_text:
+    bb_text = check_for_bb_text(xwalk.user)
+    if not bb_text:
         return HttpResponseRedirect(reverse('home'))
 
     # Convert from text to JSON
-    bb_result = bb_to_json(request, xwalk.bb_text)
+    bb_result = bb_to_json(request, bb_text.bb_content)
     bb_json = bb_result['mmg_bbjson']
     # print("JSON:", bb_result['mmg_bbjson'])
 
