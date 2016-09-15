@@ -147,10 +147,10 @@ class Crosswalk(models.Model):
                                blank=True)
     hicn = models.CharField(max_length=11,
                             blank=True,
-                            verbose_name="Member Number(HICN)",)
+                            verbose_name="Member Number(HICN)")
     beneid = models.CharField(max_length=11,
                               blank=True,
-                              verbose_name="Beneficiary Id",)
+                              verbose_name="Beneficiary Id")
     # bb_text = models.TextField(verbose_name="Blue Button Text File",
     #                            blank=True,
     #                            null=True,
