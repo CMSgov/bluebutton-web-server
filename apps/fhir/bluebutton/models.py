@@ -132,19 +132,31 @@ class Crosswalk(models.Model):
     Linked to User Account
     Use fhir_url_id for id
     use fhir for resource.identifier
+    BlueButton Text is moved to file keyed on user.
+    HICN and BeneID added
     """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    fhir_source = models.ForeignKey(FhirServer, blank=True, null=True)
-    fhir_id = models.CharField(max_length=80, blank=True)
+    fhir_source = models.ForeignKey(FhirServer,
+                                    blank=True,
+                                    null=True)
+    fhir_id = models.CharField(max_length=80,
+                               blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    mb_user = models.CharField(max_length=250, blank=True)
-    bb_text = models.TextField(verbose_name="Blue Button Text File",
-                               blank=True,
-                               null=True,
-                               help_text=_("The MyMedicare.gov Blue "
-                                           "Button text file is "
-                                           "stored here."))
+    mb_user = models.CharField(max_length=250,
+                               blank=True)
+    hicn = models.CharField(max_length=11,
+                            blank=True,
+                            verbose_name="Member Number(HICN)",)
+    beneid = models.CharField(max_length=11,
+                              blank=True,
+                              verbose_name="Beneficiary Id",)
+    # bb_text = models.TextField(verbose_name="Blue Button Text File",
+    #                            blank=True,
+    #                            null=True,
+    #                            help_text=_("The MyMedicare.gov Blue "
+    #                                        "Button text file is "
+    #                                        "stored here."))
 
     # mb_user = MyMedicare.gov user login name
     # fhir_id = Identifier used in the patient Profile URL
@@ -184,3 +196,24 @@ class Crosswalk(models.Model):
             full_url += resource_type + '/'
 
         return full_url
+
+
+class BlueButtonText(models.Model):
+    """
+    User account and BlueButton Text File
+    Moved from CrossWalk for better efficiency.
+
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    bb_content = models.TextField(verbose_name="Blue Button Text File",
+                                  blank=True,
+                                  null=True,
+                                  help_text=_("The MyMedicare.gov Blue "
+                                              "Button text file is "
+                                              "stored here."))
+
+    def __str__(self):
+        return '%s %s:%s[more...%s chars]' % (self.user.first_name,
+                                              self.user.last_name,
+                                              self.bb_content[:30],
+                                              len(self.bb_content))
