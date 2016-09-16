@@ -6,8 +6,6 @@
              "override_search": true,
              "search_block": "[\"patient\"]",
              "search_add": "['patient=Patient/%PATIENT%']",
-             "group_allow": "[]",
-             "group_exclude": "[]",
              "default_url": ""}
  },
  {"model": "bluebutton.resourcetypecontrol",
@@ -17,8 +15,6 @@
              "override_search": true,
              "search_block": "[\"patient\"]",
              "search_add": "",
-             "group_allow": "[]",
-             "group_exclude": "[]",
              "default_url": ""}
  },
  {"model": "bluebutton.resourcetypecontrol",
@@ -28,8 +24,6 @@
              "override_search": false,
              "search_block": "[\"patient\"]",
              "search_add": "['patient=Patient/%PATIENT%']",
-             "group_allow": "[]",
-             "group_exclude": "[]",
              "default_url": ""}
  },
  {"model": "bluebutton.fhirserver",
