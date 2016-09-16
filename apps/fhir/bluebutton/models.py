@@ -33,16 +33,6 @@ class ResourceTypeControl(models.Model):
                                             "filter information that is "
                                             "returned. eg. "
                                             "<b>Patient=%PATIENT%</b>")
-    group_allow = models.TextField(max_length=100,
-                                   blank=True,
-                                   default="",
-                                   help_text="groups permitted to access "
-                                             "resource.")
-    group_exclude = models.TextField(max_length=100,
-                                     blank=True,
-                                     default="",
-                                     help_text="groups blocked from accessing "
-                                               "resource.")
     default_url = models.URLField(blank=True,
                                   verbose_name="Default FHIR URL with "
                                                "terminating /",
@@ -80,26 +70,6 @@ class ResourceTypeControl(models.Model):
 
     def replace_url_id(self):
         return self.override_url_id
-
-    def set_group_allow(self, x):
-        self.group_allow = json.dumps(x)
-
-    def get_group_allow(self):
-        if self.group_allow == '':
-            group_list = []
-        else:
-            group_list = self.group_allow
-        return json.loads(group_list)
-
-    def set_group_exclude(self, x):
-        self.group_exclude = json.dumps(x)
-
-    def get_group_exclude(self):
-        if self.group_exclude == '':
-            group_list = []
-        else:
-            group_list = self.group_exclude
-        return json.loads(group_list)
 
 
 @python_2_unicode_compatible
