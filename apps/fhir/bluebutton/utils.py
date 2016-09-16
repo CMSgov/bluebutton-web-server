@@ -430,8 +430,6 @@ def check_rt_controls(resource_type):
         # srtc['override_search'] = False
         # srtc['search_block'] = ['',]
         # srtc['search_add'] = ['',]
-        # srtc['group_allow'] = ''
-        # srtc['group_exclude'] = ''
         # srtc['default_url'] = ''
 
     return srtc

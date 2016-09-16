@@ -423,7 +423,7 @@
         "IamInstanceProfile" : { "Ref" : "EC2S3RoleProfile" },
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyName"},
-
+        "SecurityGroupIds": [{ "Ref": "Ec2SecurityGrp"}],
         "SubnetId": {"Ref": "EnvSubNetId"},
         "Tags": [
           {"Key": "Name", "Value": {"Ref": "InstanceName"}},
