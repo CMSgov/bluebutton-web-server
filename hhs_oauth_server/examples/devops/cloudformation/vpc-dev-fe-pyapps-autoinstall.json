@@ -207,6 +207,11 @@
     }
   },
   "Parameters": {
+     "EnvSubNetId" : {
+      "Type" : "String",
+      "Default": "subnet-80ecfbaa",
+      "Description" : "Subnet EC2 Instance will be connected to"
+     },
      "InstanceName" : {
         "Description" : "Easily recognizable name in the EC2 Instance List",
         "Type" : "String",
@@ -418,7 +423,8 @@
         "IamInstanceProfile" : { "Ref" : "EC2S3RoleProfile" },
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyName"},
-        "SecurityGroupIds": [{ "Ref": "Ec2SecurityGrp"}],
+
+        "SubnetId": {"Ref": "EnvSubNetId"},
         "Tags": [
           {"Key": "Name", "Value": {"Ref": "InstanceName"}},
           {"Key": "business", "Value": "oeda"},
