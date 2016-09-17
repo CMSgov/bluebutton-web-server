@@ -10,8 +10,8 @@ class SupportedResourceTypeAdmin(admin.ModelAdmin):
 
 
 class ResourceRouterAdmin(admin.ModelAdmin):
-    list_display = ('resource_name',)
-    search_fields = ('resource_name',)
+    list_display = ('supported_resource', 'fhir_path')
+    search_fields = ('supported_resource', )
 
 
 admin.site.register(SupportedResourceType, SupportedResourceTypeAdmin)
