@@ -2,7 +2,8 @@ from django.contrib import admin
 
 from apps.fhir.bluebutton.models import (ResourceTypeControl,
                                          Crosswalk,
-                                         FhirServer)
+                                         FhirServer,
+                                         BlueButtonText)
 
 
 class CrosswalkAdmin(admin.ModelAdmin):
@@ -20,6 +21,12 @@ class ResourceTypeControlAdmin(admin.ModelAdmin):
     search_fields = ('resource_name', 'search_block', 'search_add')
 
 
+class BlueButtonTextAdmin(admin.ModelAdmin):
+    list_display = ('user', 'bb_content')
+    search_fields = ('user', )
+
+
 admin.site.register(Crosswalk, CrosswalkAdmin)
 admin.site.register(FhirServer, FhirServerAdmin)
 admin.site.register(ResourceTypeControl, ResourceTypeControlAdmin)
+admin.site.register(BlueButtonText, BlueButtonTextAdmin)

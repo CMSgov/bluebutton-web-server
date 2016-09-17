@@ -6,8 +6,6 @@
               "override_search": true,
               "search_block": "Patient",
               "search_add": "Patient=%PATIENT%",
-              "group_allow": "",
-              "group_exclude": "",
               "default_url": ""}
   },
   {"model": "bluebutton.resourcetypecontrol",
@@ -17,8 +15,6 @@
               "override_search": true,
               "search_block": "Patient",
               "search_add": "Patient=%PATIENT%",
-              "group_allow": "",
-              "group_exclude": "",
               "default_url": ""}
   },
   {"model": "bluebutton.resourcetypecontrol",
@@ -28,8 +24,6 @@
               "override_search": false,
               "search_block": "",
               "search_add": "",
-              "group_allow": "",
-              "group_exclude": "",
               "default_url": ""}
   },
   {"model": "bluebutton.resourcetypecontrol",
@@ -39,8 +33,6 @@
               "override_search": false,
               "search_block": "",
               "search_add": "",
-              "group_allow": "",
-              "group_exclude": "",
               "default_url": ""}
   },
   {"model": "bluebutton.resourcetypecontrol",
@@ -50,8 +42,6 @@
               "override_search": true,
               "search_block": "Patient",
               "search_add": "Patient=%PATIENT%",
-              "group_allow": "",
-              "group_exclude": "",
               "default_url": ""}
   },
   {"model": "bluebutton.resourcetypecontrol",
@@ -61,8 +51,6 @@
               "override_search": true,
               "search_block": "Patient",
               "search_add": "Patient=%PATIENT%",
-              "group_allow": "",
-              "group_exclude": "",
               "default_url": ""}
   }
 ]
