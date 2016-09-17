@@ -18,7 +18,6 @@ class BlueButtonReadRequestTest(TestCase):
         # Setup the RequestFactory
         self.factory = RequestFactory()
         self.fixtures = [
-            'fhir_bluebutton_testdata_prep.json',
             'fhir_server_testdata_prep.json',
         ]
 

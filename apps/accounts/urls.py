@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from axes.decorators import watch_login
+# from axes.decorators import watch_login
 from .views.core import (create_developer,
                          create_user,
                          account_settings,
@@ -40,7 +40,9 @@ urlpatterns = [
     url(r'^settings$', account_settings, name='account_settings'),
 
     # MFA URLs ------------------------------------------
-    url(r'^mfa/login$', watch_login(mfa_login), name='mfa_login'),
+    # url(r'^mfa/login$', watch_login(mfa_login), name='mfa_login'),
+    url(r'^mfa/login$', mfa_login, name='mfa_login'),
+
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
         mfa_code_confirm, name='mfa_code_confirm'),
