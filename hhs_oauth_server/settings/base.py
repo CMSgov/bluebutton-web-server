@@ -1,7 +1,7 @@
 import os
 import dj_database_url
-import socket, datetime
-
+import socket
+import datetime
 from getenv import env
 
 from django.contrib.messages import constants as messages
@@ -432,7 +432,8 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
-# If integer interpretd, as hours 
+# If integer interpreted, as hours
+
 AXES_COOLOFF_TIME = datetime.timedelta(seconds=600)
 
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
