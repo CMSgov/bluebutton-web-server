@@ -186,4 +186,4 @@ class ResourceRouter(models.Model):
     # Add fhir_path unless the resource is defined via crosswalk
 
     def __str__(self):
-        return self.resource_name.resource_name
+        return self.supported_resource.resource_name
