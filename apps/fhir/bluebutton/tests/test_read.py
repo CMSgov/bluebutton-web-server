@@ -27,7 +27,6 @@ class ConformanceReadRequestTest(TestCase):
         # Setup the RequestFactory
         self.factory = RequestFactory()
         self.fixtures = [
-            'fhir_bluebutton_testdata_prep.json',
             'fhir_server_testdata_prep.json',
             'fhir_bluebutton_test_rt.json'
         ]
