@@ -16,11 +16,13 @@ from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 
-from apps.fhir.core.utils import (kickout_404, kickout_403)
-from apps.fhir.server.models import SupportedResourceType
-from apps.fhir.bluebutton.models import (ResourceTypeControl,
-                                         BlueButtonText)
-from apps.fhir.core.utils import (error_status, ERROR_CODE_LIST)
+from apps.fhir.core.utils import (kickout_403,
+                                  kickout_404)
+from apps.fhir.server.models import (SupportedResourceType,
+                                     ResourceRouter)
+from apps.fhir.bluebutton.models import (BlueButtonText)
+from apps.fhir.core.utils import (error_status,
+                                  ERROR_CODE_LIST)
 
 PRETTY_JSON_INDENT = 4
 
@@ -412,25 +414,9 @@ def check_rt_controls(resource_type):
     # Check for controls to apply to this resource_type
     # logger.debug('Resource_Type =%s' % resource_type)
     try:
-        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        srtc = SupportedResourceType.objects.get(resource_name=resource_type)
     except SupportedResourceType.DoesNotExist:
         srtc = None
-        return srtc
-
-    # logger.debug('Working with SupportedResourceType:%s' % rt)
-
-    try:
-        srtc = ResourceTypeControl.objects.get(resource_name=rt)
-    except ResourceTypeControl.DoesNotExist:
-        srtc = None
-        # srtc = {}
-        # srtc['empty'] = True
-        # srtc['resource_name'] = ''
-        # srtc['override_url_id'] = False
-        # srtc['override_search'] = False
-        # srtc['search_block'] = ['',]
-        # srtc['search_add'] = ['',]
-        # srtc['default_url'] = ''
 
     return srtc
 
@@ -623,3 +609,21 @@ def pretty_json(od, indent=PRETTY_JSON_INDENT):
     """ Print OrderedDict as pretty indented JSON """
 
     return json.dumps(od, indent=indent)
+
+
+def get_default_path(resource_name):
+    """ Get default Path for resource """
+
+    # print("\nGET_DEFAULT_URL:%s" % resource_name)
+    try:
+        rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
+        default_path = rr.fhir_path
+        # print("\nDEFAULT_URL=%s" % default_pathl)
+
+    except ResourceRouter.DoesNotExist:
+        # use the default FHIR Server URL
+        default_path = FhirServerUrl()
+        # print("\nNO MATCH for %s so setting to:%s" % (resource_name,
+        #                                               default_path))
+
+    return default_path
