@@ -433,7 +433,6 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
 # If integer interpreted, as hours
-
 AXES_COOLOFF_TIME = datetime.timedelta(seconds=600)
 
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
