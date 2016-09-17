@@ -431,7 +431,7 @@ SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 
 # Failed Login Attempt Module: AXES
-AXES_COOLOFF_TIME = 600
+AXES_COOLOFF_TIME = 60
 
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
 # We will need to add REWRITE_FROM and REWRITE_TO to models
