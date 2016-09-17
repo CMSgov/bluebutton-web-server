@@ -32,13 +32,10 @@ django-debug-toolbar
 # security and identity system
 oauthlib
 python-openid
--e git+https://github.com/evonove/django-oauth-toolkit.git@scopes-backend#egg=dot_scopes_backend
+django-oauth-toolkit-scopes-backend
 poetri
 django-axes
 
 # for screen scraping
 robobrowser
 lxml
-
-# mySQL
-mysqlclient
