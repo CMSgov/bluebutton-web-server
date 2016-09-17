@@ -166,6 +166,7 @@ class SupportedResourceType(models.Model):
         #     return False
 
 
+@python_2_unicode_compatible
 class ResourceRouter(models.Model):
     """
     If SupportedResourceType is not hosted on default server
