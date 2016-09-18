@@ -39,3 +39,6 @@ django-axes
 # for screen scraping
 robobrowser
 lxml
+
+# mock for Python 2
+mock
