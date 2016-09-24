@@ -1,5 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Full Deployment Script to choose environment, choose leader or follower status, build python server",
   "Metadata": {
     "AWS::CloudFormation::Designer": {
       "25af43bb-a438-4ab1-95f3-a75ccb55a8e0": {
@@ -209,13 +210,8 @@
   "Parameters": {
      "BuildImageId": {
         "Type": "String",
-         "Description": "Choose a PV Image",
+         "Description": "PV Image",
          "Default": "ami-d8c7aecf"
-     },
-     "EnvSubNetId" : {
-      "Type" : "String",
-      "Default": "subnet-80ecfbaa",
-      "Description" : "Subnet EC2 Instance will be connected to"
      },
      "InstanceName" : {
         "Description" : "Easily recognizable name in the EC2 Instance List",
@@ -235,7 +231,7 @@
           "AllowedValues": ["web" , "data", "app", "nat", "jump", "tools"]
      },
      "KeyName": {
-      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+      "Description": "EC2 KeyPair for SSH access to instance",
       "Type": "String",
       "Default": "cms_bluebutton_fe_dev",
       "AllowedValues": [
@@ -280,59 +276,58 @@
       "ConstraintDescription": "Must be a valid EC2 instance type"
     },
      "PyServerName" : {
-      "Description": "Python App Server Name",
+      "Description": "Linux Server (DNS) Name (Make Unique)",
       "Type": "String",
       "Default": "api.bbonfhir.com"
     },
      "PyVirtualenv": {
-      "Description": "Virtual Environment",
+      "Description": "Virtual Environment Base Path",
       "Type": "String",
       "Default": "/var/virtualenv/hhs_o_server"
      },
      "PyAppHome": {
-       "Description": "PyApp Home",
+       "Description": "Python App Home Base Path",
        "Type": "String",
        "Default": "/var/pyapps/hhs_o_server"
      },
+     "PyAppSettings": {
+       "Description": "Python App Settings file",
+       "Type": "String",
+       "Default": "settings.base",
+       "AllowedValues": [
+           "settings.base",
+           "settings.production",
+           "settings.dev",
+           "settings.awstest",
+           "settings.awsimp"
+       ]
+     },
      "PyRepoBranch" : {
-       "Description": "Which Branch from the Git Repository are we using [master, develop, other]?",
+       "Description": "Git Repository branch to deploy [master, develop, other]?",
        "Type": "String",
        "Default": "master"
      },
-     "pyappsPassword" : {
-       "Description": "Password for pyapps user account",
+     "pyappsUser" : {
+       "Description": "Pyapps superuser",
        "Type": "String",
-       "Default": "RESET_THIS"
+       "Default": "pyapps"
      },
-     "Az1RouteTables": {
-         "Type": "CommaDelimitedList",
-         "Default": "rtb-8060b5e6,rtb-8960b5ef,rtb-8a60b5ec,rtb-8c60b5ea,rtb-9760b5f1,rtb-9560b5f3"
+     "pyappsemail" : {
+       "Description": "Pyapps superuser email",
+       "Type": "String",
+       "Default": "admin@api.bbonfhir.com"
      },
-      "Az2RouteTables": {
-          "Type": "CommaDelimitedList",
-          "Default": "rtb-9660b5f0,rtb-8b60b5ed,rtb-8e60b5e8,rtb-9460b5f2,rtb-8860b5ee,rtb-8f60b5e9"
-        },
-      "EnterpriseAccessSg": {
+     "pyappsPassword" : {
+       "Description": "Pyapps superuser password",
+       "Type": "String",
+       "Default": "R3s3t_Th1s"
+     },
+     "HerdMember": {
+          "Description": "Role in Server Pool",
           "Type": "String",
-          "Default": "sg-d730eead"
-        },
-      "PrivateVpnSg": {
-          "Type": "String",
-          "Default": "sg-d030eeaa"
-        },
-      "TransitiveSubnetOne": {
-          "Type": "String",
-          "Default": "subnet-83ecfba9"
-        },
-      "TransitiveSubnetTwo": {
-          "Type": "String",
-          "Default": "subnet-218e4868"
-        },
-      "VPC": {
-          "Description": "Target VPC",
-          "Type": "AWS::EC2::VPC::Id",
-          "Default": "vpc-80bdc3e7"
-        }
+          "Default": "LEADER",
+          "AllowedValues": ["LEADER" , "FOLLOW"]
+     }
   },
   "Resources": {
     "EC2S3Role" : {
@@ -377,7 +372,7 @@
     "Ec2SecurityGrp": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "Enable SSH and access to Apache and Tomcat",
+        "GroupDescription": "Enable SSH and access to Apache, Tomcat and Postgres",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -389,6 +384,18 @@
             "IpProtocol": "tcp",
             "FromPort": "80",
             "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
             "CidrIp": "0.0.0.0/0"
           }
         ]
@@ -598,7 +605,7 @@
                 {"Ref": "PyVirtualenv"}, "/bin/pip3.5 install -r requirements/requirements.txt \n",
 
                 "echo 'Configure application' >>$BUILD_LOG \n",
-                "export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.base \n",
+                "export DJANGO_SETTINGS_MODULE=hhs_oauth_server.",{"Ref": "PyAppSettings"}," \n",
 
                 "echo 'Integrate App with Apache2' >>$BUILD_LOG \n",
                 "# Copy local config files from S3 \n",
@@ -631,9 +638,33 @@
                 "export DJANGO_APP_ROOT=",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
                 "export DJANGO_ASSETS_ROOT=$DJANGO_APP_ROOT \n",
                 "cd ",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py makemigrations \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py migrate \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py collectstatic --noinput \n",
+                "# Process as LEADER or FOLLOW \n",
+                "if [ \"",{"Ref": "HerdMember"},"z\"==\"LEADERz\" ] \n",
+                "then \n",
+                "    echo 'Creating LEADER in ", {"Ref": "TagKeyStack"}, " environment.' >>$BUILD_LOG \n",
+                "    # This is the first instance - initialize the database \n",
+                "    # Make Migrations \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py makemigrations \n",
+                "    # Migrate models \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py migrate \n",
+                "    # Create Superuser variables \n",
+                "    export DJANGO_SUPERUSER_USERNAME=",{"Ref": "pyappsUser"}," \n",
+                "    export DJANGO_SUPERUSER_PASSWORD=", {"Ref": "pyappsPassword"}," \n",
+                "    export DJANGO_SUPERUSER_EMAIL=",{"Ref": "pyappsemail"}," \n",
+                "    # create Superuser \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py create_super_user_from_envars \n",
+                "    # remove superuser variables \n",
+                "    export DJANGO_SUPERUSER_USERNAME='' \n",
+                "    export DJANGO_SUPERUSER_PASSWORD='' \n",
+                "    export DJANGO_SUPERUSER_EMAIL='' \n",
+                "    # collect static content \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py collectstatic --noinput \n",
+                "    # load base data \n",
+                "    ",{"Ref": "PyVirtualenv"}," /bin/python3 manage.py loaddata fixtures/fhir_supportedresourcetype.json \n",
+                "else  \n",
+                "       # Nothing to do  \n",
+                "    echo 'Creating FOLLOWer in ", {"Ref": "TagKeyStack"}, " environment.' >>$BUILD_LOG \n",
+                "fi  \n",
 
                 "echo 'Tidying up...' >>$BUILD_LOG \n",
                 "chmod -R 0755 /var/pyapps \n",
