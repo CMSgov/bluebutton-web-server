@@ -36,13 +36,14 @@ from apps.cmsblue.cms_parser import (cms_text_read,
                                      parse_lines)
 from ...bluebutton.utils import pretty_json, FhirServerUrl
 from ..forms import input_packet
-from ...bluebutton.models import Crosswalk, FhirServer
+from ...bluebutton.models import Crosswalk
 
 from ...build_fhir.utils.fhir_resource_version import FHIR_CONTENT_TYPE_JSON
 from ...build_fhir.views.base import build_patient
 from ..utils.utils import (get_posted_resource_id,
                            update_crosswalk,
-                           get_bb_claims)
+                           get_bb_claims,
+                           get_server)
 
 from ...build_fhir.views.rt_explanationofbenefit import build_eob
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -202,7 +203,8 @@ def bb_to_xwalk(request, content):
                                             json_stuff)
     id = get_posted_resource_id(outcome.json(), outcome.status_code)
     if id:
-        server = FhirServer.objects.get(fhir_url=FhirServerUrl())
+        # TODO: cope with get failing to match
+        server = get_server()
         # Now we can update the Crosswalk with patient_id
         cx = update_crosswalk(request.user, server, id)
         # We now have the Crosswalk updated
