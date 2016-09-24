@@ -6,8 +6,16 @@ from django.core.management.base import BaseCommand
 
 
 def create_superuser(username, password, email):
-    u = User(username=username, first_name="Super", last_name="User",
-             email=email)
+    # First we check if the superuser exists.
+    # If  it does we will reset password.
+    # If we don't test for a user first then the Save causes an Integrity Error
+    try:
+        u = User.objects.get(username=username)
+        print("%s account exists. Resetting password" % username)
+    except User.DoesNotExist:
+        # Otherwise we instantiate the super user
+        u = User(username=username, first_name="Super", last_name="User",
+                 email=email)
     u.set_password(password)
     u.is_superuser = True
     u.is_staff = True
@@ -28,7 +36,7 @@ class Command(BaseCommand):
             # create a super user
             r = create_superuser(super_username, super_password, super_email)
             if r:
-                print('Superuser created.')
+                print('Superuser created/updated.')
             else:
                 print('Something went wrong')
         else:

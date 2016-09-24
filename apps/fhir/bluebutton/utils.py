@@ -393,6 +393,9 @@ def FhirServerUrl(server=None, path=None, release=None):
 
 
 def check_access_interaction_and_resource_type(resource_type, intn_type):
+    """ usage is deny = check_access_interaction_and_resource_type()
+
+     """
     try:
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         # force comparison to lower case to make case insensitive check
