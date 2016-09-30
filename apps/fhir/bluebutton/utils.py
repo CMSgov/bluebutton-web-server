@@ -120,6 +120,7 @@ def add_params(srtc, key=None):
     # %PATIENT% = key
     # key = FHIR_ID for search parameter. eg. patient= Patient profile Id
     # modify this function to add more Replaceable Parameters
+    # Need to suppress addition of patient={id} in Patient resource read
 
     # Returns List
 
