@@ -278,11 +278,11 @@ def write_resource(rt):
                             data=pretty_json(rt),
                             headers=headers)
 
-    logger.debug("status_code:%s"
-                 "\nOutcome:%s"
-                 "\nPost:%s" % (outcome.status_code,
-                                outcome.json(),
-                                pretty_json(rt)))
+    # logger.debug("status_code:%s"
+    #              "\nOutcome:%s"
+    #              "\nPost:%s" % (outcome.status_code,
+    #                             outcome.json(),
+    #                             pretty_json(rt)))
 
     # print("\nOutcome of write for [%s]:%s" % (rt['resourceType'],
     #                                           outcome.json()))
