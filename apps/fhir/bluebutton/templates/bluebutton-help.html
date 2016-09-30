@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block Content %}
+
+    <div class="container" xmlns="http://www.w3.org/1999/html">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">{{name}} <small>{{subname}}</small></h1>
+            </div>
+        </div>
+	  
+	    <div class="row">
+            <div class="col-lg-12">
+                * Required Fields
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                {% if additional_info %}
+                <div class="alert alert-info">
+                    <button type="button" class="close" data-dismiss="alert">×</button>
+                    <h4>{%trans "Important" %}</h4>
+                    {{ additional_info |safe }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                {% include "include/messages.html" %}
+                {% if resources %}
+                    <h4>Resources Available</h4>
+                    <table class="table table-striped table-bordered table-condensed"
+                        <thead>
+                          <th>Resource</th>
+                            <th>Documentation</th>
+                            <th>Get</th>
+                            <th>Search</th>
+                            <th>Read</th>
+                            <th>Read Version</th>
+                            <th>History</th>
+                            <th>Put</th>
+                            <th>Create</th>
+                            <th>Update</th>
+                            <th>Delete</th>
+
+
+                        </thead>
+                        <tbody>
+                    {% for resource in resources %}
+                        <tr>
+                            <td>
+                                {% if resource.override_url_id %}
+                                    <i>{% url 'bb_fhir_search' %}{{ resource.resource_name }}/[predefined beneficiary_id]</i>
+                                {% else %}
+                                    <a href="{% url 'bb_fhir_search' resource.resource_name %}/">{{ resource.resource_name }}</a>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <i>{{ resource.resource_name }} API help</i>
+                            </td>
+                            <td>
+                                {% if resource.get %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if resource.search %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                 {% if resource.read %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                 {% if resource.vread %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                 {% if resource.history %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                 {% if resource.put %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                 {% if resource.create %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                 {% if resource.update %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                 {% if resource.delete %}
+                                    <i class="fa fa-check-square-o"></i>
+                                {% else %}
+                                    <i class="fa fa-square-o"></i>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+                <div class="btn-group">
+                    <a href="{% url 'home' %}" >
+                    <button type="button" class="btn btn-primary"> <i class="fa fa-home"></i>  Home  </button></a>
+
+                    <a href="{{ button_link }}">
+                    <button type="button" class="btn btn-primary"> <i class="fa fa-history"></i> {{ button }}  </button></a>
+                </div>
+	        </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+              <a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
+            </div>
+        </div>
+    </div><!-- /.container -->
+
+{% endblock %}
+
+
