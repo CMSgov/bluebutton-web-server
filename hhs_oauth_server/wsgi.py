@@ -5,7 +5,7 @@ from django.core.wsgi import get_wsgi_application
 
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASE_DIR = os.path.join(BASE_DIR, '..')
+
 DJANGO_CUSTOM_SETTINGS_DIR = os.path.join(BASE_DIR, '..')
 
 print("CUSTOM_SETTINGS_DIR:%s" % DJANGO_CUSTOM_SETTINGS_DIR)

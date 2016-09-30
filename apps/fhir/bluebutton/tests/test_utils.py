@@ -220,12 +220,23 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         # user = User.objects.create_user(username, password=password )
         # # created a default user
 
-        # Test
-        srtc = SupportedResourceType.objects.get(pk=1)
+        # Test Patient= in non-patient resource
+        srtc = SupportedResourceType.objects.get(pk=3)
+        print("SRTC: %s" % srtc.resource_name)
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
+        print("Response for %s: %s" % (srtc, response))
         self.assertEquals(response, ['patient=4995802'])
+
+        # Test Patient= in patient resource
+        srtc = SupportedResourceType.objects.get(pk=1)
+        print("SRTC: %s" % srtc.resource_name)
+
+        Crosswalk.objects.get(pk=1)
+        fhir_id = "4995802"
+        response = add_params(srtc, fhir_id)
+        self.assertEquals(response, [])
 
         # Test
         srtc = SupportedResourceType.objects.get(pk=2)
@@ -238,13 +249,13 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         srtc = SupportedResourceType.objects.get(pk=1)
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
-        self.assertEquals(response, ['patient='])
+        self.assertEquals(response, [])
 
         # Test
         srtc = SupportedResourceType.objects.get(pk=3)
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
-        self.assertEquals(response, [])
+        self.assertEquals(response, ['patient='])
 
         # Test
         srtc = None

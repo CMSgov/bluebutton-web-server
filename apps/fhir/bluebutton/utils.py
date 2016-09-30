@@ -44,6 +44,7 @@ def request_call(request, call_url, fail_redirect="/"):
         return HttpResponseRedirect(fail_redirect)
 
     if r.status_code in ERROR_CODE_LIST:
+        logger.debug("\nError Status Code:%s" % r.status_code)
         return error_status(r, r.status_code)
 
     return r
@@ -139,17 +140,20 @@ def add_params(srtc, key=None):
             add_params = []
             for item in params_list:
                 # Run through list and do variable replacement
-                if '%PATIENT%' in item:
-                    if key is None:
-                        key_str = ''
-                    else:
-                        key_str = str(key)
-                    item = item.replace('%PATIENT%', key_str)
+                if srtc.resource_name.lower() not in item:
+                    # only replace 'patient=%PATIENT%' if resource not Patient
                     if '%PATIENT%' in item:
-                        # Still there we need to remove
-                        item = item.replace('%PATIENT%', '')
+                        if key is None:
+                            key_str = ''
+                        else:
+                            # force key to string
+                            key_str = str(key)
+                        item = item.replace('%PATIENT%', key_str)
+                        if '%PATIENT%' in item:
+                            # Still there we need to remove
+                            item = item.replace('%PATIENT%', '')
 
-                add_params.append(item)
+                    add_params.append(item)
 
             logger.debug('Resulting additional parameters:%s' % add_params)
 
