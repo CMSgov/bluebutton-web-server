@@ -663,7 +663,7 @@
                 "    # collect static content \n",
                 "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py collectstatic --noinput \n",
                 "    # load base data \n",
-                "    ",{"Ref": "PyVirtualenv"}," /bin/python3 manage.py loaddata fixtures/fhir_supportedresourcetype.json \n",
+                "    ",{"Ref": "PyVirtualenv"},"/bin/python3 manage.py loaddata fixtures/fhir_supportedresourcetype.json \n",
                 "else  \n",
                 "       # Nothing to do  \n",
                 "    echo 'Creating FOLLOWer in ", {"Ref": "TagKeyStack"}, " environment.' >>$BUILD_LOG \n",
