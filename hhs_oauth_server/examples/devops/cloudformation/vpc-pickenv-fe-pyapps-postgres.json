@@ -297,6 +297,8 @@
        "AllowedValues": [
            "settings.base",
            "settings.production",
+           "settings.aws-dev",
+           "settings.aws-test",
            "settings.dev",
            "settings.awstest",
            "settings.awsimp"
@@ -607,6 +609,7 @@
                 "echo 'Configure application' >>$BUILD_LOG \n",
                 "export DJANGO_SETTINGS_MODULE=hhs_oauth_server.",{"Ref": "PyAppSettings"}," \n",
 
+                " # Remember to edit files in bb-config for DJANGO_SETTINGS_MODULE \n",
                 "echo 'Integrate App with Apache2' >>$BUILD_LOG \n",
                 "# Copy local config files from S3 \n",
                 "/usr/local/bin/aws s3 cp ",
@@ -643,9 +646,9 @@
                 "then \n",
                 "    echo 'Creating LEADER in ", {"Ref": "TagKeyStack"}, " environment.' >>$BUILD_LOG \n",
                 "    # This is the first instance - initialize the database \n",
-                "    # Make Migrations \n",
-                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py makemigrations \n",
-                "    # Migrate models \n",
+                # "    # Make Migrations \n",
+                #"    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py makemigrations \n",
+                # "    # Migrate models \n",
                 "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py migrate \n",
                 "    # Create Superuser variables \n",
                 "    export DJANGO_SUPERUSER_USERNAME=",{"Ref": "pyappsUser"}," \n",
