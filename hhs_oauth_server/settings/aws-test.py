@@ -50,15 +50,19 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY',
 AWS_STORAGE_BUCKET_NAME = 'content-test-bbonfhir-com'
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-STATIC_ROOT = os.path.join(ASSETS_ROOT, 'collectedstatic')
-MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
+STATICFILES_LOCATION = 'static'
+STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
+STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
+# STATIC_URL = '/static/'
+
+MEDIAFILES_LOCATION = 'media'
+DEAFULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
+MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+# MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
-STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 
 # emails
 SEND_EMAIL = env('DJANGO_SEND_EMAIL', True)
