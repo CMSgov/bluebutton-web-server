@@ -47,7 +47,7 @@ AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'AKIAI3WR7ID22DIHL33A')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY',
                             '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')
 
-AWS_STORAGE_BUCKET_NAME = 'content.dev.bbonfhir.com'
+AWS_STORAGE_BUCKET_NAME = 'content-dev-bbonfhir-com'
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 
 STATIC_URL = "https://%s/" % AWS_S3_CUSTOM_DOMAIN
