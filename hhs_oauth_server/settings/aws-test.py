@@ -42,6 +42,14 @@ TEST_SPECIFIC_APPS = [
 ]
 INSTALLED_APPS += TEST_SPECIFIC_APPS
 
+# AWS Credentials need to support SES, SQS and SNS
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'AKIAI3XFLXNL34DH5YRQ')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY',
+                            '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')
+
+AWS_STORAGE_BUCKET_NAME = 'content-test-bbonfhir-com'
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(ASSETS_ROOT, 'collectedstatic')
@@ -50,6 +58,7 @@ MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
+STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 
 # emails
 SEND_EMAIL = env('DJANGO_SEND_EMAIL', True)
@@ -71,10 +80,6 @@ SEND_SMS = env('DJANGO_SEND_SMS', False)
 #     else:
 #         return HttpResponseRedirect(reverse('login'))
 MFA = True
-
-# AWS Credentials need to support SES, SQS and SNS
-AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
-AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
