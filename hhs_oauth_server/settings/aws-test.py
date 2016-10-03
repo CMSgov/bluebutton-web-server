@@ -12,7 +12,7 @@ if 'apps.fhir.testac' not in INSTALLED_APPS:
 
 # Set ADMINS and MANAGERS
 ADMINS = (
-    os.environ.get('DJANGO_APP_ADMINS', "('Mark Scrimshire[Dev]', 'mark@ekivemark.com')"),
+    os.environ.get('DJANGO_APP_ADMINS', "('Mark Scrimshire[Test]', 'mark@ekivemark.com')"),
 )
 MANAGERS = ADMINS
 
@@ -83,7 +83,7 @@ AUTHENTICATION_BACKENDS = (
     # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
-APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [DEV]')
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [TEST]')
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
@@ -100,4 +100,4 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 # If integer interpreted, as hours
 AXES_COOLOFF_TIME = datetime.timedelta(seconds=60)
 
-ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API Server[DEV]')
+ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API Server[TEST]')
