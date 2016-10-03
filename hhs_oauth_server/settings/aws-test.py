@@ -33,15 +33,14 @@ if DEBUG:
           "         and set DJANGO_ALLOWED_HOSTS to "
           "valid host names")
 
-
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
 
-INSTALLATION_SPECIFIC_APPS = [
+TEST_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
-
+    'storages',
 ]
-INSTALLED_APPS += INSTALLATION_SPECIFIC_APPS
+INSTALLED_APPS += TEST_SPECIFIC_APPS
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
