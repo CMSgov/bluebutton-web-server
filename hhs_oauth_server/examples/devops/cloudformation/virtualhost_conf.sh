@@ -39,8 +39,8 @@ echo "	    Allow from all ">>/etc/httpd/virtualhost/server.conf
 echo "	</Files> ">>/etc/httpd/virtualhost/server.conf
 echo "    </Directory> ">>/etc/httpd/virtualhost/server.conf
    
-echo "    Alias /static/ $PY_APP_HOME/hhs_oauth_server/collectedstatic/ ">>/etc/httpd/virtualhost/server.conf
-echo "    Alias /media/  $PY_APP_HOME/hhs_oauth_server/media/ ">>/etc/httpd/virtualhost/server.conf
+echo "    # Alias /static/ $PY_APP_HOME/hhs_oauth_server/collectedstatic/ ">>/etc/httpd/virtualhost/server.conf
+echo "    # Alias /media/  $PY_APP_HOME/hhs_oauth_server/media/ ">>/etc/httpd/virtualhost/server.conf
 echo "    <Directory      $PY_APP_HOME/hhs_oauth_server/collectedstatic> ">>/etc/httpd/virtualhost/server.conf
 echo "	# Apache 2.4 command: ">>/etc/httpd/virtualhost/server.conf
 echo "       # Require all granted ">>/etc/httpd/virtualhost/server.conf
