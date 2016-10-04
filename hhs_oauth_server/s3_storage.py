@@ -21,6 +21,8 @@ from storages.backends.s3boto3 import S3Boto3Storage
 
 # custom_storages
 class StaticStorage(S3Boto3Storage):
+    def _normalize_name(self, name):
+        return name
 
     def _clean_name(self, name):
         return name
@@ -30,6 +32,8 @@ class StaticStorage(S3Boto3Storage):
 
 # media storages
 class MediaStorage(S3Boto3Storage):
+    def _normalize_name(self, name):
+        return name
 
     def _clean_name(self, name):
         return name
