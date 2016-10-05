@@ -85,10 +85,11 @@ SEND_SMS = env('DJANGO_SEND_SMS', False)
 #         return HttpResponseRedirect(reverse('login'))
 MFA = True
 
+# Add in apps.accounts backends for DEV environment
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    # 'apps.accounts.auth.SettingsBackend',
-    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
+    'apps.accounts.auth.SettingsBackend',
+    'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [TEST]')
