@@ -7,6 +7,8 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 
+from apps.fhir.server.models import SupportedResourceType
+
 
 ENCODED = settings.ENCODING
 
@@ -76,3 +78,61 @@ class FHIRCheckUnAuthResourceTestCase(TestCase):
 
         # Check some response details
         self.assertEqual(response.status_code, 404)
+
+
+class FHIRCheckResourceTypeAccessTestCase(TestCase):
+    """
+    Test Access_Permitted and Access_Denied
+
+    {"model": "server.supportedresourcetype",
+    "pk": 2,
+    "fields": {"resource_name": "ExplanationOfBenefit",
+              "json_schema": "{}",
+              "get": true,
+              "put": false,
+              "create": false,
+              "read": true,
+              "vread": true,
+              "update": false,
+              "patch": false,
+              "delete": false,
+              "search": true,
+              "history": true
+             }
+    }
+
+    """
+
+    fixtures = ['fhir_server_testdata.json']
+
+    def test_resource_access_permitted_or_not(self):
+        """ Check Access_Permitted and Access_Denied in Record
+
+        """
+
+        resource = SupportedResourceType.objects.get(pk=2)
+
+        tests = [('fhir_get',True),
+                 ('fhir_put', False),
+                 ('fhir_create',False),
+                 ('fhir_read',True),
+                 ('fhir_update', False),
+                 ('fhir_patch', False),
+                 ('fhir_delete', False),
+                 ('fhir_search', True),
+                 ('fhir_history', True),
+                ]
+
+        for test, result in tests:
+            expect = resource.access_permitted(test)
+
+            print("\n Permitted Check: %s = %s expected: %s" % (test, result, expect))
+            self.assertEqual(result, expect)
+
+        for test, result in tests:
+            expect = resource.access_denied(test)
+
+            print("\n Denied Check: %s = %s expected: %s" % (test, not result, expect))
+            self.assertEqual(not result, expect)
+
+
