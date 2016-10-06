@@ -112,27 +112,27 @@ class FHIRCheckResourceTypeAccessTestCase(TestCase):
 
         resource = SupportedResourceType.objects.get(pk=2)
 
-        tests = [('fhir_get',True),
+        tests = [('fhir_get', True),
                  ('fhir_put', False),
-                 ('fhir_create',False),
-                 ('fhir_read',True),
+                 ('fhir_create', False),
+                 ('fhir_read', True),
                  ('fhir_update', False),
                  ('fhir_patch', False),
                  ('fhir_delete', False),
                  ('fhir_search', True),
                  ('fhir_history', True),
-                ]
+                 ]
 
+        # Test for Access Permitted
         for test, result in tests:
             expect = resource.access_permitted(test)
 
-            print("\n Permitted Check: %s = %s expected: %s" % (test, result, expect))
+            # print("\n Permitted Check: %s = %s expected: %s" % (test, result, expect))
             self.assertEqual(result, expect)
 
+        # Test for Access Denied
         for test, result in tests:
             expect = resource.access_denied(test)
 
-            print("\n Denied Check: %s = %s expected: %s" % (test, not result, expect))
+            # print("\n Denied Check: %s = %s expected: %s" % (test, not result, expect))
             self.assertEqual(not result, expect)
-
-
