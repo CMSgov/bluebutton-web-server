@@ -27,26 +27,47 @@
           {{ form|bootstrap }}
   
           </table>
-          <input type="submit" class="btn-large btn-primary" value="{% trans 'Login' %}" />
+          <input type="submit" class="btn-xlarge btn-primary" value="{% trans 'Login' %}" />
+            <!-- btn-xlarge currently defined in base.html.
+                 TODO: need to move to css file with other button settings-->
+            <br/>
+            <br/>
+            <a href="{% url 'forgot_password' %}">Forgot Password?</a>
         </form>
       </div>
     </div>
   
   <div class="row">
-   <small><a href="{% url 'accounts_create_developer' %}">
-   {% trans "Create an Account " %}</a>{{account_request_text}} | 
-   <a href="{% url 'request_user_invite' %}">{% trans "Get Invited" %}</a> |
-   <a href="{% url 'forgot_password' %}">Forgot Password?</a></br>
-   </br>
-   <a href="{% url 'request_developer_invite' %}">
-   {% trans "Get a Developer Invitation" %}</a> |
-   <a href="{% url 'accounts_create_developer' %}">
-   {% trans "Create a Developer Account " %}</a>
 
-   </small>
 
-    </div> 
+      <div class="col-lg-6 well">
+          <b>User:</b>&nbsp;
+          <small>
+              1.<a href="{% url 'request_user_invite' %}">
+                  {% trans "Get Invited" %}</a> &nbsp;|&nbsp;
+              2.<a href="{% url 'accounts_create_user' %}">
+                  {% trans "Create an Account " %}</a>
+              {% if account_request_text %}
+                <br/>{{account_request_text}}
+              {% endif %}
+          </small>
+      </div>
 
-    
+
+      <div class="col-lg-6 well">
+          <b>Developer:</b>&nbsp;
+          <small>
+              1.<a href="{% url 'request_developer_invite' %}">
+                  {% trans "Get a Developer Invitation" %}</a> &nbsp;|&nbsp;
+              2.<a href="{% url 'accounts_create_developer' %}">
+                  {% trans "Create a Developer Account " %}</a>
+              {% if account_request_text %}
+                <br/>
+              {% endif %}
+          </small>
+      </div>
+
+    </div>
+
 {% endblock %}
 
