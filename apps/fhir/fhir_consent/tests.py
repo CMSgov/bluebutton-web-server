@@ -101,7 +101,6 @@ class FHIR_ConsentResourceActionTest(BaseApiTest):
         logger.debug("\n Revocation:%s" % revocation)
         logger.debug("\nRevoked:%s" % create_consent.revoked.strftime("%Y-%M-%DT%H:%M:%S"))
 
-
         expected = "REVOKED"
         result = create_consent.status()
         logger.debug("\nStatus:%s" % result)
