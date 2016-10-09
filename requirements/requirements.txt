@@ -27,6 +27,7 @@ django-storages==1.5.1
 Django==1.9.7             # via django-bootstrap-form, django-debug-toolbar, django-localflavor, django-settings-export
 flake8==2.6.0
 idna==2.1                 # via cryptography
+jsonfield==1.0.3
 jsonschema==2.5.1
 lxml==3.6.0
 mccabe==0.5.0             # via flake8
