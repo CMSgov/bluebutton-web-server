@@ -1,0 +1,14 @@
+[
+{
+    "model": "fhir_consent.fhir_consent",
+    "pk": 1,
+    "fields": {
+        "user": 1,
+        "application": 1,
+        "consent": "{\"Valid\":\"True\"}",
+        "created": "2016-10-08T16:24:33Z",
+        "revoked": null,
+        "key": "fred:My PHR[2016-10-08T16:24.33]"
+    }
+}
+]

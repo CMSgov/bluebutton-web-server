@@ -55,7 +55,7 @@
              "delete": false,
              "search": true,
              "history": true,
-             "override_url_id": true,
+             "override_url_id": false,
              "override_search": true,
              "search_block": "[\"patient\",\"_format\",\"resource_type\"]",
              "search_add": ""
@@ -74,10 +74,10 @@
              "delete": false,
              "search": true,
              "history": true,
-             "override_url_id": true,
-             "override_search": false,
+             "override_url_id": false,
+             "override_search": true,
              "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
-             "search_add": ""
+             "search_add": "patient=%PATIENT%"
             }
  },
   {"model": "server.supportedresourcetype",
@@ -93,7 +93,7 @@
              "delete": false,
              "search": true,
              "history": true,
-             "override_url_id": true,
+             "override_url_id": false,
              "override_search": true,
              "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
              "search_add": "patient=%PATIENT%"

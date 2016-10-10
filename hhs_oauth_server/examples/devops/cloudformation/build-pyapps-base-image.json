@@ -1,5 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Build Base Image from Gold Image with CFN utilities. Add in all libraries needed for Python 3.5.2, Apache, ModWsgi to enable faster load of server.",
   "Metadata": {
     "AWS::CloudFormation::Designer": {
       "25af43bb-a438-4ab1-95f3-a75ccb55a8e0": {
@@ -207,16 +208,6 @@
     }
   },
   "Parameters": {
-     "BuildImageId": {
-        "Type": "String",
-         "Description": "Choose a PV Image",
-         "Default": "ami-d8c7aecf"
-     },
-     "EnvSubNetId" : {
-      "Type" : "String",
-      "Default": "subnet-80ecfbaa",
-      "Description" : "Subnet EC2 Instance will be connected to"
-     },
      "InstanceName" : {
         "Description" : "Easily recognizable name in the EC2 Instance List",
         "Type" : "String",
@@ -235,13 +226,10 @@
           "AllowedValues": ["web" , "data", "app", "nat", "jump", "tools"]
      },
      "KeyName": {
-      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
-      "Type": "String",
-      "Default": "cms_bluebutton_fe_dev",
-      "AllowedValues": [
-        "cms_bluebutton_fe_dev"
-      ]
-    },
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
+     },
      "InstanceType": {
       "Description": "RHEL Linux EC2 instance type",
       "Type": "String",
@@ -278,61 +266,12 @@
         "cg1.4xlarge"
       ],
       "ConstraintDescription": "Must be a valid EC2 instance type"
-    },
-     "PyServerName" : {
-      "Description": "Python App Server Name",
-      "Type": "String",
-      "Default": "api.bbonfhir.com"
-    },
-     "PyVirtualenv": {
-      "Description": "Virtual Environment",
-      "Type": "String",
-      "Default": "/var/virtualenv/hhs_o_server"
-     },
-     "PyAppHome": {
-       "Description": "PyApp Home",
-       "Type": "String",
-       "Default": "/var/pyapps/hhs_o_server"
-     },
-     "PyRepoBranch" : {
-       "Description": "Which Branch from the Git Repository are we using [master, develop, other]?",
-       "Type": "String",
-       "Default": "master"
      },
      "pyappsPassword" : {
-       "Description": "Password for pyapps user account",
+       "Description": "Pyapps superuser password",
        "Type": "String",
-       "Default": "RESET_THIS"
-     },
-     "Az1RouteTables": {
-         "Type": "CommaDelimitedList",
-         "Default": "rtb-8060b5e6,rtb-8960b5ef,rtb-8a60b5ec,rtb-8c60b5ea,rtb-9760b5f1,rtb-9560b5f3"
-     },
-      "Az2RouteTables": {
-          "Type": "CommaDelimitedList",
-          "Default": "rtb-9660b5f0,rtb-8b60b5ed,rtb-8e60b5e8,rtb-9460b5f2,rtb-8860b5ee,rtb-8f60b5e9"
-        },
-      "EnterpriseAccessSg": {
-          "Type": "String",
-          "Default": "sg-d730eead"
-        },
-      "PrivateVpnSg": {
-          "Type": "String",
-          "Default": "sg-d030eeaa"
-        },
-      "TransitiveSubnetOne": {
-          "Type": "String",
-          "Default": "subnet-83ecfba9"
-        },
-      "TransitiveSubnetTwo": {
-          "Type": "String",
-          "Default": "subnet-218e4868"
-        },
-      "VPC": {
-          "Description": "Target VPC",
-          "Type": "AWS::EC2::VPC::Id",
-          "Default": "vpc-80bdc3e7"
-        }
+       "Default": "R3s3t_Th1s"
+     }
   },
   "Resources": {
     "EC2S3Role" : {
@@ -377,7 +316,7 @@
     "Ec2SecurityGrp": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "Enable SSH and access to Apache and Tomcat",
+        "GroupDescription": "Enable SSH and access to Apache, Tomcat and Postgres",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -389,6 +328,18 @@
             "IpProtocol": "tcp",
             "FromPort": "80",
             "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
             "CidrIp": "0.0.0.0/0"
           }
         ]
@@ -449,7 +400,8 @@
         }
       },
       "Properties": {
-          "ImageId": {"Ref": "BuildImageId"},
+           "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                          { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
           "SecurityGroups": [{"Ref": "Ec2SecurityGrp"}],
           "IamInstanceProfile" : { "Ref" : "EC2S3RoleProfile" },
           "InstanceType": {"Ref": "InstanceType"},
@@ -469,9 +421,6 @@
                 "#!/bin/bash -ex", "\n",
                 "export BUILD_LOG=/home/ec2-user/build_status.log \n",
 
-                "hostname ", {"Ref": "PyServerName"}, " >$BUILD_LOG \n",
-
-                "echo 'Hostname configured: ",{"Ref": "PyServerName"},"' >>$BUILD_LOG \n",
                 "mkdir -p /home/ec2-user/script \n",
                 "chown -R ec2-user:root /home/ec2-user/script \n",
 
@@ -543,6 +492,8 @@
                 "cd mod_wsgi-4.5.3 \n",
                 "./configure --with-python=/usr/local/bin/python3.5 --with-apxs=/usr/sbin/apxs \n",
                 "LD_RUN_PATH=/usr/local/lib \n",
+                "echo 'Python3.5.2 installed in /usr/local/bin' >>$BUILD_LOG \n",
+                "ls -la /usr/local/bin  >>$BUILD_LOG \n",
 
                 "echo '/usr/local/lib ' >>/etc/ld.so.conf \n",
                 "/sbin/ldconfig \n",
@@ -560,80 +511,18 @@
                 "# semanage fcontext -a -t httpd_sys_content_t \"/var/virtualenv(/.*)?\" \n",
                 "# restorecon -Rv /var \n",
 
-                "export PY_SERVER=",{"Ref": "PyServerName"} ," \n",
-                "export PY_VENV=",{"Ref": "PyVirtualenv"}   ," \n",
-                "export PY_APP_HOME=", {"Ref": "PyAppHome"} ," \n",
-
-                "echo 'Install Virtual Env:",{"Ref": "PyVirtualenv"} ," ' >>$BUILD_LOG \n",
-                "chmod -R 755 /var/virtualenv \n",
-                "chmod -R 755 /var/pyapps \n",
-                "cd /var/virtualenv \n",
-                "/usr/local/bin/pyvenv-3.5 hhs_o_server \n",
-                "chmod -R 0755 /var/virtualenv \n",
-                "mkdir -p ", {"Ref":"PyAppHome"}, " \n",
-
-                "cd ",{"Ref":"PyAppHome"}," \n",
-                "chmod -R 0755 /var/pyapps \n",
-                "git clone -b ",{"Ref": "PyRepoBranch"} ," https://github.com/transparenthealth/hhs_oauth_server \n",
-                "cd ",{"Ref": "PyAppHome"} ,"/hhs_oauth_server \n",
-
-                "# Change ownership of pyapps files \n",
-                "echo 'Changing ownership:",{"Ref": "PyVirtualenv"} ," ' >>$BUILD_LOG \n",
+                "# Change ownership of /var/pyapps \n",
+                "echo 'Changing ownership to pyapps:apache ' >>$BUILD_LOG \n",
                 "chown -Rf pyapps:apache /var/pyapps \n",
                 "chown -Rf pyapps:apache /var/virtualenv \n",
 
-                "# activate Virtualenv \n",
-                "echo 'Activate Virtualenv' >>$BUILD_LOG \n",
-                "source ",{"Ref": "PyVirtualenv"} ,"/bin/activate \n",
-                "PATH=\"/var/virtualenv/hhs_o_server/bin:$PATH\" \n",
-                "export PATH=$PATH \n",
-
-                "echo 'upgrade pip3.5 to avoid error' >>$BUILD_LOG \n",
-                "/usr/local/bin/pip3.5 install --upgrade pip \n",
-                {"Ref": "PyVirtualenv"}, "/bin/pip3.5 install --upgrade pip \n",
-
-                "echo 'Install Python modules from requirements'  >>$BUILD_LOG \n",
-                "cd ",{"Ref": "PyAppHome"}, "/hhs_oauth_server \n",
-                {"Ref": "PyVirtualenv"}, "/bin/pip3.5 install psycopg2 \n",
-                {"Ref": "PyVirtualenv"}, "/bin/pip3.5 install -r requirements/requirements.txt \n",
-
-                "echo 'Configure application' >>$BUILD_LOG \n",
-                "export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.base \n",
-
-                "echo 'Integrate App with Apache2' >>$BUILD_LOG \n",
-                "# Copy local config files from S3 \n",
-                "/usr/local/bin/aws s3 cp ",
-                " s3://bb-config/", {"Ref": "TagKeyStack"},"/pyapps/django_settings.sh " ,
-                " ", {"Ref": "PyAppHome"}, "  \n",
-                "/usr/local/bin/aws s3 cp ",
-                " s3://bb-config/", {"Ref": "TagKeyStack"},"/pyapps/custom-envvars.py " ,
-                " ", {"Ref": "PyAppHome"}, "  \n",
-
-                "chmod +x ", {"Ref": "PyAppHome"}, "  \n",
-
-                "echo 'copying virtualhost file server.conf into place' >>$BUILD_LOG \n",
-                "/usr/local/bin/aws s3 cp ",
-                "s3://bluebutton-dev/config/virtualhost_conf.sh ",
-                " /home/ec2-user/script/ \n",
+                "echo 'copying config files into place' >>$BUILD_LOG \n",
                 "mkdir -p /etc/httpd/virtualhost \n",
-                "chmod +x /home/ec2-user/script/virtualhost_conf.sh \n",
-                "/home/ec2-user/script/virtualhost_conf.sh  \n",
+                "echo 'Include virtualhost/*.conf' >>/etc/httpd/conf/httpd.conf \n",
+                "mkdir -p /var/www/doc \n",
 
                 "echo 'copying wsgi.conf into place. ' >>$BUILD_LOG \n",
                 "echo 'LoadModule wsgi_module modules/mod_wsgi.so ' >/etc/httpd/conf.d/wsgi.conf \n",
-
-                "echo 'copying config files into place' >>$BUILD_LOG \n",
-                "echo 'Include virtualhost/*.conf' >>/etc/httpd/conf/httpd.conf \n",
-                "mkdir -p /var/www/doc \n",
-                "mkdir -p /var/www/doc/", {"Ref": "PyServerName"}," \n",
-
-                "echo 'run python app migrations' >>$BUILD_LOG \n",
-                "export DJANGO_APP_ROOT=",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
-                "export DJANGO_ASSETS_ROOT=$DJANGO_APP_ROOT \n",
-                "cd ",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py makemigrations \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py migrate \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py collectstatic --noinput \n",
 
                 "echo 'Tidying up...' >>$BUILD_LOG \n",
                 "chmod -R 0755 /var/pyapps \n",
@@ -642,16 +531,13 @@
                 "chown -Rf pyapps:apache /var/virtualenv \n",
                 "chown -Rf ec2-user:ec2-user /home/ec2-user \n",
 
-                "echo 'Copy DJANGO_CUSTOM_SETTINGS_DIR to /etc/sysconfig/httpd' >>$BUILD_LOG \n",
-                "echo export DJANGO_CUSTOM_SETTINGS_DIR=", {"Ref": "PyAppHome"} ,"/ >>/etc/sysconfig/httpd \n",
-
                 "echo 'Starting Apache...' >>$BUILD_LOG \n",
                 "chkconfig httpd on \n",
                 "service httpd stop \n",
                 "service httpd start \n",
 
                 "date -r /home/ec2-user/build_status.log >>$BUILD_LOG \n",
-                "echo \"",{"Ref": "TagKeyStack"}, ":", {"Ref": "PyServerName"} ," Server installed \" >>$BUILD_LOG \n",
+                "echo \"",{"Ref": "TagKeyStack"}, ":", " Server installed. Image ready for Snapshot \" >>$BUILD_LOG \n",
                 "echo 'DONE.' >>$BUILD_LOG \n"
 
               ]

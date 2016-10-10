@@ -209,13 +209,8 @@
   "Parameters": {
      "BuildImageId": {
         "Type": "String",
-         "Description": "Choose a PV Image",
+         "Description": "PV Image",
          "Default": "ami-d8c7aecf"
-     },
-     "EnvSubNetId" : {
-      "Type" : "String",
-      "Default": "subnet-80ecfbaa",
-      "Description" : "Subnet EC2 Instance will be connected to"
      },
      "InstanceName" : {
         "Description" : "Easily recognizable name in the EC2 Instance List",
@@ -235,7 +230,7 @@
           "AllowedValues": ["web" , "data", "app", "nat", "jump", "tools"]
      },
      "KeyName": {
-      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+      "Description": "EC2 KeyPair for SSH access to instance",
       "Type": "String",
       "Default": "cms_bluebutton_fe_dev",
       "AllowedValues": [
@@ -285,54 +280,36 @@
       "Default": "api.bbonfhir.com"
     },
      "PyVirtualenv": {
-      "Description": "Virtual Environment",
+      "Description": "Virtual Environment Base Path",
       "Type": "String",
       "Default": "/var/virtualenv/hhs_o_server"
      },
      "PyAppHome": {
-       "Description": "PyApp Home",
+       "Description": "Python App Home Base Path",
        "Type": "String",
        "Default": "/var/pyapps/hhs_o_server"
      },
      "PyRepoBranch" : {
-       "Description": "Which Branch from the Git Repository are we using [master, develop, other]?",
+       "Description": "Git Repository branch to deploy [master, develop, other]?",
        "Type": "String",
        "Default": "master"
      },
+     "pyappsUser" : {
+       "Description": "Pyapps suepuser",
+       "Type": "String",
+       "Default": "pyapps"
+     },
      "pyappsPassword" : {
-       "Description": "Password for pyapps user account",
+       "Description": "Pyapps suepuser password",
        "Type": "String",
        "Default": "RESET_THIS"
      },
-     "Az1RouteTables": {
-         "Type": "CommaDelimitedList",
-         "Default": "rtb-8060b5e6,rtb-8960b5ef,rtb-8a60b5ec,rtb-8c60b5ea,rtb-9760b5f1,rtb-9560b5f3"
-     },
-      "Az2RouteTables": {
-          "Type": "CommaDelimitedList",
-          "Default": "rtb-9660b5f0,rtb-8b60b5ed,rtb-8e60b5e8,rtb-9460b5f2,rtb-8860b5ee,rtb-8f60b5e9"
-        },
-      "EnterpriseAccessSg": {
+     "HerdMember": {
+          "Description": "Role in Server Pool",
           "Type": "String",
-          "Default": "sg-d730eead"
-        },
-      "PrivateVpnSg": {
-          "Type": "String",
-          "Default": "sg-d030eeaa"
-        },
-      "TransitiveSubnetOne": {
-          "Type": "String",
-          "Default": "subnet-83ecfba9"
-        },
-      "TransitiveSubnetTwo": {
-          "Type": "String",
-          "Default": "subnet-218e4868"
-        },
-      "VPC": {
-          "Description": "Target VPC",
-          "Type": "AWS::EC2::VPC::Id",
-          "Default": "vpc-80bdc3e7"
-        }
+          "Default": "LEADER",
+          "AllowedValues": ["LEADER" , "FOLLOWER"]
+     }
   },
   "Resources": {
     "EC2S3Role" : {
@@ -377,7 +354,7 @@
     "Ec2SecurityGrp": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "Enable SSH and access to Apache and Tomcat",
+        "GroupDescription": "Enable SSH and access to Apache, Tomcat and Postgres",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -389,6 +366,18 @@
             "IpProtocol": "tcp",
             "FromPort": "80",
             "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
             "CidrIp": "0.0.0.0/0"
           }
         ]
