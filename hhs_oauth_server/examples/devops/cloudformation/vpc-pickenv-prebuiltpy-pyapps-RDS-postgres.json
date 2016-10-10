@@ -1,5 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Full Deployment Script to choose environment, choose leader or follower status, build python server",
   "Metadata": {
     "AWS::CloudFormation::Designer": {
       "25af43bb-a438-4ab1-95f3-a75ccb55a8e0": {
@@ -189,34 +190,24 @@
     },
     "AWSRegionArch2AMI": {
       "us-east-1": {
-        "PV": "ami-d8c7aecf",
-        "HVM": "ami-28c2ab3f"
+        "PV": "ami-4b3b775c",
+        "HVM": "ami-7e367a69"
       },
       "us-east-1a": {
-        "PV": "ami-d8c7aecf",
-        "HVM": "ami-28c2ab3f"
+        "PV": "ami-4b3b775c",
+        "HVM": "ami-7e367a69"
       },
       "us-east-1b": {
-        "PV": "ami-d8c7aecf",
-        "HVM": "ami-28c2ab3f"
+        "PV": "ami-4b3b775c",
+        "HVM": "ami-7e367a69"
       },
       "us-east-1c": {
-        "PV": "ami-d8c7aecf",
-        "HVM": "ami-28c2ab3f"
+        "PV": "ami-4b3b775c",
+        "HVM": "ami-7e367a69"
       }
     }
   },
   "Parameters": {
-     "BuildImageId": {
-        "Type": "String",
-         "Description": "Choose a PV Image",
-         "Default": "ami-d8c7aecf"
-     },
-     "EnvSubNetId" : {
-      "Type" : "String",
-      "Default": "subnet-80ecfbaa",
-      "Description" : "Subnet EC2 Instance will be connected to"
-     },
      "InstanceName" : {
         "Description" : "Easily recognizable name in the EC2 Instance List",
         "Type" : "String",
@@ -235,7 +226,7 @@
           "AllowedValues": ["web" , "data", "app", "nat", "jump", "tools"]
      },
      "KeyName": {
-      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+      "Description": "EC2 KeyPair for SSH access to instance",
       "Type": "String",
       "Default": "cms_bluebutton_fe_dev",
       "AllowedValues": [
@@ -280,59 +271,60 @@
       "ConstraintDescription": "Must be a valid EC2 instance type"
     },
      "PyServerName" : {
-      "Description": "Python App Server Name",
+      "Description": "Linux Server (DNS) Name (Make Unique)",
       "Type": "String",
       "Default": "api.bbonfhir.com"
     },
      "PyVirtualenv": {
-      "Description": "Virtual Environment",
+      "Description": "Virtual Environment Base Path",
       "Type": "String",
       "Default": "/var/virtualenv/hhs_o_server"
      },
      "PyAppHome": {
-       "Description": "PyApp Home",
+       "Description": "Python App Home Base Path",
        "Type": "String",
        "Default": "/var/pyapps/hhs_o_server"
      },
+     "PyAppSettings": {
+       "Description": "Python App Settings file",
+       "Type": "String",
+       "Default": "settings.base",
+       "AllowedValues": [
+           "settings.base",
+           "settings.production",
+           "settings.aws-dev",
+           "settings.aws-test",
+           "settings.dev",
+           "settings.awstest",
+           "settings.awsimp"
+       ]
+     },
      "PyRepoBranch" : {
-       "Description": "Which Branch from the Git Repository are we using [master, develop, other]?",
+       "Description": "Git Repository branch to deploy [master, develop, other]?",
        "Type": "String",
        "Default": "master"
      },
-     "pyappsPassword" : {
-       "Description": "Password for pyapps user account",
+     "pyappsUser" : {
+       "Description": "Pyapps superuser",
        "Type": "String",
-       "Default": "RESET_THIS"
+       "Default": "pyapps"
      },
-     "Az1RouteTables": {
-         "Type": "CommaDelimitedList",
-         "Default": "rtb-8060b5e6,rtb-8960b5ef,rtb-8a60b5ec,rtb-8c60b5ea,rtb-9760b5f1,rtb-9560b5f3"
+     "pyappsemail" : {
+       "Description": "Pyapps superuser email",
+       "Type": "String",
+       "Default": "admin@api.bbonfhir.com"
      },
-      "Az2RouteTables": {
-          "Type": "CommaDelimitedList",
-          "Default": "rtb-9660b5f0,rtb-8b60b5ed,rtb-8e60b5e8,rtb-9460b5f2,rtb-8860b5ee,rtb-8f60b5e9"
-        },
-      "EnterpriseAccessSg": {
+     "pyappsPassword" : {
+       "Description": "Pyapps superuser password",
+       "Type": "String",
+       "Default": "R3s3t_Th1s"
+     },
+     "HerdMember": {
+          "Description": "Role in Server Pool",
           "Type": "String",
-          "Default": "sg-d730eead"
-        },
-      "PrivateVpnSg": {
-          "Type": "String",
-          "Default": "sg-d030eeaa"
-        },
-      "TransitiveSubnetOne": {
-          "Type": "String",
-          "Default": "subnet-83ecfba9"
-        },
-      "TransitiveSubnetTwo": {
-          "Type": "String",
-          "Default": "subnet-218e4868"
-        },
-      "VPC": {
-          "Description": "Target VPC",
-          "Type": "AWS::EC2::VPC::Id",
-          "Default": "vpc-80bdc3e7"
-        }
+          "Default": "LEADER",
+          "AllowedValues": ["LEADER" , "FOLLOW"]
+     }
   },
   "Resources": {
     "EC2S3Role" : {
@@ -377,7 +369,7 @@
     "Ec2SecurityGrp": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "Enable SSH and access to Apache and Tomcat",
+        "GroupDescription": "Enable SSH and access to Apache, Tomcat and Postgres",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -389,6 +381,18 @@
             "IpProtocol": "tcp",
             "FromPort": "80",
             "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
             "CidrIp": "0.0.0.0/0"
           }
         ]
@@ -449,7 +453,8 @@
         }
       },
       "Properties": {
-          "ImageId": {"Ref": "BuildImageId"},
+          "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+              { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
           "SecurityGroups": [{"Ref": "Ec2SecurityGrp"}],
           "IamInstanceProfile" : { "Ref" : "EC2S3RoleProfile" },
           "InstanceType": {"Ref": "InstanceType"},
@@ -467,7 +472,7 @@
           "Fn::Base64": {
             "Fn::Join": [ "", [
                 "#!/bin/bash -ex", "\n",
-                "export BUILD_LOG=/home/ec2-user/build_status.log \n",
+                "export BUILD_LOG=/home/ec2-user/build_tailor.log \n",
 
                 "hostname ", {"Ref": "PyServerName"}, " >$BUILD_LOG \n",
 
@@ -478,76 +483,8 @@
                 "# Configure AWS CLI Credentials \n",
                 "export AWS_DEFAULT_REGION=us-east-1 \n",
 
-                "echo 'Create user:pyapps.' >>$BUILD_LOG \n",
-                "pass=$(perl -e 'print crypt($ARGV[0], 'password')' $",
-                {"Ref": "pyappsPassword" },
-                ") \n",
-
-                "echo pyapps:$pass \n",
-                "useradd -m -p $pass pyapps \n",
-                "echo 'Add pyapps to sudoers:' >>$BUILD_LOG \n",
-                "echo 'pyapps       ALL=(ALL)       NOPASSWD: ALL' >/etc/sudoers.d/pyapps.conf \n",
-
-                "echo 'Installing Apache2' >>$BUILD_LOG \n",
-                "yum -y install httpd","\n",
-
                 "echo 'RHEL Version:' >>$BUILD_LOG \n",
                 "cat /etc/redhat-release >>$BUILD_LOG \n",
-
-                "echo 'package updates... ' >>$BUILD_LOG \n",
-                "yum-config-manager --enable rhel-server-rhscl-6-rpms \n",
-                "yum -y update >>$BUILD_LOG \n",
-
-                "echo 'Installing support dependencies' >>$BUILD_LOG \n",
-                "yum -y groupinstall 'Development Tools' \n",
-                "yum -y install gcc gcc-c++ httpd-devel zlib-devel bzip2-devel ",
-                " openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel",
-                " db4-devel libpcap-devel xz-devel python-devel postgresql-devel",
-                " libffi.x86_64 python-cffi \n",
-
-                "mkdir -p /home/ec2-user/download \n",
-                "cd /home/ec2-user/download \n",
-
-                "echo 'downloading and installing libffi-devel' >>$BUILD_LOG \n",
-                "wget http://mirror.centos.org/centos/6/os/x86_64/Packages/libffi-devel-3.0.5-3.2.el6.x86_64.rpm \n",
-                "yum -y install ./libffi-devel-3.0.5-3.2.el6.x86_64.rpm \n",
-
-                "echo 'Installing lxml+lxslt' >>$BUILD_LOG \n",
-                "yum -y install libxml2-devel libxslt-devel \n",
-
-                "echo 'Installing DB Drivers:MySQL' >>$BUILD_LOG \n",
-                "yum -y install mysql-devel.x86_64 \n",
-
-                "echo 'Installing DB Drivers:postgreSQL' >>$BUILD_LOG \n",
-                "yum -y install python-psycopg2.x86_64 \n",
-
-                "echo '/usr/local/lib' >>/etc/ld.so.conf \n",
-
-                "echo 'Installing python 3.5.2' >>$BUILD_LOG \n",
-                "wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz \n",
-                "tar xf  Python-3.5.2.tar.xz \n",
-                "cd /home/ec2-user/download/Python-3.5.2 \n",
-                "./configure --prefix=/usr/local --enable-shared ",
-                " LDFLAGS='-Wl,-rpath /usr/local/lib' --enable-loadable-sqlite-extensions \n",
-                "make \n",
-                "make altinstall \n",
-                "cd /home/ec2-user/download \n",
-
-                "echo 'Installing git' >>$BUILD_LOG \n",
-                "yum -y install git \n",
-
-                "echo 'Installing mod_wsgi_4.5.3' >>$BUILD_LOG \n",
-                "wget https://codeload.github.com/GrahamDumpleton/mod_wsgi/tar.gz/4.5.3 \n",
-                "mv 4.5.3 ./mod_wsgi_4.5.3.tar.gz \n",
-                "tar -xzvf mod_wsgi_4.5.3.tar.gz \n",
-                "cd mod_wsgi-4.5.3 \n",
-                "./configure --with-python=/usr/local/bin/python3.5 --with-apxs=/usr/sbin/apxs \n",
-                "LD_RUN_PATH=/usr/local/lib \n",
-
-                "echo '/usr/local/lib ' >>/etc/ld.so.conf \n",
-                "/sbin/ldconfig \n",
-                "make \n",
-                "make install \n",
 
                 "echo 'Setup for front-end app' >>$BUILD_LOG \n",
                 "mkdir -p /var/virtualenv \n",
@@ -598,8 +535,9 @@
                 {"Ref": "PyVirtualenv"}, "/bin/pip3.5 install -r requirements/requirements.txt \n",
 
                 "echo 'Configure application' >>$BUILD_LOG \n",
-                "export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.base \n",
+                "export DJANGO_SETTINGS_MODULE=hhs_oauth_server.",{"Ref": "PyAppSettings"}," \n",
 
+                " # Remember to edit files in bb-config for DJANGO_SETTINGS_MODULE \n",
                 "echo 'Integrate App with Apache2' >>$BUILD_LOG \n",
                 "# Copy local config files from S3 \n",
                 "/usr/local/bin/aws s3 cp ",
@@ -623,7 +561,7 @@
                 "echo 'LoadModule wsgi_module modules/mod_wsgi.so ' >/etc/httpd/conf.d/wsgi.conf \n",
 
                 "echo 'copying config files into place' >>$BUILD_LOG \n",
-                "echo 'Include virtualhost/*.conf' >>/etc/httpd/conf/httpd.conf \n",
+                "# echo 'Include virtualhost/*.conf' >>/etc/httpd/conf/httpd.conf \n",
                 "mkdir -p /var/www/doc \n",
                 "mkdir -p /var/www/doc/", {"Ref": "PyServerName"}," \n",
 
@@ -631,9 +569,33 @@
                 "export DJANGO_APP_ROOT=",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
                 "export DJANGO_ASSETS_ROOT=$DJANGO_APP_ROOT \n",
                 "cd ",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py makemigrations \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py migrate \n",
-                {"Ref": "PyVirtualenv"}, "/bin/python3 manage.py collectstatic --noinput \n",
+                "# Process as LEADER or FOLLOW \n",
+                "if [ \"",{"Ref": "HerdMember"},"z\"==\"LEADERz\" ] \n",
+                "then \n",
+                "    echo 'Creating LEADER in ", {"Ref": "TagKeyStack"}, " environment.' >>$BUILD_LOG \n",
+                "    # This is the first instance - initialize the database \n",
+                "    # Make Migrations \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py makemigrations \n",
+                "    # Migrate models \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py migrate \n",
+                "    # Create Superuser variables \n",
+                "    export DJANGO_SUPERUSER_USERNAME=",{"Ref": "pyappsUser"}," \n",
+                "    export DJANGO_SUPERUSER_PASSWORD=", {"Ref": "pyappsPassword"}," \n",
+                "    export DJANGO_SUPERUSER_EMAIL=",{"Ref": "pyappsemail"}," \n",
+                "    # create Superuser \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py create_super_user_from_envars \n",
+                "    # remove superuser variables \n",
+                "    export DJANGO_SUPERUSER_USERNAME='' \n",
+                "    export DJANGO_SUPERUSER_PASSWORD='' \n",
+                "    export DJANGO_SUPERUSER_EMAIL='' \n",
+                "    # collect static content \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py collectstatic --noinput \n",
+                "    # load base data \n",
+                "    ",{"Ref": "PyVirtualenv"},"/bin/python3 manage.py loaddata fixtures/fhir_supportedresourcetype.json \n",
+                "else  \n",
+                "       # Nothing to do  \n",
+                "    echo 'Creating FOLLOWer in ", {"Ref": "TagKeyStack"}, " environment.' >>$BUILD_LOG \n",
+                "fi  \n",
 
                 "echo 'Tidying up...' >>$BUILD_LOG \n",
                 "chmod -R 0755 /var/pyapps \n",

@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     'apps.fhir.server',
     'apps.fhir.bluebutton',
     'apps.fhir.build_fhir',
+    'apps.fhir.fhir_consent',
 
     # 3rd Party ---------------------
     'corsheaders',
@@ -276,8 +277,8 @@ LOGGING = {
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'apps.accounts.auth.SettingsBackend',
-    'apps.accounts.mymedicare_auth.MyMedicareBackend',
+    # 'apps.accounts.auth.SettingsBackend',
+    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
