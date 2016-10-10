@@ -22,7 +22,7 @@ class MessagingRequest(HttpRequest):
         self._messages = FallbackStorage(self)
 
     def add(self, level, message, extra_tags):
-        print("Adding Message: %s:%s[%s]" % (level, message, extra_tags))
+        # print("Adding Message: %s:%s[%s]" % (level, message, extra_tags))
         return "%s:%s[%s]" % (level, message, extra_tags)
 
     def get_messages(self):

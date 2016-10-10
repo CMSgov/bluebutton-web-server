@@ -88,6 +88,8 @@ def generic_read(request,
 
     srtc = check_rt_controls(resource_type)
     # We get back a Supported ResourceType Control record or None
+    # with earlier if deny step we should have a valid srtc.
+
     default_path = get_default_path(srtc.resource_name)
     # get the default path for resource with ending "/"
     # You need to add resource_type + "/" for full url

@@ -18,3 +18,11 @@ EMAIL_PORT = env('DJANGO_EMAIL_HOST_PORT')
 EMAIL_HOST_USER = env('DJANGO_EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = env('DJANGO_EMAIL_USE_TLS', True)
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    # Add Check for SLS Authentication
+    'apps.accounts.auth.SettingsBackend',
+    # Add check for MyMedicare Login Hack
+    'apps.accounts.mymedicare_auth.MyMedicareBackend',
+)
