@@ -16,13 +16,13 @@ from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 
-from apps.fhir.core.utils import (kickout_403,
-                                  kickout_404)
+from apps.fhir.fhir_core.utils import (kickout_403,
+                                       kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
 from apps.fhir.bluebutton.models import (BlueButtonText)
-from apps.fhir.core.utils import (error_status,
-                                  ERROR_CODE_LIST)
+from apps.fhir.fhir_core.utils import (error_status,
+                                       ERROR_CODE_LIST)
 
 PRETTY_JSON_INDENT = 4
 
