@@ -2,7 +2,7 @@ import logging
 
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.fhir.core.utils import kickout_400
+from apps.fhir.fhir_core.utils import kickout_400
 from apps.fhir.bluebutton.views.read import generic_read
 from apps.fhir.bluebutton.views.home import fhir_conformance
 

@@ -1,9 +1,11 @@
-# from django.test import TestCase
+from django.test import TestCase
 from apps.test import BaseApiTest
 from django.contrib.auth.models import User
 
 from apps.accounts.models import UserProfile
 from .models import fhir_Consent
+from .views import rt_consent_initialize
+from ..build_fhir.utils.utils import pretty_json
 
 import logging
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -106,3 +108,17 @@ class FHIR_ConsentResourceActionTest(BaseApiTest):
         logger.debug("\nStatus:%s" % result)
 
         self.assertEqual(result, expected)
+
+
+class FHIR_Consent_Resource_InitializeTest(TestCase):
+    """ Test for Consent Initialized """
+
+    def test_create_Consent(self):
+        """ check for a consent record """
+
+        result = rt_consent_initialize()
+        logger.debug("\nResource:\n%s" % pretty_json(result))
+
+        if 'resourceType' in result:
+            result_content = result['resourceType']
+            self.assertEqual(result_content, "Consent")
