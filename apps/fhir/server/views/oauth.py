@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from apps.dot_ext.decorators import capability_protected_resource
-from apps.fhir.core.utils import kickout_400
+from apps.fhir.fhir_core.utils import kickout_400
 
 from .create import create
 from .delete import delete

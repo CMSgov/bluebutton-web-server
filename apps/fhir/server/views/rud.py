@@ -1,6 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.fhir.core.utils import kickout_400
+from apps.fhir.fhir_core.utils import kickout_400
 
 from .update import update
 from .delete import delete
