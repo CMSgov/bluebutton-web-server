@@ -7,12 +7,12 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.fhir.core.utils import (kickout_403,
-                                  write_session,
-                                  find_ikey,
-                                  get_search_param_format,
-                                  get_target_url,
-                                  SESSION_KEY)
+from apps.fhir.fhir_core.utils import (kickout_403,
+                                       write_session,
+                                       find_ikey,
+                                       get_search_param_format,
+                                       get_target_url,
+                                       SESSION_KEY)
 
 from apps.fhir.bluebutton.utils import (
     request_call,
