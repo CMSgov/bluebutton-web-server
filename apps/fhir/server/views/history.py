@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from django.http import HttpResponse
 
-from apps.fhir.core.utils import (kickout_400)
+from apps.fhir.fhir_core.utils import (kickout_400)
 
 from .utils import check_access_interaction_and_resource_type
 
