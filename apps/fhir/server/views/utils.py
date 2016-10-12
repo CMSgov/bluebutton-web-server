@@ -1,5 +1,5 @@
 from apps.fhir.server.models import SupportedResourceType
-from apps.fhir.core.utils import (kickout_404, kickout_403)
+from apps.fhir.fhir_core.utils import (kickout_404, kickout_403)
 
 
 def check_access_interaction_and_resource_type(resource_type, interaction_type):

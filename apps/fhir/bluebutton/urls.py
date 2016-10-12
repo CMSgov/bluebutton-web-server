@@ -6,12 +6,19 @@ from apps.fhir.bluebutton.views.route_rud import read_or_update_or_delete
 from apps.fhir.bluebutton.views.vread import vread
 from apps.fhir.bluebutton.views.search import search
 from apps.fhir.bluebutton.views.home import fhir_conformance
+from apps.fhir.bluebutton.views.help import bluebutton_help
 
 admin.autodiscover()
 
 urlpatterns = [
     # URLs with no authentication
     # Interactions on Resources
+
+    # Help
+    url(r'help/',
+        bluebutton_help,
+        name='bb_fhir_help'),
+
     # Vread GET --------------------------------
     url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)',
         vread,
