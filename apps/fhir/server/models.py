@@ -35,6 +35,9 @@ class SupportedResourceType(models.Model):
     update = models.BooleanField(default=False,
                                  verbose_name='update',
                                  help_text='FHIR Interaction Type')
+    patch = models.BooleanField(default=False,
+                                verbose_name='patch',
+                                help_text='FHIR Interaction Type')
     delete = models.BooleanField(default=False,
                                  verbose_name='delete',
                                  help_text='FHIR Interaction Type')
@@ -93,6 +96,8 @@ class SupportedResourceType(models.Model):
             sit.append(self._meta.get_field('vread').verbose_name)
         if self.update:
             sit.append(self._meta.get_field('update').verbose_name)
+        if self.patch:
+            sit.append(self._meta.get_field('patch').verbose_name)
         if self.delete:
             sit.append(self._meta.get_field('delete').verbose_name)
         if self.search:
@@ -123,47 +128,51 @@ class SupportedResourceType(models.Model):
 
     def access_denied(self, access_to_check):
         # TODO: write the proper logic
-        return True
-        # if access_to_check.lower() == 'fhir_get':
-        #     return not self.fhir_get
-        # elif access_to_check.lower() == 'fhir_put':
-        #     return not self.fhir_put
-        # elif access_to_check.lower() == 'fhir_create':
-        #     return not self.fhir_create
-        # elif access_to_check.lower() == 'fhir_read':
-        #     return not self.fhir_read
-        # elif access_to_check.lower() == 'fhir_update':
-        #     return not self.fhir_update
-        # elif access_to_check.lower() == 'fhir_delete':
-        #     return not self.fhir_delete
-        # elif access_to_check.lower() == 'fhir_search':
-        #     return not self.fhir_search
-        # elif access_to_check.lower() == 'fhir_history':
-        #     return not self.fhir_history
-        # else:
-        #     return True
+        # return True
+        if access_to_check.lower() == 'fhir_get':
+            return not self.get
+        elif access_to_check.lower() == 'fhir_put':
+            return not self.put
+        elif access_to_check.lower() == 'fhir_create':
+            return not self.create
+        elif access_to_check.lower() == 'fhir_read':
+            return not self.read
+        elif access_to_check.lower() == 'fhir_update':
+            return not self.update
+        elif access_to_check.lower() == 'fhir_patch':
+            return not self.patch
+        elif access_to_check.lower() == 'fhir_delete':
+            return not self.delete
+        elif access_to_check.lower() == 'fhir_search':
+            return not self.search
+        elif access_to_check.lower() == 'fhir_history':
+            return not self.history
+        else:
+            return True
 
     def access_permitted(self, access_to_check):
         # TODO: write the proper logic
-        return True
-        # if access_to_check.lower() == 'fhir_get':
-        #     return self.fhir_get
-        # elif access_to_check.lower() == 'fhir_put':
-        #     return self.fhir_put
-        # elif access_to_check.lower() == 'fhir_create':
-        #     return self.fhir_create
-        # elif access_to_check.lower() == 'fhir_read':
-        #     return self.fhir_read
-        # elif access_to_check.lower() == 'fhir_update':
-        #     return self.fhir_update
-        # elif access_to_check.lower() == 'fhir_delete':
-        #     return self.fhir_delete
-        # elif access_to_check.lower() == 'fhir_search':
-        #     return self.fhir_search
-        # elif access_to_check.lower() == 'fhir_history':
-        #     return self.fhir_history
-        # else:
-        #     return False
+        # return True
+        if access_to_check.lower() == 'fhir_get':
+            return self.get
+        elif access_to_check.lower() == 'fhir_put':
+            return self.put
+        elif access_to_check.lower() == 'fhir_create':
+            return self.create
+        elif access_to_check.lower() == 'fhir_read':
+            return self.read
+        elif access_to_check.lower() == 'fhir_update':
+            return self.update
+        elif access_to_check.lower() == 'fhir_patch':
+            return self.patch
+        elif access_to_check.lower() == 'fhir_delete':
+            return self.delete
+        elif access_to_check.lower() == 'fhir_search':
+            return self.search
+        elif access_to_check.lower() == 'fhir_history':
+            return self.history
+        else:
+            return False
 
 
 @python_2_unicode_compatible

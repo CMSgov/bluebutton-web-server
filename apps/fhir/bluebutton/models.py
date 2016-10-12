@@ -4,69 +4,6 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 
-# @python_2_unicode_compatible
-# class ResourceTypeControl(models.Model):
-#     resource_name = models.ForeignKey(SupportedResourceType)
-#     override_url_id = models.BooleanField(help_text="Does this resource need "
-#                                                     "to mask the id in the "
-#                                                     "url?")
-#     override_search = models.BooleanField(help_text="Do search parameters "
-#                                                     "need to be filtered "
-#                                                     "to avoid revealing "
-#                                                     "other people's data?")
-#     search_block = models.TextField(max_length=5120,
-#                                     blank=True,
-#                                     default="",
-#                                     help_text="list of values that need to be "
-#                                               "removed from search "
-#                                               "parameters. eg. <b>Patient</b>")
-#     search_add = models.TextField(max_length=200,
-#                                   blank=True,
-#                                   default="",
-#                                   help_text="list of keys that need to be "
-#                                             "added to search parameters to "
-#                                             "filter information that is "
-#                                             "returned. eg. "
-#                                             "<b>Patient=%PATIENT%</b>")
-#     default_url = models.URLField(blank=True,
-#                                   verbose_name="Default FHIR URL with "
-#                                                "terminating /",
-#                                   help_text="Exclude the resource. eg. "
-#                                             "<b>https://fhirserver.com/fhir/"
-#                                             "Patient/</b> is entered as "
-#                                             "<b>https://fhirserver.com/fhir/"
-#                                             "</b></br>Leave blank to accept "
-#                                             "system default.")
-#     # Add default_url unless the resource is defined via crosswalk
-#
-#     # Python2 uses __unicode__(self):
-#     def __str__(self):
-#         return self.resource_name.resource_name
-#
-#     def set_search_block(self, x):
-#         self.search_block = json.dumps(x)
-#
-#     def get_search_block(self):
-#         if self.search_block == '':
-#             search_list = []
-#         else:
-#             search_list = self.search_block
-#         return json.loads(search_list)
-#
-#     def set_search_add(self, x):
-#         self.search_add = json.dumps(x)
-#
-#     def get_search_add(self):
-#         if self.search_add == '':
-#             search_list = []
-#         else:
-#             search_list = [self.search_add, ]
-#         return search_list
-#
-#     def replace_url_id(self):
-#         return self.override_url_id
-
-
 @python_2_unicode_compatible
 class FhirServer(models.Model):
     """
