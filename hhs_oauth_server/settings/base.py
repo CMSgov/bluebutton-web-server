@@ -90,10 +90,12 @@ INSTALLED_APPS = [
     # Landing pages, etc.
     'apps.home',
     'apps.education',
-    'apps.fhir.core',
+    'apps.fhir.fhir_core',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
     'apps.fhir.build_fhir',
+    'apps.fhir.fhir_consent',
+    'apps.fhir.testac',
 
     # 3rd Party ---------------------
     'corsheaders',
@@ -101,6 +103,7 @@ INSTALLED_APPS = [
     'axes',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
+
 ]
 
 # Add apps for Site/Installation specific implementation here:
@@ -276,8 +279,8 @@ LOGGING = {
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'apps.accounts.auth.SettingsBackend',
-    'apps.accounts.mymedicare_auth.MyMedicareBackend',
+    # 'apps.accounts.auth.SettingsBackend',
+    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'

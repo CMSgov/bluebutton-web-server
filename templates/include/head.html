@@ -1,4 +1,4 @@
-{% load staticfiles %}
+{% load static %}
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -49,7 +49,7 @@
     <link href="{% static 'font-awesome/css/font-awesome.min.css' %}"
           rel="stylesheet">
 
-    {% with settings.STATIC_URL|add:settings.THEME.PATH|add:'bootstrap.min.css' as theme_css_static %}
+    {% with settings.THEME.PATH|add:'bootstrap.min.css' as theme_css_static %}
    <link href="{% static theme_css_static %}" rel="stylesheet">
     {% endwith %}
 

@@ -52,9 +52,9 @@ apps/fhir/bluebutton/fixtures/__pycache__/
 apps/fhir/bluebutton/migrations/__pycache__/
 apps/fhir/bluebutton/tests/__pycache__/
 apps/fhir/bluebutton/views/__pycache__/
-apps/fhir/core/__pycache__/
-apps/fhir/core/fixtures/__pycache__/
-apps/fhir/core/tests/__pycache__/
+apps/fhir/fhir_core/__pycache__/
+apps/fhir/fhir_core/fixtures/__pycache__/
+apps/fhir/fhir_core/tests/__pycache__/
 apps/fhir/server/__pycache__/
 apps/fhir/server/migrations/__pycache__/
 apps/fhir/server/tests/__pycache__/
