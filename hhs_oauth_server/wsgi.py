@@ -1,9 +1,19 @@
 import os
-from getenv import env
+# from getenv import env
 from django.core.wsgi import get_wsgi_application
 
 
-DJANGO_CUSTOM_SETTINGS_DIR = env("DJANGO_CUSTOM_SETTINGS_DIR", '..')
+# project root folder
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+DJANGO_CUSTOM_SETTINGS_DIR = os.path.join(BASE_DIR, '..')
+
+print("CUSTOM_SETTINGS_DIR:%s" % DJANGO_CUSTOM_SETTINGS_DIR)
+
+# custom-envvars.py should be in parent directory of the entire application
+# ie. it should be in parent above manage.py so that the custom environment
+# variables are NOT included in the repository.
+# DJANGO_CUSTOM_SETTINGS_DIR = env("DJANGO_CUSTOM_SETTINGS_DIR", '..')
 EXEC_FILE = os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, 'custom-envvars.py')
 
 # check if custom-envvars.py exists

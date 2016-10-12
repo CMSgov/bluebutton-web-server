@@ -7,12 +7,12 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.fhir.core.utils import (kickout_403,
-                                  write_session,
-                                  find_ikey,
-                                  get_search_param_format,
-                                  get_target_url,
-                                  SESSION_KEY)
+from apps.fhir.fhir_core.utils import (kickout_403,
+                                       write_session,
+                                       find_ikey,
+                                       get_search_param_format,
+                                       get_target_url,
+                                       SESSION_KEY)
 
 from apps.fhir.bluebutton.utils import (
     request_call,
@@ -88,6 +88,8 @@ def generic_read(request,
 
     srtc = check_rt_controls(resource_type)
     # We get back a Supported ResourceType Control record or None
+    # with earlier if deny step we should have a valid srtc.
+
     default_path = get_default_path(srtc.resource_name)
     # get the default path for resource with ending "/"
     # You need to add resource_type + "/" for full url

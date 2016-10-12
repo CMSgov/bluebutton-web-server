@@ -16,13 +16,13 @@ from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 
-from apps.fhir.core.utils import (kickout_403,
-                                  kickout_404)
+from apps.fhir.fhir_core.utils import (kickout_403,
+                                       kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
 from apps.fhir.bluebutton.models import (BlueButtonText)
-from apps.fhir.core.utils import (error_status,
-                                  ERROR_CODE_LIST)
+from apps.fhir.fhir_core.utils import (error_status,
+                                       ERROR_CODE_LIST)
 
 PRETTY_JSON_INDENT = 4
 
@@ -44,6 +44,7 @@ def request_call(request, call_url, fail_redirect="/"):
         return HttpResponseRedirect(fail_redirect)
 
     if r.status_code in ERROR_CODE_LIST:
+        logger.debug("\nError Status Code:%s" % r.status_code)
         return error_status(r, r.status_code)
 
     return r
@@ -119,6 +120,7 @@ def add_params(srtc, key=None):
     # %PATIENT% = key
     # key = FHIR_ID for search parameter. eg. patient= Patient profile Id
     # modify this function to add more Replaceable Parameters
+    # Need to suppress addition of patient={id} in Patient resource read
 
     # Returns List
 
@@ -139,17 +141,20 @@ def add_params(srtc, key=None):
             add_params = []
             for item in params_list:
                 # Run through list and do variable replacement
-                if '%PATIENT%' in item:
-                    if key is None:
-                        key_str = ''
-                    else:
-                        key_str = str(key)
-                    item = item.replace('%PATIENT%', key_str)
+                if srtc.resource_name.lower() not in item:
+                    # only replace 'patient=%PATIENT%' if resource not Patient
                     if '%PATIENT%' in item:
-                        # Still there we need to remove
-                        item = item.replace('%PATIENT%', '')
+                        if key is None:
+                            key_str = ''
+                        else:
+                            # force key to string
+                            key_str = str(key)
+                        item = item.replace('%PATIENT%', key_str)
+                        if '%PATIENT%' in item:
+                            # Still there we need to remove
+                            item = item.replace('%PATIENT%', '')
 
-                add_params.append(item)
+                    add_params.append(item)
 
             logger.debug('Resulting additional parameters:%s' % add_params)
 
@@ -393,6 +398,9 @@ def FhirServerUrl(server=None, path=None, release=None):
 
 
 def check_access_interaction_and_resource_type(resource_type, intn_type):
+    """ usage is deny = check_access_interaction_and_resource_type()
+
+     """
     try:
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         # force comparison to lower case to make case insensitive check
