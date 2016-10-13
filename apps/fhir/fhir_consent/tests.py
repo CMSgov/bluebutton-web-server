@@ -1,11 +1,16 @@
-from django.test import TestCase
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from django.test import RequestFactory
 from apps.test import BaseApiTest
 from django.contrib.auth.models import User
 
 from apps.accounts.models import UserProfile
 from .models import fhir_Consent
-from .views import rt_consent_initialize
+from .views import rt_consent_activate
 from ..build_fhir.utils.utils import pretty_json
+from ..build_fhir.utils.utils_fhir_dt import dt_period
+
+from ..bluebutton.models import Crosswalk
 
 import logging
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -110,13 +115,42 @@ class FHIR_ConsentResourceActionTest(BaseApiTest):
         self.assertEqual(result, expected)
 
 
-class FHIR_Consent_Resource_InitializeTest(TestCase):
+class FHIR_Consent_Resource_InitializeTest(BaseApiTest):
     """ Test for Consent Initialized """
+
+    def setUp(self):
+        # Setup the RequestFactory
+        # I could probably update this to use a Mock()
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='fred4', email='fred4@...', password='top_secret')
+
+        xwalk = Crosswalk()
+        xwalk.user = self.user
+        xwalk.fhir_id = "Patient/12345"
+        xwalk.save()
 
     def test_create_Consent(self):
         """ check for a consent record """
 
-        result = rt_consent_initialize()
+        request = self.factory.get('/create_test_account/bb_upload/')
+        request.user = self.user
+
+        app = self._create_application('ThePHR', user=request.user)
+        print("\nApp:%s" % app.name)
+
+        this_moment = datetime.now()
+        future_time = this_moment + relativedelta(years=1)
+        oauth_period = dt_period(this_moment, future_time)
+
+        oauth_permissions = [{"code": "patient/Patient.read"},
+                             {"code": "patient/ExplanationOfBenefit.read"},
+                             {"code": "patient/Consent.*"}]
+
+        result = rt_consent_activate(request,
+                                     app.name,
+                                     oauth_period,
+                                     oauth_permissions)
         logger.debug("\nResource:\n%s" % pretty_json(result))
 
         if 'resourceType' in result:
