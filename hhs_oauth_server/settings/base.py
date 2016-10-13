@@ -13,7 +13,9 @@ BASE_DIR = os.path.join(BASE_DIR, '..')
 
 # Set ADMINS and MANAGERS
 ADMINS = (
-    os.environ.get('DJANGO_APP_ADMINS', "('Mark Scrimshire', 'mark@ekivemark.com')"),
+    os.environ.get(
+        'DJANGO_APP_ADMINS',
+        "('Mark Scrimshire', 'mark@ekivemark.com')"),
 )
 MANAGERS = ADMINS
 
@@ -87,6 +89,7 @@ INSTALLED_APPS = [
     'apps.dot_ext.apps.dot_extConfig',
     # MyMedicare.gov Enhanced Validated Identity Linkage
     'apps.eimm',
+    'apps.extapi',
     # Landing pages, etc.
     'apps.home',
     'apps.education',
@@ -108,12 +111,6 @@ INSTALLED_APPS = [
 
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
-
-INSTALLATION_SPECIFIC_APPS = [
-    # Installation/Site Specific apps based on  -----------------
-    'apps.extapi',
-]
-INSTALLED_APPS += INSTALLATION_SPECIFIC_APPS
 
 # CorsMiddleware needs to come before Django's
 # CommonMiddleware if you are using Django's
@@ -229,6 +226,8 @@ SEND_SMS = env('DJANGO_SEND_SMS', False)
 #         return HttpResponseRedirect(reverse('mfa_login'))
 #     else:
 #         return HttpResponseRedirect(reverse('login'))
+
+
 MFA = True
 
 # AWS Credentials need to support SES, SQS and SNS
@@ -454,3 +453,6 @@ FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
 
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 3)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS OAuth2 Server')
+
+LOGIN_REDIRECT_URL = '/accounts/mfa/login'
+LOGIN_URL = '/accounts/mfa/login'
