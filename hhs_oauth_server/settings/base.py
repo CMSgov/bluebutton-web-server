@@ -13,7 +13,9 @@ BASE_DIR = os.path.join(BASE_DIR, '..')
 
 # Set ADMINS and MANAGERS
 ADMINS = (
-    os.environ.get('DJANGO_APP_ADMINS', "('Mark Scrimshire', 'mark@ekivemark.com')"),
+    os.environ.get(
+        'DJANGO_APP_ADMINS',
+        "('Mark Scrimshire', 'mark@ekivemark.com')"),
 )
 MANAGERS = ADMINS
 
