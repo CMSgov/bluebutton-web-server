@@ -19,10 +19,15 @@ from ..utils.utils import (get_guid,
                            human_name_use,
                            use_code,
                            dob_to_fhir,
+                           pretty_json
                            )
 from ..utils.utils_fhir_dt import (name_drop_md,
                                    address_split,
-                                   zipcode_from_text)
+                                   zipcode_from_text,
+                                   rt_cms_organization,
+                                   rt_hhs_organization,
+                                   rt_organization_minimal,
+                                   rt_initialize)
 
 
 class TestBuild_FHIR_UtilsSimple(TestCase):
@@ -253,3 +258,73 @@ class TestBuild_FHIR_UtilsSimple(TestCase):
                     "zip": "95661"}
 
         self.assertEqual(result, expected)
+
+
+class ResourceTypeTest(TestCase):
+    """ Test Resource Types """
+
+    def test_rt_initialize(self):
+        """ Create a resource """
+
+        expect = "Consent"
+        result = rt_initialize(expect)
+
+        # print("\nrt_initialize result:%s" % pretty_json(result))
+
+        self.assertEqual(result['resourceType'], expect)
+
+    def test_rt_cms_organization_minimal(self):
+        """ Create CMS Resource """
+
+        detail_mode = "minimal"
+        expect = "Centers for Medicare and Medicaid Services"
+        result = rt_cms_organization(detail_mode)
+
+        print("\nrt_cms_organization result:%s" % pretty_json(result))
+
+        self.assertEqual(result['identifier'][0]['value'], expect)
+
+    def test_rt_cms_organization_full(self):
+        """ create full CMS Resource """
+
+        detail_mode = "full"
+        # expect = "Centers for Medicare and Medicaid Services"
+        expect_vid = "1"
+        result = rt_cms_organization(detail_mode)
+
+        print("\nrt_cms_organization full result:%s" % pretty_json(result))
+
+        self.assertEqual(result['meta']['versionId'], expect_vid)
+
+    def test_rt_hhs_organization_minimal(self):
+        """ Create CMS Resource """
+
+        detail_mode = "minimal"
+        expect = "US Department of Health and Human Services"
+        result = rt_hhs_organization(detail_mode)
+
+        print("\nrt_hhs_organization full result:%s" % pretty_json(result))
+
+        self.assertEqual(result['identifier'][0]['value'], expect)
+
+    def test_rt_hhs_organization_full(self):
+        """ Create full CMS Resource """
+
+        detail_mode = "full"
+        # expect = "US Department of Health and Human Services"
+        expect_vid = "1"
+        result = rt_hhs_organization(detail_mode)
+
+        print("\nrt_hhs_organization full result:%s" % pretty_json(result))
+
+        self.assertEqual(result['meta']['versionId'], expect_vid)
+
+    def test_organization_minimal(self):
+        """ Create Organization """
+
+        expect = "TestOrganization"
+        result = rt_organization_minimal(expect)
+
+        print("\nrt_organization_minimal result:%s" % pretty_json(result))
+
+        self.assertEqual(result['identifier'][0]['value'], expect)
