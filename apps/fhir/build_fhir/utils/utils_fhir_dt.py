@@ -30,8 +30,7 @@ from .fhir_code_sets import (FHIR_IDENTIFIER_USE_CODE,
 
 from .utils import (human_name_use,
                     build_list_from,
-                    use_code,
-                    )
+                    use_code)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -743,3 +742,18 @@ def which_key_in_dict(keys, d):
             return k
 
     return
+
+
+def rt_initialize(resource=None):
+    """ Create default resourceType record """
+
+    if resource:
+        rt = OrderedDict()
+        rt['resourceType'] = resource
+        rt['meta'] = dt_meta()
+
+        # print("\nRESOURCETYPE:\n%s" % rt)
+
+        return rt
+    else:
+        return None
