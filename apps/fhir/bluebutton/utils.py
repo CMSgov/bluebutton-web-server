@@ -24,6 +24,8 @@ from apps.fhir.bluebutton.models import (BlueButtonText)
 from apps.fhir.fhir_core.utils import (error_status,
                                        ERROR_CODE_LIST)
 
+from .models import Crosswalk
+
 PRETTY_JSON_INDENT = 4
 
 FORMAT_OPTIONS_CHOICES = ['json', 'xml']
@@ -635,3 +637,18 @@ def get_default_path(resource_name):
         #                                               default_path))
 
     return default_path
+
+
+def dt_patient_reference(user):
+    """ Get Patient Reference rom Crosswalk for user """
+
+    try:
+        patient = Crosswalk.objects.get(user=user)
+        if patient.fhir_id:
+            ref = {"reference": patient.fhir_id}
+            return ref
+
+    except Crosswalk.DoesNotExist:
+        pass
+
+    return None
