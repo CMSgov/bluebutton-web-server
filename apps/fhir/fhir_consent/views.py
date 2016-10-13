@@ -2,15 +2,28 @@ import logging
 # from django.shortcuts import render
 # from collections import OrderedDict
 
+from ..bluebutton.utils import (dt_patient_reference)
 from ..build_fhir.utils.utils import (get_guid, pretty_json)
 from ..build_fhir.utils.utils_fhir_dt import (dt_identifier,
+                                              dt_code,
                                               dt_codeable_concept,
-                                              rt_initialize)
-from ..build_fhir.utils.fhir_code_sets import FHIR_CONSENT_CODEABLE_CONCEPT
+                                              dt_instant,
+                                              # dt_period,
+                                              rt_device,
+                                              rt_initialize,
+                                              dt_system_attachment,
+                                              rt_cms_organization)
+from ..build_fhir.utils.fhir_code_sets import (FHIR_CONSENT_CODEABLE_CONCEPT,
+                                               FHIR_CONSENT_STATUS_CODE)
+
+BB_CONSENT_AGREEMENT_URL = "/consent/agreement/1"
+BB_CONSENT_URL_TITLE = "CMS Blue Button Beneficiary-Application " \
+                       "Consent Agreement"
+BB_CONSENT_POLICY_URL = "/consent/policy/1"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-
+# STU3 Consent: http://hl7.org/fhir/2016Sep/consent.html
 json_consent_stu3 = """
 {
   "resourceType" : "Consent",
@@ -58,11 +71,11 @@ def default_consent():
     setup default fhir json consent_directive
     :return:
     """
-    rt = rt_consent_initialize()
-    rt.status = dt_consent_status('draft')
+    rt = rt_consent_activate()
+    rt['status'] = dt_consent_status('draft')
 
 
-def rt_consent_initialize():
+def rt_consent_activate(request, app, oauth_period, oauth_permission):
     """ create JSON Resource for Consent """
 
     rt = rt_initialize("Consent")
@@ -73,26 +86,31 @@ def rt_consent_initialize():
     category = dt_consent_category()
     if category:
         rt['category'] = category
+    rt['dateTime'] = dt_instant()
+
+    # oauth_period is formated using dt_period
+    rt['period'] = oauth_period
+    rt['patient'] = dt_patient_reference(request.user)
+    # Consentor will be the Patient that is connecting an app to their data.
+    rt['consentor'] = rt['patient']
+    # CMS Manages the Consent
+    rt['organization'] = rt_cms_organization("minimal")
+    rt['sourceAttachment'] = dt_system_attachment(BB_CONSENT_AGREEMENT_URL,
+                                                  BB_CONSENT_URL_TITLE)
+    rt['policy'] = BB_CONSENT_POLICY_URL
+    rt['recipient'] = rt_device(app)
+
+    # oauth_permission dict (scopes)
+    rt['pupose'] = oauth_permission
 
     print("\n%s" % pretty_json(rt))
     return rt
 
 
-def dt_consent_status(mode="draft"):
+def dt_consent_status(status="draft"):
     """ Set Status - Default = "draft" """
 
-    status_choice = ['draft',
-                     'proposed',
-                     'active',
-                     'rejected',
-                     'inactive',
-                     'entered-in-error']
-
-    if mode in status_choice:
-        status = mode
-        return status
-    else:
-        return
+    return dt_code(status.lower, FHIR_CONSENT_STATUS_CODE)
 
 
 def dt_consent_category(consent_type="hipaa"):
