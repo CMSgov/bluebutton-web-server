@@ -32,6 +32,8 @@ from .utils import (human_name_use,
                     build_list_from,
                     use_code)
 
+BB_APPLICATION_DESCRIPTOR = "CMS Blue Button Registered Application"
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
@@ -154,6 +156,15 @@ def dt_codeable_concept(concept):
 
     # return pretty_json(dt)
     return dt
+
+
+def dt_code(code, code_set):
+    """ Check Code is in CODE_SET """
+    if code:
+        if code in code_set:
+            return code
+
+    return None
 
 
 def dt_instant(my_now=None):
@@ -478,6 +489,31 @@ pt_json['patient]:
     return
 
 
+def dt_system_attachment(url_ref, title):
+    """ create url reference
+
+{
+  // from Element: extension
+  "contentType" : "<code>", // Mime type of the content, with charset etc.
+  "language" : "<code>", // Human language of the content (BCP-47)
+  "data" : "<base64Binary>", // Data inline, base64ed
+  "url" : "<uri>", // Uri where the data can be found
+  "size" : "<unsignedInt>", // Number of bytes of content (if url provided)
+  "hash" : "<base64Binary>", // Hash of the data (sha-1, base64ed)
+  "title" : "<string>", // Label to display in place of the data
+  "creation" : "<dateTime>" // Date attachment was first created
+}
+    """
+    if url_ref:
+        dt = {}
+        dt['url'] = url_ref
+        if title:
+            dt['title'] = title
+        return dt
+    else:
+        return None
+
+
 def dt_diagnosis(diag_list):
     """ Convert a list of Diagnoses to a Diagnosis data type
 
@@ -744,6 +780,42 @@ def which_key_in_dict(keys, d):
     return
 
 
+def rt_device(value):
+    """ Create Device Resource
+
+http://hl7.org/fhir/2016Sep/device.html#Device
+{
+  "resourceType" : "Device",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // Instance identifier
+  "udiCarrier" : { Identifier }, // Unique Device Identifier (UDI) Barcode string
+  "status" : "<code>", // available | not-available | entered-in-error
+  "type" : { CodeableConcept }, // R!  What kind of device this is
+  "lotNumber" : "<string>", // Lot number of manufacture
+  "manufacturer" : "<string>", // Name of device manufacturer
+  "manufactureDate" : "<dateTime>", // Date when the device was made
+  "expirationDate" : "<dateTime>", // Date and time of expiry of this device (if applicable)
+  "model" : "<string>", // Model id assigned by the manufacturer
+  "version" : "<string>", // Version number (i.e. software)
+  "patient" : { Reference(Patient) }, // Patient to whom Device is affixed
+  "owner" : { Reference(Organization) }, // Organization responsible for device
+  "contact" : [{ ContactPoint }], // Details for human/organization for support
+  "location" : { Reference(Location) }, // Where the resource is found
+  "url" : "<uri>", // Network address to contact device
+  "note" : [{ Annotation }] // Device notes and comments
+}
+    """
+    if value:
+        rt = OrderedDict()
+        rt['identifier'] = [{"value": value}]
+        rt['tyoe'] = {"text": BB_APPLICATION_DESCRIPTOR}
+        return rt
+
+    else:
+        return None
+
+
 def rt_initialize(resource=None):
     """ Create default resourceType record """
 
@@ -757,3 +829,40 @@ def rt_initialize(resource=None):
         return rt
     else:
         return None
+
+
+def rt_organization_minimal(value=None,):
+    """ Create Organization Resource """
+
+    if value:
+        rt = OrderedDict()
+        rt['identifier'] = [{"value": value}]
+        return rt
+
+    else:
+        return None
+
+
+def rt_cms_organization(detail_mode="minimal"):
+
+    org_value = "Centers for Medicare and Medicaid Services"
+    if detail_mode == "minimal":
+        rt = rt_organization_minimal(org_value)
+    else:
+        rt = rt_initialize("Organization")
+        rt['identifier'] = [dt_identifier(org_value)]
+        rt['partOf'] = rt_hhs_organization(detail_mode="minimal")
+
+    return rt
+
+
+def rt_hhs_organization(detail_mode="minimal"):
+
+    org_value = "US Department of Health and Human Services"
+    if detail_mode == "minimal":
+        rt = rt_organization_minimal(org_value)
+    else:
+        rt = rt_initialize("Organization")
+        rt['identifier'] = [dt_identifier(org_value)]
+
+    return rt
