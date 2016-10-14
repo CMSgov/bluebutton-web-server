@@ -3,11 +3,15 @@ import logging
 # from collections import OrderedDict
 
 from ..bluebutton.utils import (dt_patient_reference)
-from ..build_fhir.utils.utils import (get_guid, pretty_json)
+from ..build_fhir.utils.utils import (get_guid,
+                                      # pretty_json
+                                      )
 from ..build_fhir.utils.utils_fhir_dt import (dt_identifier,
                                               dt_code,
+                                              dt_coding,
                                               dt_codeable_concept,
                                               dt_instant,
+                                              dt_narrative,
                                               # dt_period,
                                               rt_device,
                                               rt_initialize,
@@ -15,6 +19,7 @@ from ..build_fhir.utils.utils_fhir_dt import (dt_identifier,
                                               rt_cms_organization)
 from ..build_fhir.utils.fhir_code_sets import (FHIR_CONSENT_CODEABLE_CONCEPT,
                                                FHIR_CONSENT_STATUS_CODE)
+from .utils import resource_from_scopes
 
 BB_CONSENT_AGREEMENT_URL = "/consent/agreement/1"
 BB_CONSENT_URL_TITLE = "CMS Blue Button Beneficiary-Application " \
@@ -66,13 +71,60 @@ json_consent_stu3 = """
     """
 
 
+def default_consent_directive():
+    """ Setup default DSTU2 Contract Json ConsentDirective  """
+
+    rt = rt_consent_activate()
+
+    return rt
+
+
 def default_consent():
     """
-    setup default fhir json consent_directive
+    setup default STU3 fhir json consent_directive
     :return:
     """
     rt = rt_consent_activate()
-    rt['status'] = dt_consent_status('draft')
+    # rt['status'] = dt_consent_status('draft')
+
+    return rt
+
+
+def rt_consent_directive_activate(request,
+                                  app,
+                                  narrative,
+                                  oauth_period,
+                                  oauth_permission):
+    """ create JSON ConsnetDirective """
+    rt = rt_initialize("ConsentDirective")
+    rt['identifier'] = dt_identifier(get_guid())
+    rt['text'] = dt_narrative(narrative)
+    rt['issued'] = dt_instant()
+    # oauth_period is formated using dt_period
+    rt['applies'] = oauth_period
+
+    # List of resources extracted from scopes
+    resource_list = resource_from_scopes(oauth_permission)
+    if resource_list:
+        rt['subject'] = resource_list
+
+    rt['authority'] = rt_cms_organization("minimal")
+    rt['type'] = dt_coding({"code": "privacy"})
+    # TODO: If Sync4Science scopes then include NIH Privacy type
+    rt['subType'] = dt_consent_category("hipaa")
+
+    rt['actor'] = [{'entity': dt_patient_reference(request.user),
+                    'role': dt_codeable_concept('beneficiary')},
+                   {'entity': rt_device(app),
+                    'role': dt_codeable_concept('application')}]
+    rt['signer'] = [{'type': dt_coding({"display": "Consent"}),
+                     'party': dt_patient_reference(request.user)}]
+
+    rt['bindingAttachment'] = dt_system_attachment(BB_CONSENT_AGREEMENT_URL,
+                                                   BB_CONSENT_URL_TITLE)
+
+    # print("\n%s" % pretty_json(rt))
+    return rt
 
 
 def rt_consent_activate(request, app, oauth_period, oauth_permission):
@@ -103,7 +155,7 @@ def rt_consent_activate(request, app, oauth_period, oauth_permission):
     # oauth_permission dict (scopes)
     rt['pupose'] = oauth_permission
 
-    print("\n%s" % pretty_json(rt))
+    # print("\n%s" % pretty_json(rt))
     return rt
 
 
