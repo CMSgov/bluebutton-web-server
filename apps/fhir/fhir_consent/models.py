@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -17,6 +18,7 @@ class fhir_Consent(models.Model):
     consent = JSONField(load_kwargs={'object_pairs_hook': OrderedDict})
     created = models.DateTimeField(blank=True, null=True)
     revoked = models.DateTimeField(blank=True, null=True)
+    valid_until = models.DateTimeField(blank=True, null=True)
     key = models.TextField(max_length=250, blank=True, null=True)
 
     def save(self, *args, **kwargs):
@@ -26,6 +28,11 @@ class fhir_Consent(models.Model):
         # Update the key field
         self.key = self.user.username + ":" + self.application.name + "["
         self.key += self.created.strftime('%Y-%m-%dT%H:%M.%S') + "]"
+
+        if self.valid_until:
+            if self.valid_until <= datetime.now():
+                if not self.revoked:
+                    self.revoked = self.valid_until
 
         return super(fhir_Consent, self).save(*args, **kwargs)
 
