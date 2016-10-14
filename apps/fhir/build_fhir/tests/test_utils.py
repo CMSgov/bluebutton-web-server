@@ -19,7 +19,7 @@ from ..utils.utils import (get_guid,
                            human_name_use,
                            use_code,
                            dob_to_fhir,
-                           pretty_json
+                           # pretty_json
                            )
 from ..utils.utils_fhir_dt import (name_drop_md,
                                    address_split,
@@ -280,7 +280,7 @@ class ResourceTypeTest(TestCase):
         expect = "Centers for Medicare and Medicaid Services"
         result = rt_cms_organization(detail_mode)
 
-        print("\nrt_cms_organization result:%s" % pretty_json(result))
+        # print("\nrt_cms_organization result:%s" % pretty_json(result))
 
         self.assertEqual(result['identifier'][0]['value'], expect)
 
@@ -292,7 +292,7 @@ class ResourceTypeTest(TestCase):
         expect_vid = "1"
         result = rt_cms_organization(detail_mode)
 
-        print("\nrt_cms_organization full result:%s" % pretty_json(result))
+        # print("\nrt_cms_organization full result:%s" % pretty_json(result))
 
         self.assertEqual(result['meta']['versionId'], expect_vid)
 
@@ -303,7 +303,7 @@ class ResourceTypeTest(TestCase):
         expect = "US Department of Health and Human Services"
         result = rt_hhs_organization(detail_mode)
 
-        print("\nrt_hhs_organization full result:%s" % pretty_json(result))
+        # print("\nrt_hhs_organization full result:%s" % pretty_json(result))
 
         self.assertEqual(result['identifier'][0]['value'], expect)
 
@@ -315,7 +315,7 @@ class ResourceTypeTest(TestCase):
         expect_vid = "1"
         result = rt_hhs_organization(detail_mode)
 
-        print("\nrt_hhs_organization full result:%s" % pretty_json(result))
+        # print("\nrt_hhs_organization full result:%s" % pretty_json(result))
 
         self.assertEqual(result['meta']['versionId'], expect_vid)
 
@@ -325,6 +325,6 @@ class ResourceTypeTest(TestCase):
         expect = "TestOrganization"
         result = rt_organization_minimal(expect)
 
-        print("\nrt_organization_minimal result:%s" % pretty_json(result))
+        # print("\nrt_organization_minimal result:%s" % pretty_json(result))
 
         self.assertEqual(result['identifier'][0]['value'], expect)
