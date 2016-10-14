@@ -58,6 +58,7 @@ FHIR_LOCATION_STATUS_CODE = ['active',
 
 FHIR_QUANTITY_COMP_CODE = ['<', '<=', '>=', '>']
 
+# http://hl7.org/fhir/2016Sep/valueset-consent-category.html
 FHIR_CONSENT_CODEABLE_CONCEPT = [({"code": "hipaa",
                                   "display": "HIPAA Authorization"}),
                                  ({"code": "nih-hipaa",
@@ -72,6 +73,15 @@ FHIR_CONSENT_CODEABLE_CONCEPT = [({"code": "hipaa",
                                               "research consent"})
                                  ]
 
+# http://hl7.org/fhir/2016Sep/valueset-consent-status.html
+FHIR_CONSENT_STATUS_CODE = ['draft',
+                            'proposed',
+                            'active',
+                            'rejected',
+                            'inactive',
+                            'entered-in-error']
+
+# http://hl7.org/fhir/2016Sep/valueset-consent-category.html
 FHIR_CONSENT_CATEGORY_CODE = [
     {"code": "cat1",
      "display": "Advance Directive Consent examples",
