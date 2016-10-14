@@ -158,6 +158,21 @@ def dt_codeable_concept(concept):
     return dt
 
 
+def dt_narrative(narrative):
+    """ Set the narrative
+{
+  // from Element: extension
+  "status" : "<code>", // R!  generated | extensions | additional | empty
+  "div" : "(Escaped XHTML)" // R!  Limited xhtml content
+}
+    """
+    dt = OrderedDict()
+    dt['status'] = "generated"
+    dt['div'] = narrative
+
+    return dt
+
+
 def dt_code(code, code_set):
     """ Check Code is in CODE_SET """
     if code:
