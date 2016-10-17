@@ -3,6 +3,7 @@ import random
 import uuid
 
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 from django.db import models
 from django.conf import settings
@@ -284,7 +285,8 @@ class ActivationKey(models.Model):
 class ValidPasswordResetKey(models.Model):
     user = models.ForeignKey(User)
     reset_password_key = models.CharField(max_length=50, blank=True)
-    expires = models.DateTimeField(default=datetime.now)
+    # switch from datetime.now to timezone.now
+    expires = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return '%s for user %s expires at %s' % (self.reset_password_key,
@@ -293,7 +295,8 @@ class ValidPasswordResetKey(models.Model):
 
     def save(self, **kwargs):
         self.reset_password_key = str(uuid.uuid4())
-        now = datetime.now()
+        # use timezone.now() instead of datetime.now()
+        now = timezone.now()
         expires = now + timedelta(minutes=1440)
         self.expires = expires
 

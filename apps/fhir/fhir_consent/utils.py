@@ -18,8 +18,15 @@ def resource_from_scopes(oauth_permissions):
         resource_list = []
 
         for scope in oauth_permissions:
-            resource_action = scope['code'].split("/")
-            resource = resource_action[1].split(".")
+            # print("\nScope:%s" % scope)
+            if 'code' in scope:
+                resource_action = scope['code'].split("/")
+            else:
+                resource_action = scope.split("/")
+            if len(resource_action) > 1:
+                resource = resource_action[1].split(".")
+            else:
+                resource = resource_action
             if resource[0] in resource_list:
                 pass
             else:
