@@ -15,4 +15,3 @@ class fhir_consentConfig(AppConfig):
     def ready(self):
         # import apps.fhir.fhir_consent.signals
         from apps.fhir.fhir_consent import signals  # NOQA
-
