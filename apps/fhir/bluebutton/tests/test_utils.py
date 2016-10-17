@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
+from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import (Crosswalk)
 from apps.fhir.server.models import (SupportedResourceType,
@@ -32,7 +34,9 @@ from apps.fhir.bluebutton.utils import (
     # post_process_request,
     prepend_q,
     pretty_json,
-    get_default_path
+    get_default_path,
+    dt_patient_reference,
+    crosswalk_patient_id
 )
 
 ENCODED = settings.ENCODING
@@ -885,3 +889,68 @@ class Resource_URL_Test(TestCase):
         expected = non_default
 
         self.assertEqual(default_path, expected)
+
+
+class Patient_Resource_Test(BaseApiTest):
+
+    """ Testing for Patient/id DT resource from Crosswalk """
+
+    def setUp(self):
+        # Setup the RequestFactory
+        # I could probably update this to use a Mock()
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='fred4', email='fred4@...', password='top_secret')
+
+        xwalk = Crosswalk()
+        xwalk.user = self.user
+        xwalk.fhir_id = "Patient/12345"
+        xwalk.save()
+
+    def test_crosswalk_fhir_id(self):
+        """ Get the Crosswalk FHIR_Id """
+
+        u = User.objects.create_user(username="billybob",
+                                     first_name="Billybob",
+                                     last_name="Button",
+                                     email='billybob@example.com',
+                                     password="foobar", )
+        UserProfile.objects.create(user=u,
+                                   user_type="DEV",
+                                   create_applications=True)
+
+        x = Crosswalk()
+        x.user = u
+        x.fhir_id = "Patient/23456"
+        x.save()
+
+        result = crosswalk_patient_id(u)
+
+        self.assertEqual(x.fhir_id, result)
+
+        # Test the dt_reference for Patient
+
+        result = dt_patient_reference(u)
+
+        expect = {'reference': x.fhir_id}
+
+        self.assertEqual(result, expect)
+
+    def test_crosswalk_not_fhir_id(self):
+        """ Get no Crosswalk id """
+
+        u = User.objects.create_user(username="bobnobob",
+                                     first_name="bob",
+                                     last_name="Button",
+                                     email='billybob@example.com',
+                                     password="foobar", )
+
+        result = crosswalk_patient_id(u)
+
+        self.assertEqual(result, None)
+
+        # Test the dt_reference for Patient returning None
+
+        result = dt_patient_reference(u)
+
+        self.assertEqual(result, None)
