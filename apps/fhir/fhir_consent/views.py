@@ -90,16 +90,18 @@ def default_consent():
     return rt
 
 
-def rt_consent_directive_activate(request,
-                                  app,
+def rt_consent_directive_activate(user,
+                                  appname,
                                   narrative,
                                   oauth_period,
                                   oauth_permission):
-    """ create JSON ConsnetDirective """
+    """ create JSON ConsentDirective """
+
     rt = rt_initialize("ConsentDirective")
     rt['identifier'] = dt_identifier(get_guid())
     rt['text'] = dt_narrative(narrative)
     rt['issued'] = dt_instant()
+
     # oauth_period is formated using dt_period
     rt['applies'] = oauth_period
 
@@ -113,12 +115,13 @@ def rt_consent_directive_activate(request,
     # TODO: If Sync4Science scopes then include NIH Privacy type
     rt['subType'] = dt_consent_category("hipaa")
 
-    rt['actor'] = [{'entity': dt_patient_reference(request.user),
+    rt['actor'] = [{'entity': dt_patient_reference(user),
                     'role': dt_codeable_concept('beneficiary')},
-                   {'entity': rt_device(app),
+                   {'entity': rt_device(appname),
                     'role': dt_codeable_concept('application')}]
+
     rt['signer'] = [{'type': dt_coding({"display": "Consent"}),
-                     'party': dt_patient_reference(request.user)}]
+                     'party': dt_patient_reference(user)}]
 
     rt['bindingAttachment'] = dt_system_attachment(BB_CONSENT_AGREEMENT_URL,
                                                    BB_CONSENT_URL_TITLE)
@@ -127,14 +130,16 @@ def rt_consent_directive_activate(request,
     return rt
 
 
-def rt_consent_activate(request, app, oauth_period, oauth_permission):
+def rt_consent_activate(user, app, oauth_period, oauth_permission):
     """ create JSON Resource for Consent """
 
     rt = rt_initialize("Consent")
     rt['identifier'] = dt_identifier(get_guid())
+
     status = dt_consent_status('active')
     if status:
         rt['status'] = status
+
     category = dt_consent_category()
     if category:
         rt['category'] = category
@@ -142,9 +147,11 @@ def rt_consent_activate(request, app, oauth_period, oauth_permission):
 
     # oauth_period is formated using dt_period
     rt['period'] = oauth_period
-    rt['patient'] = dt_patient_reference(request.user)
+    rt['patient'] = dt_patient_reference(user)
+
     # Consentor will be the Patient that is connecting an app to their data.
     rt['consentor'] = rt['patient']
+
     # CMS Manages the Consent
     rt['organization'] = rt_cms_organization("minimal")
     rt['sourceAttachment'] = dt_system_attachment(BB_CONSENT_AGREEMENT_URL,
@@ -171,7 +178,7 @@ def dt_consent_category(consent_type="hipaa"):
     if consent_type:
         for item in FHIR_CONSENT_CODEABLE_CONCEPT:
             if 'code' in item:
-                logger.debug("\nITEM: %s" % item['code'])
+                # logger.debug("\nITEM: %s" % item['code'])
                 if item['code'] == consent_type:
                     return dt_codeable_concept(item)
 

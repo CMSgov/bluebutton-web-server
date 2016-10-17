@@ -330,7 +330,6 @@ def dt_period(start_date=None, end_date=None):
     """ Create a Period Data Type
 
 {
-  // from Element: extension
   "start" : "<dateTime>", // C? Starting time with inclusive boundary
   "end" : "<dateTime>" // C? End time with inclusive boundary, if not ongoing
 }
