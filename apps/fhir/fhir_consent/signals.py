@@ -12,7 +12,9 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 Requires entry in apps.py and __init__.py to enable write_consent
 
 """
-# import json
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 import logging
 
 # from collections import OrderedDict
