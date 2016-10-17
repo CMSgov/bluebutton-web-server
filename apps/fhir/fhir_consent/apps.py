@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 from django.apps import AppConfig
 from django.utils.translation import ugettext_lazy as _
 # from apps.fhir.fhir_consent import signals
@@ -11,6 +13,6 @@ class fhir_consentConfig(AppConfig):
     verbose_name = _("fhir_consent")
 
     def ready(self):
-        # import apps.fhir.fhir_consent.signals  # NOQA
+        # import apps.fhir.fhir_consent.signals
         from apps.fhir.fhir_consent import signals  # NOQA
-        # import signals
+
