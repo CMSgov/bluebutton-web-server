@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from datetime import datetime
+# from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -30,7 +30,10 @@ class fhir_Consent(models.Model):
         self.key += self.created.strftime('%Y-%m-%dT%H:%M.%S') + "]"
 
         if self.valid_until:
-            if self.valid_until <= datetime.now():
+            # print("\nChecking valid_until"
+            #       " still valid:%s\nType:%s" % (self.valid_until,
+            #                                   type(self.valid_until)))
+            if self.valid_until <= timezone.now():
                 if not self.revoked:
                     self.revoked = self.valid_until
 
