@@ -41,12 +41,12 @@ def request_call(request, call_url, fail_redirect="/"):
         r = requests.get(call_url)
 
     except requests.ConnectionError:
-        logger.debug('Problem connecting to FHIR Server')
+        # logger.debug('Problem connecting to FHIR Server')
         messages.error(request, 'FHIR Server is unreachable.')
         return HttpResponseRedirect(fail_redirect)
 
     if r.status_code in ERROR_CODE_LIST:
-        logger.debug("\nError Status Code:%s" % r.status_code)
+        # logger.debug("\nError Status Code:%s" % r.status_code)
         return error_status(r, r.status_code)
 
     return r
@@ -137,8 +137,8 @@ def add_params(srtc, key=None):
             else:
                 params_list = [params_list, ]
 
-            logger.debug('Parameters to add:%s' % params_list)
-            logger.debug('key to replace: %s' % key)
+            # logger.debug('Parameters to add:%s' % params_list)
+            # logger.debug('key to replace: %s' % key)
 
             add_params = []
             for item in params_list:
@@ -158,7 +158,7 @@ def add_params(srtc, key=None):
 
                     add_params.append(item)
 
-            logger.debug('Resulting additional parameters:%s' % add_params)
+            # logger.debug('Resulting additional parameters:%s' % add_params)
 
     return add_params
 
@@ -201,7 +201,7 @@ def concat_parms(front_part={}, back_part={}):
                     joined_parms[item_split[0]] = ''
 
     concat_parm = '?' + urlencode(joined_parms)
-    logger.debug("Concat_parm:%s" % concat_parm)
+    # logger.debug("Concat_parm:%s" % concat_parm)
     if concat_parm.startswith('?='):
         concat_parms = '?' + concat_parm[3:]
     else:
@@ -246,7 +246,7 @@ def build_params(get, srtc, key):
     # leading ? and parameters joined by &
     all_param = concat_parms(url_param, add_param)
 
-    logger.debug('Parameter (post block/add):%s' % all_param)
+    # logger.debug('Parameter (post block/add):%s' % all_param)
 
     # now we check for _format being specified. Otherwise we get back html
     # by default we will process json unless _format is already set.
@@ -640,13 +640,24 @@ def get_default_path(resource_name):
 
 
 def dt_patient_reference(user):
-    """ Get Patient Reference rom Crosswalk for user """
+    """ Get Patient Reference from Crosswalk for user """
 
+    if user:
+        patient = crosswalk_patient_id(user)
+        if patient:
+            return {'reference': patient}
+
+    return None
+
+
+def crosswalk_patient_id(user):
+    """ Get patient/id from Crosswalk for user """
+
+    # print("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
         if patient.fhir_id:
-            ref = {"reference": patient.fhir_id}
-            return ref
+            return patient.fhir_id
 
     except Crosswalk.DoesNotExist:
         pass
