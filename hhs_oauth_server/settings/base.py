@@ -3,6 +3,7 @@ import dj_database_url
 import socket
 import datetime
 from getenv import env
+from ..utils import bool_env
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import ugettext_lazy as _
@@ -56,7 +57,7 @@ ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*',
 # Warning: on macOS hostname is case sensitive
 
 # DEBUG = env('DJANGO_DEBUG', False)
-DEBUG = env('DJANGO_DEBUG', True)
+DEBUG = bool_env(env('DJANGO_DEBUG', True))
 
 # if DEBUG:
 #     print("WARNING: Set DJANGO_DEBUG environment variable to False "
@@ -130,7 +131,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = env('CORS_ORIGIN_ALLOW_ALL', True)
+CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
@@ -208,7 +209,7 @@ STATICFILES_DIRS = [
 ]
 
 # emails
-SEND_EMAIL = env('DJANGO_SEND_EMAIL', True)
+SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
 # The console.EmailBackend backend prints to the console.
@@ -217,7 +218,7 @@ EMAIL_BACKEND_DEFAULT = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
 
 # SMS
-SEND_SMS = env('DJANGO_SEND_SMS', False)
+SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
 
 # MFA - Active or Not or False
 # If using MFA enabled login this value is used to determin if
@@ -441,6 +442,12 @@ AXES_COOLOFF_TIME = datetime.timedelta(seconds=600)
 # We will need to add REWRITE_FROM and REWRITE_TO to models
 # to enable search and replace in content returned from backend server.
 # Otherwise source server address is exposed to external users.
+
+BB_CONSENT = {
+    'AGREEMENT_URL': "/consent/agreement/1/",
+    'URL_TITLE': "CMS Blue Button Beneficiary-Application Consent Agreement",
+    'POLICY_URL': "/consent/policy/1/"
+}
 
 FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     'PATH': env('THS_FHIR_PATH'),
