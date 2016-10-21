@@ -9,6 +9,7 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^accounts/', include('apps.accounts.urls')),
+    url(r'^consent/', include('apps.fhir.fhir_consent.urls')),
     url(r'^education/', include('apps.education.urls')),
     url(r'^profile/me$', user_self, name='user_self'),
     url(r'^api/', include('apps.api.urls')),
