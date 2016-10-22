@@ -13,7 +13,7 @@ if 'apps.fhir.testac' not in INSTALLED_APPS:
 
 # Set ADMINS and MANAGERS
 ADMINS = (
-    os.environ.get('DJANGO_APP_ADMINS', "('Mark Scrimshire[Dev]', 'mark@ekivemark.com')"),
+    ('Mark Scrimshire[Dev]', 'mark@ekivemark.com'),
 )
 MANAGERS = ADMINS
 
