@@ -320,6 +320,7 @@ def issue_invite(email, user_type="BEN"):
         invitation.code = random_code()
         invitation.valid = True
         invitation.email = email
+        invitation.user_type = user_type
         invitation.save()
 
         logger.debug("Invitation %s created: %s" % (invitation.code,
