@@ -3,7 +3,7 @@ import dj_database_url
 import socket
 import datetime
 from getenv import env
-from ..utils import bool_env
+from ..utils import bool_env, int_env
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import ugettext_lazy as _
@@ -13,10 +13,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, '..')
 
 # Set ADMINS and MANAGERS
+# Override ADMINS and MANAGERS Settings in environment specific settings file
+# or in custom-envvars.py
 ADMINS = (
-    os.environ.get(
-        'DJANGO_APP_ADMINS',
-        "('Mark Scrimshire', 'mark@ekivemark.com')"),
+    ('Mark Scrimshire', 'mark@ekivemark.com'),
 )
 MANAGERS = ADMINS
 
@@ -216,6 +216,34 @@ DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
 # Redefine this for SES or other email delivery mechanism
 EMAIL_BACKEND_DEFAULT = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
+EMAIL_HOST = env('DJANGO_EMAIL_HOST', 'email-smtp.us-east-1.amazonaws.com')
+# SES PORT options: 25, 465, 587, 2465 or 2587.
+# Port 25 is throttled
+# Use port 587 or 2587 for TLS connections
+# Use port 465 or 2465 for Native SSL support
+EMAIL_PORT = int_env(env('DJANGO_EMAIL_PORT', 587))
+EMAIL_USE_TLS = bool_env(env('DJANGO_EMAIL_USE_TLS', 'True'))
+EMAIL_USE_SSL = bool_env(env('DJANGO_EMAIL_USE_SSL', 'False'))
+EMAIL_TIMEOUT = env('DJANGO_EMAIL_TIMEOUT', None)
+EMAIL_HOST_USER = env('DJANGO_EMAIL_HOST_USER', None)
+EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', None)
+EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', None)
+EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
+
+# Code from SMTP.py:
+#         self.host = host or settings.EMAIL_HOST
+#         self.port = port or settings.EMAIL_PORT
+#         self.username = settings.EMAIL_HOST_USER if username is None else username
+#         self.password = settings.EMAIL_HOST_PASSWORD if password is None else password
+#         self.use_tls = settings.EMAIL_USE_TLS if use_tls is None else use_tls
+#         self.use_ssl = settings.EMAIL_USE_SSL if use_ssl is None else use_ssl
+#         self.timeout = settings.EMAIL_TIMEOUT if timeout is None else timeout
+#         self.ssl_keyfile = settings.EMAIL_SSL_KEYFILE if ssl_keyfile is None else ssl_keyfile
+#         self.ssl_certfile = settings.EMAIL_SSL_CERTFILE if ssl_certfile is None else ssl_certfile
+#         if self.use_ssl and self.use_tls:
+#             raise ValueError(
+#                 "EMAIL_USE_TLS/EMAIL_USE_SSL are mutually exclusive, so only set "
+#                 "one of those settings to True.")
 
 # SMS
 SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
@@ -459,7 +487,11 @@ FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}
 
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 3)
-ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS OAuth2 Server')
+ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
+
+# REGISTRATION PAGES
+INVITE_DEVELOPER_REGISTRATION_URL = "/accounts/create-developer"
+INVITE_USER_REGISTRATION_URL = "/accounts/create-user"
 
 LOGIN_REDIRECT_URL = '/accounts/mfa/login'
 LOGIN_URL = '/accounts/mfa/login'
