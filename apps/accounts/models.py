@@ -220,6 +220,9 @@ class Invitation(models.Model):
     email = models.EmailField(blank=True)
     valid = models.BooleanField(default=True)
     added = models.DateField(auto_now_add=True)
+    user_type = models.CharField(default='BEN',
+                                 choices=USER_CHOICES,
+                                 max_length=5)
 
     def __str__(self):
         return self.code
@@ -227,25 +230,38 @@ class Invitation(models.Model):
     def save(self, **kwargs):
         if self.valid:
             # send the verification email.
+            registration_url = ''
+            if self.user_type == "DEV":
+                registration_url = settings.INVITE_DEVELOPER_REGISTRATION_URL
+                invite_type = "Developer"
+            else:
+                registration_url = settings.INVITE_USER_REGISTRATION_URL
+                invite_type = "User"
             msg = """
             <html>
             <head>
             </head>
             <body>
             Congratulations. You have been invited to join the
-            OAuth2 Server Alpha.<br>
+            %s %s community.<br>
 
-            You may now <a href='%s'>register</a> with the invitation code:
+            You may now <a href='%s%s'>register</a> with the invitation code:
 
             <h2>%s</h2>
 
-            - The Team
+            - The %s Team
             </body>
             </html>
-            """ % (settings.HOSTNAME_URL, self.code,)
+            """ % (settings.ORGANIZATION_NAME,
+                   invite_type,
+                   settings.HOSTNAME_URL,
+                   registration_url,
+                   self.code,
+                   settings.ORGANIZATION_NAME)
             if settings.SEND_EMAIL:
-                subj = '[%s] Invitation ' \
+                subj = '[%s] %s Invitation ' \
                        'Code: %s' % (settings.ORGANIZATION_NAME,
+                                     invite_type,
                                      self.code)
 
                 msg = EmailMessage(subj,
