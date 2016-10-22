@@ -9,6 +9,9 @@ Created: 10/20/16 11:06 PM
 
 File created by: 'MArk Scrimshire: @ekivemark'
 """
+
+from decimal import Decimal
+
 TRUE_LIST = [1, "1", "true", "True", "TRUE", "YES", "Yes", "yes", True]
 FALSE_LIST = [0, "0", "False", "FALSE", "false", "NO", "No", "no", False]
 
@@ -29,3 +32,9 @@ def bool_env(env_val):
 
         # print("Returning:%s" % env_val)
         return
+
+
+def int_env(env_val):
+    """ convert to integer from String """
+
+    return int(Decimal(float(env_val)))
