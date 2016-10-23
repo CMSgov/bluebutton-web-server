@@ -98,6 +98,12 @@ def request_user_invite(request):
     if request.method == 'POST':
         form = RequestUserInviteForm(request.POST)
         if form.is_valid():
+
+            invite_request = form.save()
+            # Set the invite user_type to BEN
+            invite_request.user_type = "BEN"
+            invited_email = invite_request.email
+
             invite_request = form.save()
 
             send_invite_request_notices(invite_request)
@@ -108,6 +114,14 @@ def request_user_invite(request):
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
+            if IsAppInstalled('apps.extapi'):
+                # Installation Specific code
+                logger.debug("email to invite:%s" % invited_email)
+                issued_invite = issue_invite(invited_email, user_type="BEN")
+                if issued_invite:
+                    logger.debug("Invite Code:%s" % issued_invite)
+                    return HttpResponseRedirect(reverse('accounts_create_user'))
+
             if settings.MFA:
                 return HttpResponseRedirect(reverse('mfa_login'))
             else:
@@ -186,6 +200,7 @@ def reissue_api_keys(request):
 
 
 def create_developer(request):
+    """ Replaced by create_developer_generic """
 
     name = "Create a Developer Account"
 
@@ -216,6 +231,7 @@ def create_developer(request):
 
 
 def create_user(request):
+    """ Replaced by create_user_generic """
 
     name = "Create a Medicare Beneficiary Account"
 
@@ -243,6 +259,81 @@ def create_user(request):
         return render(request,
                       'generic/bootstrapform.html',
                       {'name': name, 'form': SignupUserForm()})
+
+
+def create_developer_generic(request):
+    """ Pass through to create_account """
+
+    mode = {"type": "DEV",
+            "name": "Create a Developer Account"}
+    return create_account(request, mode)
+
+
+def create_user_generic(request):
+    """ Pass through to create_account """
+
+    mode = {"type": "BEN",
+            "name": "Create a Beneficiary Account"}
+    return create_account(request, mode)
+
+
+def create_account(request, mode={"type": "BEN"}):
+    """ Generic Create Account """
+    if mode['type'] == "DEV":
+        long_type = "Developer"
+    elif mode['type'] == "BEN":
+        long_type = "Beneficiary"
+    else:
+        long_type = "User"
+
+    if 'name' in mode:
+        name = mode['name']
+    if name:
+        pass
+    elif mode['type'] == "BEN":
+        name = "Create a Beneficiary Account"
+    elif mode['type'] == "DEV":
+        name = "Create a Developer Account"
+    else:
+        name = "Create an Account"
+
+    if request.method == 'POST':
+        if mode['type'] == "DEV":
+            form = SignupDeveloperForm(request.POST)
+        else:
+            form = SignupUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request,
+                             _("Your %s account was created. "
+                               "Please check your email to verify "
+                               "your account." % long_type))
+
+            if settings.MFA:
+                return HttpResponseRedirect(reverse('mfa_login'))
+            else:
+                return HttpResponseRedirect(reverse('login'))
+        else:
+            # return the bound form with errors
+            return render(request,
+                          'generic/bootstrapform.html',
+                          {'name': name, 'form': form})
+    else:
+        # this is an HTTP  GET
+        form_data = {'invitation_code': request.GET.get('invitation_code', ''),
+                     'email': request.GET.get('email', '')}
+        if mode['type'] == "DEV":
+            form = SignupDeveloperForm(initial=form_data)
+        else:
+            form = SignupUserForm(initial=form_data)
+        if form_data['invitation_code']:
+            pass
+        else:
+            messages.info(request,
+                          _("An invitation code is required to register."))
+        return render(request,
+                      'generic/bootstrapform.html',
+                      {'name': name, 'form': form})
 
 
 @login_required

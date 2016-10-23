@@ -1,7 +1,9 @@
 from django.conf.urls import url
 # from axes.decorators import watch_login
-from .views.core import (create_developer,
-                         create_user,
+from .views.core import (create_developer_generic,
+                         # create_developer,
+                         # create_user,
+                         create_user_generic,
                          account_settings,
                          reissue_api_keys,
                          request_developer_invite,
@@ -32,11 +34,18 @@ urlpatterns = [
     # url(r'^login$', watch_login(simple_login), name='login'),
     # create and update account info -----------------------
     url(r'^create-developer$',
-        create_developer,
+        create_developer_generic,
         name='accounts_create_developer'),
+    url(r'^create-developer$',
+        create_developer_generic,
+        name='accounts_create_developer'),
+    # url(r'^create-user$',
+    #     create_user,
+    #     name='accounts_create_user'),
     url(r'^create-user$',
-        create_user,
+        create_user_generic,
         name='accounts_create_user'),
+
     url(r'^settings$', account_settings, name='account_settings'),
 
     # MFA URLs ------------------------------------------
