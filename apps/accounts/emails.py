@@ -1,8 +1,17 @@
 import random
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from hhs_oauth_server.message import EmailMultiAlternatives
+# from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
+
+""" Found a bug in EmailMultiAlternatives
+    A spurious "None" / None was being added in the __init__
+    I copied the message.py code to hhs_oauth_server
+    and added a patch to check for "None" or None
+    and remove it from the list.
+
+"""
 
 
 def random_secret(y=40):
@@ -119,33 +128,55 @@ def send_activation_key_via_email(user, signup_key):
 
 
 def send_invite_request_notices(invite_request):
-    subject = '[%s]Invitation Request Received' % (settings.ORGANIZATION_NAME)
+    subject = '[%s] Invitation Request Received' % (settings.ORGANIZATION_NAME)
     from_email = settings.DEFAULT_FROM_EMAIL
     to = invite_request.email
+    if invite_request.user_type == "DEV":
+        u_type = "<p>Thank you for your application to join the %s " \
+                 "Developer Community.</p>" % settings.ORGANIZATION_NAME
+    else:
+        u_type = "<p>Welcome to the %s " \
+                 "Community. We are excited to help you connect " \
+                 "your Medicare information with a growing library of " \
+                 "health applications.</p>" % settings.ORGANIZATION_NAME
 
     html_content = """
     <p>
     Hello: %s %s,
     </p>
     <p>
-    Your request for an invite to the OAuth2 Server (%s) has been received.
+    Your request for an invite to the %s (%s) has been received.
+    </p>
+    %s
+    <p>
+    We are working hard to build out our service to meet the growing demand.
+     We will send you another email with an Invitation Code when we have more
+    capacity available. You will need the Invitation Code in order to create
+    your account.
     </p>
     <p>
     Thank You,
     </p>
     <p>
-    The Team
+    The %s Team
     </p>
     """ % (invite_request.first_name,
            invite_request.last_name,
-           settings.HOSTNAME_URL, )
+           settings.ORGANIZATION_NAME,
+           settings.HOSTNAME_URL,
+           u_type,
+           settings.ORGANIZATION_NAME)
 
     text_content = """Hello: %s %s,
-    Your request for an invite to OAuth2 Server (%s) has been received.
+    Your request for an invite to %s (%s) has been received.
     """ % (invite_request.first_name,
            invite_request.last_name,
+           settings.ORGANIZATION_NAME,
            settings.HOSTNAME_URL)
     msg = EmailMultiAlternatives(subject, text_content, from_email,
                                  [to, settings.INVITE_REQUEST_ADMIN])
     msg.attach_alternative(html_content, 'text/html')
+
+    # print("\n\nMESSAGE EMAIL - INVITE REQUEST: %s / %s" % (to, msg.to))
+
     msg.send()

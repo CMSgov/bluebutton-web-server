@@ -7,12 +7,12 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.fhir.core.utils import (kickout_403,
-                                  write_session,
-                                  find_ikey,
-                                  get_search_param_format,
-                                  get_target_url,
-                                  SESSION_KEY)
+from apps.fhir.fhir_core.utils import (kickout_403,
+                                       write_session,
+                                       find_ikey,
+                                       get_search_param_format,
+                                       get_target_url,
+                                       SESSION_KEY)
 
 from apps.fhir.bluebutton.utils import (
     request_call,
@@ -25,7 +25,8 @@ from apps.fhir.bluebutton.utils import (
     get_host_url,
     build_output_dict,
     post_process_request,
-    pretty_json)
+    pretty_json,
+    get_default_path)
 
 from apps.fhir.bluebutton.models import Crosswalk
 
@@ -87,6 +88,11 @@ def generic_read(request,
 
     srtc = check_rt_controls(resource_type)
     # We get back a Supported ResourceType Control record or None
+    # with earlier if deny step we should have a valid srtc.
+
+    default_path = get_default_path(srtc.resource_name)
+    # get the default path for resource with ending "/"
+    # You need to add resource_type + "/" for full url
 
     logger.debug('srtc: %s' % srtc)
 
@@ -119,7 +125,7 @@ def generic_read(request,
     # if search_override add search keys
 
     fhir_url = ''
-    # get the default_url from ResourceTypeControl
+    # change source of default_url to ResourceRouter
 
     # Add default FHIR Server URL to re-write
 
@@ -128,15 +134,10 @@ def generic_read(request,
 
     if srtc:
         logger.debug('SRTC:%s' % srtc)
-        if srtc.default_url == '':
-            fhir_url = FhirServerUrl() + resource_type + '/'
-            if FhirServerUrl()[:-1] not in rewrite_url_list:
-                rewrite_url_list.append(FhirServerUrl()[:-1])
 
-        else:
-            fhir_url = srtc.default_url + resource_type + '/'
-            rewrite_url_list.append(srtc.default_url)
-            # print('srtc.default_url')
+        fhir_url = default_path + resource_type + '/'
+        # Add to the rewrite_url list
+        rewrite_url_list.append(default_path)
 
     else:
         logger.debug('CX:%s' % cx)
@@ -146,8 +147,9 @@ def generic_read(request,
         else:
             # logger.debug('FHIRServer:%s' % FhirServerUrl())
             fhir_url = FhirServerUrl() + resource_type + '/'
-            if FhirServerUrl()[:-1] not in rewrite_url_list:
-                rewrite_url_list.append(FhirServerUrl())
+
+    if FhirServerUrl()[:-1] not in rewrite_url_list:
+        rewrite_url_list.append(FhirServerUrl()[:-1])
 
     logger.debug('FHIR URL:%s' % fhir_url)
     logger.debug('Rewrite List:%s' % rewrite_url_list)

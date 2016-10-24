@@ -130,6 +130,8 @@ class SignupDeveloperForm(forms.Form):
     first_name = forms.CharField(max_length=100, label=_("First Name"))
     last_name = forms.CharField(max_length=100, label=_("Last Name"))
     mobile_phone_number = USPhoneNumberField(required=False,
+                                             label=_("Mobile Phone Number "
+                                                     "(Optional)"),
                                              help_text=_("We use this for "
                                                          "multi-factor "
                                                          "authentication. "
@@ -242,6 +244,8 @@ class SignupUserForm(forms.Form):
     first_name = forms.CharField(max_length=100, label=_("First Name"))
     last_name = forms.CharField(max_length=100, label=_("Last Name"))
     mobile_phone_number = USPhoneNumberField(required=False,
+                                             label=_("Mobile Phone Number "
+                                                     "(Optional)"),
                                              help_text=_(
                                                  "We use this for multi-factor"
                                                  " authentication. "

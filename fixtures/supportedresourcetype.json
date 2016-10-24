@@ -1,0 +1,134 @@
+[
+{
+    "model": "server.supportedresourcetype",
+    "pk": 1,
+    "fields": {
+        "resource_name": "Patient",
+        "json_schema": "{}",
+        "get": true,
+        "read": true,
+        "vread": true,
+        "history": true,
+        "search": true,
+        "put": false,
+        "create": false,
+        "update": false,
+        "patch": false,
+        "delete": false,
+        "override_url_id": true,
+        "override_search": true,
+        "search_block": "patient",
+        "search_add": "patient=%PATIENT%"
+    }
+},
+{
+    "model": "server.supportedresourcetype",
+    "pk": 2,
+    "fields": {
+        "resource_name": "ExplanationOfBenefit",
+        "json_schema": "{}",
+        "get": true,
+        "read": true,
+        "vread": true,
+        "history": true,
+        "search": true,
+        "put": false,
+        "create": false,
+        "update": false,
+        "patch": false,
+        "delete": false,
+        "override_url_id": false,
+        "override_search": true,
+        "search_block": "patient",
+        "search_add": "patient=%PATIENT%"
+    }
+},
+{
+    "model": "server.supportedresourcetype",
+    "pk": 3,
+    "fields": {
+        "resource_name": "Practitioner",
+        "json_schema": "{}",
+        "get": true,
+        "read": true,
+        "vread": true,
+        "history": true,
+        "search": true,
+        "put": false,
+        "create": false,
+        "update": false,
+        "patch": false,
+        "delete": false,
+        "override_url_id": false,
+        "override_search": false,
+        "search_block": "",
+        "search_add": ""
+    }
+},
+{
+    "model": "server.supportedresourcetype",
+    "pk": 4,
+    "fields": {
+        "resource_name": "Organization",
+        "json_schema": "{}",
+        "get": true,
+        "read": true,
+        "vread": true,
+        "history": true,
+        "search": true,
+        "put": false,
+        "create": false,
+        "update": false,
+        "patch": false,
+        "delete": false,
+        "override_url_id": false,
+        "override_search": false,
+        "search_block": "",
+        "search_add": ""
+    }
+},
+{
+    "model": "server.supportedresourcetype",
+    "pk": 5,
+    "fields": {
+        "resource_name": "Consent",
+        "json_schema": "{}",
+        "get": true,
+        "read": true,
+        "vread": true,
+        "history": true,
+        "search": true,
+        "put": true,
+        "create": true,
+        "update": true,
+        "patch": false,
+        "delete": false,
+        "override_url_id": false,
+        "override_search": true,
+        "search_block": "",
+        "search_add": "patient=%PATIENT%"
+    }
+},
+{
+    "model": "server.supportedresourcetype",
+    "pk": 6,
+    "fields": {
+        "resource_name": "Contract",
+        "json_schema": "{}",
+        "get": true,
+        "read": true,
+        "vread": true,
+        "history": true,
+        "search": true,
+        "put": true,
+        "create": true,
+        "update": true,
+        "patch": false,
+        "delete": false,
+        "override_url_id": false,
+        "override_search": true,
+        "search_block": "",
+        "search_add": "patient=%PATIENT%"
+    }
+}
+]

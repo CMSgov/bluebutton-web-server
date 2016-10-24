@@ -16,11 +16,15 @@ from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 
-from apps.fhir.core.utils import (kickout_404, kickout_403)
-from apps.fhir.server.models import SupportedResourceType
-from apps.fhir.bluebutton.models import (ResourceTypeControl,
-                                         BlueButtonText)
-from apps.fhir.core.utils import (error_status, ERROR_CODE_LIST)
+from apps.fhir.fhir_core.utils import (kickout_403,
+                                       kickout_404)
+from apps.fhir.server.models import (SupportedResourceType,
+                                     ResourceRouter)
+from apps.fhir.bluebutton.models import (BlueButtonText)
+from apps.fhir.fhir_core.utils import (error_status,
+                                       ERROR_CODE_LIST)
+
+from .models import Crosswalk
 
 PRETTY_JSON_INDENT = 4
 
@@ -37,11 +41,12 @@ def request_call(request, call_url, fail_redirect="/"):
         r = requests.get(call_url)
 
     except requests.ConnectionError:
-        logger.debug('Problem connecting to FHIR Server')
+        # logger.debug('Problem connecting to FHIR Server')
         messages.error(request, 'FHIR Server is unreachable.')
         return HttpResponseRedirect(fail_redirect)
 
     if r.status_code in ERROR_CODE_LIST:
+        # logger.debug("\nError Status Code:%s" % r.status_code)
         return error_status(r, r.status_code)
 
     return r
@@ -117,6 +122,7 @@ def add_params(srtc, key=None):
     # %PATIENT% = key
     # key = FHIR_ID for search parameter. eg. patient= Patient profile Id
     # modify this function to add more Replaceable Parameters
+    # Need to suppress addition of patient={id} in Patient resource read
 
     # Returns List
 
@@ -131,25 +137,28 @@ def add_params(srtc, key=None):
             else:
                 params_list = [params_list, ]
 
-            logger.debug('Parameters to add:%s' % params_list)
-            logger.debug('key to replace: %s' % key)
+            # logger.debug('Parameters to add:%s' % params_list)
+            # logger.debug('key to replace: %s' % key)
 
             add_params = []
             for item in params_list:
                 # Run through list and do variable replacement
-                if '%PATIENT%' in item:
-                    if key is None:
-                        key_str = ''
-                    else:
-                        key_str = str(key)
-                    item = item.replace('%PATIENT%', key_str)
+                if srtc.resource_name.lower() not in item:
+                    # only replace 'patient=%PATIENT%' if resource not Patient
                     if '%PATIENT%' in item:
-                        # Still there we need to remove
-                        item = item.replace('%PATIENT%', '')
+                        if key is None:
+                            key_str = ''
+                        else:
+                            # force key to string
+                            key_str = str(key)
+                        item = item.replace('%PATIENT%', key_str)
+                        if '%PATIENT%' in item:
+                            # Still there we need to remove
+                            item = item.replace('%PATIENT%', '')
 
-                add_params.append(item)
+                    add_params.append(item)
 
-            logger.debug('Resulting additional parameters:%s' % add_params)
+            # logger.debug('Resulting additional parameters:%s' % add_params)
 
     return add_params
 
@@ -192,7 +201,7 @@ def concat_parms(front_part={}, back_part={}):
                     joined_parms[item_split[0]] = ''
 
     concat_parm = '?' + urlencode(joined_parms)
-    logger.debug("Concat_parm:%s" % concat_parm)
+    # logger.debug("Concat_parm:%s" % concat_parm)
     if concat_parm.startswith('?='):
         concat_parms = '?' + concat_parm[3:]
     else:
@@ -237,7 +246,7 @@ def build_params(get, srtc, key):
     # leading ? and parameters joined by &
     all_param = concat_parms(url_param, add_param)
 
-    logger.debug('Parameter (post block/add):%s' % all_param)
+    # logger.debug('Parameter (post block/add):%s' % all_param)
 
     # now we check for _format being specified. Otherwise we get back html
     # by default we will process json unless _format is already set.
@@ -391,6 +400,9 @@ def FhirServerUrl(server=None, path=None, release=None):
 
 
 def check_access_interaction_and_resource_type(resource_type, intn_type):
+    """ usage is deny = check_access_interaction_and_resource_type()
+
+     """
     try:
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         # force comparison to lower case to make case insensitive check
@@ -412,25 +424,9 @@ def check_rt_controls(resource_type):
     # Check for controls to apply to this resource_type
     # logger.debug('Resource_Type =%s' % resource_type)
     try:
-        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        srtc = SupportedResourceType.objects.get(resource_name=resource_type)
     except SupportedResourceType.DoesNotExist:
         srtc = None
-        return srtc
-
-    # logger.debug('Working with SupportedResourceType:%s' % rt)
-
-    try:
-        srtc = ResourceTypeControl.objects.get(resource_name=rt)
-    except ResourceTypeControl.DoesNotExist:
-        srtc = None
-        # srtc = {}
-        # srtc['empty'] = True
-        # srtc['resource_name'] = ''
-        # srtc['override_url_id'] = False
-        # srtc['override_search'] = False
-        # srtc['search_block'] = ['',]
-        # srtc['search_add'] = ['',]
-        # srtc['default_url'] = ''
 
     return srtc
 
@@ -623,3 +619,47 @@ def pretty_json(od, indent=PRETTY_JSON_INDENT):
     """ Print OrderedDict as pretty indented JSON """
 
     return json.dumps(od, indent=indent)
+
+
+def get_default_path(resource_name):
+    """ Get default Path for resource """
+
+    # print("\nGET_DEFAULT_URL:%s" % resource_name)
+    try:
+        rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
+        default_path = rr.fhir_path
+        # print("\nDEFAULT_URL=%s" % default_pathl)
+
+    except ResourceRouter.DoesNotExist:
+        # use the default FHIR Server URL
+        default_path = FhirServerUrl()
+        # print("\nNO MATCH for %s so setting to:%s" % (resource_name,
+        #                                               default_path))
+
+    return default_path
+
+
+def dt_patient_reference(user):
+    """ Get Patient Reference from Crosswalk for user """
+
+    if user:
+        patient = crosswalk_patient_id(user)
+        if patient:
+            return {'reference': patient}
+
+    return None
+
+
+def crosswalk_patient_id(user):
+    """ Get patient/id from Crosswalk for user """
+
+    # print("\ncrosswalk_patient_id User:%s" % user)
+    try:
+        patient = Crosswalk.objects.get(user=user)
+        if patient.fhir_id:
+            return patient.fhir_id
+
+    except Crosswalk.DoesNotExist:
+        pass
+
+    return None

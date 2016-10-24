@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.http import HttpResponse
 
+from apps.fhir.fhir_core.models import SupportedResourceType
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 ERROR_CODE_LIST = [301, 302, 400, 401, 402, 403, 404, 500, 501, 502, 503, 504]
@@ -386,3 +388,17 @@ def get_target_url(fhir_url, resource_type):
             save_url = fhir_url
 
     return save_url
+
+
+def check_access_interaction_and_resource_type(resource_type, interaction_type):
+    try:
+        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        if interaction_type not in rt.get_supported_interaction_types():
+            msg = 'The interaction {} is not permitted on {} FHIR resources on this FHIR sever.'.format(
+                interaction_type, resource_type
+            )
+            return kickout_403(msg)
+    except SupportedResourceType.DoesNotExist:
+        msg = '{} is not a supported resource type on this FHIR server.'.format(resource_type)
+        return kickout_404(msg)
+    return False

@@ -9,7 +9,9 @@ Created: 7/25/16 4:21 PM
 
 File created by: ''
 """
-from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.models import (Crosswalk,
+                                         FhirServer)
+from ...bluebutton.utils import FhirServerUrl
 
 
 def get_posted_resource_id(outcome, status_code):
@@ -76,3 +78,25 @@ def get_bb_claims(json_stuff):
         return json_stuff['claims']
     else:
         return
+
+
+def get_server(fhir_server_url=None):
+    """ Get CrossWalk Server reference or Default FHIR Server"""
+
+    if not fhir_server_url:
+        server_url = FhirServerUrl()
+    else:
+        server_url = fhir_server_url
+    try:
+        fhir_server = FhirServer.objects.get(fhir_url=server_url)
+    except FhirServer.DoesNotExist:
+
+        # Add the FHIR default FHIR_Server
+
+        fhir_server = FhirServer()
+        fhir_server.name = "default"
+        fhir_server.fhir_url = server_url
+
+        fhir_server.save()
+
+    return fhir_server

@@ -189,24 +189,29 @@
     },
     "AWSRegionArch2AMI": {
       "us-east-1": {
-        "PV": "ami-ac09f8c1",
-        "HVM": "ami-ac09f8c1"
+        "PV": "ami-d8c7aecf",
+        "HVM": "ami-28c2ab3f"
       },
       "us-east-1a": {
-        "PV": "ami-ac09f8c1",
-        "HVM": "ami-ac09f8c1"
+        "PV": "ami-d8c7aecf",
+        "HVM": "ami-28c2ab3f"
       },
       "us-east-1b": {
-        "PV": "ami-ac09f8c1",
-        "HVM": "ami-ac09f8c1"
+        "PV": "ami-d8c7aecf",
+        "HVM": "ami-28c2ab3f"
       },
       "us-east-1c": {
-        "PV": "ami-ac09f8c1",
-        "HVM": "ami-ac09f8c1"
+        "PV": "ami-d8c7aecf",
+        "HVM": "ami-28c2ab3f"
       }
     }
   },
   "Parameters": {
+     "BuildImageId": {
+        "Type": "String",
+         "Description": "Choose a PV Image",
+         "Default": "ami-d8c7aecf"
+     },
      "EnvSubNetId" : {
       "Type" : "String",
       "Default": "subnet-80ecfbaa",
@@ -240,7 +245,7 @@
      "InstanceType": {
       "Description": "RHEL Linux EC2 instance type",
       "Type": "String",
-      "Default": "t2.medium",
+      "Default": "m2.xlarge",
       "AllowedValues": [
         "t2.medium",
         "m2.xlarge",
@@ -298,7 +303,36 @@
        "Description": "Password for pyapps user account",
        "Type": "String",
        "Default": "RESET_THIS"
-     }
+     },
+     "Az1RouteTables": {
+         "Type": "CommaDelimitedList",
+         "Default": "rtb-8060b5e6,rtb-8960b5ef,rtb-8a60b5ec,rtb-8c60b5ea,rtb-9760b5f1,rtb-9560b5f3"
+     },
+      "Az2RouteTables": {
+          "Type": "CommaDelimitedList",
+          "Default": "rtb-9660b5f0,rtb-8b60b5ed,rtb-8e60b5e8,rtb-9460b5f2,rtb-8860b5ee,rtb-8f60b5e9"
+        },
+      "EnterpriseAccessSg": {
+          "Type": "String",
+          "Default": "sg-d730eead"
+        },
+      "PrivateVpnSg": {
+          "Type": "String",
+          "Default": "sg-d030eeaa"
+        },
+      "TransitiveSubnetOne": {
+          "Type": "String",
+          "Default": "subnet-83ecfba9"
+        },
+      "TransitiveSubnetTwo": {
+          "Type": "String",
+          "Default": "subnet-218e4868"
+        },
+      "VPC": {
+          "Description": "Target VPC",
+          "Type": "AWS::EC2::VPC::Id",
+          "Default": "vpc-80bdc3e7"
+        }
   },
   "Resources": {
     "EC2S3Role" : {
@@ -340,7 +374,7 @@
            ]
          }
     },
-  "Ec2SecurityGrp": {
+    "Ec2SecurityGrp": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
         "GroupDescription": "Enable SSH and access to Apache and Tomcat",
@@ -415,29 +449,29 @@
         }
       },
       "Properties": {
-        "ImageId": {
-          "Fn::FindInMap": ["AWSRegionArch2AMI", {"Ref": "AWS::Region"},
-            {"Fn::FindInMap": [ "AWSInstanceType2Arch",
-                {"Ref": "InstanceType"}, "Arch"]}]
-        },
-        "IamInstanceProfile" : { "Ref" : "EC2S3RoleProfile" },
-        "InstanceType": {"Ref": "InstanceType"},
-        "KeyName": {"Ref": "KeyName"},
+          "ImageId": {"Ref": "BuildImageId"},
+          "SecurityGroups": [{"Ref": "Ec2SecurityGrp"}],
+          "IamInstanceProfile" : { "Ref" : "EC2S3RoleProfile" },
+          "InstanceType": {"Ref": "InstanceType"},
+          "KeyName": {"Ref": "KeyName"},
 
-        "SubnetId": {"Ref": "EnvSubNetId"},
-        "Tags": [
-          {"Key": "Name", "Value": {"Ref": "InstanceName"}},
-          {"Key": "business", "Value": "oeda"},
-          {"Key": "application", "Value": "bluebutton"},
-          {"Key": "stack", "Value": {"Ref": "TagKeyStack" }},
-          {"Key": "layer", "Value": {"Ref": "TagKeyLayer"}}
-        ],
+          "Tags": [
+            {"Key": "Name", "Value": {"Ref": "InstanceName"}},
+            {"Key": "business", "Value": "oeda"},
+            {"Key": "application", "Value": "bluebutton"},
+            {"Key": "stack", "Value": {"Ref": "TagKeyStack" }},
+            {"Key": "layer", "Value": {"Ref": "TagKeyLayer"}}
+            ],
+        "Tenancy": "dedicated",
         "UserData": {
           "Fn::Base64": {
             "Fn::Join": [ "", [
                 "#!/bin/bash -ex", "\n",
                 "export BUILD_LOG=/home/ec2-user/build_status.log \n",
-                "echo 'Build starting...' >$BUILD_LOG \n",
+
+                "hostname ", {"Ref": "PyServerName"}, " >$BUILD_LOG \n",
+
+                "echo 'Hostname configured: ",{"Ref": "PyServerName"},"' >>$BUILD_LOG \n",
                 "mkdir -p /home/ec2-user/script \n",
                 "chown -R ec2-user:root /home/ec2-user/script \n",
 
@@ -625,6 +659,12 @@
           }
         }
       }
+    },
+    "MyEIP" : {
+        "Type" : "AWS::EC2::EIP",
+        "Properties" : {
+            "InstanceId" : { "Ref" : "EcInstance" }
+        }
     }
   },
   "Outputs": {
