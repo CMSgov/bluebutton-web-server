@@ -13,6 +13,7 @@ pymongo
 # support
 boto
 boto3
+django-storages
 jsonschema
 requests
 pytz
@@ -39,3 +40,6 @@ django-axes
 # for screen scraping
 robobrowser
 lxml
+
+# mock for Python 2
+mock

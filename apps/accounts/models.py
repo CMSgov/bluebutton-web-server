@@ -3,6 +3,7 @@ import random
 import uuid
 
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 from django.db import models
 from django.conf import settings
@@ -66,6 +67,9 @@ class UserProfile(models.Model):
     user_type = models.CharField(default='DEV',
                                  choices=USER_CHOICES,
                                  max_length=5)
+
+    remaining_user_invites = models.IntegerField(default=0)
+    remaining_developer_invites = models.IntegerField(default=0)
     access_key_id = models.CharField(max_length=20,
                                      blank=True)
     access_key_secret = models.CharField(max_length=40,
@@ -169,10 +173,11 @@ class MFACode(models.Model):
                up.mobile_phone_number and \
                settings.SEND_SMS:
                 # Send SMS to up.mobile_phone_number
-                sns = boto3.client('sns',
-                                   aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                   region_name='us-east-1')
+                sns = boto3.client(
+                    'sns',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name='us-east-1')
                 number = "+1%s" % (up.mobile_phone_number)
                 sns.publish(
                     PhoneNumber=number,
@@ -219,6 +224,9 @@ class Invitation(models.Model):
     email = models.EmailField(blank=True)
     valid = models.BooleanField(default=True)
     added = models.DateField(auto_now_add=True)
+    user_type = models.CharField(default='BEN',
+                                 choices=USER_CHOICES,
+                                 max_length=5)
 
     def __str__(self):
         return self.code
@@ -226,25 +234,43 @@ class Invitation(models.Model):
     def save(self, **kwargs):
         if self.valid:
             # send the verification email.
+            registration_url = ''
+            if self.user_type == "DEV":
+                registration_url = settings.INVITE_DEVELOPER_REGISTRATION_URL
+                invite_type = "Developer"
+            else:
+                registration_url = settings.INVITE_USER_REGISTRATION_URL
+                invite_type = "User"
             msg = """
             <html>
             <head>
             </head>
             <body>
             Congratulations. You have been invited to join the
-            OAuth2 Server Alpha.<br>
+            %s %s community.<br>
 
-            You may now <a href='%s'>register</a> with the invitation code:
-
+            You may now register using this link: <a href='%s%s?invitation_code=%s&email=%s'>
+            %s%s</a>.<br/>
+            With the invitation code:
             <h2>%s</h2>
 
-            - The Team
+            - The %s Team
             </body>
             </html>
-            """ % (settings.HOSTNAME_URL, self.code,)
+            """ % (settings.ORGANIZATION_NAME,
+                   invite_type,
+                   settings.HOSTNAME_URL,
+                   registration_url,
+                   self.code,
+                   self.email,
+                   settings.HOSTNAME_URL,
+                   registration_url,
+                   self.code,
+                   settings.ORGANIZATION_NAME)
             if settings.SEND_EMAIL:
-                subj = '[%s] Invitation ' \
+                subj = '[%s] %s Invitation ' \
                        'Code: %s' % (settings.ORGANIZATION_NAME,
+                                     invite_type,
                                      self.code)
 
                 msg = EmailMessage(subj,
@@ -284,7 +310,8 @@ class ActivationKey(models.Model):
 class ValidPasswordResetKey(models.Model):
     user = models.ForeignKey(User)
     reset_password_key = models.CharField(max_length=50, blank=True)
-    expires = models.DateTimeField(default=datetime.now)
+    # switch from datetime.now to timezone.now
+    expires = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return '%s for user %s expires at %s' % (self.reset_password_key,
@@ -293,7 +320,8 @@ class ValidPasswordResetKey(models.Model):
 
     def save(self, **kwargs):
         self.reset_password_key = str(uuid.uuid4())
-        now = datetime.now()
+        # use timezone.now() instead of datetime.now()
+        now = timezone.now()
         expires = now + timedelta(minutes=1440)
         self.expires = expires
 

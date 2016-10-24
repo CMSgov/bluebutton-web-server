@@ -1,10 +1,13 @@
 from collections import OrderedDict
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
+from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
-from apps.fhir.bluebutton.models import (ResourceTypeControl,
-                                         SupportedResourceType,
-                                         Crosswalk)
+from apps.fhir.bluebutton.models import (Crosswalk)
+from apps.fhir.server.models import (SupportedResourceType,
+                                     ResourceRouter)
+
 try:
     # python2
     from urlparse import parse_qsl
@@ -30,9 +33,11 @@ from apps.fhir.bluebutton.utils import (
     get_host_url,
     # post_process_request,
     prepend_q,
-    pretty_json
+    pretty_json,
+    get_default_path,
+    dt_patient_reference,
+    crosswalk_patient_id
 )
-
 
 ENCODED = settings.ENCODING
 
@@ -138,7 +143,7 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         strip parameters from get dict based on list in ResoureTypeControl record
         """
 
-        srtc = ResourceTypeControl.objects.get(pk=2)
+        srtc = SupportedResourceType.objects.get(pk=2)
 
         # <QueryDict: {'_format': ['json']}>
         get_ish_1 = {
@@ -183,7 +188,7 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
             if k in get_ish_2:
                 self.assertEquals(v, get_ish_2[k])
 
-        srtc = ResourceTypeControl.objects.get(pk=3)
+        srtc = SupportedResourceType.objects.get(pk=3)
         response = block_params(get_ish_4, srtc)
         for k, v in response.items():
             if k in get_ish_4:
@@ -219,31 +224,42 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         # user = User.objects.create_user(username, password=password )
         # # created a default user
 
-        # Test
-        srtc = ResourceTypeControl.objects.get(pk=1)
+        # Test Patient= in non-patient resource
+        srtc = SupportedResourceType.objects.get(pk=3)
+        print("SRTC: %s" % srtc.resource_name)
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
+        print("Response for %s: %s" % (srtc, response))
         self.assertEquals(response, ['patient=4995802'])
 
-        # Test
-        srtc = ResourceTypeControl.objects.get(pk=2)
+        # Test Patient= in patient resource
+        srtc = SupportedResourceType.objects.get(pk=1)
+        print("SRTC: %s" % srtc.resource_name)
+
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
         self.assertEquals(response, [])
 
         # Test
-        srtc = ResourceTypeControl.objects.get(pk=1)
+        srtc = SupportedResourceType.objects.get(pk=2)
+        Crosswalk.objects.get(pk=1)
+        fhir_id = "4995802"
+        response = add_params(srtc, fhir_id)
+        self.assertEquals(response, [])
+
+        # Test
+        srtc = SupportedResourceType.objects.get(pk=1)
+        Crosswalk.objects.get(pk=1)
+        response = add_params(srtc)
+        self.assertEquals(response, [])
+
+        # Test
+        srtc = SupportedResourceType.objects.get(pk=3)
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
         self.assertEquals(response, ['patient='])
-
-        # Test
-        srtc = ResourceTypeControl.objects.get(pk=3)
-        Crosswalk.objects.get(pk=1)
-        response = add_params(srtc)
-        self.assertEquals(response, [])
 
         # Test
         srtc = None
@@ -319,7 +335,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
             'claim': '123456',
             'resource_type': 'some_resource',
         }
-        srtc = ResourceTypeControl.objects.get(pk=4)
+        srtc = SupportedResourceType.objects.get(pk=4)
         fhir_id = '4995802'
         response = build_params(get_ish_1, srtc, fhir_id)
         expected = '?keep=keep_this&patient=4995802&_format=json'
@@ -380,7 +396,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
             'keep': ['keep_this'],
         }
 
-        srtc = ResourceTypeControl.objects.get(pk=2)
+        srtc = SupportedResourceType.objects.get(pk=2)
 
         response = get_url_query_string(get_ish_1, srtc.search_block)
 
@@ -501,7 +517,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
     fixtures = ['fhir_bluebutton_test_rt.json']
 
     def test_check_rt_controls(self):
-        """ Get ResourceTypeControl via SupportedResourceType
+        """ Get SupportedResourceType
         from resource_type """
 
         """ Test 1: Good Resource """
@@ -509,9 +525,9 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         response = check_rt_controls(resource_type)
         expect = SupportedResourceType.objects.get(resource_name=resource_type)
-        # print("Resource:", response.resource_name.id,"=", expected.id)
+        # print("Resource:", response.id,"=", expect.id)
 
-        self.assertEquals(response.resource_name.id, expect.id)
+        self.assertEquals(response.id, expect.id)
 
         """ Test 2: Bad Resource """
         resource_type = 'BadResource'
@@ -525,7 +541,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         """ Test:1 srtc with valid override_url_id=True """
 
-        srtc = ResourceTypeControl.objects.get(pk=1)
+        srtc = SupportedResourceType.objects.get(pk=1)
 
         response = masked(srtc)
         expected = True
@@ -534,7 +550,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         """ Test:2 srtc with valid override_url_id=False """
 
-        srtc = ResourceTypeControl.objects.get(pk=4)
+        srtc = SupportedResourceType.objects.get(pk=4)
 
         response = masked(srtc)
         expected = False
@@ -543,7 +559,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         """ Test:3 srtc =None """
 
-        srtc = ResourceTypeControl.objects.get(pk=1)
+        srtc = SupportedResourceType.objects.get(pk=1)
 
         response = masked(None)
         expected = False
@@ -552,7 +568,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         """ Test:4 No SRTC """
 
-        # srtc = ResourceTypeControl.objects.get(pk=1)
+        # srtc = SupportedResourceType.objects.get(pk=1)
 
         response = masked()
         expected = False
@@ -568,7 +584,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type, cx, srtc, r_id)
@@ -582,7 +598,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type,
@@ -600,7 +616,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type, cx, srtc, r_id)
@@ -614,7 +630,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type,
@@ -632,7 +648,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type, None, srtc, r_id)
@@ -646,7 +662,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type, cx, None, r_id)
@@ -839,3 +855,102 @@ class BlueButtonUtilRequestTest(TestCase):
         expected = 'http://testserver/cmsblue/fhir/v1/Patient'
 
         self.assertEqual(response, expected)
+
+
+class Resource_URL_Test(TestCase):
+    """ Test get_default_url for resource """
+
+    fixtures = ['fhir_bluebutton_testdata.json']
+
+    def test_no_default_url(self):
+        """ No url set for resource in ResourceRouter """
+
+        r_name = 'Patient'
+
+        default_path = get_default_path(r_name)
+
+        expected = FhirServerUrl()
+
+        self.assertEqual(default_path, expected)
+
+    def test_with_default(self):
+        """ Create a ResourceRouter Entry and compare result """
+
+        r_name = 'Patient'
+        non_default = "https://example.com/fhir/crap/"
+        srtc = SupportedResourceType.objects.get(resource_name=r_name)
+
+        rr = ResourceRouter.objects.create(supported_resource=srtc,
+                                           fhir_path=non_default)
+        if rr:
+            True
+
+        default_path = get_default_path(r_name)
+        expected = non_default
+
+        self.assertEqual(default_path, expected)
+
+
+class Patient_Resource_Test(BaseApiTest):
+
+    """ Testing for Patient/id DT resource from Crosswalk """
+
+    def setUp(self):
+        # Setup the RequestFactory
+        # I could probably update this to use a Mock()
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='fred4', email='fred4@...', password='top_secret')
+
+        xwalk = Crosswalk()
+        xwalk.user = self.user
+        xwalk.fhir_id = "Patient/12345"
+        xwalk.save()
+
+    def test_crosswalk_fhir_id(self):
+        """ Get the Crosswalk FHIR_Id """
+
+        u = User.objects.create_user(username="billybob",
+                                     first_name="Billybob",
+                                     last_name="Button",
+                                     email='billybob@example.com',
+                                     password="foobar", )
+        UserProfile.objects.create(user=u,
+                                   user_type="DEV",
+                                   create_applications=True)
+
+        x = Crosswalk()
+        x.user = u
+        x.fhir_id = "Patient/23456"
+        x.save()
+
+        result = crosswalk_patient_id(u)
+
+        self.assertEqual(x.fhir_id, result)
+
+        # Test the dt_reference for Patient
+
+        result = dt_patient_reference(u)
+
+        expect = {'reference': x.fhir_id}
+
+        self.assertEqual(result, expect)
+
+    def test_crosswalk_not_fhir_id(self):
+        """ Get no Crosswalk id """
+
+        u = User.objects.create_user(username="bobnobob",
+                                     first_name="bob",
+                                     last_name="Button",
+                                     email='billybob@example.com',
+                                     password="foobar", )
+
+        result = crosswalk_patient_id(u)
+
+        self.assertEqual(result, None)
+
+        # Test the dt_reference for Patient returning None
+
+        result = dt_patient_reference(u)
+
+        self.assertEqual(result, None)

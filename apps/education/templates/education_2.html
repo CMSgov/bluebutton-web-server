@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 {% block extrahead %}
     <script src="{% static 'js/switch_content.js' %}"></script>
 {% endblock %}
@@ -22,6 +22,10 @@
         <div class="row">
             <div class="col-md-8 col-sm-12">
                 <h3>So you want to share your information...</h3>
+                <p>The CMS Blue Button API is currently a pilot service. You need an invitation code
+                in order to register. Your Accountable Care Organization or a member of your care team
+                should have provided you with a code.
+                </p>
 
                 <h4>Here are the steps:</h4>
 
@@ -32,12 +36,13 @@
                     <b>3. </b>We will send you an email with an Activation link.
                     <br/>
                     <b>4. </b>Click on the link in the email. This will bring you back to
-                    the CMS  Blue Button API.
+                    the CMS Blue Button API.
                     <br/>
                     <b>5. </b>Login to complete the activation.
                     <br/>
                     <b>6. </b>We will send you an email so that you know it all worked.
                     <br/>
+                </p>
 
             </div>
             <div class="col-md-4 col-sm-12">
@@ -48,7 +53,7 @@
         </div>
         <div class="row">
             <div class="col-md-6">
-                <a href="{% url 'accounts_create' %}" class="active btn btn-block btn-lg btn-primary">
+                <a href="{% url 'accounts_create_user' %}" class="active btn btn-block btn-lg btn-primary">
                     Yes, Activate my Advanced Blue Button!</a>
             </div>
             <div class="col-md-2">
