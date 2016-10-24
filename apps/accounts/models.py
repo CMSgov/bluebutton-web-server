@@ -67,6 +67,9 @@ class UserProfile(models.Model):
     user_type = models.CharField(default='DEV',
                                  choices=USER_CHOICES,
                                  max_length=5)
+
+    remaining_user_invites = models.IntegerField(default=0)
+    remaining_developer_invites = models.IntegerField(default=0)
     access_key_id = models.CharField(max_length=20,
                                      blank=True)
     access_key_secret = models.CharField(max_length=40,
@@ -170,10 +173,11 @@ class MFACode(models.Model):
                up.mobile_phone_number and \
                settings.SEND_SMS:
                 # Send SMS to up.mobile_phone_number
-                sns = boto3.client('sns',
-                                   aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                   region_name='us-east-1')
+                sns = boto3.client(
+                    'sns',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name='us-east-1')
                 number = "+1%s" % (up.mobile_phone_number)
                 sns.publish(
                     PhoneNumber=number,
