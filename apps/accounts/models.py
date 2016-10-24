@@ -67,6 +67,9 @@ class UserProfile(models.Model):
     user_type = models.CharField(default='DEV',
                                  choices=USER_CHOICES,
                                  max_length=5)
+    
+    remaining_user_invites =  models.IntegerField(default=0)
+    remaining_developer_invites =  models.IntegerField(default=0)
     access_key_id = models.CharField(max_length=20,
                                      blank=True)
     access_key_secret = models.CharField(max_length=40,
