@@ -6,7 +6,7 @@ from hhs_oauth_server.message import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 
 """ Found a bug in EmailMultiAlternatives
-    A rouge "None" / None was being added in the __init__
+    A spurious "None" / None was being added in the __init__
     I copied the message.py code to hhs_oauth_server
     and added a patch to check for "None" or None
     and remove it from the list.
@@ -168,9 +168,10 @@ def send_invite_request_notices(invite_request):
            settings.ORGANIZATION_NAME)
 
     text_content = """Hello: %s %s,
-    Your request for an invite to OAuth2 Server (%s) has been received.
+    Your request for an invite to %s (%s) has been received.
     """ % (invite_request.first_name,
            invite_request.last_name,
+           settings.ORGANIZATION_NAME,
            settings.HOSTNAME_URL)
     msg = EmailMultiAlternatives(subject, text_content, from_email,
                                  [to, settings.INVITE_REQUEST_ADMIN])
