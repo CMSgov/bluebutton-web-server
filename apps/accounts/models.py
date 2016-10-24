@@ -245,8 +245,9 @@ class Invitation(models.Model):
             Congratulations. You have been invited to join the
             %s %s community.<br>
 
-            You may now <a href='%s%s'>register</a> with the invitation code:
-
+            You may now register using this link: <a href='%s%s?invitation_code=%s&email=%s'>
+            %s%s</a>.<br/>
+            With the invitation code:
             <h2>%s</h2>
 
             - The %s Team
@@ -254,6 +255,10 @@ class Invitation(models.Model):
             </html>
             """ % (settings.ORGANIZATION_NAME,
                    invite_type,
+                   settings.HOSTNAME_URL,
+                   registration_url,
+                   self.code,
+                   self.email,
                    settings.HOSTNAME_URL,
                    registration_url,
                    self.code,
