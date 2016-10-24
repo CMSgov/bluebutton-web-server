@@ -441,6 +441,7 @@ SETTINGS_EXPORT = [
     'APPLICATION_TITLE',
     'THEME',
     'STATIC_URL',
+    'STATIC_ROOT',
     'MFA'
 ]
 
