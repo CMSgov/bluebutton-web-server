@@ -18,8 +18,8 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^agreement/1/$',
         TemplateView.as_view(template_name='agreement_1.html'),
-        name='learn_0'),
+        name='agreement'),
     url(r'^policy/1/$',
         TemplateView.as_view(template_name='policy_1.html'),
-        name='learn_0'),
+        name='policy'),
 ]
