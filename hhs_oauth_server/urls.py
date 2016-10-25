@@ -20,6 +20,8 @@ urlpatterns = [
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^integration/', include('apps.eimm.urls')),
     url(r'^endorse/', include('apps.endorse.urls')),
+    url(r'^home/', include('apps.home.urls')),
+
     url(r'^o/', include('apps.dot_ext.urls')),
     # url(r'^fhir/api/v1/', include('apps.fhir.bluebutton')),
     # Admin
@@ -39,5 +41,4 @@ if IsAppInstalled("apps.extapi"):
 urlpatterns += [
     # Catch all
     url(r'^', fhir_search_home, name='home'),
-    # url(r'^', include('apps.home.urls')),
 ]
