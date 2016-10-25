@@ -206,7 +206,7 @@ class MFACode(models.Model):
 class RequestInvite(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    organization = models.CharField(max_length=150)
+    organization = models.CharField(max_length=150, blank=True)
     email = models.EmailField(max_length=150)
     added = models.DateField(auto_now_add=True)
     user_type = models.CharField(default='BEN',
