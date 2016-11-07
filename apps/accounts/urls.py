@@ -1,14 +1,10 @@
 from django.conf.urls import url
 # from axes.decorators import watch_login
-from .views.core import (create_developer_generic,
-                         # create_developer,
-                         # create_user,
-                         create_user_generic,
+from .views.core import (create_account,
                          account_settings,
                          reissue_api_keys,
-                         request_developer_invite,
+                         request_invite,
                          mylogout,
-                         request_user_invite,
                          display_api_keys,
                          activation_verify,
                          # simple_login,
@@ -33,18 +29,10 @@ urlpatterns = [
     # MFA disabled.
     # url(r'^login$', watch_login(simple_login), name='login'),
     # create and update account info -----------------------
-    url(r'^create-developer$',
-        create_developer_generic,
-        name='accounts_create_developer'),
-    url(r'^create-developer$',
-        create_developer_generic,
-        name='accounts_create_developer'),
-    # url(r'^create-user$',
-    #     create_user,
-    #     name='accounts_create_user'),
-    url(r'^create-user$',
-        create_user_generic,
-        name='accounts_create_user'),
+
+    url(r'^create$',
+        create_account,
+        name='accounts_create_account'),
 
     url(r'^settings$', account_settings, name='account_settings'),
 
@@ -58,12 +46,9 @@ urlpatterns = [
 
 
     # Request a Developer invite to signup ---------------------------
-    url(r'^request-developer-invite$',
-        request_developer_invite,
-        name='request_developer_invite'),
-    # Request an invite to signup ---------------------------
-    url(r'^request-user-invite$', request_user_invite,
-        name='request_user_invite'),
+    url(r'^request-invite$',
+        request_invite,
+        name='request_invite'),
 
     # Forgot password? ---------------------------------------
     url(r'^forgot-password$', forgot_password, name='forgot_password'),
