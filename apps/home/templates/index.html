@@ -6,81 +6,34 @@
 {% block extra_head %}
 {% endblock %}
 
-{% block breadcrumbs %}
-       <div class="container">
-        <ul class="breadcrumb">
-            <li class="active">Home</li>
-        </ul>
-    </div>
-{% endblock %}
-{% block pagename %}Welcome to Blue Button On FHIR{% endblock %}
+
+{% block pagename %} {{ settings.APPLICATION_TITLE }} {% endblock %}
 {% block Content %}
 
 
-    <div class="hero-unit">
+    <div class="hero-unit text-center">
 
         <div class="container-fluid">
-                <div class="col-md-8">
+                <div class="col-md-12">
 
-                {% if "apps.extapi" in active_apps %}
+                
+                <div class="col-lg-12 well">
 
-                    {%  include "extapi/get_started.html" %}
-                {% endif %}
-
+                    <h2>Welcome</h2>
+                    <p>Welcome to the {{ settings.APPLICATION_TITLE }}</p>
+     
+    
+       
+                    <a href="{{settings.USER_DOCS}}">
+                                    <button type="button" class="btn btn-primary"> <i class="fa fa-map"></i> {{settings.USER_DOCS_TITLE}} </button></a>
+                    
+                      <a {{settings.DEVELOPER_DOCS}}">
+                    <button type="button" class="btn btn-primary"> <i class="fa fa-gears"></i> {{settings.DEVELOPER_DOCS_TITLE}}</button></a>
+                
                 </div>
-            <div class="col-md-8">
-                <h4>Why use the Advanced CMS Blue Button API?</h4>
-                <p>
-                    The CMS Blue Button API (Application Programming Interface)
-                    makes it easy for you to send your claims
-                    information to applications, services or research programs
-                    that YOU trust.
-                </p>
-                <h4>Your Information is easier to use</h4>
-                <p>
-                    We have enhanced security while making it easier to put your information
-                    to work. Use it to help manage your health using tools and
-                    applications that work for you.
-                </p>
-                <h4>Improve the security of your data</h4>
-                <p>
-                    Do you want better security for your information? Choose to connect
-                    your mobile phone to your account. Then enter the pin code that is sent
-                    to your mobile phone whenever you login to the Blue Button service.
-                </p>
-                <h4>Powerful technology working for you</h4>
-                <p>
-                    Under the hood the technology is designed to make it easier for
-                    application developers to work with the information you authorize them to
-                    receive. This lets them create applications that are useful to you.
-                </p>
-                <p>
-                    &nbsp;
-                </p>
-                <div class="col-md-12 well">
-                <h4>Are you an Innovative Software Developer?</h4>
-                    <div>
-                        <p>
-                            <a href="#">Sign up as a developer</a>
-                        </p>
-                    </div>
-                    <p>
-                        Check out the
-                        <a href="#">
-                            Introduction for Developers</a> and
-                        learn how you can enable Medicare Beneficiaries to connect their
-                        claims information to your application, service or research program.
-                        Use the CMS Blue Button API to create applications that empower
-                        our beneficiaries to live better because your innovative ideas put
-                        their data to work.
-                    </p>
+                
                 </div>
-            </div>
-
-            <div class="col-md-4"><img
-                    src="{% static 'img/layout/bluebuttonapiv1.png' %}"
-                    style="height:300px">
-            </div>
+           
 
         </div>
     </div>
