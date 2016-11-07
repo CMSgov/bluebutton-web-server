@@ -31,42 +31,13 @@
             <!-- btn-xlarge currently defined in base.html.
                  TODO: need to move to css file with other button settings-->
             <br/>
-            <a href="{% url 'forgot_password' %}">Forgot Password?</a>
+            <a href="{% url 'forgot_password' %}">Forgot Password?</a> |               <a href="{% url 'request_invite' %}">
+                  {% trans "Request Invite" %}</a>
         </form>
       </div>
     </div>
   
-  <div class="row">
 
-
-      <div class="col-lg-6 well">
-          <b>User:</b>&nbsp;
-          <small>
-              1.<a href="{% url 'request_user_invite' %}">
-                  {% trans "Get Invited" %}</a> &nbsp;|&nbsp;
-              2.<a href="{% url 'accounts_create_user' %}">
-                  {% trans "Create an Account " %}</a>
-              {% if account_request_text %}
-                <br/>{{account_request_text}}
-              {% endif %}
-          </small>
-      </div>
-
-
-      <div class="col-lg-6 well">
-          <b>Developer:</b>&nbsp;
-          <small>
-              1.<a href="{% url 'request_developer_invite' %}">
-                  {% trans "Get a Developer Invitation" %}</a> &nbsp;|&nbsp;
-              2.<a href="{% url 'accounts_create_developer' %}">
-                  {% trans "Create a Developer Account " %}</a>
-              {% if account_request_text %}
-                <br/>
-              {% endif %}
-          </small>
-      </div>
-
-    </div>
 
 {% endblock %}
 
