@@ -17,5 +17,6 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     # url(r'^intro_step1/$', intro_step1.as_view()),
-    url(r'^intro_step1/$', TemplateView.as_view(template_name='extapi/intro_step1.html')),
+    url(r'^intro_step1/$', TemplateView.as_view(template_name='extapi/intro_step1.html'),
+        name="extapi_step_1"),
 ]
