@@ -7,6 +7,7 @@ from ..utils import bool_env, int_env
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import ugettext_lazy as _
+from .themes import THEMES, THEME_SELECTED
 
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -80,27 +81,41 @@ INSTALLED_APPS = [
     # Define scopes and related protected resource URLs.
     'apps.capabilities',
     # Blue Button Text file parsing code
-    'apps.cmsblue',
+   
+
     # Endorsement example
-    'apps.endorse',
+    
+    # TODO migrate to reusable app
+    # 'apps.endorse',
+    
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
     'apps.dot_ext.apps.dot_extConfig',
-    # MyMedicare.gov Enhanced Validated Identity Linkage
-    'apps.eimm',
-    'apps.extapi',
+
     # Landing pages, etc.
     'apps.home',
-    'apps.education',
+    
+    # FHIR Server
+    # TODO - Add comment to each of these per main function
     'apps.fhir.fhir_core',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
     'apps.fhir.build_fhir',
     'apps.fhir.fhir_consent',
+    
+    # Development Specific - Remove in production
+    
+    # TODO migrate to move to sandbox or apps.fhir.sandbox
+    'apps.sandbox',
+    
+    #TODO Add comment. Should this be migrated elsewhere?  
     'apps.fhir.testac',
 
+    # TODO - Migrate to sandbox.  Add tests  
+    # 'apps.cmsblue',
+    
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
@@ -329,110 +344,23 @@ DOT_EXPIRES_IN = (
     (86400 * 365 * 100, _('Forever')),
 )
 
-# theme selection
-THEMES = {
-    0: {
-        'NAME': 'Default-Readable',
-        'PATH': 'theme/default/',
-        'INFO': 'Readable san-serif base theme',
-    },
-    3: {
-        'NAME': 'Readable',
-        'PATH': 'theme/readable/',
-        'INFO': 'Easy to read Bootswatch Theme',
-    },
-    4: {
-        'NAME': 'Cerulean',
-        'PATH': 'theme/cerulean/',
-        'INFO': 'Blue Bootswatch theme theme',
-    },
-    5: {
-        'NAME': 'Cosmo',
-        'PATH': 'theme/cosmo/',
-        'INFO': 'Cosmo bootswatch theme',
-    },
-    6: {
-        'NAME': 'Cyborg',
-        'PATH': 'theme/cyborg/',
-        'INFO': 'Cyborg bootswatch theme',
-    },
-    7: {
-        'NAME': 'Darkly',
-        'PATH': 'theme/darkly/',
-        'INFO': 'Darkly bootswatch theme',
-    },
-    8: {
-        'NAME': 'Flatly',
-        'PATH': 'theme/flatly/',
-        'INFO': 'Flatly bootswatch theme',
-    },
-    9: {
-        'NAME': 'Journal',
-        'PATH': 'theme/journal/',
-        'INFO': 'Journal bootswatch theme',
-    },
-    10: {
-        'NAME': 'Lumen',
-        'PATH': 'theme/lumen/',
-        'INFO': 'Lumen bootswatch theme',
-    },
-    11: {
-        'NAME': 'Paper',
-        'PATH': 'theme/paper/',
-        'INFO': 'Paper bootswatch theme',
-    },
-    12: {
-        'NAME': 'Sandstone',
-        'PATH': 'theme/sandstone/',
-        'INFO': 'Sandstone bootswatch theme',
-    },
-    13: {
-        'NAME': 'Simplex',
-        'PATH': 'theme/simplex/',
-        'INFO': 'Simplex bootswatch theme',
-    },
-    14: {
-        'NAME': 'Slate',
-        'PATH': 'theme/slate/',
-        'INFO': 'Slate bootswatch theme',
-    },
-    15: {
-        'NAME': 'Spacelab',
-        'PATH': 'theme/spacelab/',
-        'INFO': 'Spacelab bootswatch theme',
-    },
-    16: {
-        'NAME': 'Superhero',
-        'PATH': 'theme/superhero/',
-        'INFO': 'Superhero bootswatch theme',
-    },
-    17: {
-        'NAME': 'United',
-        'PATH': 'theme/united/',
-        'INFO': 'United bootswatch theme',
-    },
-    18: {
-        'NAME': 'Yeti',
-        'PATH': 'theme/yeti/',
-        'INFO': 'Yeti bootswatch theme',
-    },
-    'SELECTED': env('DJANGO_SELECTED_THEME', 0),
-}
 
-if THEMES['SELECTED'] not in THEMES:
-    THEME_SELECTED = 0
-else:
-    THEME_SELECTED = THEMES['SELECTED']
-
+# Set the theme
 THEME = THEMES[THEME_SELECTED]
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
 
-HOSTNAME_URL = env('HOSTNAME_URL', '127.0.0.1:8000')
+HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
+
+# LINKS TO DOCS
+USER_DOCS = "http://transparenthealth.github.io/beneficiary-help/"
+USER_DOCS_TITLE = "Beneficiary Help"
+DEVELOPER_DOCS = "https://transparenthealth.github.io/blue-button-developer-docs/"
+DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
 # include settings values in SETTING_EXPORT to use values in Templates.
 # eg. {{ settings.APPLICATION_TITLE }}
@@ -442,8 +370,13 @@ SETTINGS_EXPORT = [
     'THEME',
     'STATIC_URL',
     'STATIC_ROOT',
-    'MFA'
+    'MFA',
+    'USER_DOCS',
+    'USER_DOCS_TITLE',
+    'DEVELOPER_DOCS',
+    'DEVELOPER_DOCS_TITLE'
 ]
+
 
 # Make sessions die out fast for more security ------------------
 # Logout after 30 minutes of inactivity
@@ -487,12 +420,9 @@ FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     # Minutes until search expires
                     'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}
 
-SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 3)
+SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
 
-# REGISTRATION PAGES
-INVITE_DEVELOPER_REGISTRATION_URL = "/accounts/create-developer"
-INVITE_USER_REGISTRATION_URL = "/accounts/create-user"
 
 LOGIN_REDIRECT_URL = '/accounts/mfa/login'
 LOGIN_URL = '/accounts/mfa/login'
