@@ -251,12 +251,12 @@ class UserRegisterInvitation(models.Model):
                         up.remaining_user_invites -= 1
                         up.save()
                 if self.sent is False or self.resend is True:
-                    print ("Send invite code to benny")
+                    print("Send invite code to benny")
                     self.sent = True
                     self.resend = False
             else:
                 if self.sent is False or self.resend is True:
-                    print ("Send invite code to benny")
+                    print("Send invite code to benny")
                     self.sent = True
                     self.resend = False
             super(UserRegisterInvitation, self).save(**kwargs)
