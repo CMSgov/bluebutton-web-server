@@ -1,7 +1,7 @@
 import random
 
 from django.conf import settings
-from hhs_oauth_server.message import EmailMultiAlternatives
+from hhs_oauth_server.message import EmailMultiAlternatives, EmailMessage
 # from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 
@@ -18,6 +18,42 @@ def random_secret(y=40):
     return ''.join(random.choice('abcdefghijklmnopqrstuvwxyz'
                                  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                                  '0123456789') for x in range(y))
+
+
+def send_invitation_code_to_benny(user_register_invitation):
+    msg = """
+    <html>
+    <head>
+    </head>
+    <body>
+    Congratulations. You have been invited to join the
+    %s community.<br>
+
+    You may now register : <a href='%s%s'>
+    using this link</a>.<br/>
+    With the invitation code:
+    <h2>%s</h2>
+
+    - The %s Team
+    </body>
+    </html>
+    """ % (settings.ORGANIZATION_NAME,
+           settings.HOSTNAME_URL,
+           reverse('accounts_create_account'),
+           user_register_invitation.code,
+           settings.ORGANIZATION_NAME)
+
+    subj = '[%s] Invitation ' \
+           'Code: %s' % (settings.ORGANIZATION_NAME,
+                         user_register_invitation.code)
+
+    msg = EmailMessage(subj,
+                       msg,
+                       settings.DEFAULT_FROM_EMAIL,
+                       [user_register_invitation.email, ])
+    # Main content is now text/html
+    msg.content_subtype = 'html'
+    msg.send()
 
 
 def mfa_via_email(user, code):

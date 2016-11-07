@@ -15,7 +15,7 @@ import boto3
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
                      mfa_via_email)
-
+from django.core.urlresolvers import reverse
 
 USER_CHOICES = (
     ('BEN', 'Beneficiary'),
@@ -48,6 +48,7 @@ QUESTION_3_CHOICES = (
     ('2', "What was your maternal grandmother's maiden name?"),
     ('3', "What was your paternal grandmother's maiden name?"),
 )
+
 MFA_CHOICES = (
     ('', 'None'),
     ('EMAIL', "Email"),
@@ -69,7 +70,6 @@ class UserProfile(models.Model):
                                  max_length=5)
 
     remaining_user_invites = models.IntegerField(default=0)
-    remaining_developer_invites = models.IntegerField(default=0)
     access_key_id = models.CharField(max_length=20,
                                      blank=True)
     access_key_secret = models.CharField(max_length=40,
@@ -124,6 +124,13 @@ class UserProfile(models.Model):
         name = '%s %s (%s)' % (self.user.first_name,
                                self.user.last_name,
                                self.user.username)
+        return name
+
+    def name(self):
+        if self.organization_name:
+            return self.organization_name
+        else:
+            name = '%s %s' % (self.user.first_name, self.user.last_name)
         return name
 
     def save(self, **kwargs):
@@ -209,13 +216,50 @@ class RequestInvite(models.Model):
     organization = models.CharField(max_length=150, blank=True)
     email = models.EmailField(max_length=150)
     added = models.DateField(auto_now_add=True)
-    user_type = models.CharField(default='BEN',
-                                 choices=USER_CHOICES,
-                                 max_length=5)
 
     def __str__(self):
         r = '%s %s' % (self.first_name, self.last_name)
         return r
+
+
+@python_2_unicode_compatible
+class UserRegisterInvitation(models.Model):
+    sender = models.ForeignKey(User, null=True, blank=True)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    code = models.CharField(max_length=15)
+    email = models.EmailField(max_length=150)
+    sent = models.BooleanField(default=False, editable=False)
+    resend = models.BooleanField(default=False,
+                                 help_text="Check to resend")
+    added = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        r = '%s %s' % (self.first_name, self.last_name)
+        return r
+
+    def name(self):
+        r = '%s %s' % (self.first_name, self.last_name)
+        return r
+
+    def save(self, commit=True, **kwargs):
+        if commit:
+            if self.sender:
+                up = UserProfile.objects.get(user=self.sender)
+                if self.sent is False:
+                    if up.remaining_user_invites > 0:
+                        up.remaining_user_invites -= 1
+                        up.save()
+                if self.sent is False or self.resend is True:
+                    print("Send invite code to benny")
+                    self.sent = True
+                    self.resend = False
+            else:
+                if self.sent is False or self.resend is True:
+                    print("Send invite code to benny")
+                    self.sent = True
+                    self.resend = False
+            super(UserRegisterInvitation, self).save(**kwargs)
 
 
 @python_2_unicode_compatible
@@ -224,33 +268,27 @@ class Invitation(models.Model):
     email = models.EmailField(blank=True)
     valid = models.BooleanField(default=True)
     added = models.DateField(auto_now_add=True)
-    user_type = models.CharField(default='BEN',
-                                 choices=USER_CHOICES,
-                                 max_length=5)
+
+    class Meta:
+        verbose_name = "Developer Invitation"
 
     def __str__(self):
         return self.code
 
     def save(self, **kwargs):
         if self.valid:
-            # send the verification email.
-            registration_url = ''
-            if self.user_type == "DEV":
-                registration_url = settings.INVITE_DEVELOPER_REGISTRATION_URL
-                invite_type = "Developer"
-            else:
-                registration_url = settings.INVITE_USER_REGISTRATION_URL
-                invite_type = "User"
+            # send the invitation verification email.
+
             msg = """
             <html>
             <head>
             </head>
             <body>
             Congratulations. You have been invited to join the
-            %s %s community.<br>
+            %s community.<br>
 
-            You may now register using this link: <a href='%s%s?invitation_code=%s&email=%s'>
-            %s%s</a>.<br/>
+            You may now register : <a href='%s%s'>
+            using this link</a>.<br/>
             With the invitation code:
             <h2>%s</h2>
 
@@ -258,28 +296,22 @@ class Invitation(models.Model):
             </body>
             </html>
             """ % (settings.ORGANIZATION_NAME,
-                   invite_type,
                    settings.HOSTNAME_URL,
-                   registration_url,
-                   self.code,
-                   self.email,
-                   settings.HOSTNAME_URL,
-                   registration_url,
+                   reverse('accounts_create_account'),
                    self.code,
                    settings.ORGANIZATION_NAME)
-            if settings.SEND_EMAIL:
-                subj = '[%s] %s Invitation ' \
-                       'Code: %s' % (settings.ORGANIZATION_NAME,
-                                     invite_type,
-                                     self.code)
 
-                msg = EmailMessage(subj,
-                                   msg,
-                                   settings.DEFAULT_FROM_EMAIL,
-                                   [self.email])
-                # Main content is now text/html
-                msg.content_subtype = 'html'
-                msg.send()
+            subj = '[%s] Invitation ' \
+                   'Code: %s' % (settings.ORGANIZATION_NAME,
+                                 self.code)
+
+            msg = EmailMessage(subj,
+                               msg,
+                               settings.DEFAULT_FROM_EMAIL,
+                               [self.email, ])
+            # Main content is now text/html
+            msg.content_subtype = 'html'
+            msg.send()
 
         super(Invitation, self).save(**kwargs)
 
@@ -328,25 +360,6 @@ class ValidPasswordResetKey(models.Model):
         # send an email with reset url
         send_password_reset_url_via_email(self.user, self.reset_password_key)
         super(ValidPasswordResetKey, self).save(**kwargs)
-
-
-@python_2_unicode_compatible
-class InvitesAvailable(models.Model):
-    """ Stores BEN / DEV unused Invites """
-    user_type = models.CharField(default='DEV',
-                                 choices=USER_CHOICES,
-                                 max_length=5)
-    issued = models.IntegerField()
-    available = models.IntegerField()
-    last_issued = models.EmailField(blank=True)
-
-    def __str__(self):
-        u_t = self.user_type
-        for k, v in USER_CHOICES:
-            if self.user_type == k:
-                u_t = v
-        return '%s invites available for %s' % ((self.available - self.issued),
-                                                u_t)
 
 
 def random_key_id(y=20):
