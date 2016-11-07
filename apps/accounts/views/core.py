@@ -9,11 +9,9 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 
 from ..forms import (RequestInviteForm, AccountSettingsForm,
-                     LoginForm, ChangeSecretQuestionsForm,
-                     PasswordResetForm, PasswordResetRequestForm,
+                     LoginForm,
                      SignupForm)
 from ..models import *
-from ..emails import send_invite_request_notices
 from ..utils import validate_activation_key
 from django.conf import settings
 
@@ -21,7 +19,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def request_invite(request):
-    name = 'Request a Developer Invite to the %s' % (settings.ORGANIZATION_NAME)
+    name = 'Request a Developer Invite to the %s' % (
+        settings.ORGANIZATION_NAME)
     if request.method == 'POST':
         form = RequestInviteForm(request.POST)
         if form.is_valid():
@@ -141,9 +140,6 @@ def create_account(request):
                       {'name': name, 'form': SignupForm()})
 
 
-
-
-
 @login_required
 def account_settings(request):
     name = _('Account Settings')
@@ -210,5 +206,3 @@ def activation_verify(request, activation_key):
         return HttpResponseRedirect(reverse('mfa_login'))
     else:
         return HttpResponseRedirect(reverse('login'))
-
-

@@ -13,15 +13,12 @@ urlpatterns = [
     url(r'^education/', include('apps.education.urls')),
     url(r'^profile/me$', user_self, name='user_self'),
     url(r'^api/', include('apps.api.urls')),
-    # url(r'^api/', include(api_urls)),
     url(r'^fhir/v3/', include('apps.fhir.server.urls')),
     url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
     url(r'^capabilities/', include('apps.capabilities.urls')),
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
-    url(r'^integration/', include('apps.eimm.urls')),
     url(r'^endorse/', include('apps.endorse.urls')),
     url(r'^home/', include('apps.home.urls')),
-
     url(r'^o/', include('apps.dot_ext.urls')),
     # url(r'^fhir/api/v1/', include('apps.fhir.bluebutton')),
     # Admin
@@ -30,7 +27,7 @@ urlpatterns = [
 ]
 # if 'apps.fhir.testac' in settings.INSTALLED_APPS:
 urlpatterns += [
-    url(r'^create_test_account/', include('apps.fhir.testac.urls')),
+    url(r'^create-test-account/', include('apps.fhir.testac.urls')),
 ]
 
 if IsAppInstalled("apps.extapi"):
@@ -40,5 +37,5 @@ if IsAppInstalled("apps.extapi"):
 
 urlpatterns += [
     # Catch all
-    url(r'^', fhir_search_home, name='home'),
+    url(r'^$', fhir_search_home, name='home'),
 ]

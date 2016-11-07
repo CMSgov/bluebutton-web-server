@@ -15,7 +15,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         Invitation.objects.create(code='1234', email='fred@example.com')
         Group.objects.create(name='BlueButton')
         self.client = Client()
-        self.url = reverse('accounts_create_developer')
+        self.url = reverse('accounts_create_account')
 
     def test_valid_account_create(self):
         """
