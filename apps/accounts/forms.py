@@ -38,7 +38,6 @@ class RequestInviteForm(forms.ModelForm):
         return human
 
 
-
 class SecretQuestionForm(forms.Form):
     answer = forms.CharField(max_length=50)
     required_css_class = 'required'
@@ -207,7 +206,6 @@ class SignupForm(forms.Form):
         create_activation_key(new_user)
 
         return new_user
-
 
 
 class AccountSettingsForm(forms.Form):

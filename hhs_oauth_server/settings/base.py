@@ -81,13 +81,13 @@ INSTALLED_APPS = [
     # Define scopes and related protected resource URLs.
     'apps.capabilities',
     # Blue Button Text file parsing code
-   
+
 
     # Endorsement example
-    
+
     # TODO migrate to reusable app
     # 'apps.endorse',
-    
+
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
@@ -96,7 +96,7 @@ INSTALLED_APPS = [
 
     # Landing pages, etc.
     'apps.home',
-    
+
     # FHIR Server
     # TODO - Add comment to each of these per main function
     'apps.fhir.fhir_core',
@@ -104,18 +104,18 @@ INSTALLED_APPS = [
     'apps.fhir.bluebutton',
     'apps.fhir.build_fhir',
     'apps.fhir.fhir_consent',
-    
+
     # Development Specific - Remove in production
-    
+
     # TODO migrate to move to sandbox or apps.fhir.sandbox
     'apps.sandbox',
-    
-    #TODO Add comment. Should this be migrated elsewhere?  
+
+    # TODO Add comment. Should this be migrated elsewhere?
     'apps.fhir.testac',
 
-    # TODO - Migrate to sandbox.  Add tests  
+    # TODO - Migrate to sandbox.  Add tests
     # 'apps.cmsblue',
-    
+
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',

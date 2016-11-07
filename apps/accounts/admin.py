@@ -1,9 +1,13 @@
 from django.contrib import admin
 
-from .models import (ValidPasswordResetKey, Invitation, RequestInvite,
-                     UserProfile, ActivationKey, MFACode, UserRegisterInvitation)
-
-
+from .models import (
+    ValidPasswordResetKey,
+    Invitation,
+    RequestInvite,
+    UserProfile,
+    ActivationKey,
+    MFACode,
+    UserRegisterInvitation)
 
 
 class UserRegisterInvitationAdmin(admin.ModelAdmin):
@@ -15,8 +19,9 @@ class UserRegisterInvitationAdmin(admin.ModelAdmin):
         'sent',
         'added')
     search_fields = ('first_name', 'last_name', 'code', 'email')
-    
+
 admin.site.register(UserRegisterInvitation, UserRegisterInvitationAdmin)
+
 
 class RequestInviteAdmin(admin.ModelAdmin):
     list_display = (
@@ -57,4 +62,3 @@ class MFACodeAdmin(admin.ModelAdmin):
     search_fields = ('mode', 'endpoint')
 
 admin.site.register(MFACode, MFACodeAdmin)
-

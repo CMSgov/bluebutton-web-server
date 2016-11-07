@@ -241,27 +241,25 @@ class UserRegisterInvitation(models.Model):
     def name(self):
         r = '%s %s' % (self.first_name, self.last_name)
         return r
-    
+
     def save(self, commit=True, **kwargs):
         if commit:
             if self.sender:
-                up = UserProfile.objects.get(user = self.sender)
-                if self.sent == False:
+                up = UserProfile.objects.get(user=self.sender)
+                if self.sent is False:
                     if up.remaining_user_invites > 0:
-                        up.remaining_user_invites -=  1
+                        up.remaining_user_invites -= 1
                         up.save()
-                if self.sent == False or self.resend == True:
+                if self.sent is False or self.resend is True:
                     print ("Send invite code to benny")
                     self.sent = True
                     self.resend = False
             else:
-                if self.sent == False or self.resend == True:
+                if self.sent is False or self.resend is True:
                     print ("Send invite code to benny")
                     self.sent = True
                     self.resend = False
             super(UserRegisterInvitation, self).save(**kwargs)
-                
-                
 
 
 @python_2_unicode_compatible
@@ -270,10 +268,10 @@ class Invitation(models.Model):
     email = models.EmailField(blank=True)
     valid = models.BooleanField(default=True)
     added = models.DateField(auto_now_add=True)
-    
+
     class Meta:
         verbose_name = "Developer Invitation"
-        
+
     def __str__(self):
         return self.code
 
@@ -302,7 +300,7 @@ class Invitation(models.Model):
                    reverse('accounts_create_account'),
                    self.code,
                    settings.ORGANIZATION_NAME)
-            
+
             subj = '[%s] Invitation ' \
                    'Code: %s' % (settings.ORGANIZATION_NAME,
                                  self.code)
@@ -362,8 +360,6 @@ class ValidPasswordResetKey(models.Model):
         # send an email with reset url
         send_password_reset_url_via_email(self.user, self.reset_password_key)
         super(ValidPasswordResetKey, self).save(**kwargs)
-
-
 
 
 def random_key_id(y=20):
