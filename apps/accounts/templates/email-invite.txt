@@ -1,0 +1,5 @@
+Congratulations! You have been invited to join the {{ APPLICATION_TITLE }} community.
+You may now register with this link: {{URL}} using the invitation code {{CODE}}.
+
+- The {{APPLICATION_TITLE}} Team
+
