@@ -1,9 +1,11 @@
 import random
-
 from django.conf import settings
-from hhs_oauth_server.message import EmailMultiAlternatives, EmailMessage
+# from hhs_oauth_server.message import EmailMultiAlternatives, EmailMessage
 # from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
+
 
 """ Found a bug in EmailMultiAlternatives
     A spurious "None" / None was being added in the __init__
@@ -20,74 +22,78 @@ def random_secret(y=40):
                                  '0123456789') for x in range(y))
 
 
-def send_invitation_code_to_benny(user_register_invitation):
-    msg = """
-    <html>
-    <head>
-    </head>
-    <body>
-    Congratulations. You have been invited to join the
-    %s community.<br>
+def send_invite_to_create_account(invitation):
+    plaintext = get_template('email-invite.txt')
+    htmly = get_template('email-invite.html')
+    context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
+               "CODE": invitation.code,
+               "URL": "%s%s" % (settings.HOSTNAME_URL,
+                                reverse('accounts_create_account')),
+               }
 
-    You may now register : <a href='%s%s'>
-    using this link</a>.<br/>
-    With the invitation code:
-    <h2>%s</h2>
+    subject = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
+                                            invitation.code)
+    from_email = settings.DEFAULT_FROM_EMAIL
+    to_email = invitation.email
+    text_content = plaintext.render(context)
+    html_content = htmly.render(context)
+    msg = EmailMultiAlternatives(
+        subject, text_content, from_email, [
+            to_email, ])
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
 
-    - The %s Team
-    </body>
-    </html>
-    """ % (settings.ORGANIZATION_NAME,
-           settings.HOSTNAME_URL,
-           reverse('accounts_create_account'),
-           user_register_invitation.code,
-           settings.ORGANIZATION_NAME)
 
-    subj = '[%s] Invitation ' \
-           'Code: %s' % (settings.ORGANIZATION_NAME,
-                         user_register_invitation.code)
-
-    msg = EmailMessage(subj,
-                       msg,
-                       settings.DEFAULT_FROM_EMAIL,
-                       [user_register_invitation.email, ])
-    # Main content is now text/html
-    msg.content_subtype = 'html'
+def send_invitation_code_to_user(user_code_invitation):
+    plaintext = get_template('email-user-code-by-email.txt')
+    htmly = get_template('email-user-code-by-email.html')
+    context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
+               "CODE": user_code_invitation.code}
+    subject = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
+                                            user_code_invitation.code)
+    from_email = settings.DEFAULT_FROM_EMAIL
+    to_email = user_code_invitation.email
+    text_content = plaintext.render(context)
+    html_content = htmly.render(context)
+    msg = EmailMultiAlternatives(
+        subject, text_content, from_email, [
+            to_email, ])
+    msg.attach_alternative(html_content, "text/html")
     msg.send()
 
 
 def mfa_via_email(user, code):
-    if settings.SEND_EMAIL:
-        subject = '[%s]Your code for access' % (settings.ORGANIZATION_NAME)
-        from_email = settings.DEFAULT_FROM_EMAIL
-        to = user.email
 
-        html_content = """'
-        <P>
-        Provide this code on the authentication screen in your browser:<br>
-         %s
-        </p>
-        <p>
-        Thank you,
-        </p>
-        <p>
-        The Team
+    subject = '[%s] Your code for access to' % (settings.APPLICATION_TITLE)
+    from_email = settings.DEFAULT_FROM_EMAIL
+    to = user.email
 
-        </P>
-        """ % (code)
+    html_content = """'
+    <P>
+    Provide this code on the authentication screen in your browser:<br>
+     %s
+    </p>
+    <p>
+    Thank you,
+    </p>
+    <p>
+    The Team
 
-        text_content = """
-        Provide this code on the authentication screen in your browser:
-        %s
+    </P>
+    """ % (code)
 
-        Thank you,
+    text_content = """
+    Provide this code on the authentication screen in your browser:
+    %s
 
-        The Team
+    Thank you,
 
-        """ % (code)
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-        msg.attach_alternative(html_content, 'text/html')
-        msg.send()
+    The Team
+
+    """ % (code)
+    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+    msg.attach_alternative(html_content, 'text/html')
+    msg.send()
 
 
 def send_password_reset_url_via_email(user, reset_key):
@@ -185,10 +191,7 @@ def send_invite_request_notices(invite_request):
     </p>
     %s
     <p>
-    We are working hard to build out our service to meet the growing demand.
-     We will send you another email with an Invitation Code when we have more
-    capacity available. You will need the Invitation Code in order to create
-    your account.
+    Please be patient. We will email you  when your invitation coe is ready.  Please be patient.
     </p>
     <p>
     Thank You,
