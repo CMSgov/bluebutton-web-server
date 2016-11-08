@@ -1,0 +1,6 @@
+Congratulations!
+
+You have been invited to join the {{ APPLICATION_TITLE }} community. You may now connect applications to your MyMedicare.gov account with the following code: {{CODE}}
+
+- The {{APPLICATION_TITLE}} Team
+
