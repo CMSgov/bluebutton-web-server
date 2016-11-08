@@ -4,18 +4,16 @@ import uuid
 
 from datetime import datetime, timedelta
 from django.utils import timezone
-
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.mail import EmailMessage
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 import boto3
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
-                     mfa_via_email)
-from django.core.urlresolvers import reverse
+                     mfa_via_email, send_invite_to_create_account,
+                     send_invitation_code_to_user)
 
 USER_CHOICES = (
     ('BEN', 'Beneficiary'),
@@ -250,13 +248,18 @@ class UserRegisterInvitation(models.Model):
                     if up.remaining_user_invites > 0:
                         up.remaining_user_invites -= 1
                         up.save()
-                if self.sent is False or self.resend is True:
-                    print("Send invite code to benny")
+                        send_invitation_code_to_user(self)
+                        self.sent = True
+                        self.resend = False
+                if self.sent is True and self.resend is True:
+                    # print("Send invite code to benny")
+                    send_invitation_code_to_user(self)
                     self.sent = True
                     self.resend = False
             else:
                 if self.sent is False or self.resend is True:
-                    print("Send invite code to benny")
+                    # print("Send invite code to benny")
+                    send_invitation_code_to_user(self)
                     self.sent = True
                     self.resend = False
             super(UserRegisterInvitation, self).save(**kwargs)
@@ -278,41 +281,7 @@ class Invitation(models.Model):
     def save(self, **kwargs):
         if self.valid:
             # send the invitation verification email.
-
-            msg = """
-            <html>
-            <head>
-            </head>
-            <body>
-            Congratulations. You have been invited to join the
-            %s community.<br>
-
-            You may now register : <a href='%s%s'>
-            using this link</a>.<br/>
-            With the invitation code:
-            <h2>%s</h2>
-
-            - The %s Team
-            </body>
-            </html>
-            """ % (settings.ORGANIZATION_NAME,
-                   settings.HOSTNAME_URL,
-                   reverse('accounts_create_account'),
-                   self.code,
-                   settings.ORGANIZATION_NAME)
-
-            subj = '[%s] Invitation ' \
-                   'Code: %s' % (settings.ORGANIZATION_NAME,
-                                 self.code)
-
-            msg = EmailMessage(subj,
-                               msg,
-                               settings.DEFAULT_FROM_EMAIL,
-                               [self.email, ])
-            # Main content is now text/html
-            msg.content_subtype = 'html'
-            msg.send()
-
+            send_invite_to_create_account(self)
         super(Invitation, self).save(**kwargs)
 
 
