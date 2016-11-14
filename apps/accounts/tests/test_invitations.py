@@ -13,7 +13,7 @@ File created by: ''
 from django.test import TestCase
 # from django.test.client import Client
 from django.contrib.auth.models import User, Group
-from ..models import Invitation, UserRegisterInvitation, UserProfile
+from ..models import Invitation, UserRegisterCode, UserProfile
 from django.core import mail
 
 
@@ -51,11 +51,11 @@ class SendUserInviteTestCase(TestCase):
         """Invite should be sent"""
         up = UserProfile.objects.get(user=self.u)
         self.assertEquals(up.remaining_user_invites, 1)
-        UserRegisterInvitation.objects.create(sender=self.u,
-                                              first_name="Fred2",
-                                              last_name="Flinstone2",
-                                              code='4567',
-                                              email='fred2@example.com')
+        UserRegisterCode.objects.create(sender=self.u,
+                                        first_name="Fred2",
+                                        last_name="Flinstone2",
+                                        code='4567',
+                                        email='fred2@example.com')
         """One email sent"""
         self.assertEquals(len(mail.outbox), 1)
         up = UserProfile.objects.get(user=self.u)
@@ -63,11 +63,11 @@ class SendUserInviteTestCase(TestCase):
         """Invites should now be depleted and another email should NOT be sent"""
         up = UserProfile.objects.get(user=self.u)
         self.assertEquals(up.remaining_user_invites, 0)
-        UserRegisterInvitation.objects.create(sender=self.u,
-                                              first_name="Fred",
-                                              last_name="Flinstone",
-                                              code='1234',
-                                              email='fred2@example.com')
+        UserRegisterCode.objects.create(sender=self.u,
+                                        first_name="Fred",
+                                        last_name="Flinstone",
+                                        code='1234',
+                                        email='fred2@example.com')
 
         """Still should be only one sent since user has no remaining invites."""
         self.assertEquals(len(mail.outbox), 1)

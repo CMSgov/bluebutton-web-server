@@ -426,3 +426,5 @@ ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
 
 LOGIN_REDIRECT_URL = '/accounts/mfa/login'
 LOGIN_URL = '/accounts/mfa/login'
+
+REQUIRE_AUTHOIRZE_APP_FLAG = False
