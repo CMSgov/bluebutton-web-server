@@ -6,6 +6,7 @@ authorize_applications == True
 from django.shortcuts import get_object_or_404
 from .models import UserProfile
 from functools import update_wrapper
+from django.conf import settings
 
 
 def authorize_app_flag_required(func):
@@ -15,10 +16,11 @@ def authorize_app_flag_required(func):
     """
 
     def wrapper(request, *args, **kwargs):
-        get_object_or_404(
-            UserProfile,
-            user=request.user,
-            authorize_applications=True)
+        if getattr(settings, "REQUIRE_AUTHOIRZE_APP_FLAG", False):
+            get_object_or_404(UserProfile,
+                              user=request.user,
+                              authorize_applications=True)
+
         return func(request, *args, **kwargs)
 
     return update_wrapper(wrapper, func)
