@@ -95,6 +95,19 @@ class LoginForm(forms.Form):
     required_css_class = 'required'
 
 
+class CodeLoginForm(forms.Form):
+    username = forms.CharField(max_length=30, label=_('Username'),
+                               help_text="MyMedicare.gov user name")
+    password = forms.CharField(widget=forms.PasswordInput, max_length=30,
+                               label=_('Password'),
+                               help_text="MyMedicare.gov password")
+    code = forms.CharField(
+        max_length=30,
+        label=_('Code'),
+        help_text="The code provided by your accountable care organization")
+    required_css_class = 'required'
+
+
 class SignupForm(forms.Form):
     invitation_code = forms.CharField(max_length=30, label=_("Invitation Code")
                                       )
