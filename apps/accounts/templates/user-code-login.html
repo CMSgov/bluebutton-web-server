@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block Content %}
+
+
+  <div class="container">
+    
+      <div class="row">
+         <div class="col-lg-8">
+           {% include "include/messages.html" %}
+         </div>
+       </div>
+    
+
+      <div class="hero-unit">
+      <h1>{% trans "Beneficiary Signup" %}</h1>
+    <br>
+      
+      <div class="row">
+      <div class="span7 center">
+        <form class="well" method="post" action="">
+          {% csrf_token %}
+          <table>
+          
+          {% load bootstrap %}
+          {{ form|bootstrap }}
+  
+          </table>
+          <input type="submit" class="btn-xlarge btn-primary btn-block" value="{% trans 'Login' %}" />
+            <!-- btn-xlarge currently defined in base.html.
+                 TODO: need to move to css file with other button settings-->
+            <br/>
+        </form>
+      </div>
+    </div>
+  
+
+
+{% endblock %}
