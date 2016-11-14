@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 import boto3
+from django.core.urlresolvers import reverse
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
                      mfa_via_email, send_invite_to_create_account,
@@ -84,6 +85,13 @@ class UserProfile(models.Model):
         default=False,
         help_text=_(
             'Check this to allow the account to register applications.'),
+    )
+
+    authorize_applications = models.BooleanField(
+        blank=True,
+        default=False,
+        help_text=_(
+            'Check this to allow the account to authorize applications.'),
     )
 
     mfa_login_mode = models.CharField(
@@ -221,13 +229,15 @@ class RequestInvite(models.Model):
 
 
 @python_2_unicode_compatible
-class UserRegisterInvitation(models.Model):
+class UserRegisterCode(models.Model):
+    code = models.CharField(max_length=30)
+    username = models.CharField(max_length=40)
+    email = models.EmailField(max_length=150)
     sender = models.ForeignKey(User, null=True, blank=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    code = models.CharField(max_length=15)
-    email = models.EmailField(max_length=150)
     sent = models.BooleanField(default=False, editable=False)
+    used = models.BooleanField(default=False)
     resend = models.BooleanField(default=False,
                                  help_text="Check to resend")
     added = models.DateField(auto_now_add=True)
@@ -239,6 +249,11 @@ class UserRegisterInvitation(models.Model):
     def name(self):
         r = '%s %s' % (self.first_name, self.last_name)
         return r
+
+    def url(self):
+        return "%s%s?username=%s&code=%s" % (settings.HOSTNAME_URL,
+                                             reverse('user_code_login'),
+                                             self.username, self.code)
 
     def save(self, commit=True, **kwargs):
         if commit:
@@ -262,7 +277,7 @@ class UserRegisterInvitation(models.Model):
                     send_invitation_code_to_user(self)
                     self.sent = True
                     self.resend = False
-            super(UserRegisterInvitation, self).save(**kwargs)
+            super(UserRegisterCode, self).save(**kwargs)
 
 
 @python_2_unicode_compatible
@@ -277,6 +292,10 @@ class Invitation(models.Model):
 
     def __str__(self):
         return self.code
+
+    def url(self):
+        return "%s%s" % (settings.HOSTNAME_URL,
+                         reverse('accounts_create_account'))
 
     def save(self, **kwargs):
         if self.valid:
