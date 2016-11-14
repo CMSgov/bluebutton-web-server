@@ -17,4 +17,5 @@ class fhir_ConsentAdmin(admin.ModelAdmin):
                                instance.user.username)
         return name
 
+
 admin.site.register(fhir_Consent, fhir_ConsentAdmin)

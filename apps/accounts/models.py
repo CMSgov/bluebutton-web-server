@@ -4,18 +4,17 @@ import uuid
 
 from datetime import datetime, timedelta
 from django.utils import timezone
-
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.mail import EmailMessage
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 import boto3
+from django.core.urlresolvers import reverse
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
-                     mfa_via_email)
-
+                     mfa_via_email, send_invite_to_create_account,
+                     send_invitation_code_to_user)
 
 USER_CHOICES = (
     ('BEN', 'Beneficiary'),
@@ -48,6 +47,7 @@ QUESTION_3_CHOICES = (
     ('2', "What was your maternal grandmother's maiden name?"),
     ('3', "What was your paternal grandmother's maiden name?"),
 )
+
 MFA_CHOICES = (
     ('', 'None'),
     ('EMAIL', "Email"),
@@ -67,6 +67,8 @@ class UserProfile(models.Model):
     user_type = models.CharField(default='DEV',
                                  choices=USER_CHOICES,
                                  max_length=5)
+
+    remaining_user_invites = models.IntegerField(default=0)
     access_key_id = models.CharField(max_length=20,
                                      blank=True)
     access_key_secret = models.CharField(max_length=40,
@@ -83,6 +85,13 @@ class UserProfile(models.Model):
         default=False,
         help_text=_(
             'Check this to allow the account to register applications.'),
+    )
+
+    authorize_applications = models.BooleanField(
+        blank=True,
+        default=False,
+        help_text=_(
+            'Check this to allow the account to authorize applications.'),
     )
 
     mfa_login_mode = models.CharField(
@@ -121,6 +130,13 @@ class UserProfile(models.Model):
         name = '%s %s (%s)' % (self.user.first_name,
                                self.user.last_name,
                                self.user.username)
+        return name
+
+    def name(self):
+        if self.organization_name:
+            return self.organization_name
+        else:
+            name = '%s %s' % (self.user.first_name, self.user.last_name)
         return name
 
     def save(self, **kwargs):
@@ -170,10 +186,11 @@ class MFACode(models.Model):
                up.mobile_phone_number and \
                settings.SEND_SMS:
                 # Send SMS to up.mobile_phone_number
-                sns = boto3.client('sns',
-                                   aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                   aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                                   region_name='us-east-1')
+                sns = boto3.client(
+                    'sns',
+                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                    region_name='us-east-1')
                 number = "+1%s" % (up.mobile_phone_number)
                 sns.publish(
                     PhoneNumber=number,
@@ -202,16 +219,65 @@ class MFACode(models.Model):
 class RequestInvite(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    organization = models.CharField(max_length=150)
+    organization = models.CharField(max_length=150, blank=True)
     email = models.EmailField(max_length=150)
     added = models.DateField(auto_now_add=True)
-    user_type = models.CharField(default='BEN',
-                                 choices=USER_CHOICES,
-                                 max_length=5)
 
     def __str__(self):
         r = '%s %s' % (self.first_name, self.last_name)
         return r
+
+
+@python_2_unicode_compatible
+class UserRegisterCode(models.Model):
+    code = models.CharField(max_length=30)
+    username = models.CharField(max_length=40)
+    email = models.EmailField(max_length=150)
+    sender = models.ForeignKey(User, null=True, blank=True)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    sent = models.BooleanField(default=False, editable=False)
+    used = models.BooleanField(default=False)
+    resend = models.BooleanField(default=False,
+                                 help_text="Check to resend")
+    added = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        r = '%s %s' % (self.first_name, self.last_name)
+        return r
+
+    def name(self):
+        r = '%s %s' % (self.first_name, self.last_name)
+        return r
+
+    def url(self):
+        return "%s%s?username=%s&code=%s" % (settings.HOSTNAME_URL,
+                                             reverse('user_code_login'),
+                                             self.username, self.code)
+
+    def save(self, commit=True, **kwargs):
+        if commit:
+            if self.sender:
+                up = UserProfile.objects.get(user=self.sender)
+                if self.sent is False:
+                    if up.remaining_user_invites > 0:
+                        up.remaining_user_invites -= 1
+                        up.save()
+                        send_invitation_code_to_user(self)
+                        self.sent = True
+                        self.resend = False
+                if self.sent is True and self.resend is True:
+                    # print("Send invite code to benny")
+                    send_invitation_code_to_user(self)
+                    self.sent = True
+                    self.resend = False
+            else:
+                if self.sent is False or self.resend is True:
+                    # print("Send invite code to benny")
+                    send_invitation_code_to_user(self)
+                    self.sent = True
+                    self.resend = False
+            super(UserRegisterCode, self).save(**kwargs)
 
 
 @python_2_unicode_compatible
@@ -221,41 +287,20 @@ class Invitation(models.Model):
     valid = models.BooleanField(default=True)
     added = models.DateField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Developer Invitation"
+
     def __str__(self):
         return self.code
 
+    def url(self):
+        return "%s%s" % (settings.HOSTNAME_URL,
+                         reverse('accounts_create_account'))
+
     def save(self, **kwargs):
         if self.valid:
-            # send the verification email.
-            msg = """
-            <html>
-            <head>
-            </head>
-            <body>
-            Congratulations. You have been invited to join the
-            OAuth2 Server Alpha.<br>
-
-            You may now <a href='%s'>register</a> with the invitation code:
-
-            <h2>%s</h2>
-
-            - The Team
-            </body>
-            </html>
-            """ % (settings.HOSTNAME_URL, self.code,)
-            if settings.SEND_EMAIL:
-                subj = '[%s] Invitation ' \
-                       'Code: %s' % (settings.ORGANIZATION_NAME,
-                                     self.code)
-
-                msg = EmailMessage(subj,
-                                   msg,
-                                   settings.DEFAULT_FROM_EMAIL,
-                                   [self.email])
-                # Main content is now text/html
-                msg.content_subtype = 'html'
-                msg.send()
-
+            # send the invitation verification email.
+            send_invite_to_create_account(self)
         super(Invitation, self).save(**kwargs)
 
 
@@ -303,25 +348,6 @@ class ValidPasswordResetKey(models.Model):
         # send an email with reset url
         send_password_reset_url_via_email(self.user, self.reset_password_key)
         super(ValidPasswordResetKey, self).save(**kwargs)
-
-
-@python_2_unicode_compatible
-class InvitesAvailable(models.Model):
-    """ Stores BEN / DEV unused Invites """
-    user_type = models.CharField(default='DEV',
-                                 choices=USER_CHOICES,
-                                 max_length=5)
-    issued = models.IntegerField()
-    available = models.IntegerField()
-    last_issued = models.EmailField(blank=True)
-
-    def __str__(self):
-        u_t = self.user_type
-        for k, v in USER_CHOICES:
-            if self.user_type == k:
-                u_t = v
-        return '%s invites available for %s' % ((self.available - self.issued),
-                                                u_t)
 
 
 def random_key_id(y=20):

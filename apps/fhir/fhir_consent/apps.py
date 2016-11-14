@@ -13,6 +13,5 @@ class fhir_consentConfig(AppConfig):
     verbose_name = _("fhir_consent")
 
     def ready(self):
-        # import apps.fhir.fhir_consent.signals  # NOQA
+        # import apps.fhir.fhir_consent.signals
         from apps.fhir.fhir_consent import signals  # NOQA
-        # import signals
