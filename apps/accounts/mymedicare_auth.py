@@ -9,6 +9,7 @@ class MyMedicareBackend(object):
     Authenticate against MyMedicare.gov via screen scrape.
     login_url = 'https://www.mymedicare.gov/default.aspx'
     """
+
     def authenticate(self, username=None, password=None):
         login_url = 'https://www.mymedicare.gov/default.aspx'
         rb = RoboBrowser()
@@ -47,8 +48,11 @@ class MyMedicareBackend(object):
         # Prepare the form for submission
         form.serialize()
         # submit the form
+
+        print("here!!")
         rb.submit_form(form)
-        # If the login was successful then we would be redirected to the dashboard.
+        # If the login was successful then we would be redirected to the
+        # dashboard.
         if rb.url == "https://www.mymedicare.gov/dashboard.aspx":
             """The login worked."""
             # Get the name
@@ -72,8 +76,8 @@ class MyMedicareBackend(object):
                             first_name=first_name,
                             last_name=last_name)
                 user.save()
-                up, created = UserProfile.objects.get_or_create(user=user,
-                                                                user_type='BEN')
+                up, created = UserProfile.objects.get_or_create(
+                    user=user, user_type='BEN')
                 group = Group.objects.get(name='BlueButton')
                 user.groups.add(group)
 

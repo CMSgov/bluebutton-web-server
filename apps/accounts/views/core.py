@@ -164,6 +164,7 @@ def account_settings(request):
             up.create_applications = data['create_applications']
             up.mfa_login_mode = data['mfa_login_mode']
             up.mobile_phone_number = data['mobile_phone_number']
+            up.create_applications = data['create_applications']
             up.save()
             messages.success(request,
                              'Your account settings have been updated.')
