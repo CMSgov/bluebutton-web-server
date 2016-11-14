@@ -115,4 +115,3 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 AXES_COOLOFF_TIME = datetime.timedelta(seconds=60)
 
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API Server[DEV]')
-
