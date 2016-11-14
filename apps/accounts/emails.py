@@ -1,7 +1,5 @@
 import random
 from django.conf import settings
-# from hhs_oauth_server.message import EmailMultiAlternatives, EmailMessage
-# from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
@@ -27,8 +25,7 @@ def send_invite_to_create_account(invitation):
     htmly = get_template('email-invite.html')
     context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
                "CODE": invitation.code,
-               "URL": "%s%s" % (settings.HOSTNAME_URL,
-                                reverse('accounts_create_account')),
+               "URL": invitation.url(),
                }
 
     subject = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
@@ -48,7 +45,8 @@ def send_invitation_code_to_user(user_code_invitation):
     plaintext = get_template('email-user-code-by-email.txt')
     htmly = get_template('email-user-code-by-email.html')
     context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
-               "CODE": user_code_invitation.code}
+               "CODE": user_code_invitation.code,
+               "URL": user_code_invitation.url()}
     subject = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
                                             user_code_invitation.code)
     from_email = settings.DEFAULT_FROM_EMAIL
