@@ -29,34 +29,51 @@
       <ul class="nav navbar-nav">
           <li class="inactive"><a href="/"><i class="fa fa-home"></i> Home</a></li>
           <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Help <b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-question"></i>  Help <b class="caret"></b></a>
           <ul class="dropdown-menu">
-            <li class="dropdown-header"> Help</li>
-            <li><a href="#"><i class="fa fa-question-circle"></i> Beneficiary Help</a></li>
-            <li><a href="#"><i class="fa fa-gears"></i> Developer Help</a></li>
-
-            <li class="divider"></li>
-            <li class="dropdown-header">Learn more</li>
-            <li><a href="#">About Blue Button</a></li>
-            <li><a href="/education/learn/0/">Activate Blue Button </a></li>
+            <li><a href="{{settings.USER_DOCS}}"><i class="fa fa-map"></i> {{settings.USER_DOCS_TITLE}}</a></li>
+            <li><a href="{{settings.DEVELOPER_DOCS}}"><i class="fa fa-gears"></i> {{settings.DEVELOPER_DOCS_TITLE}}</a></li>
           </ul>
         </li>
       </ul>
 
       <ul class="nav navbar-nav navbar-right">
 
-        {% if user.is_authenticated %}
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ user }} <b class="caret"></b></a>
+        {% if "apps.sandbox" in active_apps %}
+		
+		 <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="fa fa-gears"></i> Sandbox <b class="caret"></b></a>
           <ul class="dropdown-menu">
-            <li><a href="{% url 'account_settings' %}"> <i class="fa fa-gears"></i> Account Settings</a></li>
-            <li><a href="{% url 'oauth2_provider:authorized-token-list' %}"> <i class="fa fa-legal"></i> Applications You Have Granted Access</a>
-		    <li><a href="{% url 'oauth2_provider:list' %}">  <i class="fa fa-key"></i> Applications You Created</a>
-
-            <li><a href="{% url 'mylogout' %}">Logout <i class="fa fa-sign-out"></i></a></li>
+            <li><a href="{% url 'bb_upload' %}"> <i class="fa fa-gears"></i> Create Claims From a CMS Blue Button Text File</a></li>
 
           </ul>
         </li>
+		
+		{% endif %}
+		
+		
+		
+		
+  
+		
+		{% if user.is_authenticated %}
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="fa fa-user"></i> Account <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li><a href="{% url 'account_settings' %}"> <i class="fa fa-gears"></i> Settings</a></li>
+            <li><a href="{% url 'mylogout' %}"><i class="fa fa-sign-out"></i> Logout </a></li>
+
+          </ul>
+        </li>
+			
+		<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-tasks"></i> Applications <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li><a href="{% url 'oauth2_provider:authorized-token-list' %}"> <i class="fa fa-legal"></i> Applications You Have Granted Access</a>
+		    <li><a href="{% url 'oauth2_provider:list' %}">  <i class="fa fa-key"></i> Applications You Created</a>
+          </ul>
+        </li>	
+			
 
         {% else %}
             <li class="dropdown">
@@ -64,14 +81,12 @@
               <ul class="dropdown-menu">
 
                 <li><a href="{% url 'mfa_login' %}"> <i class="fa fa-sign-in"></i>  Login</a></li>
-                <li><a href="{% url 'request_user_invite' %}"><i class="fa fa-info-circle"></i> Request an Invite</a></li>
-                <li><a href="{% url 'accounts_create_user' %}"> <i class="fa fa-user"></i> Create an Account</a></li>
                 <li><a href="{% url 'forgot_password' %}"><i class="fa fa-question-circle"></i> Forgot Password</a></li>
 
                 <li class="divider"></li>
 
-                <li><a href="{% url 'request_developer_invite' %}"><i class="fa fa-info-circle"></i> Request a Developer Invite</a></li>
-                <li><a href="{% url 'accounts_create_developer' %}"> <i class="fa fa-code"></i> Create a Developer Account</a></li>
+                <li><a href="{% url 'request_invite' %}"><i class="fa fa-code"></i> Request a Developer Invite</a></li>
+                <li><a href="{% url 'accounts_create_account' %}"> <i class="fa fa-code"></i> Create a Developer Account</a></li>
 
               </ul>
             </li>

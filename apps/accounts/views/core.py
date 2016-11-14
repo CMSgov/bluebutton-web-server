@@ -7,59 +7,34 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 
-from ..forms import *
+from ..forms import (RequestInviteForm, AccountSettingsForm,
+                     LoginForm,
+                     SignupForm)
 from ..models import *
-from ..emails import send_invite_request_notices
 from ..utils import validate_activation_key
 from django.conf import settings
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-def request_developer_invite(request):
-    name = 'Request a Developer Invite to the CMS Blue Button API'
-    additional_info = """
-    <p>The CMS Blue Button API is a new feature from Medicare. CMS Blue Button
-    API enables beneficiaries to connect their data to applications and
-    research programs they trust.</p>
-    <p>Register an account and an application and you can empower beneficiaries
-    to download their claims information to the innovative apps you create
-    to help them stay healthy.</p>
-    <p>We are rolling out CMS Blue Button API in phases to gather feedback on
-    the new features. To become a CMS Blue Button API developer you must
-    request an invitation code by filling in this form. We will send you an
-    email with the invitation link.</p>
-    <h4>Let's get started...</h4>
-    """
-    # FIXME: variable not used
-    # u_type = 'DEV'
+def request_invite(request):
+    name = 'Request a Developer Invite to the %s' % (
+        settings.ORGANIZATION_NAME)
     if request.method == 'POST':
-        form = RequestDeveloperInviteForm(request.POST)
+        form = RequestInviteForm(request.POST)
         if form.is_valid():
 
             invite_request = form.save()
-            # Set the invite user_type to DEV
-            invite_request.user_type = "DEV"
-            invited_email = invite_request.email
-            invite_request.save()
-
-            send_invite_request_notices(invite_request)
-
             messages.success(
                 request,
                 _('Your invite request has been received.  '
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
-            if IsAppInstalled('apps.extapi'):
-                # Installation Specific code
-                logger.debug("email to invite:%s" % invited_email)
-                issued_invite = issue_invite(invited_email, user_type="DEV")
-                if issued_invite:
-                    logger.debug("Invite Code:%s" % issued_invite)
-                    return HttpResponseRedirect(reverse('accounts_create_developer'))
+
+            logger.debug("email to invite:%s" % invite_request.email)
+
             if settings.MFA:
                 return HttpResponseRedirect(reverse('mfa_login'))
             else:
@@ -68,63 +43,13 @@ def request_developer_invite(request):
             return render(request, 'generic/bootstrapform.html', {
                 'name': name,
                 'form': form,
-                'additional_info': additional_info,
             })
     else:
         # this is an HTTP  GET
         return render(request,
                       'generic/bootstrapform.html',
                       {'name': name,
-                       'form': RequestDeveloperInviteForm(),
-                       'additional_info': additional_info})
-
-
-def request_user_invite(request):
-    name = 'Request an Invite to CMS Blue Button API'
-    additional_info = """
-    <p>CMS Blue Button API is a new feature from Medicare. CMS Blue Button API
-    connects your data to applications and research programs you trust.</p>
-    <p>Authorize an application and it will download data automatically on
-    your behalf.</p>
-    <p>We are rolling out CMS Blue Button API in phases to gather feedback on
-    the new features. To try CMS Blue Button API for yourself you must request
-    an invitation code by filling in this form. We will send you an email
-    with the invitation link. You must click on the link in the email to
-    add the CMS Blue Button API to your Medicare account.</p>
-    <h4>Let's get started...</h4>
-    """
-    # FIXME: variable not used
-    # u_type = 'BEN'
-    if request.method == 'POST':
-        form = RequestUserInviteForm(request.POST)
-        if form.is_valid():
-            invite_request = form.save()
-
-            send_invite_request_notices(invite_request)
-
-            messages.success(
-                request,
-                _('Your invite request has been received.  '
-                  'You will be contacted by email when your '
-                  'invitation is ready.'),
-            )
-            if settings.MFA:
-                return HttpResponseRedirect(reverse('mfa_login'))
-            else:
-                return HttpResponseRedirect(reverse('login'))
-        else:
-            return render(request,
-                          'generic/bootstrapform.html',
-                          {'name': name,
-                           'form': form,
-                           'additional_info': additional_info})
-    else:
-        # this is an HTTP  GET
-        return render(request,
-                      'generic/bootstrapform.html',
-                      {'name': name,
-                       'form': RequestUserInviteForm(),
-                       'additional_info': additional_info})
+                       'form': RequestInviteForm()})
 
 
 def mylogout(request):
@@ -185,42 +110,12 @@ def reissue_api_keys(request):
     return HttpResponseRedirect(reverse('display_api_keys'))
 
 
-def create_developer(request):
+def create_account(request):
 
     name = "Create a Developer Account"
 
     if request.method == 'POST':
-        form = SignupDeveloperForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request,
-                             _("Your developer account was created. Please "
-                               "check your email to verify your account."))
-
-            if settings.MFA:
-                return HttpResponseRedirect(reverse('mfa_login'))
-            else:
-                return HttpResponseRedirect(reverse('login'))
-        else:
-            # return the bound form with errors
-            return render(request,
-                          'generic/bootstrapform.html',
-                          {'name': name, 'form': form})
-    else:
-        # this is an HTTP  GET
-        messages.info(request,
-                      _("An invitation code is required to register."))
-        return render(request,
-                      'generic/bootstrapform.html',
-                      {'name': name, 'form': SignupDeveloperForm()})
-
-
-def create_user(request):
-
-    name = "Create a Medicare Beneficiary Account"
-
-    if request.method == 'POST':
-        form = SignupUserForm(request.POST)
+        form = SignupForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request,
@@ -242,7 +137,7 @@ def create_user(request):
                       _("An invitation code is required to register."))
         return render(request,
                       'generic/bootstrapform.html',
-                      {'name': name, 'form': SignupUserForm()})
+                      {'name': name, 'form': SignupForm()})
 
 
 @login_required
@@ -269,6 +164,7 @@ def account_settings(request):
             up.create_applications = data['create_applications']
             up.mfa_login_mode = data['mfa_login_mode']
             up.mobile_phone_number = data['mobile_phone_number']
+            up.create_applications = data['create_applications']
             up.save()
             messages.success(request,
                              'Your account settings have been updated.')
@@ -311,44 +207,3 @@ def activation_verify(request, activation_key):
         return HttpResponseRedirect(reverse('mfa_login'))
     else:
         return HttpResponseRedirect(reverse('login'))
-
-
-def issue_invite(email, user_type="BEN"):
-    """ Check if an invite is available """
-    if invite_available(email, user_type):
-        invitation = Invitation()
-        invitation.code = random_code()
-        invitation.valid = True
-        invitation.email = email
-        invitation.save()
-
-        logger.debug("Invitation %s created: %s" % (invitation.code,
-                                                    invitation.email))
-        return invitation
-    else:
-        return
-
-
-def invite_available(email, user_type="BEN"):
-    """" Update the issued counter """
-
-    try:
-        ia = InvitesAvailable.objects.get(user_type=user_type)
-    except InvitesAvailable.DoesNotExist:
-        return
-
-    if ia.available <= ia.issued:
-        logger.debug("No invites available for %s: %s/%s" % (ia.user_type,
-                                                             ia.issued,
-                                                             ia.available
-                                                             ))
-        return
-    else:
-        ia.issued += 1
-        ia.email = email
-        ia.save()
-
-        logger.debug("%s invitation:%s to %s" % (ia.user_type,
-                                                 ia.issued,
-                                                 ia.email))
-        return ia
