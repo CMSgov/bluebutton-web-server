@@ -19,6 +19,8 @@ from .views.password_reset import (change_secret_questions,
                                    secret_question_challenge_3)
 
 from .views.mfa import mfa_code_confirm, mfa_login
+from .views.user_code_login import user_code_login
+
 
 urlpatterns = [
     # login and Logout ------------------------------------
@@ -39,6 +41,9 @@ urlpatterns = [
     # MFA URLs ------------------------------------------
     # url(r'^mfa/login$', watch_login(mfa_login), name='mfa_login'),
     url(r'^mfa/login$', mfa_login, name='mfa_login'),
+
+    url(r'^user-code/login$', user_code_login, name='user_code_login'),
+
 
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
