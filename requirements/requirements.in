@@ -20,6 +20,7 @@ pytz
 configparser
 dj-database-url
 pyjwt
+jsonfield
 
 # notifications
 django-ses
@@ -36,6 +37,7 @@ python-openid
 django-oauth-toolkit-scopes-backend
 poetri
 django-axes
+pyldap
 
 # for screen scraping
 robobrowser
