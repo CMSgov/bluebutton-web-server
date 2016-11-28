@@ -19,13 +19,14 @@ class BulkUserCodeForm(forms.Form):
 
     def clean_csv_text(self):
         csv_text = self.cleaned_data.get('csv_text', '')
-        creader = csv.reader(str.splitlines(str(csv_text)))
-        headers = creader.next()
-        for row in creader:
+        dreader = csv.DictReader(str.splitlines(str(csv_text)))
+        headers = dreader.fieldnames
+        for row in dreader:
             if len(row) != 5:
                 raise forms.ValidationError(_('Each row must have 5 values'))
         header = ['first_name', 'last_name', 'email', 'username', 'code']
-        if cmp(header, headers) != 0:
+        (header > headers) - (header < headers)
+        if (header > headers) - (header < headers) != 0:
             raise forms.ValidationError(
                 _('check the values or your header row'))
         return csv_text
