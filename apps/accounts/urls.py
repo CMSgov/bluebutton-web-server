@@ -20,7 +20,7 @@ from .views.password_reset import (change_secret_questions,
 
 from .views.mfa import mfa_code_confirm, mfa_login
 from .views.user_code_login import user_code_login
-
+from .views.invites import bulk_user_codes
 
 urlpatterns = [
     # login and Logout ------------------------------------
@@ -49,6 +49,8 @@ urlpatterns = [
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
         mfa_code_confirm, name='mfa_code_confirm'),
 
+
+    url(r'^bulk-user-codes$', bulk_user_codes, name='bulk_user_codes'),
 
     # Request a Developer invite to signup ---------------------------
     url(r'^request-invite$',
