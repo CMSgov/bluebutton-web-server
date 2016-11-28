@@ -9,7 +9,7 @@ It consists of an OAuth2 server and a FHIR server that serves specific resources
 This application will handle the OAuth 2 handshaking and configuration with CMS Medicare
 beneficiaries and Registered Developers.
 
-The prototype application will be served from an AWS instance (https://api.bbonfhir.com).
+The prototype application will be served from an AWS instance (https://cms.oauth2.io).
 The service will be known as the CMS Blue Button API.
 
 Quick Setup
