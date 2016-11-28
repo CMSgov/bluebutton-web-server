@@ -9,6 +9,26 @@ from django.utils.translation import ugettext_lazy as _
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 from localflavor.us.forms import USPhoneNumberField
+import csv
+
+
+class BulkUserCodeForm(forms.Form):
+    csv_text = forms.CharField(widget=forms.Textarea, max_length=10240, label=_(
+        'CSV'), help_text=_('first_name,last_name,email,username,code'))
+    required_css_class = 'required'
+
+    def clean_csv_text(self):
+        csv_text = self.cleaned_data.get('csv_text', '')
+        creader = csv.reader(str.splitlines(str(csv_text)))
+        headers = creader.next()
+        for row in creader:
+            if len(row) != 5:
+                raise forms.ValidationError(_('Each row must have 5 values'))
+        header = ['first_name', 'last_name', 'email', 'username', 'code']
+        if cmp(header, headers) != 0:
+            raise forms.ValidationError(
+                _('check the values or your header row'))
+        return csv_text
 
 
 class RequestInviteForm(forms.ModelForm):
