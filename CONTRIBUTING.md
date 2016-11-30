@@ -9,6 +9,8 @@ Examples of contributions include:
 * Documentation improvements
 * Bug reports and patch reviews
 
+The community edition of this software is free open source software liceensed 
+under the GPL version 2.
 
 By contributing to this project, you hereby grant to Videntity Systems, Inc. 
 a non-exclusive, perpetual, worldwide, fully-paid-up, royalty-free license 
