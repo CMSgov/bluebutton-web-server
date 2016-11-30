@@ -48,8 +48,6 @@ class MyMedicareBackend(object):
         # Prepare the form for submission
         form.serialize()
         # submit the form
-
-        print("here!!")
         rb.submit_form(form)
         # If the login was successful then we would be redirected to the
         # dashboard.
