@@ -86,7 +86,7 @@ INSTALLED_APPS = [
     # Endorsement example
 
     # TODO migrate to reusable app
-    # 'apps.endorse',
+    'apps.endorse',
 
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
