@@ -42,11 +42,15 @@ class Endorsement(models.Model):
     def __str__(self):
         return self.title
 
+    def url(self):
+        url = 'http://%s/.wellknown/poet.pem' % (self.iss)
+        return url
+
     def signature_verified(self):
         url = 'http://%s/.wellknown/poet.pem' % (self.iss)
-
+        print("URL is: ", url)
         try:
-            r = requests.get(url, timeout=1)
+            r = requests.get(url, timeout=10)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -60,7 +64,7 @@ class Endorsement(models.Model):
 
         url = 'http://%s/.wellknown/poet.jwks' % (self.iss)
         try:
-            r = requests.get(url, timeout=1)
+            r = requests.get(url, timeout=10)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -74,7 +78,7 @@ class Endorsement(models.Model):
 
         try:
             url = 'https://%s/.wellknown/poet.pem' % (self.iss)
-            r = requests.get(url, verify=False, timeout=1)
+            r = requests.get(url, verify=False, timeout=10)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -88,7 +92,7 @@ class Endorsement(models.Model):
 
         try:
             url = 'https://%s/.wellknown/poet.jwks' % (self.iss)
-            r = requests.get(url, timeout=1)
+            r = requests.get(url, timeout=10)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
