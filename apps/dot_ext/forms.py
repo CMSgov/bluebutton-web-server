@@ -6,7 +6,7 @@ import jwt as jwtl
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
+from collections import OrderedDict
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
@@ -33,7 +33,7 @@ class EndorsementForm(forms.ModelForm):
             msg = _('Invalid JWT.')
             raise forms.ValidationError(msg)
 
-        if isinstance(decoded_payload, dict):
+        if isinstance(decoded_payload, OrderedDict):
             msg = _('Invalid Payload.')
             raise forms.ValidationError(msg)
         # TODO: this part may be removed or updated
