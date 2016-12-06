@@ -205,4 +205,5 @@ class POETJWTForm(forms.Form):
     def create_jwt(self):
         return sign_poet(self.create_payload(),
                          self.cleaned_data.get('private_key'),
-                         self.cleaned_data.get('exp'))
+                         self.cleaned_data.get('iss'),
+                         int(self.cleaned_data.get('exp')))
