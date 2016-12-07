@@ -43,8 +43,6 @@
 
             </li>
 
-
-
             <li>
                 <p><b>{% trans "Scopes Detail" %}</b></p>
                 {% for s in application.scope.all %}
@@ -53,13 +51,6 @@
                 <p><pre>{{ s.protected_resources }}</pre></p>
                 {% endfor %}
             </li>
-
-
-            <li>
-                <p><b>{% trans "Software JWT" %}</b></p>
-                <p><pre>{{ application.jwt }}</pre></p>
-            </li>
-
 
 
             <li>
