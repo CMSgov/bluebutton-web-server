@@ -33,6 +33,9 @@
                    Issued By: {{e.iss}}<br>
                    Expires: {{e.exp}}<br>
                    Signature Verified: {{e.signature_verified}}
+                   {% if e.signature_verified %}
+                   <a href={{e.url}}>(Signature)</a>
+                   {% endif %}
                    </td>
                     
                     <td>
