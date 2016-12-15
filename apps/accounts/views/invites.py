@@ -5,12 +5,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..forms import BulkUserCodeForm
-from ..models import UserRegisterCode
+from ..models import UserRegisterCode, UserProfile
 import csv
 
 
 @login_required
 def bulk_user_codes(request):
+
+       # first_name,last_name,email,username,code
+       # Mark,Scrimshire,ekivemark@gmail.com,marks,code1234
+       # Alan,Viars,alan.viars@videntity.com,acv,code2345
 
     if request.method == 'POST':
         form = BulkUserCodeForm(request.POST)
@@ -26,6 +30,9 @@ def bulk_user_codes(request):
         else:
             return render(request, 'generic/bootstrapform.html',
                           {'form': form})
+    
+    up = UserProfile.objects.get(user=request.user)
+    messages.info(request, _('You have %s remaining user invites.'% (up.remaining_user_invites)))
     # this is a GET
     return render(request, 'generic/bootstrapform.html',
                   {'form': BulkUserCodeForm()})
