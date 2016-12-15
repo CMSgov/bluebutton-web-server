@@ -58,8 +58,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     class Meta:
         model = get_application_model()
-        fields = ('scope', 'name', 'client_id', 'client_secret', 'client_type',
-                  'authorization_grant_type', 'redirect_uris')
+        fields = ('scope', 'name', 'client_type', 'authorization_grant_type', 'redirect_uris')
 
     required_css_class = 'required'
 
