@@ -19,8 +19,8 @@ def authorize_app_flag_required(func):
         if getattr(settings, "REQUIRE_AUTHOIRZE_APP_FLAG", False):
             if request.user.is_authenticated():
                 get_object_or_404(UserProfile,
-                              user=request.user,
-                              authorize_applications=True)
+                                  user=request.user,
+                                  authorize_applications=True)
 
         return func(request, *args, **kwargs)
 
