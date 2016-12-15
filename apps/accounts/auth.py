@@ -18,7 +18,7 @@ class SettingsBackend(object):
     """
 
     def authenticate(self, username=None, password=None):
-        login_valid = (getattr(settings,SETTINGS_AUTH_USER,"") == username)
+        login_valid = (getattr(settings, 'SETTINGS_AUTH_USER', "") == username)
         pwd_valid = check_password(password, settings.SETTINGS_AUTH_PASSWORD)
         # pwd_valid = check_password(password, pwd_to_compare)
         if login_valid and pwd_valid:
@@ -29,14 +29,14 @@ class SettingsBackend(object):
                 # Create a new user. Note that we can set password
                 # to anything, because it won't be checked; the password
                 # from the external backend is checked (coming from settings).
-                user = User(username=username, password='flubbernubber',
-                            first_name=getattr(settings, SETTINGS_AUTH_FIRST_NAME,""),
-                            last_name=getattr(settings, SETTINGS_AUTH_LAST_NAME,""),
-                            email=getattr(settings, SETTINGS_AUTH_EMAIL, ""),
-                            is_active=False)
+                user = User(
+                    username=username, password='flubbernubber', first_name=getattr(
+                        settings, 'SETTINGS_AUTH_FIRST_NAME', ""), last_name=getattr(
+                        settings, 'SETTINGS_AUTH_LAST_NAME', ""), email=getattr(
+                        settings, 'SETTINGS_AUTH_EMAIL', ""), is_active=False)
                 user.save()
-                up, created = UserProfile.objects.get_or_create(user=user,
-                                                                user_type='BEN')
+                up, created = UserProfile.objects.get_or_create(
+                    user=user, user_type='BEN')
                 group = Group.objects.get(name='BlueButton')
                 user.groups.add(group)
                 # Send verification email
