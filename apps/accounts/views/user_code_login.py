@@ -20,7 +20,7 @@ def user_code_login(request):
             code = form.cleaned_data['code']
             user = authenticate(username=username, password=password)
 
-            print(user)
+            #print(user)
 
             try:
                 valid_user_code = UserRegisterCode.objects.get(
