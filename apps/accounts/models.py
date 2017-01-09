@@ -1,12 +1,12 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import pytz
 import random
 import uuid
-
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 import boto3
@@ -15,6 +15,7 @@ from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
                      mfa_via_email, send_invite_to_create_account,
                      send_invitation_code_to_user)
+
 
 USER_CHOICES = (
     ('BEN', 'Beneficiary'),
@@ -57,7 +58,7 @@ MFA_CHOICES = (
 
 @python_2_unicode_compatible
 class UserProfile(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL)
     organization_name = models.CharField(max_length=255,
                                          blank=True,
                                          default='')
@@ -149,7 +150,7 @@ class UserProfile(models.Model):
 
 @python_2_unicode_compatible
 class MFACode(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     uid = models.CharField(blank=True,
                            default=uuid.uuid4,
                            max_length=36, editable=False)
@@ -233,7 +234,7 @@ class UserRegisterCode(models.Model):
     code = models.CharField(max_length=30)
     username = models.CharField(max_length=40)
     email = models.EmailField(max_length=150)
-    sender = models.ForeignKey(User, null=True, blank=True)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     sent = models.BooleanField(default=False, editable=False)
@@ -306,7 +307,7 @@ class Invitation(models.Model):
 
 @python_2_unicode_compatible
 class ActivationKey(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     key = models.CharField(default=uuid.uuid4, max_length=40)
     expires = models.DateTimeField(blank=True)
 
@@ -328,7 +329,7 @@ class ActivationKey(models.Model):
 
 @python_2_unicode_compatible
 class ValidPasswordResetKey(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     reset_password_key = models.CharField(max_length=50, blank=True)
     # switch from datetime.now to timezone.now
     expires = models.DateTimeField(default=timezone.now)

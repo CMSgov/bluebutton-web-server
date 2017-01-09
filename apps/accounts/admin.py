@@ -44,8 +44,8 @@ admin.site.register(RequestInvite, RequestInviteAdmin)
 
 
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name', 'user_type', 'access_key_id')
-    search_fields = ('user',)
+    list_display = ('user', 'name', 'user_type')
+    search_fields = ('user', 'user_type')
 
 
 admin.site.register(UserProfile, UserProfileAdmin)
