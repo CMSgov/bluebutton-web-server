@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.urlresolvers import reverse
@@ -20,6 +20,7 @@ class MFALoginTestCase(TestCase):
                                         **extra_fields)
         return user
 
+    @override_settings(LOGIN_RATE='500/m')
     def setUp(self):
         self._create_user('fred', 'bedrocks', first_name='Fred',
                           last_name='Flinstone', email='fred@example.com')
@@ -30,6 +31,7 @@ class MFALoginTestCase(TestCase):
         self.url = reverse('mfa_login')
         Group.objects.create(name='BlueButton')
 
+    @override_settings(LOGIN_RATE='500/m')
     def test_valid_mfa_login_with_email(self):
         """
         Valid User can login with valid MFA code
@@ -54,6 +56,7 @@ class MFALoginTestCase(TestCase):
         # Logout)
         self.assertContains(response, 'Logout')
 
+    @override_settings(LOGIN_RATE='500/m')
     def test_valid_mfa_login_with_sms(self):
         """
         Valid User can login with valid MFA code (SMS)
