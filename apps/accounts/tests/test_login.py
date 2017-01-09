@@ -1,5 +1,4 @@
-from django.test import TestCase
-
+from django.test import TestCase, override_settings
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.test.client import Client
@@ -24,6 +23,7 @@ class LoginTestCase(TestCase):
                                         **extra_fields)
         return user
 
+    @override_settings(LOGIN_RATE='500/m')
     def setUp(self):
         self._create_user('fred', 'bedrocks', first_name='Fred',
                           last_name='Flinstone', email='fred@example.com')
@@ -33,6 +33,7 @@ class LoginTestCase(TestCase):
         self.url = reverse('mfa_login')
         Group.objects.create(name='BlueButton')
 
+    @override_settings(LOGIN_RATE='500/m')
     def test_valid_login(self):
         """
         Valid User can login
@@ -42,6 +43,7 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logout')
 
+    @override_settings(LOGIN_RATE='500/m')
     def test_invalid_login(self):
         """
         Invalid user cannot login
