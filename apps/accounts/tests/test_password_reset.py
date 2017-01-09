@@ -2,16 +2,17 @@ from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-
 from ..models import UserProfile, ValidPasswordResetKey
 
 
 class PasswordResetTestCase(TestCase):
+
     """
     Test Password Reset FunctionalityDeveloper Account Can Create Applications
     """
 
     def setUp(self):
+
         u = User.objects.create_user(username="fred",
                                      first_name="Fred",
                                      last_name="Flinstone",
@@ -53,6 +54,7 @@ class PasswordResetTestCase(TestCase):
         url = reverse('secret_question_challenge_3', args=('fred',))
         form_data = {'answer': 'bentley'}
         response = self.client.post(url, form_data, follow=True)
+
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
