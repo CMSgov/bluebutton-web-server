@@ -38,7 +38,7 @@ django-oauth-toolkit-scopes-backend
 poetri
 django-axes
 pyldap
-
+django-ratelimit
 # for screen scraping
 robobrowser
 lxml
