@@ -1,13 +1,13 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-
 import logging
-
+from django.utils.decorators import method_decorator
+from ...accounts.decorators import authorize_app_flag_required
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.http import HttpResponseUriRedirect
-
+from ratelimit.decorators import ratelimit
 from ..forms import AllowForm
 from ..models import ExpiresIn
 
@@ -15,6 +15,8 @@ from ..models import ExpiresIn
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@method_decorator(authorize_app_flag_required, name='dispatch')
+@method_decorator(ratelimit(key='user_or_ip', rate='5/m', method=['GET', 'POST'], block=True), name='dispatch')
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to

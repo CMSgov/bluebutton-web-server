@@ -21,6 +21,7 @@ django-cors-headers==1.1.0
 django-debug-toolbar==1.4
 django-getenv==1.3.1
 django-localflavor==1.3
+django-rtelimie==1.0.1
 django-ses==0.7.1
 django-settings-export==1.1.0
 django-storages==1.5.1
