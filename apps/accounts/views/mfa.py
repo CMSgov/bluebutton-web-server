@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..models import UserProfile, MFACode
 from ..mfa_forms import LoginForm, MFACodeForm
+from ratelimit.decorators import ratelimit
 
 
 def mfa_code_confirm(request, uid):
@@ -59,6 +60,8 @@ def mfa_code_confirm(request, uid):
                   {'form': MFACodeForm()})
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['GET', 'POST'], block=True)
+@ratelimit(key='post:username', rate='5/m', method=['GET', 'POST'], block=True)
 def mfa_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
