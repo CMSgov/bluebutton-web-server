@@ -60,8 +60,8 @@ def mfa_code_confirm(request, uid):
                   {'form': MFACodeForm()})
 
 
-@ratelimit(key='user_or_ip', rate='5/m', method=['GET', 'POST'], block=True)
-@ratelimit(key='post:username', rate='5/m', method=['GET', 'POST'], block=True)
+@ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '5/m'), method=['POST'], block=True)
+@ratelimit(key='post:username', rate=getattr(settings, 'LOGIN_RATE', '5/m'), method=['POST'], block=True)
 def mfa_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
