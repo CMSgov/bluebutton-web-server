@@ -393,15 +393,16 @@ class EmailWebhook(models.Model):
                              object_pairs_hook=OrderedDict)
             message = json.loads(whr["Message"])
             self.status = message['notificationType']
-            
+
             if self.status == "Bounce":
-                self.email = message['bounce']['bouncedRecipients'][0]["emailAddress"]
-                
+                self.email = message['bounce'][
+                    'bouncedRecipients'][0]["emailAddress"]
+
             if self.status == "Complaint":
                 self.email = message['complainedRecipients'][0]["emailAddress"]
-            
+
             if self.status == "Delivery":
                 self.email = message['mail']["destination"][0]
-                
+
             self.details = request_body
             super(EmailWebhook, self).save(**kwargs)
