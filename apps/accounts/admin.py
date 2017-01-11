@@ -7,12 +7,13 @@ from .models import (
     UserProfile,
     ActivationKey,
     MFACode,
-    UserRegisterCode)
+    UserRegisterCode,
+    EmailWebhook)
 
 
 admin.site.register(ActivationKey)
 admin.site.register(ValidPasswordResetKey)
-
+admin.site.register(EmailWebhook)
 
 class UserRegisterCodeAdmin(admin.ModelAdmin):
     list_display = ('email',
