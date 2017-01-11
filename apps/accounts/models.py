@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import pytz
 import random
 import uuid
+import json
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db import models
@@ -15,7 +16,7 @@ from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
                      mfa_via_email, send_invite_to_create_account,
                      send_invitation_code_to_user)
-
+from collections import OrderedDict
 
 USER_CHOICES = (
     ('BEN', 'Beneficiary'),
@@ -372,3 +373,23 @@ def create_activation_key(user):
     # Create an new activation key and send the email.
     key = ActivationKey.objects.create(user=user)
     return key
+
+
+@python_2_unicode_compatible
+class EmailWebhook(models.Model):
+    email = models.EmailField(max_length=150, default="", blank=True)
+    status = models.CharField(max_length=30, default="", blank=True)
+    details = models.TextField(max_length=2048, default="", blank=True)
+    added = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        r = '%s: %s' % (self.email, self.status)
+        return r
+
+    def save(self, request_body="", **kwargs):
+
+        if request_body:
+            whr = json.loads(str(request_body.decode('utf-8')),
+                             object_pairs_hook=OrderedDict)
+            self.details = request_body
+            super(EmailWebhook, self).save(**kwargs)
