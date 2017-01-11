@@ -87,9 +87,9 @@ urlpatterns = [
         name='activation_verify'),
 
     # Email Bounce Webhook
-    
+
     url(r'^email-bounce$', record_email_bounce, name='record_email_bounce'),
-    
+
     url(r'^display-api-keys$', display_api_keys, name='display_api_keys'),
 
     url(r'^reissue-api-keys$', reissue_api_keys, name='reissue_api_keys'),
