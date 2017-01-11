@@ -21,6 +21,7 @@ from .views.password_reset import (change_secret_questions,
 from .views.mfa import mfa_code_confirm, mfa_login
 from .views.user_code_login import user_code_login
 from .views.invites import bulk_user_codes
+from .views.email_bounce_webhook import record_email_bounce
 
 urlpatterns = [
     # login and Logout ------------------------------------
@@ -84,6 +85,10 @@ urlpatterns = [
     # Verify the account
     url(r'^activation-verify/(?P<activation_key>[^/]+)/$', activation_verify,
         name='activation_verify'),
+
+    # Email Bounce Webhook
+
+    url(r'^email-bounce$', record_email_bounce, name='record_email_bounce'),
 
     url(r'^display-api-keys$', display_api_keys, name='display_api_keys'),
 
