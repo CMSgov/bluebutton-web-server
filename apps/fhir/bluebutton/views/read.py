@@ -75,6 +75,23 @@ def generic_read(request,
     # Example client use in curl:
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
 
+    Process flow:
+
+    Is it a valid request?
+
+    Get the target server info
+
+    Get the request modifiers
+
+    Construct the call
+
+    Make the call
+
+    Check result for errors
+
+    Deliver the formatted result
+
+
     """
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
     logger.debug('interaction_type: %s' % interaction_type)
@@ -89,10 +106,6 @@ def generic_read(request,
     srtc = check_rt_controls(resource_type)
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
-
-    default_path = get_default_path(srtc.resource_name)
-    # get the default path for resource with ending "/"
-    # You need to add resource_type + "/" for full url
 
     logger.debug('srtc: %s' % srtc)
 
@@ -126,6 +139,12 @@ def generic_read(request,
 
     fhir_url = ''
     # change source of default_url to ResourceRouter
+
+    default_path = get_default_path(srtc.resource_name,
+                                    crosswalk_source=cx.fhir_source.fhir_url)
+    # get the default path for resource with ending "/"
+    # You need to add resource_type + "/" for full url
+
 
     # Add default FHIR Server URL to re-write
 
