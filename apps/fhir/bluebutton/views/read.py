@@ -178,7 +178,11 @@ def generic_read(request,
     if interaction_type == 'search':
         if cx is not None:
             logger.debug("cx.fhir_id=%s" % cx.fhir_id)
-            r_id = cx.fhir_id.split('/')[1]
+            # TODO: Deal with list index out of range
+            if cx.fhir_id.__contains__('/'):
+                r_id = cx.fhir_id.split('/')[1]
+            else:
+                r_id = cx.fhir_id
             logger.debug("Patient Id:%s" % r_id)
 
     if resource_type == "Patient":
