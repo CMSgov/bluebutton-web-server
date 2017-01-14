@@ -19,6 +19,7 @@ class SettingsBackend(object):
 
     def authenticate(self, username=None, password=None):
         login_valid = (getattr(settings, 'SETTINGS_AUTH_USER', "") == username)
+        # TODO: Handle error if SETTINGS_AUTH_PASSWORD not set
         pwd_valid = check_password(password, settings.SETTINGS_AUTH_PASSWORD)
         # pwd_valid = check_password(password, pwd_to_compare)
         if login_valid and pwd_valid:

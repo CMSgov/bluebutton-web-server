@@ -621,20 +621,23 @@ def pretty_json(od, indent=PRETTY_JSON_INDENT):
     return json.dumps(od, indent=indent)
 
 
-def get_default_path(resource_name):
+def get_default_path(resource_name, crosswalk_source=None):
     """ Get default Path for resource """
 
     # print("\nGET_DEFAULT_URL:%s" % resource_name)
-    try:
-        rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
-        default_path = rr.fhir_path
-        # print("\nDEFAULT_URL=%s" % default_pathl)
+    if crosswalk_source:
+        default_path = crosswalk_source
+    else:
+        try:
+            rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
+            default_path = rr.fhir_path
+            # print("\nDEFAULT_URL=%s" % default_pathl)
 
-    except ResourceRouter.DoesNotExist:
-        # use the default FHIR Server URL
-        default_path = FhirServerUrl()
-        # print("\nNO MATCH for %s so setting to:%s" % (resource_name,
-        #                                               default_path))
+        except ResourceRouter.DoesNotExist:
+            # use the default FHIR Server URL
+            default_path = FhirServerUrl()
+            # print("\nNO MATCH for %s so setting to:%s" % (resource_name,
+            #                                               default_path))
 
     return default_path
 
