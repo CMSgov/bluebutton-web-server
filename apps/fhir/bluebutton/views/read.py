@@ -158,6 +158,8 @@ def generic_read(request,
         # Add to the rewrite_url list
         rewrite_url_list.append(default_path)
 
+        if srtc.override_url_id:
+            fhir_url += cx.fhir_id + "/"
     else:
         logger.debug('CX:%s' % cx)
         if cx:
