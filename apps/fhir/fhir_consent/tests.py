@@ -215,7 +215,7 @@ class FHIR_ConsentDirective_Resource_InitializeTest(BaseApiTest):
                                                narrative,
                                                oauth_period,
                                                oauth_permissions)
-        logger.debug("\nConsentDirective Resource:\n%s" % pretty_json(result))
+        # logger.debug("\nConsentDirective Resource:\n%s" % pretty_json(result))
 
         if 'resourceType' in result:
             result_content = result['resourceType']
@@ -282,8 +282,8 @@ class AccessTokenSignalTest(BaseApiTest):
         a_tkn.save()
 
         f_c = fhir_Consent.objects.get(user=usr, application=app)
-        print("\nConsent:%s" % f_c)
-        print("\nJSON Consent:\n%s\n" % pretty_json(f_c.consent))
+        # print("\nConsent:%s" % f_c)
+        # print("\nJSON Consent:\n%s\n" % pretty_json(f_c.consent))
 
         self.assertEqual(f_c.consent['meta']['versionId'], "1")
 
@@ -298,7 +298,7 @@ class AccessTokenSignalTest(BaseApiTest):
         a_tkn.save()
 
         f_c = fhir_Consent.objects.get(user=usr, application=app)
-        print("\nUpdated Consent:%s" % f_c)
-        print("\nUpdated JSON Consent:\n%s\n" % pretty_json(f_c.consent))
+        # print("\nUpdated Consent:%s" % f_c)
+        # print("\nUpdated JSON Consent:\n%s\n" % pretty_json(f_c.consent))
 
         self.assertEqual(f_c.consent['meta']['versionId'], "2")

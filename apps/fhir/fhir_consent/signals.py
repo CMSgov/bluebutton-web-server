@@ -54,12 +54,13 @@ def write_consent(sender, **kwargs):
     A_App = A_Tkn['_application_cache']
     # print("App:%s" % A_App)
     # print("App Name:%s" % A_App.name)
+    A_Appname = A_App.name
 
     friendly_language = "Beneficiary (%s) gave " \
-                        "[%s] permission to " \
-                        "application (%s)" % (A_Tkn['_user_cache'],
+                        "(%s) permission to " \
+                        "application:%s." % (A_Tkn['_user_cache'],
                                               A_Tkn['scope'],
-                                              A_App.__str__)
+                                              A_Appname)
 
     consent_now = timezone.now()
     # NOTE: dt_instant and dt_period create string representations of date

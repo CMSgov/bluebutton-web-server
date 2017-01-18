@@ -1,3 +1,5 @@
+import json
+
 from collections import OrderedDict
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -230,12 +232,12 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
-        print("Response for %s: %s" % (srtc, response))
+        # print("Response for %s: %s" % (srtc, response))
         self.assertEquals(response, ['patient=4995802'])
 
         # Test Patient= in patient resource
         srtc = SupportedResourceType.objects.get(pk=1)
-        print("SRTC: %s" % srtc.resource_name)
+        # print("SRTC: %s" % srtc.resource_name)
 
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
@@ -247,13 +249,15 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
+        # print("Response:(%s)" % response)
+        # print("JSON Dumps:%s" % json.dumps(response))
         self.assertEquals(response, [])
 
         # Test
         srtc = SupportedResourceType.objects.get(pk=1)
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
-        self.assertEquals(response, [])
+        self.assertEquals(response, json.loads(["[]",]))
 
         # Test
         srtc = SupportedResourceType.objects.get(pk=3)
@@ -265,7 +269,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         srtc = None
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
-        self.assertEquals(response, [])
+        self.assertEquals(response, ["[]",])
 
     def test_concat_params(self):
         """
