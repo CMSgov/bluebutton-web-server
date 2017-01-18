@@ -670,6 +670,7 @@ def crosswalk_patient_id(user):
 
     return None
 
+
 def conformance_or_capability(fhir_url):
     """ Check FHIR Url for FHIR Version.
     :return resource type (STU3 switches from ConformanceStatement to CapabilityStatement
