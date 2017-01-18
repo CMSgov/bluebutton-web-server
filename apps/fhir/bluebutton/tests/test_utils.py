@@ -1,4 +1,4 @@
-import json
+# import json
 
 from collections import OrderedDict
 from django.conf import settings
@@ -258,7 +258,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
         print("Response:%s" % response)
-        print("compare to:%s" % [] )
+        print("compare to:%s" % [])
         self.assertEquals(response, [])
 
         # Test
@@ -272,7 +272,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
         print("Response 2:%s" % type(response))
-        print("compare to 2:%s" % [] )
+        print("compare to 2:%s" % [])
 
         self.assertEquals(response, [])
 
