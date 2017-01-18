@@ -135,7 +135,10 @@ def add_params(srtc, key=None):
             if isinstance(params_list, list):
                 pass
             else:
-                params_list = [params_list, ]
+                if params_list == "[]":
+                    params_list = []
+                else:
+                    params_list = [params_list, ]
 
             # logger.debug('Parameters to add:%s' % params_list)
             # logger.debug('key to replace: %s' % key)
@@ -666,3 +669,18 @@ def crosswalk_patient_id(user):
         pass
 
     return None
+
+def conformance_or_capability(fhir_url):
+    """ Check FHIR Url for FHIR Version.
+    :return resource type (STU3 switches from ConformanceStatement to CapabilityStatement
+
+    :param fhir_url:
+    :return:
+    """
+
+    if "stu3" in fhir_url.lower():
+        resource_type = "CapabilityStatement"
+    else:
+        resource_type = "Conformance"
+
+    return resource_type

@@ -145,7 +145,6 @@ def generic_read(request,
     # get the default path for resource with ending "/"
     # You need to add resource_type + "/" for full url
 
-
     # Add default FHIR Server URL to re-write
 
     rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
