@@ -214,7 +214,28 @@
               "prod": "vpc-9b3fc9fd"
           }
       },
-
+      "StackZone": {
+          "dev": {
+              "az1": "dev-az1",
+              "az2": "dev-az2",
+              "az3": "dev-az3"
+          },
+          "impl": {
+              "az1": "impl-az1",
+              "az2": "impl-az2",
+              "az3": "impl-az3"
+          },
+          "prod": {
+              "az1": "prod-az1",
+              "az2": "prod-az2",
+              "az3": "prod-az3"
+          },
+          "test": {
+              "az1": "test-az1",
+              "az2": "test-az2",
+              "az3": "test-az3"
+          }
+      },
       "EnvLayer": {
           "dev-az1": {
               "dmz": "10.224.78.144/28",
@@ -327,65 +348,73 @@
               "data": "subnet-2e8e4867"
           },
           "dev-az3": {
-              "dmz": "subnet-208e4869",
-              "web": "subnet-2f8e4866",
+              "dmz": "subnet-79bca821",
+              "web": "subnet-7cbca824",
               "app": "subnet-47bca81f",
               "data": "subnet-7bbca823"
           },
           "impl-az1": {
-                  "dmz": "subnet-82ecfba8",
-                  "web": "subnet-8decfba7",
-                  "app": "subnet-80ecfbaa",
-                  "data": "subnet-8cecfba6"
+              "dmz": "subnet-b8a17d95",
+              "web": "subnet-b9a17d94",
+              "app": "subnet-bfa17d92",
+              "data": "subnet-b4a17d99"
           },
           "impl-az2": {
-                  "dmz": "subnet-228e486b",
-                  "web": "subnet-208e4869",
-                  "app": "subnet-2f8e4866",
-                  "data": "subnet-2e8e4867"
+              "dmz": "subnet-5535b91c",
+              "web": "subnet-5e35b917",
+              "app": "subnet-5335b91a",
+              "data": "subnet-5c35b915"
           },
           "impl-az3": {
-                  "dmz": "subnet-208e4869",
-                  "web": "subnet-2f8e4866",
-                  "app": "subnet-47bca81f",
-                  "data": "subnet-7bbca823"
+              "dmz": "subnet-860adadd",
+              "web": "subnet-bb0adae0",
+              "app": "subnet-ba0adae1",
+              "data": "subnet-850adade"
           },
           "prod-az1": {
-                  "dmz": "subnet-82ecfba8",
-                  "web": "subnet-8decfba7",
-                  "app": "subnet-80ecfbaa",
-                  "data": "subnet-8cecfba6"
+              "dmz": "subnet-c8a91be5",
+              "web": "subnet-cea91be3",
+              "app": "subnet-cba91be6",
+              "data": "subnet-c9a91be4"
           },
           "prod-az2": {
-                  "dmz": "subnet-228e486b",
-                  "web": "subnet-208e4869",
-                  "app": "subnet-2f8e4866",
-                  "data": "subnet-2e8e4867"
+              "dmz": "subnet-a2305deb",
+              "web": "subnet-a3305dea",
+              "app": "subnet-af305de6",
+              "data": "subnet-a0305de9"
           },
           "prod-az3": {
-                  "dmz": "subnet-208e4869",
-                  "web": "subnet-2f8e4866",
-                  "app": "subnet-47bca81f",
-                  "data": "subnet-7bbca823"
+              "dmz": "subnet-1a219641",
+              "web": "subnet-1e219645",
+              "app": "subnet-1f219644",
+              "data": "subnet-19219642"
           },
           "test-az1": {
-                  "dmz": "subnet-82ecfba8",
-                  "web": "subnet-8decfba7",
-                  "app": "subnet-80ecfbaa",
-                  "data": "subnet-8cecfba6"
+              "dmz": "subnet-a3d9c289",
+              "web": "subnet-acd9c286",
+              "app": "subnet-a0d9c28a",
+              "data": "subnet-a1d9c28b"
           },
           "test-az2": {
-                  "dmz": "subnet-228e486b",
-                  "web": "subnet-208e4869",
-                  "app": "subnet-2f8e4866",
-                  "data": "subnet-2e8e4867"
+              "dmz": "subnet-9b69a2d2",
+              "web": "subnet-9a69a2d3",
+              "app": "subnet-9d69a2d4",
+              "data": "subnet-9e69a2d7"
           },
           "test-az3": {
-                  "dmz": "subnet-208e4869",
-                  "web": "subnet-2f8e4866",
-                  "app": "subnet-47bca81f",
-                  "data": "subnet-7bbca823"
+              "dmz": "subnet-ac667ef4",
+              "web": "subnet-ae667ef6",
+              "app": "subnet-ad667ef5",
+              "data": "subnet-af667ef7"
           }
+      },
+      "MapZone": {
+          "az1": {
+              "EbsZone": "us-east-1a"},
+          "az2": {
+              "EbsZone": "us-east-1b"},
+          "az3": {
+              "EbsZone": "us-east-1c"}
       },
       "DBType": {
           "postgres": {
@@ -596,8 +625,9 @@
             "FromPort": "22",
             "ToPort": "22",
             "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                  [{"Ref": "TagKeyStack"}, "-" , {"Ref": "AZone"}]]},
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                          "app"
                                         ]
             }
@@ -607,8 +637,9 @@
             "FromPort": "5432",
             "ToPort": "5432",
             "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                          "app"
                                         ]
             }
@@ -622,46 +653,22 @@
             "IpProtocol": "-1"
           },
           {
-            "IpProtocol": "tcp",
-            "FromPort": "4118",
-            "ToPort": "4120",
+            "IpProtocol": "-1",
             "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
-                                         "ocss1"
-                                        ]
-            }
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "4118",
-            "ToPort": "4120",
-            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                          "ocss2"
                                         ]
             }
           },
           {
-            "IpProtocol": "tcp",
-            "FromPort": "5666",
-            "ToPort": "5667",
+            "IpProtocol": "-1",
             "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                          "ocss1"
-                                        ]
-            }
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "5666",
-            "ToPort": "5667",
-            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
-                                         "ocss2"
                                         ]
             }
           }
@@ -672,8 +679,9 @@
             "FromPort": "22",
             "ToPort": "22",
             "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                          "app"
                                         ]
             }
@@ -695,8 +703,9 @@
             "FromPort": "5432",
             "ToPort": "5432",
             "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                          "app"
                                         ]
             }
@@ -706,45 +715,21 @@
             "IpProtocol": "-1"
           },
           {
-            "IpProtocol": "tcp",
-            "FromPort": "4118",
-            "ToPort": "4120",
+            "IpProtocol": "-1",
             "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                          "ocss1"
                                         ]
             }
           },
           {
-            "IpProtocol": "tcp",
-            "FromPort": "4118",
-            "ToPort": "4120",
+            "IpProtocol": "-1",
             "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
-                                         "ocss2"
-                                        ]
-            }
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "5666",
-            "ToPort": "5667",
-            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                  [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
-                                         "ocss1"
-                                        ]
-            }
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "5666",
-            "ToPort": "5667",
-            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
-                                         {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                          "ocss2"
                                         ]
             }
@@ -764,9 +749,10 @@
             "Description": "Get a network interface in the right subnet and VPC.",
             "SourceDestCheck": "false",
             "SubnetId": {"Fn::FindInMap": [ "EnvSubNetIdAz",
-                                            {"Join": ["",
-                                                      [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
-                                                      {"Ref": "TagKeyLayer"}
+                                            {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                            {"Ref": "TagKeyLayer"}
                                           ]
             }
          }
@@ -836,8 +822,9 @@
           },
           "SecurityGroupIds" : [{"Ref": "DbEc2SecurityGrp"}],
           "SubnetId" : {"Fn::FindInMap": ["EnvSubNetIdAz",
-                                          {"Join": ["",
-                                                   [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                          {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
                                           {"Ref": "TagKeyLayer"}
                                          ]
           },
@@ -891,6 +878,15 @@
                           },
                           "' >>$BUILD_LOG \n",
 
+                          "# Splunk name setup \n",
+                          "export SPLUNK_LC_NAME=bbapi-",{"Ref":"TagKeyStack"},"-",{"Ref": "TagKeyLayer"}," \n",
+                          "export SPLUNK_APP_REF=${SPLUNK_LC_NAME^^} \n",
+                          "echo Splunk Ref:$SPLUNK_LC_NAME / $SPLUNK_APP_REF  >>$BUILD_LOG \n",
+                          "export SPLUNK_CONF=/opt/splunkforwarder/etc/system/local/deploymentclient.conf \n",
+                          "sed -i 's@REPLACE-WITH-APP-NAME@${SPLUNK_APP_REF}@'  $SPLUNK_CONF \n",
+
+                          "su - splunk -c \"/opt/splunkforwarder/bin/splunk restart\" \n",
+
                           "mkdir -p /home/ec2-user/script \n",
                           "chown -R ec2-user:root /home/ec2-user/script \n",
                           "echo 'configure rhn for postgresql'  >>$BUILD_LOG \n",
@@ -919,6 +915,10 @@
                           "mkdir -p $PGDATA \n",
 
                           "chown -R postgres:postgres /data \n",
+
+                          "export PG_TEMP_DIR=/data/pgbackup \n",
+                          "mkdir -p $PG_TEMP_DIR \n",
+                          "chown postgres:postgres $PG_TEMP_DIR \n",
 
                           "echo '# initialize database in $PGDATA' >>$BUILD_LOG \n",
                           "cp /etc/init.d/postgresql-9.6 /home/ec2-user \n",
@@ -949,7 +949,9 @@
                           {"Ref": "TagKeyStack"}, ":", {"Ref": "TagKeyLayer"},
 
                           {"Fn::FindInMap": ["EnvLayer",
-                                             {"Join": ["", [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                             {"Fn::FindInMap": ["StackZone",
+                                                                {"Ref": "TagKeyStack"},
+                                                                {"Ref": "AZone"}]},
                                              {"Ref": "TagKeyLayer"}]},
 
                           "' >>$PGDATA/pg_hba.conf \n",
@@ -958,14 +960,18 @@
                           "echo 'host    all    all    ",
 
                           {"Fn::FindInMap": ["EnvLayer",
-                                             {"Join": ["", [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                             {"Fn::FindInMap": ["StackZone",
+                                                                {"Ref": "TagKeyStack"},
+                                                                {"Ref": "AZone"}]},
                                              {"Ref": "TagKeyLayer"}]},
 
                           "    password ' >>$PGDATA/pg_hba.conf \n",
                           "echo 'host    all    all    ",
 
                           {"Fn::FindInMap": ["EnvLayer",
-                                             {"Join": ["", [{"Ref": "TagKeyStack"}, "-", {"Ref": "AZone"}]]},
+                                             {"Fn::FindInMap": ["StackZone",
+                                                                {"Ref": "TagKeyStack"},
+                                                                {"Ref": "AZone"}]},
                                              "app"]},
                           "    password ' >>$PGDATA/pg_hba.conf \n",
 
@@ -1024,11 +1030,79 @@
                           "chown postgres:postgres $PG_INIT_SCRIPT \n",
                           "su -c 'psql -f $PG_INIT_SCRIPT' postgres \n",
 
-                          "echo ' After running sql script:$PG_INIT_SCRIPT' >>$BUILD_LOG \n",
+                          "echo ' After running sql script:${PG_INIT_SCRIPT}' >>$BUILD_LOG \n",
                           "ls -la $PGDATA >>$BUILD_LOG \n",
 
+                          "echo 'Installing Secure Postgres Backup... ' >>$BUILD_LOG \n",
+                          "/usr/local/bin/aws s3 cp ",
+                          " s3://bb-config/all_env/db/db_backup.sh ",
+                          " $PGDATA  \n",
+
+                          "/usr/local/bin/aws s3 cp ",
+                          " s3://bb-config/all_env/db/backup_key.pem.pub ",
+                          " $PGDATA  \n",
+
+                          "echo 'Configuring backup script. ' >>$BUILD_LOG \n",
+                          "sed -i 's@REPLACE_DB_USER_NAME@",
+                          {"Ref": "PgsqlMaster"},
+                          "@'  $PGDATA/db_backup.sh \n",
+
+                          "sed -i 's@PG_TEMP_DIR=/data/pgbackup@PG_TEMP_DIR=${PG_TEMP_DIR}",
+                          "@'  $PGDATA/db_backup.sh \n",
+
+                          "sed -i 's@REPLACE_STACK@",
+                          {"Ref": "TagKeyStack"},
+                          "@'  $PGDATA/db_backup.sh \n",
+
+                          "sed -i 's@REPLACE_DB_NAME_TABLE@",
+                          {"Ref": "DatabasePrefix"},
+                          {"Ref": "TagKeyStack"},
+                          "_",
+                          {"Fn::FindInMap" : ["DBType",
+                                              {"Ref": "DatabaseType"},
+                                              "DbNameTable" ]},
+                          "@'  $PGDATA/db_backup.sh \n",
+
+                          "sed -i 's@REPLACE_PG_DATA_DIR@${PGDATA}@' $PGDATA/db_backup.sh \n",
+
+                          "MAC_ADDR=`curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/` \n",
+                          "HOST_IP=`curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC_ADDR/local-ipv4s/` \n",
+                          "echo $HOST_IP:5432:",{"Ref": "DatabasePrefix"},
+                                                {"Ref": "TagKeyStack"},
+                                                "_",
+                                                {"Fn::FindInMap" : ["DBType",
+                                                                    {"Ref": "DatabaseType"},
+                                                                    "DbNameTable" ]},
+                          ":",{"Ref": "PgsqlMaster"},":",{"Ref": "PgsqlPassword"}," >>$PGDATA/.pgpass \n",
+
+                          "chown postgres:postgres $PGDATA/db_backup.sh \n",
+                          "chown postgres:postgres $PGDATA/backup_key.pem.pub \n",
+                          "chown postgres:postgres $PGDATA/.pgpass \n",
+                          "chmod 0755 $PGDATA/db_backup.sh \n",
+                          "chmod 0755 $PGDATA/backup_key.pem.pub \n",
+                          "chmod 0600 $PGDATA/.pgpass \n",
+
+                          "echo 'Configuring Postgres backup schedule. ' >>$BUILD_LOG \n",
+
+                          "cat /etc/crontab >/home/ec2-user/cronjobs.txt \n",
+                          "echo  '# Postgres backups ' >>/home/ec2-user/cronjobs.txt \n",
+                          "echo @hourly /bin/sh ${PGDATA}/db_backup.sh hourly  >>/home/ec2-user/cronjobs.txt \n",
+                          "echo @daily /bin/sh ${PGDATA}/db_backup.sh daily  >>/home/ec2-user/cronjobs.txt \n",
+                          "echo @weekly 6 /bin/sh ${PGDATA}/db_backup.sh weekly  >>/home/ec2-user/cronjobs.txt \n",
+
+                          "crontab /home/ec2-user/cronjobs.txt  \n",
+
+                          "ls -la $PGDATA >>$BUILD_LOG \n",
+                          "cat /etc/crontab >>$BUILD_LOG \n",
+                          "echo 'Postgres Backup Installed. ' >>$BUILD_LOG \n",
+
                           "# Configure AWS CLI Credentials \n",
+                          "mkdir -p /root/.aws \n",
                           "export AWS_DEFAULT_REGION=us-east-1 \n",
+                          "/usr/local/bin/aws s3 cp s3://bb-config/all_env/aws/aws/bb-",
+                          {"Ref": "TagKeyStack"},
+                          "-db-backup/* /root/.aws/ \n",
+
                           "echo 'Create user:pyapps.' >>$BUILD_LOG \n",
                           "pass=$(perl -e 'print crypt($ARGV[0], 'password')' $",
                           {
@@ -1107,7 +1181,10 @@
         "Type":"AWS::EC2::Volume",
         "Properties" : {
             "AutoEnableIO": "true",
-            "AvailabilityZone": { "Fn::GetAtt" : [ "DbEcInstance", "AvailabilityZone" ] },
+            "AvailabilityZone": { "Fn::FindInMap" : ["MapZone",
+                                                     {"Ref":"AZone"},
+                                                     "EbsZone" ]
+                                },
             "Encrypted": "true",
             "Size": 100,
             "Tags": [
@@ -1128,9 +1205,7 @@
       },
       "Export": {
           "Name": {
-              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
-                                {"Ref": "TagKeyLayer"},
-                                {"Ref": "AZone"},
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
                                  "DbEc2SecurityGrpId" ] ]
           }
       },
@@ -1142,9 +1217,7 @@
       },
       "Export": {
           "Name": {
-              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
-                                {"Ref": "TagKeyLayer"},
-                                {"Ref": "AZone"},
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
                                  "DbEcInstanceId" ] ]
           }
       }
@@ -1155,9 +1228,7 @@
       },
       "Export": {
           "Name": {
-              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
-                                {"Ref": "TagKeyLayer"},
-                                {"Ref": "AZone"},
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
                                  "DbPrivateIp" ] ]
           }
       }

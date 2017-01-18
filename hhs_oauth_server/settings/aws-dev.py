@@ -109,6 +109,10 @@ SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 
+# Fixed user and password for fake backend
+SETTINGS_AUTH_USER = 'ben'
+SETTINGS_AUTH_PASSWORD = 'pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aaTohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys='
+
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
 # If integer interpreted, as hours
