@@ -257,7 +257,9 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         srtc = SupportedResourceType.objects.get(pk=1)
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
-        self.assertEquals(response, json.loads(["[]", ]))
+        print("Response:%s" % response)
+        print("compare to:%s" % [] )
+        self.assertEquals(response, [])
 
         # Test
         srtc = SupportedResourceType.objects.get(pk=3)
@@ -269,7 +271,10 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         srtc = None
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
-        self.assertEquals(response, ["[]", ])
+        print("Response 2:%s" % type(response))
+        print("compare to 2:%s" % [] )
+
+        self.assertEquals(response, [])
 
     def test_concat_params(self):
         """
