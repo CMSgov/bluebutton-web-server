@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import Group
 from django.core.urlresolvers import reverse
-
+from django.contrib.auth import get_user_model
 from apps.accounts.models import Invitation, UserProfile
 
 
@@ -23,8 +23,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         form_data = {
             'invitation_code': '1234',
-            'email': 'fred@example.com',
-            'username': 'fred',
+            'email': 'FRED@Example.com',
+            'username': 'FreD',
             'organization_name': 'transhealth',
             'password1': 'bedrocks',
             'password2': 'bedrocks',
@@ -42,6 +42,12 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Please check your email '
                                       'to verify your account.')
+
+        # verify username is lowercase
+        User = get_user_model()
+        u = User.objects.get(username="fred")
+        self.assertEqual(u.username, "fred")
+        self.assertEqual(u.email, "fred@example.com")
 
     def test_account_create_shold_fail_when_password_too_short(self):
         """
