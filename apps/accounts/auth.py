@@ -18,6 +18,8 @@ class SettingsBackend(object):
     """
 
     def authenticate(self, username=None, password=None):
+
+        username = username.rstrip().lstrip().lower()
         login_valid = (getattr(settings, 'SETTINGS_AUTH_USER', "") == username)
         # TODO: Handle error if SETTINGS_AUTH_PASSWORD not set
         if getattr(settings, 'SETTINGS_AUTH_PASSWORD', None):

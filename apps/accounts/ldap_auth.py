@@ -34,6 +34,9 @@ class LDAPBackend(object):
 
     def authenticate(self, username=None, password=None):
 
+        # Force lowercase username
+        username = username.rstrip().lstrip().lower()
+
         # User's DN
         user_dn = "uid=" + username + self.user_dn_suffix
 
@@ -89,10 +92,11 @@ class LDAPBackend(object):
                 # Create a new user. Note that we can set password
                 # to anything, because it won't be checked; the password
                 # from the external backend is checked (coming from LDAP).
-                user = User(username=username, password='flubbernubber',
+                user = User(username=username.rstrip().lstrip().lower(),
+                            password='flubbernubber',
                             first_name=first_name,
                             last_name=last_name,
-                            email=email)
+                            email=email.rstrip().lstrip().lower())
                 user.save()
                 up, created = UserProfile.objects.get_or_create(
                     user=user, user_type='BEN')
