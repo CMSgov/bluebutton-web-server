@@ -115,6 +115,10 @@ class LoginForm(forms.Form):
                                label=_('Password'))
     required_css_class = 'required'
 
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '')
+        return username.rstrip().lstrip().lower()
+
 
 class CodeLoginForm(forms.Form):
     username = forms.CharField(max_length=30, label=_('Username'),
@@ -127,6 +131,10 @@ class CodeLoginForm(forms.Form):
         label=_('Code'),
         help_text="The code provided by your accountable care organization")
     required_css_class = 'required'
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '')
+        return username.rstrip().lstrip().lower()
 
 
 class SignupForm(forms.Form):
@@ -182,12 +190,14 @@ class SignupForm(forms.Form):
                     username=username).count():
                 raise forms.ValidationError(
                     _('This email address is already registered.'))
-            return email
+            return email.rstrip().lstrip().lower()
         else:
-            return email
+            return email.rstrip().lstrip().lower()
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
+        username = username.rstrip().lstrip().lower()
+
         if User.objects.filter(username=username).count() > 0:
             raise forms.ValidationError(_('This username is already taken.'))
         return username
@@ -271,7 +281,7 @@ class AccountSettingsForm(forms.Form):
                     email=email).exclude(email=email).count():
                 raise forms.ValidationError(_('This email address is '
                                               'already registered.'))
-        return email
+        return email.rstrip().lstrip().lower()
 
     def clean_mobile_phone_number(self):
         mobile_phone_number = self.cleaned_data.get('mobile_phone_number', '')
@@ -284,6 +294,7 @@ class AccountSettingsForm(forms.Form):
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
+        username = username.rstrip().lstrip().lower()
         if username and User.objects.filter(
                 username=username).exclude(username=username).count():
             raise forms.ValidationError(_('This username is already taken.'))
