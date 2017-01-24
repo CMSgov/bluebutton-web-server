@@ -7,6 +7,9 @@ from apps.fhir.bluebutton.views.read import generic_read
 from apps.fhir.bluebutton.views.home import fhir_conformance
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
+logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
+logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 DF_EXTRA_INFO = False
 
@@ -27,6 +30,8 @@ def search_simple(request, resource_type):
     # else:
     # Not supported.
     msg = "HTTP method %s not supported at this URL." % (request.method)
+    logger_info.info(msg)
+
     return kickout_400(msg)
 
 
@@ -41,6 +46,7 @@ def search(request, resource_type, *args, **kwargs):
     interaction_type = 'search'
 
     logger.debug("Received:%s" % resource_type)
+    logger_debug.debug("Received:%s" % resource_type)
 
     conformance = False
     if resource_type is None:
@@ -56,6 +62,10 @@ def search(request, resource_type, *args, **kwargs):
     logger.debug("Interaction:%s. "
                  "Calling generic_read for %s" % (interaction_type,
                                                   resource_type))
+
+    logger_debug.debug("Interaction:%s. "
+                       "Calling generic_read for %s" % (interaction_type,
+                                                        resource_type))
 
     search = generic_read(request,
                           interaction_type,
