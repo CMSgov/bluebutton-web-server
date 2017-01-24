@@ -1255,7 +1255,8 @@
 
                 "echo 'creating application log directory /var/log/pyapps ' >>$BUILD_LOG \n",
                 "mkdir -p /var/log/pyapps \n",
-                
+                "chown -Rf pyapps:apache /var/log/pyapps \n",
+
                 "echo 'run python app migrations' >>$BUILD_LOG \n",
                 "export DJANGO_APP_ROOT=",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
                 "export DJANGO_ASSETS_ROOT=$DJANGO_APP_ROOT \n",

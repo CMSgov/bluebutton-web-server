@@ -303,7 +303,7 @@ def get_url_query_string(get, skip_parm=[]):
     :param skip_parm: []
     :return: Query_String (QS)
     """
-    logger_debug.debug('Evaluating: %s to remove:%s' % (get,skip_parm))
+    logger_debug.debug('Evaluating: %s to remove:%s' % (get, skip_parm))
 
     filtered_dict = OrderedDict()
 
@@ -317,7 +317,7 @@ def get_url_query_string(get, skip_parm=[]):
 
     for k, v in get.items():
 
-        logger_debug.debug('K/V: [%s/%s]' % (k,v))
+        logger_debug.debug('K/V: [%s/%s]' % (k, v))
 
         if k in skip_parm:
             pass
