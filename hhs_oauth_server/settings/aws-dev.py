@@ -157,9 +157,9 @@ LOGGING = {
             'filename': '/var/log/pyapps/debug.log',
         },
         'file_error': {
-            'level':    'INFO',
-            'filters':  ['require_debug_true'],
-            'class':    'logging.FileHandler',
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.FileHandler',
             'filename': '/var/log/pyapps/error.log',
         },
         'file_info': {
@@ -177,7 +177,7 @@ LOGGING = {
     },
     'loggers': {
         'hhs_server': {
-            'handlers': ['console','file_debug'],
+            'handlers': ['console', 'file_debug'],
             'level': 'DEBUG',
         },
         'hhs_server_debug': {
@@ -186,11 +186,11 @@ LOGGING = {
         },
         'hhs_server_error': {
             'handlers': ['console', 'file_error', 'mail_admins'],
-            'level':    'ERROR',
+            'level': 'ERROR',
         },
         'hhs_server_info': {
             'handlers': ['console', 'file_info'],
-            'level':    'INFO',
+            'level': 'INFO',
         },
         'oauth2_provider': {
             'handlers': ['console'],
