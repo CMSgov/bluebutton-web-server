@@ -39,7 +39,7 @@ from apps.fhir.fhir_core.utils import (read_session,
                                        get_search_param_format,
                                        SESSION_KEY)
 
-from apps.fhir.fhir_core.models import SupportedResourceType
+from apps.fhir.server.models import SupportedResourceType
 
 from apps.home.views import authenticated_home
 
