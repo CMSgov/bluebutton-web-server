@@ -111,7 +111,7 @@ class SupportedResourceType(models.Model):
 
     def get_search_block(self):
         if self.search_block == '':
-            search_list = []
+            search_list = '[]'
         else:
             search_list = self.search_block
         return json.loads(search_list)
@@ -121,7 +121,7 @@ class SupportedResourceType(models.Model):
 
     def get_search_add(self):
         if self.search_add == '':
-            search_list = []
+            search_list = '[]'
         else:
             search_list = [self.search_add, ]
         return search_list
