@@ -11,6 +11,7 @@ class MyMedicareBackend(object):
     """
 
     def authenticate(self, username=None, password=None):
+        username = username.rstrip().lstrip().lower()
         login_url = 'https://www.mymedicare.gov/default.aspx'
         rb = RoboBrowser()
         rb.parser = 'lxml'
