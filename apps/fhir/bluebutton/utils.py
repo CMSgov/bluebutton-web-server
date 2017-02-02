@@ -135,7 +135,10 @@ def add_params(srtc, key=None):
             if isinstance(params_list, list):
                 pass
             else:
-                params_list = [params_list, ]
+                if params_list == "[]":
+                    params_list = []
+                else:
+                    params_list = [params_list, ]
 
             # logger.debug('Parameters to add:%s' % params_list)
             # logger.debug('key to replace: %s' % key)
@@ -621,20 +624,23 @@ def pretty_json(od, indent=PRETTY_JSON_INDENT):
     return json.dumps(od, indent=indent)
 
 
-def get_default_path(resource_name):
+def get_default_path(resource_name, crosswalk_source=None):
     """ Get default Path for resource """
 
     # print("\nGET_DEFAULT_URL:%s" % resource_name)
-    try:
-        rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
-        default_path = rr.fhir_path
-        # print("\nDEFAULT_URL=%s" % default_pathl)
+    if crosswalk_source:
+        default_path = crosswalk_source
+    else:
+        try:
+            rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
+            default_path = rr.fhir_path
+            # print("\nDEFAULT_URL=%s" % default_pathl)
 
-    except ResourceRouter.DoesNotExist:
-        # use the default FHIR Server URL
-        default_path = FhirServerUrl()
-        # print("\nNO MATCH for %s so setting to:%s" % (resource_name,
-        #                                               default_path))
+        except ResourceRouter.DoesNotExist:
+            # use the default FHIR Server URL
+            default_path = FhirServerUrl()
+            # print("\nNO MATCH for %s so setting to:%s" % (resource_name,
+            #                                               default_path))
 
     return default_path
 
@@ -663,3 +669,19 @@ def crosswalk_patient_id(user):
         pass
 
     return None
+
+
+def conformance_or_capability(fhir_url):
+    """ Check FHIR Url for FHIR Version.
+    :return resource type (STU3 switches from ConformanceStatement to CapabilityStatement
+
+    :param fhir_url:
+    :return:
+    """
+
+    if "stu3" in fhir_url.lower():
+        resource_type = "CapabilityStatement"
+    else:
+        resource_type = "Conformance"
+
+    return resource_type
