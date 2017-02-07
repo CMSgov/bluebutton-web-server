@@ -960,6 +960,8 @@
 
                 "echo 'Installing Apache2' >>$BUILD_LOG \n",
                 "yum -y install httpd","\n",
+                "echo 'Installing SSL Module for Apache' >>$BUILD_LOG \n",
+                "yum -y install mod_ssl \n",
 
                 "echo 'RHEL Version:' >>$BUILD_LOG \n",
                 "cat /etc/redhat-release >>$BUILD_LOG \n",
