@@ -2,9 +2,10 @@ import logging
 
 from apps.fhir.bluebutton.views.read import generic_read
 
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
+logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
+logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
+logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 DF_EXTRA_INFO = False
 
