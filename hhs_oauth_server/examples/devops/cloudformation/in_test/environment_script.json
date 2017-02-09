@@ -73,7 +73,12 @@
             "Description": "Enter the S3 secret access key for pyapps-[TagKeyStack]-content",
             "Type": "String",
             "Default": "Replace with S3 AWS Key "
-        }
+        },
+       "Route53ZoneId": {
+           "Description": "Route53 Zone ID (default is for fhirservice.net.)",
+           "Type": "String",
+           "Default": "Z299EFR02VJ9WE"
+       }
    },
    "Resources": {
        "DataStack01": {
@@ -198,6 +203,9 @@
            "Properties": {
                "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-lb-2.json",
                "Parameters": {
+                  "Route53KeyId": {"Ref": "S3ContentKeyId"},
+                  "Route53AccessKey": {"Ref": "S3ContentAccessKey"},
+                  "Route53Zone": {"Ref": "Route53ZoneId"},
                   "AZone": {"Ref": "LaunchAz"},
                   "TargetVpcId": {"Ref": "StackVpcId"},
                   "TagKeyStack": {"Ref": "StackTagKeyStack"},
