@@ -417,7 +417,8 @@ class RequestCallMockTest(unittest.TestCase):
                                                                     "!!!!"})
 
         resp = request_call(request,
-                            "http://someurl.com/test.text")
+                            "http://someurl.com/test.text",
+                            cx=None)
 
         # print("\nResp.text:\n%s" % resp.text)
         # print("\nResp.json:\n%s" % resp.json)

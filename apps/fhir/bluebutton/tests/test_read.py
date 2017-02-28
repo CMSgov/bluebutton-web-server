@@ -51,6 +51,7 @@ class ConformanceReadRequestTest(TestCase):
         # return the pre-defined values
         result = apps.fhir.bluebutton.utils.request_call(request,
                                                          call_to,
+                                                         cx=None,
                                                          fail_redirect="/")
 
         # Activate the print statement if you want to see what was returned
