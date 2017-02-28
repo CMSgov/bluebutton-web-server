@@ -254,192 +254,198 @@
               "prod": "vpc-9b3fc9fd"
           }
       },
-      "EnvLayer": {
+      "StackZone": {
           "dev": {
-              "az1": {
-                  "dmz": "10.224.78.144/28",
-                  "web": "10.224.78.0/28",
-                  "app": "10.224.78.48/28",
-                  "data": "10.224.78.96/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              },
-              "az2": {
-                  "dmz": "10.224.78.160/28",
-                  "web": "10.224.78.16/28",
-                  "app": "10.224.78.64/28",
-                  "data": "10.224.78.112/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              },
-              "az3": {
-                  "dmz": "10.224.78.176/28",
-                  "web": "10.224.78.32/28",
-                  "app": "10.224.78.80/28",
-                  "data": "10.224.78.128/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              }
+              "az1": "dev-az1",
+              "az2": "dev-az2",
+              "az3": "dev-az3"
           },
           "impl": {
-              "az1": {
-                  "dmz": "10.246.140.144/28",
-                  "web": "10.246.140.0/28",
-                  "app": "10.246.140.48/28",
-                  "data": "10.246.140.96/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              },
-              "az2": {
-                  "dmz": "10.246.140.160/28",
-                  "web": "10.246.140.16/28",
-                  "app": "10.246.140.64/28",
-                  "data": "10.246.140.112/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              },
-              "az3": {
-                  "dmz": "10.246.140.176/28",
-                  "web": "10.246.140.32/28",
-                  "app": "10.246.140.80/28",
-                  "data": "10.246.140.128/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              }
+              "az1": "impl-az1",
+              "az2": "impl-az2",
+              "az3": "impl-az3"
           },
           "prod": {
-              "az1": {
-                  "dmz": "10.244.44.144/28",
-                  "web": "10.244.44.0/28",
-                  "app": "10.244.44.48/28",
-                  "data": "10.244.44.96/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              },
-              "az2": {
-                  "dmz": "10.244.44.160/28",
-                  "web": "10.244.44.16/28",
-                  "app": "10.244.44.64/28",
-                  "data": "10.244.44.112/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              },
-              "az3": {
-                  "dmz": "10.244.44.176/28",
-                  "web": "10.244.44.32/28",
-                  "app": "10.244.44.80/28",
-                  "data": "10.244.44.128/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              }
+              "az1": "prod-az1",
+              "az2": "prod-az2",
+              "az3": "prod-az3"
           },
           "test": {
-              "az1": {
-                  "dmz": "10.224.90.144/28",
-                  "web": "10.224.90.0/28",
-                  "app": "10.224.90.48/28",
-                  "data": "10.224.90.96/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              },
-              "az2": {
-                  "dmz": "10.224.90.160/28",
-                  "web": "10.224.90.16/28",
-                  "app": "10.224.90.64/28",
-                  "data": "10.224.90.112/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              },
-              "az3": {
-                  "dmz": "10.224.90.176/28",
-                  "web": "10.224.90.32/28",
-                  "app": "10.224.90.80/28",
-                  "data": "10.224.90.128/28",
-                  "ocss1": "10.128.11.0/24",
-                  "ocss2": "10.128.111.0/24"
-              }
+              "az1": "test-az1",
+              "az2": "test-az2",
+              "az3": "test-az3"
+          }
+      },
+      "EnvLayer": {
+          "dev-az1": {
+              "dmz": "10.224.78.144/28",
+              "web": "10.224.78.0/28",
+              "app": "10.224.78.48/28",
+              "data": "10.224.78.96/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "dev-az2": {
+              "dmz": "10.224.78.160/28",
+              "web": "10.224.78.16/28",
+              "app": "10.224.78.64/28",
+              "data": "10.224.78.112/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "dev-az3": {
+              "dmz": "10.224.78.176/28",
+              "web": "10.224.78.32/28",
+              "app": "10.224.78.80/28",
+              "data": "10.224.78.128/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "impl-az1": {
+              "dmz": "10.246.44.144/28",
+              "web": "10.246.44.0/28",
+              "app": "10.246.44.48/28",
+              "data": "10.246.44.96/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "impl-az2": {
+              "dmz": "10.246.44.160/28",
+              "web": "10.246.44.16/28",
+              "app": "10.246.44.64/28",
+              "data": "10.246.44.112/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "impl-az3": {
+              "dmz": "10.246.44.176/28",
+              "web": "10.246.44.32/28",
+              "app": "10.246.44.80/28",
+              "data": "10.246.44.128/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "prod-az1": {
+              "dmz": "10.244.44.144/28",
+              "web": "10.244.44.0/28",
+              "app": "10.244.44.48/28",
+              "data": "10.244.44.96/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "prod-az2": {
+              "dmz": "10.244.44.160/28",
+              "web": "10.244.44.16/28",
+              "app": "10.244.44.64/28",
+              "data": "10.244.44.112/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "prod-az3": {
+              "dmz": "10.244.44.176/28",
+              "web": "10.244.44.32/28",
+              "app": "10.244.44.80/28",
+              "data": "10.244.44.128/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "test-az1": {
+              "dmz": "10.224.90.144/28",
+              "web": "10.224.90.0/28",
+              "app": "10.224.90.48/28",
+              "data": "10.224.90.96/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "test-az2": {
+              "dmz": "10.224.90.160/28",
+              "web": "10.224.90.16/28",
+              "app": "10.224.90.64/28",
+              "data": "10.224.90.112/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "test-az3": {
+              "dmz": "10.224.90.176/28",
+              "web": "10.224.90.32/28",
+              "app": "10.224.90.80/28",
+              "data": "10.224.90.128/28",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
           }
       },
       "EnvSubNetIdAz": {
-          "dev": {
-              "az1": {
-                  "dmz": "subnet-82ecfba8",
-                  "web": "subnet-8decfba7",
-                  "app": "subnet-80ecfbaa",
-                  "data": "subnet-8cecfba6"
-              },
-              "az2": {
-                  "dmz": "subnet-228e486b",
-                  "web": "subnet-208e4869",
-                  "app": "subnet-2f8e4866",
-                  "data": "subnet-2e8e4867"
-              },
-              "az3": {
-                  "dmz": "subnet-208e4869",
-                  "web": "subnet-2f8e4866",
-                  "app": "subnet-47bca81f",
-                  "data": "subnet-7bbca823"
-              }
+          "dev-az1": {
+              "dmz": "subnet-82ecfba8",
+              "web": "subnet-8decfba7",
+              "app": "subnet-80ecfbaa",
+              "data": "subnet-8cecfba6"
           },
-          "impl": {
-              "az1": {
-                  "dmz": "subnet-82ecfba8",
-                  "web": "subnet-8decfba7",
-                  "app": "subnet-80ecfbaa",
-                  "data": "subnet-8cecfba6"
-              },
-              "az2": {
-                  "dmz": "subnet-228e486b",
-                  "web": "subnet-208e4869",
-                  "app": "subnet-2f8e4866",
-                  "data": "subnet-2e8e4867"
-              },
-              "az3": {
-                  "dmz": "subnet-208e4869",
-                  "web": "subnet-2f8e4866",
-                  "app": "subnet-47bca81f",
-                  "data": "subnet-7bbca823"
-              }
+          "dev-az2": {
+              "dmz": "subnet-228e486b",
+              "web": "subnet-208e4869",
+              "app": "subnet-2f8e4866",
+              "data": "subnet-2e8e4867"
           },
-          "prod": {
-              "az1": {
-                  "dmz": "subnet-82ecfba8",
-                  "web": "subnet-8decfba7",
-                  "app": "subnet-80ecfbaa",
-                  "data": "subnet-8cecfba6"
-              },
-              "az2": {
-                  "dmz": "subnet-228e486b",
-                  "web": "subnet-208e4869",
-                  "app": "subnet-2f8e4866",
-                  "data": "subnet-2e8e4867"
-              },
-              "az3": {
-                  "dmz": "subnet-208e4869",
-                  "web": "subnet-2f8e4866",
-                  "app": "subnet-47bca81f",
-                  "data": "subnet-7bbca823"
-              }
+          "dev-az3": {
+              "dmz": "subnet-79bca821",
+              "web": "subnet-7cbca824",
+              "app": "subnet-47bca81f",
+              "data": "subnet-7bbca823"
           },
-          "test": {
-              "az1": {
-                  "dmz": "subnet-82ecfba8",
-                  "web": "subnet-8decfba7",
-                  "app": "subnet-80ecfbaa",
-                  "data": "subnet-8cecfba6"
-              },
-              "az2": {
-                  "dmz": "subnet-228e486b",
-                  "web": "subnet-208e4869",
-                  "app": "subnet-2f8e4866",
-                  "data": "subnet-2e8e4867"
-              },
-              "az3": {
-                  "dmz": "subnet-208e4869",
-                  "web": "subnet-2f8e4866",
-                  "app": "subnet-47bca81f",
-                  "data": "subnet-7bbca823"
-              }
+          "impl-az1": {
+              "dmz": "subnet-b8a17d95",
+              "web": "subnet-b9a17d94",
+              "app": "subnet-bfa17d92",
+              "data": "subnet-b4a17d99"
+          },
+          "impl-az2": {
+              "dmz": "subnet-5535b91c",
+              "web": "subnet-5e35b917",
+              "app": "subnet-5335b91a",
+              "data": "subnet-5c35b915"
+          },
+          "impl-az3": {
+              "dmz": "subnet-860adadd",
+              "web": "subnet-bb0adae0",
+              "app": "subnet-ba0adae1",
+              "data": "subnet-850adade"
+          },
+          "prod-az1": {
+              "dmz": "subnet-c8a91be5",
+              "web": "subnet-cea91be3",
+              "app": "subnet-cba91be6",
+              "data": "subnet-c9a91be4"
+          },
+          "prod-az2": {
+              "dmz": "subnet-a2305deb",
+              "web": "subnet-a3305dea",
+              "app": "subnet-af305de6",
+              "data": "subnet-a0305de9"
+          },
+          "prod-az3": {
+              "dmz": "subnet-1a219641",
+              "web": "subnet-1e219645",
+              "app": "subnet-1f219644",
+              "data": "subnet-19219642"
+          },
+          "test-az1": {
+              "dmz": "subnet-a3d9c289",
+              "web": "subnet-acd9c286",
+              "app": "subnet-a0d9c28a",
+              "data": "subnet-a1d9c28b"
+          },
+          "test-az2": {
+              "dmz": "subnet-9b69a2d2",
+              "web": "subnet-9a69a2d3",
+              "app": "subnet-9d69a2d4",
+              "data": "subnet-9e69a2d7"
+          },
+          "test-az3": {
+              "dmz": "subnet-ac667ef4",
+              "web": "subnet-ae667ef6",
+              "app": "subnet-ad667ef5",
+              "data": "subnet-af667ef7"
           }
       }
   },
@@ -695,73 +701,67 @@
             "IpProtocol": "tcp",
             "FromPort": "22",
             "ToPort": "22",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "dmz"]}
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "dmz"]}
           },
           {
             "IpProtocol": "tcp",
             "FromPort": "22",
             "ToPort": "22",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "data"]}
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "data"]}
           },
           {
             "IpProtocol": "tcp",
             "FromPort": "80",
             "ToPort": "80",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "dmz"]}
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "dmz"]}
           },
           {
             "IpProtocol": "tcp",
             "FromPort": "443",
             "ToPort": "443",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "dmz"]}
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "dmz"]}
           },
           {
             "IpProtocol": "tcp",
             "FromPort": "5432",
             "ToPort": "5432",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "data"]}
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "data"]}
           },
           {
-            "IpProtocol": "tcp",
-            "FromPort": "4118",
-            "ToPort": "4120",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "ocss1"]}
+            "IpProtocol": "-1",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "ocss1"]}
           },
           {
-            "IpProtocol": "tcp",
-            "FromPort": "4118",
-            "ToPort": "4120",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "ocss2"]}
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "5666",
-            "ToPort": "5667",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "ocss1"]}
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "5666",
-            "ToPort": "5667",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "ocss2"]}
+            "IpProtocol": "-1",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "ocss2"]}
           }
         ],
         "SecurityGroupEgress": [
@@ -769,17 +769,21 @@
             "IpProtocol": "tcp",
             "FromPort": "22",
             "ToPort": "22",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "dmz"]}
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "dmz"]}
           },
           {
             "IpProtocol": "tcp",
             "FromPort": "22",
             "ToPort": "22",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "data"]}
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "data"]}
           },
           {
             "IpProtocol": "tcp",
@@ -797,41 +801,27 @@
             "IpProtocol": "tcp",
             "FromPort": "5432",
             "ToPort": "5432",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "data"]}
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "data"]}
           },
           {
-            "IpProtocol": "tcp",
-            "FromPort": "4118",
-            "ToPort": "4120",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "ocss1"]}
+            "IpProtocol": "-1",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "ocss1"]}
           },
           {
-            "IpProtocol": "tcp",
-            "FromPort": "4118",
-            "ToPort": "4120",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "ocss2"]}
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "5666",
-            "ToPort": "5667",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "ocss1"]}
-          },
-          {
-            "IpProtocol": "tcp",
-            "FromPort": "5666",
-            "ToPort": "5667",
-            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                            {"Ref": "TagKeyStack"}, "ocss2"]}
+            "IpProtocol": "-1",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "ocss2"]}
           }
         ]
       },
@@ -853,15 +843,11 @@
             "Description": "Get a network interface in the right subnet and VPC.",
             "SourceDestCheck": "false",
             "SubnetId": {
-                "Fn::FindInMap": [
-                    {"Fn::FindInMap": [ "EnvSubNetIdAz",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                    {
-                        "Ref": "TagKeyStack"
-                    },
-                    {
-                        "Ref": "TagKeyLayer"
-                    }
+                "Fn::FindInMap": ["EnvSubNetIdAz",
+                                  {"Fn::FindInMap": ["StackZone",
+                                                     {"Ref": "TagKeyStack"},
+                                                     {"Ref": "AZone"}]},
+                                  {"Ref": "TagKeyLayer"}
                 ]
             }
         }
@@ -918,9 +904,11 @@
       "Properties": {
           "ImageId": {"Ref": "BuildImageId"},
           "SecurityGroupIds" : [{"Ref": "AppEc2SecurityGrp"}],
-          "SubnetId" : {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvSubNetIdAz",
-                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
-                {"Ref": "TagKeyStack"}, {"Ref": "TagKeyLayer"}]
+          "SubnetId" : {"Fn::FindInMap": ["EnvSubNetIdAz",
+                                          {"Fn::FindInMap": ["StackZone",
+                                                             {"Ref": "TagKeyStack"},
+                                                             {"Ref": "AZone"}]},
+                                          {"Ref": "TagKeyLayer"}]
           },
           "IamInstanceProfile" : { "Ref" : "EC2S3RoleProfile" },
           "InstanceType": {"Ref": "InstanceType"},
@@ -945,6 +933,15 @@
                 "echo 'Hostname configured: ",{"Ref": "PyServerName"},"' >>$BUILD_LOG \n",
                 "echo 'Public Host name configured: ",{"Ref": "PublicServerName"},"' >>$BUILD_LOG \n",
 
+                "# Splunk name setup \n",
+                "export SPLUNK_LC_NAME=bbapi-",{"Ref":"TagKeyStack"},"-",{"Ref": "TagKeyLayer"}," \n",
+                "export SPLUNK_APP_REF=${SPLUNK_LC_NAME^^} \n",
+                "echo 'Splunk Ref:$SPLUNK_LC_NAME / $SPLUNK_APP_REF ' >>$BUILD_LOG \n",
+                "export SPLUNK_CONF=/opt/splunkforwarder/etc/system/local/deploymentclient.conf \n",
+                "sed -i 's@REPLACE-WITH-APP-NAME@$SPLUNK_APP_REF@'  $SPLUNK_CONF \n",
+
+                "su - splunk -c \"/opt/splunkforwarder/bin/splunk restart\" \n",
+
                 "mkdir -p /home/ec2-user/script \n",
                 "chown -R ec2-user:root /home/ec2-user/script \n",
 
@@ -963,6 +960,8 @@
 
                 "echo 'Installing Apache2' >>$BUILD_LOG \n",
                 "yum -y install httpd","\n",
+                "echo 'Installing SSL Module for Apache' >>$BUILD_LOG \n",
+                "yum -y install mod_ssl \n",
 
                 "echo 'RHEL Version:' >>$BUILD_LOG \n",
                 "cat /etc/redhat-release >>$BUILD_LOG \n",
@@ -1256,6 +1255,10 @@
                 "mkdir -p /var/www/doc \n",
                 "mkdir -p /var/www/doc/", {"Ref": "PyServerName"}," \n",
 
+                "echo 'creating application log directory /var/log/pyapps ' >>$BUILD_LOG \n",
+                "mkdir -p /var/log/pyapps \n",
+                "chown -Rf pyapps:apache /var/log/pyapps \n",
+
                 "echo 'run python app migrations' >>$BUILD_LOG \n",
                 "export DJANGO_APP_ROOT=",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
                 "export DJANGO_ASSETS_ROOT=$DJANGO_APP_ROOT \n",
@@ -1314,6 +1317,7 @@
                 "date -r /home/ec2-user/build_status.log >>$BUILD_LOG \n",
                 "echo \"",{"Ref": "TagKeyStack"}, ":", {"Ref": "PyServerName"} ," Server installed \" >>$BUILD_LOG \n",
                 "echo \"",{"Ref": "TagKeyStack"}, ":", {"Ref": "PublicServerName"} ," Server installed \" >>$BUILD_LOG \n",
+                "echo 'App Server Mode:", {"Ref": "HerdMember"}," ' >>$BUILD_LOG \n",
 
                 "echo 'DONE.' >>$BUILD_LOG \n"
 
@@ -1331,9 +1335,7 @@
       },
       "Export": {
           "Name": {
-              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
-                                {"Ref": "TagKeyLayer"},
-                                {"Ref": "HerdMember"},
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
                                  "AppEc2SecurityGrpId" ] ]
           }
       },
@@ -1345,9 +1347,7 @@
       },
       "Export": {
           "Name": {
-              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
-                                {"Ref": "TagKeyLayer"},
-                                {"Ref": "HerdMember"},
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
                                  "AppEcInstanceId" ] ]
           }
       }
@@ -1358,10 +1358,8 @@
       },
       "Export": {
           "Name": {
-              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
-                                {"Ref": "TagKeyLayer"},
-                                {"Ref": "HerdMember"},
-                                 "AppPrivateIp" ] ]
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
+                                 "AppPrivateIp" ]]
           }
       }
     }
