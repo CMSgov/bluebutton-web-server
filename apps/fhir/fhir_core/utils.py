@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.http import HttpResponse
 
-from apps.fhir.fhir_core.models import SupportedResourceType
+from apps.fhir.server.models import SupportedResourceType
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
