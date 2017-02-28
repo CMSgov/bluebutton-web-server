@@ -18,7 +18,8 @@ from collections import OrderedDict
 # from django.shortcuts import RequestContext  # render
 
 from apps.fhir.bluebutton.utils import (FhirServerUrl,
-                                        request_call)
+                                        request_call,
+                                        get_crosswalk)
 
 
 def get_fhir_claim(request, claim_number):
@@ -380,6 +381,8 @@ def get_fhir_claim(request, claim_number):
 
     """
 
+    # We need the crosswalk to check client auth for the server
+    cx = get_crosswalk(request.user)
     # Get the FHIR Server URL
     # Construct the Search for ExplanationOfBenefit / PatientClaimSummary
     search_base = FhirServerUrl() + "ExplanationOfBenefit"
@@ -400,7 +403,7 @@ def get_fhir_claim(request, claim_number):
     search_base += claim_number
 
     # logger.debug('Calling request_call with %s' % search_base)
-    r = request_call(request, search_base)
+    r = request_call(request, search_base, cx)
     # logger.debug("returned with %s" % r.text)
     bundle = json.loads(r.text, object_pairs_hook=OrderedDict)
     resource = {}
