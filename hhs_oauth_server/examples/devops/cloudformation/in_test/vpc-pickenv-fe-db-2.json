@@ -1099,7 +1099,7 @@
                           "# Configure AWS CLI Credentials \n",
                           "mkdir -p /root/.aws \n",
                           "export AWS_DEFAULT_REGION=us-east-1 \n",
-                          "/usr/local/bin/aws s3 cp s3://bb-config/all_env/aws/aws/bb-",
+                          "/usr/local/bin/aws s3 cp s3://bb-config/all_env/aws/bb-",
                           {"Ref": "TagKeyStack"},
                           "-db-backup/* /root/.aws/ \n",
 
@@ -1133,8 +1133,8 @@
                           "echo 'Installing lxml+lxslt' >>$BUILD_LOG \n",
                           "yum -y install libxml2-devel libxslt-devel \n",
 
-                          "echo 'Installing DB Drivers:MySQL' >>$BUILD_LOG \n",
-                          "yum -y install mysql-devel.x86_64 \n",
+                          "# echo 'Installing DB Drivers:MySQL' >>$BUILD_LOG \n",
+                          "# yum -y install mysql-devel.x86_64 \n",
 
                           "echo 'Installing DB Drivers:postgreSQL' >>$BUILD_LOG \n",
                           "yum -y install python-psycopg2.x86_64 \n",

@@ -1044,6 +1044,9 @@
                 "chmod -R 0755 /var/virtualenv \n",
                 "mkdir -p ", {"Ref":"PyAppHome"}, " \n",
 
+                "# setup a certstore for backend clientauth \n",
+                "mkdir -p ", {"Ref":"PyAppHome"},"/certstore \n",
+
                 "cd ",{"Ref":"PyAppHome"}," \n",
                 "chmod -R 0755 /var/pyapps \n",
                 "git clone -b ",{"Ref": "PyRepoBranch"} ," https://github.com/transparenthealth/hhs_oauth_server \n",
@@ -1130,6 +1133,10 @@
                     "DjangoAppTitle"]},
                     "@' $DJ_SET_SH \n",
 
+                "sed -i 's@REPLACE_FHIR_CERT_STORE_PATH@",
+                    {"Ref": "PyAppHome"},"/certstore",
+                    "@' $DJ_SET_SH \n",
+
                  "sed -i 's@DB_ENGINE_DRIVER@",
                     {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
                     "DbEngineDriver" ]} ,
@@ -1211,6 +1218,11 @@
                     {"Fn::FindInMap": ["DjangoInfo", {"Ref": "TagKeyStack"},
                     "DjangoAppTitle"]},
                     "@' $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_FHIR_CERT_STORE_PATH@",
+                    {"Ref": "PyAppHome"},"/certstore",
+                    "@' $CE_SET_PY \n",
+
 
                  "sed -i 's@DB_ENGINE_DRIVER@",
                     {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},

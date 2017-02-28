@@ -26,7 +26,8 @@ from apps.fhir.bluebutton.utils import (
     build_output_dict,
     post_process_request,
     pretty_json,
-    get_default_path)
+    get_default_path,
+    get_crosswalk)
 
 from apps.fhir.bluebutton.models import Crosswalk
 
@@ -113,11 +114,9 @@ def generic_read(request,
 
     logger.debug('srtc: %s' % srtc)
 
-    try:
-        cx = Crosswalk.objects.get(user=request.user)
-    except Crosswalk.DoesNotExist:
-        cx = None
-        # logger.debug('Crosswalk for %s does not exist' % request.user)
+    cx = get_crosswalk(request.user)
+    if cx is None:
+        logger.debug('Crosswalk for %s does not exist' % request.user)
 
     if (cx is None and srtc is not None):
         # There is a srtc record so we need to check override_search
@@ -240,8 +239,9 @@ def generic_read(request,
 
     logger.debug("Making request:%s" % pass_to)
     logger_debug.debug("Making request:%s" % pass_to)
+
     # Now make the call to the backend API
-    r = request_call(request, pass_to, reverse_lazy('api:v1:home'))
+    r = request_call(request, pass_to, cx, reverse_lazy('api:v1:home'))
 
     text_out = ''
     if 'text' in r:
