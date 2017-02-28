@@ -39,15 +39,19 @@ logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
-def request_call(request, call_url, cx, fail_redirect="/"):
+def request_call(request, call_url, cx=None, fail_redirect="/"):
     """  call to request or redirect on fail"""
 
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
+    if auth_state['client_auth']:
+        cert = (auth_state['cert_file'], auth_state['key_file'])
+    else:
+        cert = ()
 
     try:
-        r = requests.get(call_url)
+        r = requests.get(call_url, cert=cert)
 
     except requests.ConnectionError:
         logger_debug.debug('Problem connecting to FHIR Server')
