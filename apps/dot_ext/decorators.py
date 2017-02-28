@@ -35,10 +35,10 @@ def capability_protected_resource(scopes=None, validator_cls=OAuth2Validator, se
             if valid:
                 # here we check if the access to resource is allowed by the token's scope.
                 if not allow_resource(oauthlib_req.access_token, request.method, request.path):
-                    return HttpResponseForbidden('token has no capability to access the resource')
+                    return HttpResponseForbidden('The token has no capability to access the resource.')
 
                 request.resource_owner = oauthlib_req.user
                 return view_func(request, *args, **kwargs)
-            return HttpResponseForbidden('token authentication failed')
+            return HttpResponseForbidden('The token authentication failed.')
         return _validate
     return decorator

@@ -116,12 +116,22 @@ class Endorsement(models.Model):
             return True
         return False
 
+    def good_to_go(self):
+        is_expired = self.is_expired()
+        signature_verified = self.signature_verified()
+
+        if signature_verified and is_expired is False:
+            return True
+        return False
+
     def save(self, commit=True, **kwargs):
         if commit:
             payload = jwt.decode(self.jwt, verify=False)
             self.iss = payload['iss']
-            self.iat = datetime.datetime.fromtimestamp(int(payload['iat'])).strftime('%Y-%m-%d %H:%M:%S')
-            self.exp = datetime.datetime.fromtimestamp(int(payload['exp'])).strftime('%Y-%m-%d %H:%M:%S')
+            self.iat = datetime.datetime.fromtimestamp(
+                int(payload['iat'])).strftime('%Y-%m-%d %H:%M:%S')
+            self.exp = datetime.datetime.fromtimestamp(
+                int(payload['exp'])).strftime('%Y-%m-%d %H:%M:%S')
             super(Endorsement, self).save(**kwargs)
 
 
