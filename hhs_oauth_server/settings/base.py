@@ -338,10 +338,10 @@ OAUTH2_PROVIDER = {
 # These choices will be available in the expires_in field
 # of the oauth2 authorization page.
 DOT_EXPIRES_IN = (
+    (86400 * 365 * 100, _('Forever')),
     (86400, _('1 Day')),
     (86400 * 7, _('1 Week')),
     (86400 * 365, _('1 Year')),
-    (86400 * 365 * 100, _('Forever')),
 )
 
 
