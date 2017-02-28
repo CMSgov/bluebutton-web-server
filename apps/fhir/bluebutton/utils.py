@@ -1,3 +1,4 @@
+import os
 import json
 import logging
 import requests
@@ -38,8 +39,13 @@ logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
-def request_call(request, call_url, fail_redirect="/"):
+def request_call(request, call_url, cx, fail_redirect="/"):
     """  call to request or redirect on fail"""
+
+    # Updated to receive cx (Crosswalk entry for user)
+    # call FhirServer_Auth(cx) to get authentication
+    auth_state = FhirServerAuth(cx)
+
     try:
         r = requests.get(call_url)
 
@@ -372,6 +378,31 @@ def check_for_bb_text(user=None):
         return None
 
 
+def FhirServerAuth(cx=None):
+    # Get default clientauth settings from base.py
+    # Receive a crosswalk.id or None
+    # Return a dict
+    # FHIR_DEFAULT_AUTH = {'client_auth': False,
+    #                      'cert_file': '',
+    #                      'key_file': ''}
+    auth_settings = settings.FHIR_DEFAULT_AUTH
+    if cx:
+        auth_settings['client_auth'] = cx.fhir_source.client_auth
+        auth_settings['cert_file'] = cx.fhir_source.cert_file
+        auth_settings['key_file'] = cx.fhir_source.key_file
+
+    if auth_settings['client_auth']:
+        # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
+        cert_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                      auth_settings['cert_file'])
+        key_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                     auth_settings['key_file'])
+        auth_settings['cert_file'] = cert_file_path
+        auth_settings['key_file'] = key_file_path
+
+    return auth_settings
+
+
 def FhirServerUrl(server=None, path=None, release=None):
     # fhir_server_configuration =
     # {'SERVER':'http://fhir-test.bbonfhir.com:8081',
@@ -673,6 +704,21 @@ def crosswalk_patient_id(user):
         patient = Crosswalk.objects.get(user=user)
         if patient.fhir_id:
             return patient.fhir_id
+
+    except Crosswalk.DoesNotExist:
+        pass
+
+    return None
+
+
+def get_crosswalk(user):
+    """ Receive Request.user and use as lookup in Crosswalk
+        Return Crosswalk or None
+    """
+
+    try:
+        patient = Crosswalk.objects.get(user=user)
+        return patient
 
     except Crosswalk.DoesNotExist:
         pass
