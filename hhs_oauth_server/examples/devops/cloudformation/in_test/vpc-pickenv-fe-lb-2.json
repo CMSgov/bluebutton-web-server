@@ -926,6 +926,7 @@
                           " \n",
 
                           "export HTTP_MASTER_CONF=/etc/httpd/conf/httpd.conf \n",
+                          "echo 'TraceEnable Off'>>$HTTP_MASTER_CONF \n",
                           "echo '# Appending ServerName to bottom of httpd.conf ' >>$HTTP_MASTER_CONF \n",
                           "echo 'ServerName ",
                           {
