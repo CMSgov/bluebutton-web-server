@@ -23,7 +23,7 @@ class FhirServer(models.Model):
                                 default='Patient',
                                 verbose_name='Key Resource type')
     client_auth = models.BooleanField(default=False,
-                                     help_text="Is Client Authentication Required?")
+                                      help_text="Is Client Authentication Required?")
     # Certs and keys will be stored in files and folders under
     # FHIR_CLIENT_CERTSTORE (set in base.py)
     # default will be BASE_DIR + /../certstore
