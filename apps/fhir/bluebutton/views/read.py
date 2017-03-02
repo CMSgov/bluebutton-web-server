@@ -29,7 +29,8 @@ from apps.fhir.bluebutton.utils import (
     get_default_path,
     get_crosswalk)
 
-from apps.fhir.bluebutton.models import Crosswalk
+# moved Crosswalk access to bluebutton.utils.get_crosswalk
+# from apps.fhir.bluebutton.models import Crosswalk
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)

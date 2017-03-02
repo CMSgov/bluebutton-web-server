@@ -1257,12 +1257,15 @@
                 " /home/ec2-user/script/ \n",
                 "mkdir -p /etc/httpd/virtualhost \n",
                 "chmod +x /home/ec2-user/script/virtualhost_conf.sh \n",
+                "# Setup /etc/httpd/virtualhost/server.conf \n",
                 "/home/ec2-user/script/virtualhost_conf.sh  \n",
 
                 "echo 'copying wsgi.conf into place. ' >>$BUILD_LOG \n",
                 "echo 'LoadModule wsgi_module modules/mod_wsgi.so ' >/etc/httpd/conf.d/wsgi.conf \n",
 
                 "echo 'copying config files into place' >>$BUILD_LOG \n",
+
+                "echo 'TraceEnable Off' >>/etc/httpd/conf/httpd.conf \n",
                 "echo 'Include virtualhost/*.conf' >>/etc/httpd/conf/httpd.conf \n",
                 "mkdir -p /var/www/doc \n",
                 "mkdir -p /var/www/doc/", {"Ref": "PyServerName"}," \n",
