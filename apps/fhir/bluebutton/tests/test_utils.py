@@ -1,3 +1,6 @@
+# import json
+import os
+
 from collections import OrderedDict
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -23,6 +26,7 @@ from apps.fhir.bluebutton.utils import (
     build_params,
     add_format,
     get_url_query_string,
+    FhirServerAuth,
     FhirServerUrl,
     check_access_interaction_and_resource_type,
     check_rt_controls,
@@ -230,12 +234,12 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
-        print("Response for %s: %s" % (srtc, response))
+        # print("Response for %s: %s" % (srtc, response))
         self.assertEquals(response, ['patient=4995802'])
 
         # Test Patient= in patient resource
         srtc = SupportedResourceType.objects.get(pk=1)
-        print("SRTC: %s" % srtc.resource_name)
+        # print("SRTC: %s" % srtc.resource_name)
 
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
@@ -247,12 +251,16 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
+        # print("Response:(%s)" % response)
+        # print("JSON Dumps:%s" % json.dumps(response))
         self.assertEquals(response, [])
 
         # Test
         srtc = SupportedResourceType.objects.get(pk=1)
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
+        print("Response:%s" % response)
+        print("compare to:%s" % [])
         self.assertEquals(response, [])
 
         # Test
@@ -265,6 +273,9 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         srtc = None
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
+        print("Response 2:%s" % type(response))
+        print("compare to 2:%s" % [])
+
         self.assertEquals(response, [])
 
     def test_concat_params(self):
@@ -426,6 +437,30 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         response = get_url_query_string(['a=a', 'b=b', 'c=3'])
         expected = OrderedDict()
         self.assertEquals(response, expected)
+
+    def test_FhirServerAuth(self):
+        """  Check FHIR Server ClientAuth settings """
+
+        """ Test 1: pass nothing"""
+
+        response = FhirServerAuth()
+        expected = settings.FHIR_DEFAULT_AUTH
+        # print("Test 1: FHIRServerAuth %s %s" % (response, expected))
+
+        self.assertDictEqual(response, expected)
+
+        """ Test 2: pass cx """
+        cx = Crosswalk.objects.get(pk=1)
+        response = FhirServerAuth(cx)
+
+        expected = {'client_auth': True,
+                    'cert_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                              "cert_file.pem"),
+                    'key_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                             "key_file.pem")}
+        # print("\n Test 2: FHIRServerAuth %s %s" % (response, expected))
+
+        self.assertDictEqual(response, expected)
 
     def test_FhirServerUrl(self):
         """ Build a fhir server url """

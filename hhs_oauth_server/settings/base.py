@@ -425,11 +425,19 @@ FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     # Minutes until search expires
                     'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}
 
+FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
+                            os.path.join(BASE_DIR, '../certstore'))
+
+# cert_file and key_file are referenced relative to BASE_DIR/../certstore
+# used by FhirServer_Auth()
+FHIR_DEFAULT_AUTH = {'client_auth': False,
+                     'cert_file': '',
+                     'key_file': ''}
+
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
-
 
 LOGIN_REDIRECT_URL = '/accounts/mfa/login'
 LOGIN_URL = '/accounts/mfa/login'
 
-REQUIRE_AUTHOIRZE_APP_FLAG = False
+REQUIRE_AUTHORIZE_APP_FLAG = False

@@ -1,3 +1,4 @@
+import os
 import json
 import logging
 import requests
@@ -33,20 +34,32 @@ FORMAT_OPTIONS_CHOICES = ['json', 'xml']
 DF_EXTRA_INFO = False
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
+logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
+logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
-def request_call(request, call_url, fail_redirect="/"):
+def request_call(request, call_url, cx=None, fail_redirect="/"):
     """  call to request or redirect on fail"""
+
+    # Updated to receive cx (Crosswalk entry for user)
+    # call FhirServer_Auth(cx) to get authentication
+    auth_state = FhirServerAuth(cx)
+    if auth_state['client_auth']:
+        cert = (auth_state['cert_file'], auth_state['key_file'])
+    else:
+        cert = ()
+
     try:
-        r = requests.get(call_url)
+        r = requests.get(call_url, cert=cert)
 
     except requests.ConnectionError:
-        # logger.debug('Problem connecting to FHIR Server')
+        logger_debug.debug('Problem connecting to FHIR Server')
         messages.error(request, 'FHIR Server is unreachable.')
         return HttpResponseRedirect(fail_redirect)
 
     if r.status_code in ERROR_CODE_LIST:
-        # logger.debug("\nError Status Code:%s" % r.status_code)
+        logger_debug.debug("\nError Status Code:%s" % r.status_code)
         return error_status(r, r.status_code)
 
     return r
@@ -76,11 +89,11 @@ def strip_oauth(get={}):
 
     strip_parms = ['access_token', 'state', 'response_type', 'client_id']
 
-    # logger.debug('Removing:%s from: %s' % (strip_parms, get))
+    logger_debug.debug('Removing:%s from: %s' % (strip_parms, get))
 
     strip_oauth = get_url_query_string(get, strip_parms)
 
-    # logger.debug('resulting url parameters:%s' % strip_oauth)
+    logger_debug.debug('resulting url parameters:%s' % strip_oauth)
 
     return strip_oauth
 
@@ -135,10 +148,13 @@ def add_params(srtc, key=None):
             if isinstance(params_list, list):
                 pass
             else:
-                params_list = [params_list, ]
+                if params_list == "[]":
+                    params_list = []
+                else:
+                    params_list = [params_list, ]
 
-            # logger.debug('Parameters to add:%s' % params_list)
-            # logger.debug('key to replace: %s' % key)
+            logger_debug.debug('Parameters to add:%s' % params_list)
+            logger_debug.debug('key to replace: %s' % key)
 
             add_params = []
             for item in params_list:
@@ -158,7 +174,7 @@ def add_params(srtc, key=None):
 
                     add_params.append(item)
 
-            # logger.debug('Resulting additional parameters:%s' % add_params)
+            logger_debug.debug('Resulting additional parameters:%s' % add_params)
 
     return add_params
 
@@ -171,7 +187,7 @@ def concat_parms(front_part={}, back_part={}):
 
     joined_parms = OrderedDict()
 
-    # logger.debug('Joining %s with: %s' % (front_part, back_part))
+    logger_debug.debug('Joining %s with: %s' % (front_part, back_part))
     if len(front_part) > 0:
         if isinstance(front_part, dict):
             for k, v in front_part.items():
@@ -201,12 +217,12 @@ def concat_parms(front_part={}, back_part={}):
                     joined_parms[item_split[0]] = ''
 
     concat_parm = '?' + urlencode(joined_parms)
-    # logger.debug("Concat_parm:%s" % concat_parm)
+    logger_debug.debug("Concat_parm:%s" % concat_parm)
     if concat_parm.startswith('?='):
         concat_parms = '?' + concat_parm[3:]
     else:
         concat_parms = concat_parm
-    # logger.debug('resulting string:%s' % concat_parms)
+    logger_debug.debug('resulting string:%s' % concat_parms)
 
     # We have to do something
     # joined_parms = '?'
@@ -246,14 +262,14 @@ def build_params(get, srtc, key):
     # leading ? and parameters joined by &
     all_param = concat_parms(url_param, add_param)
 
-    # logger.debug('Parameter (post block/add):%s' % all_param)
+    logger_debug.debug('Parameter (post block/add):%s' % all_param)
 
     # now we check for _format being specified. Otherwise we get back html
     # by default we will process json unless _format is already set.
 
     all_param = add_format(all_param)
 
-    # logger.debug('add_Format returned:%s' % all_param)
+    logger_debug.debug('add_Format returned:%s' % all_param)
 
     return all_param
 
@@ -297,7 +313,7 @@ def get_url_query_string(get, skip_parm=[]):
     :param skip_parm: []
     :return: Query_String (QS)
     """
-    # logger.debug('Evaluating: %s to remove:%s' % (get,skip_parm))
+    logger_debug.debug('Evaluating: %s to remove:%s' % (get, skip_parm))
 
     filtered_dict = OrderedDict()
 
@@ -311,7 +327,7 @@ def get_url_query_string(get, skip_parm=[]):
 
     for k, v in get.items():
 
-        # logger.debug('K/V: [%s/%s]' % (k,v))
+        logger_debug.debug('K/V: [%s/%s]' % (k, v))
 
         if k in skip_parm:
             pass
@@ -322,7 +338,7 @@ def get_url_query_string(get, skip_parm=[]):
     # qs = urlencode(filtered_dict)
     qs = filtered_dict
 
-    # logger.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
+    logger_debug.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
     return qs
 
 
@@ -344,10 +360,11 @@ def bb_update_or_create(user=None, bb_text=None):
             identifier=user, defaults={"bb_content": bb_text}
         )
         if bene.bb_content:
-            True
+            result = created
         else:
-            False
+            result = None
         result = created
+        logger_debug.debug(msg="Beneficiary:%s, content:%s" % (bene, created))
     return result
 
 
@@ -363,6 +380,31 @@ def check_for_bb_text(user=None):
         return bb
     except BlueButtonText.DoesNotExist:
         return None
+
+
+def FhirServerAuth(cx=None):
+    # Get default clientauth settings from base.py
+    # Receive a crosswalk.id or None
+    # Return a dict
+    # FHIR_DEFAULT_AUTH = {'client_auth': False,
+    #                      'cert_file': '',
+    #                      'key_file': ''}
+    auth_settings = settings.FHIR_DEFAULT_AUTH
+    if cx:
+        auth_settings['client_auth'] = cx.fhir_source.client_auth
+        auth_settings['cert_file'] = cx.fhir_source.cert_file
+        auth_settings['key_file'] = cx.fhir_source.key_file
+
+    if auth_settings['client_auth']:
+        # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
+        cert_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                      auth_settings['cert_file'])
+        key_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                     auth_settings['key_file'])
+        auth_settings['cert_file'] = cert_file_path
+        auth_settings['key_file'] = key_file_path
+
+    return auth_settings
 
 
 def FhirServerUrl(server=None, path=None, release=None):
@@ -411,10 +453,12 @@ def check_access_interaction_and_resource_type(resource_type, intn_type):
             msg = 'The interaction: %s is not permitted on %s FHIR ' \
                   'resources on this FHIR sever.' % (intn_type,
                                                      resource_type)
+            logger_debug.debug(msg="%s:%s" % ("403", msg))
             return kickout_403(msg)
     except SupportedResourceType.DoesNotExist:
         msg = '%s is not a supported resource ' \
               'type on this FHIR server.' % resource_type
+        logger_debug.debug(msg="%s:%s" % ("404", msg))
         return kickout_404(msg)
 
     return False
@@ -484,7 +528,7 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
 
     out_text = in_text.replace(find_url, host_path)
 
-    # logger.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
+    logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
 
     return out_text
 
@@ -513,7 +557,7 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         if kill_url.endswith('/'):
             kill_url = kill_url[:-1]
 
-        # print("Replacing:%s" % kill_url)
+        logger_debug.debug("Replacing:%s" % kill_url)
 
         in_text = mask_with_this_url(request, host_path, in_text, kill_url)
 
@@ -534,7 +578,7 @@ def get_host_url(request, resource_type=''):
     else:
         full_url_list = full_url.split(resource_type)
 
-    # logger.debug('Full_url as list:%s' % full_url_list)
+    logger_debug.debug('Full_url as list:%s' % full_url_list)
 
     return full_url_list[0]
 
@@ -565,13 +609,15 @@ def build_output_dict(request,
     if vid is not None:
         od['vid'] = vid
 
-    # logger.debug('Query List:%s' % request.META['QUERY_STRING'])
+    logger_debug.debug('Query List:%s' % request.META['QUERY_STRING'])
 
     if DF_EXTRA_INFO:
         od['request_method'] = request.method
         od['interaction_type'] = interaction_type
         od['parameters'] = request.GET.urlencode()
-        # logger.debug('or:%s' % od['parameters'])
+
+        logger_debug.debug('or:%s' % od['parameters'])
+
         od['format'] = fmt
         od['note'] = 'This is the %s Pass Thru ' \
                      '(%s) ' % (resource_type, key)
@@ -598,7 +644,7 @@ def post_process_request(request, fmt, host_path, r_text, rewrite_url_list):
                                        host_path,
                                        r_text,
                                        rewrite_url_list)
-        # print("\n\nPRE_TEXT:%s\n\n" % pre_text)
+        logger_debug.debug("\n\nPRE_TEXT:%s\n\n" % pre_text)
         text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
 
     return text_out
@@ -611,7 +657,7 @@ def prepend_q(pass_params):
             pass
         else:
             pass_params = '?' + pass_params
-    # print("Parameters:", pass_params)
+    logger_debug.debug("Parameters:", pass_params)
     return pass_params
 
 
@@ -621,20 +667,24 @@ def pretty_json(od, indent=PRETTY_JSON_INDENT):
     return json.dumps(od, indent=indent)
 
 
-def get_default_path(resource_name):
+def get_default_path(resource_name, crosswalk_source=None):
     """ Get default Path for resource """
 
-    # print("\nGET_DEFAULT_URL:%s" % resource_name)
-    try:
-        rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
-        default_path = rr.fhir_path
-        # print("\nDEFAULT_URL=%s" % default_pathl)
+    logger_debug.debug("\nGET_DEFAULT_URL:%s" % resource_name)
+    if crosswalk_source:
+        default_path = crosswalk_source
+    else:
+        try:
+            rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
+            default_path = rr.fhir_path
+            logger_debug.debug("\nDEFAULT_URL=%s" % default_path)
 
-    except ResourceRouter.DoesNotExist:
-        # use the default FHIR Server URL
-        default_path = FhirServerUrl()
-        # print("\nNO MATCH for %s so setting to:%s" % (resource_name,
-        #                                               default_path))
+        except ResourceRouter.DoesNotExist:
+            # use the default FHIR Server URL
+            default_path = FhirServerUrl()
+            logger_debug.debug("\nNO MATCH for %s. "
+                               "Setting to:%s" % (resource_name,
+                                                  default_path))
 
     return default_path
 
@@ -653,7 +703,7 @@ def dt_patient_reference(user):
 def crosswalk_patient_id(user):
     """ Get patient/id from Crosswalk for user """
 
-    # print("\ncrosswalk_patient_id User:%s" % user)
+    logger_debug.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
         if patient.fhir_id:
@@ -663,3 +713,34 @@ def crosswalk_patient_id(user):
         pass
 
     return None
+
+
+def get_crosswalk(user):
+    """ Receive Request.user and use as lookup in Crosswalk
+        Return Crosswalk or None
+    """
+
+    try:
+        patient = Crosswalk.objects.get(user=user)
+        return patient
+
+    except Crosswalk.DoesNotExist:
+        pass
+
+    return None
+
+
+def conformance_or_capability(fhir_url):
+    """ Check FHIR Url for FHIR Version.
+    :return resource type (STU3 switches from ConformanceStatement to CapabilityStatement
+
+    :param fhir_url:
+    :return:
+    """
+
+    if "stu3" in fhir_url.lower():
+        resource_type = "CapabilityStatement"
+    else:
+        resource_type = "Conformance"
+
+    return resource_type
