@@ -8,8 +8,10 @@ from django.utils.translation import ugettext_lazy as _
 from ..models import UserProfile, MFACode
 from ..mfa_forms import LoginForm, MFACodeForm
 from ratelimit.decorators import ratelimit
+import logging
+from ...utils import get_client_ip
 
-
+logger = logging.getLogger('hhs_oauth_server.accounts')
 def mfa_code_confirm(request, uid):
     mfac = get_object_or_404(MFACode, uid=uid)
     user = mfac.user
@@ -91,6 +93,7 @@ def mfa_login(request):
                                                             args=(mfac.uid,)))
                     # Else, just login as normal without MFA
                     login(request, user)
+                    logger.info("Successful login from {}".format(get_client_ip(request)))
                     next_param = request.GET.get('next', '')
                     if next_param:
                         # If a next is in the URL, then go there
@@ -104,6 +107,7 @@ def mfa_login(request):
                                      'activate your account.'))
                     return render(request, 'login.html', {'form': form})
             else:
+                logger.info("Invalid login attempt.")
                 messages.error(request, _('Invalid username or password.'))
                 return render(request, 'login.html', {'form': form})
         else:
