@@ -294,7 +294,7 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -302,6 +302,11 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
+        'hhs_oauth_server.accounts': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+        
         'oauth2_provider': {
             'handlers': ['console'],
             'level': 'INFO',
