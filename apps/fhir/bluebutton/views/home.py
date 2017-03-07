@@ -25,6 +25,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render, HttpResponse
 
 # from apps.fhir.bluebutton.models import ResourceTypeControl
+from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import (request_call,
                                         FhirServerUrl,
                                         get_host_url,
@@ -32,11 +33,14 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         build_output_dict,
                                         prepend_q,
                                         post_process_request,
-                                        pretty_json)
+                                        pretty_json,
+                                        conformance_or_capability,
+                                        get_crosswalk)
 from apps.fhir.fhir_core.utils import (read_session,
                                        get_search_param_format,
                                        SESSION_KEY)
-from apps.fhir.fhir_core.models import SupportedResourceType
+
+from apps.fhir.server.models import SupportedResourceType
 
 from apps.home.views import authenticated_home
 
@@ -103,9 +107,12 @@ def rebuild_fhir_search(request):
         key = sn_vr['key']
         vid = sn_vr['vid']
 
+        cx = get_crosswalk(request.user)
+
         logger.debug("Calling:%s" % url_call)
         r = request_call(request,
                          url_call,
+                         cx,
                          reverse_lazy('authenticated_home'))
 
         host_path = get_host_url(request, '?')
@@ -150,14 +157,28 @@ def rebuild_fhir_search(request):
 def fhir_conformance(request, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
+    BaseDstu2 = "Conformance"
+    BaseStu3 = "CapabilityStatement
+
     metadata call
 
     """
     if not request.user.is_authenticated():
         return authenticated_home(request)
 
-    resource_type = 'Conformance'
-    call_to = FhirServerUrl()
+    try:
+        cx = Crosswalk.objects.get(user=request.user)
+    except Crosswalk.DoesNotExist:
+        cx = None
+        # logger.debug('Crosswalk for %s does not exist' % request.user)
+
+    if cx:
+        call_to = cx.fhir_source.fhir_url
+    else:
+        call_to = FhirServerUrl()
+
+    resource_type = conformance_or_capability(call_to)
+
     if call_to.endswith('/'):
         call_to += 'metadata'
     else:
@@ -172,6 +193,7 @@ def fhir_conformance(request, *args, **kwargs):
 
     r = request_call(request,
                      call_to + pass_params,
+                     cx,
                      reverse_lazy('authenticated_home'))
 
     text_out = ''

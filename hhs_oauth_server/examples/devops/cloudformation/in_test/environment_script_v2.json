@@ -1,6 +1,6 @@
 {
    "AWSTemplateFormatVersion": "2010-09-09",
-   "Description": "Launch a complete environment with database, two app servers and a load balancer",
+   "Description": "Launch a complete environment with FIPS 140.2 database, two app servers and a load balancer",
    "Parameters": {
         "LaunchAz": {
             "Description": "Availability Zone to Launch in to",
@@ -84,7 +84,7 @@
        "DataStack01": {
            "Type": "AWS::CloudFormation::Stack",
            "Properties": {
-               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-db-2.json",
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-fips-db-3.json",
                "Parameters": {
                    "AZone": {"Ref": "LaunchAz"},
                    "VpcId": {"Ref": "StackVpcId"},

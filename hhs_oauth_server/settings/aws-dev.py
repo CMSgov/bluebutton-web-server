@@ -109,9 +109,101 @@ SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 
+# Fixed user and password for fake backend
+SETTINGS_AUTH_USER = 'ben'
+SETTINGS_AUTH_PASSWORD = 'pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aaTohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys='
+
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
 # If integer interpreted, as hours
 AXES_COOLOFF_TIME = datetime.timedelta(seconds=60)
 
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API Server[DEV]')
+
+# logging
+# Based on blog posts:
+# http://thegeorgeous.com/2015/02/27/Logging-into-multiple-files-in-Django.html
+# https://docs.djangoproject.com/en/1.10/topics/logging/
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(name)s '
+                      '[%(process)d] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'simple': {
+            'format': '%(levelname)s %(name)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file_debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/pyapps/debug.log',
+        },
+        'file_error': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/pyapps/error.log',
+        },
+        'file_info': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/pyapps/info.log',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'filters': ['require_debug_true'],
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'hhs_server': {
+            'handlers': ['console', 'file_debug'],
+            'level': 'DEBUG',
+        },
+        'hhs_server_debug': {
+            'handlers': ['console', 'file_debug'],
+            'level': 'DEBUG',
+        },
+        'hhs_server_error': {
+            'handlers': ['console', 'file_error', 'mail_admins'],
+            'level': 'ERROR',
+        },
+        'hhs_server_info': {
+            'handlers': ['console', 'file_info'],
+            'level': 'INFO',
+        },
+        'oauth2_provider': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'oauthlib': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'tests': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        }
+
+    },
+}
