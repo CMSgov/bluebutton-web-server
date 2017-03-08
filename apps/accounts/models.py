@@ -17,6 +17,9 @@ from .emails import (send_password_reset_url_via_email,
                      mfa_via_email, send_invite_to_create_account,
                      send_invitation_code_to_user)
 from collections import OrderedDict
+import logging
+
+logger = logging.getLogger('hhs_oauth_server.accounts')
 
 USER_CHOICES = (
     ('BEN', 'Beneficiary'),
@@ -229,6 +232,15 @@ class RequestInvite(models.Model):
         r = '%s %s' % (self.first_name, self.last_name)
         return r
 
+    def save(self, commit=True, **kwargs):
+        if commit:
+            logger.info(
+                "Invite requested for {} {} ({})".format(
+                    self.first_name,
+                    self.last_name,
+                    self.email))
+            super(RequestInvite, self).save(**kwargs)
+
 
 @python_2_unicode_compatible
 class UserRegisterCode(models.Model):
@@ -269,13 +281,11 @@ class UserRegisterCode(models.Model):
                         self.sent = True
                         self.resend = False
                 if self.sent is True and self.resend is True:
-                    # print("Send invite code to benny")
                     send_invitation_code_to_user(self)
                     self.sent = True
                     self.resend = False
             else:
                 if self.sent is False or self.resend is True:
-                    # print("Send invite code to benny")
                     send_invitation_code_to_user(self)
                     self.sent = True
                     self.resend = False
@@ -299,11 +309,14 @@ class Invitation(models.Model):
         return "%s%s" % (settings.HOSTNAME_URL,
                          reverse('accounts_create_account'))
 
-    def save(self, **kwargs):
-        if self.valid:
-            # send the invitation verification email.
-            send_invite_to_create_account(self)
-        super(Invitation, self).save(**kwargs)
+    def save(self, commit=True, **kwargs):
+        if commit:
+            if self.valid:
+                # send the invitation verification email.
+                send_invite_to_create_account(self)
+                logger.info("Invitation sent to {}".format(self.email))
+
+            super(Invitation, self).save(**kwargs)
 
 
 @python_2_unicode_compatible
@@ -340,16 +353,19 @@ class ValidPasswordResetKey(models.Model):
                                                  self.user.username,
                                                  self.expires)
 
-    def save(self, **kwargs):
-        self.reset_password_key = str(uuid.uuid4())
-        # use timezone.now() instead of datetime.now()
-        now = timezone.now()
-        expires = now + timedelta(minutes=1440)
-        self.expires = expires
+    def save(self, commit=True, **kwargs):
+        if commit:
+            self.reset_password_key = str(uuid.uuid4())
+            # use timezone.now() instead of datetime.now()
+            now = timezone.now()
+            expires = now + timedelta(minutes=1440)
+            self.expires = expires
 
-        # send an email with reset url
-        send_password_reset_url_via_email(self.user, self.reset_password_key)
-        super(ValidPasswordResetKey, self).save(**kwargs)
+            # send an email with reset url
+            send_password_reset_url_via_email(self.user, self.reset_password_key)
+            logger.info("Password reset sent to Invitation sent to {} ({})".format(self.user.username,
+                                                                                   self.user.email))
+            super(ValidPasswordResetKey, self).save(**kwargs)
 
 
 def random_key_id(y=20):
@@ -386,23 +402,20 @@ class EmailWebhook(models.Model):
         r = '%s: %s' % (self.email, self.status)
         return r
 
-    def save(self, request_body="", **kwargs):
-
-        if request_body:
-            whr = json.loads(str(request_body.decode('utf-8')),
-                             object_pairs_hook=OrderedDict)
-            message = json.loads(whr["Message"])
-            self.status = message['notificationType']
-
-            if self.status == "Bounce":
-                self.email = message['bounce'][
-                    'bouncedRecipients'][0]["emailAddress"]
-
-            if self.status == "Complaint":
-                self.email = message['complainedRecipients'][0]["emailAddress"]
-
-            if self.status == "Delivery":
-                self.email = message['mail']["destination"][0]
-
-            self.details = request_body
-            super(EmailWebhook, self).save(**kwargs)
+    def save(self, commit=True, request_body="", **kwargs):
+        if commit:
+            if request_body:
+                whr = json.loads(str(request_body.decode('utf-8')),
+                                 object_pairs_hook=OrderedDict)
+                message = json.loads(whr["Message"])
+                self.status = message['notificationType']
+                if self.status == "Bounce":
+                    self.email = message['bounce'][
+                        'bouncedRecipients'][0]["emailAddress"]
+                if self.status == "Complaint":
+                    self.email = message['complainedRecipients'][0]["emailAddress"]
+                if self.status == "Delivery":
+                    self.email = message['mail']["destination"][0]
+                self.details = request_body
+                logger.info("Sent email {} status is {}.".format(self.email, self.status))
+                super(EmailWebhook, self).save(**kwargs)
