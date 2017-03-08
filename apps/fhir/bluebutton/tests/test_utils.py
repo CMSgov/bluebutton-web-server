@@ -1,4 +1,5 @@
 # import json
+import os
 
 from collections import OrderedDict
 from django.conf import settings
@@ -25,6 +26,7 @@ from apps.fhir.bluebutton.utils import (
     build_params,
     add_format,
     get_url_query_string,
+    FhirServerAuth,
     FhirServerUrl,
     check_access_interaction_and_resource_type,
     check_rt_controls,
@@ -435,6 +437,30 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         response = get_url_query_string(['a=a', 'b=b', 'c=3'])
         expected = OrderedDict()
         self.assertEquals(response, expected)
+
+    def test_FhirServerAuth(self):
+        """  Check FHIR Server ClientAuth settings """
+
+        """ Test 1: pass nothing"""
+
+        response = FhirServerAuth()
+        expected = settings.FHIR_DEFAULT_AUTH
+        # print("Test 1: FHIRServerAuth %s %s" % (response, expected))
+
+        self.assertDictEqual(response, expected)
+
+        """ Test 2: pass cx """
+        cx = Crosswalk.objects.get(pk=1)
+        response = FhirServerAuth(cx)
+
+        expected = {'client_auth': True,
+                    'cert_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                              "cert_file.pem"),
+                    'key_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                             "key_file.pem")}
+        # print("\n Test 2: FHIRServerAuth %s %s" % (response, expected))
+
+        self.assertDictEqual(response, expected)
 
     def test_FhirServerUrl(self):
         """ Build a fhir server url """

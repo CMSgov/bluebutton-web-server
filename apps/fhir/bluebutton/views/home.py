@@ -34,12 +34,13 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         prepend_q,
                                         post_process_request,
                                         pretty_json,
-                                        conformance_or_capability)
+                                        conformance_or_capability,
+                                        get_crosswalk)
 from apps.fhir.fhir_core.utils import (read_session,
                                        get_search_param_format,
                                        SESSION_KEY)
 
-from apps.fhir.fhir_core.models import SupportedResourceType
+from apps.fhir.server.models import SupportedResourceType
 
 from apps.home.views import authenticated_home
 
@@ -106,9 +107,12 @@ def rebuild_fhir_search(request):
         key = sn_vr['key']
         vid = sn_vr['vid']
 
+        cx = get_crosswalk(request.user)
+
         logger.debug("Calling:%s" % url_call)
         r = request_call(request,
                          url_call,
+                         cx,
                          reverse_lazy('authenticated_home'))
 
         host_path = get_host_url(request, '?')
@@ -189,6 +193,7 @@ def fhir_conformance(request, *args, **kwargs):
 
     r = request_call(request,
                      call_to + pass_params,
+                     cx,
                      reverse_lazy('authenticated_home'))
 
     text_out = ''

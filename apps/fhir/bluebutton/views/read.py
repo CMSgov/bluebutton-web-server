@@ -26,11 +26,16 @@ from apps.fhir.bluebutton.utils import (
     build_output_dict,
     post_process_request,
     pretty_json,
-    get_default_path)
+    get_default_path,
+    get_crosswalk)
 
-from apps.fhir.bluebutton.models import Crosswalk
+# moved Crosswalk access to bluebutton.utils.get_crosswalk
+# from apps.fhir.bluebutton.models import Crosswalk
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
+logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
+logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
 def read(request, resource_type, r_id, *args, **kwargs):
@@ -95,6 +100,7 @@ def generic_read(request,
     """
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
     logger.debug('interaction_type: %s' % interaction_type)
+    logger_debug.debug('interaction_type: %s' % interaction_type)
 
     # Check if this interaction type and resource type combo is allowed.
     deny = check_access_interaction_and_resource_type(resource_type,
@@ -109,11 +115,9 @@ def generic_read(request,
 
     logger.debug('srtc: %s' % srtc)
 
-    try:
-        cx = Crosswalk.objects.get(user=request.user)
-    except Crosswalk.DoesNotExist:
-        cx = None
-        # logger.debug('Crosswalk for %s does not exist' % request.user)
+    cx = get_crosswalk(request.user)
+    if cx is None:
+        logger.debug('Crosswalk for %s does not exist' % request.user)
 
     if (cx is None and srtc is not None):
         # There is a srtc record so we need to check override_search
@@ -152,6 +156,7 @@ def generic_read(request,
 
     if srtc:
         logger.debug('SRTC:%s' % srtc)
+        logger_debug.debug('SRTC:%s' % srtc)
 
         fhir_url = default_path + resource_type + '/'
         # Add to the rewrite_url list
@@ -161,6 +166,7 @@ def generic_read(request,
             fhir_url += cx.fhir_id + "/"
     else:
         logger.debug('CX:%s' % cx)
+        logger_debug.debug('CX:%s' % cx)
         if cx:
             fhir_url = cx.get_fhir_resource_url(resource_type)
             rewrite_url_list.append(fhir_url.replace(resource_type + '/', ''))
@@ -174,6 +180,9 @@ def generic_read(request,
     logger.debug('FHIR URL:%s' % fhir_url)
     logger.debug('Rewrite List:%s' % rewrite_url_list)
 
+    logger_debug.debug('FHIR URL:%s' % fhir_url)
+    logger_debug.debug('Rewrite List:%s' % rewrite_url_list)
+
     if interaction_type == 'search':
         key = None
     else:
@@ -186,6 +195,7 @@ def generic_read(request,
         fhir_url += key + '/'
 
     logger.debug('FHIR URL with key:%s' % fhir_url)
+    logger_debug.debug('FHIR URL with key:%s' % fhir_url)
 
     ###########################
 
@@ -198,12 +208,13 @@ def generic_read(request,
     if interaction_type == 'search':
         if cx is not None:
             logger.debug("cx.fhir_id=%s" % cx.fhir_id)
-            # TODO: Deal with list index out of range
+            logger_debug.debug("cx.fhir_id=%s" % cx.fhir_id)
             if cx.fhir_id.__contains__('/'):
                 r_id = cx.fhir_id.split('/')[1]
             else:
                 r_id = cx.fhir_id
             logger.debug("Patient Id:%s" % r_id)
+            logger_debug.debug("Patient Id:%s" % r_id)
 
     if resource_type == "Patient":
         key = r_id
@@ -228,19 +239,24 @@ def generic_read(request,
         pass_to += pass_params
 
     logger.debug("Making request:%s" % pass_to)
+    logger_debug.debug("Making request:%s" % pass_to)
+
     # Now make the call to the backend API
-    r = request_call(request, pass_to, reverse_lazy('api:v1:home'))
+    r = request_call(request, pass_to, cx, reverse_lazy('api:v1:home'))
 
     text_out = ''
     if 'text' in r:
         logger.debug('r:%s' % r.text)
+        logger_debug.debug('r:%s' % r.text)
     else:
         logger.debug("r not returning text:%s" % r)
+        logger_debug.debug("r not returning text:%s" % r)
 
     # logger.debug('Rewrite List:%s' % rewrite_url_list)
 
     host_path = get_host_url(request, resource_type)[:-1]
     logger.debug('host path:%s' % host_path)
+    logger_debug.debug('host path:%s' % host_path)
 
     # get 'xml' 'json' or ''
     fmt = get_search_param_format(pass_params)
@@ -278,6 +294,8 @@ def generic_read(request,
         if sesn_var:
             logger.debug("Problem writing session variables."
                          " Returned %s" % sesn_var)
+            logger_debug.debug("Problem writing session variables."
+                               " Returned %s" % sesn_var)
     if fmt == 'xml':
         # logger.debug('We got xml back in od')
         return HttpResponse(r.text, content_type='application/%s' % fmt)

@@ -66,7 +66,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 class AllowForm(DotAllowForm):
     scope = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
     expires_in = forms.TypedChoiceField(choices=settings.DOT_EXPIRES_IN, coerce=int,
-                                        empty_value=None)
+                                        empty_value=None,
+                                        label="Access to this application expires in")
 
     def __init__(self, *args, **kwargs):
         application = kwargs.pop('application', None)
