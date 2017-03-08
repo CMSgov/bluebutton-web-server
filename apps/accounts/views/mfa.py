@@ -12,6 +12,8 @@ import logging
 from ...utils import get_client_ip
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
+
+
 def mfa_code_confirm(request, uid):
     mfac = get_object_or_404(MFACode, uid=uid)
     user = mfac.user
@@ -23,13 +25,14 @@ def mfa_code_confirm(request, uid):
             if code != mfac.code:
                 mfac.tries_counter = mfac.tries_counter + 1
                 if mfac.tries_counter > 3:
-                    messages.error(request,
-                                   _('Maximum tries reached. The authentication attempt has been invalidated.'))
+                    messages.error(
+                        request,
+                        _('Maximum tries reached. The authentication attempt has been invalidated.'))
                     mfac.delete()
                 else:
                     mfac.save()
-                messages.error(request,
-                               _('The code supplied did not match what was sent. Please try again.'))
+                messages.error(
+                    request, _('The code supplied did not match what was sent. Please try again.'))
 
                 return render(
                     request, 'generic/bootstrapform.html', {'form': form})
@@ -48,9 +51,10 @@ def mfa_code_confirm(request, uid):
                 return HttpResponseRedirect(reverse('home'))
             else:
                 # The user exists but is_active=False
-                messages.error(request,
-                               _('Your account has not been activated. Please check your email for a link to '
-                                 'activate your account.'))
+                messages.error(
+                    request, _(
+                        'Your account has not been activated. Please check your email for a link to '
+                        'activate your account.'))
                 return render(
                     request, 'generic/bootstrapform.html', {'form': form})
 
@@ -84,16 +88,19 @@ def mfa_login(request):
                             user=up.user, mode=up.mfa_login_mode)
                         # Send code and redirect
                         if up.mfa_login_mode == "SMS":
-                            messages.info(request,
-                                          _('An access code was sent to your mobile device. Please enter it here.'))
+                            messages.info(
+                                request,
+                                _('An access code was sent to your mobile device. Please enter it here.'))
                         if up.mfa_login_mode == "EMAIL":
-                            messages.info(request,
-                                          _('An access code was sent to your email. Please enter it here.'))
+                            messages.info(
+                                request, _('An access code was sent to your email. Please enter it here.'))
                         return HttpResponseRedirect(reverse('mfa_code_confirm',
                                                             args=(mfac.uid,)))
                     # Else, just login as normal without MFA
                     login(request, user)
-                    logger.info("Successful login from {}".format(get_client_ip(request)))
+                    logger.info(
+                        "Successful login from {}".format(
+                            get_client_ip(request)))
                     next_param = request.GET.get('next', '')
                     if next_param:
                         # If a next is in the URL, then go there
