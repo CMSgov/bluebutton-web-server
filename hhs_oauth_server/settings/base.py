@@ -306,7 +306,6 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
-        
         'oauth2_provider': {
             'handlers': ['console'],
             'level': 'INFO',
