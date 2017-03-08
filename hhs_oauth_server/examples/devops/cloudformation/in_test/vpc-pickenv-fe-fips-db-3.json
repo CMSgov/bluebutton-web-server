@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Full Deployment Script to choose environment, build Database Server",
+    "Description": "Full Deployment Script to choose environment, build FIPS140.2 Database Server",
   "Metadata": {
     "AWS::CloudFormation::Designer": {
       "25af43bb-a438-4ab1-95f3-a75ccb55a8e0": {
@@ -97,24 +97,6 @@
           "t2.medium": {
               "Arch": "HVM"
           },
-          "m1.medium": {
-              "Arch": "PV"
-          },
-          "m1.large": {
-              "Arch": "PV"
-          },
-          "m1.xlarge": {
-              "Arch": "PV"
-          },
-          "m2.xlarge": {
-              "Arch": "PV"
-          },
-          "m2.2xlarge": {
-              "Arch": "PV"
-          },
-          "m2.4xlarge": {
-              "Arch": "PV"
-          },
           "m3.medium": {
               "Arch": "HVM"
           },
@@ -126,12 +108,6 @@
           },
           "m3.2xlarge": {
               "Arch": "HVM"
-          },
-          "c1.medium": {
-              "Arch": "PV"
-          },
-          "c1.xlarge": {
-              "Arch": "PV"
           },
           "c3.large": {
               "Arch": "HVM"
@@ -190,20 +166,16 @@
       },
       "AWSRegionArch2AMI": {
           "us-east-1": {
-              "PV": "ami-d8c7aecf",
-              "HVM": "ami-28c2ab3f"
+              "HVM": "ami-3c59802a"
           },
           "us-east-1a": {
-              "PV": "ami-d8c7aecf",
-              "HVM": "ami-28c2ab3f"
+              "HVM": "ami-3c59802a"
           },
           "us-east-1b": {
-              "PV": "ami-d8c7aecf",
-              "HVM": "ami-28c2ab3f"
+              "HVM": "ami-3c59802a"
           },
           "us-east-1c": {
-              "PV": "ami-d8c7aecf",
-              "HVM": "ami-28c2ab3f"
+              "HVM": "ami-3c59802a"
           }
       },
       "VPCEnvironment": {
@@ -439,8 +411,8 @@
      },
      "BuildImageId": {
         "Type": "String",
-         "Description": "PV Image",
-         "Default": "ami-d8c7aecf"
+         "Description": "HVM Image",
+         "Default": "ami-3c59802a"
      },
      "InstanceName" : {
         "Description" : "Easily recognizable name in the EC2 Instance List",
@@ -484,14 +456,10 @@
       "Default": "m3.medium",
       "AllowedValues": [
         "t2.medium",
-        "m2.2xlarge",
-        "m2.4xlarge",
         "m3.medium",
         "m3.large",
         "m3.xlarge",
         "m3.2xlarge",
-        "c1.medium",
-        "c1.xlarge",
         "c3.large",
         "c3.xlarge",
         "c3.2xlarge",
@@ -509,8 +477,7 @@
         "hi1.4xlarge",
         "hs1.8xlarge",
         "cr1.8xlarge",
-        "cc2.8xlarge",
-        "cg1.4xlarge"
+        "cc2.8xlarge"
       ],
       "ConstraintDescription": "Must be a valid EC2 instance type"
     },
@@ -886,6 +853,9 @@
                           "sed -i 's@REPLACE-WITH-APP-NAME@${SPLUNK_APP_REF}@'  $SPLUNK_CONF \n",
 
                           "su - splunk -c \"/opt/splunkforwarder/bin/splunk restart\" \n",
+
+                          "# get the FIPS 140-2 setup \n",
+                          "cat /root/fips_140_2_update.log >>$BUILD_LOG \n",
 
                           "mkdir -p /home/ec2-user/script \n",
                           "chown -R ec2-user:root /home/ec2-user/script \n",
