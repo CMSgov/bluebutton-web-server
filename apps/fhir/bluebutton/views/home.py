@@ -158,7 +158,7 @@ def fhir_conformance(request, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
     BaseDstu2 = "Conformance"
-    BaseStu3 = "CapabilityStatement
+    BaseStu3 = "CapabilityStatement"
 
     metadata call
 

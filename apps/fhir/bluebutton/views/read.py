@@ -12,6 +12,8 @@ from apps.fhir.fhir_core.utils import (kickout_403,
                                        find_ikey,
                                        get_search_param_format,
                                        get_target_url,
+                                       content_is_json_or_xml,
+                                       get_content_type,
                                        SESSION_KEY)
 
 from apps.fhir.bluebutton.utils import (
@@ -260,6 +262,13 @@ def generic_read(request,
 
     # get 'xml' 'json' or ''
     fmt = get_search_param_format(pass_params)
+
+    ct_fmt = content_is_json_or_xml(r)
+    ct_detail = get_content_type(r)
+    logger.debug('Content-Type returned:%s' % ct_fmt)
+
+    logger_debug.debug('Content-Type:%s \n work with %s' % (ct_detail,
+                                                            ct_fmt))
 
     text_out = post_process_request(request,
                                     fmt,
