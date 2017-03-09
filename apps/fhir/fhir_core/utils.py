@@ -402,3 +402,28 @@ def check_access_interaction_and_resource_type(resource_type, interaction_type):
         msg = '{} is not a supported resource type on this FHIR server.'.format(resource_type)
         return kickout_404(msg)
     return False
+
+
+def get_content_type(response):
+    """ Check response headers for Content-Type
+        expected options:
+        application/json+fhir;charset=UTF-8
+        application/xml+fhir;charset=UTF-8
+
+    """
+
+    return response.headers.get("Content-Type")
+
+
+def content_is_json_or_xml(response):
+    """ Evaluate response.headers for Content-Type
+
+        :return "json | xml """
+
+    ct = get_content_type(response)
+
+    ct_format = "xml"
+    if "json" in ct.lower():
+        ct_format = "json"
+
+    return ct_format

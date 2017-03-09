@@ -936,9 +936,9 @@
                 "# Splunk name setup \n",
                 "export SPLUNK_LC_NAME=bbapi-",{"Ref":"TagKeyStack"},"-",{"Ref": "TagKeyLayer"}," \n",
                 "export SPLUNK_APP_REF=${SPLUNK_LC_NAME^^} \n",
-                "echo 'Splunk Ref:$SPLUNK_LC_NAME / $SPLUNK_APP_REF ' >>$BUILD_LOG \n",
+                "echo Splunk Ref:$SPLUNK_LC_NAME / $SPLUNK_APP_REF  >>$BUILD_LOG \n",
                 "export SPLUNK_CONF=/opt/splunkforwarder/etc/system/local/deploymentclient.conf \n",
-                "sed -i 's@REPLACE-WITH-APP-NAME@$SPLUNK_APP_REF@'  $SPLUNK_CONF \n",
+                "sed -i 's@REPLACE-WITH-APP-NAME@'$SPLUNK_APP_REF'@'  $SPLUNK_CONF \n",
 
                 "su - splunk -c \"/opt/splunkforwarder/bin/splunk restart\" \n",
 
@@ -1272,6 +1272,10 @@
 
                 "echo 'creating application log directory /var/log/pyapps ' >>$BUILD_LOG \n",
                 "mkdir -p /var/log/pyapps \n",
+                "touch /var/log/pyapps/debug.log \n",
+                "touch /var/log/pyapps/error.log \n",
+                "touch /var/log/pyapps/info.log \n",
+
                 "chown -Rf pyapps:apache /var/log/pyapps \n",
 
                 "echo 'run python app migrations' >>$BUILD_LOG \n",
