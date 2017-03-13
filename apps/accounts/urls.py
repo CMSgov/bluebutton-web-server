@@ -22,8 +22,13 @@ from .views.mfa import mfa_code_confirm, mfa_login
 from .views.user_code_login import user_code_login
 from .views.invites import bulk_user_codes
 from .views.email_bounce_webhook import record_email_bounce
+from .views.api_profile import my_profile
 
 urlpatterns = [
+    # login and Logout ------------------------------------
+    url(r'^api/profile$', my_profile, name='my_profile'),
+    
+    
     # login and Logout ------------------------------------
     url(r'^logout$', mylogout, name='mylogout'),
 
