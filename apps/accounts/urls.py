@@ -27,8 +27,8 @@ from .views.api_profile import my_profile
 urlpatterns = [
     # login and Logout ------------------------------------
     url(r'^api/profile$', my_profile, name='my_profile'),
-    
-    
+
+
     # login and Logout ------------------------------------
     url(r'^logout$', mylogout, name='mylogout'),
 
