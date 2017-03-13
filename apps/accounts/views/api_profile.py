@@ -21,4 +21,4 @@ def my_profile(request):
         'email': user.email,
         'created': user.date_joined,
     }
-    return JsonResponse(data) 
+    return JsonResponse(data)
