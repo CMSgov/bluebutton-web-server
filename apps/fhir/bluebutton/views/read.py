@@ -244,7 +244,7 @@ def generic_read(request,
     logger_debug.debug("Making request:%s" % pass_to)
 
     # Now make the call to the backend API
-    r = request_call(request, pass_to, cx, reverse_lazy('api:v1:home'))
+    r = request_call(request, pass_to, cx, reverse_lazy('home'))
 
     text_out = ''
     if 'text' in r:
