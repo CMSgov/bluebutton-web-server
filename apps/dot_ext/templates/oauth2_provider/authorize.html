@@ -1,6 +1,9 @@
 {% extends "oauth2_provider/base.html" %}
 
+{% load static %}
+
 {% block extra_head %}
+<link rel="stylesheet" href="http://transparenthealth.org.s3.amazonaws.com/mpn/css/mpn.min.css" type="text/css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script>
 $(document).ready(function(){
@@ -28,6 +31,8 @@ $(document).ready(function(){
   });
 });
 </script>
+
+
 
 {% endblock %}
 
@@ -79,6 +84,12 @@ $(document).ready(function(){
 </section>
 
 
+<section id="mdn">
+    <div class="row">
+      <div class="policyDisplay"></div>
+    </div>
+</section>
+
 
 <section id="endorsements">
 
@@ -94,9 +105,6 @@ $(document).ready(function(){
     </div>
     
 
-         
-     
-        
     {% if not application.endorsements.all %}
     
        <div class="row text-center">
@@ -133,12 +141,7 @@ $(document).ready(function(){
             
             {% endif %}
          
-         
-         
-         
-         
 
-            
         {% endfor %}
         {% endif %}
 
@@ -200,4 +203,11 @@ $(document).ready(function(){
 </section>
 {% endblock %}
 
-
+{% block ExtraJSFoot %}
+	    <script>
+mpnData = { "hipaa": { "protected": "No" }, "use": { "scientificResearch": true, "primaryService": true, "marketing": true }, "share": {}, "sell": {}, "store": {}, "encryption": {}, "privacy": {}, "user": {}, "deactivation": {}, "policy": {}, "breach": {}, "contact": { "name": "xvdsvfsdgdsfgds" } } 
+</script>
+    
+    <script src="http://transparenthealth.org.s3.amazonaws.com/mpn/js/mpnDisplay.min.js"></script>
+{% endblock %}
+ 
