@@ -883,7 +883,7 @@
                           "export SPLUNK_APP_REF=${SPLUNK_LC_NAME^^} \n",
                           "echo Splunk Ref:$SPLUNK_LC_NAME / $SPLUNK_APP_REF  >>$BUILD_LOG \n",
                           "export SPLUNK_CONF=/opt/splunkforwarder/etc/system/local/deploymentclient.conf \n",
-                          "sed -i 's@REPLACE-WITH-APP-NAME@${SPLUNK_APP_REF}@'  $SPLUNK_CONF \n",
+                          "sed -i 's@REPLACE-WITH-APP-NAME@'$SPLUNK_APP_REF'@'  $SPLUNK_CONF \n",
 
                           "su - splunk -c \"/opt/splunkforwarder/bin/splunk restart\" \n",
 
