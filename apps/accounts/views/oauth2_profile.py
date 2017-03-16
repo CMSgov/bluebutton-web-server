@@ -15,7 +15,7 @@ def openidconnect_userinfo(request):
         'sub': user.username,
         'name': "%s %s" % (user.first_name, user.last_name),
         'given_name': user.first_name,
-        'familty_name': user.last_name,
+        'family_name': user.last_name,
         'email': user.email,
         'iat': user.date_joined,
     }
