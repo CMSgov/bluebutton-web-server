@@ -47,4 +47,8 @@ urlpatterns = [
         fhir_conformance,
         name='bb_fhir_conformance'),
 
+    # Capability statement
+    url(r'(meta[^/]+)?',
+        fhir_conformance,
+        name='bb_fhir_conformance'),
 ]

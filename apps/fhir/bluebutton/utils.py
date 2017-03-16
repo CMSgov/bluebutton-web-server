@@ -629,6 +629,11 @@ def build_output_dict(request,
 
 def post_process_request(request, fmt, host_path, r_text, rewrite_url_list):
     """ Process request based on xml or json fmt """
+
+    if r_text == "":
+        # Return nothing
+        return r_text
+
     if fmt.lower() == 'xml':
         # We will add xml support later
 
