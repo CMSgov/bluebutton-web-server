@@ -39,17 +39,26 @@
 
       <ul class="nav navbar-nav navbar-right">
 
-        {% if "apps.sandbox" in active_apps %}
-		
-		 <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="fa fa-gears"></i> Sandbox <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li><a href="{% url 'bb_upload' %}"> <i class="fa fa-gears"></i> Create Claims From a CMS Blue Button Text File</a></li>
-            <li><a href="{% url 'generate_poet_jwt' %}"> <i class="fa fa-gears"></i> Create an Application Endorsement</a></li>
-          </ul>
+        {% if user.is_authenticated %}
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <i class="fa fa-gears"></i> API <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <li><a href="{% url 'bb_fhir_conformance' %}"> <i class="fa fa-fire"></i> FHIR<sup>&reg;</sup> Capability Statement</a></li>
+                <li><a href="{% url 'bb_fhir_search' resource_type="Patient" %}/"> <i class="fa fa-user-circle"></i> My Patient record</a></li>
+                <li><a href="{% url 'bb_fhir_search' resource_type="Coverage" %}/"> <i class="fa fa-umbrella"></i> My Coverage</a></li>
+               <li><a href="{% url 'bb_fhir_search' resource_type="ExplanationOfBenefit" %}/"> <i class="fa fa-file-text-o"></i> My FHIR<sup>&reg;</sup> ExplanationOfBenefit records</a></li>
+             {% if "apps.sandbox" in active_apps %}
+                <li class="divider"></li>
+                  <li> &nbsp;&nbsp;<i class="fa fa-gears"></i> Sandbox </li>
+	  	        <li class="divider"></li>
+		        <li><a href="{% url 'bb_upload' %}"> <i class="fa fa-code"></i> Create Claims From a CMS Blue Button Text File</a></li>
+                <li><a href="{% url 'generate_poet_jwt' %}"> <i class="fa fa-ticket"></i> Create an Application Endorsement</a></li>
+            {% endif %}
+            </ul>
         </li>
 		
-		{% endif %}
+
+        {% endif %}
 		
 		
 		{% if user.is_authenticated %}
@@ -68,7 +77,7 @@
           <ul class="dropdown-menu">
             <li><a href="{% url 'oauth2_provider:authorized-token-list' %}"> <i class="fa fa-legal"></i> Applications You Have Granted Access</a>
 		    <li><a href="{% url 'oauth2_provider:list' %}">  <i class="fa fa-key"></i> Applications You Created</a>
-            <li><a href="{% url 'bb_fhir_conformance' %}"> <i class="fa fa-tasks"></i> FHIR<sup>&reg;</sup> Capability Statement</a></li>
+
           </ul>
         </li>	
 			

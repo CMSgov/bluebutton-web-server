@@ -170,13 +170,17 @@ def error_status(r, status_code=404, reason='undefined error occured'):
     :param reason:
     :return:
     """
-    error_detail = r.text
-    if settings.DEBUG:
-        if r.text[0] == '<':
-            error_detail = 'xml:'
-            error_detail += r.text
-        else:
-            error_detail = r.json()
+    if 'text' in r:
+        error_detail = r.text
+
+        if settings.DEBUG:
+            if r.text[0] == '<':
+                error_detail = 'xml:'
+                error_detail += r.text
+            elif 'json' in r:
+                error_detail = r.json
+    else:
+        error_detail = ""
 
     if reason == 'undefined error occured':
         if status_code == 404:
@@ -411,8 +415,12 @@ def get_content_type(response):
         application/xml+fhir;charset=UTF-8
 
     """
-
-    return response.headers.get("Content-Type")
+    if response.status_code in ERROR_CODE_LIST:
+        return error_status(response, response.status_code)
+    else:
+        result = OrderedDict()
+        result['Content-Type'] = response.headers.get("Content-Type")
+        return result
 
 
 def content_is_json_or_xml(response):
@@ -421,9 +429,11 @@ def content_is_json_or_xml(response):
         :return "json | xml """
 
     ct = get_content_type(response)
-
-    ct_format = "xml"
-    if "json" in ct.lower():
-        ct_format = "json"
+    if 'errors' in ct:
+        ct_format = 'json'
+    else:
+        ct_format = "xml"
+        if "json" in ct['Content-Type'].lower():
+            ct_format = "json"
 
     return ct_format
