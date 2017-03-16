@@ -170,13 +170,17 @@ def error_status(r, status_code=404, reason='undefined error occured'):
     :param reason:
     :return:
     """
-    error_detail = r.text
-    if settings.DEBUG:
-        if r.text[0] == '<':
-            error_detail = 'xml:'
-            error_detail += r.text
-        else:
-            error_detail = r.json()
+    if 'text' in r:
+        error_detail = r.text
+
+        if settings.DEBUG:
+            if r.text[0] == '<':
+                error_detail = 'xml:'
+                error_detail += r.text
+            elif 'json' in r:
+                error_detail = r.json
+    else:
+        error_detail = ""
 
     if reason == 'undefined error occured':
         if status_code == 404:
@@ -402,3 +406,34 @@ def check_access_interaction_and_resource_type(resource_type, interaction_type):
         msg = '{} is not a supported resource type on this FHIR server.'.format(resource_type)
         return kickout_404(msg)
     return False
+
+
+def get_content_type(response):
+    """ Check response headers for Content-Type
+        expected options:
+        application/json+fhir;charset=UTF-8
+        application/xml+fhir;charset=UTF-8
+
+    """
+    if response.status_code in ERROR_CODE_LIST:
+        return error_status(response, response.status_code)
+    else:
+        result = OrderedDict()
+        result['Content-Type'] = response.headers.get("Content-Type")
+        return result
+
+
+def content_is_json_or_xml(response):
+    """ Evaluate response.headers for Content-Type
+
+        :return "json | xml """
+
+    ct = get_content_type(response)
+    if 'errors' in ct:
+        ct_format = 'json'
+    else:
+        ct_format = "xml"
+        if "json" in ct['Content-Type'].lower():
+            ct_format = "json"
+
+    return ct_format
