@@ -3,6 +3,7 @@ from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
+
 class OpenIDConnectConfigurationTestCase(TestCase):
     """
     Test NOpenIDConnectConfiguration URL
@@ -20,4 +21,4 @@ class OpenIDConnectConfigurationTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse('oauth2_provider:token'))
         self.assertContains(response, reverse('openid_connect_userinfo'))
-                            
+        self.assertContains(response, getattr(settings, 'HOSTNAME_URL'))

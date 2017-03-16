@@ -13,7 +13,7 @@ def openidconnect_userinfo(request):
     user = request.resource_owner
     data = {
         'sub': user.username,
-        'name': "%s %s" % (user.first_name,user.last_name),
+        'name': "%s %s" % (user.first_name, user.last_name),
         'given_name': user.first_name,
         'familty_name': user.last_name,
         'email': user.email,
