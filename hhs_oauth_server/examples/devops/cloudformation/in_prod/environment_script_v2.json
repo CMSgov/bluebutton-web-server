@@ -84,7 +84,7 @@
        "DataStack01": {
            "Type": "AWS::CloudFormation::Stack",
            "Properties": {
-               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-fips-db-3.json",
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v3/vpc-pickenv-fe-fips-db-3.json",
                "Parameters": {
                    "AZone": {"Ref": "LaunchAz"},
                    "VpcId": {"Ref": "StackVpcId"},
@@ -113,7 +113,7 @@
        "AppStack01": {
            "Type": "AWS::CloudFormation::Stack",
            "Properties": {
-               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-pyapps-postgres-2.json",
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v3/vpc-pickenv-fe-pyapps-postgres-2.json",
                "Parameters": {
                   "AZone": {"Ref": "LaunchAz"},
                   "AwsContentKeyId": {"Ref": "S3ContentKeyId"},
@@ -157,7 +157,7 @@
        "AppStack02": {
            "Type": "AWS::CloudFormation::Stack",
            "Properties": {
-               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-pyapps-postgres-2.json",
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v3/vpc-pickenv-fe-pyapps-postgres-2.json",
                "Parameters": {
                   "AZone": {"Ref": "LaunchAz"},
                   "AwsContentKeyId": {"Ref": "S3ContentKeyId"},
@@ -201,7 +201,7 @@
        "BalancerStack01": {
            "Type": "AWS::CloudFormation::Stack",
            "Properties": {
-               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-lb-2.json",
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v3/vpc-pickenv-fe-lb-2.json",
                "Parameters": {
                   "Route53KeyId": {"Ref": "S3ContentKeyId"},
                   "Route53AccessKey": {"Ref": "S3ContentAccessKey"},

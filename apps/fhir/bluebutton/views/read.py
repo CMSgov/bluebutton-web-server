@@ -12,6 +12,8 @@ from apps.fhir.fhir_core.utils import (kickout_403,
                                        find_ikey,
                                        get_search_param_format,
                                        get_target_url,
+                                       content_is_json_or_xml,
+                                       get_content_type,
                                        SESSION_KEY)
 
 from apps.fhir.bluebutton.utils import (
@@ -113,7 +115,7 @@ def generic_read(request,
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
 
-    logger.debug('srtc: %s' % srtc)
+    # logger.debug('srtc: %s' % srtc)
 
     cx = get_crosswalk(request.user)
     if cx is None:
@@ -155,7 +157,7 @@ def generic_read(request,
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
     if srtc:
-        logger.debug('SRTC:%s' % srtc)
+        # logger.debug('SRTC:%s' % srtc)
         logger_debug.debug('SRTC:%s' % srtc)
 
         fhir_url = default_path + resource_type + '/'
@@ -165,7 +167,7 @@ def generic_read(request,
         if srtc.override_url_id:
             fhir_url += cx.fhir_id + "/"
     else:
-        logger.debug('CX:%s' % cx)
+        # logger.debug('CX:%s' % cx)
         logger_debug.debug('CX:%s' % cx)
         if cx:
             fhir_url = cx.get_fhir_resource_url(resource_type)
@@ -177,8 +179,8 @@ def generic_read(request,
     if FhirServerUrl()[:-1] not in rewrite_url_list:
         rewrite_url_list.append(FhirServerUrl()[:-1])
 
-    logger.debug('FHIR URL:%s' % fhir_url)
-    logger.debug('Rewrite List:%s' % rewrite_url_list)
+    # logger.debug('FHIR URL:%s' % fhir_url)
+    # logger.debug('Rewrite List:%s' % rewrite_url_list)
 
     logger_debug.debug('FHIR URL:%s' % fhir_url)
     logger_debug.debug('Rewrite List:%s' % rewrite_url_list)
@@ -242,7 +244,7 @@ def generic_read(request,
     logger_debug.debug("Making request:%s" % pass_to)
 
     # Now make the call to the backend API
-    r = request_call(request, pass_to, cx, reverse_lazy('api:v1:home'))
+    r = request_call(request, pass_to, cx, reverse_lazy('home'))
 
     text_out = ''
     if 'text' in r:
@@ -261,10 +263,20 @@ def generic_read(request,
     # get 'xml' 'json' or ''
     fmt = get_search_param_format(pass_params)
 
+    ct_fmt = content_is_json_or_xml(r)
+    ct_detail = get_content_type(r)
+    logger.debug('Content-Type returned:%s' % ct_fmt)
+
+    logger_debug.debug('Content-Type:%s \n work with %s' % (ct_detail,
+                                                            ct_fmt))
+    if 'text' in r:
+        text_in = r.text
+    else:
+        text_in = ""
     text_out = post_process_request(request,
                                     fmt,
                                     host_path,
-                                    r.text,
+                                    text_in,
                                     rewrite_url_list)
 
     od = build_output_dict(request,
@@ -277,7 +289,10 @@ def generic_read(request,
                            text_out)
 
     # write session variables if _getpages was found
-    ikey = find_ikey(r.text)
+    ikey = ''
+    if 'text' in r:
+        ikey = find_ikey(r.text)
+
     if ikey is not '':
 
         save_url = get_target_url(fhir_url, resource_type)

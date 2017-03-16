@@ -282,11 +282,11 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(name)s '
-                      '[%(process)d] %(message)s'
+            'format': '%(asctime)s %(levelname)s '
+                      '[%(process)d] %(name)s line:%(lineno)d %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(name)s %(message)s'
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
         },
     },
     'handlers': {
@@ -294,6 +294,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        # 'lgfile': {
+        #     'class': 'logging.FileHandler',
+        #     'filename': 'logging.log',
+        #     'mode': 'w',
+        #     'formatter': 'verbose',
+        # }
     },
     'loggers': {
         'hhs_server': {
