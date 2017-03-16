@@ -80,12 +80,10 @@ INSTALLED_APPS = [
     'apps.accounts',
     # Define scopes and related protected resource URLs.
     'apps.capabilities',
-    # Blue Button Text file parsing code
+    # /.well-known/ endpoints
+    'apps.wellknown',
 
-
-    # Endorsement example
-
-    # TODO migrate to reusable app
+    # Endorsement example TODO migrate to reusable app
     'apps.endorse',
 
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
@@ -354,7 +352,7 @@ THEME = THEMES[THEME_SELECTED]
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
 
-HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
+HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 
 # Set the default Encoding standard. typically 'utf-8'
