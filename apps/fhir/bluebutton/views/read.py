@@ -1,4 +1,4 @@
-import json
+# import json
 import logging
 
 from collections import OrderedDict
@@ -140,7 +140,6 @@ def generic_read(request,
     # request.user.is_anonymous()
     #
     # if request.user.is_anonymous():
-
 
     # Request.user = user
     # interaction_type = read | _history | vread

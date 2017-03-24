@@ -1,5 +1,5 @@
-import ast
-import json
+# import ast
+# import json
 import logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -20,7 +20,7 @@ def text_to_list(t_in='[]'):
         return(t_in)
     else:
         logger.debug("decoding with text_to_list %s[%s]" % (t_in, type(t_in)))
-        jdecode = json.decoder.JSONDecoder()
+        # jdecode = json.decoder.JSONDecoder()
         # list_out = ast.literal_eval(t_in)
         if t_in:
             list_out = eval(t_in)
@@ -38,7 +38,7 @@ def list_to_text(l_in=[]):
     :type l_in:list
     """
 
-    logger.debug("list_to_text %s[%s]" % (l_in,type(l_in)))
+    logger.debug("list_to_text %s[%s]" % (l_in, type(l_in)))
 
     return repr(l_in)
 
@@ -54,9 +54,9 @@ def add_to_text_list(t_list='[]', add_this=''):
     """
 
     logger.debug("add_to_text_list %s[%s] + %s[%s]" % (t_list,
-                                                             type(t_list),
-                                                             add_this,
-                                                             type(add_this)))
+                                                       type(t_list),
+                                                       add_this,
+                                                       type(add_this)))
 
     appended_list = text_to_list(t_list)
     if add_this:
@@ -77,7 +77,7 @@ def init_text_list(replace_with=''):
     """
 
     logger.debug("init_text_list %s[%s] " % (replace_with,
-                                                   type(replace_with)))
+                                             type(replace_with)))
 
     if type(replace_with) is list:
         return(list_to_text(replace_with))

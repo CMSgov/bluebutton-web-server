@@ -1,11 +1,12 @@
-import json
+# import json
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
 from .utils import (text_to_list,
-                    list_to_text,
-                    add_to_text_list,
+                    # list_to_text,
+                    # add_to_text_list,
                     init_text_list)
+
 
 @python_2_unicode_compatible
 class SupportedResourceType(models.Model):
