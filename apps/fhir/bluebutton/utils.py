@@ -15,7 +15,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponseRedirect
+# from django.http import HttpResponseRedirect
 
 from apps.fhir.fhir_core.utils import (kickout_403,
                                        kickout_404)
@@ -62,7 +62,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/"):
         logger.debug("Error:%s" % r_err)
         e = requests.Response
         e.text = r_err
-        e.status_code =  502
+        e.status_code = 502
 
         return error_status(e, 502)
 
@@ -791,7 +791,7 @@ def evaluate_r(r):
     logger.debug("r.text:%s" % r.text)
     try:
         rjson = r.json()
-        logger.debug("Pretty r.json():\n%s" % pretty_json(r.json()))
+        logger.debug("Pretty r.json():\n%s" % pretty_json(rjson))
 
     except:
         logger.debug("No JSON")
