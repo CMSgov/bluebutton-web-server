@@ -23,7 +23,7 @@ def text_to_list(t_in='[]'):
         # jdecode = json.decoder.JSONDecoder()
         # list_out = ast.literal_eval(t_in)
         if t_in:
-            list_out = eval(t_in)
+            list_out = eval('t_in')
         else:
             list_out = []
         logger.debug("decoded with json.decoder %s[%s]" % (list_out,
