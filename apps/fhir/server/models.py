@@ -2,12 +2,21 @@ import json
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
+from .utils import (text_to_list,
+                    list_to_text,
+                    add_to_text_list,
+                    init_text_list)
 
 @python_2_unicode_compatible
 class SupportedResourceType(models.Model):
     resource_name = models.CharField(max_length=255,
                                      unique=True,
                                      db_index=True)
+    # should user be logged in to access this resource
+    secure_access = models.BooleanField(default=True,
+                                        verbose_name="Secured resource",
+                                        help_text='Login required to access'
+                                                  ' this resource')
     json_schema = models.TextField(max_length=5120,
                                    default='{}',
                                    help_text='{} indicates no schema.')
@@ -60,6 +69,7 @@ class SupportedResourceType(models.Model):
                                                     "need to be filtered "
                                                     "to avoid revealing "
                                                     "other people's data?")
+    # search_block is a list stored as text
     # search_block will remove parameters from the search string
     search_block = models.TextField(max_length=5120,
                                     blank=True,
@@ -67,6 +77,7 @@ class SupportedResourceType(models.Model):
                                     help_text="list of values that need to be "
                                               "removed from search "
                                               "parameters. eg. <b>Patient</b>")
+    # search_add is a list stored as text
     # search_add will add a filter parameter to the search string
     # In BlueButton this is used to add the patient_url_id to the search string
     # We currently use %PATIENT% to do a replace with patient_id
@@ -107,24 +118,35 @@ class SupportedResourceType(models.Model):
         return sit
 
     def set_search_block(self, x):
-        self.search_block = json.dumps(x)
+        # Convert list to text
+
+        # Done: get text, convert to list, add x, save back as text
+        self.search_block = init_text_list(x)
 
     def get_search_block(self):
-        if self.search_block == '':
-            search_list = '[]'
-        else:
-            search_list = self.search_block
-        return json.loads(search_list)
+        # get search_block and convert to list from text
+        # Done: fix conversion from text to list
+        # if self.search_block == '':
+        #     search_list = '[]'
+        # else:
+        #     search_list = self.search_block
+        # return json.loads(search_list)
+
+        return text_to_list(self.search_block)
 
     def set_search_add(self, x):
-        self.search_add = json.dumps(x)
+        # Add x to search_add.
+        # Done: get text, convert to list, add x, save back as text
+        self.search_add = init_text_list(x)
 
     def get_search_add(self):
-        if self.search_add == '':
-            search_list = '[]'
-        else:
-            search_list = [self.search_add, ]
-        return search_list
+        # Done: get text, convert to list
+        # if self.search_add == '':
+        #     search_list = '[]'
+        # else:
+        #     search_list = [self.search_add, ]
+
+        return text_to_list(self.search_add)
 
     def access_denied(self, access_to_check):
         # TODO: write the proper logic
@@ -173,6 +195,10 @@ class SupportedResourceType(models.Model):
             return self.history
         else:
             return False
+
+    def login_to_access(self):
+        # Should the user be logged in to access this resource
+        return self.secure_access
 
 
 @python_2_unicode_compatible
