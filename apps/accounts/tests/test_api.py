@@ -19,20 +19,20 @@ class TestUserSelfEndpoint(BaseApiTest):
         """
         Tests that POST requests to /user/self/ endpoint are forbidden.
         """
-        response = self.client.post(reverse('user_self'))
+        response = self.client.post(reverse('openid_connect_userinfo'))
         self.assertEqual(response.status_code, 405)
 
     def test_user_self_get_fails_without_credentials(self):
         """
-        Tests that GET requests to /user/self/ endpoint fail without
+        Tests that GET requests to /connect/userinfo endpoint fail without
         a valid access_token.
         """
-        response = self.client.get(reverse('user_self'))
+        response = self.client.get(reverse('openid_connect_userinfo'))
         self.assertEqual(response.status_code, 403)
 
     def test_user_self_get(self):
         """
-        Tests that GET request to /user/self/ returns user details for
+        Tests that GET request to /connect/userinfo returns user details for
         the authenticated user.
         """
         # Create the user
@@ -45,16 +45,16 @@ class TestUserSelfEndpoint(BaseApiTest):
         access_token = self._get_access_token('john', '123456')
         # Authenticate the request with the bearer access token
         auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
-        response = self.client.get(reverse('user_self'), **auth_headers)
+        response = self.client.get(reverse('openid_connect_userinfo'), **auth_headers)
         self.assertEqual(response.status_code, 200)
         # Check if the content of the response corresponds to the expected json
         expected_json = {
-            'id': user.pk,
-            'username': user.username,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
+            'sub': user.username,
+            'name': "%s %s" % (user.first_name, user.last_name),
+            'given_name': user.first_name,
+            'family_name': user.last_name,
             'email': user.email,
-            'created': DjangoJSONEncoder().default(user.date_joined),
+            'iat': DjangoJSONEncoder().default(user.date_joined),
         }
         self.assertJSONEqual(response.content.decode(ENCODED), expected_json)
 
