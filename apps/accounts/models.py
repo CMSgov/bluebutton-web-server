@@ -15,7 +15,8 @@ from django.core.urlresolvers import reverse
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
                      mfa_via_email, send_invite_to_create_account,
-                     send_invitation_code_to_user)
+                     send_invitation_code_to_user,
+                     notify_admin_of_invite_request)
 from collections import OrderedDict
 import logging
 
@@ -239,7 +240,11 @@ class RequestInvite(models.Model):
                     self.first_name,
                     self.last_name,
                     self.email))
+            notify_admin_of_invite_request(self)
             super(RequestInvite, self).save(**kwargs)
+
+    class Meta:
+        verbose_name = "Invite Request"
 
 
 @python_2_unicode_compatible
