@@ -26,6 +26,16 @@ def kickout_301(reason, status_code=301):
                         content_type='application/json')
 
 
+def kickout_302(reason, status_code=302):
+    """ 302 Temporarily Moved """
+    response = OrderedDict()
+    response['code'] = status_code
+    response['errors'] = [reason]
+    return HttpResponse(json.dumps(response, indent=4),
+                        status=status_code,
+                        content_type='application/json')
+
+
 def kickout_400(reason, status_code=400):
     """ 400 Bad Request """
     oo = OrderedDict()
@@ -142,7 +152,7 @@ def kickout_502(reason, status_code=502):
 
 
 def kickout_503(reason, status_code=503):
-    """ 503 Gateway Timeour """
+    """ 503 Gateway Timeout """
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Gateway Timeout']
@@ -161,7 +171,7 @@ def kickout_504(reason, status_code=504):
                         content_type='application/json')
 
 
-def error_status(r, status_code=404, reason='undefined error occured'):
+def error_status(r, status_code=404, reason='undefined error occurred'):
     """
     Generate an error page
     based on fhir.utils.kickout_xxx
@@ -170,15 +180,19 @@ def error_status(r, status_code=404, reason='undefined error occured'):
     :param reason:
     :return:
     """
-    error_detail = r.text
-    if settings.DEBUG:
-        if r.text[0] == '<':
-            error_detail = 'xml:'
-            error_detail += r.text
-        else:
-            error_detail = r.json()
+    try:
+        error_detail = r.text
 
-    if reason == 'undefined error occured':
+        if settings.DEBUG:
+            if r.text[0] == '<':
+                error_detail = 'xml:'
+                error_detail += r.text
+            elif 'json' in r:
+                error_detail = r.json
+    except:
+        error_detail = ""
+
+    if reason == 'undefined error occurred':
         if status_code == 404:
             reason = 'page not found'
             kickout_404(reason)
@@ -197,7 +211,9 @@ def error_status(r, status_code=404, reason='undefined error occured'):
             kickout_400(reason)
         elif status_code == 301:
             reason = 'The requested page has been permanently moved'
-            kickout_301(reason)
+        elif status_code == 302:
+            reason = 'The requested page has been temporarily moved'
+            kickout_302(reason)
         elif status_code == 501:
             reason = 'Not Implemented'
             kickout_501(reason)
@@ -402,3 +418,34 @@ def check_access_interaction_and_resource_type(resource_type, interaction_type):
         msg = '{} is not a supported resource type on this FHIR server.'.format(resource_type)
         return kickout_404(msg)
     return False
+
+
+def get_content_type(response):
+    """ Check response headers for Content-Type
+        expected options:
+        application/json+fhir;charset=UTF-8
+        application/xml+fhir;charset=UTF-8
+
+    """
+    if response.status_code in ERROR_CODE_LIST:
+        return error_status(response, response.status_code)
+    else:
+        result = OrderedDict()
+        result['Content-Type'] = response.headers.get("Content-Type")
+        return result
+
+
+def content_is_json_or_xml(response):
+    """ Evaluate response.headers for Content-Type
+
+        :return "json | xml """
+
+    ct = get_content_type(response)
+    if 'errors' in ct:
+        ct_format = 'json'
+    else:
+        ct_format = "xml"
+        if "json" in ct['Content-Type'].lower():
+            ct_format = "json"
+
+    return ct_format

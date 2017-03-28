@@ -1,3 +1,4 @@
+# import json
 import logging
 
 from collections import OrderedDict
@@ -12,7 +13,11 @@ from apps.fhir.fhir_core.utils import (kickout_403,
                                        find_ikey,
                                        get_search_param_format,
                                        get_target_url,
-                                       SESSION_KEY)
+                                       content_is_json_or_xml,
+                                       get_content_type,
+                                       SESSION_KEY,
+                                       error_status,
+                                       ERROR_CODE_LIST)
 
 from apps.fhir.bluebutton.utils import (
     request_call,
@@ -113,8 +118,11 @@ def generic_read(request,
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
 
-    logger.debug('srtc: %s' % srtc)
-
+    if srtc.secure_access and request.user.is_anonymous():
+        return kickout_403('Error 403: %s Resource access is controlled.'
+                           ' Login is required:'
+                           '%s' % (resource_type, request.user.is_anonymous()))
+    # logger.debug('srtc: %s' % srtc)
     cx = get_crosswalk(request.user)
     if cx is None:
         logger.debug('Crosswalk for %s does not exist' % request.user)
@@ -127,6 +135,11 @@ def generic_read(request,
             return kickout_403('Error 403: %s Resource is access controlled.'
                                ' No records are linked to user:'
                                '%s' % (resource_type, request.user))
+
+    # Need to check if user is logged in.
+    # request.user.is_anonymous()
+    #
+    # if request.user.is_anonymous():
 
     # Request.user = user
     # interaction_type = read | _history | vread
@@ -164,8 +177,10 @@ def generic_read(request,
 
         if srtc.override_url_id:
             fhir_url += cx.fhir_id + "/"
+
+        logger.debug('fhir_url:%s' % fhir_url)
     else:
-        logger.debug('CX:%s' % cx)
+        # logger.debug('CX:%s' % cx)
         logger_debug.debug('CX:%s' % cx)
         if cx:
             fhir_url = cx.get_fhir_resource_url(resource_type)
@@ -178,9 +193,9 @@ def generic_read(request,
         rewrite_url_list.append(FhirServerUrl()[:-1])
 
     logger.debug('FHIR URL:%s' % fhir_url)
-    logger.debug('Rewrite List:%s' % rewrite_url_list)
+    # logger.debug('Rewrite List:%s' % rewrite_url_list)
 
-    logger_debug.debug('FHIR URL:%s' % fhir_url)
+    logger.debug('FHIR URL:%s' % fhir_url)
     logger_debug.debug('Rewrite List:%s' % rewrite_url_list)
 
     if interaction_type == 'search':
@@ -192,7 +207,11 @@ def generic_read(request,
             if key.startswith(resource_type + '/'):
                 key = key.replace(resource_type + '/', '')
 
-        fhir_url += key + '/'
+        if key + '/' in fhir_url:
+            logger.debug("%s/ already in %s" % (key, fhir_url))
+        else:
+            logger.debug("adding %s/ to fhir_url: %s" % (key, fhir_url))
+            fhir_url += key + '/'
 
     logger.debug('FHIR URL with key:%s' % fhir_url)
     logger_debug.debug('FHIR URL with key:%s' % fhir_url)
@@ -242,15 +261,33 @@ def generic_read(request,
     logger_debug.debug("Making request:%s" % pass_to)
 
     # Now make the call to the backend API
-    r = request_call(request, pass_to, cx, reverse_lazy('api:v1:home'))
+    r = request_call(request, pass_to, cx, reverse_lazy('home'))
+    # BACK FROM THE CALL TO BACKEND
 
-    text_out = ''
-    if 'text' in r:
-        logger.debug('r:%s' % r.text)
-        logger_debug.debug('r:%s' % r.text)
+    logger.debug("r returned: %s" % r)
+
+    # Check for Error here
+    if 'status_code' in r:
+        logger.debug("We have a status code to check: %s" % r)
+        if r.status_code in ERROR_CODE_LIST:
+            logger.debug("\nError Status Code:%s" % r.status_code)
+            logger_debug.debug("\nError Status Code:%s" % r.status_code)
+            return error_status(r, r.status_code)
+    elif 'HttpResponseRedirect status_code=302' in r:
+        return error_status(r, 302)
     else:
-        logger.debug("r not returning text:%s" % r)
-        logger_debug.debug("r not returning text:%s" % r)
+        logger.debug("\nShould be clean call with "
+                     "Status Code:%s" % r.status_code)
+
+    # We should have a 200 - good record to deal with
+    text_out = ''
+    # if 'text' in r:
+    #     logger.debug('r:%s' % r.text)
+    #     logger_debug.debug('r:%s' % r.text)
+    # else:
+    #     logger.debug("r not returning text:%s" % r)
+    #     logger_debug.debug("r not returning text:%s" % r)
+    #     logger.debug("r.json: %s" % json.dumps(r.json))
 
     # logger.debug('Rewrite List:%s' % rewrite_url_list)
 
@@ -261,10 +298,22 @@ def generic_read(request,
     # get 'xml' 'json' or ''
     fmt = get_search_param_format(pass_params)
 
+    ct_fmt = content_is_json_or_xml(r)
+    ct_detail = get_content_type(r)
+    logger.debug('Content-Type returned:%s' % ct_fmt)
+
+    logger_debug.debug('Content-Type:%s \n work with %s' % (ct_detail,
+                                                            ct_fmt))
+
+    try:
+        text_in = r.text
+    except:
+        text_in = ""
+
     text_out = post_process_request(request,
-                                    fmt,
+                                    ct_fmt,
                                     host_path,
-                                    r.text,
+                                    text_in,
                                     rewrite_url_list)
 
     od = build_output_dict(request,
@@ -277,7 +326,12 @@ def generic_read(request,
                            text_out)
 
     # write session variables if _getpages was found
-    ikey = find_ikey(r.text)
+    ikey = ''
+    try:
+        ikey = find_ikey(r.text)
+    except:
+        ikey = ''
+
     if ikey is not '':
 
         save_url = get_target_url(fhir_url, resource_type)

@@ -158,7 +158,7 @@ def fhir_conformance(request, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
     BaseDstu2 = "Conformance"
-    BaseStu3 = "CapabilityStatement
+    BaseStu3 = "CapabilityStatement"
 
     metadata call
 
@@ -185,6 +185,7 @@ def fhir_conformance(request, *args, **kwargs):
         call_to += '/metadata'
 
     pass_params = urlencode(strip_oauth(request.GET))
+    logger.debug("pass_params for prepend_q:%s" % pass_params)
 
     # Add ? to front of parameters if needed
     pass_params = prepend_q(pass_params)
