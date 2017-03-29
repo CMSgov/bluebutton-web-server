@@ -22,7 +22,7 @@ class ProtectedCapability(models.Model):
                              default='',
                              unique=True)
     slug = models.CharField(verbose_name='Scope',
-                            max_length=100,
+                            max_length=255,
                             default='',
                             unique=True)
     group = models.ForeignKey(Group)
@@ -67,7 +67,6 @@ class ProtectedCapability(models.Model):
         return self.slug
 
     def save(self, *args, **kwargs):
-        self.slug = self.slug.replace(' ', '-')
         super(ProtectedCapability, self).save(**kwargs)
 
     class Meta:

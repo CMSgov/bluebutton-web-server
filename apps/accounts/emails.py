@@ -20,6 +20,28 @@ def random_secret(y=40):
                                  '0123456789') for x in range(y))
 
 
+def notify_admin_of_invite_request(request_invite):
+    plaintext = get_template('email-invite-request-received.txt')
+    htmly = get_template('email-invite-request-received.html')
+    context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
+               "EMAIL": request_invite.email,
+               "FIRST_NAME": request_invite.first_name,
+               "LAST_NAME": request_invite.last_name
+               }
+    subject = '[%s] Request for Access from : %s %s' % (settings.APPLICATION_TITLE,
+                                                        request_invite.first_name,
+                                                        request_invite.last_name)
+    from_email = settings.DEFAULT_FROM_EMAIL
+    to_email = settings.DEFAULT_FROM_EMAIL
+    text_content = plaintext.render(context)
+    html_content = htmly.render(context)
+    msg = EmailMultiAlternatives(
+        subject, text_content, from_email, [
+            to_email, ])
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
+
+
 def send_invite_to_create_account(invitation):
     plaintext = get_template('email-invite.txt')
     htmly = get_template('email-invite.html')
