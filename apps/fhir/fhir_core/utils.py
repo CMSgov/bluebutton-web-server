@@ -1,12 +1,12 @@
 import json
 import logging
 
-try:
-    # python2
-    from urllib import urlencode
-except ImportError:
-    # python3
-    from urllib.parse import urlencode
+# try:
+#     # python2
+#     from urllib import urlencode
+# except ImportError:
+#     # python3
+#     from urllib.parse import urlencode
 
 try:
     # python2
@@ -445,7 +445,6 @@ def check_lcase_list_item(list_value, check_for):
     """ search_param is a dict with each value as a list
         go through list to check for value. comparing as lowercase
      """
-
 
     # logger.debug("checking %s in %s" % (check_for, list_value))
     if type(check_for) is list:

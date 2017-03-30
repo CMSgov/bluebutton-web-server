@@ -11,12 +11,9 @@ File created by: ''
 """
 import logging
 import xml.etree.ElementTree as ET
-from lxml.etree import tostring
-import xml.dom.minidom as XDM
 
 from apps.fhir.bluebutton.utils import get_resource_names
 from apps.fhir.fhir_core.utils import valid_interaction
-
 
 FHIR_NAMESPACE = {'fhir': 'http://hl7.org/fhir'}
 # ns_string will get value from first key in above dict
@@ -28,10 +25,12 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 def xml_to_dom(xml_string):
     """
     convert an text string to an xml document we can manipulate
-    using ElementTree. 
-    
+    using ElementTree.
+
     Import ElementTree as ET to allow changing the underlying library
     without impacting code.
+    :param: xml_string
+    :return dom
     """
 
     ns = ns_string()
@@ -47,9 +46,9 @@ def dom_conformance_filter(dom, ns=FHIR_NAMESPACE):
     """
     filter conformance statement to remove unsupported resources and
     interactions
-    :param dom: 
-    :param ns: 
-    :return: 
+    :param dom:
+    :param ns:
+    :return:
     """
 
     # Now we need to filter the Dom Conformance Statement
@@ -69,10 +68,10 @@ def string_to_dom(content):
     """
     Use ElementTree to parse content
 
-    :param content: 
-    :return: 
+    :param content:
+    :return:
     """
-    ns = FHIR_NAMESPACE
+    # ns = FHIR_NAMESPACE
 
     root = ET.fromstring(content)
 
@@ -82,8 +81,9 @@ def string_to_dom(content):
 def filter_dom(root, ns=FHIR_NAMESPACE):
     """
     remove unwanted elements from dom
-    :param dom: 
-    :return: 
+    :param dom:
+    :param ns:
+    :return:
     """
 
     # Get the published fhir resources as a list
@@ -127,10 +127,8 @@ def filter_dom(root, ns=FHIR_NAMESPACE):
                     # print("Resource:%s" % resource)
                     rest.remove(resource)
                     # print("Child_list:%s" % child_list)
-                    
-        # kid.remove(rest)
-        print("Root:%s" % root)
-        # root.SubElement(root, rest)
+
+        # print("Root:%s" % root)
 
     return root
 
@@ -138,10 +136,10 @@ def filter_dom(root, ns=FHIR_NAMESPACE):
 def get_named_child(root, named=None, x_field='tag'):
     """
     Traverse the Document segment
-    :param root: 
+    :param root:
     :param named=None
     :param x_field='tag|value'
-    :return: 
+    :return: kids
     """
     kids = []
     # print(root)
@@ -162,9 +160,9 @@ def get_named_child(root, named=None, x_field='tag'):
 def no_ns_name(name_string, ns=FHIR_NAMESPACE):
     """
     Strip the name space from the element name
-    :param name: 
-    :param ns: 
-    :return: 
+    :param name:
+    :param ns:
+    :return: short_name
     """
 
     nspace = ns[next(iter(ns))]
@@ -181,7 +179,7 @@ def no_ns_name(name_string, ns=FHIR_NAMESPACE):
 
 
 def ns_string(ns=FHIR_NAMESPACE):
-    """ 
+    """
     get the namespace string from the global variable: FHIR_NAMESPACE
     """
     nss = ns
