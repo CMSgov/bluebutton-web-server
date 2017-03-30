@@ -191,7 +191,7 @@ def fhir_conformance(request, *args, **kwargs):
 
     pass_params = strip_oauth(request.GET)
     # pass_params should be an OrderedDict after strip_auth
-    logger.debug("result from strip_oauth:%s" % pass_params)
+    # logger.debug("result from strip_oauth:%s" % pass_params)
 
     # Let's store the inbound requested format
     # We need to simplify the format call to the backend
@@ -203,7 +203,7 @@ def fhir_conformance(request, *args, **kwargs):
     else:
         requested_format = "html"
     #
-    logger.debug("Saving requested format:%s" % requested_format)
+    # logger.debug("Saving requested format:%s" % requested_format)
 
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
@@ -214,7 +214,7 @@ def fhir_conformance(request, *args, **kwargs):
     # Add ? to front of parameters if needed
     pass_params = prepend_q(encoded_params)
 
-    logger.debug("Calling:%s" % call_to + pass_params)
+    # logger.debug("Calling:%s" % call_to + pass_params)
 
     r = request_call(request,
                      call_to + pass_params,
@@ -228,7 +228,7 @@ def fhir_conformance(request, *args, **kwargs):
     # fmt = get_search_param_format(request.META['QUERY_STRING'])
     # force to json
 
-    logger.debug("Format:%s" % back_end_format)
+    # logger.debug("Format:%s" % back_end_format)
 
     rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
@@ -244,7 +244,7 @@ def fhir_conformance(request, *args, **kwargs):
     if 'xml' in requested_format:
         # logger.debug('We got xml back in od')
 
-        logger.debug("is xml filtered?%s" % requested_format)
+        # logger.debug("is xml filtered?%s" % requested_format)
         xml_dom = xml_to_dom(text_out)
         text_out = dom_conformance_filter(xml_dom)
         # logger.debug("Text from XML function:\n%s\n=========" % text_out)
