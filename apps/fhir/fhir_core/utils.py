@@ -40,6 +40,16 @@ def kickout_301(reason, status_code=301):
                         content_type='application/json')
 
 
+def kickout_302(reason, status_code=302):
+    """ 302 Temporarily Moved """
+    response = OrderedDict()
+    response['code'] = status_code
+    response['errors'] = [reason]
+    return HttpResponse(json.dumps(response, indent=4),
+                        status=status_code,
+                        content_type='application/json')
+
+
 def kickout_400(reason, status_code=400):
     """ 400 Bad Request """
     oo = OrderedDict()
@@ -156,7 +166,7 @@ def kickout_502(reason, status_code=502):
 
 
 def kickout_503(reason, status_code=503):
-    """ 503 Gateway Timeour """
+    """ 503 Gateway Timeout """
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Gateway Timeout']
@@ -175,7 +185,7 @@ def kickout_504(reason, status_code=504):
                         content_type='application/json')
 
 
-def error_status(r, status_code=404, reason='undefined error occured'):
+def error_status(r, status_code=404, reason='undefined error occurred'):
     """
     Generate an error page
     based on fhir.utils.kickout_xxx
@@ -184,7 +194,7 @@ def error_status(r, status_code=404, reason='undefined error occured'):
     :param reason:
     :return:
     """
-    if 'text' in r:
+    try:
         error_detail = r.text
 
         if settings.DEBUG:
@@ -193,10 +203,10 @@ def error_status(r, status_code=404, reason='undefined error occured'):
                 error_detail += r.text
             elif 'json' in r:
                 error_detail = r.json
-    else:
+    except:
         error_detail = ""
 
-    if reason == 'undefined error occured':
+    if reason == 'undefined error occurred':
         if status_code == 404:
             reason = 'page not found'
             kickout_404(reason)
@@ -215,7 +225,9 @@ def error_status(r, status_code=404, reason='undefined error occured'):
             kickout_400(reason)
         elif status_code == 301:
             reason = 'The requested page has been permanently moved'
-            kickout_301(reason)
+        elif status_code == 302:
+            reason = 'The requested page has been temporarily moved'
+            kickout_302(reason)
         elif status_code == 501:
             reason = 'Not Implemented'
             kickout_501(reason)

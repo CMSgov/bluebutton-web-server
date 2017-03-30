@@ -15,7 +15,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponseRedirect
+# from django.http import HttpResponseRedirect
 
 from apps.fhir.fhir_core.utils import (kickout_403,
                                        kickout_404)
@@ -52,13 +52,26 @@ def request_call(request, call_url, cx=None, fail_redirect="/"):
 
     try:
         r = requests.get(call_url, cert=cert)
+        r.raise_for_status()
+    except requests.exceptions.RequestException as r_err:
 
-    except requests.ConnectionError:
-        logger_debug.debug('Problem connecting to FHIR Server')
+        logger.debug('Problem connecting to FHIR Server: %s' % call_url)
+
         messages.error(request, 'FHIR Server is unreachable.')
-        return HttpResponseRedirect(fail_redirect)
+
+        logger.debug("Error:%s" % r_err)
+        e = requests.Response
+        e.text = r_err
+        e.status_code = 502
+
+        return error_status(e, 502)
+
+        # return HttpResponseRedirect(fail_redirect)
+
+    logger.debug("Evaluating r:%s" % evaluate_r(r))
 
     if r.status_code in ERROR_CODE_LIST:
+        logger.debug("\nRequest Error Status Code:%s" % r.status_code)
         logger_debug.debug("\nError Status Code:%s" % r.status_code)
         return error_status(r, r.status_code)
 
@@ -527,10 +540,12 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     # replace_text = request.get_host()
     if host_path.endswith('/'):
         host_path = host_path[:-1]
-
-    out_text = in_text.replace(find_url, host_path)
-
-    logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
+    if type(in_text) is str:
+        out_text = in_text.replace(find_url, host_path)
+        logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
+    else:
+        out_text = in_text
+        logger_debug.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
 
     return out_text
 
@@ -629,7 +644,11 @@ def build_output_dict(request,
     return od
 
 
-def post_process_request(request, fmt, host_path, r_text, rewrite_url_list):
+def post_process_request(request,
+                         ct_fmt,
+                         host_path,
+                         r_text,
+                         rewrite_url_list):
     """ Process request based on xml or json fmt """
 
     if r_text == "":
@@ -727,8 +746,13 @@ def get_crosswalk(user):
         Return Crosswalk or None
     """
 
+    if user.is_anonymous():
+        return None
+
+    # Don't do a lookup on a user who is not logged in
     try:
         patient = Crosswalk.objects.get(user=user)
+
         return patient
 
     except Crosswalk.DoesNotExist:
@@ -763,3 +787,27 @@ def get_resource_names():
         resource_names.append(name.resource_name)
 
     return resource_names
+
+
+def evaluate_r(r):
+    """
+     Check out what was received back from requst
+
+     """
+
+    logger.debug("=== EVALUATE_R ===")
+    logger.debug("Dealing with %s" % r)
+
+    logger.debug("r.status_code:%s" % r.status_code)
+    logger.debug("r.headers:%s" % r.headers)
+    logger.debug("r.headers['content-type']:%s" % r.headers['content-type'])
+    logger.debug("r.encoding:%s" % r.encoding)
+    logger.debug("r.text:%s" % r.text)
+    try:
+        rjson = r.json()
+        logger.debug("Pretty r.json():\n%s" % pretty_json(rjson))
+
+    except:
+        logger.debug("No JSON")
+
+    logger.debug("END EVALUATE_R ===")
