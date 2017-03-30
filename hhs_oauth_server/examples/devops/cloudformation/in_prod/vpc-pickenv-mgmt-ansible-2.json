@@ -106,19 +106,19 @@
         },
         "AWSRegionArch2AMI": {
             "us-east-1": {
-                "PV": "ami-d8c7aecf",
+                "PV": "ami-877cfbe",
                 "HVM": "ami-28c2ab3f"
             },
             "us-east-1a": {
-                "PV": "ami-d8c7aecf",
+                "PV": "ami-877cfbe",
                 "HVM": "ami-28c2ab3f"
             },
             "us-east-1b": {
-                "PV": "ami-d8c7aecf",
+                "PV": "ami-877cfbe",
                 "HVM": "ami-28c2ab3f"
             },
             "us-east-1c": {
-                "PV": "ami-d8c7aecf",
+                "PV": "ami-877cfbe",
                 "HVM": "ami-28c2ab3f"
             }
         },

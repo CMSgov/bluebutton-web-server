@@ -97,16 +97,18 @@ def strip_oauth(get={}):
     # as can: state=random_state_string&response_type=code&client_id=ABCDEF
     # Remove them before passing url through to FHIR Server
 
+    strip_oauth = OrderedDict()
     if get == {}:
-        return get
+        logger.debug("Nothing to strip GET is empty:%s" % get)
+        return strip_oauth
 
     strip_parms = ['access_token', 'state', 'response_type', 'client_id']
 
-    logger_debug.debug('Removing:%s from: %s' % (strip_parms, get))
+    logger.debug('Removing:%s from: %s' % (strip_parms, get))
 
     strip_oauth = get_url_query_string(get, strip_parms)
 
-    logger_debug.debug('resulting url parameters:%s' % strip_oauth)
+    logger.debug('resulting url parameters:%s' % strip_oauth)
 
     return strip_oauth
 
@@ -326,7 +328,7 @@ def get_url_query_string(get, skip_parm=[]):
     :param skip_parm: []
     :return: Query_String (QS)
     """
-    logger_debug.debug('Evaluating: %s to remove:%s' % (get, skip_parm))
+    logger.debug('Evaluating: %s to remove:%s' % (get, skip_parm))
 
     filtered_dict = OrderedDict()
 
@@ -351,7 +353,7 @@ def get_url_query_string(get, skip_parm=[]):
     # qs = urlencode(filtered_dict)
     qs = filtered_dict
 
-    logger_debug.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
+    logger.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
     return qs
 
 
@@ -653,7 +655,7 @@ def post_process_request(request,
         # Return nothing
         return r_text
 
-    if ct_fmt.lower() == 'xml':
+    if ct_fmt.lower() == 'xml' or ct_fmt.lower() == 'html':
         # We will add xml support later
 
         text_out = mask_list_with_host(request,
@@ -773,6 +775,18 @@ def conformance_or_capability(fhir_url):
         resource_type = "Conformance"
 
     return resource_type
+
+
+def get_resource_names():
+    """ Get names for all approved resources """
+
+    all_resources = SupportedResourceType.objects.all()
+    resource_names = []
+    for name in all_resources:
+        # Get the resource names into a list
+        resource_names.append(name.resource_name)
+
+    return resource_names
 
 
 def evaluate_r(r):
