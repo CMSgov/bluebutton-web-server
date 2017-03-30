@@ -1,0 +1,4 @@
+Just a heads up, {{ FIRST_NAME }} {{ LAST_NAME }} wants to join the {{ APPLICATION_TITLE }} community.
+His/her email is: {{ EMAIL }}
+
+- The {{APPLICATION_TITLE}} Team
