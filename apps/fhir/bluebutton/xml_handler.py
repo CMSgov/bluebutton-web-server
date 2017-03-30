@@ -33,9 +33,6 @@ def xml_to_dom(xml_string):
     :return dom
     """
 
-    ns = ns_string()
-    logger.debug("Name SPACE=%s" % ns)
-
     # Take the xml text and convert to a DOM
     dom = string_to_dom(xml_string)
 
@@ -64,7 +61,7 @@ def dom_conformance_filter(dom, ns=FHIR_NAMESPACE):
     # return xml_to_dict
 
 
-def string_to_dom(content):
+def string_to_dom(content, ns=FHIR_NAMESPACE):
     """
     Use ElementTree to parse content
 
@@ -89,24 +86,24 @@ def filter_dom(root, ns=FHIR_NAMESPACE):
     # Get the published fhir resources as a list
     pub_resources = get_resource_names()
 
-    element_rest = root.findall('{%s}rest' % ns_string(), ns)
+    element_rest = root.findall('{%s}rest' % ns_string(ns), ns)
     for rest in element_rest:
-        # print("REST:%s" % rest.tag)
+        # logger.debug("REST:%s" % rest.tag)
         # We want the resource elements
         child_list = get_named_child(rest,
-                                     '{%s}resource' % ns_string())
-        # print("Rest KIDS:%s" % child_list)
+                                     '{%s}resource' % ns_string(ns))
+        # logger.debug("Rest KIDS:%s" % child_list)
         for resource in child_list:
             # logger.debug("Resource:%s" % resource.tag)
 
             # Now we need to find the type element in resource
-            element_type = resource.findall('{%s}type' % ns_string())
+            element_type = resource.findall('{%s}type' % ns_string(ns))
             element_interaction = resource.findall('{%s}'
-                                                   'interaction' % ns_string())
+                                                   'interaction' % ns_string(ns))
             for t in element_type:
-                # print("R:%s" % no_ns_name(t.attrib))
+                # logger.debug("R:%s" % no_ns_name(t.attrib))
                 if no_ns_name(t.attrib) in pub_resources:
-                    logger.debug("Publishing:%s" % no_ns_name(t.attrib))
+                    # logger.debug("Publishing:%s" % no_ns_name(t.attrib))
 
                     # this resource is to be published
                     # We need to remove unsupported interactions
@@ -115,20 +112,31 @@ def filter_dom(root, ns=FHIR_NAMESPACE):
                     # actions
                     # remove disabled actions
                     pub_interactions = valid_interaction(no_ns_name(t.attrib))
+                    # logger.debug("Interactions:%s" % pub_interactions)
+
                     for e in element_interaction:
-                        pub_interactions = get_named_child(e,
-                                                           'code',
-                                                           x_field='value')
-                        print("Interactions:%s" % pub_interactions)
+                        for c in e.findall('{%s}code' % ns_string(ns)):
+                            e_action = c.attrib['value']
+                            # print("What is element:%s" % e_action)
+                            if e_action in pub_interactions:
+                                pass
+                                # logger.debug("Interaction "
+                                #              "Enabled:%s" % e_action)
+                                # No change - valid interaction
+                            else:
+                                # logger.debug("Interaction "
+                                #              "Removed:%s" % e_action)
+                                # Remove interaction from the resource
+                                resource.remove(e)
 
                 else:
                     # remove this node from child_list
-                    logger.debug("Removing:%s" % no_ns_name(t.attrib))
-                    # print("Resource:%s" % resource)
+                    # logger.debug("Removing:%s" % no_ns_name(t.attrib))
+                    # logger.debug("Resource:%s" % resource)
                     rest.remove(resource)
-                    # print("Child_list:%s" % child_list)
+                    # logger.debug("Child_list:%s" % child_list)
 
-        # print("Root:%s" % root)
+        # logger.debug("Root:%s" % root)
 
     return root
 
@@ -142,13 +150,13 @@ def get_named_child(root, named=None, x_field='tag'):
     :return: kids
     """
     kids = []
-    # print(root)
+    # logger.debug(root)
     for child in root:
         # logger.debug("Evaluating:%s" % child)
-        # print("%s:%s" % (named, child.get(x_field)))
+        # logger.debug("%s:%s" % (named, child.get(x_field)))
         if named:
             if child.tag == named:
-                # print("%s child:%s" % (named, no_ns_name(child.tag)))
+                # logger.debug("%s child:%s" % (named, no_ns_name(child.tag)))
                 kids.append(child)
 
             else:
@@ -166,11 +174,11 @@ def no_ns_name(name_string, ns=FHIR_NAMESPACE):
     """
 
     nspace = ns[next(iter(ns))]
-    # print("Name:%s in %s" % (nspace, name_string))
+    # logger.debug("Name:%s in %s" % (nspace, name_string))
     # Remove name space prefix
     if type(name_string) is dict:
         new_name_string = name_string[next(iter(name_string))]
-        # print("From:%s to %s" % (name_string, new_name_string))
+        # logger.debug("From:%s to %s" % (name_string, new_name_string))
     else:
         new_name_string = name_string
     short_name = new_name_string.replace("{%s}" % nspace, "")
