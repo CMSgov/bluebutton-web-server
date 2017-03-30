@@ -35,12 +35,17 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         post_process_request,
                                         pretty_json,
                                         conformance_or_capability,
-                                        get_crosswalk)
+                                        get_crosswalk,
+                                        get_resource_names)
+
+from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
+                                              dom_conformance_filter)
+
 from apps.fhir.fhir_core.utils import (read_session,
                                        get_search_param_format,
-                                       SESSION_KEY)
-
-from apps.fhir.server.models import SupportedResourceType
+                                       strip_format_for_back_end,
+                                       SESSION_KEY,
+                                       valid_interaction)
 
 from apps.home.views import authenticated_home
 
@@ -184,13 +189,32 @@ def fhir_conformance(request, *args, **kwargs):
     else:
         call_to += '/metadata'
 
-    pass_params = urlencode(strip_oauth(request.GET))
-    logger.debug("pass_params for prepend_q:%s" % pass_params)
+    pass_params = strip_oauth(request.GET)
+    # pass_params should be an OrderedDict after strip_auth
+    # logger.debug("result from strip_oauth:%s" % pass_params)
 
+    # Let's store the inbound requested format
+    # We need to simplify the format call to the backend
+    # so that we get data we can manipulate
+    if "_format" in pass_params:
+        requested_format = pass_params["_format"]
+    elif "format" in pass_params:
+        requested_format = pass_params["format"]
+    else:
+        requested_format = "html"
+    #
+    # logger.debug("Saving requested format:%s" % requested_format)
+
+    # now we simplify the format/_format request for the back-end
+    pass_params = strip_format_for_back_end(pass_params)
+    back_end_format = pass_params['_format']
+
+    encoded_params = urlencode(pass_params)
+    #
     # Add ? to front of parameters if needed
-    pass_params = prepend_q(pass_params)
+    pass_params = prepend_q(encoded_params)
 
-    logger.debug("Calling:%s" % call_to + pass_params)
+    # logger.debug("Calling:%s" % call_to + pass_params)
 
     r = request_call(request,
                      call_to + pass_params,
@@ -201,36 +225,65 @@ def fhir_conformance(request, *args, **kwargs):
     host_path = get_host_url(request, '?')
 
     # get 'xml' 'json' or ''
-    fmt = get_search_param_format(request.META['QUERY_STRING'])
+    # fmt = get_search_param_format(request.META['QUERY_STRING'])
+    # force to json
+
+    # logger.debug("Format:%s" % back_end_format)
 
     rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
     text_out = post_process_request(request,
-                                    fmt,
+                                    back_end_format,
                                     host_path,
                                     r.text,
                                     rewrite_url_list)
 
-    od = conformance_filter(text_out, fmt)
+    # od = conformance_filter(text_out, back_end_format)
 
-    if fmt == 'xml':
+    if 'xml' in requested_format:
         # logger.debug('We got xml back in od')
-        return HttpResponse(text_out,
-                            content_type='application/%s' % fmt)
-        # return HttpResponse( tostring(dict_to_xml('content', od)),
-        #                      content_type='application/%s' % fmt)
-    elif fmt == 'json':
-        # logger.debug('We got json back in od')
-        return HttpResponse(pretty_json(od),
-                            content_type='application/%s' % fmt)
 
-    # logger.debug('We got a different format:%s' % fmt)
+        # logger.debug("is xml filtered?%s" % requested_format)
+        xml_dom = xml_to_dom(text_out)
+        text_out = dom_conformance_filter(xml_dom)
+        # logger.debug("Text from XML function:\n%s\n=========" % text_out)
+        if 'html' not in requested_format:
+            return HttpResponse(text_out,
+                                content_type='application'
+                                             '/%s' % requested_format)
+        else:
+            print("Sending text_out for display: %s" % text_out[0:100])
+            return render(
+                request,
+                'bluebutton/default_xml.html',
+                {'output': text_out,
+                 'content': {'parameters': request.GET.urlencode(),
+                             'resource_type': resource_type,
+                             'request_method': "GET",
+                             'interaction_type': "metadata"}})
+
+            # return HttpResponse( tostring(dict_to_xml('content', od)),
+        #                      content_type='application/%s' % fmt)
+    elif back_end_format == 'json':
+        # logger.debug('We got json back in od')
+        od = conformance_filter(text_out, back_end_format)
+        text_out = pretty_json(od)
+        if 'html' not in requested_format:
+            return HttpResponse(text_out,
+                                content_type='application/'
+                                             '%s' % requested_format)
+    else:
+        # let's make sure we have json to deliver:
+        od = conformance_filter(text_out, back_end_format)
+        text_out = pretty_json(od)
+
+    logger.debug('We got a different format:%s' % back_end_format)
 
     return render(
         request,
         'bluebutton/default.html',
-        {'output': pretty_json(od),
+        {'output': text_out,
          'content': {'parameters': request.GET.urlencode(),
                      'resource_type': resource_type,
                      'request_method': "GET",
@@ -241,9 +294,13 @@ def conformance_filter(text_block, fmt):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
-    if fmt == "xml":
-        # We will build xml filtering later
-        return text_block
+    # if fmt == "xml":
+    #     # First attempt at xml filtering
+    #     # logger.debug("xml block as text:\n%s" % text_block)
+    #
+    #     xml_dict = xml_to_dict(text_block)
+    #     # logger.debug("xml dict:\n%s" % xml_dict)
+    #     return xml_dict
 
     # Get a list of resource names
     resource_names = get_resource_names()
@@ -258,18 +315,6 @@ def conformance_filter(text_block, fmt):
         ct += 1
 
     return text_block
-
-
-def get_resource_names():
-    """ Get names for all approved resources """
-
-    all_resources = SupportedResourceType.objects.all()
-    resource_names = []
-    for name in all_resources:
-        # Get the resource names into a list
-        resource_names.append(name.resource_name)
-
-    return resource_names
 
 
 def get_supported_resources(resources, resource_names):
@@ -324,41 +369,3 @@ def get_interactions(resource, item):
     item['interaction'] = permitted_interactions
 
     return item
-
-
-def valid_interaction(resource):
-    """ Create a list of Interactions for the resource """
-
-    interaction_list = []
-    try:
-        resource_interaction = \
-            SupportedResourceType.objects.get(resource_name=resource)
-    except SupportedResourceType.DoesNotExist:
-        # this is a strange error
-        # earlier gets should have found a record
-        # otherwise we wouldn't get in to this function
-        # so we will return an empty list.
-        return interaction_list
-
-    # Now we can build the interaction_list
-    if resource_interaction.get:
-        interaction_list.append("get")
-    if resource_interaction.put:
-        interaction_list.append("put")
-    if resource_interaction.create:
-        interaction_list.append("create")
-    if resource_interaction.read:
-        interaction_list.append("read")
-    if resource_interaction.vread:
-        interaction_list.append("vread")
-    if resource_interaction.update:
-        interaction_list.append("update")
-    if resource_interaction.delete:
-        interaction_list.append("delete")
-    if resource_interaction.search:
-        interaction_list.append("search-type")
-    if resource_interaction.history:
-        interaction_list.append("history-instance")
-        interaction_list.append("history-type")
-
-    return interaction_list
