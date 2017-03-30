@@ -10,7 +10,6 @@ Created: 6/27/16 3:24 PM
 
 """
 import logging
-import dicttoxml
 
 from collections import OrderedDict
 
@@ -21,7 +20,6 @@ except ImportError:
     # python3
     from urllib.parse import urlencode
 
-from dicttoxml import dicttoxml
 from django.conf import settings
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render, HttpResponse
@@ -48,8 +46,6 @@ from apps.fhir.fhir_core.utils import (read_session,
                                        strip_format_for_back_end,
                                        SESSION_KEY,
                                        valid_interaction)
-
-from apps.fhir.server.models import SupportedResourceType
 
 from apps.home.views import authenticated_home
 
@@ -252,7 +248,7 @@ def fhir_conformance(request, *args, **kwargs):
         xml_dom = xml_to_dom(text_out)
         text_out = dom_conformance_filter(xml_dom)
         # logger.debug("Text from XML function:\n%s\n=========" % text_out)
-        if not 'html' in requested_format:
+        if 'html' not in requested_format:
             return HttpResponse(text_out,
                                 content_type='application'
                                              '/%s' % requested_format)
@@ -261,10 +257,10 @@ def fhir_conformance(request, *args, **kwargs):
             return render(
                 request,
                 'bluebutton/default_xml.html',
-                {'output':  text_out,
-                 'content': {'parameters':       request.GET.urlencode(),
-                             'resource_type':    resource_type,
-                             'request_method':   "GET",
+                {'output': text_out,
+                 'content': {'parameters': request.GET.urlencode(),
+                             'resource_type': resource_type,
+                             'request_method': "GET",
                              'interaction_type': "metadata"}})
 
             # return HttpResponse( tostring(dict_to_xml('content', od)),
@@ -273,7 +269,7 @@ def fhir_conformance(request, *args, **kwargs):
         # logger.debug('We got json back in od')
         od = conformance_filter(text_out, back_end_format)
         text_out = pretty_json(od)
-        if not 'html' in requested_format:
+        if 'html' not in requested_format:
             return HttpResponse(text_out,
                                 content_type='application/'
                                              '%s' % requested_format)
@@ -373,5 +369,3 @@ def get_interactions(resource, item):
     item['interaction'] = permitted_interactions
 
     return item
-
-
