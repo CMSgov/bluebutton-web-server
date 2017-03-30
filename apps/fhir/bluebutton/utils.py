@@ -655,7 +655,7 @@ def post_process_request(request,
         # Return nothing
         return r_text
 
-    if fmt.lower() == 'xml' or fmt.lower() == 'html':
+    if ct_fmt.lower() == 'xml' or ct_fmt.lower() == 'html':
         # We will add xml support later
 
         text_out = mask_list_with_host(request,
