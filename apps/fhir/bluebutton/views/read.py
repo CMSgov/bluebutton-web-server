@@ -316,6 +316,7 @@ def generic_read(request,
         return HttpResponse(r.text, content_type='application/%s' % fmt)
         # return HttpResponse( tostring(dict_to_xml('content', od)),
         #                      content_type='application/%s' % fmt)
+
     elif fmt == 'json':
         # logger.debug('We got json back in od')
         return HttpResponse(pretty_json(od),

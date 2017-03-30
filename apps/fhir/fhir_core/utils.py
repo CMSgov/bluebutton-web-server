@@ -1,6 +1,20 @@
 import json
 import logging
 
+try:
+    # python2
+    from urllib import urlencode
+except ImportError:
+    # python3
+    from urllib.parse import urlencode
+
+try:
+    # python2
+    from urlparse import parse_qs
+except ImportError:
+    # python3
+    from urllib.parse import parse_qs
+
 from collections import OrderedDict
 from datetime import datetime, timedelta
 
@@ -366,17 +380,149 @@ def find_ikey(text_block):
 
 
 def get_search_param_format(search_parm):
-    """ Check for _format=xml or _format=json or other """
+    """ Check for _format={valid fhir formats}
+    input should be request.META['QUERY_STRING']
+    eg. xml+fhir
+     or json+fhir
+     or xml
+     or json
+     or html/json
+     or html/xml
+    """
 
-    parameter_search = search_parm.lower()
-    if '_format=xml' in parameter_search:
-        fmt = 'xml'
-    elif '_format=json' in parameter_search:
-        fmt = 'json'
+    parameter_search = parse_qs(search_parm)
+    logger.debug("evaluating for _format:%s [%s]" % (search_parm,
+                                                     parameter_search))
+
+    # Now do a hierarchy of checks
+    # now we need check for "_format" in parameter_search
+    check_case = None
+    if "_format" in parameter_search:
+        checks = ['html', 'xml', 'json']
+        for c in checks:
+            check_case = check_lcase_list_item(parameter_search['_format'], c)
+            # logger.debug("we found a _format [%s] "
+            #              "while checking for %s" % (check_case, c))
+            if check_case:
+                return check_case
+
+    if "format" in parameter_search:
+        checks = ['html', 'xml', 'json']
+        for c in checks:
+            check_case = check_lcase_list_item(parameter_search['format'], c)
+            # logger.debug("we found format [%s] "
+            #              "while checking for %s" % (check_case, c))
+            if check_case:
+                return check_case
+
+    return ''
+
+
+def check_for_element(search_dict, check_key, check_list):
+    """
+
+    :param search_dict:
+    :param check_key:
+    :param check_list:
+    :return: ret_val
+    """
+
+    if check_key in search_dict:
+        # logger.debug("Checking %s in %s" % (check_key, search_dict))
+        for c in check_list:
+            check_case = check_lcase_list_item(search_dict[check_key], c)
+            # logger.debug("we found format:[%s] "
+            #              "while checking for %s on key:%s" % (c,
+            #                                                   check_case,
+            #                                                   check_key))
+            if check_case:
+                return True
+
+    return False
+
+
+def check_lcase_list_item(list_value, check_for):
+    """ search_param is a dict with each value as a list
+        go through list to check for value. comparing as lowercase
+     """
+
+
+    # logger.debug("checking %s in %s" % (check_for, list_value))
+    if type(check_for) is list:
+        checking = check_for[0]
     else:
-        fmt = ''
+        checking = check_for
+    if type(list_value) is not list:
+        listing = [list_value, ]
+    else:
+        listing = list_value
+    for l in listing:
+        if checking.lower() in l.lower():
+            # logger.debug("Found %s in %s" % (checking, l))
+            return check_for
+        else:
+            # logger.debug("no luck with %s v  %s" % (checking, l))
+            pass
 
-    return fmt
+    return None
+
+
+def strip_format_for_back_end(pass_params):
+    """
+    check for _format in URL Parameters
+    We need to force json or xml
+    if html is included in _format we need to strip it out
+
+    """
+
+    # pass_params should arrive as an OrderedDict.
+    # no need to parse
+    parameter_search = pass_params
+    # parameter_search = parse_qs(pass_params)
+    logger.debug("evaluating [%s] for _format" % parameter_search)
+
+    updated_parameters = OrderedDict()
+    for k in parameter_search:
+        if k.lower() == "_format":
+            pass
+        elif k.lower() == "format":
+            pass
+        else:
+            updated_parameters[k] = parameter_search[k]
+
+    # We have removed format setting now we need to add the
+    # correct version to call the back end
+    if check_for_element(parameter_search, "_format", ["html/xml",
+                                                       "xml",
+                                                       "xml+fhir",
+                                                       "xml fhir"]):
+        updated_parameters["_format"] = "xml"
+
+    elif check_for_element(parameter_search, "format", ["html/xml",
+                                                        "xml",
+                                                        "xml+fhir",
+                                                        "xml fhir"]):
+        updated_parameters["_format"] = "xml"
+    elif check_for_element(parameter_search, "_format", ["html/json",
+                                                         "json",
+                                                         "json+fhir",
+                                                         "json fhir"]):
+        updated_parameters["_format"] = "json"
+    elif check_for_element(parameter_search, "format", ["html/json"","
+                                                        "json",
+                                                        "json+fhir",
+                                                        "json fhir"]):
+        updated_parameters["_format"] = "json"
+    else:
+        pass
+
+    # rebuild the parameters
+    logger.debug("Updated parameters:%s" % updated_parameters)
+    # pass_params = urlencode(updated_parameters)
+    pass_params = updated_parameters
+    logger.debug("Returning updated parameters:%s" % pass_params)
+
+    return pass_params
 
 
 def get_target_url(fhir_url, resource_type):
@@ -437,3 +583,41 @@ def content_is_json_or_xml(response):
             ct_format = "json"
 
     return ct_format
+
+
+def valid_interaction(resource):
+    """ Create a list of Interactions for the resource """
+
+    interaction_list = []
+    try:
+        resource_interaction = \
+            SupportedResourceType.objects.get(resource_name=resource)
+    except SupportedResourceType.DoesNotExist:
+        # this is a strange error
+        # earlier gets should have found a record
+        # otherwise we wouldn't get in to this function
+        # so we will return an empty list.
+        return interaction_list
+
+    # Now we can build the interaction_list
+    if resource_interaction.get:
+        interaction_list.append("get")
+    if resource_interaction.put:
+        interaction_list.append("put")
+    if resource_interaction.create:
+        interaction_list.append("create")
+    if resource_interaction.read:
+        interaction_list.append("read")
+    if resource_interaction.vread:
+        interaction_list.append("vread")
+    if resource_interaction.update:
+        interaction_list.append("update")
+    if resource_interaction.delete:
+        interaction_list.append("delete")
+    if resource_interaction.search:
+        interaction_list.append("search-type")
+    if resource_interaction.history:
+        interaction_list.append("history-instance")
+        interaction_list.append("history-type")
+
+    return interaction_list
