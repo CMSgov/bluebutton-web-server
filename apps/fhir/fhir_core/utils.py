@@ -683,9 +683,9 @@ def add_key_to_fhir_url(fhir_url, resource_type, key=""):
     """
     Append the key + / to fhir_url, unless it is already there
     :param fhir_url:
-    :param resource_type: 
-    :param key: 
-    :return: fhir_url 
+    :param resource_type:
+    :param key:
+    :return: fhir_url
     """
     if fhir_url.endswith(resource_type + '/'):
         # we need to make sure we don't specify resource_type twice in URL

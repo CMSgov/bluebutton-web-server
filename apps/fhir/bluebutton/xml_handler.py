@@ -221,7 +221,7 @@ def get_div_from_xml(xml_text, ns=FHIR_NAMESPACE):
         # print("AD:%s" % aggregated_div)
         # print("AD[0]:%s" % aggregated_div[0])
         div_text += ET.tostring(aggregated_div[0], method="html").decode('utf-8')
-        div_text +="\n"
+        div_text += "\n"
     # div_text = aggregated_divs.tostring()
     # print("DV:%s" % div_text)
     # Replace html: in output
