@@ -11,13 +11,20 @@ from django.shortcuts import render
 from apps.fhir.fhir_core.utils import (kickout_403,
                                        write_session,
                                        find_ikey,
-                                       get_search_param_format,
+                                       # get_search_param_format,
                                        get_target_url,
-                                       content_is_json_or_xml,
-                                       get_content_type,
+                                       # content_is_json_or_xml,
+                                       # get_content_type,
                                        SESSION_KEY,
                                        error_status,
-                                       ERROR_CODE_LIST)
+                                       ERROR_CODE_LIST,
+                                       build_querystring,
+                                       strip_format_for_back_end,
+                                       request_format,
+                                       add_key_to_fhir_url,
+                                       fhir_call_type,
+                                       get_div_from_json
+                                       )
 
 from apps.fhir.bluebutton.utils import (
     request_call,
@@ -34,13 +41,15 @@ from apps.fhir.bluebutton.utils import (
     get_default_path,
     get_crosswalk)
 
+from apps.fhir.bluebutton.xml_handler import get_div_from_xml
+
 # moved Crosswalk access to bluebutton.utils.get_crosswalk
 # from apps.fhir.bluebutton.models import Crosswalk
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
-logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
-logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
+# logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
+# logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
+# logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
 def read(request, resource_type, r_id, *args, **kwargs):
@@ -104,8 +113,8 @@ def generic_read(request,
 
     """
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
-    logger.debug('interaction_type: %s' % interaction_type)
-    logger_debug.debug('interaction_type: %s' % interaction_type)
+    logger.debug('========================\n'
+                 'INTERACTION_TYPE: %s' % interaction_type)
 
     # Check if this interaction type and resource type combo is allowed.
     deny = check_access_interaction_and_resource_type(resource_type,
@@ -168,8 +177,7 @@ def generic_read(request,
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
     if srtc:
-        logger.debug('SRTC:%s' % srtc)
-        logger_debug.debug('SRTC:%s' % srtc)
+        # logger.debug('SRTC:%s' % srtc)
 
         fhir_url = default_path + resource_type + '/'
         # Add to the rewrite_url list
@@ -178,10 +186,9 @@ def generic_read(request,
         if srtc.override_url_id:
             fhir_url += cx.fhir_id + "/"
 
-        logger.debug('fhir_url:%s' % fhir_url)
+        # logger.debug('fhir_url:%s' % fhir_url)
     else:
-        # logger.debug('CX:%s' % cx)
-        logger_debug.debug('CX:%s' % cx)
+        logger.debug('CX:%s' % cx)
         if cx:
             fhir_url = cx.get_fhir_resource_url(resource_type)
             rewrite_url_list.append(fhir_url.replace(resource_type + '/', ''))
@@ -193,28 +200,17 @@ def generic_read(request,
         rewrite_url_list.append(FhirServerUrl()[:-1])
 
     logger.debug('FHIR URL:%s' % fhir_url)
-    # logger.debug('Rewrite List:%s' % rewrite_url_list)
-
-    logger.debug('FHIR URL:%s' % fhir_url)
-    logger_debug.debug('Rewrite List:%s' % rewrite_url_list)
+    logger.debug('Rewrite List:%s' % rewrite_url_list)
 
     if interaction_type == 'search':
         key = None
     else:
         key = masked_id(resource_type, cx, srtc, r_id, slash=False)
-        if fhir_url.endswith(resource_type + '/'):
-            # we need to make sure we don't specify resource_type twice in URL
-            if key.startswith(resource_type + '/'):
-                key = key.replace(resource_type + '/', '')
 
-        if key + '/' in fhir_url:
-            logger.debug("%s/ already in %s" % (key, fhir_url))
-        else:
-            logger.debug("adding %s/ to fhir_url: %s" % (key, fhir_url))
-            fhir_url += key + '/'
+        # add key to fhir_url unless already in place.
+        fhir_url = add_key_to_fhir_url(fhir_url, key)
 
     logger.debug('FHIR URL with key:%s' % fhir_url)
-    logger_debug.debug('FHIR URL with key:%s' % fhir_url)
 
     ###########################
 
@@ -224,16 +220,26 @@ def generic_read(request,
     # Remove the oauth elements from the GET
     pass_params = strip_oauth(request.GET)
 
+    # Let's store the inbound requested format
+    # We need to simplify the format call to the backend
+    # so that we get data we can manipulate
+    requested_format = request_format(pass_params)
+
+    # now we simplify the format/_format request for the back-end
+    pass_params = strip_format_for_back_end(pass_params)
+    if "_format" in pass_params:
+        back_end_format = pass_params['_format']
+    else:
+        back_end_format = "json"
+
     if interaction_type == 'search':
         if cx is not None:
-            logger.debug("cx.fhir_id=%s" % cx.fhir_id)
-            logger_debug.debug("cx.fhir_id=%s" % cx.fhir_id)
+            # logger.debug("cx.fhir_id=%s" % cx.fhir_id)
             if cx.fhir_id.__contains__('/'):
                 r_id = cx.fhir_id.split('/')[1]
             else:
                 r_id = cx.fhir_id
-            logger.debug("Patient Id:%s" % r_id)
-            logger_debug.debug("Patient Id:%s" % r_id)
+            # logger.debug("Patient Id:%s" % r_id)
 
     if resource_type == "Patient":
         key = r_id
@@ -244,34 +250,35 @@ def generic_read(request,
                                r_id,
                                )
 
-    if interaction_type == 'vread':
-        pass_to = fhir_url + '_history' + '/' + vid
-    elif interaction_type == '_history':
-        pass_to = fhir_url + '_history'
-    else:  # interaction_type == 'read':
-        pass_to = fhir_url
+    # Add the call type ( READ = nothing, VREAD, _HISTORY)
+    # Before we add an identifier key
+    pass_to = fhir_call_type(interaction_type, fhir_url, vid)
 
-    logger.debug('Here is the URL to send, %s now add '
+    logger.debug('\nHere is the URL to send, %s now add '
                  'GET parameters %s' % (pass_to, pass_params))
 
     if pass_params is not '':
         pass_to += pass_params
 
-    logger.debug("Making request:%s" % pass_to)
-    logger_debug.debug("Making request:%s" % pass_to)
+    logger.debug("\nMaking request:%s" % pass_to)
 
+    ###############################################
+    ###############################################
     # Now make the call to the backend API
+
     r = request_call(request, pass_to, cx, reverse_lazy('home'))
+
     # BACK FROM THE CALL TO BACKEND
+    ###############################################
+    ###############################################
 
     logger.debug("r returned: %s" % r)
 
     # Check for Error here
     if 'status_code' in r:
-        logger.debug("We have a status code to check: %s" % r)
+        # logger.debug("We have a status code to check: %s" % r)
         if r.status_code in ERROR_CODE_LIST:
             logger.debug("\nError Status Code:%s" % r.status_code)
-            logger_debug.debug("\nError Status Code:%s" % r.status_code)
             return error_status(r, r.status_code)
     elif 'HttpResponseRedirect status_code=302' in r:
         return error_status(r, 302)
@@ -280,6 +287,14 @@ def generic_read(request,
                      "Status Code:%s" % r.status_code)
 
     # We should have a 200 - good record to deal with
+    # We can occasionaly get a 200 with a Connection Error. eg. Timeout
+    try:
+        if "ConnectionError" in r.text:
+            logger.debug("Error:%s" % r.text)
+            return error_status(r, 502)
+    except:
+        pass
+
     text_out = ''
     # if 'text' in r:
     #     logger.debug('r:%s' % r.text)
@@ -292,18 +307,14 @@ def generic_read(request,
     # logger.debug('Rewrite List:%s' % rewrite_url_list)
 
     host_path = get_host_url(request, resource_type)[:-1]
-    logger.debug('host path:%s' % host_path)
-    logger_debug.debug('host path:%s' % host_path)
+    # logger.debug('host path:%s' % host_path)
 
-    # get 'xml' 'json' or ''
-    fmt = get_search_param_format(pass_params)
+    rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
+    # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
-    ct_fmt = content_is_json_or_xml(r)
-    ct_detail = get_content_type(r)
-    logger.debug('Content-Type returned:%s' % ct_fmt)
-
-    logger_debug.debug('Content-Type:%s \n work with %s' % (ct_detail,
-                                                            ct_fmt))
+    # ct_detail = get_content_type(r)
+    # logger.debug('Content-Type:%s \n work with %s' % (ct_detail,
+    #                                                   back_end_format))
 
     try:
         text_in = r.text
@@ -311,7 +322,7 @@ def generic_read(request,
         text_in = ""
 
     text_out = post_process_request(request,
-                                    ct_fmt,
+                                    back_end_format,
                                     host_path,
                                     text_in,
                                     rewrite_url_list)
@@ -322,7 +333,7 @@ def generic_read(request,
                            key,
                            vid,
                            interaction_type,
-                           fmt,
+                           requested_format,
                            text_out)
 
     # write session variables if _getpages was found
@@ -348,22 +359,44 @@ def generic_read(request,
         if sesn_var:
             logger.debug("Problem writing session variables."
                          " Returned %s" % sesn_var)
-            logger_debug.debug("Problem writing session variables."
-                               " Returned %s" % sesn_var)
-    if fmt == 'xml':
+    if requested_format == 'xml':
         # logger.debug('We got xml back in od')
-        return HttpResponse(r.text, content_type='application/%s' % fmt)
-        # return HttpResponse( tostring(dict_to_xml('content', od)),
-        #                      content_type='application/%s' % fmt)
+        return HttpResponse(r.text,
+                            content_type='application/%s' % requested_format)
+        # return HttpResponse(tostring(dict_to_xml('content', od)),
+        #                     content_type='application/%s' % requested_format)
 
-    elif fmt == 'json':
+    elif requested_format == 'json':
         # logger.debug('We got json back in od')
-        return HttpResponse(pretty_json(od),
-                            content_type='application/%s' % fmt)
+        return HttpResponse(pretty_json(od['bundle']),
+                            content_type='application/%s' % requested_format)
 
-    # logger.debug('We got a different format:%s' % fmt)
+    query_string = build_querystring(request.GET.copy())
+    if "xml" in requested_format:
+        # logger.debug("Sending text_out for display: %s" % text_out[0:100])
+        div_text = get_div_from_xml(text_out)
+        # print("DIV TEXT returned:[%s]%s" % (type(div_text), div_text))
+        return render(
+            request,
+            'bluebutton/default_xml.html',
+            {'output': text_out,
+             'content': {'parameters': query_string,
+                         'resource_type': resource_type,
+                         'request_method': "GET",
+                         'interaction_type': interaction_type,
+                         'div_texts': [div_text, ]}})
+
+    else:
+        text_out = pretty_json(od['bundle'])
+        div_text = get_div_from_json(od['bundle'])
+
+    # logger.debug('We got a different format:%s' % requested_format)
     return render(
         request,
         'bluebutton/default.html',
-        {'content': pretty_json(od), 'output': od},
-    )
+        {'output': text_out,
+         'content': {'parameters': query_string,
+                     'resource_type': resource_type,
+                     'request_method': "GET",
+                     'interaction_type': interaction_type,
+                     'div_texts': div_text}})
