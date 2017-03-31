@@ -16,6 +16,7 @@ from apps.fhir.bluebutton.utils import get_resource_names
 from apps.fhir.fhir_core.utils import valid_interaction
 
 FHIR_NAMESPACE = {'fhir': 'http://hl7.org/fhir'}
+XML_NAMESPACE = {'xml': 'http://www.w3.org/1999/xhtml'}
 # ns_string will get value from first key in above dict
 # ns_string can receive a dict to allow the default to be overridden
 
@@ -69,7 +70,7 @@ def string_to_dom(content, ns=FHIR_NAMESPACE):
     :return:
     """
     # ns = FHIR_NAMESPACE
-
+    # print("Content:\n%s\n=================" % content)
     root = ET.fromstring(content)
 
     return root
@@ -193,3 +194,47 @@ def ns_string(ns=FHIR_NAMESPACE):
     nss = ns
 
     return nss[next(iter(nss))]
+
+
+def get_div_from_xml(xml_text, ns=FHIR_NAMESPACE):
+    """
+    Get the div from a xml resource
+    :param xml_text:
+    :return: div_text
+    """
+
+    dom = ET.fromstring(xml_text)
+
+    dom_text = dom.findall('{%s}text' % ns_string(ns))
+    # print("DOM Text:%s" % dom_text)
+    aggregated_divs = []
+
+    for divot in dom_text:
+        child_list = get_named_child(divot,
+                                     '{%s}div' % ns_string(XML_NAMESPACE))
+        # print("Child list of div elements:%s" % child_list)
+        aggregated_divs.append(child_list)
+
+    # print("Divs to publish:%s" % aggregated_divs)
+    div_text = ""
+    for aggregated_div in aggregated_divs:
+        # print("AD:%s" % aggregated_div)
+        # print("AD[0]:%s" % aggregated_div[0])
+        div_text += ET.tostring(aggregated_div[0], method="html").decode('utf-8')
+        div_text += "\n"
+    # div_text = aggregated_divs.tostring()
+    # print("DV:%s" % div_text)
+    # Replace html: in output
+    # <html:div xmlns:html="http://www.w3.org/1999/xhtml">
+    #      <html:div class="hapiHeaderText"> William Yung
+    #         <html:b>CHEN </html:b>
+
+    div_text = div_text.replace("html:", "")
+
+    # Becomes this. This avoids strange results in the css when displayed
+    # <div xmlns:html="http://www.w3.org/1999/xhtml">
+    #      <div class="hapiHeaderText"> William Yung
+    #         <b>CHEN </b>
+    #      </div>
+    # print("filtered DV:%s" % div_text)
+    return div_text
