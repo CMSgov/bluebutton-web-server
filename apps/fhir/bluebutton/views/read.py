@@ -11,10 +11,10 @@ from django.shortcuts import render
 from apps.fhir.fhir_core.utils import (kickout_403,
                                        write_session,
                                        find_ikey,
-                                       get_search_param_format,
+                                       # get_search_param_format,
                                        get_target_url,
-                                       content_is_json_or_xml,
-                                       get_content_type,
+                                       # content_is_json_or_xml,
+                                       # get_content_type,
                                        SESSION_KEY,
                                        error_status,
                                        ERROR_CODE_LIST,
@@ -312,8 +312,7 @@ def generic_read(request,
     rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
-    ct_detail = get_content_type(r)
-
+    # ct_detail = get_content_type(r)
     # logger.debug('Content-Type:%s \n work with %s' % (ct_detail,
     #                                                   back_end_format))
 
@@ -336,7 +335,6 @@ def generic_read(request,
                            interaction_type,
                            requested_format,
                            text_out)
-
 
     # write session variables if _getpages was found
     ikey = ''
@@ -381,10 +379,10 @@ def generic_read(request,
         return render(
             request,
             'bluebutton/default_xml.html',
-            {'output':  text_out,
-             'content': {'parameters':       query_string,
-                         'resource_type':    resource_type,
-                         'request_method':   "GET",
+            {'output': text_out,
+             'content': {'parameters': query_string,
+                         'resource_type': resource_type,
+                         'request_method': "GET",
                          'interaction_type': interaction_type,
                          'div_texts': [div_text, ]}})
 
@@ -396,10 +394,9 @@ def generic_read(request,
     return render(
         request,
         'bluebutton/default.html',
-        {'output':  text_out,
-         'content': {'parameters':       query_string,
-                     'resource_type':    resource_type,
-                     'request_method':   "GET",
+        {'output': text_out,
+         'content': {'parameters': query_string,
+                     'resource_type': resource_type,
+                     'request_method': "GET",
                      'interaction_type': interaction_type,
                      'div_texts': div_text}})
-

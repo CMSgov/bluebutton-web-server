@@ -288,11 +288,11 @@ def build_params(get, srtc, key):
 
 
 def add_format(all_param=''):
-    """ 
-    Check for _format in parameters and add if missing 
+    """
+    Check for _format in parameters and add if missing
     """
 
-    logger.debug("Checking _FORMAT:%s" % all_param)
+    # logger.debug("Checking _FORMAT:%s" % all_param)
     if '_format' in all_param:
         # We have a _format setting.
         # Let's check for xml or json.
