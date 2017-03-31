@@ -632,3 +632,25 @@ def valid_interaction(resource):
         interaction_list.append("history-type")
 
     return interaction_list
+
+
+def build_querystring(query_dict):
+    """
+    Manipulate the Query String to a decoded format
+
+    :param query_dict:
+    :return: query_out
+    """
+
+    # logger.debug("Query DICT:%s" % query_dict)
+
+    query_out = "?"
+    for k, v in query_dict.items():
+        query_add = ("%s=%s&" % (k, v))
+        query_out = query_out + query_add
+
+    # logger.debug("Result:%s" % query_out)
+    if query_out == "?":
+        return None
+    else:
+        return query_out[:-1]

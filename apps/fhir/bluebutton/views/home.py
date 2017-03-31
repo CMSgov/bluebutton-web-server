@@ -45,7 +45,8 @@ from apps.fhir.fhir_core.utils import (read_session,
                                        get_search_param_format,
                                        strip_format_for_back_end,
                                        SESSION_KEY,
-                                       valid_interaction)
+                                       valid_interaction,
+                                       build_querystring)
 
 from apps.home.views import authenticated_home
 
@@ -239,6 +240,9 @@ def fhir_conformance(request, *args, **kwargs):
                                     r.text,
                                     rewrite_url_list)
 
+    query_string = build_querystring(request.GET.copy())
+    # logger.debug("Query:%s" % query_string)
+
     # od = conformance_filter(text_out, back_end_format)
 
     if 'xml' in requested_format:
@@ -253,12 +257,12 @@ def fhir_conformance(request, *args, **kwargs):
                                 content_type='application'
                                              '/%s' % requested_format)
         else:
-            print("Sending text_out for display: %s" % text_out[0:100])
+            # logger.debug("Sending text_out for display: %s" % text_out[0:100])
             return render(
                 request,
                 'bluebutton/default_xml.html',
                 {'output': text_out,
-                 'content': {'parameters': request.GET.urlencode(),
+                 'content': {'parameters': query_string,
                              'resource_type': resource_type,
                              'request_method': "GET",
                              'interaction_type': "metadata"}})
@@ -278,13 +282,13 @@ def fhir_conformance(request, *args, **kwargs):
         od = conformance_filter(text_out, back_end_format)
         text_out = pretty_json(od)
 
-    logger.debug('We got a different format:%s' % back_end_format)
+    # logger.debug('We got a different format:%s' % back_end_format)
 
     return render(
         request,
         'bluebutton/default.html',
         {'output': text_out,
-         'content': {'parameters': request.GET.urlencode(),
+         'content': {'parameters': query_string,
                      'resource_type': resource_type,
                      'request_method': "GET",
                      'interaction_type': "metadata"}})

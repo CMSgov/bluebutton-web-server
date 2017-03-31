@@ -795,19 +795,19 @@ def evaluate_r(r):
 
      """
 
-    logger.debug("=== EVALUATE_R ===")
-    logger.debug("Dealing with %s" % r)
-
-    logger.debug("r.status_code:%s" % r.status_code)
-    logger.debug("r.headers:%s" % r.headers)
-    logger.debug("r.headers['content-type']:%s" % r.headers['content-type'])
-    logger.debug("r.encoding:%s" % r.encoding)
-    logger.debug("r.text:%s" % r.text)
-    try:
-        rjson = r.json()
-        logger.debug("Pretty r.json():\n%s" % pretty_json(rjson))
-
-    except:
-        logger.debug("No JSON")
-
-    logger.debug("END EVALUATE_R ===")
+    # logger.debug("=== EVALUATE_R ===")
+    # logger.debug("Dealing with %s" % r)
+    #
+    # logger.debug("r.status_code:%s" % r.status_code)
+    # logger.debug("r.headers:%s" % r.headers)
+    # logger.debug("r.headers['content-type']:%s" % r.headers['content-type'])
+    # logger.debug("r.encoding:%s" % r.encoding)
+    # logger.debug("r.text:%s" % r.text)
+    # try:
+    #     rjson = r.json()
+    #     logger.debug("Pretty r.json():\n%s" % pretty_json(rjson))
+    #
+    # except:
+    #     logger.debug("No JSON")
+    #
+    # logger.debug("END EVALUATE_R ===")
