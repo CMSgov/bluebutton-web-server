@@ -7,7 +7,6 @@ hhs_oauth_server
 FILE: home.py
 Created: 6/27/16 3:24 PM
 
-
 """
 import logging
 
@@ -46,7 +45,8 @@ from apps.fhir.fhir_core.utils import (read_session,
                                        strip_format_for_back_end,
                                        SESSION_KEY,
                                        valid_interaction,
-                                       build_querystring)
+                                       build_querystring,
+                                       request_format)
 
 from apps.home.views import authenticated_home
 
@@ -115,7 +115,7 @@ def rebuild_fhir_search(request):
 
         cx = get_crosswalk(request.user)
 
-        logger.debug("Calling:%s" % url_call)
+        # logger.debug("Calling:%s" % url_call)
         r = request_call(request,
                          url_call,
                          cx,
@@ -197,14 +197,7 @@ def fhir_conformance(request, *args, **kwargs):
     # Let's store the inbound requested format
     # We need to simplify the format call to the backend
     # so that we get data we can manipulate
-    if "_format" in pass_params:
-        requested_format = pass_params["_format"]
-    elif "format" in pass_params:
-        requested_format = pass_params["format"]
-    else:
-        requested_format = "html"
-    #
-    # logger.debug("Saving requested format:%s" % requested_format)
+    requested_format = request_format(pass_params)
 
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
@@ -217,10 +210,16 @@ def fhir_conformance(request, *args, **kwargs):
 
     # logger.debug("Calling:%s" % call_to + pass_params)
 
+    ####################################################
+    ####################################################
+
     r = request_call(request,
                      call_to + pass_params,
                      cx,
                      reverse_lazy('authenticated_home'))
+
+    ####################################################
+    ####################################################
 
     text_out = ''
     host_path = get_host_url(request, '?')
@@ -242,8 +241,6 @@ def fhir_conformance(request, *args, **kwargs):
 
     query_string = build_querystring(request.GET.copy())
     # logger.debug("Query:%s" % query_string)
-
-    # od = conformance_filter(text_out, back_end_format)
 
     if 'xml' in requested_format:
         # logger.debug('We got xml back in od')

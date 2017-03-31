@@ -525,7 +525,8 @@ def strip_format_for_back_end(pass_params):
                                                         "json fhir"]):
         updated_parameters["_format"] = "json"
     else:
-        pass
+        # We found nothing so we should set to default format of json
+        updated_parameters["_format"] = "json"
 
     # rebuild the parameters
     logger.debug("Updated parameters:%s" % updated_parameters)
@@ -634,6 +635,28 @@ def valid_interaction(resource):
     return interaction_list
 
 
+def request_format(query_params):
+    """
+    Save the _format or format received
+    :param query_params:
+    :return:
+    """
+
+    # Let's store the inbound requested format
+    # We need to simplify the format call to the backend
+    # so that we get data we can manipulate
+    if "_format" in query_params:
+        req_format = query_params["_format"]
+    elif "format" in query_params:
+        req_format = query_params["format"]
+    else:
+        req_format = "html"
+    #
+    # logger.debug("Saving requested format:%s" % req_format)
+
+    return req_format
+
+
 def build_querystring(query_dict):
     """
     Manipulate the Query String to a decoded format
@@ -654,3 +677,65 @@ def build_querystring(query_dict):
         return None
     else:
         return query_out[:-1]
+
+
+def add_key_to_fhir_url(fhir_url, resource_type, key=""):
+    """
+    Append the key + / to fhir_url, unless it is already there
+    :param fhir_url:
+    :param resource_type: 
+    :param key: 
+    :return: fhir_url 
+    """
+    if fhir_url.endswith(resource_type + '/'):
+        # we need to make sure we don't specify resource_type twice in URL
+        if key.startswith(resource_type + '/'):
+            key = key.replace(resource_type + '/', '')
+
+    if key + '/' in fhir_url:
+        pass
+        # logger.debug("%s/ already in %s" % (key, fhir_url))
+    else:
+        # logger.debug("adding %s/ to fhir_url: %s" % (key, fhir_url))
+        fhir_url += key + '/'
+
+    return fhir_url
+
+
+def fhir_call_type(interaction_type, fhir_url, vid=None):
+    """
+    Append a call type to the fhir_url.
+    Call this before adding an identifier.
+    :param interaction_type:
+    :param fhir_url:
+    :param vid:
+    :return: pass_to
+    """
+
+    if interaction_type == 'vread':
+        pass_to = fhir_url + '_history' + '/' + vid
+    elif interaction_type == '_history':
+        pass_to = fhir_url + '_history'
+    else:  # interaction_type == 'read':
+        pass_to = fhir_url
+
+    return pass_to
+
+
+def get_div_from_json(raw_json):
+    """
+    Get the div from a json resource
+    :param raw_json:
+    :return: div_text
+    """
+
+    div_text = []
+    if raw_json:
+        for k, v in raw_json.items():
+            # print("k:%s" % k)
+            if k == "text":
+                if 'div' in v:
+                    # print("TEXT FOUND:%s [%s]" % (k, v))
+                    div_text.append(v['div'])
+
+    return div_text
