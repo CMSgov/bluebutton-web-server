@@ -67,7 +67,7 @@ def simple_login(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
+            user = authenticate(username=username.lower(), password=password)
 
             if user is not None:
 
@@ -154,7 +154,7 @@ def account_settings(request):
         if form.is_valid():
             data = form.cleaned_data
             # update the user info
-            request.user.username = data['username']
+            request.user.username = data['username'].lower()
             request.user.email = data['email']
             request.user.first_name = data['first_name']
             request.user.last_name = data['last_name']
@@ -168,9 +168,8 @@ def account_settings(request):
             up.save()
             messages.success(request,
                              'Your account settings have been updated.')
-            return render(request,
-                          'account-settings.html',
-                          {'form': form, 'name': name})
+            return HttpResponseRedirect(reverse('account_settings'))
+
         else:
             # the form had errors
             return render(request,
