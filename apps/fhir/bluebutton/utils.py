@@ -59,7 +59,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/"):
 
         messages.error(request, 'FHIR Server is unreachable.')
 
-        logger.debug("Error:%s" % r_err)
+        # logger.debug("Error:%s" % r_err)
         e = requests.Response
         e.text = r_err
         e.status_code = 502
@@ -68,7 +68,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/"):
 
         # return HttpResponseRedirect(fail_redirect)
 
-    logger.debug("Evaluating r:%s" % evaluate_r(r))
+    # logger.debug("Evaluating r:%s" % evaluate_r(r))
 
     if r.status_code in ERROR_CODE_LIST:
         logger.debug("\nRequest Error Status Code:%s" % r.status_code)
@@ -97,16 +97,18 @@ def strip_oauth(get={}):
     # as can: state=random_state_string&response_type=code&client_id=ABCDEF
     # Remove them before passing url through to FHIR Server
 
+    strip_oauth = OrderedDict()
     if get == {}:
-        return get
+        # logger.debug("Nothing to strip GET is empty:%s" % get)
+        return strip_oauth
 
     strip_parms = ['access_token', 'state', 'response_type', 'client_id']
 
-    logger_debug.debug('Removing:%s from: %s' % (strip_parms, get))
+    # logger.debug('Removing:%s from: %s' % (strip_parms, get))
 
     strip_oauth = get_url_query_string(get, strip_parms)
 
-    logger_debug.debug('resulting url parameters:%s' % strip_oauth)
+    # logger.debug('resulting url parameters:%s' % strip_oauth)
 
     return strip_oauth
 
@@ -258,12 +260,10 @@ def build_params(get, srtc, key):
     We have to skip any in the skip list.
 
     :param get:
-    :return:
+    :param srtc:
+    :param key:
+    :return: all_param
     """
-    # We will default to json for content handling
-    # FIXME: variables not used
-    # in_fmt = 'json'
-    # pass_to = ''
 
     # First we strip the parameters that need to be blocked
     url_param = block_params(get, srtc)
@@ -275,21 +275,24 @@ def build_params(get, srtc, key):
     # leading ? and parameters joined by &
     all_param = concat_parms(url_param, add_param)
 
-    logger_debug.debug('Parameter (post block/add):%s' % all_param)
+    logger.debug('Parameter (post block/add):%s' % all_param)
 
     # now we check for _format being specified. Otherwise we get back html
     # by default we will process json unless _format is already set.
 
     all_param = add_format(all_param)
 
-    logger_debug.debug('add_Format returned:%s' % all_param)
+    logger.debug('add_Format returned:%s' % all_param)
 
     return all_param
 
 
 def add_format(all_param=''):
-    """ Check for _format in parameters and add if missing """
+    """
+    Check for _format in parameters and add if missing
+    """
 
+    # logger.debug("Checking _FORMAT:%s" % all_param)
     if '_format' in all_param:
         # We have a _format setting.
         # Let's check for xml or json.
@@ -326,7 +329,7 @@ def get_url_query_string(get, skip_parm=[]):
     :param skip_parm: []
     :return: Query_String (QS)
     """
-    logger_debug.debug('Evaluating: %s to remove:%s' % (get, skip_parm))
+    # logger.debug('Evaluating: %s to remove:%s' % (get, skip_parm))
 
     filtered_dict = OrderedDict()
 
@@ -351,7 +354,7 @@ def get_url_query_string(get, skip_parm=[]):
     # qs = urlencode(filtered_dict)
     qs = filtered_dict
 
-    logger_debug.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
+    # logger.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
     return qs
 
 
@@ -572,7 +575,7 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         if kill_url.endswith('/'):
             kill_url = kill_url[:-1]
 
-        logger_debug.debug("Replacing:%s" % kill_url)
+        # logger_debug.debug("Replacing:%s" % kill_url)
 
         in_text = mask_with_this_url(request, host_path, in_text, kill_url)
 
@@ -593,7 +596,7 @@ def get_host_url(request, resource_type=''):
     else:
         full_url_list = full_url.split(resource_type)
 
-    logger_debug.debug('Full_url as list:%s' % full_url_list)
+    # logger_debug.debug('Full_url as list:%s' % full_url_list)
 
     return full_url_list[0]
 
@@ -624,7 +627,7 @@ def build_output_dict(request,
     if vid is not None:
         od['vid'] = vid
 
-    logger_debug.debug('Query List:%s' % request.META['QUERY_STRING'])
+    # logger_debug.debug('Query List:%s' % request.META['QUERY_STRING'])
 
     if DF_EXTRA_INFO:
         od['request_method'] = request.method
@@ -653,7 +656,7 @@ def post_process_request(request,
         # Return nothing
         return r_text
 
-    if ct_fmt.lower() == 'xml':
+    if ct_fmt.lower() == 'xml' or ct_fmt.lower() == 'html':
         # We will add xml support later
 
         text_out = mask_list_with_host(request,
@@ -668,7 +671,7 @@ def post_process_request(request,
                                        host_path,
                                        r_text,
                                        rewrite_url_list)
-        logger_debug.debug("\n\nPRE_TEXT:%s\n\n" % pre_text)
+        # logger_debug.debug("\n\nPRE_TEXT:%s\n\n" % pre_text)
         text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
 
     return text_out
@@ -681,7 +684,7 @@ def prepend_q(pass_params):
             pass
         else:
             pass_params = '?' + pass_params
-        logger_debug.debug("Parameters:", pass_params)
+        # logger_debug.debug("Parameters:", pass_params)
     return pass_params
 
 
@@ -694,14 +697,14 @@ def pretty_json(od, indent=PRETTY_JSON_INDENT):
 def get_default_path(resource_name, crosswalk_source=None):
     """ Get default Path for resource """
 
-    logger_debug.debug("\nGET_DEFAULT_URL:%s" % resource_name)
+    # logger_debug.debug("\nGET_DEFAULT_URL:%s" % resource_name)
     if crosswalk_source:
         default_path = crosswalk_source
     else:
         try:
             rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
             default_path = rr.fhir_path
-            logger_debug.debug("\nDEFAULT_URL=%s" % default_path)
+            # logger_debug.debug("\nDEFAULT_URL=%s" % default_path)
 
         except ResourceRouter.DoesNotExist:
             # use the default FHIR Server URL
@@ -775,25 +778,37 @@ def conformance_or_capability(fhir_url):
     return resource_type
 
 
+def get_resource_names():
+    """ Get names for all approved resources """
+
+    all_resources = SupportedResourceType.objects.all()
+    resource_names = []
+    for name in all_resources:
+        # Get the resource names into a list
+        resource_names.append(name.resource_name)
+
+    return resource_names
+
+
 def evaluate_r(r):
     """
      Check out what was received back from requst
 
      """
 
-    logger.debug("=== EVALUATE_R ===")
-    logger.debug("Dealing with %s" % r)
-
-    logger.debug("r.status_code:%s" % r.status_code)
-    logger.debug("r.headers:%s" % r.headers)
-    logger.debug("r.headers['content-type']:%s" % r.headers['content-type'])
-    logger.debug("r.encoding:%s" % r.encoding)
-    logger.debug("r.text:%s" % r.text)
-    try:
-        rjson = r.json()
-        logger.debug("Pretty r.json():\n%s" % pretty_json(rjson))
-
-    except:
-        logger.debug("No JSON")
-
-    logger.debug("END EVALUATE_R ===")
+    # logger.debug("=== EVALUATE_R ===")
+    # logger.debug("Dealing with %s" % r)
+    #
+    # logger.debug("r.status_code:%s" % r.status_code)
+    # logger.debug("r.headers:%s" % r.headers)
+    # logger.debug("r.headers['content-type']:%s" % r.headers['content-type'])
+    # logger.debug("r.encoding:%s" % r.encoding)
+    # logger.debug("r.text:%s" % r.text)
+    # try:
+    #     rjson = r.json()
+    #     logger.debug("Pretty r.json():\n%s" % pretty_json(rjson))
+    #
+    # except:
+    #     logger.debug("No JSON")
+    #
+    # logger.debug("END EVALUATE_R ===")

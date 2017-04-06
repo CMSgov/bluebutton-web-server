@@ -407,7 +407,7 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 # Either integer or timedelta.
 # If integer interpreted, as hours
 AXES_COOLOFF_TIME = datetime.timedelta(seconds=600)
-LOGIN_RATE = '5/m'
+LOGIN_RATE = '10/m'
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
 # We will need to add REWRITE_FROM and REWRITE_TO to models
 # to enable search and replace in content returned from backend server.

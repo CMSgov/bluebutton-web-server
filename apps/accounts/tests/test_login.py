@@ -44,6 +44,16 @@ class LoginTestCase(TestCase):
         self.assertContains(response, 'Logout')
 
     @override_settings(LOGIN_RATE='500/m')
+    def test_valid_login_case_insensitive_username(self):
+        """
+        Valid User can login and username is case insensitive
+        """
+        form_data = {'username': 'Fred', 'password': 'bedrocks'}
+        response = self.client.post(self.url, form_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Logout')
+
+    @override_settings(LOGIN_RATE='500/m')
     def test_invalid_login(self):
         """
         Invalid user cannot login
