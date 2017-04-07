@@ -263,7 +263,7 @@ def fhir_conformance(request, *args, **kwargs):
                              'resource_type': resource_type,
                              'request_method': "GET",
                              'interaction_type': "metadata",
-                             'source': cx.fhir_source.name }})
+                             'source': cx.fhir_source.name}})
 
             # return HttpResponse( tostring(dict_to_xml('content', od)),
         #                      content_type='application/%s' % fmt)
@@ -290,7 +290,7 @@ def fhir_conformance(request, *args, **kwargs):
                      'resource_type': resource_type,
                      'request_method': "GET",
                      'interaction_type': "metadata",
-                     'source': cx.fhir_source.name }})
+                     'source': cx.fhir_source.name}})
 
 
 def conformance_filter(text_block, fmt):
