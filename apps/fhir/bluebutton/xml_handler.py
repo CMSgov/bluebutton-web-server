@@ -203,7 +203,10 @@ def get_div_from_xml(xml_text, ns=FHIR_NAMESPACE):
     :return: div_text
     """
 
-    dom = ET.fromstring(xml_text)
+    if xml_text == '':
+        # nothing to process
+        return xml_text
+    dom = string_to_dom(xml_text)
 
     dom_text = dom.findall('{%s}text' % ns_string(ns))
     # print("DOM Text:%s" % dom_text)
