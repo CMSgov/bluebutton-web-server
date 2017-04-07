@@ -39,7 +39,7 @@ logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
-def request_call(request, call_url, cx=None, fail_redirect="/"):
+def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     """  call to request or redirect on fail"""
 
     # Updated to receive cx (Crosswalk entry for user)
@@ -51,20 +51,32 @@ def request_call(request, call_url, cx=None, fail_redirect="/"):
         cert = ()
 
     try:
-        r = requests.get(call_url, cert=cert)
-        r.raise_for_status()
+        if timeout:
+            r = requests.get(call_url,
+                             cert=cert,
+                             timeout=timeout)
+        else:
+            r = requests.get(call_url, cert=cert)
+
+        logger.debug("Status of Request:%s" % r.status_code)
+
+        if r.status_code in ERROR_CODE_LIST:
+            r.raise_for_status()
+    # except requests.exceptions.HTTPError as r_err:
     except requests.exceptions.RequestException as r_err:
 
         logger.debug('Problem connecting to FHIR Server: %s' % call_url)
+        logger.debug('Exception: %s' % r_err)
 
-        messages.error(request, 'FHIR Server is unreachable.')
+        messages.error(request, 'Problem connecting to FHIR Server.')
 
-        # logger.debug("Error:%s" % r_err)
         e = requests.Response
-        e.text = r_err
-        e.status_code = 502
+        # e.text = r_err
+        logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
+        logger.debug("Status_Code:%s" % r.status_code)
+        # e.status_code = 502
 
-        return error_status(e, 502)
+        return error_status(e, r.text)
 
         # return HttpResponseRedirect(fail_redirect)
 
