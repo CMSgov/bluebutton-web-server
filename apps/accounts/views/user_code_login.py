@@ -18,7 +18,7 @@ def user_code_login(request):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             code = form.cleaned_data['code']
-            user = authenticate(username=username, password=password)
+            user = authenticate(username=username.lower(), password=password)
 
             # print(user)
 
