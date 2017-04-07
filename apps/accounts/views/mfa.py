@@ -74,7 +74,7 @@ def mfa_login(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
+            user = authenticate(username=username.lower(), password=password)
 
             if user is not None:
 
