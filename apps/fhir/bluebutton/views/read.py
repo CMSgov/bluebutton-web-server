@@ -288,11 +288,11 @@ def generic_read(request,
     # Check for Error here
     try:
         error_check = r.text
-        logger.debug("We got r.text back:%s" % r.text[:200]+"...")
+        logger.debug("We got r.text back:%s" % r.text[:200] + "...")
     except:
         error_check = "HttpResponse status_code=502"
         logger.debug("Something went wrong with call to %s" % pass_to)
-    logger.debug("Checking for errors:%s" % error_check[:200]+"...")
+    logger.debug("Checking for errors:%s" % error_check[:200] + "...")
     if 'status_code' in error_check:
         # logger.debug("We have a status code to check: %s" % r)
         if r.status_code in ERROR_CODE_LIST:
