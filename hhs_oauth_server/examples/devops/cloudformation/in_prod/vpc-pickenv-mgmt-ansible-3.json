@@ -94,22 +94,28 @@
     },
     "Mappings": {
         "AWSInstanceType2Arch": {
+            "t2.medium": {
+                "Arch": "HVM"
+            },
             "m1.large": {
+                "Arch": "PV"
+            },
+            "m1.medium": {
                 "Arch": "PV"
             }
         },
         "AWSRegionArch2AMI": {
             "us-east-1": {
-                "PV": "ami-a877cfbe"
+                "PV": "ami-26d47d30"
             },
             "us-east-1a": {
-                "PV": "ami-a877cfbe"
+                "PV": "ami-26d47d30"
             },
             "us-east-1b": {
-                "PV": "ami-a877cfbe"
+                "PV": "ami-26d47d30"
             },
             "us-east-1c": {
-                "PV": "ami-a877cfbe"
+                "PV": "ami-26d47d30"
             }
         },
         "VPCEnvironment": {
@@ -119,12 +125,6 @@
                 "impl": "vpc-5fd4de38",
                 "prod": "vpc-9b3fc9fd"
             }
-        },
-        "VPCAddressRange": {
-            "dev": "10.224.78.0/23",
-            "test": "10.224.90.0/23",
-            "impl": "10.246.44.0/23",
-            "prod": "10.244.44.0/23"
         },
         "StackZone": {
             "dev": {
@@ -150,109 +150,61 @@
         },
         "EnvLayer": {
             "dev-az1": {
-                "dmz": "10.224.78.144/28",
-                "web": "10.224.78.0/28",
-                "app": "10.224.78.48/28",
-                "data": "10.224.78.96/28",
                 "mgmt": "10.224.78.192/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "dev-az2": {
-                "dmz": "10.224.78.160/28",
-                "web": "10.224.78.16/28",
-                "app": "10.224.78.64/28",
-                "data": "10.224.78.112/28",
                 "mgmt": "10.224.78.208/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "dev-az3": {
-                "dmz": "10.224.78.176/28",
-                "web": "10.224.78.32/28",
-                "app": "10.224.78.80/28",
-                "data": "10.224.78.128/28",
                 "mgmt": "10.224.78.224/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "impl-az1": {
-                "dmz": "10.246.44.144/28",
-                "web": "10.246.44.0/28",
-                "app": "10.246.44.48/28",
-                "data": "10.246.44.96/28",
                 "mgmt": "10.246.44.192/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "impl-az2": {
-                "dmz": "10.246.44.160/28",
-                "web": "10.246.44.16/28",
-                "app": "10.246.44.64/28",
-                "data": "10.246.44.112/28",
                 "mgmt": "10.246.44.208/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "impl-az3": {
-                "dmz": "10.246.44.176/28",
-                "web": "10.246.44.32/28",
-                "app": "10.246.44.80/28",
-                "data": "10.246.44.128/28",
                 "mgmt": "10.246.44.224/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "prod-az1": {
-                "dmz": "10.244.44.144/28",
-                "web": "10.244.44.0/28",
-                "app": "10.244.44.48/28",
-                "data": "10.244.44.96/28",
                 "mgmt": "10.244.44.192/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "prod-az2": {
-                "dmz": "10.244.44.160/28",
-                "web": "10.244.44.16/28",
-                "app": "10.244.44.64/28",
-                "data": "10.244.44.112/28",
                 "mgmt": "10.244.44.208/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "prod-az3": {
-                "dmz": "10.244.44.176/28",
-                "web": "10.244.44.32/28",
-                "app": "10.244.44.80/28",
-                "data": "10.244.44.128/28",
                 "mgmt": "10.244.44.224/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "test-az1": {
-                "dmz": "10.224.90.144/28",
-                "web": "10.224.90.0/28",
-                "app": "10.224.90.48/28",
-                "data": "10.224.90.96/28",
                 "mgmt": "10.224.90.192/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "test-az2": {
-                "dmz": "10.224.90.160/28",
-                "web": "10.224.90.16/28",
-                "app": "10.224.90.64/28",
-                "data": "10.224.90.112/28",
                 "mgmt": "10.224.90.208/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
             },
             "test-az3": {
-                "dmz": "10.224.90.176/28",
-                "web": "10.224.90.32/28",
-                "app": "10.224.90.80/28",
-                "data": "10.224.90.128/28",
                 "mgmt": "10.224.90.224/28",
                 "ocss1": "10.128.11.0/24",
                 "ocss2": "10.128.111.0/24"
@@ -360,12 +312,17 @@
         "AZone": {
             "Type": "String",
             "Description": "Launch into Availability Zone",
-            "Default": "az3"
+            "Default": "az3",
+            "AllowedValues": [
+                "az1",
+                "az2",
+                "az3"
+            ]
         },
         "BuildImageId": {
             "Type": "String",
             "Description": "PV Image",
-            "Default": "ami-d8c7aecf"
+            "Default": "ami-26d47d30f"
         },
         "InstanceName": {
             "Description": "Easily recognizable name in the EC2 Instance List",
@@ -411,10 +368,11 @@
         "InstanceType": {
             "Description": "RHEL Linux EC2 instance type",
             "Type": "String",
-            "Default": "m1.large",
+            "Default": "m1.medium",
             "AllowedValues": [
-                "m1.large",
-                "m3.large"
+                "t2.medium",
+                "m1.medium",
+                "m1.large"
             ],
             "ConstraintDescription": "Must be a valid EC2 instance type"
         },
@@ -488,7 +446,7 @@
                         }
                     ]
                 },
-                "GroupDescription": "Management Layer: Enable SSH access",
+                "GroupDescription": "Data Layer: Enable SSH and access to Postgres",
                 "Tags": [
                     {
                         "Key": "Name",
@@ -536,18 +494,6 @@
                                 },
                                 "mgmt"
                             ]
-                        }
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "22",
-                        "ToPort": "22",
-                        "CidrIp": {
-                            "Fn::FindInMap": [
-                                "VPCAddressRange",
-                                {
-                                    "Ref": "TagKeyStack"
-                                }]
                         }
                     },
                     {
@@ -624,18 +570,6 @@
                     },
                     {
                         "IpProtocol": "tcp",
-                        "FromPort": "22",
-                        "ToPort": "22",
-                        "CidrIp": {
-                            "Fn::FindInMap": [
-                                "VPCAddressRange",
-                                {
-                                    "Ref": "TagKeyStack"
-                                }]
-                        }
-                    },
-                    {
-                        "IpProtocol": "tcp",
                         "FromPort": "80",
                         "ToPort": "80",
                         "CidrIp": "0.0.0.0/0"
@@ -698,7 +632,7 @@
                 }
             }
         },
-        "myENI": {
+        "MgmtENI": {
             "Type": "AWS::EC2::NetworkInterface",
             "Properties": {
                 "Tags": [

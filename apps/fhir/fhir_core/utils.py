@@ -25,7 +25,8 @@ from apps.fhir.server.models import SupportedResourceType
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-ERROR_CODE_LIST = [301, 302, 400, 401, 402, 403, 404, 500, 501, 502, 503, 504]
+# ERROR_CODE_LIST = [301, 302, 400, 401, 402, 403, 404, 500, 501, 502, 503, 504]
+ERROR_CODE_LIST = [301, 302, 401, 402, 403, 404, 500, 501, 502, 503, 504]
 
 SESSION_KEY = 'BBF_search_session'
 
