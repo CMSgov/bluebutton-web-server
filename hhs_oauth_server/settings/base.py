@@ -374,6 +374,7 @@ DEVELOPER_DOCS_TITLE = "Developer Documentation"
 # eg. {{ settings.APPLICATION_TITLE }}
 SETTINGS_EXPORT = [
     'DEBUG',
+    'ALLOWED_HOSTS',
     'APPLICATION_TITLE',
     'THEME',
     'STATIC_URL',
