@@ -825,8 +825,20 @@
           },
           {
             "IpProtocol": "tcp",
+            "FromPort": "8080",
+            "ToPort": "8080",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
             "FromPort": "443",
             "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "7443",
+            "ToPort": "7443",
             "CidrIp": "0.0.0.0/0"
           },
           {
