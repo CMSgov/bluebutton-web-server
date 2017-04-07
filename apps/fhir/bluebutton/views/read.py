@@ -51,6 +51,10 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 # logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 # logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
+# Attempting to set a timeout for connection and request for longer requests
+# eg. Search.
+REQUEST_TIMEOUT = (5, 120)
+
 
 def read(request, resource_type, r_id, *args, **kwargs):
     """
@@ -266,7 +270,14 @@ def generic_read(request,
     ###############################################
     # Now make the call to the backend API
 
-    r = request_call(request, pass_to, cx, reverse_lazy('home'))
+    if interaction_type == "search":
+        r = request_call(request,
+                         pass_to,
+                         cx,
+                         reverse_lazy('home'),
+                         timeout=REQUEST_TIMEOUT)
+    else:
+        r = request_call(request, pass_to, cx, reverse_lazy('home'))
 
     # BACK FROM THE CALL TO BACKEND
     ###############################################
@@ -275,16 +286,25 @@ def generic_read(request,
     logger.debug("r returned: %s" % r)
 
     # Check for Error here
-    if 'status_code' in r:
+    try:
+        error_check = r.text
+        logger.debug("We got r.text back:%s" % r.text[:200] + "...")
+    except:
+        error_check = "HttpResponse status_code=502"
+        logger.debug("Something went wrong with call to %s" % pass_to)
+    logger.debug("Checking for errors:%s" % error_check[:200] + "...")
+    if 'status_code' in error_check:
         # logger.debug("We have a status code to check: %s" % r)
         if r.status_code in ERROR_CODE_LIST:
             logger.debug("\nError Status Code:%s" % r.status_code)
             return error_status(r, r.status_code)
-    elif 'HttpResponseRedirect status_code=302' in r:
+    elif 'status_code=302' in error_check:
         return error_status(r, 302)
+    elif 'status_code=502' in error_check:
+        return error_status(r, 502)
     else:
-        logger.debug("\nShould be clean call with "
-                     "Status Code:%s" % r.status_code)
+        logger.debug("Status Code:%s "
+                     "in:%s" % (r.status_code, r))
 
     # We should have a 200 - good record to deal with
     # We can occasionaly get a 200 with a Connection Error. eg. Timeout
@@ -384,7 +404,8 @@ def generic_read(request,
                          'resource_type': resource_type,
                          'request_method': "GET",
                          'interaction_type': interaction_type,
-                         'div_texts': [div_text, ]}})
+                         'div_texts': [div_text, ],
+                         'source': cx.fhir_source.name}})
 
     else:
         text_out = pretty_json(od['bundle'])
@@ -399,4 +420,5 @@ def generic_read(request,
                      'resource_type': resource_type,
                      'request_method': "GET",
                      'interaction_type': interaction_type,
-                     'div_texts': div_text}})
+                     'div_texts': div_text,
+                     'source': cx.fhir_source.name}})
