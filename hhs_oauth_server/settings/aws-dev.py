@@ -51,15 +51,15 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY',
 AWS_STORAGE_BUCKET_NAME = 'content-dev-bbonfhir-com'
 AWS_S3_CUSTOM_DOMAIN = 's3.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 
-STATICFILES_LOCATION = 'static'
+STATICFILES_LOCATION = '/static/'
 STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
-STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
+STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
 # STATIC_URL = '/static/'
 print("Static URL:%s" % STATIC_URL)
 
-MEDIAFILES_LOCATION = 'media'
+MEDIAFILES_LOCATION = '/media/'
 DEAFULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
-MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+MEDIA_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
 # MEDIA_URL = '/media/'
 
 STATIC_ROOT = os.path.join(ASSETS_ROOT, 'collectedstatic')
