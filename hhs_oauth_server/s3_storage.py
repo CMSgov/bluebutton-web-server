@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# !/usr/bin/env python
+#  -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4
-
 """
 hhs_oauth_server
 FILE: s3_storage
@@ -15,11 +14,10 @@ Using-Amazon-S3-to-store-your-Django-sites-static-and-media-files/
 
 """
 import logging
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
-
 from django.conf import settings
 from storages.backends.s3boto3 import S3Boto3Storage
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 # custom_storages
