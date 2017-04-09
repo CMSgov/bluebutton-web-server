@@ -30,9 +30,9 @@ class StaticStorage(S3Boto3Storage):
         return name
 
     def _normalize_name(self, name):
-        if not name.endswith('/'):
-            # logger.debug("S3 Storage: Name has no /:%s" % name)
-            name += "/"
+        # if not name.endswith('/'):
+        #     # logger.debug("S3 Storage: Name has no /:%s" % name)
+        #     name += "/"
 
         name = self.location + name
         logger.debug("S3 Storage: Name with location added: %s" % name)
@@ -49,9 +49,9 @@ class MediaStorage(S3Boto3Storage):
         return name
 
     def _normalize_name(self, name):
-        if not name.endswith('/'):
-            # logger.debug("S3 Media Storage: Name has no /:%s" % name)
-            name += "/"
+        # if not name.endswith('/'):
+        #     # logger.debug("S3 Media Storage: Name has no /:%s" % name)
+        #     name += "/"
 
         name = self.location + name
         logger.debug("S3 Media Storage: Name with location added: %s" % name)
