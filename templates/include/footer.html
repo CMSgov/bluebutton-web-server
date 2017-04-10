@@ -21,6 +21,9 @@
                 </div>
         </div>
         
-       <div><small>{% if settings.ALLOWED_HOSTS %}{{ settings.ALLOWED_HOSTS|last }}{% endif %}</small></div>
+       {% if user.is_superuser %}
+           {% if settings.ALLOWED_HOSTS %}<div><small>{{ settings.ALLOWED_HOSTS|last }}</small></div>
+           {% endif %}
+       {% endif %}
   </div>
 </div><!-- /.container-fluid -->
