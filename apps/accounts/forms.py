@@ -1,3 +1,4 @@
+import logging
 from random import randint
 
 from django import forms
@@ -10,6 +11,8 @@ from .models import Invitation, RequestInvite, UserProfile, create_activation_ke
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 from localflavor.us.forms import USPhoneNumberField
 import csv
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class BulkUserCodeForm(forms.Form):
@@ -53,6 +56,7 @@ class RequestInviteForm(forms.ModelForm):
 
     def clean_human(self):
         human = self.cleaned_data.get('human', '')
+        logger.debug("Compare [%s] to [%s]" % (str(human), str(self.human_z)))
         if str(human) != str(self.human_z):
             raise forms.ValidationError(_('You are either not human or '
                                           'just just really bad at math.'))
