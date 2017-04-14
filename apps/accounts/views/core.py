@@ -35,10 +35,8 @@ def request_invite(request):
 
             logger.debug("email to invite:%s" % invite_request.email)
 
-            if settings.MFA:
-                return HttpResponseRedirect(reverse('mfa_login'))
-            else:
-                return HttpResponseRedirect(reverse('login'))
+            return pick_reverse_login()
+        
         else:
             return render(request, 'generic/bootstrapform.html', {
                 'name': name,
@@ -55,11 +53,7 @@ def request_invite(request):
 def mylogout(request):
     logout(request)
     messages.success(request, _('You have been logged out.'))
-    if settings.MFA:
-        return HttpResponseRedirect(reverse('mfa_login'))
-    else:
-        return HttpResponseRedirect(reverse('login'))
-
+    return pick_reverse_login()
 
 def simple_login(request):
     if request.method == 'POST':
@@ -122,10 +116,7 @@ def create_account(request):
                              _("Your account was created. Please "
                                "check your email to verify your account."))
 
-            if settings.MFA:
-                return HttpResponseRedirect(reverse('mfa_login'))
-            else:
-                return HttpResponseRedirect(reverse('login'))
+            return pick_reverse_login()
         else:
             # return the bound form with errors
             return render(request,
@@ -202,7 +193,23 @@ def activation_verify(request, activation_key):
     else:
         messages.error(request,
                        'This key does not exist or has already been used.')
-    if settings.MFA:
+
+    return pick_reverse_login()
+
+
+def pick_reverse_login():
+    """
+    settings.MFA should be True or False
+    Check settings.MFA to determine which reverse call to make
+    
+    :return: 
+    """
+    try:
+        is_MFA = settings.MFA
+    except:
+        is_MFA = False
+
+    if is_MFA:
         return HttpResponseRedirect(reverse('mfa_login'))
     else:
         return HttpResponseRedirect(reverse('login'))
