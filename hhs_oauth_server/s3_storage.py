@@ -13,11 +13,11 @@ https://www.caktusgroup.com/blog/2014/11/10/
 Using-Amazon-S3-to-store-your-Django-sites-static-and-media-files/
 
 """
-import logging
+# import logging
 from django.conf import settings
 from storages.backends.s3boto3 import S3Boto3Storage
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+# logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 # custom_storages
@@ -35,7 +35,7 @@ class StaticStorage(S3Boto3Storage):
         #     name += "/"
 
         name = self.location + name
-        logger.debug("S3 Storage: Name with location added: %s" % name)
+        # logger.debug("S3 Storage: Name with location added: %s" % name)
         return name
 
 
@@ -54,5 +54,5 @@ class MediaStorage(S3Boto3Storage):
         #     name += "/"
 
         name = self.location + name
-        logger.debug("S3 Media Storage: Name with location added: %s" % name)
+        # logger.debug("S3 Media Storage: Name with location added: %s" % name)
         return name
