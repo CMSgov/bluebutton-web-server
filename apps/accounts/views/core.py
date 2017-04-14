@@ -36,7 +36,7 @@ def request_invite(request):
             logger.debug("email to invite:%s" % invite_request.email)
 
             return pick_reverse_login()
-        
+
         else:
             return render(request, 'generic/bootstrapform.html', {
                 'name': name,
@@ -205,11 +205,11 @@ def pick_reverse_login():
     :return: 
     """
     try:
-        is_MFA = settings.MFA
+        is_mfa = settings.MFA
     except:
-        is_MFA = False
+        is_mfa = False
 
-    if is_MFA:
+    if is_mfa:
         return HttpResponseRedirect(reverse('mfa_login'))
     else:
         return HttpResponseRedirect(reverse('login'))
