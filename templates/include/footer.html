@@ -24,6 +24,10 @@
        {% if user.is_superuser %}
            {% if settings.ALLOWED_HOSTS %}<div><small>{{ settings.ALLOWED_HOSTS|last }}</small></div>
            {% endif %}
+       {% else %}
+           {% if settings.DEBUG %}
+               <div><small>{{ settings.ALLOWED_HOSTS|last }}</small></div>
+           {% endif %}
        {% endif %}
   </div>
 </div><!-- /.container-fluid -->
