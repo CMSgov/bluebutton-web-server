@@ -83,6 +83,9 @@
     {% block footer %}<div id="footer"></div>{% endblock %}
 
 </div>
+
+{% if settings.ALLOWED_HOSTS %}<div><small>{{ settings.ALLOWED_HOSTS|last }}</small></div>{% endif %}
+
 <!-- END Container -->
 
 </body>

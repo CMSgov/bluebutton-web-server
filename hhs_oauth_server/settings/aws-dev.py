@@ -51,15 +51,15 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY',
 AWS_STORAGE_BUCKET_NAME = 'content-dev-bbonfhir-com'
 AWS_S3_CUSTOM_DOMAIN = 's3.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 
-STATICFILES_LOCATION = 'static'
+STATICFILES_LOCATION = '/static/'
 STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
-STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
+STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
 # STATIC_URL = '/static/'
-print("Static URL:%s" % STATIC_URL)
+# print("Static URL:%s" % STATIC_URL)
 
-MEDIAFILES_LOCATION = 'media'
+MEDIAFILES_LOCATION = '/media/'
 DEAFULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
-MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+MEDIA_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
 # MEDIA_URL = '/media/'
 
 STATIC_ROOT = os.path.join(ASSETS_ROOT, 'collectedstatic')
@@ -79,7 +79,7 @@ EMAIL_BACKEND_DEFAULT = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
 
 # SMS
-SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
+SEND_SMS = bool_env(env('DJANGO_SEND_SMS', True))
 
 # MFA - Active or Not or False
 # If using MFA enabled login this value is used to determin if
