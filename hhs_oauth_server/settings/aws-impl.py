@@ -76,7 +76,7 @@ EMAIL_BACKEND_DEFAULT = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
 
 # SMS
-SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
+SEND_SMS = bool_env(env('DJANGO_SEND_SMS', True))
 
 # MFA - Active or Not or False
 # If using MFA enabled login this value is used to determin if
