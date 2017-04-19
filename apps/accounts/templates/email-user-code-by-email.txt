@@ -4,9 +4,9 @@ You have been invited to join the {{ APPLICATION_TITLE }} community.
 
 Please complete the signup by completing the form at:
 
-{{URL}}
+{{ URL }}?invitation_code={{ CODE }}
 
-You may now connect applications to your MyMedicare.gov account with the following code: {{CODE}}
+Your Invitation code is: {{ CODE }}
 
-- The {{APPLICATION_TITLE}} Team
+- The {{ APPLICATION_TITLE }} Team
 
