@@ -55,6 +55,7 @@ def mylogout(request):
     messages.success(request, _('You have been logged out.'))
     return pick_reverse_login()
 
+
 def simple_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -124,11 +125,15 @@ def create_account(request):
                           {'name': name, 'form': form})
     else:
         # this is an HTTP  GET
+        # Adding ability to pre-fill invitation_code and email
+        # via GET paramters
+        form_data = {'invitation_code': request.GET.get('invitation_code', ''),
+                     'email': request.GET.get('email', '')}
         messages.info(request,
                       _("An invitation code is required to register."))
         return render(request,
                       'generic/bootstrapform.html',
-                      {'name': name, 'form': SignupForm()})
+                      {'name': name, 'form': SignupForm(initial=form_data)})
 
 
 @login_required
@@ -201,8 +206,8 @@ def pick_reverse_login():
     """
     settings.MFA should be True or False
     Check settings.MFA to determine which reverse call to make
-    
-    :return: 
+
+    :return:
     """
     try:
         is_mfa = settings.MFA
