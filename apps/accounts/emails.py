@@ -211,7 +211,8 @@ def send_invite_request_notices(invite_request):
     </p>
     %s
     <p>
-    Please be patient. We will email you  when your invitation coe is ready.  Please be patient.
+    We will email you  when your invitation code is ready.
+    Please be patient.
     </p>
     <p>
     Thank You,
