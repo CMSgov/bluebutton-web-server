@@ -62,18 +62,22 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
 
         if r.status_code in ERROR_CODE_LIST:
             r.raise_for_status()
-    # except requests.exceptions.HTTPError as r_err:
-    except requests.exceptions.RequestException as r_err:
+        # except requests.exceptions.HTTPError as r_err:
 
+    except requests.exceptions.HTTPError as e:
+        # except requests.exceptions.RequestException as r_err:
+        r_err = requests.exceptions.RequestException
         logger.debug('Problem connecting to FHIR Server: %s' % call_url)
         logger.debug('Exception: %s' % r_err)
+        handle_e = handle_http_error(e)
+        handle_e = handle_e
 
         messages.error(request, 'Problem connecting to FHIR Server.')
 
         e = requests.Response
         # e.text = r_err
         logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
-        logger.debug("Status_Code:%s" % r.status_code)
+        # logger.debug("Status_Code:%s" % r.status_code)
         # e.status_code = 502
 
         return error_status(e, r.text)
@@ -824,3 +828,10 @@ def evaluate_r(r):
     #     logger.debug("No JSON")
     #
     # logger.debug("END EVALUATE_R ===")
+
+
+def handle_http_error(e):
+    """ Handle http error from request_call """
+    logger.debug("In handle http_error - e:%s" % e)
+
+    return e
