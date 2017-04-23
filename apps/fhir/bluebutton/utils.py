@@ -66,7 +66,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
             r.raise_for_status()
         # except requests.exceptions.HTTPError as r_err:
 
-    except  requests.ConnectionError as e:
+    except requests.ConnectionError as e:
         logger.debug('Connection Problem to FHIR Server: %s' % call_url)
         return error_status('Connection Problem to FHIR Server: %s' % call_url,
                             504)
