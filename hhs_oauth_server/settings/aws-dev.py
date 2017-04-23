@@ -72,7 +72,7 @@ STATICFILES_DIRS = [
 # emails
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
-DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'api-dev-bluebutton@dev-api.bbonfhir.com')
+DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'bluebutton.dev@fhirservice.net')
 # The console.EmailBackend backend prints to the console.
 # Redefine this for SES or other email delivery mechanism
 EMAIL_BACKEND_DEFAULT = 'django.core.mail.backends.console.EmailBackend'
@@ -154,18 +154,21 @@ LOGGING = {
         'file_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
+            'formatter': 'simple',
             'filename': '/var/log/pyapps/debug.log',
         },
         'file_error': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
+            'formatter': 'verbose',
             'filename': '/var/log/pyapps/error.log',
         },
         'file_info': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
+            'formatter': 'simple',
             'filename': '/var/log/pyapps/info.log',
         },
         'mail_admins': {
