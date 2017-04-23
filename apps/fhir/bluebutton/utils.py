@@ -45,6 +45,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
+    verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
         cert = (auth_state['cert_file'], auth_state['key_file'])
     else:
@@ -54,15 +55,21 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         if timeout:
             r = requests.get(call_url,
                              cert=cert,
-                             timeout=timeout)
+                             timeout=timeout,
+                             verify=verify_state)
         else:
-            r = requests.get(call_url, cert=cert)
+            r = requests.get(call_url, cert=cert, verify=verify_state)
 
         logger.debug("Status of Request:%s" % r.status_code)
 
         if r.status_code in ERROR_CODE_LIST:
             r.raise_for_status()
         # except requests.exceptions.HTTPError as r_err:
+
+    except requests.ConnectionError as e:
+        logger.debug('Connection Problem to FHIR Server: %s' % call_url)
+        return error_status('Connection Problem to FHIR Server: %s' % call_url,
+                            504)
 
     except requests.exceptions.HTTPError as e:
         # except requests.exceptions.RequestException as r_err:
@@ -437,6 +444,17 @@ def FhirServerAuth(cx=None):
         auth_settings['key_file'] = key_file_path
 
     return auth_settings
+
+
+def FhirServerVerify(cx=None):
+    # Get default Server Verify Setting
+    # Return True or False (Default)
+
+    verify_setting = False
+    if cx:
+        verify_setting = cx.fhir_source.server_verify
+
+    return verify_setting
 
 
 def FhirServerUrl(server=None, path=None, release=None):
