@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from apps.accounts.models import UserProfile, MFACode
-from apps.accounts.views.core import pick_reverse_login
+# from apps.accounts.views.core import pick_reverse_login
 
 
 class MFALoginTestCase(TestCase):
@@ -87,23 +87,23 @@ class MFALoginTestCase(TestCase):
         # Logout)
         self.assertContains(response, 'Logout')
 
-    @override_settings(MFACode=True)
-    def test_pick_reverse_login_mfa_true(self):
-        """
-
-        :return:
-        """
-
-        response = pick_reverse_login()
-        self.assertContains(response, 'acounts/mfa/login')
-
-    @override_settings(MFACode=False)
-    def test_pick_reverse_login_mfa_false(self):
-        """
-
-        :return:
-        """
-
-        response = pick_reverse_login()
-        print("No:MFA_Login Response:%s" % response)
-        self.assertContains(response, 'acounts/login')
+    # @override_settings(MFACode=True)
+    # def test_pick_reverse_login_mfa_true(self):
+    #     """
+    #
+    #     :return:
+    #     """
+    #
+    #     response = pick_reverse_login()
+    #     self.assertContains(response, 'acounts/mfa/login')
+    #
+    # @override_settings(MFACode=False)
+    # def test_pick_reverse_login_mfa_false(self):
+    #     """
+    #
+    #     :return:
+    #     """
+    #
+    #     response = pick_reverse_login()
+    #     print("No:MFA_Login Response:%s" % response)
+    #     self.assertContains(response, 'acounts/login')
