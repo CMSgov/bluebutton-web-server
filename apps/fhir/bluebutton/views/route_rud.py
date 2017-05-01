@@ -21,6 +21,8 @@ def read_or_update_or_delete(request, resource_type, id):
 
     if request.method == 'GET':
         # Read
+        logger.debug("making read with Resource:"
+                     "%s and id:%s" % (resource_type, id))
         return read(request, resource_type, id)
     # elif request.method == 'PUT':
     #     # update
@@ -31,6 +33,7 @@ def read_or_update_or_delete(request, resource_type, id):
     # else:
     # Not supported.
     msg = "HTTP method %s not supported at this URL." % (request.method)
-    logger_info.info(msg)
+    # logger_info.info(msg)
+    logger.debug(msg)
 
     return kickout_400(msg)
