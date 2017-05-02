@@ -98,8 +98,8 @@ class TestBuildFHIRPatient(TestCase):
                                         json.loads(SAMPLE_BB_JSON))
 
         # print("\nResult:%s" % result)
-        # self.assertEqual(result.status_code, 201)
-        self.assertEqual(result.status_code, 404)
+        self.assertEqual(result.status_code, 201)
+        # self.assertEqual(result.status_code, 404)
 
 
 class TestWriteFHIRPatient(TestCase):
@@ -135,8 +135,8 @@ class TestWriteFHIRPatient(TestCase):
         # print("\nPatient Write Response"
         #       "(JSON):%s" % pretty_json(result.json()))
 
-        # self.assertEqual(result.status_code, 201)
-        self.assertEqual(result.status_code, 404)
+        self.assertEqual(result.status_code, 201)
+        # self.assertEqual(result.status_code, 404)
 
 
 class TestWriteEOB(TestCase):
