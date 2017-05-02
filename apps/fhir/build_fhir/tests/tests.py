@@ -29,6 +29,7 @@ from ..views.rt_explanationofbenefit import build_eob
 from ..utils.fhir_resource_version import V_DSTU21, V_DSTU2
 from unittest import skip
 
+
 @skip("Sandbox use only")
 class TestBuildPatient(TestCase):
     """ Build a patient resource """
