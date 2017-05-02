@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User, Group
-import ldap
+from django_python3_ldap import ldap
+# import ldap3 as ldap
 from .models import UserProfile
 import sys
 
