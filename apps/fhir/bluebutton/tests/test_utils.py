@@ -915,8 +915,11 @@ class Resource_URL_Test(TestCase):
         non_default = "https://example.com/fhir/crap/"
         srtc = SupportedResourceType.objects.get(resource_name=r_name)
 
-        rr = ResourceRouter.objects.create(supported_resource=srtc,
-                                           fhir_path=non_default)
+        rr = ResourceRouter.objects.create(name="Test Server",
+                                           fhir_url=non_default)
+        # list_of_resources = SupportedResourceType.objects.all()
+        rr.supported_resource.add(srtc)
+
         if rr:
             True
 
