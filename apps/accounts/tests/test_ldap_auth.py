@@ -4,8 +4,9 @@ from django.contrib.auth.models import Group
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from apps.accounts.models import UserProfile
-from ..ldap_auth import LDAPBackend
+# from ..ldap_auth import LDAPBackend
 from unittest import skipUnless, skip
+
 
 @skip("Skipping")
 class LDAPLoginTestCase(TestCase):
