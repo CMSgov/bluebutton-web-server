@@ -40,13 +40,28 @@ logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
 def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
-    """  call to request or redirect on fail"""
+    """  call to request or redirect on fail
+    call_url = target server URL and search parameters to be sent
+    cx = Crosswalk record. The crosswalk is keyed off Request.user
+    fail_redirect allows routing to a page on failure
+    timoeout allows a timeout in seconds to be set.
+
+    FhirServer is joined to Crosswalk.
+    FhirServerAuth and FhirServerVerify receive cx and lookup
+       values in the linked fhir_server model.
+
+    """
+    # TODO: Separate out parameters for call_url
 
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
     verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
+        # cert puts cert and key file together
+        # (cert_file_path, key_file_path)
+        # Cert_file_path and key_file_ath are fully defined paths to
+        # files on the appserver.
         cert = (auth_state['cert_file'], auth_state['key_file'])
     else:
         cert = ()
@@ -67,8 +82,10 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         # except requests.exceptions.HTTPError as r_err:
 
     except requests.ConnectionError as e:
-        logger.debug('Connection Problem to FHIR Server: %s' % call_url)
-        return error_status('Connection Problem to FHIR Server: %s' % call_url,
+        logger.debug('Connection Problem to FHIR '
+                     'Server: %s : %s' % (call_url, e))
+        return error_status('Connection Problem to FHIR '
+                            'Server: %s:%s' % (call_url, e),
                             504)
 
     except requests.exceptions.HTTPError as e:
@@ -737,7 +754,7 @@ def get_default_path(resource_name, crosswalk_source=None):
     else:
         try:
             rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
-            default_path = rr.fhir_path
+            default_path = rr.fhir_url
             # logger_debug.debug("\nDEFAULT_URL=%s" % default_path)
 
         except ResourceRouter.DoesNotExist:
@@ -849,7 +866,11 @@ def evaluate_r(r):
 
 
 def handle_http_error(e):
-    """ Handle http error from request_call """
+    """ Handle http error from request_call
+
+     This function is under development
+
+     """
     logger.debug("In handle http_error - e:%s" % e)
 
     return e
