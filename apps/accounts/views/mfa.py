@@ -94,8 +94,12 @@ def mfa_login(request):
                         if up.mfa_login_mode == "EMAIL":
                             messages.info(
                                 request, _('An access code was sent to your email. Please enter it here.'))
-                        return HttpResponseRedirect(reverse('mfa_code_confirm',
-                                                            args=(mfac.uid,)))
+                        
+                        rev = reverse('mfa_code_confirm', args=(mfac.uid,))
+                        if request.GET.get('next', ''): 
+                            rev = "%s?next=%s"  % (rev, request.GET.get('next', ''))
+                                        
+                        return HttpResponseRedirect(rev)
                     # Else, just login as normal without MFA
                     login(request, user)
                     logger.info(
