@@ -20,16 +20,26 @@
       </div>
     </div>
 
+    <div class="alert alert-info">
+    <button type="button" class="close" data-dismiss="alert">×</button>
+    <h4>{%trans "Welcome?" %}</h4>
+    Here is where application developers register applications and create OAuth2 credentials.
+    If you are not an application developer, perhaps you meant to go to the
+    <a href="{% url 'oauth2_provider:authorized-token-list' %}">application token page</a>.
+    
+    </div>
+
+
  <div class="col-lg-12 well">
     <div class="row text-center">
         <div class="col-lg-12">
 
 				<div class="btn-group-justified">
 					<a href="{% url 'oauth2_provider:authorized-token-list' %}" >
-					  <button type="button" class="btn btn-primary"> <i class="fa fa-legal"></i>  Applications You Have Granted Access</button></a>
+					  <button type="button" class="btn btn-primary"> <i class="fa fa-legal"></i>  Application Tokens</button></a>
                     {% if profile.user_type == "DEV" or profile == None or profile.create_applications %} 
 					<a href="{% url 'oauth2_provider:list' %}">
-						 <button type="button" class="btn btn-primary"> <i class="fa fa-key"></i>  Applications You Have Created
+						 <button type="button" class="btn btn-primary"> <i class="fa fa-key"></i>  Application Registration
 					</button></a>
 					{% endif %}
 
