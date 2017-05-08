@@ -45,3 +45,6 @@ lxml
 
 # mock for Python 2
 mock
+
+# ldap for Python2
+python-ldap

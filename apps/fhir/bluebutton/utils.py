@@ -40,12 +40,28 @@ logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
 def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
-    """  call to request or redirect on fail"""
+    """  call to request or redirect on fail
+    call_url = target server URL and search parameters to be sent
+    cx = Crosswalk record. The crosswalk is keyed off Request.user
+    fail_redirect allows routing to a page on failure
+    timoeout allows a timeout in seconds to be set.
+
+    FhirServer is joined to Crosswalk.
+    FhirServerAuth and FhirServerVerify receive cx and lookup
+       values in the linked fhir_server model.
+
+    """
+    # TODO: Separate out parameters for call_url
 
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
+    verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
+        # cert puts cert and key file together
+        # (cert_file_path, key_file_path)
+        # Cert_file_path and key_file_ath are fully defined paths to
+        # files on the appserver.
         cert = (auth_state['cert_file'], auth_state['key_file'])
     else:
         cert = ()
@@ -54,26 +70,38 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         if timeout:
             r = requests.get(call_url,
                              cert=cert,
-                             timeout=timeout)
+                             timeout=timeout,
+                             verify=verify_state)
         else:
-            r = requests.get(call_url, cert=cert)
+            r = requests.get(call_url, cert=cert, verify=verify_state)
 
         logger.debug("Status of Request:%s" % r.status_code)
 
         if r.status_code in ERROR_CODE_LIST:
             r.raise_for_status()
-    # except requests.exceptions.HTTPError as r_err:
-    except requests.exceptions.RequestException as r_err:
+        # except requests.exceptions.HTTPError as r_err:
 
+    except requests.ConnectionError as e:
+        logger.debug('Connection Problem to FHIR '
+                     'Server: %s : %s' % (call_url, e))
+        return error_status('Connection Problem to FHIR '
+                            'Server: %s:%s' % (call_url, e),
+                            504)
+
+    except requests.exceptions.HTTPError as e:
+        # except requests.exceptions.RequestException as r_err:
+        r_err = requests.exceptions.RequestException
         logger.debug('Problem connecting to FHIR Server: %s' % call_url)
         logger.debug('Exception: %s' % r_err)
+        handle_e = handle_http_error(e)
+        handle_e = handle_e
 
         messages.error(request, 'Problem connecting to FHIR Server.')
 
         e = requests.Response
         # e.text = r_err
         logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
-        logger.debug("Status_Code:%s" % r.status_code)
+        # logger.debug("Status_Code:%s" % r.status_code)
         # e.status_code = 502
 
         return error_status(e, r.text)
@@ -435,6 +463,17 @@ def FhirServerAuth(cx=None):
     return auth_settings
 
 
+def FhirServerVerify(cx=None):
+    # Get default Server Verify Setting
+    # Return True or False (Default)
+
+    verify_setting = False
+    if cx:
+        verify_setting = cx.fhir_source.server_verify
+
+    return verify_setting
+
+
 def FhirServerUrl(server=None, path=None, release=None):
     # fhir_server_configuration =
     # {'SERVER':'http://fhir-test.bbonfhir.com:8081',
@@ -715,7 +754,7 @@ def get_default_path(resource_name, crosswalk_source=None):
     else:
         try:
             rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
-            default_path = rr.fhir_path
+            default_path = rr.fhir_url
             # logger_debug.debug("\nDEFAULT_URL=%s" % default_path)
 
         except ResourceRouter.DoesNotExist:
@@ -824,3 +863,14 @@ def evaluate_r(r):
     #     logger.debug("No JSON")
     #
     # logger.debug("END EVALUATE_R ===")
+
+
+def handle_http_error(e):
+    """ Handle http error from request_call
+
+     This function is under development
+
+     """
+    logger.debug("In handle http_error - e:%s" % e)
+
+    return e
