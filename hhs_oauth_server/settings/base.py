@@ -29,6 +29,9 @@ if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
     print("WARNING: Generate your secret key and set in environment "
           "variable: DJANGO_SECRET_KEY")
 
+# Use to skip LDAP tests
+AUTH_LDAP_ACTIVE = False
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.'
@@ -225,6 +228,14 @@ STATICFILES_DIRS = [
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
+
+# email backend options are:
+# 'django.core.mail.backends.smtp.EmailBackend'
+# 'django.core.mail.backends.filebased.EmailBackend'
+# 'django.core.mail.backends.locmem.EmailBackend'
+# 'django.core.mail.backends.dummy.EmailBackend'
+# 'django_ses.SESBackend'
+
 # The console.EmailBackend backend prints to the console.
 # Redefine this for SES or other email delivery mechanism
 EMAIL_BACKEND_DEFAULT = 'django.core.mail.backends.console.EmailBackend'
@@ -262,7 +273,7 @@ EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
 
 # MFA - Active or Not or False
-# If using MFA enabled login this value is used to determin if
+# If using MFA enabled login this value is used to determine if
 # reverse with mfa_login or reverse with login is called
 #     if settings.MFA:
 #         return HttpResponseRedirect(reverse('mfa_login'))

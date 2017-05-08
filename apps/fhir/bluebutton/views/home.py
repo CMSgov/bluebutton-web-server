@@ -129,7 +129,7 @@ def rebuild_fhir_search(request):
         text_out = post_process_request(request,
                                         fmt,
                                         host_path,
-                                        r,
+                                        r.text,
                                         rewrite_url_list)
         od = build_output_dict(request,
                                OrderedDict(),
