@@ -1,18 +1,25 @@
 {% extends "oauth2_provider/base.html" %}
 
 {% load i18n %}
-{% block Content %}
-
-
+{% block content %}
 
       <div class="row">
         <div class="col-lg-12">
 	      <ol class="breadcrumb">
 	        <li ><a href="/">Home</a></li>
-            <li class="active"><a href="{% url 'oauth2_provider:authorized-token-list' %}">{% trans "Authorized Applications" %}</a></li>
+            <li class="active"><a href="{% url 'oauth2_provider:authorized-token-list' %}">{% trans "Applications Tokens" %}</a></li>
 	      </ol>
         </div>
       </div>
+
+    <div class="alert alert-info">
+    <button type="button" class="close" data-dismiss="alert">×</button>
+    <h4>{%trans "What are tokens?" %}</h4>
+    Tokens give application's access to your information. This page contains a list of
+		applications that you have given access to.
+		Revoking an application token will remove an application's ability
+		to access your information until you reauthorize it.
+    </div>
 
 
     <div class="block-center">
