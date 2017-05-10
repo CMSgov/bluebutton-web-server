@@ -10,6 +10,7 @@ from ..mfa_forms import LoginForm, MFACodeForm
 from ratelimit.decorators import ratelimit
 import logging
 from ...utils import get_client_ip
+import sys
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
 
@@ -96,9 +97,16 @@ def mfa_login(request):
                                 request, _('An access code was sent to your email. Please enter it here.'))
 
                         rev = reverse('mfa_code_confirm', args=(mfac.uid,))
+                        # Fetch the next and urlencode
                         if request.GET.get('next', ''):
-                            rev = "%s?next=%s" % (
-                                rev, request.GET.get('next', ''))
+                            if sys.version_info[0] == 3:
+                                import urllib.request as req
+                                rev = "%s?next=%s" % (
+                                    rev, req.pathname2url(request.GET.get('next', '')))
+                            if sys.version_info[0] == 2:
+                                import urllib
+                                rev = "%s?next=%s" % (
+                                    rev, urllib.pathname2url(request.GET.get('next', '')))
 
                         return HttpResponseRedirect(rev)
                     # Else, just login as normal without MFA
