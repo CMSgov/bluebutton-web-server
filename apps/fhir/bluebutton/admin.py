@@ -11,7 +11,11 @@ class CrosswalkAdmin(admin.ModelAdmin):
 
 
 class FhirServerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'shard_by', 'fhir_url', 'client_auth')
+    list_display = ('name',
+                    'shard_by',
+                    'fhir_url',
+                    'client_auth',
+                    'server_verify')
     search_fields = ('name', 'fhir_url')
 
 

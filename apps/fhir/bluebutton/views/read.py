@@ -116,8 +116,12 @@ def generic_read(request,
 
 
     """
+    # TODO: Fix to allow url_id in url for non-key resources.
+    # eg. Patient is key resource so replace url if override_url_id is True
+    # if override_url_id is not set allow url_id to be applied and check
+    # if search_override is True.
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
-    logger.debug('========================\n'
+    logger.debug('\n========================\n'
                  'INTERACTION_TYPE: %s' % interaction_type)
 
     # Check if this interaction type and resource type combo is allowed.
