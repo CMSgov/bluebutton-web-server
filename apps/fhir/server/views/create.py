@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from jsonschema import validate, ValidationError
 
 from apps.fhir.server.models import SupportedResourceType
-from apps.fhir.core.utils import kickout_404, kickout_403, kickout_400, kickout_500
+from apps.fhir.fhir_core.utils import kickout_404, kickout_403, kickout_400, kickout_500
 
 from .hello import hello
 from .search import search

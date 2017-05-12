@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 {% block extrahead %}
     <script src="{% static 'js/switch_content.js' %}"></script>
 {% endblock %}
-{% block title %}{% trans "Activate Advanced Blue Button API" %}{% endblock %}
+{% block title %}{% trans "Activate CMS Blue Button API" %}{% endblock %}
 {% block breadcrumbs %}
     <div class="container">
         <ul class="breadcrumb">
@@ -14,7 +14,7 @@
         </ul>
     </div>
 {% endblock %}
-{% block pagename %}Activate Advanced Blue Button API (3){% endblock %}
+{% block pagename %}Activate CMS Blue Button API (3){% endblock %}
 {% block Content %}
 
 <div class="section">
@@ -22,6 +22,10 @@
         <div class="row">
             <div class="col-md-8 col-sm-12">
                 <h3>So you want to share your information...</h3>
+                <p>The CMS Blue Button API is currently a pilot service. You need an invitation code
+                in order to register. Your Accountable Care Organization or a member of your care team
+                should have provided you with a code.
+                </p>
 
                 <h4>Here are the steps:</h4>
 
@@ -32,23 +36,24 @@
                     <b>3. </b>We will send you an email with an Activation link.
                     <br/>
                     <b>4. </b>Click on the link in the email. This will bring you back to
-                    the CMS Advanced BlueButton Service.
+                    the CMS Blue Button API.
                     <br/>
                     <b>5. </b>Login to complete the activation.
                     <br/>
                     <b>6. </b>We will send you an email so that you know it all worked.
                     <br/>
+                </p>
 
             </div>
             <div class="col-md-4 col-sm-12">
-                <img src="{% static 'img/layout/blue-button.png' %}"
+                <img src="{% static 'img/layout/bluebuttonapiv1.png' %}"
                     style="height:300px">
             </div>
 
         </div>
         <div class="row">
             <div class="col-md-6">
-                <a href="{% url 'accounts_create' %}" class="active btn btn-block btn-lg btn-primary">
+                <a href="{% url 'accounts_create_user' %}" class="active btn btn-block btn-lg btn-primary">
                     Yes, Activate my Advanced Blue Button!</a>
             </div>
             <div class="col-md-2">

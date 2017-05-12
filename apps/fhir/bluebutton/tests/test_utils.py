@@ -1,16 +1,22 @@
-import urllib
+# import json
+import os
 
 from collections import OrderedDict
-
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
-
+from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
+from apps.fhir.bluebutton.models import (Crosswalk)
+from apps.fhir.server.models import (SupportedResourceType,
+                                     ResourceRouter)
 
-from apps.fhir.bluebutton.models import (ResourceTypeControl,
-                                         SupportedResourceType,
-                                         Crosswalk)
-
+try:
+    # python2
+    from urlparse import parse_qsl
+except ImportError:
+    # python3
+    from urllib.parse import parse_qsl
 from apps.fhir.bluebutton.utils import (
     notNone,
     strip_oauth,
@@ -20,6 +26,7 @@ from apps.fhir.bluebutton.utils import (
     build_params,
     add_format,
     get_url_query_string,
+    FhirServerAuth,
     FhirServerUrl,
     check_access_interaction_and_resource_type,
     check_rt_controls,
@@ -27,8 +34,14 @@ from apps.fhir.bluebutton.utils import (
     masked_id,
     mask_with_this_url,
     mask_list_with_host,
+    get_host_url,
+    # post_process_request,
+    prepend_q,
+    pretty_json,
+    get_default_path,
+    dt_patient_reference,
+    crosswalk_patient_id
 )
-
 
 ENCODED = settings.ENCODING
 
@@ -134,7 +147,7 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         strip parameters from get dict based on list in ResoureTypeControl record
         """
 
-        srtc = ResourceTypeControl.objects.get(pk=2)
+        srtc = SupportedResourceType.objects.get(pk=2)
 
         # <QueryDict: {'_format': ['json']}>
         get_ish_1 = {
@@ -179,11 +192,21 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
             if k in get_ish_2:
                 self.assertEquals(v, get_ish_2[k])
 
-        srtc = ResourceTypeControl.objects.get(pk=3)
+        srtc = SupportedResourceType.objects.get(pk=3)
         response = block_params(get_ish_4, srtc)
         for k, v in response.items():
             if k in get_ish_4:
                 self.assertEquals(v, get_ish_4[k])
+
+    def test_pretty_json(self):
+        """ Test text dict or list is converted to pretty json(indent=4) """
+
+        od = '{"format": ["application/xml+fhir","application/json+fhir"]}'
+        response = pretty_json(od, indent=5)
+        expected = '"{\\"format\\": [\\"application/xml+fhir\\",' \
+                   '\\"application/json+fhir\\"]}"'
+
+        self.assertEqual(response, expected)
 
 
 class BlueButtonUtilSrtcTestCase(TestCase):
@@ -205,36 +228,54 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         # user = User.objects.create_user(username, password=password )
         # # created a default user
 
-        # Test
-        srtc = ResourceTypeControl.objects.get(pk=1)
+        # Test Patient= in non-patient resource
+        srtc = SupportedResourceType.objects.get(pk=3)
+        print("SRTC: %s" % srtc.resource_name)
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
+        # print("Response for %s: %s" % (srtc, response))
         self.assertEquals(response, ['patient=4995802'])
 
-        # Test
-        srtc = ResourceTypeControl.objects.get(pk=2)
+        # Test Patient= in patient resource
+        srtc = SupportedResourceType.objects.get(pk=1)
+        # print("SRTC: %s" % srtc.resource_name)
+
         Crosswalk.objects.get(pk=1)
         fhir_id = "4995802"
         response = add_params(srtc, fhir_id)
         self.assertEquals(response, [])
 
         # Test
-        srtc = ResourceTypeControl.objects.get(pk=1)
+        srtc = SupportedResourceType.objects.get(pk=2)
+        Crosswalk.objects.get(pk=1)
+        fhir_id = "4995802"
+        response = add_params(srtc, fhir_id)
+        # print("Response:(%s)" % response)
+        # print("JSON Dumps:%s" % json.dumps(response))
+        self.assertEquals(response, [])
+
+        # Test
+        srtc = SupportedResourceType.objects.get(pk=1)
+        Crosswalk.objects.get(pk=1)
+        response = add_params(srtc)
+        print("Response:%s" % response)
+        print("compare to:%s" % [])
+        self.assertEquals(response, [])
+
+        # Test
+        srtc = SupportedResourceType.objects.get(pk=3)
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
         self.assertEquals(response, ['patient='])
 
         # Test
-        srtc = ResourceTypeControl.objects.get(pk=3)
-        Crosswalk.objects.get(pk=1)
-        response = add_params(srtc)
-        self.assertEquals(response, [])
-
-        # Test
         srtc = None
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
+        print("Response 2:%s" % type(response))
+        print("compare to 2:%s" % [])
+
         self.assertEquals(response, [])
 
     def test_concat_params(self):
@@ -305,7 +346,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
             'claim': '123456',
             'resource_type': 'some_resource',
         }
-        srtc = ResourceTypeControl.objects.get(pk=4)
+        srtc = SupportedResourceType.objects.get(pk=4)
         fhir_id = '4995802'
         response = build_params(get_ish_1, srtc, fhir_id)
         expected = '?keep=keep_this&patient=4995802&_format=json'
@@ -321,9 +362,9 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         srtc = None
         key = ''
         response = build_params(get_ish_1, srtc, key)
-        resp_dict = dict(urllib.parse.parse_qsl(response[1:]))
+        resp_dict = dict(parse_qsl(response[1:]))
         expected = '?keep=keep_this&resource_type=some_resource&_format=json&claim=123456'
-        expe_dict = dict(urllib.parse.parse_qsl(expected[1:]))
+        expe_dict = dict(parse_qsl(expected[1:]))
         self.assertDictEqual(resp_dict, expe_dict)
 
     def test_add_format(self):
@@ -366,7 +407,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
             'keep': ['keep_this'],
         }
 
-        srtc = ResourceTypeControl.objects.get(pk=2)
+        srtc = SupportedResourceType.objects.get(pk=2)
 
         response = get_url_query_string(get_ish_1, srtc.search_block)
 
@@ -397,11 +438,37 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         expected = OrderedDict()
         self.assertEquals(response, expected)
 
+    def test_FhirServerAuth(self):
+        """  Check FHIR Server ClientAuth settings """
+
+        """ Test 1: pass nothing"""
+
+        response = FhirServerAuth()
+        expected = settings.FHIR_DEFAULT_AUTH
+        # print("Test 1: FHIRServerAuth %s %s" % (response, expected))
+
+        self.assertDictEqual(response, expected)
+
+        """ Test 2: pass cx """
+        cx = Crosswalk.objects.get(pk=1)
+        response = FhirServerAuth(cx)
+
+        expected = {'client_auth': True,
+                    'cert_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                              "cert_file.pem"),
+                    'key_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
+                                             "key_file.pem")}
+        # print("\n Test 2: FHIRServerAuth %s %s" % (response, expected))
+
+        self.assertDictEqual(response, expected)
+
     def test_FhirServerUrl(self):
         """ Build a fhir server url """
 
         """ Test 1: Pass all parameters """
-        response = FhirServerUrl('http://localhost:8000', '/any_path', '/release')
+        response = FhirServerUrl('http://localhost:8000',
+                                 '/any_path',
+                                 '/release')
         expected = 'http://localhost:8000/any_path/release/'
         self.assertEquals(response, expected)
 
@@ -416,35 +483,68 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         #                            amazonaws.com:8080/baseDstu2",
         #            "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
 
-        expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
+        expected = settings.FHIR_SERVER_CONF['SERVER']
+        expected += settings.FHIR_SERVER_CONF['PATH']
+        expected += settings.FHIR_SERVER_CONF['RELEASE']
+        if expected.endswith('/'):
+            pass
+        else:
+            expected += '/'
+        # expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
+
         self.assertEquals(response, expected)
 
     def test_check_access_interaction_and_resource_type(self):
-        """ test resource_type and interaction_type from SupportedResourceType """
+        """ test resource_type and interaction_type from
+        SupportedResourceType """
 
         """ Test 1: Patient GET = True """
         resource_type = 'Patient'
         interaction_type = 'get'  # True
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         self.assertEquals(response, False)
 
         """ Test 2: Patient get = True """
         resource_type = 'Patient'
         interaction_type = 'GET'  # True
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         self.assertEquals(response, False)
 
         """ Test 3: Patient UPdate = False """
         resource_type = 'Patient'
         interaction_type = 'UPdate'  # False
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         self.assertEquals(response.status_code, 403)
 
         """ Test 4: Patient UPdate = False """
         resource_type = 'BadResourceName'
         interaction_type = 'get'  # False
-        response = check_access_interaction_and_resource_type(resource_type, interaction_type)
+        response = check_access_interaction_and_resource_type(resource_type,
+                                                              interaction_type)
         self.assertEquals(response.status_code, 404)
+
+    def test_prepend_q_yes(self):
+        """ Check that ? is added to front of parameters if required """
+
+        pass_params = "test=one&test=2&test=3"
+        response = prepend_q(pass_params)
+
+        expected = "?" + pass_params
+
+        self.assertEquals(response, expected)
+
+    def test_prepend_q_no(self):
+        """ Check that ? is not added to front of parameters if required """
+
+        pass_params = "?test=one&test=2&test=3"
+        response = prepend_q(pass_params)
+
+        expected = pass_params
+
+        self.assertEquals(response, expected)
 
 
 class BlueButtonUtilsRtTestCase(TestCase):
@@ -452,16 +552,17 @@ class BlueButtonUtilsRtTestCase(TestCase):
     fixtures = ['fhir_bluebutton_test_rt.json']
 
     def test_check_rt_controls(self):
-        """ Get ResourceTypeControl via SupportedResourceType from resource_type """
+        """ Get SupportedResourceType
+        from resource_type """
 
         """ Test 1: Good Resource """
         resource_type = 'Patient'
 
         response = check_rt_controls(resource_type)
         expect = SupportedResourceType.objects.get(resource_name=resource_type)
-        # print("Resource:", response.resource_name.id,"=", expected.id)
+        # print("Resource:", response.id,"=", expect.id)
 
-        self.assertEquals(response.resource_name.id, expect.id)
+        self.assertEquals(response.id, expect.id)
 
         """ Test 2: Bad Resource """
         resource_type = 'BadResource'
@@ -475,7 +576,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         """ Test:1 srtc with valid override_url_id=True """
 
-        srtc = ResourceTypeControl.objects.get(pk=1)
+        srtc = SupportedResourceType.objects.get(pk=1)
 
         response = masked(srtc)
         expected = True
@@ -484,7 +585,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         """ Test:2 srtc with valid override_url_id=False """
 
-        srtc = ResourceTypeControl.objects.get(pk=4)
+        srtc = SupportedResourceType.objects.get(pk=4)
 
         response = masked(srtc)
         expected = False
@@ -493,7 +594,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         """ Test:3 srtc =None """
 
-        srtc = ResourceTypeControl.objects.get(pk=1)
+        srtc = SupportedResourceType.objects.get(pk=1)
 
         response = masked(None)
         expected = False
@@ -502,7 +603,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
 
         """ Test:4 No SRTC """
 
-        # srtc = ResourceTypeControl.objects.get(pk=1)
+        # srtc = SupportedResourceType.objects.get(pk=1)
 
         response = masked()
         expected = False
@@ -518,7 +619,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type, cx, srtc, r_id)
@@ -532,10 +633,14 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, srtc, r_id, False)
+        response = masked_id(resource_type,
+                             cx,
+                             srtc,
+                             r_id,
+                             False)
         expected = '4995802'
 
         self.assertEqual(response, expected)
@@ -546,7 +651,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type, cx, srtc, r_id)
@@ -560,10 +665,14 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
-        response = masked_id(resource_type, cx, srtc, r_id, False)
+        response = masked_id(resource_type,
+                             cx,
+                             srtc,
+                             r_id,
+                             False)
         expected = '1'
 
         self.assertEqual(response, expected)
@@ -574,7 +683,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type, None, srtc, r_id)
@@ -588,7 +697,7 @@ class BlueButtonUtilsRtTestCase(TestCase):
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         r_id = 1
 
-        srtc = ResourceTypeControl.objects.get(resource_name=rt.id)
+        srtc = SupportedResourceType.objects.get(pk=rt.id)
         cx = Crosswalk.objects.get(user=1)
 
         response = masked_id(resource_type, cx, None, r_id)
@@ -610,7 +719,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text='',
@@ -624,7 +733,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text=input_text,
@@ -638,7 +747,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com/',
                                       in_text=input_text,
@@ -652,7 +761,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         input_text = 'dddd anything http://www.example.com:8000 ' \
                      'will get replaced'
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_with_this_url(request,
                                       host_path='http://www.replaced.com',
                                       in_text=input_text,
@@ -675,12 +784,16 @@ class BlueButtonUtilRequestTest(TestCase):
 
         """ Test 1: No text to replace. No changes """
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
-                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
-                     'more stuff http://www.example.com:8000 and ' \
-                     'http://example.com:8000/ okay'
+        default_url = settings.FHIR_SERVER_CONF['REWRITE_FROM']
+        # print("\n\n", default_url)
+
+        input_text = 'dddd anything '
+        input_text += default_url[0]
+        input_text += ' will get replaced more stuff '
+        input_text += 'http://www.example.com:8000 and '
+        input_text += 'http://example.com:8000/ okay'
 
         response = mask_list_with_host(request,
                                        'http://www.replaced.com',
@@ -695,12 +808,13 @@ class BlueButtonUtilRequestTest(TestCase):
             FHIR_SERVER_CONF.REWRITE_FROM changes
         """
 
-        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
-                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
-                     'more stuff http://www.example.com:8000 and ' \
-                     'http://example.com:8000/ okay'
+        input_text = 'dddd anything '
+        input_text += default_url[0]
+        input_text += ' will get replaced more stuff '
+        input_text += 'http://www.example.com:8000 and '
+        input_text += 'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com',
                                        input_text,
@@ -712,12 +826,13 @@ class BlueButtonUtilRequestTest(TestCase):
 
         """ Test 3: Replace text removing slash from end of replaced text """
 
-        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
-                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
-                     'more stuff http://www.example.com:8000 and ' \
-                     'http://example.com:8000/ okay'
+        input_text = 'dddd anything '
+        input_text += default_url[0]
+        input_text += ' will get replaced more stuff '
+        input_text += 'http://www.example.com:8000 and '
+        input_text += 'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com/',
                                        input_text,
@@ -728,16 +843,20 @@ class BlueButtonUtilRequestTest(TestCase):
                    'more stuff http://www.replaced.com and ' \
                    'http://www.replaced.com:8000/ okay'
 
+        # print("\n\n\nResponse:", response)
+        # print("\n\n\nExpected:", expected)
+
         self.assertEqual(response, expected)
 
         """ Test 4: Replace text """
 
-        input_text = 'dddd anything http://ec2-52-4-198-86.compute-1.' \
-                     'amazonaws.com:8080/baseDstu2 will get replaced ' \
-                     'more stuff http://www.example.com:8000 and ' \
-                     'http://example.com:8000/ okay'
+        input_text = 'dddd anything '
+        input_text += default_url[0]
+        input_text += ' will get replaced more stuff '
+        input_text += 'http://www.example.com:8000 and '
+        input_text += 'http://example.com:8000/ okay'
 
-        request = self.factory.get('/bluebutton/fhir/v1/Patient')
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
         response = mask_list_with_host(request,
                                        'http://www.replaced.com',
                                        input_text,
@@ -750,7 +869,126 @@ class BlueButtonUtilRequestTest(TestCase):
 
         self.assertEqual(response, expected)
 
-    def test_get_host_url(self):
+    def test_get_host_ur_good(self):
         """
         Get the host url and split on resource_type
         """
+
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
+        response = get_host_url(request, 'Patient')
+        expected = 'http://testserver/cmsblue/fhir/v1/'
+
+        self.assertEqual(response, expected)
+
+    def test_get_host_ur_no_rt(self):
+        """
+        Get the host url and split on empty resource_type
+        """
+        request = self.factory.get('/cmsblue/fhir/v1/Patient')
+
+        response = get_host_url(request)
+        expected = 'http://testserver/cmsblue/fhir/v1/Patient'
+
+        self.assertEqual(response, expected)
+
+
+class Resource_URL_Test(TestCase):
+    """ Test get_default_url for resource """
+
+    fixtures = ['fhir_bluebutton_testdata.json']
+
+    def test_no_default_url(self):
+        """ No url set for resource in ResourceRouter """
+
+        r_name = 'Patient'
+
+        default_path = get_default_path(r_name)
+
+        expected = FhirServerUrl()
+
+        self.assertEqual(default_path, expected)
+
+    def test_with_default(self):
+        """ Create a ResourceRouter Entry and compare result """
+
+        r_name = 'Patient'
+        non_default = "https://example.com/fhir/crap/"
+        srtc = SupportedResourceType.objects.get(resource_name=r_name)
+
+        rr = ResourceRouter.objects.create(name="Test Server",
+                                           fhir_url=non_default)
+        # list_of_resources = SupportedResourceType.objects.all()
+        rr.supported_resource.add(srtc)
+
+        if rr:
+            True
+
+        default_path = get_default_path(r_name)
+        expected = non_default
+
+        self.assertEqual(default_path, expected)
+
+
+class Patient_Resource_Test(BaseApiTest):
+
+    """ Testing for Patient/id DT resource from Crosswalk """
+
+    def setUp(self):
+        # Setup the RequestFactory
+        # I could probably update this to use a Mock()
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='fred4', email='fred4@...', password='top_secret')
+
+        xwalk = Crosswalk()
+        xwalk.user = self.user
+        xwalk.fhir_id = "Patient/12345"
+        xwalk.save()
+
+    def test_crosswalk_fhir_id(self):
+        """ Get the Crosswalk FHIR_Id """
+
+        u = User.objects.create_user(username="billybob",
+                                     first_name="Billybob",
+                                     last_name="Button",
+                                     email='billybob@example.com',
+                                     password="foobar", )
+        UserProfile.objects.create(user=u,
+                                   user_type="DEV",
+                                   create_applications=True)
+
+        x = Crosswalk()
+        x.user = u
+        x.fhir_id = "Patient/23456"
+        x.save()
+
+        result = crosswalk_patient_id(u)
+
+        self.assertEqual(x.fhir_id, result)
+
+        # Test the dt_reference for Patient
+
+        result = dt_patient_reference(u)
+
+        expect = {'reference': x.fhir_id}
+
+        self.assertEqual(result, expect)
+
+    def test_crosswalk_not_fhir_id(self):
+        """ Get no Crosswalk id """
+
+        u = User.objects.create_user(username="bobnobob",
+                                     first_name="bob",
+                                     last_name="Button",
+                                     email='billybob@example.com',
+                                     password="foobar", )
+
+        result = crosswalk_patient_id(u)
+
+        self.assertEqual(result, None)
+
+        # Test the dt_reference for Patient returning None
+
+        result = dt_patient_reference(u)
+
+        self.assertEqual(result, None)

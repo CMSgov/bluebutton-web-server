@@ -1,0 +1,33 @@
+<html>
+    <head>
+        <title>{{ APPLICATION_TITLE }}</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+              <div class="col-lg-12">
+                <h1 class="page-header">Congratulations</h1>
+              </div>
+            </div>
+            
+             <div class="row">
+              <div class="col-lg-12">
+                  You have been invited to join the {{ APPLICATION_TITLE }} community.<br/>
+                  Your invitation code is: <strong>{{ CODE }}</strong>.<br/>
+                  You may now register <a href={{ URL }}?invitation_code={{ CODE }}> using this link</a>.<br/>
+                  Or paste this url into your browser: {{ URL }}?invitation_code={{ CODE }}
+
+                </div>
+              </div>
+            
+            <div class="row">
+              <div class="col-lg-12">
+               <br/>
+               - The {{ APPLICATION_TITLE }} Team
+              </div>
+            </div>
+        </div><!-- /.container -->  
+    </body>
+</html>
+
+

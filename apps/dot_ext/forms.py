@@ -6,7 +6,7 @@ import jwt as jwtl
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
+from collections import OrderedDict
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
@@ -33,7 +33,7 @@ class EndorsementForm(forms.ModelForm):
             msg = _('Invalid JWT.')
             raise forms.ValidationError(msg)
 
-        if isinstance(decoded_payload, dict):
+        if isinstance(decoded_payload, OrderedDict):
             msg = _('Invalid Payload.')
             raise forms.ValidationError(msg)
         # TODO: this part may be removed or updated
@@ -58,8 +58,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     class Meta:
         model = get_application_model()
-        fields = ('scope', 'name', 'client_id', 'client_secret', 'client_type',
-                  'authorization_grant_type', 'redirect_uris')
+        fields = ('scope', 'name', 'client_type', 'authorization_grant_type', 'redirect_uris')
 
     required_css_class = 'required'
 
@@ -67,7 +66,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 class AllowForm(DotAllowForm):
     scope = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
     expires_in = forms.TypedChoiceField(choices=settings.DOT_EXPIRES_IN, coerce=int,
-                                        empty_value=None)
+                                        empty_value=None,
+                                        label="Access to this application expires in")
 
     def __init__(self, *args, **kwargs):
         application = kwargs.pop('application', None)

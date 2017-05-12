@@ -1,0 +1,244 @@
+{
+   "AWSTemplateFormatVersion": "2010-09-09",
+   "Description": "Launch a complete environment with database, two app servers and a load balancer",
+   "Parameters": {
+        "LaunchAz": {
+            "Description": "Availability Zone to Launch in to",
+            "Type": "String",
+            "Default": "az1",
+            "AllowedValues": ["az1", "az2", "az3"]
+        },
+        "AppUser": {
+            "Description": "Pyapps superuser",
+            "Type": "String",
+            "Default": "pyapps"
+        },
+        "AppUserPwd": {
+            "Description": "Pyapps superuser password",
+            "Type": "String",
+            "NoEcho": "True",
+            "Default": "R3s3t_Th1s"
+        },
+        "AppSettings": {
+            "Description": "Application settings file",
+            "Type" :"String",
+            "Default": "settings.base"
+        },
+        "DBPrefix": {
+            "Description": "Prefix for Database Table Name",
+            "Type": "String",
+            "Default": "bb_fe_"
+        },
+        "StackVpcId" : {
+            "Type" : "AWS::EC2::VPC::Id",
+            "Description" : "VpcId of your existing Virtual Private Cloud (VPC)"
+        },
+        "StackTagKeyStack": {
+            "Description": "Application Stack Identifier",
+            "Type": "String",
+            "Default": "dev",
+            "AllowedValues": ["sbx", "prod", "dev", "test", "impl", "tools"]
+        },
+        "InstanceNameVer": {
+            "Description": "Instance Version",
+            "Type" : "String",
+            "Default": "99"
+        },
+        "StackPublicName" : {
+            "Description": "External/Public DNS Name",
+            "Type": "String",
+            "Default": "bluebutton.cms.fhirservice.net"
+        },
+        "StackPrivateName" : {
+            "Description": "Internal/Private host Name",
+            "Type": "String",
+            "Default": "bbinternal.cms.fhirservice.net"
+        },
+        "OutBoundEmail" : {
+            "Description": "External Email Account",
+            "Type": "String",
+            "Default": "admin@api.bbonfhir.com"
+        },
+        "GitRepoBranch": {
+            "Description": "Git Repository branch to deploy [master, develop, other]?",
+            "Type": "String",
+            "Default": "master"
+        },
+        "S3ContentKeyId": {
+            "Description": "Enter the S3 access key ID for pyapps-[TagKeyStack]-content",
+            "Type": "String",
+            "Default": "Replace with S3 AWS key ID"
+        },
+        "S3ContentAccessKey": {
+            "Description": "Enter the S3 secret access key for pyapps-[TagKeyStack]-content",
+            "Type": "String",
+            "Default": "Replace with S3 AWS Key "
+        },
+       "Route53ZoneId": {
+           "Description": "Route53 Zone ID (default is for fhirservice.net.)",
+           "Type": "String",
+           "Default": "Z299EFR02VJ9WE"
+       }
+   },
+   "Resources": {
+       "DataStack01": {
+           "Type": "AWS::CloudFormation::Stack",
+           "Properties": {
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-db-2.json",
+               "Parameters": {
+                   "AZone": {"Ref": "LaunchAz"},
+                   "VpcId": {"Ref": "StackVpcId"},
+                   "DatabaseType": "postgres",
+                   "DatabasePrefix": {"Ref": "DBPrefix"},
+                   "PgsqlServerName": {"Fn::Join": [".",["data1",{"Ref": "StackPrivateName"}] ]},
+                   "PgsqlPassword": {"Ref": "AppUserPwd"},
+                   "TagKeyStack": {"Ref": "StackTagKeyStack"},
+                   "TagKeyLayer": "data",
+                   "InstanceName": {"Fn::Join": ["-",["bb",{"Ref": "StackTagKeyStack"},"data", "postgres", {"Ref": "InstanceNameVer"} ] ]}
+               },
+               "Tags": [
+                   {"Key": "business",
+                    "Value": "OEDA"
+                   },
+                   {"Key": "application",
+                    "Value": "bluebutton"
+                   },
+                   {"Key": "environment",
+                    "Value": {"Ref": "StackTagKeyStack"}
+                   }
+               ],
+               "TimeoutInMinutes": "20"
+           }
+       },
+       "AppStack01": {
+           "Type": "AWS::CloudFormation::Stack",
+           "Properties": {
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-pyapps-postgres-2.json",
+               "Parameters": {
+                  "AZone": {"Ref": "LaunchAz"},
+                  "AwsContentKeyId": {"Ref": "S3ContentKeyId"},
+                  "AwsContentAccessKey": {"Ref": "S3ContentAccessKey"},
+                  "TargetVpcId": {"Ref": "StackVpcId"},
+                  "TagKeyStack": {"Ref": "StackTagKeyStack"},
+                  "DatabaseHostAddress" : { "Fn::GetAtt" : [ "DataStack01", "Outputs.DBPrivateIp" ]
+                  },
+                  "DatabaseType":  { "Fn::GetAtt" : [ "DataStack01", "Outputs.DBType" ]
+                  },
+                  "pyDbUser":  { "Fn::GetAtt" : [ "DataStack01", "Outputs.DBUser" ]
+                  },
+                  "pyDbPassword":  { "Fn::GetAtt" : [ "DataStack01", "Outputs.DBPwd" ]
+                  },
+                  "DatabasePrefix": {"Ref": "DBPrefix"},
+                  "HerdMember": "LEADER",
+                  "PyRepoBranch" : {"Ref": "GitRepoBranch" },
+                  "pyappsemail": {"Ref": "OutBoundEmail"},
+                  "pyappsUser": {"Ref": "AppUser"},
+                  "pyappsPassword": {"Ref": "AppUserPwd"},
+                  "PyAppSettings": {"Ref": "AppSettings"},
+                  "PyServerName": {"Fn::Join": [".",["lead",{"Ref": "StackPrivateName"}] ]},
+                  "TagKeyLayer": "app",
+                  "PublicServerName" : {"Ref": "StackPublicName"},
+                  "InstanceName": {"Fn::Join": ["-",["bb",{"Ref": "StackTagKeyStack"},"app", "pyapps-lead", {"Ref": "InstanceNameVer"} ] ]}
+               },
+               "Tags": [
+                   {"Key": "business",
+                    "Value": "OEDA"
+                   },
+                   {"Key": "application",
+                    "Value": "bluebutton"
+                   },
+                   {"Key": "environment",
+                    "Value": {"Ref": "StackTagKeyStack"}
+                   }
+               ],
+               "TimeoutInMinutes": "30"
+           }
+       },
+       "AppStack02": {
+           "Type": "AWS::CloudFormation::Stack",
+           "Properties": {
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-pyapps-postgres-2.json",
+               "Parameters": {
+                  "AZone": {"Ref": "LaunchAz"},
+                  "AwsContentKeyId": {"Ref": "S3ContentKeyId"},
+                  "AwsContentAccessKey": {"Ref": "S3ContentAccessKey"},
+                  "TargetVpcId": {"Ref": "StackVpcId"},
+                  "TagKeyStack": {"Ref": "StackTagKeyStack"},
+                  "DatabaseHostAddress" : { "Fn::GetAtt" : [ "DataStack01", "Outputs.DBPrivateIp" ]
+                  },
+                  "DatabaseType":  { "Fn::GetAtt" : [ "DataStack01", "Outputs.DBType" ]
+                  },
+                  "pyDbUser":  { "Fn::GetAtt" : [ "DataStack01", "Outputs.DBUser" ]
+                  },
+                  "pyDbPassword":  { "Fn::GetAtt" : [ "DataStack01", "Outputs.DBPwd" ]
+                  },
+                  "DatabasePrefix": {"Ref": "DBPrefix"},
+                  "HerdMember": "FOLLOW",
+                  "PyRepoBranch" : {"Ref": "GitRepoBranch" },
+                  "pyappsemail": {"Ref": "OutBoundEmail"},
+                  "pyappsUser": {"Ref": "AppUser"},
+                  "pyappsPassword": {"Ref": "AppUserPwd"},
+                  "PyAppSettings": {"Ref": "AppSettings"},
+                  "PyServerName": {"Fn::Join": [".",["follow1",{"Ref": "StackPrivateName"}] ]},
+                  "TagKeyLayer": "app",
+                  "PublicServerName" : {"Ref": "StackPublicName"},
+                  "InstanceName": {"Fn::Join": ["-",["bb",{"Ref": "StackTagKeyStack"},"app", "pyapps-follow", {"Ref": "InstanceNameVer"} ] ]}
+               },
+               "Tags": [
+                   {"Key": "business",
+                    "Value": "OEDA"
+                   },
+                   {"Key": "application",
+                    "Value": "bluebutton"
+                   },
+                   {"Key": "environment",
+                    "Value": {"Ref": "StackTagKeyStack"}
+                   }
+               ],
+               "TimeoutInMinutes": "30"
+           }
+       },
+       "BalancerStack01": {
+           "Type": "AWS::CloudFormation::Stack",
+           "Properties": {
+               "TemplateURL": "https://s3.amazonaws.com/aws-bluebutton-all-env-templates/v2/vpc-pickenv-fe-lb-2.json",
+               "Parameters": {
+                  "Route53KeyId": {"Ref": "S3ContentKeyId"},
+                  "Route53AccessKey": {"Ref": "S3ContentAccessKey"},
+                  "Route53Zone": {"Ref": "Route53ZoneId"},
+                  "AZone": {"Ref": "LaunchAz"},
+                  "TargetVpcId": {"Ref": "StackVpcId"},
+                  "TagKeyStack": {"Ref": "StackTagKeyStack"},
+                  "AppServerIp01": {"Fn::GetAtt" : [ "AppStack01", "Outputs.AppPrivateIp"] },
+                  "AppServerIp02": {"Fn::GetAtt" : [ "AppStack02", "Outputs.AppPrivateIp"] },
+                  "TagKeyLayer": "dmz",
+                  "LBServerName" : {"Ref": "StackPublicName"},
+                  "LBMaster": {"Ref": "AppUser"},
+                  "LBPassword": {"Ref": "AppUserPwd"},
+                  "pyappsemail": {"Ref": "OutBoundEmail"},
+                  "InstanceName": {"Fn::Join": ["-",["bb",{"Ref": "StackTagKeyStack"},"dmz", "loadbalancer", {"Ref": "InstanceNameVer"} ] ]}
+               },
+               "Tags": [
+                   {"Key": "business",
+                    "Value": "OEDA"
+                   },
+                   {"Key": "application",
+                    "Value": "bluebutton"
+                   },
+                   {"Key": "environment",
+                    "Value": {"Ref": "StackTagKeyStack"}
+                   }
+               ],
+               "TimeoutInMinutes": "20"
+           }
+       }
+   },
+   "Outputs": {
+       "StackRef": {
+           "Value": { "Ref": "BalancerStack01" }
+       },
+       "OutputFromNestedStack": {
+           "Value": { "Fn::GetAtt": [ "BalancerStack01", "Outputs.LbEcPublicIp" ]}
+       }
+   }
+}

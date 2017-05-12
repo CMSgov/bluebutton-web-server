@@ -1,0 +1,1265 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Full Deployment Script to choose environment, build FIPS140.2 Database Server",
+  "Metadata": {
+    "AWS::CloudFormation::Designer": {
+      "25af43bb-a438-4ab1-95f3-a75ccb55a8e0": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 400,
+          "y": 150
+        },
+        "z": 0,
+        "embeds": [],
+        "ismemberof": [
+          "c3783791-0069-4324-8453-123708403b5f"
+        ]
+      },
+      "ccaf1f4f-226d-426c-98dd-2d40c521faac": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 407.1666666666667,
+          "y": 54.666666666666664
+        },
+        "z": 0,
+        "embeds": [],
+        "ismemberof": [
+          "c3783791-0069-4324-8453-123708403b5f"
+        ]
+      },
+      "c3783791-0069-4324-8453-123708403b5f": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 310,
+          "y": 30
+        },
+        "z": 0,
+        "embeds": []
+      },
+      "edac4598-f770-4f35-afca-37b85d0499f3": {
+        "source": {
+          "id": "ccaf1f4f-226d-426c-98dd-2d40c521faac"
+        },
+        "target": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "z": 1
+      },
+      "8af86a4e-f1e7-4e5d-92cb-0acef1900f7f": {
+        "source": {
+          "id": "25af43bb-a438-4ab1-95f3-a75ccb55a8e0"
+        },
+        "target": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "z": 11
+      },
+      "45524452-309f-4038-bca6-5a7a5f01df22": {
+        "source": {
+          "id": "25af43bb-a438-4ab1-95f3-a75ccb55a8e0"
+        },
+        "target": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "z": 1
+      },
+      "e82b4266-5a0d-480d-a8fb-1dc01afd5599": {
+        "source": {
+          "id": "ccaf1f4f-226d-426c-98dd-2d40c521faac"
+        },
+        "target": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "z": 2
+      },
+      "8c7ca01e-c682-4ff0-bdde-06b7e176e7c5": {
+        "source": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "target": {
+          "id": "65ce014a-b543-4f02-b13d-7065981f348d"
+        },
+        "z": 3
+      }
+    }
+  },
+  "Mappings": {
+      "AWSInstanceType2Arch": {
+          "t2.medium": {
+              "Arch": "HVM"
+          },
+          "m3.medium": {
+              "Arch": "HVM"
+          },
+          "m3.large": {
+              "Arch": "HVM"
+          },
+          "m3.xlarge": {
+              "Arch": "HVM"
+          },
+          "m3.2xlarge": {
+              "Arch": "HVM"
+          },
+          "c3.large": {
+              "Arch": "HVM"
+          },
+          "c3.xlarge": {
+              "Arch": "HVM"
+          },
+          "c3.2xlarge": {
+              "Arch": "HVM"
+          },
+          "c3.4xlarge": {
+              "Arch": "HVM"
+          },
+          "c3.8xlarge": {
+              "Arch": "HVM"
+          },
+          "r3.large": {
+              "Arch": "HVM"
+          },
+          "r3.xlarge": {
+              "Arch": "HVM"
+          },
+          "r3.2xlarge": {
+              "Arch": "HVM"
+          },
+          "r3.4xlarge": {
+              "Arch": "HVM"
+          },
+          "r3.8xlarge": {
+              "Arch": "HVM"
+          },
+          "i2.xlarge": {
+              "Arch": "HVM"
+          },
+          "i2.2xlarge": {
+              "Arch": "HVM"
+          },
+          "i2.4xlarge": {
+              "Arch": "HVM"
+          },
+          "i2.8xlarge": {
+              "Arch": "HVM"
+          },
+          "hi1.4xlarge": {
+              "Arch": "HVM"
+          },
+          "hs1.8xlarge": {
+              "Arch": "HVM"
+          },
+          "cr1.8xlarge": {
+              "Arch": "HVM"
+          },
+          "cc2.8xlarge": {
+              "Arch": "HVM"
+          }
+      },
+      "AWSRegionArch2AMI": {
+          "us-east-1": {
+              "HVM": "ami-f070abe6"
+          },
+          "us-east-1a": {
+              "HVM": "ami-f070abe6"
+          },
+          "us-east-1b": {
+              "HVM": "ami-f070abe6"
+          },
+          "us-east-1c": {
+              "HVM": "ami-f070abe6"
+          }
+      },
+      "VPCEnvironment": {
+          "us-east-1": {
+              "dev": "vpc-80bdc3e7",
+              "test": "vpc-5d5a163a",
+              "impl": "vpc-5fd4de38",
+              "prod": "vpc-9b3fc9fd"
+          }
+      },
+      "StackZone": {
+          "dev": {
+              "az1": "dev-az1",
+              "az2": "dev-az2",
+              "az3": "dev-az3"
+          },
+          "impl": {
+              "az1": "impl-az1",
+              "az2": "impl-az2",
+              "az3": "impl-az3"
+          },
+          "prod": {
+              "az1": "prod-az1",
+              "az2": "prod-az2",
+              "az3": "prod-az3"
+          },
+          "test": {
+              "az1": "test-az1",
+              "az2": "test-az2",
+              "az3": "test-az3"
+          }
+      },
+      "EnvLayer": {
+          "dev-az1": {
+              "dmz": "10.224.78.144/28",
+              "web": "10.224.78.0/28",
+              "app": "10.224.78.48/28",
+              "data": "10.224.78.96/28",
+              "mgmt": "10.224.78.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "dev-az2": {
+              "dmz": "10.224.78.160/28",
+              "web": "10.224.78.16/28",
+              "app": "10.224.78.64/28",
+              "data": "10.224.78.112/28",
+              "mgmt": "10.224.78.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "dev-az3": {
+              "dmz": "10.224.78.176/28",
+              "web": "10.224.78.32/28",
+              "app": "10.224.78.80/28",
+              "data": "10.224.78.128/28",
+              "mgmt": "10.224.78.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "impl-az1": {
+              "dmz": "10.246.44.144/28",
+              "web": "10.246.44.0/28",
+              "app": "10.246.44.48/28",
+              "data": "10.246.44.96/28",
+              "mgmt": "10.246.44.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "impl-az2": {
+              "dmz": "10.246.44.160/28",
+              "web": "10.246.44.16/28",
+              "app": "10.246.44.64/28",
+              "data": "10.246.44.112/28",
+              "mgmt": "10.246.44.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "impl-az3": {
+              "dmz": "10.246.44.176/28",
+              "web": "10.246.44.32/28",
+              "app": "10.246.44.80/28",
+              "data": "10.246.44.128/28",
+              "mgmt": "10.246.44.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "prod-az1": {
+              "dmz": "10.244.44.144/28",
+              "web": "10.244.44.0/28",
+              "app": "10.244.44.48/28",
+              "data": "10.244.44.96/28",
+              "mgmt": "10.244.44.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "prod-az2": {
+              "dmz": "10.244.44.160/28",
+              "web": "10.244.44.16/28",
+              "app": "10.244.44.64/28",
+              "data": "10.244.44.112/28",
+              "mgmt": "10.244.44.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "prod-az3": {
+              "dmz": "10.244.44.176/28",
+              "web": "10.244.44.32/28",
+              "app": "10.244.44.80/28",
+              "data": "10.244.44.128/28",
+              "mgmt": "10.244.44.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "test-az1": {
+              "dmz": "10.224.90.144/28",
+              "web": "10.224.90.0/28",
+              "app": "10.224.90.48/28",
+              "data": "10.224.90.96/28",
+              "mgmt": "10.224.90.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "test-az2": {
+              "dmz": "10.224.90.160/28",
+              "web": "10.224.90.16/28",
+              "app": "10.224.90.64/28",
+              "data": "10.224.90.112/28",
+              "mgmt": "10.224.90.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          },
+          "test-az3": {
+              "dmz": "10.224.90.176/28",
+              "web": "10.224.90.32/28",
+              "app": "10.224.90.80/28",
+              "data": "10.224.90.128/28",
+              "mgmt": "10.224.90.192/26",
+              "ocss1": "10.128.11.0/24",
+              "ocss2": "10.128.111.0/24"
+          }
+      },
+      "EnvSubNetIdAz": {
+          "dev-az1": {
+              "dmz": "subnet-82ecfba8",
+              "web": "subnet-8decfba7",
+              "app": "subnet-80ecfbaa",
+              "data": "subnet-8cecfba6"
+          },
+          "dev-az2": {
+              "dmz": "subnet-228e486b",
+              "web": "subnet-208e4869",
+              "app": "subnet-2f8e4866",
+              "data": "subnet-2e8e4867"
+          },
+          "dev-az3": {
+              "dmz": "subnet-79bca821",
+              "web": "subnet-7cbca824",
+              "app": "subnet-47bca81f",
+              "data": "subnet-7bbca823"
+          },
+          "impl-az1": {
+              "dmz": "subnet-b8a17d95",
+              "web": "subnet-b9a17d94",
+              "app": "subnet-bfa17d92",
+              "data": "subnet-b4a17d99"
+          },
+          "impl-az2": {
+              "dmz": "subnet-5535b91c",
+              "web": "subnet-5e35b917",
+              "app": "subnet-5335b91a",
+              "data": "subnet-5c35b915"
+          },
+          "impl-az3": {
+              "dmz": "subnet-860adadd",
+              "web": "subnet-bb0adae0",
+              "app": "subnet-ba0adae1",
+              "data": "subnet-850adade"
+          },
+          "prod-az1": {
+              "dmz": "subnet-c8a91be5",
+              "web": "subnet-cea91be3",
+              "app": "subnet-cba91be6",
+              "data": "subnet-c9a91be4"
+          },
+          "prod-az2": {
+              "dmz": "subnet-a2305deb",
+              "web": "subnet-a3305dea",
+              "app": "subnet-af305de6",
+              "data": "subnet-a0305de9"
+          },
+          "prod-az3": {
+              "dmz": "subnet-1a219641",
+              "web": "subnet-1e219645",
+              "app": "subnet-1f219644",
+              "data": "subnet-19219642"
+          },
+          "test-az1": {
+              "dmz": "subnet-a3d9c289",
+              "web": "subnet-acd9c286",
+              "app": "subnet-a0d9c28a",
+              "data": "subnet-a1d9c28b"
+          },
+          "test-az2": {
+              "dmz": "subnet-9b69a2d2",
+              "web": "subnet-9a69a2d3",
+              "app": "subnet-9d69a2d4",
+              "data": "subnet-9e69a2d7"
+          },
+          "test-az3": {
+              "dmz": "subnet-ac667ef4",
+              "web": "subnet-ae667ef6",
+              "app": "subnet-ad667ef5",
+              "data": "subnet-af667ef7"
+          }
+      },
+      "MapZone": {
+          "az1": {
+              "EbsZone": "us-east-1a"},
+          "az2": {
+              "EbsZone": "us-east-1b"},
+          "az3": {
+              "EbsZone": "us-east-1c"}
+      },
+      "DBType": {
+          "postgres": {
+              "DbLinkUrl": "postgres",
+              "DbEngineDriver": "django.db.backends.postgresql_psycopg2",
+              "DbNameTable": "pg_01",
+              "DbHostPort": "5432"
+          },
+          "mysql": {
+              "DbLinkUrl": "mysql",
+              "DbEngineDriver": "django.db.backends.mysql",
+              "DbNameTable": "mysql_01",
+              "DbHostPort": "3306"
+          }
+      }
+  },
+  "Parameters": {
+     "AZone": {
+         "Type": "String",
+         "Description": "Launch into Availability Zone",
+         "Default": "az1"
+     },
+     "BuildImageId": {
+        "Type": "String",
+         "Description": "HVM Image",
+         "Default": "ami-f070abe6"
+     },
+     "InstanceName" : {
+        "Description" : "Easily recognizable name in the EC2 Instance List",
+        "Type" : "String",
+        "Default" : "Change_this_name_to_Something_unique"
+     },
+     "DatabaseType": {
+       "Description": "Backend Database Platform",
+       "Type": "String",
+       "Default": "postgres",
+       "AllowedValues": ["postgres", "mysql"]
+     },
+     "DatabasePrefix": {
+       "Description": "Prefix for Database Table Name",
+       "Type" : "String",
+       "Default": "bb_fe_"
+     },
+     "TagKeyStack": {
+         "Description": "Application Stack Identifier",
+         "Type": "String",
+         "Default": "dev",
+         "AllowedValues": ["dev", "test", "impl", "prod", "sbx", "tools"]
+     },
+     "TagKeyLayer": {
+          "Description": "Application Layer Identifier",
+          "Type": "String",
+          "Default": "app",
+          "AllowedValues": ["dmz", "web", "app", "data", "mgmt", "nat", "jump", "tools"]
+     },
+     "KeyName": {
+      "Description": "EC2 KeyPair for SSH access to instance",
+      "Type": "String",
+      "Default": "cms_bluebutton_fe_dev",
+      "AllowedValues": [
+        "cms_bluebutton_fe_dev"
+      ]
+    },
+     "InstanceType": {
+      "Description": "RHEL Linux EC2 instance type",
+      "Type": "String",
+      "Default": "m3.medium",
+      "AllowedValues": [
+        "t2.medium",
+        "m3.medium",
+        "m3.large",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "c3.large",
+        "c3.xlarge",
+        "c3.2xlarge",
+        "c3.4xlarge",
+        "c3.8xlarge",
+        "r3.large",
+        "r3.xlarge",
+        "r3.2xlarge",
+        "r3.4xlarge",
+        "r3.8xlarge",
+        "i2.xlarge",
+        "i2.2xlarge",
+        "i2.4xlarge",
+        "i2.8xlarge",
+        "hi1.4xlarge",
+        "hs1.8xlarge",
+        "cr1.8xlarge",
+        "cc2.8xlarge"
+      ],
+      "ConstraintDescription": "Must be a valid EC2 instance type"
+    },
+     "PgsqlServerName" : {
+      "Description": "Linux Server (DNS) Name (Make Unique) prefix environment unless production",
+      "Type": "String",
+      "Default": "api.bbonfhir.com"
+    },
+     "PyAppHome": {
+       "Description": "Python App Home Base Path",
+       "Type": "String",
+       "Default": "/var/pyapps/hhs_o_server"
+     },
+     "PgsqlMaster" : {
+       "Description": "PostgreSQL superuser",
+       "Type": "String",
+       "Default": "pymaster"
+     },
+     "pyappsemail" : {
+       "Description": "Pyapps superuser email",
+       "Type": "String",
+       "Default": "admin@api.bbonfhir.com"
+     },
+     "PgsqlPassword" : {
+       "Description": "PostgreSQL password",
+       "Type": "String",
+       "Default": "R3s3t_Th1s"
+     },
+     "VpcId" : {
+       "Type" : "AWS::EC2::VPC::Id",
+       "Description" : "VpcId of your existing Virtual Private Cloud (VPC)"
+     }
+  },
+  "Resources": {
+    "EC2S3Role" : {
+          "Type" : "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+               "Version" : "2012-10-17",
+               "Statement": [ {
+                  "Effect": "Allow",
+                  "Principal": {
+                     "Service": [ "ec2.amazonaws.com" ]
+                  },
+                  "Action": [ "sts:AssumeRole" ]
+               } ]
+            },
+            "Path": "/",
+			"Policies": [ {
+             "PolicyName": "S3Policy",
+             "PolicyDocument" : {
+						"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": "s3:*",
+							"Resource": "*"
+						}
+					]
+				}
+			} ]
+		  }
+    },
+    "EC2S3RoleProfile": {
+         "Type": "AWS::IAM::InstanceProfile",
+         "Properties": {
+           "Path": "/",
+           "Roles": [
+             {
+               "Ref": "EC2S3Role"
+             }
+           ]
+         }
+    },
+    "DbEc2SecurityGrp": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {"Fn::FindInMap": ["VPCEnvironment",
+                                    "us-east-1",
+                                    {"Ref": "TagKeyStack"}
+                                   ]
+        },
+        "GroupDescription": "Data Layer: Enable SSH and access to Postgres",
+        "Tags": [
+            {
+                  "Key": "Name",
+                  "Value": {
+                      "Ref": "InstanceName"
+                  }
+              },
+            {
+                "Key": "Environment",
+                "Value": {
+                    "Ref": "TagKeyStack"
+                }
+            },
+            {
+                "Key": "Layer",
+                "Value": {
+                    "Ref": "TagKeyLayer"
+                }
+            },
+            {
+                "Key": "AvailZone",
+                "Value": {
+                    "Ref": "AZone"
+                }
+            }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "app"
+                                        ]
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "mgmt"
+                                        ]
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "app"
+                                        ]
+            }
+          },
+          {
+            "CidrIp": "10.251.0.0/16",
+            "IpProtocol": "-1"
+          },
+          {
+            "CidrIp": "10.252.0.0/16",
+            "IpProtocol": "-1"
+          },
+          {
+            "IpProtocol": "-1",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "ocss2"
+                                        ]
+            }
+          },
+          {
+            "IpProtocol": "-1",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "ocss1"
+                                        ]
+            }
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "app"
+                                        ]
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "mgmt"
+                                        ]
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "app"
+                                        ]
+            }
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "IpProtocol": "-1"
+          },
+          {
+            "IpProtocol": "-1",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "ocss1"
+                                        ]
+            }
+          },
+          {
+            "IpProtocol": "-1",
+            "CidrIp": {"Fn::FindInMap": ["EnvLayer",
+                                         {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                         "ocss2"
+                                        ]
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        }
+      }
+    },
+    "myENI" : {
+         "Type" : "AWS::EC2::NetworkInterface",
+         "Properties" : {
+            "Tags": [{"Key":"Layer","Value":"DMZ"}],
+            "Description": "Get a network interface in the right subnet and VPC.",
+            "SourceDestCheck": "false",
+            "SubnetId": {"Fn::FindInMap": [ "EnvSubNetIdAz",
+                                            {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                            {"Ref": "TagKeyLayer"}
+                                          ]
+            }
+         }
+    },
+    "DbEcInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Metadata": {
+       "AWS::CloudFormation::Designer": {
+          "id": "25af43bb-a438-4ab1-95f3-a75ccb55a8e0"
+        },
+        "AWS::CloudFormation::Init": {
+          "configSets": {
+            "Install": [
+              "Install"
+            ]
+          },
+          "Install": {
+            "packages": {
+              "yum": {
+                "gcc": [],
+                "gcc-c++": [],
+                "httpd": [],
+                "httpd-devel": [],
+                "zlib-devel": [],
+                "bzip2-devel": [],
+                "mod_wsgi": [],
+                "openssl-devel": [],
+                "ncurses-devel": [],
+                "sqlite-devel": [],
+                "readline-devel": [],
+                "tk-devel": [],
+                "gdbm-devel": [],
+                "db4-devel": [],
+                "libpcap-devel": [],
+                "xz-devel": [],
+                "git": [],
+                "libxml2-devel": [],
+                "libxslt-devel": []
+              }
+            },
+            "groups": {
+              "apache": {"gid": "48"}
+            },
+            "users" : {
+              "pyapps": {
+                "groups" : ["apache"],
+                "uid" : "501",
+                "homeDir" : "/home/pyapps"
+              }
+            }
+          }
+        }
+      },
+      "Properties": {
+          "ImageId": {
+              "Ref": "BuildImageId"
+          },
+
+          "IamInstanceProfile": {
+              "Ref": "EC2S3RoleProfile"
+          },
+          "InstanceType": {
+              "Ref": "InstanceType"
+          },
+          "KeyName": {
+              "Ref": "KeyName"
+          },
+          "SecurityGroupIds" : [{"Ref": "DbEc2SecurityGrp"}],
+          "SubnetId" : {"Fn::FindInMap": ["EnvSubNetIdAz",
+                                          {"Fn::FindInMap": ["StackZone",
+                                                            {"Ref": "TagKeyStack"},
+                                                            {"Ref": "AZone"}]},
+                                          {"Ref": "TagKeyLayer"}
+                                         ]
+          },
+          "Volumes" : [
+                { "VolumeId" : { "Ref" : "EBSVolume" }, "Device" : "/dev/sdb" }],
+          "Tags": [
+              {
+                  "Key": "Name",
+                  "Value": {
+                      "Ref": "InstanceName"
+                  }
+              },
+              {
+                  "Key": "business",
+                  "Value": "oeda"
+              },
+              {
+                  "Key": "application",
+                  "Value": "bluebutton"
+              },
+              {
+                  "Key": "stack",
+                  "Value": {
+                      "Ref": "TagKeyStack"
+                  }
+              },
+              {
+                  "Key": "layer",
+                  "Value": {
+                      "Ref": "TagKeyLayer"
+                  }
+              }
+          ],
+          "Tenancy": "dedicated",
+          "UserData": {
+              "Fn::Base64": {
+                  "Fn::Join": [
+                      "",
+                      [
+                          "#!/bin/bash -ex",
+                          "\n",
+                          "export BUILD_LOG=/home/ec2-user/build_status.log \n",
+                          "hostname ",
+                          {
+                              "Ref": "PgsqlServerName"
+                          },
+                          " >$BUILD_LOG \n",
+                          "echo 'Hostname configured: ",
+                          {
+                              "Ref": "PgsqlServerName"
+                          },
+                          "' >>$BUILD_LOG \n",
+
+                          "# Splunk name setup \n",
+                          "export SPLUNK_LC_NAME=bbapi-",{"Ref":"TagKeyStack"},"-",{"Ref": "TagKeyLayer"}," \n",
+                          "export SPLUNK_APP_REF=${SPLUNK_LC_NAME^^} \n",
+                          "echo Splunk Ref:$SPLUNK_LC_NAME / $SPLUNK_APP_REF  >>$BUILD_LOG \n",
+                          "export SPLUNK_CONF=/opt/splunkforwarder/etc/system/local/deploymentclient.conf \n",
+                          "sed -i 's@REPLACE-WITH-APP-NAME@'$SPLUNK_APP_REF'@'  $SPLUNK_CONF \n",
+
+                          "su - splunk -c \"/opt/splunkforwarder/bin/splunk restart\" \n",
+
+                          "# get the FIPS 140-2 setup \n",
+                          "cat /root/fips_140_2_update.log >>$BUILD_LOG \n",
+
+                          "mkdir -p /home/ec2-user/script \n",
+                          "chown -R ec2-user:root /home/ec2-user/script \n",
+                          "echo 'configure rhn for postgresql'  >>$BUILD_LOG \n",
+                          "echo 'exclude=postgresql*' >>/etc/yum/pluginconf.d/rhnplugin.conf \n",
+                          "echo 'Install Postgresql'  >>$BUILD_LOG \n",
+                          "yum install -y  https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/pgdg-redhat96-9.6-3.noarch.rpm \n",
+                          "yum install -y postgresql96-server \n",
+                          "# yum install -y  https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-6-x86_64/postgresql96-contrib-9.6.1-1PGDG.rhel6.x86_64.rpm \n",
+                          "export PGDATA=/data/pgsql/9.6/data \n",
+
+                          "echo '# Prepare the external drive' >>$BUILD_LOG \n",
+                          "export EXT_AWS_BLK=xvdb \n",
+                          "mkfs -t ext4 /dev/$EXT_AWS_BLK \n",
+                          "mkdir -p /data \n",
+                          "mount /dev/$EXT_AWS_BLK /data \n",
+                          "rm -f /etc/fstab.orig \n",
+                          "cp /etc/fstab /etc/fstab.orig \n",
+                          "file -s /dev/$EXT_AWS_BLK \n",
+                          "echo '# Replace uuid with correct value' >>$BUILD_LOG \n",
+                          "echo '# Mount the data block device' \n",
+                          "export EXT_AWS_UUID=$(ls -al /dev/disk/by-uuid/ | grep xvdb | awk -F: '$0=$2'| cut -d\" \" -f2)\n",
+                          "echo EBS: Using $EXT_AWS_BLK with UUID: $EXT_AWS_UUID >>$BUILD_LOG \n",
+                          "echo $EXT_AWS_UUID   /data  ext4 defaults,nofail    0  2 >>/etc/fstab \n",
+
+                          "export PGDATA=/data/pgsql/9.6/data \n",
+                          "mkdir -p $PGDATA \n",
+
+                          "chown -R postgres:postgres /data \n",
+
+                          "export PG_TEMP_DIR=/data/pgbackup \n",
+                          "mkdir -p $PG_TEMP_DIR \n",
+                          "chown postgres:postgres $PG_TEMP_DIR \n",
+
+                          "echo '# initialize database in $PGDATA' >>$BUILD_LOG \n",
+                          "cp /etc/init.d/postgresql-9.6 /home/ec2-user \n",
+                          "echo '# change default PGDATA variable in startup script' >>$BUILD_LOG \n",
+                          "sed -i 's@var\/lib\/pgsql\/9.6\/data@data\/pgsql\/9.6\/data@' /etc/init.d/postgresql-9.6\n",
+                          "service postgresql-9.6 initdb \n",
+                          "echo '# configure postgresql to start on OS boot' >>$BUILD_LOG \n",
+                          "chkconfig postgresql-9.6 on \n",
+
+                          "echo '# configure postgresql to listen on ip addresses' >>$BUILD_LOG \n",
+                          "echo '# ' >>$PGDATA/postgresql.conf \n",
+                          "echo '#------------------------------- ' >>$PGDATA/postgresql.conf \n",
+                          "echo '# LISTEN ON EXTERNAL PORTS' >>$PGDATA/postgresql.conf \n",
+                          "echo '#------------------------------- ' >>$PGDATA/postgresql.conf \n",
+                          "echo ' ' >>$PGDATA/postgresql.conf \n",
+
+                          "# workaround because single quotes are a problem \n",
+                          "cat $PGDATA/postgresql.conf | grep listen_addresses >>$PGDATA/append_postgresql.conf \n",
+
+                          "sed -i 's@localhost@*@' $PGDATA/append_postgresql.conf \n",
+                          "sed -i 's@#listen_addresses@listen_addresses@' $PGDATA/append_postgresql.conf \n",
+                          "cat $PGDATA/append_postgresql.conf >>$PGDATA/postgresql.conf \n",
+
+                          "echo '# configure postgresql to allow external access' >>$BUILD_LOG \n",
+                          "echo '# ' >>$PGDATA/pg_hba.conf \n",
+                          "echo '#------------------------------- ' >>$PGDATA/pg_hba.conf \n",
+                          "echo '# LISTEN ON EXTERNAL PORTS:",
+                          {"Ref": "TagKeyStack"}, ":", {"Ref": "TagKeyLayer"},
+
+                          {"Fn::FindInMap": ["EnvLayer",
+                                             {"Fn::FindInMap": ["StackZone",
+                                                                {"Ref": "TagKeyStack"},
+                                                                {"Ref": "AZone"}]},
+                                             {"Ref": "TagKeyLayer"}]},
+
+                          "' >>$PGDATA/pg_hba.conf \n",
+                          "echo '#------------------------------- ' >>$PGDATA/pg_hba.conf \n",
+                          "echo ' ' >>$PGDATA/pg_hba.conf \n",
+                          "echo 'host    all    all    ",
+
+                          {"Fn::FindInMap": ["EnvLayer",
+                                             {"Fn::FindInMap": ["StackZone",
+                                                                {"Ref": "TagKeyStack"},
+                                                                {"Ref": "AZone"}]},
+                                             {"Ref": "TagKeyLayer"}]},
+
+                          "    password ' >>$PGDATA/pg_hba.conf \n",
+                          "echo 'host    all    all    ",
+
+                          {"Fn::FindInMap": ["EnvLayer",
+                                             {"Fn::FindInMap": ["StackZone",
+                                                                {"Ref": "TagKeyStack"},
+                                                                {"Ref": "AZone"}]},
+                                             "app"]},
+                          "    password ' >>$PGDATA/pg_hba.conf \n",
+
+                          "echo '# start postgresql'  >>$BUILD_LOG \n",
+                          "service postgresql-9.6 start \n",
+
+                          "echo '# Initialize database for Django app' >>$BUILD_LOG \n",
+                          "export PG_INIT_SCRIPT=$PGDATA/django_init.sql \n",
+
+                          "echo '# create SQL Script' >>$BUILD_LOG \n",
+                          "cp $PGDATA/append_postgresql.conf $PGDATA/script_quote.txt \n",
+                          "sed -i 's@listen_addresses =@PRE_TEXT_PLACE@' $PGDATA/script_quote.txt \n",
+                          "sed -i 's@#.*@POST_TEXT_PLACE@' $PGDATA/script_quote.txt \n",
+                          "sed -i 's@*@INSIDE_QUOTE_PLACE@' $PGDATA/script_quote.txt \n",
+                          "# we now have a text file we can use that has quotes \n",
+
+                          "echo 'CREATE DATABASE DB_NAME_TABLE;' >>$PG_INIT_SCRIPT \n",
+                          "cat $PGDATA/script_quote.txt >>$PG_INIT_SCRIPT \n",
+                          "sed -i 's@PRE_TEXT_PLACE@CREATE USER DB_USER_NAME WITH PASSWORD @' $PG_INIT_SCRIPT \n",
+                          "sed -i 's@INSIDE_QUOTE_PLACE@DB_USER_PWD@'  $PG_INIT_SCRIPT \n",
+                          "sed -i 's@POST_TEXT_PLACE@ ; @'  $PG_INIT_SCRIPT \n",
+
+                          "cat $PGDATA/script_quote.txt >>$PG_INIT_SCRIPT \n",
+                          "sed -i 's@PRE_TEXT_PLACE@ALTER ROLE DB_USER_NAME SET client_encoding TO @' $PG_INIT_SCRIPT \n",
+                          "sed -i 's@INSIDE_QUOTE_PLACE@utf8@'  $PG_INIT_SCRIPT \n",
+                          "sed -i 's@POST_TEXT_PLACE@ ; @'  $PG_INIT_SCRIPT \n",
+
+                          "cat $PGDATA/script_quote.txt >>$PG_INIT_SCRIPT \n",
+                          "sed -i 's@PRE_TEXT_PLACE@ALTER ROLE DB_USER_NAME SET default_transaction_isolation TO @' $PG_INIT_SCRIPT \n",
+                          "sed -i 's@INSIDE_QUOTE_PLACE@read committed@'  $PG_INIT_SCRIPT \n",
+                          "sed -i 's@POST_TEXT_PLACE@ ; @'  $PG_INIT_SCRIPT \n",
+
+                          "echo 'ALTER ROLE DB_USER_NAME SET timezone to UTC ;' >>$PG_INIT_SCRIPT \n",
+                          "echo 'GRANT ALL PRIVILEGES ON DATABASE DB_NAME_TABLE to DB_USER_NAME;' >>$PG_INIT_SCRIPT \n",
+
+                          "echo '# replace parameters in #PG_INIT_SCRIPT' >>$BUILD_LOG \n",
+                          "sed -i 's@DB_USER_NAME@",
+                          {"Ref": "PgsqlMaster"},
+                          "@'  $PG_INIT_SCRIPT \n",
+                          "sed -i 's@DB_NAME_TABLE@",
+                          {"Ref": "DatabasePrefix"},
+                          {"Ref": "TagKeyStack"},
+                          "_",
+                          {"Fn::FindInMap" : ["DBType",
+                                              {"Ref": "DatabaseType"},
+                                              "DbNameTable" ]},
+                          "@'  $PG_INIT_SCRIPT \n",
+                          "sed -i 's@DB_USER_PWD@",
+                          {"Ref": "PgsqlPassword"},
+                          "@'  $PG_INIT_SCRIPT \n",
+
+                          "echo '# run SQL Script' >>$BUILD_LOG \n",
+                          "cd $PGDATA \n",
+                          "ls -la $PGDATA >>$BUILD_LOG \n",
+
+                          "chown postgres:postgres $PG_INIT_SCRIPT \n",
+                          "su -c 'psql -f $PG_INIT_SCRIPT' postgres \n",
+
+                          "echo ' After running sql script:${PG_INIT_SCRIPT}' >>$BUILD_LOG \n",
+                          "ls -la $PGDATA >>$BUILD_LOG \n",
+
+                          "echo 'Installing Secure Postgres Backup... ' >>$BUILD_LOG \n",
+                          "/usr/local/bin/aws s3 cp ",
+                          " s3://bb-config/all_env/db/db_backup.sh ",
+                          " $PGDATA  \n",
+
+                          "/usr/local/bin/aws s3 cp ",
+                          " s3://bb-config/all_env/db/backup_key.pem.pub ",
+                          " $PGDATA  \n",
+
+                          "echo 'Configuring backup script. ' >>$BUILD_LOG \n",
+                          "sed -i 's@REPLACE_DB_USER_NAME@",
+                          {"Ref": "PgsqlMaster"},
+                          "@'  $PGDATA/db_backup.sh \n",
+
+                          "sed -i 's@PG_TEMP_DIR=/data/pgbackup@PG_TEMP_DIR=${PG_TEMP_DIR}",
+                          "@'  $PGDATA/db_backup.sh \n",
+
+                          "sed -i 's@REPLACE_STACK@",
+                          {"Ref": "TagKeyStack"},
+                          "@'  $PGDATA/db_backup.sh \n",
+
+                          "sed -i 's@REPLACE_DB_NAME_TABLE@",
+                          {"Ref": "DatabasePrefix"},
+                          {"Ref": "TagKeyStack"},
+                          "_",
+                          {"Fn::FindInMap" : ["DBType",
+                                              {"Ref": "DatabaseType"},
+                                              "DbNameTable" ]},
+                          "@'  $PGDATA/db_backup.sh \n",
+
+                          "sed -i 's@REPLACE_PG_DATA_DIR@${PGDATA}@' $PGDATA/db_backup.sh \n",
+
+                          "MAC_ADDR=`curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/` \n",
+                          "HOST_IP=`curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC_ADDR/local-ipv4s/` \n",
+                          "echo $HOST_IP:5432:",{"Ref": "DatabasePrefix"},
+                                                {"Ref": "TagKeyStack"},
+                                                "_",
+                                                {"Fn::FindInMap" : ["DBType",
+                                                                    {"Ref": "DatabaseType"},
+                                                                    "DbNameTable" ]},
+                          ":",{"Ref": "PgsqlMaster"},":",{"Ref": "PgsqlPassword"}," >>$PGDATA/.pgpass \n",
+
+                          "chown postgres:postgres $PGDATA/db_backup.sh \n",
+                          "chown postgres:postgres $PGDATA/backup_key.pem.pub \n",
+                          "chown postgres:postgres $PGDATA/.pgpass \n",
+                          "chmod 0755 $PGDATA/db_backup.sh \n",
+                          "chmod 0755 $PGDATA/backup_key.pem.pub \n",
+                          "chmod 0600 $PGDATA/.pgpass \n",
+
+                          "echo 'Configuring Postgres backup schedule. ' >>$BUILD_LOG \n",
+
+                          "cat /etc/crontab >/home/ec2-user/cronjobs.txt \n",
+                          "echo  '# Postgres backups ' >>/home/ec2-user/cronjobs.txt \n",
+                          "echo @hourly /bin/sh ${PGDATA}/db_backup.sh hourly  >>/home/ec2-user/cronjobs.txt \n",
+                          "echo @daily /bin/sh ${PGDATA}/db_backup.sh daily  >>/home/ec2-user/cronjobs.txt \n",
+                          "echo @weekly 6 /bin/sh ${PGDATA}/db_backup.sh weekly  >>/home/ec2-user/cronjobs.txt \n",
+
+                          "crontab /home/ec2-user/cronjobs.txt  \n",
+
+                          "ls -la $PGDATA >>$BUILD_LOG \n",
+                          "cat /etc/crontab >>$BUILD_LOG \n",
+                          "echo 'Postgres Backup Installed. ' >>$BUILD_LOG \n",
+
+                          "# Configure AWS CLI Credentials \n",
+                          "mkdir -p /root/.aws \n",
+                          "export AWS_DEFAULT_REGION=us-east-1 \n",
+                          "/usr/local/bin/aws s3 cp s3://bb-config/all_env/aws/bb-",
+                          {"Ref": "TagKeyStack"},
+                          "-db-backup/config /root/.aws/config \n",
+                          "/usr/local/bin/aws s3 cp s3://bb-config/all_env/aws/bb-",
+                          {"Ref": "TagKeyStack"},
+                          "-db-backup/credentials /root/.aws/credentials \n",
+
+                          "echo 'Create user:pyapps.' >>$BUILD_LOG \n",
+                          "pass=$(perl -e 'print crypt($ARGV[0], 'password')' $",
+                          {
+                              "Ref": "PgsqlPassword"
+                          },
+                          ") \n",
+                          "echo pyapps:$pass \n",
+                          "useradd -m -p $pass pyapps \n",
+                          "echo 'Add pyapps to sudoers:' >>$BUILD_LOG \n",
+                          "echo 'pyapps       ALL=(ALL)       NOPASSWD: ALL' >/etc/sudoers.d/pyapps.conf \n",
+
+                          "echo 'RHEL Version:' >>$BUILD_LOG \n",
+                          "cat /etc/redhat-release >>$BUILD_LOG \n",
+                          "echo 'package updates... ' >>$BUILD_LOG \n",
+                          "yum-config-manager --enable rhel-server-rhscl-6-rpms \n",
+                          "yum -y update >>$BUILD_LOG \n",
+                          "echo 'Installing support dependencies' >>$BUILD_LOG \n",
+                          "yum -y groupinstall 'Development Tools' \n",
+                          "yum -y install gcc gcc-c++ httpd-devel zlib-devel bzip2-devel ",
+                          " openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel",
+                          " db4-devel libpcap-devel xz-devel python-devel postgresql-devel",
+                          " libffi.x86_64 python-cffi \n",
+                          "mkdir -p /home/ec2-user/download \n",
+                          "cd /home/ec2-user/download \n",
+                          "echo 'downloading and installing libffi-devel' >>$BUILD_LOG \n",
+                          "wget http://mirror.centos.org/centos/6/os/x86_64/Packages/libffi-devel-3.0.5-3.2.el6.x86_64.rpm \n",
+                          "yum -y install ./libffi-devel-3.0.5-3.2.el6.x86_64.rpm \n",
+                          "echo 'Installing lxml+lxslt' >>$BUILD_LOG \n",
+                          "yum -y install libxml2-devel libxslt-devel \n",
+
+                          "# echo 'Installing DB Drivers:MySQL' >>$BUILD_LOG \n",
+                          "# yum -y install mysql-devel.x86_64 \n",
+
+                          "echo 'Installing DB Drivers:postgreSQL' >>$BUILD_LOG \n",
+                          "yum -y install python-psycopg2.x86_64 \n",
+                          "echo '/usr/local/lib' >>/etc/ld.so.conf \n",
+
+                          "cd /home/ec2-user/download \n",
+                          "echo 'Installing git' >>$BUILD_LOG \n",
+                          "yum -y install git \n",
+
+                          "echo 'Checking SELINUX status' >>$BUILD_LOG \n",
+                          "cat /etc/selinux/config >>$BUILD_LOG \n",
+                          "echo 'Configure SELinux' >>$BUILD_LOG \n",
+                          "# semanage fcontext -a -t httpd_sys_content_t \"/var/pyapps(/.*)?\" \n",
+                          "# semanage fcontext -a -t httpd_sys_content_t \"/var/virtualenv(/.*)?\" \n",
+                          "# restorecon -Rv /var \n",
+                          "export PY_SERVER=",
+                          {
+                              "Ref": "PgsqlServerName"
+                          },
+                          " \n",
+
+                          "echo 'Tidying up...' >>$BUILD_LOG \n",
+                          "chown -Rf ec2-user:ec2-user /home/ec2-user \n",
+
+                          "date -r /home/ec2-user/build_status.log >>$BUILD_LOG \n",
+                          "echo \"",
+                          {
+                              "Ref": "TagKeyStack"
+                          },
+                          ":",
+                          {
+                              "Ref": "PgsqlServerName"
+                          },
+                          " Server installed \" >>$BUILD_LOG \n",
+                          "echo 'DONE.' >>$BUILD_LOG \n"
+                      ]
+                  ]
+              }
+          }
+      }
+    },
+    "EBSVolume": {
+        "Type":"AWS::EC2::Volume",
+        "Properties" : {
+            "AutoEnableIO": "true",
+            "AvailabilityZone": { "Fn::FindInMap" : ["MapZone",
+                                                     {"Ref":"AZone"},
+                                                     "EbsZone" ]
+                                },
+            "Encrypted": "true",
+            "Size": 100,
+            "Tags": [
+                {
+                 "Key": "TagKeyStack",
+                 "Value": {"Ref": "TagKeyStack"}},
+                { "Key": "TagKeyLayer",
+                  "Value": {"Ref": "TagKeyStack"}}
+            ],
+            "VolumeType": "gp2"
+        }
+    }
+  },
+  "Outputs": {
+    "Ec2SecurityGrp": {
+      "Value": {
+        "Ref": "DbEc2SecurityGrp"
+      },
+      "Export": {
+          "Name": {
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
+                                 "DbEc2SecurityGrpId" ] ]
+          }
+      },
+      "Description": "New Security Group for Instance"
+    },
+    "DbEcInstanceId": {
+      "Value": {
+        "Ref": "DbEcInstance"
+      },
+      "Export": {
+          "Name": {
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
+                                 "DbEcInstanceId" ] ]
+          }
+      }
+    },
+    "DBPrivateIp": {
+      "Value": {
+          "Fn::GetAtt" : [ "DbEcInstance", "PrivateIp" ]
+      },
+      "Export": {
+          "Name": {
+              "Fn::Join": [":", [{"Ref": "InstanceName"},
+                                 "DbPrivateIp" ] ]
+          }
+      }
+    },
+    "DBType": {
+        "Value": {"Ref": "DatabaseType"}
+    },
+    "DBTable": {
+        "Value": {
+            "Fn::Join": ["", [{"Ref": "DatabasePrefix"},
+                              {"Ref": "TagKeyStack"}, "_",
+                              {"Fn::FindInMap" : ["DBType",
+                                                  {"Ref": "DatabaseType"},
+                                                  "DbNameTable"]}
+                             ]
+                        ]
+        }
+    },
+    "DBUser": {
+        "Value": {"Ref": "PgsqlMaster"}
+    },
+    "DBPwd": {
+        "Value": {"Ref": "PgsqlPassword"}
+    }
+  }
+}

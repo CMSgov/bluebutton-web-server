@@ -15,7 +15,10 @@
    "pk": 1,
    "fields": {"name": "dev-a fhir-p",
               "fhir_url": "http://fhir.bbonfhir.com/fhir-p/baseDstu2/",
-              "shard_by": "Patient"}},
+              "shard_by": "Patient",
+              "client_auth": true,
+              "cert_file": "cert_file.pem",
+              "key_file": "key_file.pem"}},
   {"model": "bluebutton.crosswalk",
   "pk": 1,
   "fields": {"user": 1,
@@ -35,7 +38,11 @@
              "update": false,
              "delete": false,
              "search": true,
-             "history": true
+             "history": true,
+             "override_url_id": true,
+             "override_search": true,
+             "search_block": "[\"patient\"]",
+             "search_add": "patient=%PATIENT%"
             }
  },
   {"model": "server.supportedresourcetype",
@@ -50,7 +57,11 @@
              "update": false,
              "delete": false,
              "search": true,
-             "history": true
+             "history": true,
+             "override_url_id": false,
+             "override_search": true,
+             "search_block": "[\"patient\",\"_format\",\"resource_type\"]",
+             "search_add": ""
             }
  },
   {"model": "server.supportedresourcetype",
@@ -65,7 +76,11 @@
              "update": false,
              "delete": false,
              "search": true,
-             "history": true
+             "history": true,
+             "override_url_id": false,
+             "override_search": true,
+             "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
+             "search_add": "patient=%PATIENT%"
             }
  },
   {"model": "server.supportedresourcetype",
@@ -80,57 +95,11 @@
              "update": false,
              "delete": false,
              "search": true,
-             "history": true
-            }
- },
-  {"model": "bluebutton.resourcetypecontrol",
-  "pk": 1,
-  "fields": {"resource_name": 1,
-             "override_url_id": true,
+             "history": true,
+             "override_url_id": false,
              "override_search": true,
-             "search_block": "[\"patient\"]",
-             "search_add": "[\"patient=%PATIENT%\"]",
-             "group_allow": "[]",
-             "group_exclude": "[]",
-             "default_url": ""
-             }
- },
-  {"model": "bluebutton.resourcetypecontrol",
-  "pk": 2,
-  "fields": {"resource_name": 2,
-             "override_url_id": true,
-             "override_search": true,
-             "search_block": "[\"patient\",\"_format\",\"resource_type\"]",
-             "search_add": "[]",
-             "group_allow": "[]",
-             "group_exclude": "[]",
-             "default_url": ""
-             }
- },
-  {"model": "bluebutton.resourcetypecontrol",
-  "pk": 3,
-  "fields": {"resource_name": 3,
-             "override_url_id": true,
-             "override_search": false,
              "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
-             "search_add": "[]",
-             "group_allow": "[]",
-             "group_exclude": "[]",
-             "default_url": ""
-             }
- },
-  {
-    "model": "bluebutton.resourcetypecontrol",
-    "pk": 4,
-    "fields": {
-      "resource_name": 1,
-      "override_url_id": true,
-      "override_search": true,
-      "search_block": "[\"claim\",\"patient\",\"_format\",\"resource_type\"]",
-      "search_add": "[\"patient=%PATIENT%\"]",
-      "group_allow": "[]",
-      "group_exclude": "[]",
-      "default_url": ""
-    }
-  }
+             "search_add": "patient=%PATIENT%"
+            }
+ }
 ]

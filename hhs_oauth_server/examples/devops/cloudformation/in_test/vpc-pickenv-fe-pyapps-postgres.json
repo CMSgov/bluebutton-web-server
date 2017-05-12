@@ -1,0 +1,1371 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Full Deployment Script to choose environment, choose leader or follower status, build python server",
+  "Metadata": {
+    "AWS::CloudFormation::Designer": {
+      "25af43bb-a438-4ab1-95f3-a75ccb55a8e0": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 400,
+          "y": 150
+        },
+        "z": 0,
+        "embeds": [],
+        "ismemberof": [
+          "c3783791-0069-4324-8453-123708403b5f"
+        ]
+      },
+      "ccaf1f4f-226d-426c-98dd-2d40c521faac": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 407.1666666666667,
+          "y": 54.666666666666664
+        },
+        "z": 0,
+        "embeds": [],
+        "ismemberof": [
+          "c3783791-0069-4324-8453-123708403b5f"
+        ]
+      },
+      "c3783791-0069-4324-8453-123708403b5f": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 310,
+          "y": 30
+        },
+        "z": 0,
+        "embeds": []
+      },
+      "edac4598-f770-4f35-afca-37b85d0499f3": {
+        "source": {
+          "id": "ccaf1f4f-226d-426c-98dd-2d40c521faac"
+        },
+        "target": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "z": 1
+      },
+      "8af86a4e-f1e7-4e5d-92cb-0acef1900f7f": {
+        "source": {
+          "id": "25af43bb-a438-4ab1-95f3-a75ccb55a8e0"
+        },
+        "target": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "z": 11
+      },
+      "45524452-309f-4038-bca6-5a7a5f01df22": {
+        "source": {
+          "id": "25af43bb-a438-4ab1-95f3-a75ccb55a8e0"
+        },
+        "target": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "z": 1
+      },
+      "e82b4266-5a0d-480d-a8fb-1dc01afd5599": {
+        "source": {
+          "id": "ccaf1f4f-226d-426c-98dd-2d40c521faac"
+        },
+        "target": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "z": 2
+      },
+      "8c7ca01e-c682-4ff0-bdde-06b7e176e7c5": {
+        "source": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        },
+        "target": {
+          "id": "65ce014a-b543-4f02-b13d-7065981f348d"
+        },
+        "z": 3
+      }
+    }
+  },
+  "Mappings": {
+      "AWSInstanceType2Arch": {
+          "t2.medium": {
+              "Arch": "HVM"
+          },
+          "m1.medium": {
+              "Arch": "PV"
+          },
+          "m1.large": {
+              "Arch": "PV"
+          },
+          "m1.xlarge": {
+              "Arch": "PV"
+          },
+          "m2.xlarge": {
+              "Arch": "PV"
+          },
+          "m2.2xlarge": {
+              "Arch": "PV"
+          },
+          "m2.4xlarge": {
+              "Arch": "PV"
+          },
+          "m3.medium": {
+              "Arch": "HVM"
+          },
+          "m3.large": {
+              "Arch": "HVM"
+          },
+          "m3.xlarge": {
+              "Arch": "HVM"
+          },
+          "m3.2xlarge": {
+              "Arch": "HVM"
+          },
+          "c1.medium": {
+              "Arch": "PV"
+          },
+          "c1.xlarge": {
+              "Arch": "PV"
+          },
+          "c3.large": {
+              "Arch": "HVM"
+          },
+          "c3.xlarge": {
+              "Arch": "HVM"
+          },
+          "c3.2xlarge": {
+              "Arch": "HVM"
+          },
+          "c3.4xlarge": {
+              "Arch": "HVM"
+          },
+          "c3.8xlarge": {
+              "Arch": "HVM"
+          },
+          "r3.large": {
+              "Arch": "HVM"
+          },
+          "r3.xlarge": {
+              "Arch": "HVM"
+          },
+          "r3.2xlarge": {
+              "Arch": "HVM"
+          },
+          "r3.4xlarge": {
+              "Arch": "HVM"
+          },
+          "r3.8xlarge": {
+              "Arch": "HVM"
+          },
+          "i2.xlarge": {
+              "Arch": "HVM"
+          },
+          "i2.2xlarge": {
+              "Arch": "HVM"
+          },
+          "i2.4xlarge": {
+              "Arch": "HVM"
+          },
+          "i2.8xlarge": {
+              "Arch": "HVM"
+          },
+          "hi1.4xlarge": {
+              "Arch": "HVM"
+          },
+          "hs1.8xlarge": {
+              "Arch": "HVM"
+          },
+          "cr1.8xlarge": {
+              "Arch": "HVM"
+          },
+          "cc2.8xlarge": {
+              "Arch": "HVM"
+          }
+      },
+      "AWSRegionArch2AMI": {
+          "us-east-1": {
+              "PV": "ami-d8c7aecf",
+              "HVM": "ami-28c2ab3f"
+          },
+          "us-east-1a": {
+              "PV": "ami-d8c7aecf",
+              "HVM": "ami-28c2ab3f"
+          },
+          "us-east-1b": {
+              "PV": "ami-d8c7aecf",
+              "HVM": "ami-28c2ab3f"
+          },
+          "us-east-1c": {
+              "PV": "ami-d8c7aecf",
+              "HVM": "ami-28c2ab3f"
+          }
+      },
+      "DBType": {
+          "postgres": {
+              "DbLinkUrl": "postgres",
+              "DbEngineDriver": "django.db.backends.postgresql_psycopg2",
+              "DbNameTable": "pg_01",
+              "DbHostPort": "5432"
+          },
+          "mysql": {
+              "DbLinkUrl": "mysql",
+              "DbEngineDriver": "django.db.backends.mysql",
+              "DbNameTable": "mysql_01",
+              "DbHostPort": "3306"
+          }
+      },
+      "DjangoInfo": {
+          "dev": {
+              "DjangoOrgName": "CMS Medicare Blue Button[Dev]",
+              "DjangoAppTitle": "CMS Blue Button API [Dev]"
+          },
+          "test": {
+              "DjangoOrgName": "CMS Medicare Blue Button[test]",
+              "DjangoAppTitle": "CMS Blue Button API [test]"
+          },
+          "impl": {
+              "DjangoOrgName": "CMS Medicare Blue Button[Imp]",
+              "DjangoAppTitle": "CMS Blue Button API [Imp]"
+          },
+          "prod": {
+              "DjangoOrgName": "CMS Medicare Blue Button",
+              "DjangoAppTitle": "CMS Blue Button API"
+          }
+      },
+      "S3StorageBucket": {
+          "us-east-1": {
+              "dev": "content-dev-bbonfhir-com",
+              "test": "content-test-bbonfhir-com",
+              "impl": "content-impl-bbonfhir-com",
+              "prod": "content-prod-bluebutton-cms-gov"
+          }
+      },
+      "VPCEnvironment": {
+          "us-east-1": {
+              "dev": "vpc-80bdc3e7",
+              "test": "vpc-5d5a163a",
+              "impl": "vpc-5fd4de38",
+              "prod": "vpc-9b3fc9fd"
+          }
+      },
+      "EnvLayer": {
+          "dev": {
+              "az1": {
+                  "dmz": "10.224.78.144/28",
+                  "web": "10.224.78.0/28",
+                  "app": "10.224.78.48/28",
+                  "data": "10.224.78.96/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              },
+              "az2": {
+                  "dmz": "10.224.78.160/28",
+                  "web": "10.224.78.16/28",
+                  "app": "10.224.78.64/28",
+                  "data": "10.224.78.112/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              },
+              "az3": {
+                  "dmz": "10.224.78.176/28",
+                  "web": "10.224.78.32/28",
+                  "app": "10.224.78.80/28",
+                  "data": "10.224.78.128/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              }
+          },
+          "impl": {
+              "az1": {
+                  "dmz": "10.246.140.144/28",
+                  "web": "10.246.140.0/28",
+                  "app": "10.246.140.48/28",
+                  "data": "10.246.140.96/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              },
+              "az2": {
+                  "dmz": "10.246.140.160/28",
+                  "web": "10.246.140.16/28",
+                  "app": "10.246.140.64/28",
+                  "data": "10.246.140.112/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              },
+              "az3": {
+                  "dmz": "10.246.140.176/28",
+                  "web": "10.246.140.32/28",
+                  "app": "10.246.140.80/28",
+                  "data": "10.246.140.128/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              }
+          },
+          "prod": {
+              "az1": {
+                  "dmz": "10.244.44.144/28",
+                  "web": "10.244.44.0/28",
+                  "app": "10.244.44.48/28",
+                  "data": "10.244.44.96/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              },
+              "az2": {
+                  "dmz": "10.244.44.160/28",
+                  "web": "10.244.44.16/28",
+                  "app": "10.244.44.64/28",
+                  "data": "10.244.44.112/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              },
+              "az3": {
+                  "dmz": "10.244.44.176/28",
+                  "web": "10.244.44.32/28",
+                  "app": "10.244.44.80/28",
+                  "data": "10.244.44.128/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              }
+          },
+          "test": {
+              "az1": {
+                  "dmz": "10.224.90.144/28",
+                  "web": "10.224.90.0/28",
+                  "app": "10.224.90.48/28",
+                  "data": "10.224.90.96/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              },
+              "az2": {
+                  "dmz": "10.224.90.160/28",
+                  "web": "10.224.90.16/28",
+                  "app": "10.224.90.64/28",
+                  "data": "10.224.90.112/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              },
+              "az3": {
+                  "dmz": "10.224.90.176/28",
+                  "web": "10.224.90.32/28",
+                  "app": "10.224.90.80/28",
+                  "data": "10.224.90.128/28",
+                  "ocss1": "10.128.11.0/24",
+                  "ocss2": "10.128.111.0/24"
+              }
+          }
+      },
+      "EnvSubNetIdAz": {
+          "dev": {
+              "az1": {
+                  "dmz": "subnet-82ecfba8",
+                  "web": "subnet-8decfba7",
+                  "app": "subnet-80ecfbaa",
+                  "data": "subnet-8cecfba6"
+              },
+              "az2": {
+                  "dmz": "subnet-228e486b",
+                  "web": "subnet-208e4869",
+                  "app": "subnet-2f8e4866",
+                  "data": "subnet-2e8e4867"
+              },
+              "az3": {
+                  "dmz": "subnet-208e4869",
+                  "web": "subnet-2f8e4866",
+                  "app": "subnet-47bca81f",
+                  "data": "subnet-7bbca823"
+              }
+          },
+          "impl": {
+              "az1": {
+                  "dmz": "subnet-82ecfba8",
+                  "web": "subnet-8decfba7",
+                  "app": "subnet-80ecfbaa",
+                  "data": "subnet-8cecfba6"
+              },
+              "az2": {
+                  "dmz": "subnet-228e486b",
+                  "web": "subnet-208e4869",
+                  "app": "subnet-2f8e4866",
+                  "data": "subnet-2e8e4867"
+              },
+              "az3": {
+                  "dmz": "subnet-208e4869",
+                  "web": "subnet-2f8e4866",
+                  "app": "subnet-47bca81f",
+                  "data": "subnet-7bbca823"
+              }
+          },
+          "prod": {
+              "az1": {
+                  "dmz": "subnet-82ecfba8",
+                  "web": "subnet-8decfba7",
+                  "app": "subnet-80ecfbaa",
+                  "data": "subnet-8cecfba6"
+              },
+              "az2": {
+                  "dmz": "subnet-228e486b",
+                  "web": "subnet-208e4869",
+                  "app": "subnet-2f8e4866",
+                  "data": "subnet-2e8e4867"
+              },
+              "az3": {
+                  "dmz": "subnet-208e4869",
+                  "web": "subnet-2f8e4866",
+                  "app": "subnet-47bca81f",
+                  "data": "subnet-7bbca823"
+              }
+          },
+          "test": {
+              "az1": {
+                  "dmz": "subnet-82ecfba8",
+                  "web": "subnet-8decfba7",
+                  "app": "subnet-80ecfbaa",
+                  "data": "subnet-8cecfba6"
+              },
+              "az2": {
+                  "dmz": "subnet-228e486b",
+                  "web": "subnet-208e4869",
+                  "app": "subnet-2f8e4866",
+                  "data": "subnet-2e8e4867"
+              },
+              "az3": {
+                  "dmz": "subnet-208e4869",
+                  "web": "subnet-2f8e4866",
+                  "app": "subnet-47bca81f",
+                  "data": "subnet-7bbca823"
+              }
+          }
+      }
+  },
+  "Parameters": {
+     "AZone": {
+         "Type": "String",
+         "Description": "Launch into Availability Zone",
+         "Default": "az1"
+     },
+     "BuildImageId": {
+        "Type": "String",
+         "Description": "PV Image",
+         "Default": "ami-d8c7aecf"
+     },
+     "InstanceName" : {
+        "Description" : "Easily recognizable name in the EC2 Instance List",
+        "Type" : "String",
+        "Default" : "Change_this_name_to_Something_unique"
+     },
+     "TagKeyStack": {
+         "Description": "Application Stack Identifier",
+         "Type": "String",
+         "Default": "dev",
+         "AllowedValues": ["sbx", "prod", "dev", "test", "impl", "tools"]
+     },
+     "TagKeyLayer": {
+          "Description": "Application Layer Identifier",
+          "Type": "String",
+          "Default": "app",
+          "AllowedValues": ["web" , "data", "app", "nat", "jump", "tools"]
+     },
+     "KeyName": {
+      "Description": "EC2 KeyPair for SSH access to instance",
+      "Type": "String",
+      "Default": "cms_bluebutton_fe_dev",
+      "AllowedValues": [
+        "cms_bluebutton_fe_dev"
+      ]
+    },
+     "InstanceType": {
+      "Description": "RHEL Linux EC2 instance type",
+      "Type": "String",
+      "Default": "m3.medium",
+      "AllowedValues": [
+        "t2.medium",
+        "m2.xlarge",
+        "m2.2xlarge",
+        "m2.4xlarge",
+        "m3.medium",
+        "m3.large",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "c1.medium",
+        "c1.xlarge",
+        "c3.large",
+        "c3.xlarge",
+        "c3.2xlarge",
+        "c3.4xlarge",
+        "c3.8xlarge",
+        "r3.large",
+        "r3.xlarge",
+        "r3.2xlarge",
+        "r3.4xlarge",
+        "r3.8xlarge",
+        "i2.xlarge",
+        "i2.2xlarge",
+        "i2.4xlarge",
+        "i2.8xlarge",
+        "hi1.4xlarge",
+        "hs1.8xlarge",
+        "cr1.8xlarge",
+        "cc2.8xlarge",
+        "cg1.4xlarge"
+      ],
+      "ConstraintDescription": "Must be a valid EC2 instance type"
+    },
+     "PublicServerName" : {
+      "Description": "External/Public DNS Name",
+      "Type": "String",
+      "Default": "bluebutton.cms.fhirservice.net"
+    },
+     "PyServerName" : {
+      "Description": "Linux Server (DNS) Name (Make Unique)",
+      "Type": "String",
+      "Default": "api.bbonfhir.com"
+    },
+     "PyVirtualenv": {
+      "Description": "Virtual Environment Base Path",
+      "Type": "String",
+      "Default": "/var/virtualenv/hhs_o_server"
+     },
+     "PyAppHome": {
+       "Description": "Python App Home Base Path",
+       "Type": "String",
+       "Default": "/var/pyapps/hhs_o_server"
+     },
+     "PyAppSettings": {
+       "Description": "Python App Settings file",
+       "Type": "String",
+       "Default": "settings.base",
+       "AllowedValues": [
+           "settings.base",
+           "settings.production",
+           "settings.aws-dev",
+           "settings.aws-test",
+           "settings.dev",
+           "settings.awstest",
+           "settings.aws-impl"
+       ]
+     },
+     "PyRepoBranch" : {
+       "Description": "Git Repository branch to deploy [master, develop, other]?",
+       "Type": "String",
+       "Default": "master"
+     },
+     "pyappsUser" : {
+       "Description": "Pyapps superuser",
+       "Type": "String",
+       "Default": "pyapps"
+     },
+     "pyDbUser" : {
+       "Description": "DB superuser",
+       "Type": "String",
+       "Default": "pyapps"
+     },
+     "pyDbPassword" : {
+       "Description": "Database superuser password",
+       "Type": "String",
+       "Default": "R3s3t_Th1s"
+     },
+     "pyappsemail" : {
+       "Description": "Pyapps superuser email",
+       "Type": "String",
+       "Default": "admin@api.bbonfhir.com"
+     },
+     "pyappsPassword" : {
+       "Description": "Pyapps superuser password",
+       "Type": "String",
+       "Default": "R3s3t_Th1s"
+     },
+     "HerdMember": {
+       "Description": "Role in Server Pool",
+       "Type": "String",
+       "Default": "LEADER",
+       "AllowedValues": ["LEADER" , "FOLLOW"]
+     },
+     "DatabaseType": {
+       "Description": "Backend Database Platform",
+       "Type": "String",
+       "Default": "postgres",
+       "AllowedValues": ["postgres", "mysql"]
+     },
+     "DatabasePrefix": {
+         "Description": "Prefix for DB Table Name",
+         "Type": "String",
+         "Default": "bb_fe_"
+     },
+     "DatabaseHostAddress": {
+       "Description": "Backend Database Private IP Address or Host Name",
+       "Type": "String",
+       "Default": "10.224.x.x"
+     },
+     "AwsContentKeyId": {
+         "Description": "Enter the S3 access key ID for pyapps-[TagKeyStack]-content",
+         "Type": "String",
+         "Default": "Replace with S3 AWS key ID"
+     },
+     "AwsContentAccessKey": {
+         "Description": "Enter the S3 secret access key for pyapps-[TagKeyStack]-content",
+         "Type": "String",
+         "Default": "Replace with S3 AWS Key "
+     },
+     "TargetVpcId" : {
+       "Type" : "AWS::EC2::VPC::Id",
+       "Description" : "VpcId of your existing Virtual Private Cloud (VPC)"
+     }
+  },
+  "Resources": {
+    "EC2S3Role" : {
+          "Type" : "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+               "Version" : "2012-10-17",
+               "Statement": [ {
+                  "Effect": "Allow",
+                  "Principal": {
+                     "Service": [ "ec2.amazonaws.com" ]
+                  },
+                  "Action": [ "sts:AssumeRole" ]
+               } ]
+            },
+            "Path": "/",
+			"Policies": [ {
+             "PolicyName": "S3Policy",
+             "PolicyDocument" : {
+						"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": "s3:*",
+							"Resource": "*"
+						}
+					]
+				}
+			} ]
+		  }
+		},
+    "EC2S3RoleProfile": {
+         "Type": "AWS::IAM::InstanceProfile",
+         "Properties": {
+           "Path": "/",
+           "Roles": [
+             {
+               "Ref": "EC2S3Role"
+             }
+           ]
+         }
+    },
+    "AppEc2SecurityGrp": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "App Layer:enable SSH and access to Apache and Postgres",
+        "VpcId": {"Fn::FindInMap": [ "VPCEnvironment",
+            "us-east-1", {"Ref": "TagKeyStack"}]},
+        "Tags": [
+            {
+                  "Key": "Name",
+                  "Value": {
+                      "Ref": "InstanceName"
+                  }
+              },
+            {
+                "Key": "Environment",
+                "Value": {
+                    "Ref": "TagKeyStack"
+                }
+            },
+            {
+                "Key": "Layer",
+                "Value": {
+                    "Ref": "TagKeyLayer"
+                }
+            },
+            {
+                "Key": "AvailZone",
+                "Value": {
+                    "Ref": "AZone"
+                }
+            }
+
+        ],
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "dmz"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "data"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "dmz"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "dmz"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "data"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "4118",
+            "ToPort": "4120",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "ocss1"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "4118",
+            "ToPort": "4120",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "ocss2"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5666",
+            "ToPort": "5667",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "ocss1"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5666",
+            "ToPort": "5667",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "ocss2"]}
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "dmz"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "data"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "data"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "4118",
+            "ToPort": "4120",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "ocss1"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "4118",
+            "ToPort": "4120",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "ocss2"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5666",
+            "ToPort": "5667",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "ocss1"]}
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5666",
+            "ToPort": "5667",
+            "CidrIp": {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvLayer",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                            {"Ref": "TagKeyStack"}, "ocss2"]}
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "c3783791-0069-4324-8453-123708403b5f"
+        }
+      }
+    },
+    "myENI" : {
+        "Type": "AWS::EC2::NetworkInterface",
+        "Properties": {
+            "Tags": [
+                {
+                    "Key": "Layer",
+                    "Value": "DMZ"
+                }
+            ],
+            "Description": "Get a network interface in the right subnet and VPC.",
+            "SourceDestCheck": "false",
+            "SubnetId": {
+                "Fn::FindInMap": [
+                    {"Fn::FindInMap": [ "EnvSubNetIdAz",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                    {
+                        "Ref": "TagKeyStack"
+                    },
+                    {
+                        "Ref": "TagKeyLayer"
+                    }
+                ]
+            }
+        }
+    },
+    "AppEcInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Metadata": {
+       "AWS::CloudFormation::Designer": {
+          "id": "25af43bb-a438-4ab1-95f3-a75ccb55a8e0"
+        },
+        "AWS::CloudFormation::Init": {
+          "configSets": {
+            "Install": [
+              "Install"
+            ]
+          },
+          "Install": {
+            "packages": {
+              "yum": {
+                "gcc": [],
+                "gcc-c++": [],
+                "httpd": [],
+                "httpd-devel": [],
+                "zlib-devel": [],
+                "bzip2-devel": [],
+                "mod_wsgi": [],
+                "openssl-devel": [],
+                "ncurses-devel": [],
+                "sqlite-devel": [],
+                "readline-devel": [],
+                "tk-devel": [],
+                "gdbm-devel": [],
+                "db4-devel": [],
+                "libpcap-devel": [],
+                "xz-devel": [],
+                "git": [],
+                "libxml2-devel": [],
+                "libxslt-devel": []
+              }
+            },
+            "groups": {
+              "apache": {"gid": "48"}
+            },
+            "users" : {
+              "pyapps": {
+                "groups" : ["apache"],
+                "uid" : "501",
+                "homeDir" : "/home/pyapps"
+              }
+            }
+          }
+        }
+      },
+      "Properties": {
+          "ImageId": {"Ref": "BuildImageId"},
+          "SecurityGroupIds" : [{"Ref": "AppEc2SecurityGrp"}],
+          "SubnetId" : {"Fn::FindInMap": [ {"Fn::FindInMap": [ "EnvSubNetIdAz",
+                            {"Ref": "TagKeyLayer"}, {"Ref": "AZone"}]},
+                {"Ref": "TagKeyStack"}, {"Ref": "TagKeyLayer"}]
+          },
+          "IamInstanceProfile" : { "Ref" : "EC2S3RoleProfile" },
+          "InstanceType": {"Ref": "InstanceType"},
+          "KeyName": {"Ref": "KeyName"},
+
+          "Tags": [
+            {"Key": "Name", "Value": {"Ref": "InstanceName"}},
+            {"Key": "business", "Value": "oeda"},
+            {"Key": "application", "Value": "bluebutton"},
+            {"Key": "stack", "Value": {"Ref": "TagKeyStack" }},
+            {"Key": "layer", "Value": {"Ref": "TagKeyLayer"}}
+            ],
+        "Tenancy": "dedicated",
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [ "", [
+                "#!/bin/bash -ex", "\n",
+                "export BUILD_LOG=/home/ec2-user/build_status.log \n",
+
+                "hostname ", {"Ref": "PyServerName"}, " >$BUILD_LOG \n",
+
+                "echo 'Hostname configured: ",{"Ref": "PyServerName"},"' >>$BUILD_LOG \n",
+                "echo 'Public Host name configured: ",{"Ref": "PublicServerName"},"' >>$BUILD_LOG \n",
+
+                "mkdir -p /home/ec2-user/script \n",
+                "chown -R ec2-user:root /home/ec2-user/script \n",
+
+                "# Configure AWS CLI Credentials \n",
+                "export AWS_DEFAULT_REGION=us-east-1 \n",
+
+                "echo 'Create user:pyapps.' >>$BUILD_LOG \n",
+                "pass=$(perl -e 'print crypt($ARGV[0], 'password')' $",
+                {"Ref": "pyappsPassword" },
+                ") \n",
+
+                "echo pyapps:$pass \n",
+                "useradd -m -p $pass pyapps \n",
+                "echo 'Add pyapps to sudoers:' >>$BUILD_LOG \n",
+                "echo 'pyapps       ALL=(ALL)       NOPASSWD: ALL' >/etc/sudoers.d/pyapps.conf \n",
+
+                "echo 'Installing Apache2' >>$BUILD_LOG \n",
+                "yum -y install httpd","\n",
+
+                "echo 'RHEL Version:' >>$BUILD_LOG \n",
+                "cat /etc/redhat-release >>$BUILD_LOG \n",
+
+                "echo 'package updates... ' >>$BUILD_LOG \n",
+                "yum-config-manager --enable rhel-server-rhscl-6-rpms \n",
+                "yum -y update >>$BUILD_LOG \n",
+
+                "echo 'Installing support dependencies' >>$BUILD_LOG \n",
+                "yum -y groupinstall 'Development Tools' \n",
+                "yum -y install gcc gcc-c++ httpd-devel zlib-devel bzip2-devel ",
+                " openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel",
+                " db4-devel libpcap-devel xz-devel python-devel postgresql-devel",
+                " libffi.x86_64 python-cffi \n",
+
+                "mkdir -p /home/ec2-user/download \n",
+                "cd /home/ec2-user/download \n",
+
+                "echo 'downloading and installing libffi-devel' >>$BUILD_LOG \n",
+                "wget http://mirror.centos.org/centos/6/os/x86_64/Packages/libffi-devel-3.0.5-3.2.el6.x86_64.rpm \n",
+                "yum -y install ./libffi-devel-3.0.5-3.2.el6.x86_64.rpm \n",
+
+                "echo 'Installing lxml+lxslt' >>$BUILD_LOG \n",
+                "yum -y install libxml2-devel libxslt-devel \n",
+
+                "echo 'Installing DB Drivers:MySQL' >>$BUILD_LOG \n",
+                "yum -y install mysql-devel.x86_64 \n",
+
+                "echo 'Installing DB Drivers:postgreSQL' >>$BUILD_LOG \n",
+                "yum -y install python-psycopg2.x86_64 \n",
+
+                "echo '/usr/local/lib' >>/etc/ld.so.conf \n",
+
+                "echo 'Installing python 3.5.2' >>$BUILD_LOG \n",
+                "wget https://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz \n",
+                "tar xf  Python-3.5.2.tar.xz \n",
+                "cd /home/ec2-user/download/Python-3.5.2 \n",
+                "./configure --prefix=/usr/local --enable-shared ",
+                " LDFLAGS='-Wl,-rpath /usr/local/lib' --enable-loadable-sqlite-extensions \n",
+                "make \n",
+                "make altinstall \n",
+                "cd /home/ec2-user/download \n",
+
+                "echo 'Installing git' >>$BUILD_LOG \n",
+                "yum -y install git \n",
+
+                "echo 'Installing mod_wsgi_4.5.3' >>$BUILD_LOG \n",
+                "wget https://codeload.github.com/GrahamDumpleton/mod_wsgi/tar.gz/4.5.3 \n",
+                "mv 4.5.3 ./mod_wsgi_4.5.3.tar.gz \n",
+                "tar -xzvf mod_wsgi_4.5.3.tar.gz \n",
+                "cd mod_wsgi-4.5.3 \n",
+                "./configure --with-python=/usr/local/bin/python3.5 --with-apxs=/usr/sbin/apxs \n",
+                "LD_RUN_PATH=/usr/local/lib \n",
+
+                "echo '/usr/local/lib ' >>/etc/ld.so.conf \n",
+                "/sbin/ldconfig \n",
+                "make \n",
+                "make install \n",
+
+                "echo 'Setup for front-end app' >>$BUILD_LOG \n",
+                "mkdir -p /var/virtualenv \n",
+                "mkdir -p /var/pyapps \n",
+
+                "echo 'Checking SELINUX status' >>$BUILD_LOG \n",
+                "cat /etc/selinux/config >>$BUILD_LOG \n",
+                "echo 'Configure SELinux' >>$BUILD_LOG \n",
+                "# semanage fcontext -a -t httpd_sys_content_t \"/var/pyapps(/.*)?\" \n",
+                "# semanage fcontext -a -t httpd_sys_content_t \"/var/virtualenv(/.*)?\" \n",
+                "# restorecon -Rv /var \n",
+
+                "export PY_SERVER=",{"Ref": "PyServerName"} ," \n",
+                "export PY_VENV=",{"Ref": "PyVirtualenv"}   ," \n",
+                "export PY_APP_HOME=", {"Ref": "PyAppHome"} ," \n",
+
+                "echo 'Install Virtual Env:",{"Ref": "PyVirtualenv"} ," ' >>$BUILD_LOG \n",
+                "chmod -R 755 /var/virtualenv \n",
+                "chmod -R 755 /var/pyapps \n",
+                "cd /var/virtualenv \n",
+                "/usr/local/bin/pyvenv-3.5 hhs_o_server \n",
+                "chmod -R 0755 /var/virtualenv \n",
+                "mkdir -p ", {"Ref":"PyAppHome"}, " \n",
+
+                "cd ",{"Ref":"PyAppHome"}," \n",
+                "chmod -R 0755 /var/pyapps \n",
+                "git clone -b ",{"Ref": "PyRepoBranch"} ," https://github.com/transparenthealth/hhs_oauth_server \n",
+                "cd ",{"Ref": "PyAppHome"} ,"/hhs_oauth_server \n",
+
+                "# Change ownership of pyapps files \n",
+                "echo 'Changing ownership:",{"Ref": "PyVirtualenv"} ," ' >>$BUILD_LOG \n",
+                "chown -Rf pyapps:apache /var/pyapps \n",
+                "chown -Rf pyapps:apache /var/virtualenv \n",
+
+                "# activate Virtualenv \n",
+                "echo 'Activate Virtualenv' >>$BUILD_LOG \n",
+                "source ",{"Ref": "PyVirtualenv"} ,"/bin/activate \n",
+                "PATH=\"/var/virtualenv/hhs_o_server/bin:$PATH\" \n",
+                "export PATH=$PATH \n",
+
+                "echo 'upgrade pip3.5 to avoid error' >>$BUILD_LOG \n",
+                "/usr/local/bin/pip3.5 install --upgrade pip \n",
+                {"Ref": "PyVirtualenv"}, "/bin/pip3.5 install --upgrade pip \n",
+
+                "echo 'Install Python modules from requirements'  >>$BUILD_LOG \n",
+                "cd ",{"Ref": "PyAppHome"}, "/hhs_oauth_server \n",
+                {"Ref": "PyVirtualenv"}, "/bin/pip3.5 install psycopg2 \n",
+                {"Ref": "PyVirtualenv"}, "/bin/pip3.5 install -r requirements/requirements.txt \n",
+
+                "echo 'Configure application' >>$BUILD_LOG \n",
+                "export DJANGO_SETTINGS_MODULE=hhs_oauth_server.",{"Ref": "PyAppSettings"}," \n",
+
+                " # Remember to edit files in bb-config for DJANGO_SETTINGS_MODULE \n",
+                "echo 'Integrate App with Apache2' >>$BUILD_LOG \n",
+
+                "export DJ_SET_SH=",{"Ref":"PyAppHome"},"/django_settings.sh \n",
+                "# Copy local config files from S3 \n",
+                "# Preparing $DJ_SET_SH \n",
+
+                "/usr/local/bin/aws s3 cp ",
+                " s3://bb-config/all_env/django_settings.sh " ,
+                " ", {"Ref": "PyAppHome"}, "  \n",
+                "sed -i 's@DB_LINK_URL@",
+                    {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
+                    "DbLinkUrl" ]} ,
+                    "@' $DJ_SET_SH \n",
+
+                "sed -i 's:REPLACE_SES_FROM_EMAIL:",
+                {"Ref": "pyappsemail"},
+                    ":'  $DJ_SET_SH \n",
+
+                "# don't use @ delimiter because it appears in email. use : \n",
+                "sed -i 's:REPLACE_EMAIL_BACKEND:",
+                    "django_ses.SESBackend",
+                    ":'  $DJ_SET_SH \n",
+
+                "sed -i 's@REPLACE_AWS_ENVINFO@",
+                    {"Ref": "TagKeyStack"},
+                    "@'  $DJ_SET_SH \n",
+
+                "sed -i 's@REPLACE_AWS_KEYID@",
+                    {"Ref": "AwsContentKeyId"},
+                    "@'  $DJ_SET_SH \n",
+
+                "sed -i 's@REPLACE_AWS_ACCESSKEY@",
+                    {"Ref": "AwsContentAccessKey"},
+                    "@'  $DJ_SET_SH \n",
+
+                "sed -i 's@REPLACE_AWS_STORAGE_BUCKET@",
+                {"Fn::FindInMap": ["S3StorageBucket", "us-east-1",
+                    {"Ref": "TagKeyStack"}]},
+                    "@' $DJ_SET_SH \n",
+
+                "sed -i 's@REPLACE_DJ_SET_MODULE@hhs_oauth_server.",
+                    {"Ref": "PyAppSettings"},
+                    "@' $DJ_SET_SH \n",
+                "sed -i 's@REPLACE_HOSTNAME_URL@",
+                    {"Ref": "PublicServerName"},
+                    "@' $DJ_SET_SH \n",
+
+                "sed -i 's@REPLACE_ORG_NAME@",
+                    {"Fn::FindInMap": ["DjangoInfo", {"Ref": "TagKeyStack"},
+                    "DjangoOrgName"]},
+                    "@' $DJ_SET_SH \n",
+
+                "sed -i 's@REPLACE_APP_TITLE@",
+                    {"Fn::FindInMap": ["DjangoInfo", {"Ref": "TagKeyStack"},
+                    "DjangoAppTitle"]},
+                    "@' $DJ_SET_SH \n",
+
+                 "sed -i 's@DB_ENGINE_DRIVER@",
+                    {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
+                    "DbEngineDriver" ]} ,
+                    "@' $DJ_SET_SH \n",
+                 "sed -i 's@DB_NAME_TABLE@",
+                    {"Ref": "DatabasePrefix"},
+                    {"Ref": "TagKeyStack"},
+                    "_",
+                    {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
+                    "DbNameTable" ]} ,
+                    "@'  $DJ_SET_SH \n",
+                 "sed -i 's@DB_USER_NAME@",
+                    {"Ref": "pyDbUser"},
+                    "@'  $DJ_SET_SH \n",
+                 "sed -i 's@DB_USER_PWD@",
+                    {"Ref": "pyDbPassword"},
+                    "@'  $DJ_SET_SH \n",
+                 "sed -i 's@DB_HOST_NAME@",
+                    {"Ref": "DatabaseHostAddress"},
+                    "@'  $DJ_SET_SH \n",
+                 "sed -i 's@DB_HOST_PORT@",
+                    {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
+                    "DbHostPort" ]},
+                    "@'  $DJ_SET_SH \n",
+
+
+                "export CE_SET_PY=",{"Ref":"PyAppHome"},"/custom-envvars.py \n",
+                "# Preparing $CE_SET_PY \n",
+
+                "/usr/local/bin/aws s3 cp ",
+                " s3://bb-config/all_env/custom-envvars.py " ,
+                " ", {"Ref": "PyAppHome"}, "  \n",
+
+                "sed -i 's@DB_LINK_URL@",
+                    {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
+                    "DbLinkUrl" ]} ,
+                    "@'  $CE_SET_PY \n",
+
+               "# don't use @ delimiter because it appears in email. use : \n",
+                "sed -i 's:REPLACE_SES_FROM_EMAIL:",
+                {"Ref": "pyappsemail"},
+                    ":'  $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_EMAIL_BACKEND@",
+                    "django_ses.SESBackend",
+                    "@'  $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_AWS_ENVINFO@",
+                    {"Ref": "TagKeyStack"},
+                    "@'  $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_AWS_KEYID@",
+                    {"Ref": "AwsContentKeyId"},
+                    "@'  $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_AWS_ACCESSKEY@",
+                    {"Ref": "AwsContentAccessKey"},
+                    "@'  $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_AWS_STORAGE_BUCKET@",
+                    {"Fn::FindInMap": ["S3StorageBucket", "us-east-1",
+                    {"Ref": "TagKeyStack"}]},
+                    "@' $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_DJ_SET_MODULE@hhs_oauth_server.",
+                    {"Ref": "PyAppSettings"},
+                    "@' $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_HOSTNAME_URL@",
+                    {"Ref": "PublicServerName"},
+                    "@' $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_ORG_NAME@",
+                    {"Fn::FindInMap": ["DjangoInfo", {"Ref": "TagKeyStack"},
+                    "DjangoOrgName"]},
+                    "@' $CE_SET_PY \n",
+
+                "sed -i 's@REPLACE_APP_TITLE@",
+                    {"Fn::FindInMap": ["DjangoInfo", {"Ref": "TagKeyStack"},
+                    "DjangoAppTitle"]},
+                    "@' $CE_SET_PY \n",
+
+                 "sed -i 's@DB_ENGINE_DRIVER@",
+                    {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
+                    "DbEngineDriver" ]} ,
+                    "@'  $CE_SET_PY \n",
+                 "sed -i 's@DB_NAME_TABLE@",
+                    {"Ref": "DatabasePrefix"},
+                    {"Ref": "TagKeyStack"},
+                    "_",
+                    {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
+                    "DbNameTable" ]} ,
+                    "@'  $CE_SET_PY \n",
+                 "sed -i 's@DB_USER_NAME@",
+                    {"Ref": "pyDbUser"},
+                    "@'  $CE_SET_PY \n",
+                 "sed -i 's@DB_USER_PWD@",
+                    {"Ref": "pyDbPassword"},
+                    "@'  $CE_SET_PY \n",
+                 "sed -i 's@DB_HOST_NAME@",
+                    {"Ref": "DatabaseHostAddress"},
+                    "@'  $CE_SET_PY \n",
+                 "sed -i 's@DB_HOST_PORT@",
+                    {"Fn::FindInMap" : [ "DBType", {"Ref": "DatabaseType"},
+                    "DbHostPort" ]},
+                    "@'  $CE_SET_PY \n",
+
+                "chmod +x ", {"Ref": "PyAppHome"}, "  \n",
+
+                "echo 'copying virtualhost file server.conf into place' >>$BUILD_LOG \n",
+                "/usr/local/bin/aws s3 cp ",
+                "s3://bluebutton-dev/config/virtualhost_conf.sh ",
+                " /home/ec2-user/script/ \n",
+                "mkdir -p /etc/httpd/virtualhost \n",
+                "chmod +x /home/ec2-user/script/virtualhost_conf.sh \n",
+                "/home/ec2-user/script/virtualhost_conf.sh  \n",
+
+                "echo 'copying wsgi.conf into place. ' >>$BUILD_LOG \n",
+                "echo 'LoadModule wsgi_module modules/mod_wsgi.so ' >/etc/httpd/conf.d/wsgi.conf \n",
+
+                "echo 'copying config files into place' >>$BUILD_LOG \n",
+                "echo 'Include virtualhost/*.conf' >>/etc/httpd/conf/httpd.conf \n",
+                "mkdir -p /var/www/doc \n",
+                "mkdir -p /var/www/doc/", {"Ref": "PyServerName"}," \n",
+
+                "echo 'run python app migrations' >>$BUILD_LOG \n",
+                "export DJANGO_APP_ROOT=",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
+                "export DJANGO_ASSETS_ROOT=$DJANGO_APP_ROOT \n",
+                "cd ",{"Ref": "PyAppHome"},"/hhs_oauth_server \n",
+                "# Process as LEADER or FOLLOW \n",
+                "if [ ",{"Ref": "HerdMember"},"z = LEADERz ] \n",
+                "then \n",
+                "    echo 'Creating LEADER in ", {"Ref": "TagKeyStack"}, " environment.' >>$BUILD_LOG \n",
+                "    # This is the first instance - initialize the database \n",
+                "    # Don't MakeMigrations - they should be made and committed in the repo \n",
+                "    # ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py makemigrations \n",
+                "    # Migrate models \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py migrate \n",
+                "    # Create Superuser variables \n",
+                "    export DJANGO_SUPERUSER_USERNAME=",{"Ref": "pyappsUser"}," \n",
+                "    export DJANGO_SUPERUSER_PASSWORD=", {"Ref": "pyappsPassword"}," \n",
+                "    export DJANGO_SUPERUSER_EMAIL=",{"Ref": "pyappsemail"}," \n",
+                "    # create Superuser \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py create_super_user_from_envars \n",
+                "    # remove superuser variables \n",
+                "    export DJANGO_SUPERUSER_USERNAME='' \n",
+                "    export DJANGO_SUPERUSER_PASSWORD='' \n",
+                "    export DJANGO_SUPERUSER_EMAIL='' \n",
+                "    # collect static content \n",
+                "    # use s3 copy and manage.py collectstatic due to boto3 bug \n",
+                "    ",{"Ref": "PyVirtualenv"}, "/bin/python3 manage.py collectstatic --noinput \n",
+                "    /usr/local/bin/aws s3 cp ",
+                "    /var/pyapps/hhs_o_server/hhs_oauth_server/sitestatic ",
+                "    s3://content-",{"Ref": "TagKeyStack"},"-bbonfhir-com/static  --recursive \n",
+                "    # Now copy admin static files using s3. \n",
+                "    /usr/local/bin/aws s3 cp ",
+                "    /var/virtualenv/hhs_o_server/lib/python3.5/site-packages/django/contrib/admin/static/admin ",
+                "    s3://content-",{"Ref": "TagKeyStack"},"-bbonfhir-com/static/admin  --recursive \n",
+                "    # load base data \n",
+                "    ",{"Ref": "PyVirtualenv"},"/bin/python3 manage.py loaddata fixtures/fhir_supportedresourcetype.json \n",
+                "else  \n",
+                "       # Nothing to do  \n",
+                "    echo 'Creating FOLLOWer in ", {"Ref": "TagKeyStack"}, " environment.' >>$BUILD_LOG \n",
+                "fi  \n",
+
+                "echo 'Tidying up...' >>$BUILD_LOG \n",
+                "chmod -R 0755 /var/pyapps \n",
+                "chmod -R 0755 /var/virtualenv \n",
+                "chown -Rf pyapps:apache /var/pyapps \n",
+                "chown -Rf pyapps:apache /var/virtualenv \n",
+                "chown -Rf ec2-user:ec2-user /home/ec2-user \n",
+
+                "echo 'Copy DJANGO_CUSTOM_SETTINGS_DIR to /etc/sysconfig/httpd' >>$BUILD_LOG \n",
+                "echo export DJANGO_CUSTOM_SETTINGS_DIR=", {"Ref": "PyAppHome"} ,"/ >>/etc/sysconfig/httpd \n",
+
+                "echo 'Starting Apache...' >>$BUILD_LOG \n",
+                "chkconfig httpd on \n",
+                "service httpd stop \n",
+                "service httpd start \n",
+
+                "date -r /home/ec2-user/build_status.log >>$BUILD_LOG \n",
+                "echo \"",{"Ref": "TagKeyStack"}, ":", {"Ref": "PyServerName"} ," Server installed \" >>$BUILD_LOG \n",
+                "echo \"",{"Ref": "TagKeyStack"}, ":", {"Ref": "PublicServerName"} ," Server installed \" >>$BUILD_LOG \n",
+
+                "echo 'DONE.' >>$BUILD_LOG \n"
+
+              ]
+            ]
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "AppEc2SecurityGrpId": {
+      "Value": {
+        "Ref": "AppEc2SecurityGrp"
+      },
+      "Export": {
+          "Name": {
+              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
+                                {"Ref": "TagKeyLayer"},
+                                {"Ref": "HerdMember"},
+                                 "AppEc2SecurityGrpId" ] ]
+          }
+      },
+      "Description": "New Security Group for Instance"
+    },
+    "AppEcInstanceId": {
+      "Value": {
+        "Ref": "AppEcInstance"
+      },
+      "Export": {
+          "Name": {
+              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
+                                {"Ref": "TagKeyLayer"},
+                                {"Ref": "HerdMember"},
+                                 "AppEcInstanceId" ] ]
+          }
+      }
+    },
+    "AppPrivateIp": {
+      "Value": {
+          "Fn::GetAtt" : [ "AppEcInstance", "PrivateIp" ]
+      },
+      "Export": {
+          "Name": {
+              "Fn::Join": [":", [{"Ref": "TagKeyStack"},
+                                {"Ref": "TagKeyLayer"},
+                                {"Ref": "HerdMember"},
+                                 "AppPrivateIp" ] ]
+          }
+      }
+    }
+  }
+}
+
+

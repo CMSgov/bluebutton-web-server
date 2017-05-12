@@ -1,0 +1,8 @@
+Congratulations!
+
+You have been invited to join the {{ APPLICATION_TITLE }} community.
+Your invitation code is: {{ CODE }}.
+You may now register. Paste this url into your browser: {{ URL }}?invitation_code={{ CODE }}
+
+- The {{APPLICATION_TITLE}} Team
+

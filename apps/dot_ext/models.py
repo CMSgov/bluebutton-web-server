@@ -25,10 +25,15 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 @python_2_unicode_compatible
 class Endorsement(models.Model):
-    title = models.CharField(max_length=256, default='')
-    jwt = models.TextField(max_length=10240, default='')
-    iss = models.CharField(max_length=512, default='', verbose_name='Issuer',
-                           help_text='Must contain a FQDN', editable=False)
+    title = models.CharField(max_length=255,
+                             default='')
+    jwt = models.TextField(max_length=10240,
+                           default='')
+    iss = models.CharField(max_length=512,
+                           default='',
+                           verbose_name='Issuer',
+                           help_text='Must contain a FQDN',
+                           editable=False)
     iat = models.DateTimeField(verbose_name='Issued At',
                                editable=False)
     exp = models.DateTimeField(verbose_name='Expires',
@@ -37,11 +42,15 @@ class Endorsement(models.Model):
     def __str__(self):
         return self.title
 
+    def url(self):
+        url = 'http://%s/.wellknown/poet.pem' % (self.iss)
+        return url
+
     def signature_verified(self):
         url = 'http://%s/.wellknown/poet.pem' % (self.iss)
-
+        print("URL is: ", url)
         try:
-            r = requests.get(url, timeout=1)
+            r = requests.get(url, timeout=10)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -55,7 +64,7 @@ class Endorsement(models.Model):
 
         url = 'http://%s/.wellknown/poet.jwks' % (self.iss)
         try:
-            r = requests.get(url, timeout=1)
+            r = requests.get(url, timeout=10)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -69,7 +78,7 @@ class Endorsement(models.Model):
 
         try:
             url = 'https://%s/.wellknown/poet.pem' % (self.iss)
-            r = requests.get(url, verify=False, timeout=1)
+            r = requests.get(url, verify=False, timeout=10)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -83,7 +92,7 @@ class Endorsement(models.Model):
 
         try:
             url = 'https://%s/.wellknown/poet.jwks' % (self.iss)
-            r = requests.get(url, timeout=1)
+            r = requests.get(url, timeout=10)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -107,12 +116,22 @@ class Endorsement(models.Model):
             return True
         return False
 
+    def good_to_go(self):
+        is_expired = self.is_expired()
+        signature_verified = self.signature_verified()
+
+        if signature_verified and is_expired is False:
+            return True
+        return False
+
     def save(self, commit=True, **kwargs):
         if commit:
             payload = jwt.decode(self.jwt, verify=False)
             self.iss = payload['iss']
-            self.iat = datetime.datetime.fromtimestamp(int(payload['iat'])).strftime('%Y-%m-%d %H:%M:%S')
-            self.exp = datetime.datetime.fromtimestamp(int(payload['exp'])).strftime('%Y-%m-%d %H:%M:%S')
+            self.iat = datetime.datetime.fromtimestamp(
+                int(payload['iat'])).strftime('%Y-%m-%d %H:%M:%S')
+            self.exp = datetime.datetime.fromtimestamp(
+                int(payload['exp'])).strftime('%Y-%m-%d %H:%M:%S')
             super(Endorsement, self).save(**kwargs)
 
 
@@ -137,7 +156,8 @@ class ExpiresInManager(models.Manager):
         Generate a unique key using client_id and user_id args.
         """
         arg = '%s_%s' % (client_id, user_id)
-        # Python 3 - avoid TypeError: Unicode-objects must be encoded before hashing
+        # Python 3 - avoid TypeError: Unicode-objects
+        # must be encoded before hashing
         if sys.version_info > (3, 2):
             arg = arg.encode('utf-8')
         return hashlib.sha256(arg).hexdigest()

@@ -33,6 +33,9 @@
                    Issued By: {{e.iss}}<br>
                    Expires: {{e.exp}}<br>
                    Signature Verified: {{e.signature_verified}}
+                   {% if e.signature_verified %}
+                   <a href={{e.url}}>(Signature)</a>
+                   {% endif %}
                    </td>
                     
                     <td>
@@ -48,7 +51,7 @@
 
             <a class="btn btn-success" href="{% url "add_endorsement" application.id  %}">New Endorsement</a>
         {% else %}
-            <p>{% trans "No endorsements defined" %}. <a href="{% url "add_endorsement" application.id  %}">{% trans "Click here" %}</a> {% trans "if you want to register a new one for" %} </p>
+            <p>{% trans "No endorsements defined" %}. <a href="{% url "add_endorsement" application.id  %}">{% trans "Click here" %}</a> {% trans "if you want to register a new one." %} </p>
         {% endif %}
     </div>
 {% endblock content %}

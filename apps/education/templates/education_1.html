@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 {% block extrahead %}
     <script src="{% static 'js/switch_content.js' %}"></script>
 {% endblock %}
-{% block title %}{% trans "Activate Advanced Blue Button API" %}{% endblock %}
+{% block title %}{% trans "Activate CMS Blue Button API" %}{% endblock %}
 {% block breadcrumbs %}
     <div class="container">
         <ul class="breadcrumb">
@@ -14,7 +14,7 @@
         </ul>
     </div>
 {% endblock %}
-{% block pagename %}Activate Advanced Blue Button API (2){% endblock %}
+{% block pagename %}Activate CMS Blue Button API (2){% endblock %}
 {% block Content %}
 
 <div class="section">
@@ -25,26 +25,25 @@
 
                 <h4>Taking Your Data with you</h4>
 
-                <p>The CMS Advanced BlueButton Service makes it easy for you connect your
+                <p>The CMS Blue Button API Service makes it easy for you to connect your
                     health information to applications, services or research programs that you
                     trust.
                     <br/>
-                    Be careful with your data! It is important to realize that once you
-                    allow another person or application to see your information they will
-                    have a copy.
                     <br/>
-                    Before you connect an application to your MyMedicare information always
-                    make sure that you trust that the application will take good care
-                    of your data.
+                    <b>Be careful with your data!</b> Once an application receives your information they will have a copy.
                     <br/>
-                    But remember, if you change your mind you can come
-                    back to your My Account dashboard on MyMedicare.gov and disconnect any of
-                    your connected applications. Disconnecting them immediately stops any new
-                    data from flowing to them.
+                    Therefore, before you connect an application to your MyMedicare information
+                    make sure you trust that the application will take good care of your data.
+                    <br/>
+                    But remember, if you do change your mind you can come
+                    back to your My Account dashboard on <a href="https://www.mymedicare.gov">MyMedicare.gov</a> and disconnect any of
+                    your connected applications. Disconnecting immediately stops any new
+                    data from flowing to that application. However, the application may still have a copy of data they
+                    received before you disconnected them.
                 </p>
             </div>
             <div class="col-md-4 col-sm-12">
-                <img src="{% static 'img/layout/blue-button.png' %}"
+                <img src="{% static 'img/layout/bluebuttonapiv1.png' %}"
                     style="height:300px">
             </div>
 

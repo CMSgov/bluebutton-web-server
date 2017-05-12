@@ -8,7 +8,7 @@
 
 	{% load i18n %}
         <title>
-        {% block title %} {% trans "oAuth2 Server" %} {% endblock %}
+        {% block title %} {% trans "OAuth2 Provider" %} {% endblock %}
         </title>
 	
     {% block head %}
@@ -20,6 +20,7 @@
 
     <style>
         body {
+			position: relative;
             padding-top: 90px;
             padding-bottom: 40px;
 {#            background-color: #f5f5f5;#}
@@ -40,6 +41,14 @@
 {#        .block-center .block-center-heading {#}
 {#            margin-bottom: 10px;#}
 {#        }#}
+        .btn-xlarge {
+            padding: 8px 18px;
+            font-size: 28px; //change this to your desired size
+            line-height: normal;
+            -webkit-border-radius: 4px;
+               -moz-border-radius: 4px;
+                    border-radius: 4px;
+        }
 
 </style>
 {#    {% with '/static/'|add:settings.THEME.PATH|add:"head_style.html" as theme_head_style%}#}

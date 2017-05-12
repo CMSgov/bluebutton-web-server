@@ -6,17 +6,17 @@ from oauth2_provider.decorators import protected_resource
 
 @require_GET
 @protected_resource()
-def user_self(request):
+def openidconnect_userinfo(request):
     """
-    Views that returns a json representation of the current user's details.
+    Views that returns a JSON representation of the current user's details.
     """
     user = request.resource_owner
     data = {
-        'id': user.pk,
-        'username': user.username,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
+        'sub': user.username,
+        'name': "%s %s" % (user.first_name, user.last_name),
+        'given_name': user.first_name,
+        'family_name': user.last_name,
         'email': user.email,
-        'created': user.date_joined,
+        'iat': user.date_joined,
     }
     return JsonResponse(data)
