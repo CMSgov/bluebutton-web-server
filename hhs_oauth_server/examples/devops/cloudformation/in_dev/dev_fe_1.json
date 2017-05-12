@@ -210,7 +210,7 @@
      "CfnKeys": {
         "Description": "AccessKeyId for user in S3",
         "Type" : "String",
-        "Default": "AKIAJBWOY7VQSCFVBVYA",
+        "Default": "_REPLACE_THIS_KEY",
         "ConstraintDescription": "Must be a valid AccessKey ID for an S3 User"
      },
      "InstanceName" : {
