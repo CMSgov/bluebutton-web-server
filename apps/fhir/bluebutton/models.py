@@ -35,6 +35,9 @@ class FhirServer(models.Model):
                                 blank=True,
                                 null=True,
                                 help_text="Name of Client Key file")
+    server_verify = models.BooleanField(default=False,
+                                        help_text="Server Verify "
+                                                  "(Default=False)")
 
     def __str__(self):
         return self.name

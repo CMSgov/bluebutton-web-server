@@ -4,7 +4,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.fhir.fhir_core.utils import kickout_400
 from apps.fhir.bluebutton.views.read import generic_read
-from apps.fhir.bluebutton.views.home import fhir_conformance
+from apps.fhir.bluebutton.views.home import (fhir_conformance,
+                                             fhir_search_home)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
@@ -20,6 +21,8 @@ def search_simple(request, resource_type):
 
     if request.method == 'GET':
         # Search
+        logger.debug("searching with Resource:"
+                     "%s and Id:%s" % (resource_type, id))
         return generic_read(request, resource_type, id)
     # elif request.method == 'PUT':
     #     # update
@@ -30,7 +33,8 @@ def search_simple(request, resource_type):
     # else:
     # Not supported.
     msg = "HTTP method %s not supported at this URL." % (request.method)
-    logger_info.info(msg)
+    # logger_info.info(msg)
+    logger.debug(msg)
 
     return kickout_400(msg)
 
@@ -49,11 +53,24 @@ def search(request, resource_type, *args, **kwargs):
     logger_debug.debug("Received:%s" % resource_type)
 
     conformance = False
-    if resource_type is None:
+    if "_getpages" in request.GET:
+        # a request can be made without a resource name
+        # if the GET Parameters include _getpages it is asking for the
+        # next batch of resources from a previous search
+        conformance = False
+        logger.debug("We need to get a searchset: %s" % request.GET)
+
+    elif resource_type is None:
         conformance = True
     elif resource_type.lower() == 'metadata':
+        # metadata is a valid resourceType to request the
+        # Conformance/Capability Statement
         conformance = True
     elif resource_type.lower == 'conformance':
+        # Conformance is the Dstu2 name for the list of resources supported
+        conformance = True
+    elif resource_type.lower == "capability":
+        # Capability is the Stu3 name for the list of resources supported
         conformance = True
 
     if conformance:
@@ -67,10 +84,15 @@ def search(request, resource_type, *args, **kwargs):
                        "Calling generic_read for %s" % (interaction_type,
                                                         resource_type))
 
-    search = generic_read(request,
-                          interaction_type,
-                          resource_type,
-                          id,
-                          *args,
-                          **kwargs)
+    if "_getpages" in request.GET:
+        # Handle the next searchset
+        search = fhir_search_home(request)
+    else:
+        # Otherwise we should have a resource_type and can perform a search
+        search = generic_read(request,
+                              interaction_type,
+                              resource_type,
+                              id,
+                              *args,
+                              **kwargs)
     return search
