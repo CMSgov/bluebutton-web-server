@@ -58,8 +58,6 @@ AAL_CHOICES = (
 )
 
 
-
-
 QUESTION_1_CHOICES = (
     ('1', 'What is your favorite color?'),
     ('2', 'What is your favorite vegetable?'),
@@ -96,22 +94,22 @@ class UserProfile(models.Model):
                            max_length=1,
                            blank=True,
                            verbose_name="Level of Assurance",
-                           help_text = "Legacy and Deprecated. Using IAL AAL is recommended.")
-    
+                           help_text="Legacy and Deprecated. Using IAL AAL is recommended.")
+
     ial = models.CharField(default='',
                            choices=IAL_CHOICES,
                            max_length=1,
                            blank=True,
-                           verbose_name = "Identity Assurance Level",
+                           verbose_name="Identity Assurance Level",
                            help_text="See NIST SP 800 63 A for definitions.")
 
     aal = models.CharField(default='1',
                            choices=AAL_CHOICES,
                            max_length=1,
                            blank=True,
-                           verbose_name = "Authenticator Assurance Level",
+                           verbose_name="Authenticator Assurance Level",
                            help_text="See NIST SP 800 63 B for definitions.")
-    
+
     user_type = models.CharField(default='DEV',
                                  choices=USER_CHOICES,
                                  max_length=5)
@@ -190,7 +188,7 @@ class UserProfile(models.Model):
     def save(self, **kwargs):
         if self.mfa_login_mode:
             self.aal = '2'
-        
+
         if not self.access_key_id or self.access_key_reset:
             self.access_key_id = random_key_id()
             self.access_key_secret = random_secret()
@@ -412,7 +410,8 @@ class ValidPasswordResetKey(models.Model):
             self.expires = expires
 
             # send an email with reset url
-            send_password_reset_url_via_email(self.user, self.reset_password_key)
+            send_password_reset_url_via_email(
+                self.user, self.reset_password_key)
             logger.info("Password reset sent to Invitation sent to {} ({})".format(self.user.username,
                                                                                    self.user.email))
             super(ValidPasswordResetKey, self).save(**kwargs)
@@ -463,9 +462,11 @@ class EmailWebhook(models.Model):
                     self.email = message['bounce'][
                         'bouncedRecipients'][0]["emailAddress"]
                 if self.status == "Complaint":
-                    self.email = message['complainedRecipients'][0]["emailAddress"]
+                    self.email = message['complainedRecipients'][
+                        0]["emailAddress"]
                 if self.status == "Delivery":
                     self.email = message['mail']["destination"][0]
                 self.details = request_body
-                logger.info("Sent email {} status is {}.".format(self.email, self.status))
+                logger.info("Sent email {} status is {}.".format(
+                    self.email, self.status))
                 super(EmailWebhook, self).save(**kwargs)

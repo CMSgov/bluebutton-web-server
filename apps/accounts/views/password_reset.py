@@ -12,8 +12,9 @@ from ..forms import (ChangeSecretQuestionsForm, PasswordResetForm,
 from ..models import UserProfile, ValidPasswordResetKey
 from django.contrib.auth import authenticate, login
 
+
 def reset_password(request):
-    
+
     name = _('Reset Password')
     if request.user.is_authenticated:
         if request.method == 'POST':
@@ -30,12 +31,13 @@ def reset_password(request):
                 return HttpResponseRedirect(reverse('account_settings'))
             else:
                 return render(request, 'generic/bootstrapform.html',
-                      {'form': form, 'name':name})
+                              {'form': form, 'name': name})
         # this is a GET
         return render(request, 'generic/bootstrapform.html',
-                      {'form': PasswordResetForm(), 'name':name})
+                      {'form': PasswordResetForm(), 'name': name})
     else:
         return HttpResponseRedirect(reverse('home'))
+
 
 def password_reset_email_verify(request, reset_password_key=None):
     vprk = get_object_or_404(ValidPasswordResetKey,
