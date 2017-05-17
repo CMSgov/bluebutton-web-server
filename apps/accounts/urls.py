@@ -12,6 +12,7 @@ from .views.core import (create_account,
 
 from .views.password_reset import (change_secret_questions,
                                    forgot_password,
+                                   reset_password,
                                    password_reset_email_verify,
                                    secret_question_challenge,
                                    secret_question_challenge_1,
@@ -62,6 +63,9 @@ urlpatterns = [
     url(r'^request-invite$',
         request_invite,
         name='request_invite'),
+
+    # Reset password? ---------------------------------------
+    url(r'^reset-password$', reset_password, name='reset_password'),
 
     # Forgot password? ---------------------------------------
     url(r'^forgot-password$', forgot_password, name='forgot_password'),

@@ -10,6 +10,33 @@ from random import randint
 from ..forms import (ChangeSecretQuestionsForm, PasswordResetForm,
                      PasswordResetRequestForm, SecretQuestionForm)
 from ..models import UserProfile, ValidPasswordResetKey
+from django.contrib.auth import authenticate, login
+
+
+def reset_password(request):
+
+    name = _('Reset Password')
+    if request.user.is_authenticated():
+        if request.method == 'POST':
+            form = PasswordResetForm(request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                request.user.set_password(data['password1'])
+                request.user.save()
+                user = authenticate(request=request,
+                                    username=request.user.username,
+                                    password=data['password1'])
+                login(request, user)
+                messages.success(request, 'Your password was updated.')
+                return HttpResponseRedirect(reverse('account_settings'))
+            else:
+                return render(request, 'generic/bootstrapform.html',
+                              {'form': form, 'name': name})
+        # this is a GET
+        return render(request, 'generic/bootstrapform.html',
+                      {'form': PasswordResetForm(), 'name': name})
+    else:
+        return HttpResponseRedirect(reverse('home'))
 
 
 def password_reset_email_verify(request, reset_password_key=None):
