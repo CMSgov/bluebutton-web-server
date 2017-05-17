@@ -92,9 +92,9 @@ class PasswordResetRequestForm(forms.Form):
 
 
 class PasswordResetForm(forms.Form):
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password1 = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                 label=_('Password*'))
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password2 = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                 label=_('Password (again)*'))
 
     required_css_class = 'required'
@@ -115,7 +115,7 @@ class PasswordResetForm(forms.Form):
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=30, label=_('User'))
-    password = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                label=_('Password'))
     required_css_class = 'required'
 
