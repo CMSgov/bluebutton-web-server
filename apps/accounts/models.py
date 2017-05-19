@@ -266,14 +266,16 @@ class MFACode(models.Model):
 
 @python_2_unicode_compatible
 class RequestInvite(models.Model):
+    user_type = models.CharField(max_length=3, choices=USER_CHOICES,
+                                 default="")
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    organization = models.CharField(max_length=150, blank=True)
+    organization = models.CharField(max_length=150, blank=True, default="")
     email = models.EmailField(max_length=150)
     added = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        r = '%s %s' % (self.first_name, self.last_name)
+        r = '%s %s as a %s' % (self.first_name, self.last_name, self.user_type)
         return r
 
     def save(self, commit=True, **kwargs):
