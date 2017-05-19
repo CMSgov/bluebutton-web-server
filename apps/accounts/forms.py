@@ -39,7 +39,7 @@ class RequestInviteForm(forms.ModelForm):
 
     class Meta:
         model = RequestInvite
-        fields = ('first_name', 'last_name', 'organization', 'email')
+        fields = ('first_name', 'last_name', 'email', 'user_type')
 
     user_type = 'DEV'
     human_x = randint(1, 9)
