@@ -39,7 +39,7 @@ class RequestInviteForm(forms.ModelForm):
 
     class Meta:
         model = RequestInvite
-        fields = ('first_name', 'last_name', 'organization', 'email')
+        fields = ('first_name', 'last_name', 'email', 'user_type')
 
     user_type = 'DEV'
     human_x = randint(1, 9)
@@ -127,7 +127,7 @@ class LoginForm(forms.Form):
 class CodeLoginForm(forms.Form):
     username = forms.CharField(max_length=30, label=_('Username'),
                                help_text="MyMedicare.gov user name")
-    password = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                label=_('Password'),
                                help_text="MyMedicare.gov password")
     code = forms.CharField(
@@ -159,9 +159,9 @@ class SignupForm(forms.Form):
                                         label=_("Organization Name"),
                                         required=False
                                         )
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password1 = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                 label=_("Password"))
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password2 = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                 label=_("Password (again)"))
     password_reset_question_1 = forms.ChoiceField(choices=QUESTION_1_CHOICES)
     password_reset_answer_1 = forms.CharField(max_length=50)
