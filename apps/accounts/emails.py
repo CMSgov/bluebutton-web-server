@@ -30,9 +30,9 @@ def notify_admin_of_invite_request(request_invite):
                "USER_TYPE": request_invite.user_type
                }
     subject = '[%s] Request for %s access from : %s %s' % (settings.APPLICATION_TITLE,
-                                                        request_invite.user_type,
-                                                        request_invite.first_name,
-                                                        request_invite.last_name)
+                                                           request_invite.user_type,
+                                                           request_invite.first_name,
+                                                           request_invite.last_name)
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = settings.DEFAULT_FROM_EMAIL
     text_content = plaintext.render(context)
