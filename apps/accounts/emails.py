@@ -26,11 +26,13 @@ def notify_admin_of_invite_request(request_invite):
     context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
                "EMAIL": request_invite.email,
                "FIRST_NAME": request_invite.first_name,
-               "LAST_NAME": request_invite.last_name
+               "LAST_NAME": request_invite.last_name,
+               "USER_TYPE": request_invite.user_type
                }
-    subject = '[%s] Request for Access from : %s %s' % (settings.APPLICATION_TITLE,
-                                                        request_invite.first_name,
-                                                        request_invite.last_name)
+    subject = '[%s] Request for %s access from : %s %s' % (settings.APPLICATION_TITLE,
+                                                           request_invite.user_type,
+                                                           request_invite.first_name,
+                                                           request_invite.last_name)
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = settings.DEFAULT_FROM_EMAIL
     text_content = plaintext.render(context)
