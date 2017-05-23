@@ -27,12 +27,34 @@ USER_CHOICES = (
     ('DEV', 'Developer'),
 )
 
+
+# Enrollment and Identity Proofing. NIST SP 800-63-A
+# Level of Assurance - Legacy/Deprecated  See NIST SP 800-63-2
 LOA_CHOICES = (
-    ('0', 'LOA-0'),
+    ('', 'Undefined'),
     ('1', 'LOA-1'),
     ('2', 'LOA-2'),
     ('3', 'LOA-3'),
     ('4', 'LOA-4'),
+)
+
+# Enrollment and Identity Proofing. NIST SP 800-63-3 A
+# Identity assurance level
+IAL_CHOICES = (
+    ('', 'Undefined'),
+    ('1', 'IAL1'),
+    ('2', 'IAL2'),
+    ('3', 'IAL3'),
+)
+
+
+# Enrollment and Identity Proofing. NIST SP 800-63-33 B
+# Authenticator Assurance Level
+AAL_CHOICES = (
+    ('', 'Undefined'),
+    ('1', 'AAL1'),
+    ('2', 'AAL2'),
+    ('3', 'AAL3'),
 )
 
 
@@ -67,9 +89,27 @@ class UserProfile(models.Model):
     organization_name = models.CharField(max_length=255,
                                          blank=True,
                                          default='')
-    loa = models.CharField(default='0',
+    loa = models.CharField(default='',
                            choices=LOA_CHOICES,
-                           max_length=5)
+                           max_length=1,
+                           blank=True,
+                           verbose_name="Level of Assurance",
+                           help_text="Legacy and Deprecated. Using IAL AAL is recommended.")
+
+    ial = models.CharField(default='',
+                           choices=IAL_CHOICES,
+                           max_length=1,
+                           blank=True,
+                           verbose_name="Identity Assurance Level",
+                           help_text="See NIST SP 800 63 A for definitions.")
+
+    aal = models.CharField(default='1',
+                           choices=AAL_CHOICES,
+                           max_length=1,
+                           blank=True,
+                           verbose_name="Authenticator Assurance Level",
+                           help_text="See NIST SP 800 63 B for definitions.")
+
     user_type = models.CharField(default='DEV',
                                  choices=USER_CHOICES,
                                  max_length=5)
@@ -146,6 +186,9 @@ class UserProfile(models.Model):
         return name
 
     def save(self, **kwargs):
+        if self.mfa_login_mode:
+            self.aal = '2'
+
         if not self.access_key_id or self.access_key_reset:
             self.access_key_id = random_key_id()
             self.access_key_secret = random_secret()
@@ -223,14 +266,16 @@ class MFACode(models.Model):
 
 @python_2_unicode_compatible
 class RequestInvite(models.Model):
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    organization = models.CharField(max_length=150, blank=True)
+    user_type = models.CharField(max_length=3, choices=USER_CHOICES,
+                                 default="")
+    first_name = models.CharField(max_length=150, default="")
+    last_name = models.CharField(max_length=150, default="")
+    organization = models.CharField(max_length=150, blank=True, default="")
     email = models.EmailField(max_length=150)
     added = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        r = '%s %s' % (self.first_name, self.last_name)
+        r = '%s %s as a %s' % (self.first_name, self.last_name, self.user_type)
         return r
 
     def save(self, commit=True, **kwargs):
@@ -249,7 +294,8 @@ class RequestInvite(models.Model):
 
 @python_2_unicode_compatible
 class UserRegisterCode(models.Model):
-    code = models.CharField(max_length=30)
+    code = models.CharField(max_length=30, db_index=True)
+    valid = models.BooleanField(default=False, blank=True)
     username = models.CharField(max_length=40)
     email = models.EmailField(max_length=150)
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
@@ -367,7 +413,8 @@ class ValidPasswordResetKey(models.Model):
             self.expires = expires
 
             # send an email with reset url
-            send_password_reset_url_via_email(self.user, self.reset_password_key)
+            send_password_reset_url_via_email(
+                self.user, self.reset_password_key)
             logger.info("Password reset sent to Invitation sent to {} ({})".format(self.user.username,
                                                                                    self.user.email))
             super(ValidPasswordResetKey, self).save(**kwargs)
@@ -418,9 +465,11 @@ class EmailWebhook(models.Model):
                     self.email = message['bounce'][
                         'bouncedRecipients'][0]["emailAddress"]
                 if self.status == "Complaint":
-                    self.email = message['complainedRecipients'][0]["emailAddress"]
+                    self.email = message['complainedRecipients'][
+                        0]["emailAddress"]
                 if self.status == "Delivery":
                     self.email = message['mail']["destination"][0]
                 self.details = request_body
-                logger.info("Sent email {} status is {}.".format(self.email, self.status))
+                logger.info("Sent email {} status is {}.".format(
+                    self.email, self.status))
                 super(EmailWebhook, self).save(**kwargs)
