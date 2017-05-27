@@ -7,7 +7,7 @@ from apps.fhir.bluebutton.views.home import fhir_search_home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 admin.autodiscover()
 
-ADMIN_REDIRECTOR = getattr(settings, settings.ADMIN_PREPEND_UR, '')
+ADMIN_REDIRECTOR = getattr(settings, 'ADMIN_PREPEND_URL', '')
 
 urlpatterns = [
     url(r'^accounts/', include('apps.accounts.urls')),
