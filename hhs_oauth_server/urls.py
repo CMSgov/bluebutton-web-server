@@ -7,7 +7,7 @@ from apps.fhir.bluebutton.views.home import fhir_search_home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 admin.autodiscover()
 
-ADMIN_REDIRECTOR = getattr(settings, ADMIN_PREPEND_URL, '')
+ADMIN_REDIRECTOR = getattr(settings, settings.ADMIN_PREPEND_UR, '')
 
 urlpatterns = [
     url(r'^accounts/', include('apps.accounts.urls')),
@@ -26,7 +26,7 @@ urlpatterns = [
     url(r'^o/', include('apps.dot_ext.urls')),
     # url(r'^fhir/api/v1/', include('apps.fhir.bluebutton')),
     # Admin
-    url(r'^'+ADMIN_REDIRECTOR+'admin/', include(admin.site.urls)),
+    url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls)),
 
 ]
 # if 'apps.fhir.testac' in settings.INSTALLED_APPS:
