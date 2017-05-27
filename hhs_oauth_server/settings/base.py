@@ -453,3 +453,6 @@ LOGIN_REDIRECT_URL = '/accounts/mfa/login'
 LOGIN_URL = '/accounts/mfa/login'
 
 REQUIRE_AUTHORIZE_APP_FLAG = False
+
+# Move Admin to a variable url location
+ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
