@@ -257,6 +257,11 @@ class SignupForm(forms.Form):
 
 
 class AccountSettingsForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super(AccountSettingsForm, self).__init__(*args, **kwargs)
+
     username = forms.CharField(max_length=30, label=_('User Name'))
     email = forms.CharField(max_length=30, label=_('Email'))
     first_name = forms.CharField(max_length=100, label=_('First Name'))
@@ -277,6 +282,12 @@ class AccountSettingsForm(forms.Form):
     create_applications = forms.BooleanField(initial=False,
                                              required=False)
     required_css_class = 'required'
+
+    def clean_mfa_login_mode(self):
+        mfa_login_mode = self.cleaned_data.get('mfa_login_mode')
+        if self.request.user.is_staff and not mfa_login_mode:
+            raise forms.ValidationError(_('MFA is not optional for staff.'))
+        return mfa_login_mode
 
     def clean_email(self):
         email = self.cleaned_data.get('email')

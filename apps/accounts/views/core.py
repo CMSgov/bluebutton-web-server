@@ -146,7 +146,7 @@ def account_settings(request):
         messages.info(request, _('You are in the group: %s' % (g)))
 
     if request.method == 'POST':
-        form = AccountSettingsForm(request.POST)
+        form = AccountSettingsForm(request.POST, request=request)
         if form.is_valid():
             data = form.cleaned_data
             # update the user info
@@ -184,7 +184,7 @@ def account_settings(request):
             'last_name': request.user.last_name,
             'first_name': request.user.first_name,
             'access_key_reset': up.access_key_reset,
-        }
+        }, request=request
     )
     return render(request,
                   'account-settings.html',
