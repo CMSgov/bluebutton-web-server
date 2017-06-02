@@ -1,4 +1,4 @@
-Just a heads up, {{ FIRST_NAME }} {{ LAST_NAME }} wants to join the {{ APPLICATION_TITLE }} community.
+Just a heads up, {{ FIRST_NAME }} {{ LAST_NAME }} wants to join the {{ APPLICATION_TITLE }} community as a as a {{ USER_TYPE }}.
 His/her email is: {{ EMAIL }}
 
 - The {{APPLICATION_TITLE}} Team

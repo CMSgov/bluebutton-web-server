@@ -8,7 +8,7 @@ from oauth2_provider.decorators import protected_resource
 @protected_resource()
 def openidconnect_userinfo(request):
     """
-    Views that returns a json representation of the current user's details.
+    Views that returns a JSON representation of the current user's details.
     """
     user = request.resource_owner
     data = {
