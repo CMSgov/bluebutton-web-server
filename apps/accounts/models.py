@@ -19,6 +19,8 @@ from .emails import (send_password_reset_url_via_email,
                      notify_admin_of_invite_request)
 from collections import OrderedDict
 import logging
+from django.utils.crypto import pbkdf2
+import binascii
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
 
@@ -294,6 +296,7 @@ class RequestInvite(models.Model):
 
 @python_2_unicode_compatible
 class UserRegisterCode(models.Model):
+    user_id_hash = models.CharField(max_length=64, blank=True, default="")
     code = models.CharField(max_length=30, db_index=True)
     valid = models.BooleanField(default=False, blank=True)
     username = models.CharField(max_length=40)
@@ -317,11 +320,14 @@ class UserRegisterCode(models.Model):
 
     def url(self):
         return "%s%s?username=%s&code=%s" % (settings.HOSTNAME_URL,
-                                             reverse('user_code_login'),
+                                             reverse('user_code_register'),
                                              self.username, self.code)
 
     def save(self, commit=True, **kwargs):
         if commit:
+            self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
+                                                        settings.USER_ID_SALT,
+                                                        settings.USER_ID_ITERATIONS)).decode("ascii")
             if self.sender:
                 up = UserProfile.objects.get(user=self.sender)
                 if self.sent is False:
