@@ -11,8 +11,11 @@ from ..forms import (ChangeSecretQuestionsForm, PasswordResetForm,
                      PasswordResetRequestForm, SecretQuestionForm)
 from ..models import UserProfile, ValidPasswordResetKey
 from django.contrib.auth import authenticate, login
+from ratelimit.decorators import ratelimit
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def reset_password(request):
 
     name = _('Reset Password')
@@ -63,6 +66,8 @@ def password_reset_email_verify(request, reset_password_key=None):
                    'reset_password_key': reset_password_key})
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def forgot_password(request):
     name = _('Forgot Password')
     if request.method == 'POST':
@@ -125,6 +130,7 @@ def change_secret_questions(request):
                        )})
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
 def secret_question_challenge(request, username):
     r = randint(1, 3)
     if r == 1:
@@ -138,6 +144,7 @@ def secret_question_challenge(request, username):
                                             args=(username,)))
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
 def secret_question_challenge_1(request, username):
     up = get_object_or_404(UserProfile, user__username=username)
 
@@ -165,6 +172,7 @@ def secret_question_challenge_1(request, username):
                    'form': SecretQuestionForm()})
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
 def secret_question_challenge_2(request, username):
     up = get_object_or_404(UserProfile, user__username=username)
 
@@ -191,6 +199,7 @@ def secret_question_challenge_2(request, username):
                    'form': SecretQuestionForm()})
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
 def secret_question_challenge_3(request, username):
     up = get_object_or_404(UserProfile, user__username=username)
     if request.method == 'POST':

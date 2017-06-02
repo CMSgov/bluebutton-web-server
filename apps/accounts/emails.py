@@ -99,10 +99,10 @@ def mfa_via_email(user, code):
     Thank you,
     </p>
     <p>
-    The Team
+    The %s Team
 
     </P>
-    """ % (code)
+    """ % (code, settings.APPLICATION_TITLE)
 
     text_content = """
     Provide this code on the authentication screen in your browser:
@@ -110,9 +110,9 @@ def mfa_via_email(user, code):
 
     Thank you,
 
-    The Team
+    The %s Team
 
-    """ % (code)
+    """ % (code, settings.APPLICATION_TITLE)
     msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
     msg.attach_alternative(html_content, 'text/html')
     msg.send()
@@ -120,7 +120,7 @@ def mfa_via_email(user, code):
 
 def send_password_reset_url_via_email(user, reset_key):
     if settings.SEND_EMAIL:
-        subject = '[%s]Your password ' \
+        subject = '[%s] Your password ' \
                   'reset request' % (settings.ORGANIZATION_NAME)
         from_email = settings.DEFAULT_FROM_EMAIL
         to = user.email
@@ -136,10 +136,10 @@ def send_password_reset_url_via_email(user, reset_key):
         Thank you,
         </p>
         <p>
-        The Team
+        The %s Team
 
         </P>
-        """ % (link, link)
+        """ % (link, link, settings.APPLICATION_TITLE)
 
         text_content = """
         Click on the link to reset your password.
@@ -148,9 +148,9 @@ def send_password_reset_url_via_email(user, reset_key):
 
         Thank you,
 
-        The Team
+        The %s Team
 
-        """ % (link)
+        """ % (link, settings.APPLICATION_TITLE)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
         msg.attach_alternative(html_content, 'text/html')
         msg.send()
@@ -158,7 +158,7 @@ def send_password_reset_url_via_email(user, reset_key):
 
 def send_activation_key_via_email(user, signup_key):
     """Do not call this directly.  Instead use create_signup_key in utils."""
-    subject = '[%s]Verify your email.' % (settings.ORGANIZATION_NAME)
+    subject = '[%s] Verify your email.' % (settings.ORGANIZATION_NAME)
     from_email = settings.DEFAULT_FROM_EMAIL
     to = user.email
     activation_link = '%s%s' % (settings.HOSTNAME_URL,
@@ -172,9 +172,9 @@ def send_activation_key_via_email(user, signup_key):
 
        Thank you,<br>
 
-       The Team
+       The %s Team
        </p>
-       """ % (user.first_name, activation_link, activation_link)
+       """ % (user.first_name, activation_link, activation_link, settings.APPLICATION_TITLE)
 
     text_content = """
        Hello %s. Please click the link to activate your account.
@@ -183,9 +183,9 @@ def send_activation_key_via_email(user, signup_key):
 
        Thank you,
 
-       The Team
+       The %s Team
 
-       """ % (user.first_name, activation_link)
+       """ % (user.first_name, activation_link, settings.APPLICATION_TITLE)
     msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
     msg.attach_alternative(html_content, 'text/html')
     msg.send()

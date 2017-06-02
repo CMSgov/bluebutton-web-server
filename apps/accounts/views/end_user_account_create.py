@@ -4,10 +4,13 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..end_user_signup_forms import (SimpleUserSignupForm)
 from .core import pick_reverse_login
+from ratelimit.decorators import ratelimit
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def create_end_user_account(request):
 
     name = "Let's get Started!"
