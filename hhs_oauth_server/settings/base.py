@@ -399,11 +399,14 @@ SETTINGS_EXPORT = [
 
 
 # Make sessions die out fast for more security ------------------
-# Logout after 30 minutes of inactivity
-SESSION_COOKIE_AGE = 1800
+# Logout after 90 minutes of inactivity = moderate requirementnt
+SESSION_COOKIE_AGE = 5400
 # Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# Change these for production
+USER_ID_SALT = "ChangeMePleaseIReallyM3anIT"
+USER_ID_ITERATIONS = 24000
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
