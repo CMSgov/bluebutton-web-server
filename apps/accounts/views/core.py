@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
+from ratelimit.decorators import ratelimit
 
 from ..forms import (RequestInviteForm, AccountSettingsForm,
                      LoginForm,
@@ -18,6 +19,8 @@ from django.conf import settings
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def request_invite(request):
     name = 'Request a Developer Invite to the %s' % (
         settings.ORGANIZATION_NAME)
@@ -105,6 +108,8 @@ def reissue_api_keys(request):
     return HttpResponseRedirect(reverse('display_api_keys'))
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def create_account(request):
 
     name = "Create a Developer Account"
@@ -146,7 +151,7 @@ def account_settings(request):
         messages.info(request, _('You are in the group: %s' % (g)))
 
     if request.method == 'POST':
-        form = AccountSettingsForm(request.POST)
+        form = AccountSettingsForm(request.POST, request=request)
         if form.is_valid():
             data = form.cleaned_data
             # update the user info
@@ -184,13 +189,15 @@ def account_settings(request):
             'last_name': request.user.last_name,
             'first_name': request.user.first_name,
             'access_key_reset': up.access_key_reset,
-        }
+        }, request=request
     )
     return render(request,
                   'account-settings.html',
                   {'name': name, 'form': form})
 
 
+@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def activation_verify(request, activation_key):
     if validate_activation_key(activation_key):
         messages.success(request,
