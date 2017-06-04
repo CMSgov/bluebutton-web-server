@@ -22,8 +22,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 @ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
 @ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def request_invite(request):
-    name = 'Request a Developer Invite to the %s' % (
-        settings.ORGANIZATION_NAME)
+    name = 'Request an Invite'
     if request.method == 'POST':
         form = RequestInviteForm(request.POST)
         if form.is_valid():

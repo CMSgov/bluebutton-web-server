@@ -38,7 +38,6 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         url = reverse('reset_password')
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Welcome")
 
     def test_password_ischanged(self):
         self.client.login(username="fred", password="foobarfoobarfoobar")
