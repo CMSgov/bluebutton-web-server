@@ -1,0 +1,53 @@
+[
+{
+    "model": "auth.group",
+    "pk": 1,
+    "fields": {
+        "name": "BlueButton",
+        "permissions": []
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 17,
+    "fields": {
+        "name": "InviteBeneficiary",
+        "permissions": [
+            91
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 18,
+    "fields": {
+        "name": "InviteDeveloper",
+        "permissions": [
+            31
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 19,
+    "fields": {
+        "name": "HelpDesk",
+        "permissions": [
+            19,
+            20
+        ]
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 20,
+    "fields": {
+        "name": "ModifyUser",
+        "permissions": [
+            10,
+            11,
+            12
+        ]
+    }
+}
+]
