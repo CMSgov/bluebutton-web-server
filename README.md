@@ -3,7 +3,7 @@ OAuth Server - An OAuth Provider Project
 
 [![Build Status](https://travis-ci.org/TransparentHealth/hhs_oauth_server.svg?branch=develop)](https://travis-ci.org/TransparentHealth/hhs_oauth_server)
 
-The project is based in Python 3 and Django 1.9.5.
+The project is based in Python 3 and Django 1.9.5. It will operate on Python 2.7, 3.4, and 3.5.
 
 It consists of an OAuth2 server and a FHIR server that serves specific resources.
 This application will handle the OAuth 2 handshaking and configuration with CMS Medicare
