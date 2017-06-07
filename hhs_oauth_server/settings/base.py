@@ -29,6 +29,9 @@ if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
     print("WARNING: Generate your secret key and set in environment "
           "variable: DJANGO_SECRET_KEY")
 
+# Use to skip LDAP tests
+AUTH_LDAP_ACTIVE = False
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.'
@@ -397,11 +400,14 @@ SETTINGS_EXPORT = [
 
 
 # Make sessions die out fast for more security ------------------
-# Logout after 30 minutes of inactivity
-SESSION_COOKIE_AGE = 1800
+# Logout after 90 minutes of inactivity = moderate requirementnt
+SESSION_COOKIE_AGE = 5400
 # Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# Change these for production
+USER_ID_SALT = "ChangeMePleaseIReallyM3anIT"
+USER_ID_ITERATIONS = 24000
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
@@ -454,3 +460,6 @@ LOGIN_REDIRECT_URL = '/accounts/mfa/login'
 LOGIN_URL = '/accounts/mfa/login'
 
 REQUIRE_AUTHORIZE_APP_FLAG = False
+
+# Move Admin to a variable url location
+ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
