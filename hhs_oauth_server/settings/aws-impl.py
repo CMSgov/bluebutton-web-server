@@ -27,7 +27,7 @@ ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*',
 # Warning: on macOS hostname is case sensitive
 
 # removing security enforcement in development mode
-DEBUG = True
+DEBUG = False
 if DEBUG:
     print("WARNING: Set DJANGO_DEBUG environment variable to False "
           "to run in production mode \n"
