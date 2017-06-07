@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from decorate_url import decorated_url
-from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
@@ -27,7 +27,8 @@ urlpatterns = [
     url(r'^home/', include('apps.home.urls')),
     url(r'^o/', include('apps.dot_ext.urls')),
     # Admin
-    decorated_url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls), wrap=login_required),
+    decorated_url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls),
+                  wrap=staff_member_required(login_url=settings.LOGIN_URL)),
 
 ]
 # if 'apps.fhir.testac' in settings.INSTALLED_APPS:
