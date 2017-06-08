@@ -18,7 +18,7 @@ from django.conf import settings
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-@ratelimit(key='ip', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
 def request_invite(request):
     name = 'Request an Invite'
     if request.method == 'POST':
@@ -101,7 +101,7 @@ def reissue_api_keys(request):
     return HttpResponseRedirect(reverse('display_api_keys'))
 
 
-@ratelimit(key='ip', rate='3/h', method=['POST'], block=True)
+@ratelimit(key='ip', rate='10/h', method=['POST'], block=True)
 def create_account(request):
 
     name = "Create a Developer Account"
@@ -188,7 +188,7 @@ def account_settings(request):
                   {'name': name, 'form': form})
 
 
-@ratelimit(key='ip', rate='5/m', method=['GET'], block=True)
+@ratelimit(key='ip', rate='5/h', method=['GET'], block=True)
 def activation_verify(request, activation_key):
     if validate_activation_key(activation_key):
         messages.success(request,

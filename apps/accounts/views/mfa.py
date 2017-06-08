@@ -15,7 +15,7 @@ from ...utils import get_client_ip
 import sys
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
-failed_login_log = logging.getLogger('unsuccessful_login')
+failed_login_log = logging.getLogger('unsuccessful_logins')
 
 
 @receiver(user_login_failed)
@@ -76,8 +76,9 @@ def mfa_code_confirm(request, uid):
                   {'form': MFACodeForm()})
 
 
-@ratelimit(key='ip', rate='5/m', method=['POST'], block=True)
+# @ratelimit(key='ip', rate='5/m', method=['POST'], block=True)
 @ratelimit(key='post:username', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
+@ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
 def mfa_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)

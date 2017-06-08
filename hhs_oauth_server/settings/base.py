@@ -304,13 +304,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
-        },
-        # 'lgfile': {
-        #     'class': 'logging.FileHandler',
-        #     'filename': 'logging.log',
-        #     'mode': 'w',
-        #     'formatter': 'verbose',
-        # }
+        }
     },
     'loggers': {
         'hhs_server': {
@@ -329,10 +323,9 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
-        'unsuccessful_login': {
+        'unsuccessful_logins': {
             'handlers': ['console'],
             'level': 'INFO',
-            'formatter': 'verbose',
         },
         'tests': {
             'handlers': ['console'],
