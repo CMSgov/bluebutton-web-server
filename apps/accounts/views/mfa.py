@@ -9,10 +9,19 @@ from ..models import UserProfile, MFACode
 from ..mfa_forms import LoginForm, MFACodeForm
 from ratelimit.decorators import ratelimit
 import logging
+from django.contrib.auth.signals import user_login_failed
+from django.dispatch import receiver
 from ...utils import get_client_ip
 import sys
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
+failed_login_log = logging.getLogger('unsuccessful_logins')
+
+
+@receiver(user_login_failed)
+def user_login_failed_callback(sender, credentials, **kwargs):
+    l = "Login failed for %s." % (credentials['username'])
+    failed_login_log.warning(l)
 
 
 def mfa_code_confirm(request, uid):
@@ -67,8 +76,9 @@ def mfa_code_confirm(request, uid):
                   {'form': MFACodeForm()})
 
 
-@ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '5/m'), method=['POST'], block=True)
-@ratelimit(key='post:username', rate=getattr(settings, 'LOGIN_RATE', '5/m'), method=['POST'], block=True)
+# @ratelimit(key='ip', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='post:username', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
+@ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
 def mfa_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
