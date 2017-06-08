@@ -287,7 +287,7 @@ def generic_read(request,
     ###############################################
     ###############################################
 
-    logger.debug("r returned: %s" % r)
+    # logger.debug("r returned: %s" % r)
 
     # Check for Error here
     try:
