@@ -12,7 +12,7 @@ class CreateDeveloperAccountTestCase(TestCase):
     """
 
     def setUp(self):
-        Invitation.objects.create(code='1234', email='fred@example.com')
+        Invitation.objects.create(code='1234', email='bambam@example.com')
         Group.objects.create(name='BlueButton')
         self.client = Client()
         self.url = reverse('accounts_create_account')
@@ -23,13 +23,13 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         form_data = {
             'invitation_code': '1234',
-            'email': 'FRED@Example.com',
-            'username': 'FreD',
+            'email': 'BamBam@Example.com',
+            'username': 'BamBam',
             'organization_name': 'transhealth',
             'password1': 'bedrocks',
             'password2': 'bedrocks',
-            'first_name': 'Fred',
-            'last_name': 'Flinstone',
+            'first_name': 'BamBam',
+            'last_name': 'Rubble',
             'password_reset_question_1': '1',
             'password_reset_answer_1': 'blue',
             'password_reset_question_2': '2',
@@ -45,9 +45,9 @@ class CreateDeveloperAccountTestCase(TestCase):
 
         # verify username is lowercase
         User = get_user_model()
-        u = User.objects.get(username="fred")
-        self.assertEqual(u.username, "fred")
-        self.assertEqual(u.email, "fred@example.com")
+        u = User.objects.get(username="bambam")
+        self.assertEqual(u.username, "bambam")
+        self.assertEqual(u.email, "bambam@example.com")
 
     def test_account_create_shold_fail_when_password_too_short(self):
         """
@@ -55,7 +55,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         form_data = {
             'invitation_code': '1234',
-            'username': 'fred',
+            'username': 'fred2',
             'organization_name': 'transhealth',
             'password1': 'p',
             'password2': 'p',
@@ -101,12 +101,12 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         form_data = {
             'invitation_code': '1234',
-            'email': 'fred@example.com',
-            'username': 'fred',
+            'email': 'hank@example.com',
+            'username': 'hank',
             'organization_name': 'transhealth',
             'password1': 'bedrocks',
             'password2': 'bedrocks',
-            'first_name': 'Fred',
+            'first_name': 'Hank',
             'last_name': 'Flinstone',
             'password_reset_question_1': '1',
             'password_reset_answer_1': 'blue',
@@ -116,5 +116,5 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password_reset_answer_3': 'Jeep'
         }
         self.client.post(self.url, form_data, follow=True)
-        up = UserProfile.objects.get(user__username='fred')
+        up = UserProfile.objects.get(user__username='hank')
         self.assertEqual(up.user_type, 'DEV')
