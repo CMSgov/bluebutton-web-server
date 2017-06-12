@@ -58,7 +58,7 @@ class MFALoginTestCase(TestCase):
         self.assertContains(response, 'Logout')
         self.client.get(reverse('mylogout'))
 
-    @override_settings(LOGIN_RATE='500/m')
+    @override_settings(LOGIN_RATE='5000/m')
     def test_valid_mfa_login_with_sms(self):
         """
         Valid User can login with valid MFA code (SMS)

@@ -224,6 +224,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
+
 # emails
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
@@ -304,13 +305,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
-        },
-        # 'lgfile': {
-        #     'class': 'logging.FileHandler',
-        #     'filename': 'logging.log',
-        #     'mode': 'w',
-        #     'formatter': 'verbose',
-        # }
+        }
     },
     'loggers': {
         'hhs_server': {
@@ -326,6 +321,10 @@ LOGGING = {
             'level': 'INFO',
         },
         'oauthlib': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'unsuccessful_logins': {
             'handlers': ['console'],
             'level': 'INFO',
         },
@@ -421,8 +420,8 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
 # If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(seconds=600)
-LOGIN_RATE = '10/m'
+AXES_COOLOFF_TIME = datetime.timedelta(hours=1)
+LOGIN_RATE = '3/h'
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
 # We will need to add REWRITE_FROM and REWRITE_TO to models
 # to enable search and replace in content returned from backend server.

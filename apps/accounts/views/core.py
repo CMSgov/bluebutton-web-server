@@ -8,7 +8,6 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ratelimit.decorators import ratelimit
-
 from ..forms import (RequestInviteForm, AccountSettingsForm,
                      LoginForm,
                      SignupForm)
@@ -19,14 +18,12 @@ from django.conf import settings
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
-@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
 def request_invite(request):
     name = 'Request an Invite'
     if request.method == 'POST':
         form = RequestInviteForm(request.POST)
         if form.is_valid():
-
             invite_request = form.save()
             messages.success(
                 request,
@@ -34,11 +31,8 @@ def request_invite(request):
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
-
             logger.debug("email to invite:%s" % invite_request.email)
-
             return pick_reverse_login()
-
         else:
             return render(request, 'generic/bootstrapform.html', {
                 'name': name,
@@ -107,8 +101,7 @@ def reissue_api_keys(request):
     return HttpResponseRedirect(reverse('display_api_keys'))
 
 
-@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
-@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='ip', rate='10/h', method=['POST'], block=True)
 def create_account(request):
 
     name = "Create a Developer Account"
@@ -195,8 +188,7 @@ def account_settings(request):
                   {'name': name, 'form': form})
 
 
-@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
-@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='ip', rate='5/h', method=['GET'], block=True)
 def activation_verify(request, activation_key):
     if validate_activation_key(activation_key):
         messages.success(request,
@@ -204,7 +196,6 @@ def activation_verify(request, activation_key):
     else:
         messages.error(request,
                        'This key does not exist or has already been used.')
-
     return pick_reverse_login()
 
 
@@ -212,7 +203,6 @@ def pick_reverse_login():
     """
     settings.MFA should be True or False
     Check settings.MFA to determine which reverse call to make
-
     :return:
     """
     try:
