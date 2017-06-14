@@ -77,7 +77,6 @@ def mfa_code_confirm(request, uid):
                   {'form': MFACodeForm()})
 
 
-
 @ratelimit(key='post:username', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
 @ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
 @never_cache

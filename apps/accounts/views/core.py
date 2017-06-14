@@ -18,6 +18,7 @@ from django.views.decorators.cache import never_cache
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+
 @never_cache
 @ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
 def request_invite(request):
@@ -51,6 +52,7 @@ def mylogout(request):
     logout(request)
     messages.success(request, _('You have been logged out.'))
     return pick_reverse_login()
+
 
 @never_cache
 def simple_login(request):
@@ -91,6 +93,7 @@ def simple_login(request):
 def display_api_keys(request):
     up = get_object_or_404(UserProfile, user=request.user)
     return render(request, 'display-api-keys.html', {'up': up})
+
 
 @never_cache
 @login_required
