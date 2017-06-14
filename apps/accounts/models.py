@@ -5,6 +5,7 @@ import random
 import uuid
 import json
 from datetime import datetime, timedelta
+from django.contrib.admin.models import LogEntry
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
@@ -21,8 +22,18 @@ from collections import OrderedDict
 import logging
 from django.utils.crypto import pbkdf2
 import binascii
+from django.utils.translation import ugettext
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+ADDITION = 1
+CHANGE = 2
+DELETION = 3
+
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
+admin_logger = logging.getLogger('admin_interface')
+
 
 USER_CHOICES = (
     ('BEN', 'Beneficiary'),
@@ -479,3 +490,35 @@ class EmailWebhook(models.Model):
                 logger.info("Sent email {} status is {}.".format(
                     self.email, self.status))
                 super(EmailWebhook, self).save(**kwargs)
+
+# method for updating
+
+
+@receiver(post_save)
+def export_admin_log(sender, instance, **kwargs):
+
+    msg = ""
+    if isinstance(instance, LogEntry):
+        if instance.action_flag == ADDITION:
+            msg = ugettext('User "%(user)s" added %(content_type)s object. "%(object)s" added at %(action_time)s') % {
+                'user': instance.user,
+                'content_type': instance.get_edited_object,
+                'object': instance.object_repr,
+                'action_time': instance.action_time}
+
+        elif instance.action_flag == CHANGE:
+            msg = ugettext('User "%(user)s" changed %(content_type)s object. "%(object)s" - %(changes)s at %(action_time)s') % {
+                'user': instance.user,
+                'content_type': instance.content_type,
+                'object': instance.object_repr,
+                'changes': instance.change_message,
+                'action_time': instance.action_time}
+
+        elif instance.action_flag == DELETION:
+            msg = ugettext('User  "%(user)s" deleted %(content_type)s object. "%(object)s" deleted at %(action_time)s') % {
+                'user': instance.user,
+                'content_type': instance.content_type,
+                'object': instance.object_repr,
+                'action_time': instance.action_time}
+
+        admin_logger.info(msg)

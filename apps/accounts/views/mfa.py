@@ -13,6 +13,7 @@ from django.contrib.auth.signals import user_login_failed
 from django.dispatch import receiver
 from ...utils import get_client_ip
 import sys
+from django.views.decorators.cache import never_cache
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
 failed_login_log = logging.getLogger('unsuccessful_logins')
@@ -24,6 +25,7 @@ def user_login_failed_callback(sender, credentials, **kwargs):
     failed_login_log.warning(l)
 
 
+@never_cache
 def mfa_code_confirm(request, uid):
     mfac = get_object_or_404(MFACode, uid=uid)
     user = mfac.user
@@ -67,7 +69,6 @@ def mfa_code_confirm(request, uid):
                         'activate your account.'))
                 return render(
                     request, 'generic/bootstrapform.html', {'form': form})
-
         else:
             return render(request, 'generic/bootstrapform.html',
                           {'form': form})
@@ -76,9 +77,9 @@ def mfa_code_confirm(request, uid):
                   {'form': MFACodeForm()})
 
 
-# @ratelimit(key='ip', rate='5/m', method=['POST'], block=True)
 @ratelimit(key='post:username', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
 @ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
+@never_cache
 def mfa_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
