@@ -2,7 +2,8 @@ from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from ..accounts.models import UserProfile
 from ..fhir.bluebutton.models import Crosswalk
-from django.views.decorators.cache import never_cache 
+from django.views.decorators.cache import never_cache
+
 
 @never_cache
 def authenticated_home(request):
