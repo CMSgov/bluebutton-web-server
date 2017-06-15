@@ -67,7 +67,7 @@ def password_reset_email_verify(request, reset_password_key=None):
 
 
 @ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
-@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
+@ratelimit(key='post:email', rate='5/m', method=['POST'], block=True)
 def forgot_password(request):
     name = _('Forgot Password')
     if request.method == 'POST':
@@ -78,14 +78,10 @@ def forgot_password(request):
             try:
                 u = User.objects.get(email=data['email'])
             except(User.DoesNotExist):
-                try:
-                    u = User.objects.get(username=data['email'])
-                except(User.DoesNotExist):
-                    messages.error(request,
-                                   'A user with the email or username supplied '
-                                   'does not exist.')
-                    return HttpResponseRedirect(reverse('forgot_password'))
-
+                messages.error(request,
+                               'A user with the email supplied '
+                               'does not exist.')
+                return HttpResponseRedirect(reverse('forgot_password'))
             # success - user found so ask some question
             return HttpResponseRedirect(reverse('secret_question_challenge',
                                                 args=(u.username,)))

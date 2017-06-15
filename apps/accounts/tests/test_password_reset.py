@@ -31,21 +31,22 @@ class PasswordResetTestCase(TestCase):
 
     def test_password_reset_valid_user(self):
         url = reverse('forgot_password')
-        form_data = {'email': 'fred'}
+        form_data = {'email': 'fred@example.com'}
         response = self.client.post(url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Answer')
 
     def test_password_reset_invalid_user(self):
         url = reverse('forgot_password')
-        form_data = {'email': 'derf'}
+        form_data = {'email': 'derf@example.com'}
         response = self.client.post(url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'username supplied does not exist.')
+        self.assertContains(
+            response, 'A user with the email supplied does not exist.')
 
     def test_password_reset_invalid_answer_3(self):
         url = reverse('secret_question_challenge_3', args=('fred',))
-        form_data = {'answer': 'Yogo'}
+        form_data = {'answer': 'Yolo'}
         response = self.client.post(url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Wrong answer.')
