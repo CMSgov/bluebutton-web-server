@@ -328,6 +328,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
+        'admin_interface': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
         'tests': {
             'handlers': ['console'],
             'level': 'DEBUG',

@@ -14,10 +14,12 @@ from ..forms import (RequestInviteForm, AccountSettingsForm,
 from ..models import *
 from ..utils import validate_activation_key
 from django.conf import settings
+from django.views.decorators.cache import never_cache
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@never_cache
 @ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
 def request_invite(request):
     name = 'Request an Invite'
@@ -52,6 +54,7 @@ def mylogout(request):
     return pick_reverse_login()
 
 
+@never_cache
 def simple_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -92,6 +95,7 @@ def display_api_keys(request):
     return render(request, 'display-api-keys.html', {'up': up})
 
 
+@never_cache
 @login_required
 def reissue_api_keys(request):
     up = get_object_or_404(UserProfile, user=request.user)
@@ -133,6 +137,7 @@ def create_account(request):
                       {'name': name, 'form': SignupForm(initial=form_data)})
 
 
+@never_cache
 @login_required
 def account_settings(request):
     name = _('Account Settings')

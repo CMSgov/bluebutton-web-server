@@ -5,10 +5,11 @@ from django.utils.translation import ugettext_lazy as _
 from ..end_user_signup_forms import (SimpleUserSignupForm)
 from .core import pick_reverse_login
 from ratelimit.decorators import ratelimit
-
+from django.views.decorators.cache import never_cache
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@never_cache
 @ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
 @ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def create_end_user_account(request):
