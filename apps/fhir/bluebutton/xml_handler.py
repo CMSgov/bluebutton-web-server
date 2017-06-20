@@ -11,6 +11,7 @@ File created by: ''
 """
 import logging
 # import xml.etree.ElementTree as ET
+# Replacing xml.etree.ElementTree to avoid xml exploits
 import defusedxml.ElementTree as ET
 
 
