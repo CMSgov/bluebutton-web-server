@@ -117,17 +117,22 @@ ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Medicare Blue Button[IM
 # Based on blog posts:
 # http://thegeorgeous.com/2015/02/27/Logging-into-multiple-files-in-Django.html
 # https://docs.djangoproject.com/en/1.10/topics/logging/
+# IF a new file is added for logging go to hhs_ansible and update configuration
+# script to touch log files:
+# hhs_ansible/playbook/appserver/roles/app_update/tasks/main.yml
+# add the new filename as an item to the "Create the log files" action
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(name)s '
+            'format': '%(asctime)s %(levelname)s %(name)s '
                       '[%(process)d] %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
         'simple': {
-            'format': '%(levelname)s %(name)s %(message)s',
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
     },
@@ -147,18 +152,21 @@ LOGGING = {
         'file_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
+            'formatter': 'simple',
             'filename': '/var/log/pyapps/debug.log',
         },
         'file_error': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
+            'formatter': 'verbose',
             'filename': '/var/log/pyapps/error.log',
         },
         'file_info': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
+            'formatter': 'simple',
             'filename': '/var/log/pyapps/info.log',
         },
         'mail_admins': {
@@ -173,6 +181,10 @@ LOGGING = {
             'handlers': ['console', 'file_debug'],
             'level': 'DEBUG',
         },
+        'hhs_oauth_server.accounts': {
+            'handlers': ['console'],
+            'level':    'DEBUG',
+        },
         'hhs_server_debug': {
             'handlers': ['console', 'file_debug'],
             'level': 'DEBUG',
@@ -181,20 +193,20 @@ LOGGING = {
             'handlers': ['console', 'file_error', 'mail_admins'],
             'level': 'ERROR',
         },
+        'unsuccessful_logins': {
+            'handlers': ['console'],
+            'level':    'INFO',
+        },
+        'admin_interface':     {
+            'handlers': ['console'],
+            'level':    'INFO',
+        },
         'hhs_server_info': {
             'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
         'oauth2_provider': {
             'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'unsuccessful_login': {
-            'handlers': ['console', 'file_info'],
-            'level': 'INFO',
-        },
-        'admin_interface': {
-            'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
         'oauthlib': {
