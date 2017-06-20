@@ -1,15 +1,5 @@
 [
 {
-    "model": "auth.group",
-    "pk": 1,
-    "fields": {
-        "name": "BlueButton",
-        "permissions": []
-    }
-},
-
-
-{
     "model": "capabilities.protectedcapability",
     "pk": 1,
     "fields": {
