@@ -29,6 +29,9 @@ if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
     print("WARNING: Generate your secret key and set in environment "
           "variable: DJANGO_SECRET_KEY")
 
+# Use to skip LDAP tests
+AUTH_LDAP_ACTIVE = False
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.'
@@ -302,13 +305,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
-        },
-        # 'lgfile': {
-        #     'class': 'logging.FileHandler',
-        #     'filename': 'logging.log',
-        #     'mode': 'w',
-        #     'formatter': 'verbose',
-        # }
+        }
     },
     'loggers': {
         'hhs_server': {
@@ -324,6 +321,14 @@ LOGGING = {
             'level': 'INFO',
         },
         'oauthlib': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'unsuccessful_logins': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'admin_interface': {
             'handlers': ['console'],
             'level': 'INFO',
         },
@@ -397,11 +402,14 @@ SETTINGS_EXPORT = [
 
 
 # Make sessions die out fast for more security ------------------
-# Logout after 30 minutes of inactivity
-SESSION_COOKIE_AGE = 1800
+# Logout after 90 minutes of inactivity = moderate requirementnt
+SESSION_COOKIE_AGE = 5400
 # Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# Change these for production
+USER_ID_SALT = "ChangeMePleaseIReallyM3anIT"
+USER_ID_ITERATIONS = 24000
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
@@ -416,8 +424,8 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
 # If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(seconds=600)
-LOGIN_RATE = '10/m'
+AXES_COOLOFF_TIME = datetime.timedelta(hours=1)
+LOGIN_RATE = '3/h'
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
 # We will need to add REWRITE_FROM and REWRITE_TO to models
 # to enable search and replace in content returned from backend server.
@@ -454,3 +462,6 @@ LOGIN_REDIRECT_URL = '/accounts/mfa/login'
 LOGIN_URL = '/accounts/mfa/login'
 
 REQUIRE_AUTHORIZE_APP_FLAG = False
+
+# Move Admin to a variable url location
+ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
