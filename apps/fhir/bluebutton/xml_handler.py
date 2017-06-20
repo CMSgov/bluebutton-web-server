@@ -10,7 +10,9 @@ Created: 3/28/17 3:00 PM
 File created by: ''
 """
 import logging
-import xml.etree.ElementTree as ET
+# import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
+
 
 from apps.fhir.bluebutton.utils import get_resource_names
 from apps.fhir.fhir_core.utils import valid_interaction
