@@ -11,6 +11,6 @@ class MFACodeForm(forms.Form):
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=30, label=_('User'))
-    password = forms.CharField(widget=forms.PasswordInput, max_length=30,
+    password = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                label=_('Password'))
     required_css_class = 'required'

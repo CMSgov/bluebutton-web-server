@@ -75,9 +75,11 @@ class POETJWTForm(forms.Form):
                                   label=_('Software ID*'),
                                   help_text=_("A unique identifier for the client"))
     grant_types = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
-                                            choices=GRANT_TYPE_CHOICES)
+                                            choices=GRANT_TYPE_CHOICES,
+                                            required=False,)
     redirect_uri = forms.CharField(max_length=2048,
                                    label=_('Redirect URI*'),
+                                   required=False,
                                    help_text=_("OAuth2 redirect URI of the application you want to endorse."))
 
     redirect_uri_2 = forms.CharField(max_length=2048,
@@ -121,11 +123,11 @@ class POETJWTForm(forms.Form):
     def clean_redirect_uri(self):
         redirect_uri = self.cleaned_data.get('redirect_uri')
 
-        try:
-            validate = URLValidator()
-            validate(redirect_uri)
-        except ValidationError:
-            raise forms.ValidationError("Invalid URL")
+        # try:
+        #     validate = URLValidator()
+        #     validate(redirect_uri)
+        # except ValidationError:
+        #     raise forms.ValidationError("Invalid URL")
         return redirect_uri
 
     def clean_redirect_uri_2(self):
