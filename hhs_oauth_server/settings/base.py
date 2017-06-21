@@ -288,6 +288,10 @@ MFA = True
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
 
+# IF a new file is added for logging go to hhs_ansible and update configuration
+# script to touch log files:
+# hhs_ansible/playbook/appserver/roles/app_update/tasks/main.yml
+# add the new filename as an item to the "Create the log files" action
 # logging
 LOGGING = {
     'version': 1,
