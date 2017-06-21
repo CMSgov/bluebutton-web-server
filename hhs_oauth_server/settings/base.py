@@ -292,7 +292,6 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
 # script to touch log files:
 # hhs_ansible/playbook/appserver/roles/app_update/tasks/main.yml
 # add the new filename as an item to the "Create the log files" action
-# logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
