@@ -122,7 +122,6 @@ ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API Server[
 # script to touch log files:
 # hhs_ansible/playbook/appserver/roles/app_update/tasks/main.yml
 # add the new filename as an item to the "Create the log files" action
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
