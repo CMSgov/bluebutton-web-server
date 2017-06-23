@@ -161,6 +161,18 @@ LOGGING = {
             'formatter': 'verbose',
             'filename': '/var/log/pyapps/error.log',
         },
+        'badlogin_info': {
+            'level':     'INFO',
+            'class':     'logging.FileHandler',
+            'formatter': 'simple',
+            'filename':  '/var/log/pyapps/login_failed.log',
+        },
+        'adminuse_info': {
+            'level':     'INFO',
+            'class':     'logging.FileHandler',
+            'formatter': 'simple',
+            'filename':  '/var/log/pyapps/admin_access.log',
+        },
         'file_info': {
             'level': 'INFO',
             'filters': ['require_debug_true'],

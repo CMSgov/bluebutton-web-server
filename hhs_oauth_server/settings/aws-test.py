@@ -169,6 +169,18 @@ LOGGING = {
             'formatter': 'simple',
             'filename': '/var/log/pyapps/info.log',
         },
+        'badlogin_info': {
+            'level':     'INFO',
+            'class':     'logging.FileHandler',
+            'formatter': 'simple',
+            'filename':  '/var/log/pyapps/login_failed.log',
+        },
+        'adminuse_info': {
+            'level':     'INFO',
+            'class':     'logging.FileHandler',
+            'formatter': 'simple',
+            'filename':  '/var/log/pyapps/admin_access.log',
+        },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
