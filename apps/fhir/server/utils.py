@@ -1,5 +1,4 @@
-# import ast
-# import json
+import re
 import logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -20,10 +19,13 @@ def text_to_list(t_in='[]'):
         return(t_in)
     else:
         logger.debug("decoding with text_to_list %s[%s]" % (t_in, type(t_in)))
-        # jdecode = json.decoder.JSONDecoder()
-        # list_out = ast.literal_eval(t_in)
         if t_in:
-            list_out = eval('t_in')
+            # list_out = eval('t_in')
+            # replace eval with re.compile to convert text to list.
+            # first build a list of delimiters to remove ( [ " ' space ] )
+            strip_out = re.compile('[["\' \]]')
+            # now we evaluate the string list and split on commas
+            list_out = strip_out.sub('', t_in).split(',')
         else:
             list_out = []
         logger.debug("decoded with json.decoder %s[%s]" % (list_out,
