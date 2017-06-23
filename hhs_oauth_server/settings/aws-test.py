@@ -170,16 +170,16 @@ LOGGING = {
             'filename': '/var/log/pyapps/info.log',
         },
         'badlogin_info': {
-            'level':     'INFO',
-            'class':     'logging.FileHandler',
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
             'formatter': 'simple',
-            'filename':  '/var/log/pyapps/login_failed.log',
+            'filename': '/var/log/pyapps/login_failed.log',
         },
         'adminuse_info': {
-            'level':     'INFO',
-            'class':     'logging.FileHandler',
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
             'formatter': 'simple',
-            'filename':  '/var/log/pyapps/admin_access.log',
+            'filename': '/var/log/pyapps/admin_access.log',
         },
         'mail_admins': {
             'level': 'ERROR',
