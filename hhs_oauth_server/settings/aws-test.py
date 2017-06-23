@@ -194,7 +194,7 @@ LOGGING = {
             'level': 'ERROR',
         },
         'unsuccessful_logins': {
-            'handlers': ['console',  'badlogin_info'],
+            'handlers': ['console', 'badlogin_info'],
             'level': 'INFO',
         },
         'admin_interface': {
