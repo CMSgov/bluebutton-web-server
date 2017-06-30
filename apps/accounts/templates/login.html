@@ -13,6 +13,22 @@
        </div>
     
 
+<div id="messages">
+            <div class="alert alert-warning">
+              <a class="close" data-dismiss="alert">×</a>
+              
+
+Notice: You're accessing data on a U.S. Government Information System, which is owned and operated by the
+Centers for Medicare and Medicaid Services (CMS). The information accessed through this system is provided
+for use by Medicare beneficiaries, their caregivers, and application developers. Unauthorized or improper
+use of this system or its data may result in disciplinary action, as well as civil and criminal
+penalties. This system may be monitored, recorded, and subject to audit.
+            </div>
+
+</div>
+
+
+
       <div class="hero-unit">
       <h1>{% trans "Login" %}</h1>
     <br>
@@ -41,3 +57,6 @@
 
 {% endblock %}
 
+    {% block ExtraJSFoot %}
+	<script type="application/javascript">$("#id_username").focus();</script>
+	{% endblock %}

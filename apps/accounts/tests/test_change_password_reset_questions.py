@@ -52,10 +52,10 @@ class ChangePasswordResetQuestionsTestCase(TestCase):
 
     def test_password_reset_invalid_user(self):
         url = reverse('forgot_password')
-        form_data = {'email': 'derf'}
+        form_data = {'email': 'derf@example.com'}
         response = self.client.post(url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'username supplied does not exist.')
+        self.assertContains(response, 'A user with the email supplied does not exist.')
 
     def test_password_reset_invalid_answer_3(self):
         url = reverse('secret_question_challenge_3', args=('fred',))

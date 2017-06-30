@@ -100,8 +100,16 @@ LOGGING = {
             'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
+        'unsuccessful_login': {
+            'handlers': ['console', 'file_info'],
+            'level': 'INFO',
+        },
         'oauth2_provider': {
             'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'admin_interface': {
+            'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
         'oauthlib': {
