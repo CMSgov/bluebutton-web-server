@@ -89,17 +89,6 @@ class TestBuildFHIRPatient(TestCase):
         self.user = User.objects.create_user(
             username='fred3', email='fred3@...', password='top_secret')
 
-    def test_build_fhir_patient(self):
-        request = self.factory.get('/create_test_account/bb_upload/')
-        request.user = self.user
-        request._messages = FakeMessages()
-
-        result, pt = fhir_build_patient(request,
-                                        json.loads(SAMPLE_BB_JSON))
-
-        # print("\nResult:%s" % result)
-        self.assertEqual(result.status_code, 201)
-
 
 class TestWriteFHIRPatient(TestCase):
     """ Write the FHIR Patient Record.
@@ -113,28 +102,6 @@ class TestWriteFHIRPatient(TestCase):
         self.messages = MessagingRequest()
         self.user = User.objects.create_user(
             username='fred4', email='fred4@...', password='top_secret')
-
-    def test_write_patient(self):
-        """ Write to the backend """
-
-        request = self.factory.get('/create_test_account/bb_upload/')
-        user = User.objects.create_user(
-            username='jacob8', email='jacob8@...', password='top_secret')
-
-        request.user = user
-        request._messages = FakeMessages()
-        # url = FhirServerUrl() + "Patient"
-        # headers = {'content-type': 'application/json'}
-        result, pt = fhir_build_patient(request,
-                                        json.loads(SAMPLE_BB_JSON))
-
-        # print("\nPayload:%s" % result)
-
-        # print("\nurl: %s" % url)
-        # print("\nPatient Write Response"
-        #       "(JSON):%s" % pretty_json(result.json()))
-
-        self.assertEqual(result.status_code, 201)
 
 
 class TestWriteEOB(TestCase):

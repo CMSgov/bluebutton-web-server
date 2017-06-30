@@ -108,12 +108,6 @@ INSTALLED_APPS = [
     # TODO migrate to move to sandbox or apps.fhir.sandbox
     'apps.sandbox',
 
-    # TODO Add comment. Should this be migrated elsewhere?
-    'apps.fhir.testac',
-
-    # TODO - Migrate to sandbox.  Add tests
-    # 'apps.cmsblue',
-
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',

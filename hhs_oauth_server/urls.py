@@ -25,11 +25,6 @@ urlpatterns = [
     # url(r'^fhir/api/v1/', include('apps.fhir.bluebutton')),
     # Admin
     url(r'^admin/', include(admin.site.urls)),
-
-]
-# if 'apps.fhir.testac' in settings.INSTALLED_APPS:
-urlpatterns += [
-    url(r'^create-test-account/', include('apps.fhir.testac.urls')),
 ]
 
 if IsAppInstalled("apps.extapi"):

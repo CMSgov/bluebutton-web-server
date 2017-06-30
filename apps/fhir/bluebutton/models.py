@@ -65,6 +65,7 @@ class Crosswalk(models.Model):
                                blank=True)
     hicn = models.CharField(max_length=11,
                             blank=True,
+                            null=True,
                             verbose_name="Member Number(HICN)")
     beneid = models.CharField(max_length=11,
                               blank=True,

@@ -141,7 +141,7 @@ class FHIR_Consent_Resource_InitializeTest(BaseApiTest):
     def test_create_Consent(self):
         """ check for a consent record """
 
-        request = self.factory.get('/create_test_account/bb_upload/')
+        request = self.factory.get('/bluebutton/fhir/v1/ExplanationOfBenefit/')
         request.user = self.user
 
         app = self._create_application('ThePHR', user=request.user)
@@ -184,7 +184,7 @@ class FHIR_ConsentDirective_Resource_InitializeTest(BaseApiTest):
     def test_create_ConsentDirective(self):
         """ check for a ConsentDirective record """
 
-        request = self.factory.get('/create_test_account/bb_upload/')
+        request = self.factory.get('/bluebutton/fhir/v1/ExplanationOfBenefit/')
         request.user = self.user
 
         xwalk = Crosswalk.objects.get(user=self.user)
@@ -240,7 +240,7 @@ class AccessTokenSignalTest(BaseApiTest):
     def test_accesstoken_create(self):
         """ Create an AccessToken and check for signal """
 
-        request = self.factory.get('/create_test_account/bb_upload/')
+        request = self.factory.get('/bluebutton/fhir/v1/ExplanationOfBenefit/')
         request.user = self.user
 
         # xwalk = Crosswalk.objects.get(user=self.user)
