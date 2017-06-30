@@ -22,6 +22,7 @@ dj-database-url
 pyjwt
 jsonfield
 
+
 # notifications
 django-ses
 
@@ -43,5 +44,11 @@ django-ratelimit
 robobrowser
 lxml
 
+# Decorate admin urls to force MFA login
+decorate_url
+
 # mock for Python 2
 mock
+
+# ldap for Python2
+python-ldap

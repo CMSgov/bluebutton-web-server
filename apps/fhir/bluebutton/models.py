@@ -59,9 +59,10 @@ class Crosswalk(models.Model):
                                     blank=True,
                                     null=True)
     fhir_id = models.CharField(max_length=80,
-                               blank=True)
+                               blank=True, default="")
     date_created = models.DateTimeField(auto_now_add=True)
     mb_user = models.CharField(max_length=250,
+
                                blank=True)
     hicn = models.CharField(max_length=11,
                             blank=True,
@@ -69,22 +70,8 @@ class Crosswalk(models.Model):
                             verbose_name="Member Number(HICN)")
     beneid = models.CharField(max_length=11,
                               blank=True,
+                              default="",
                               verbose_name="Beneficiary Id")
-    # bb_text = models.TextField(verbose_name="Blue Button Text File",
-    #                            blank=True,
-    #                            null=True,
-    #                            help_text=_("The MyMedicare.gov Blue "
-    #                                        "Button text file is "
-    #                                        "stored here."))
-
-    # mb_user = MyMedicare.gov user login name
-    # fhir_id = Identifier used in the patient Profile URL
-    # eg. /baseDstu2/Patient/{fhir_id}
-    # This will allow us to construct a URL to make a call directly to
-    # a record, rather than requiring a search
-    # when combined with fhir_source
-    # eg. https://fhir-server1.bluebutton.cms.gov/fhir/baseDstu2/
-    # + Patient/{fhir_id}
 
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
@@ -98,9 +85,7 @@ class Crosswalk(models.Model):
             full_url += '/'
         if self.fhir_source.shard_by:
             full_url += self.fhir_source.shard_by + '/'
-
         full_url += self.fhir_id
-
         return full_url
 
     def get_fhir_resource_url(self, resource_type):
@@ -110,10 +95,8 @@ class Crosswalk(models.Model):
             pass
         else:
             full_url += '/'
-
         if resource_type:
             full_url += resource_type + '/'
-
         return full_url
 
 

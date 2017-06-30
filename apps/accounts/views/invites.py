@@ -4,17 +4,21 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
+from ratelimit.decorators import ratelimit
 from ..forms import BulkUserCodeForm
 from ..models import UserRegisterCode, UserProfile
 import csv
+from django.views.decorators.cache import never_cache
 
 
+@never_cache
 @login_required
+@ratelimit(key='user_or_ip', rate='2/m', method=['POST'], block=True)
 def bulk_user_codes(request):
 
-    # first_name,last_name,email,username,code
-    # Mark,Scrimshire,ekivemark@gmail.com,marks,code1234
-    # Alan,Viars,alan.viars@videntity.com,acv,code2345
+    # id,first_name,last_name,email,username,code
+    # 999999999,Mark,Scrimshire,ekivemark@gmail.com,marks,code1234
+    # 888888888,Alan,Viars,alan.viars@videntity.com,acv,code2345
 
     if request.method == 'POST':
         form = BulkUserCodeForm(request.POST)

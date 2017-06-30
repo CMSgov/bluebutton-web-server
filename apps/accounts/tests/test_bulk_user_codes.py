@@ -25,9 +25,9 @@ class UserRegisterCodeTestCase(TestCase):
                                    user_type="DEV",
                                    create_applications=True,
                                    remaining_user_invites=2)
-        self.csv_text = """first_name,last_name,email,username,code
-                            Fred,Flinstone,fred@example.com,fred,bone
-                            Willma,Flinstone,willma@example.com,willma,dog
+        self.csv_text = """id,first_name,last_name,email,username,code
+                            999999999,Fred,Flinstone,fred@example.com,fred,bone
+                            888888888,Willma,Flinstone,willma@example.com,willma,dog
                             """
         self.client = Client()
 

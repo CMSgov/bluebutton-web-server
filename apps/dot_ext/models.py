@@ -43,14 +43,14 @@ class Endorsement(models.Model):
         return self.title
 
     def url(self):
-        url = 'http://%s/.wellknown/poet.pem' % (self.iss)
+        url = 'http://%s/.well-known/poet.pem' % (self.iss)
         return url
 
     def signature_verified(self):
-        url = 'http://%s/.wellknown/poet.pem' % (self.iss)
+        url = 'http://%s/.well-known/poet.pem' % (self.iss)
         print("URL is: ", url)
         try:
-            r = requests.get(url, timeout=10)
+            r = requests.get(url, timeout=3)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -62,23 +62,9 @@ class Endorsement(models.Model):
         except Timeout:
             pass
 
-        url = 'http://%s/.wellknown/poet.jwks' % (self.iss)
+        url = 'http://%s/.well-known/poet.jwks' % (self.iss)
         try:
-            r = requests.get(url, timeout=10)
-            if r.status_code == 200:
-                payload = verify_poet(self.jwt, r.text)
-                if 'iss' in payload:
-                    return True
-        except ConnectionError:
-            pass
-        except TooManyRedirects:
-            pass
-        except Timeout:
-            pass
-
-        try:
-            url = 'https://%s/.wellknown/poet.pem' % (self.iss)
-            r = requests.get(url, verify=False, timeout=10)
+            r = requests.get(url, timeout=3)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
@@ -91,8 +77,22 @@ class Endorsement(models.Model):
             pass
 
         try:
-            url = 'https://%s/.wellknown/poet.jwks' % (self.iss)
-            r = requests.get(url, timeout=10)
+            url = 'https://%s/.well-known/poet.pem' % (self.iss)
+            r = requests.get(url, timeout=3)
+            if r.status_code == 200:
+                payload = verify_poet(self.jwt, r.text)
+                if 'iss' in payload:
+                    return True
+        except ConnectionError:
+            pass
+        except TooManyRedirects:
+            pass
+        except Timeout:
+            pass
+
+        try:
+            url = 'https://%s/.well-known/poet.jwks' % (self.iss)
+            r = requests.get(url, timeout=3)
             if r.status_code == 200:
                 payload = verify_poet(self.jwt, r.text)
                 if 'iss' in payload:
