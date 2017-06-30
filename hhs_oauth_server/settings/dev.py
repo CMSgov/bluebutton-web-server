@@ -1,7 +1,6 @@
 from .base import *
 
 
-
 # removing security enforcement in development mode
 DEBUG = True
 SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
