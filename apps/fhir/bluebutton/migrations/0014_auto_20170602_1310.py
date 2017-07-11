@@ -12,10 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='crosswalk',
-            name='hicn',
-        ),
         migrations.AddField(
             model_name='crosswalk',
             name='user_id_hash',
