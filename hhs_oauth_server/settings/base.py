@@ -361,6 +361,9 @@ DOT_EXPIRES_IN = (
     (86400, _('1 Day')),
     (86400 * 7, _('1 Week')),
     (86400 * 365, _('1 Year')),
+    (259200 * 365 * 3, _('3 Years')),
+    (432000 * 365 * 5, _('5 Years')),
+    (864000 * 365 * 10, _('10 Years')),
 )
 
 
@@ -368,6 +371,28 @@ DOT_EXPIRES_IN = (
 THEME = THEMES[THEME_SELECTED]
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
+ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE',
+                         'The U.S. Centers for Medicare and Medicaid Services (CMS)')
+ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', 'https://cms.gov')
+PRIVACY_POLICY_URI = env('DJANGO_PRIVACY_POLICY_URI', '/privacy')
+ABOUT_URI = env('DJANGO_ABOUT_URI', '/about')
+
+# LINKS TO DOCS
+USER_DOCS_URI = "http://transparenthealth.github.io/beneficiary-help/"
+USER_DOCS_TITLE = "Beneficiary Help"
+DEVELOPER_DOCS_URI = "https://transparenthealth.github.io/blue-button-developer-docs/"
+DEVELOPER_DOCS_TITLE = "Developer Documentation"
+
+USER_TITLE = "Medicare beneficiaries, health providers, caregivers, and 3rd party application developers"
+
+DEFAULT_DISCLOSURE_TEXT = """
+This system is provided for use by %s. See the documentation for more information on proper use.
+Unauthorized or improper use of this system or its data may result in disciplinary action, as well as
+civil and criminal penalties. This system may be monitored, recorded, and subject to audit.
+""" % (USER_TITLE)
+
+DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
+
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
@@ -375,11 +400,6 @@ INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
 
-# LINKS TO DOCS
-USER_DOCS = "http://transparenthealth.github.io/beneficiary-help/"
-USER_DOCS_TITLE = "Beneficiary Help"
-DEVELOPER_DOCS = "https://transparenthealth.github.io/blue-button-developer-docs/"
-DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
 # include settings values in SETTING_EXPORT to use values in Templates.
 # eg. {{ settings.APPLICATION_TITLE }}
@@ -391,10 +411,14 @@ SETTINGS_EXPORT = [
     'STATIC_URL',
     'STATIC_ROOT',
     'MFA',
-    'USER_DOCS',
+    'USER_DOCS_URI',
     'USER_DOCS_TITLE',
-    'DEVELOPER_DOCS',
-    'DEVELOPER_DOCS_TITLE'
+    'DEVELOPER_DOCS_URI',
+    'DEVELOPER_DOCS_TITLE',
+    'ORGANIZATION_TITLE',
+    'PRIVACY_POLICY_URI',
+    'DISCLOSURE_TEXT',
+
 ]
 
 
