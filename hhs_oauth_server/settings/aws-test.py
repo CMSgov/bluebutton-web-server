@@ -169,6 +169,18 @@ LOGGING = {
             'formatter': 'simple',
             'filename': '/var/log/pyapps/info.log',
         },
+        'badlogin_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/login_failed.log',
+        },
+        'adminuse_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/admin_access.log',
+        },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
@@ -194,11 +206,11 @@ LOGGING = {
             'level': 'ERROR',
         },
         'unsuccessful_logins': {
-            'handlers': ['console'],
+            'handlers': ['console', 'badlogin_info'],
             'level': 'INFO',
         },
         'admin_interface': {
-            'handlers': ['console'],
+            'handlers': ['console', 'adminuse_info'],
             'level': 'INFO',
         },
         'hhs_server_info': {

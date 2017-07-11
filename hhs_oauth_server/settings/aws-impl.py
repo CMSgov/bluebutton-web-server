@@ -161,6 +161,18 @@ LOGGING = {
             'formatter': 'verbose',
             'filename': '/var/log/pyapps/error.log',
         },
+        'badlogin_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/login_failed.log',
+        },
+        'adminuse_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/admin_access.log',
+        },
         'file_info': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
@@ -193,11 +205,11 @@ LOGGING = {
             'level': 'ERROR',
         },
         'unsuccessful_logins': {
-            'handlers': ['console'],
+            'handlers': ['console', 'badlogin_info'],
             'level': 'INFO',
         },
         'admin_interface': {
-            'handlers': ['console'],
+            'handlers': ['console', 'adminuse_info'],
             'level': 'INFO',
         },
         'hhs_server_info': {
