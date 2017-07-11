@@ -62,12 +62,11 @@ class Crosswalk(models.Model):
                                blank=True, default="")
     date_created = models.DateTimeField(auto_now_add=True)
     mb_user = models.CharField(max_length=250,
-
-                               blank=True)
-    hicn = models.CharField(max_length=11,
-                            blank=True,
-                            null=True,
-                            verbose_name="Member Number(HICN)")
+                               blank=True, default="")
+    user_id_hash = models.CharField(max_length=64,
+                                    blank=True,
+                                    default="",
+                                    verbose_name="Hash of User ID")
     beneid = models.CharField(max_length=11,
                               blank=True,
                               default="",
