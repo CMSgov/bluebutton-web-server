@@ -37,11 +37,11 @@ if DEBUG:
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
 
-TEST_SPECIFIC_APPS = [
+IMPL_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
     'storages',
 ]
-INSTALLED_APPS += TEST_SPECIFIC_APPS
+INSTALLED_APPS += IMPL_SPECIFIC_APPS
 
 # AWS Credentials need to support SES, SQS and SNS
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')

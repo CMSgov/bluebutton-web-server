@@ -27,13 +27,10 @@ urlpatterns = [
     url(r'^home/', include('apps.home.urls')),
     url(r'^o/', include('apps.dot_ext.urls')),
     # Admin
+    url(r'^admin/', include(admin.site.urls)),
+
     decorated_url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls),
                   wrap=staff_member_required(login_url=settings.LOGIN_URL)),
-
-]
-# if 'apps.fhir.testac' in settings.INSTALLED_APPS:
-urlpatterns += [
-    url(r'^create-test-account/', include('apps.fhir.testac.urls')),
 ]
 
 if IsAppInstalled("apps.extapi"):
