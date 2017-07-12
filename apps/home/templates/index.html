@@ -13,29 +13,19 @@
 
     <div class="hero-unit text-center">
 
-        <div class="container-fluid">
-                <div class="col-md-12">
 
-                
-                <div class="col-lg-12 well">
 
-                    <h2>Welcome</h2>
-                    <p>Welcome to the {{ settings.APPLICATION_TITLE }}</p>
-     
-    
-       
-                    <a href="{{settings.USER_DOCS}}">
-                                    <button type="button" class="btn btn-primary"> <i class="fa fa-map"></i> {{settings.USER_DOCS_TITLE}} </button></a>
-                    
-                      <a href="{{settings.DEVELOPER_DOCS}}">
-                    <button type="button" class="btn btn-primary"> <i class="fa fa-gears"></i> {{settings.DEVELOPER_DOCS_TITLE}}</button></a>
-                
-                </div>
-                
-                </div>
-           
+ <h1 class="display-3">Share your Medicare data</h1>
+  <p class="lead">with applications, organizations, and people you trust.</p>
+  <hr class="my-4">
+  <p>This service allows Medicare beneficiaries to connect their health data to applications of their choosing.</p>
+  <p class="lead">
+    <a class="btn btn-primary btn-lg" href="{{settings.USER_DOCS_URI}}" role="button">Learn more</a>
+  </p>
 
-        </div>
+ <p>If you've already got an account then <a href="{% url 'mfa_login' %}">login</a>.</p>
+
+
     </div>
 
 

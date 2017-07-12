@@ -13,6 +13,18 @@
        </div>
     
 
+<div id="messages">
+            <div class="alert alert-warning">
+              <a class="close" data-dismiss="alert">×</a>
+              
+
+             NOTICE: {{settings.DISCLOSURE_TEXT }}
+            </div>
+
+</div>
+
+
+
       <div class="hero-unit">
       <h1>{% trans "Login" %}</h1>
     <br>
@@ -41,3 +53,6 @@
 
 {% endblock %}
 
+    {% block ExtraJSFoot %}
+	<script type="application/javascript">$("#id_username").focus();</script>
+	{% endblock %}

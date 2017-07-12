@@ -29,6 +29,9 @@ if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
     print("WARNING: Generate your secret key and set in environment "
           "variable: DJANGO_SECRET_KEY")
 
+# Use to skip LDAP tests
+AUTH_LDAP_ACTIVE = False
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.'
@@ -107,12 +110,6 @@ INSTALLED_APPS = [
 
     # TODO migrate to move to sandbox or apps.fhir.sandbox
     'apps.sandbox',
-
-    # TODO Add comment. Should this be migrated elsewhere?
-    'apps.fhir.testac',
-
-    # TODO - Migrate to sandbox.  Add tests
-    # 'apps.cmsblue',
 
     # 3rd Party ---------------------
     'corsheaders',
@@ -221,6 +218,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
+
 # emails
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
@@ -284,7 +282,10 @@ MFA = True
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
 
-# logging
+# IF a new file is added for logging go to hhs_ansible and update configuration
+# script to touch log files:
+# hhs_ansible/playbook/appserver/roles/app_update/tasks/main.yml
+# add the new filename as an item to the "Create the log files" action
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -301,13 +302,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
-        },
-        # 'lgfile': {
-        #     'class': 'logging.FileHandler',
-        #     'filename': 'logging.log',
-        #     'mode': 'w',
-        #     'formatter': 'verbose',
-        # }
+        }
     },
     'loggers': {
         'hhs_server': {
@@ -323,6 +318,14 @@ LOGGING = {
             'level': 'INFO',
         },
         'oauthlib': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'unsuccessful_logins': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'admin_interface': {
             'handlers': ['console'],
             'level': 'INFO',
         },
@@ -358,6 +361,9 @@ DOT_EXPIRES_IN = (
     (86400, _('1 Day')),
     (86400 * 7, _('1 Week')),
     (86400 * 365, _('1 Year')),
+    (259200 * 365 * 3, _('3 Years')),
+    (432000 * 365 * 5, _('5 Years')),
+    (864000 * 365 * 10, _('10 Years')),
 )
 
 
@@ -365,6 +371,28 @@ DOT_EXPIRES_IN = (
 THEME = THEMES[THEME_SELECTED]
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
+ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE',
+                         'The U.S. Centers for Medicare and Medicaid Services (CMS)')
+ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', 'https://cms.gov')
+PRIVACY_POLICY_URI = env('DJANGO_PRIVACY_POLICY_URI', '/privacy')
+ABOUT_URI = env('DJANGO_ABOUT_URI', '/about')
+
+# LINKS TO DOCS
+USER_DOCS_URI = "http://transparenthealth.github.io/beneficiary-help/"
+USER_DOCS_TITLE = "Beneficiary Help"
+DEVELOPER_DOCS_URI = "https://transparenthealth.github.io/blue-button-developer-docs/"
+DEVELOPER_DOCS_TITLE = "Developer Documentation"
+
+USER_TITLE = "Medicare beneficiaries, health providers, caregivers, and 3rd party application developers"
+
+DEFAULT_DISCLOSURE_TEXT = """
+This system is provided for use by %s. See the documentation for more information on proper use.
+Unauthorized or improper use of this system or its data may result in disciplinary action, as well as
+civil and criminal penalties. This system may be monitored, recorded, and subject to audit.
+""" % (USER_TITLE)
+
+DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
+
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
@@ -372,11 +400,6 @@ INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
 
-# LINKS TO DOCS
-USER_DOCS = "http://transparenthealth.github.io/beneficiary-help/"
-USER_DOCS_TITLE = "Beneficiary Help"
-DEVELOPER_DOCS = "https://transparenthealth.github.io/blue-button-developer-docs/"
-DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
 # include settings values in SETTING_EXPORT to use values in Templates.
 # eg. {{ settings.APPLICATION_TITLE }}
@@ -388,19 +411,26 @@ SETTINGS_EXPORT = [
     'STATIC_URL',
     'STATIC_ROOT',
     'MFA',
-    'USER_DOCS',
+    'USER_DOCS_URI',
     'USER_DOCS_TITLE',
-    'DEVELOPER_DOCS',
-    'DEVELOPER_DOCS_TITLE'
+    'DEVELOPER_DOCS_URI',
+    'DEVELOPER_DOCS_TITLE',
+    'ORGANIZATION_TITLE',
+    'PRIVACY_POLICY_URI',
+    'DISCLOSURE_TEXT',
+
 ]
 
 
 # Make sessions die out fast for more security ------------------
-# Logout after 30 minutes of inactivity
-SESSION_COOKIE_AGE = 1800
+# Logout after 90 minutes of inactivity = moderate requirementnt
+SESSION_COOKIE_AGE = 5400
 # Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# Change these for production
+USER_ID_SALT = "ChangeMePleaseIReallyM3anIT"
+USER_ID_ITERATIONS = 24000
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
@@ -415,8 +445,8 @@ SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
 # If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(seconds=600)
-LOGIN_RATE = '10/m'
+AXES_COOLOFF_TIME = datetime.timedelta(hours=1)
+LOGIN_RATE = '3/h'
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
 # We will need to add REWRITE_FROM and REWRITE_TO to models
 # to enable search and replace in content returned from backend server.
@@ -453,3 +483,6 @@ LOGIN_REDIRECT_URL = '/accounts/mfa/login'
 LOGIN_URL = '/accounts/mfa/login'
 
 REQUIRE_AUTHORIZE_APP_FLAG = False
+
+# Move Admin to a variable url location
+ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')

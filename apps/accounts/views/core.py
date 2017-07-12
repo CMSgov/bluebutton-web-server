@@ -7,24 +7,25 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-
+from ratelimit.decorators import ratelimit
 from ..forms import (RequestInviteForm, AccountSettingsForm,
                      LoginForm,
                      SignupForm)
 from ..models import *
 from ..utils import validate_activation_key
 from django.conf import settings
+from django.views.decorators.cache import never_cache
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@never_cache
+@ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
 def request_invite(request):
-    name = 'Request a Developer Invite to the %s' % (
-        settings.ORGANIZATION_NAME)
+    name = 'Request an Invite'
     if request.method == 'POST':
         form = RequestInviteForm(request.POST)
         if form.is_valid():
-
             invite_request = form.save()
             messages.success(
                 request,
@@ -32,11 +33,8 @@ def request_invite(request):
                   'You will be contacted by email when your '
                   'invitation is ready.'),
             )
-
             logger.debug("email to invite:%s" % invite_request.email)
-
             return pick_reverse_login()
-
         else:
             return render(request, 'generic/bootstrapform.html', {
                 'name': name,
@@ -56,6 +54,7 @@ def mylogout(request):
     return pick_reverse_login()
 
 
+@never_cache
 def simple_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -96,6 +95,7 @@ def display_api_keys(request):
     return render(request, 'display-api-keys.html', {'up': up})
 
 
+@never_cache
 @login_required
 def reissue_api_keys(request):
     up = get_object_or_404(UserProfile, user=request.user)
@@ -105,6 +105,7 @@ def reissue_api_keys(request):
     return HttpResponseRedirect(reverse('display_api_keys'))
 
 
+@ratelimit(key='ip', rate='10/h', method=['POST'], block=True)
 def create_account(request):
 
     name = "Create a Developer Account"
@@ -136,6 +137,7 @@ def create_account(request):
                       {'name': name, 'form': SignupForm(initial=form_data)})
 
 
+@never_cache
 @login_required
 def account_settings(request):
     name = _('Account Settings')
@@ -146,7 +148,7 @@ def account_settings(request):
         messages.info(request, _('You are in the group: %s' % (g)))
 
     if request.method == 'POST':
-        form = AccountSettingsForm(request.POST)
+        form = AccountSettingsForm(request.POST, request=request)
         if form.is_valid():
             data = form.cleaned_data
             # update the user info
@@ -184,13 +186,14 @@ def account_settings(request):
             'last_name': request.user.last_name,
             'first_name': request.user.first_name,
             'access_key_reset': up.access_key_reset,
-        }
+        }, request=request
     )
     return render(request,
                   'account-settings.html',
                   {'name': name, 'form': form})
 
 
+@ratelimit(key='ip', rate='5/h', method=['GET'], block=True)
 def activation_verify(request, activation_key):
     if validate_activation_key(activation_key):
         messages.success(request,
@@ -198,7 +201,6 @@ def activation_verify(request, activation_key):
     else:
         messages.error(request,
                        'This key does not exist or has already been used.')
-
     return pick_reverse_login()
 
 
@@ -206,7 +208,6 @@ def pick_reverse_login():
     """
     settings.MFA should be True or False
     Check settings.MFA to determine which reverse call to make
-
     :return:
     """
     try:
