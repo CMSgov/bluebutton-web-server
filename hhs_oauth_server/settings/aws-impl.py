@@ -194,7 +194,7 @@ LOGGING = {
         },
         'hhs_oauth_server.accounts': {
             'handlers': ['console', 'file_info'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'hhs_server_debug': {
             'handlers': ['console', 'file_debug'],
@@ -217,7 +217,7 @@ LOGGING = {
             'level': 'INFO',
         },
         'oauth2_provider': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
         'oauthlib': {
