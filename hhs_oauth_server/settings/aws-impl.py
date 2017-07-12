@@ -193,7 +193,7 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'hhs_oauth_server.accounts': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file_info'],
             'level': 'DEBUG',
         },
         'hhs_server_debug': {
