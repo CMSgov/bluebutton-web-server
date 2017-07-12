@@ -37,11 +37,11 @@ if DEBUG:
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
 
-TEST_SPECIFIC_APPS = [
+IMPL_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
     'storages',
 ]
-INSTALLED_APPS += TEST_SPECIFIC_APPS
+INSTALLED_APPS += IMPL_SPECIFIC_APPS
 
 # AWS Credentials need to support SES, SQS and SNS
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
@@ -161,6 +161,18 @@ LOGGING = {
             'formatter': 'verbose',
             'filename': '/var/log/pyapps/error.log',
         },
+        'badlogin_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/login_failed.log',
+        },
+        'adminuse_info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'simple',
+            'filename': '/var/log/pyapps/admin_access.log',
+        },
         'file_info': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
@@ -193,11 +205,11 @@ LOGGING = {
             'level': 'ERROR',
         },
         'unsuccessful_logins': {
-            'handlers': ['console'],
+            'handlers': ['console', 'badlogin_info'],
             'level': 'INFO',
         },
         'admin_interface': {
-            'handlers': ['console'],
+            'handlers': ['console', 'adminuse_info'],
             'level': 'INFO',
         },
         'hhs_server_info': {
