@@ -3,7 +3,8 @@ from __future__ import absolute_import
 
 from apps.test import BaseApiTest
 
-from ..models import FhirServer, Crosswalk
+from ..models import Crosswalk
+from ...server.models import ResourceRouter
 
 
 class TestModels(BaseApiTest):
@@ -14,9 +15,9 @@ class TestModels(BaseApiTest):
                                  last_name='Smith',
                                  email='john@smith.net')
         # created a default user
-        fs = FhirServer.objects.create(name="Main Server",
-                                       fhir_url="http://localhost:8000/fhir/",
-                                       shard_by="Patient")
+        fs = ResourceRouter.objects.create(name="Main Server",
+                                           fhir_url="http://localhost:8000/fhir/",
+                                           shard_by="Patient")
 
         cw = Crosswalk.objects.create(user=user,
                                       fhir_source=fs,
@@ -37,9 +38,9 @@ class TestModels(BaseApiTest):
                                  email='john@smith.net')
 
         # created a default user
-        fs = FhirServer.objects.create(name="Main Server",
-                                       fhir_url="http://localhost:8000/fhir/",
-                                       shard_by="Patient")
+        fs = ResourceRouter.objects.create(name="Main Server",
+                                           fhir_url="http://localhost:8000/fhir/",
+                                           shard_by="Patient")
 
         Crosswalk.objects.create(user=user,
                                  fhir_source=fs,

@@ -56,12 +56,18 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
+
+    logger.debug("Auth_state:%s" % auth_state)
+
     verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
         # cert puts cert and key file together
         # (cert_file_path, key_file_path)
         # Cert_file_path and key_file_ath are fully defined paths to
         # files on the appserver.
+        logger.debug('Cert:%s , Key:%s' % (auth_state['cert_file'],
+                                           auth_state['key_file']))
+
         cert = (auth_state['cert_file'], auth_state['key_file'])
     else:
         cert = ()
@@ -74,6 +80,8 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
                              verify=verify_state)
         else:
             r = requests.get(call_url, cert=cert, verify=verify_state)
+
+        logger.debug("Request.get:%s" % call_url)
 
         logger.debug("Status of Request:%s" % r.status_code)
 
@@ -475,6 +483,9 @@ def FhirServerVerify(cx=None):
 
 
 def FhirServerUrl(server=None, path=None, release=None):
+    # TODO: Replace pull from settings with use of FHIR_SERVER_DEFAULT
+    # lookup in FHIRServer table to construct url
+
     # fhir_server_configuration =
     # {'SERVER':'http://fhir-test.bbonfhir.com:8081',
     #                              'PATH':'/',
@@ -513,7 +524,7 @@ def check_access_interaction_and_resource_type(resource_type, intn_type):
 
      """
     try:
-        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        rt = SupportedResourceType.objects.get(resourceType=resource_type)
         # force comparison to lower case to make case insensitive check
         if intn_type.lower() not in map(str.lower,
                                         rt.get_supported_interaction_types()):
@@ -534,8 +545,11 @@ def check_access_interaction_and_resource_type(resource_type, intn_type):
 def check_rt_controls(resource_type):
     # Check for controls to apply to this resource_type
     # logger.debug('Resource_Type =%s' % resource_type)
+    # We may get more than one resourceType returned.
+    # We need to deal with that.
+    # Best option is to pass fhir_server from Crosswalk to this call
     try:
-        srtc = SupportedResourceType.objects.get(resource_name=resource_type)
+        srtc = SupportedResourceType.objects.get(resourceType=resource_type)
     except SupportedResourceType.DoesNotExist:
         srtc = None
 
@@ -815,7 +829,8 @@ def get_crosswalk(user):
 
 def conformance_or_capability(fhir_url):
     """ Check FHIR Url for FHIR Version.
-    :return resource type (STU3 switches from ConformanceStatement to CapabilityStatement
+    :return resource type (STU3 switches from ConformanceStatement
+            to CapabilityStatement
 
     :param fhir_url:
     :return:
@@ -830,20 +845,37 @@ def conformance_or_capability(fhir_url):
 
 
 def get_resource_names():
-    """ Get names for all approved resources """
+    """ Get names for all approved resources
+        We need to receive FHIRServer and filter list
+        :return list of FHIR resourceTypes
+    """
+    # TODO: filter by FHIRServer
 
     all_resources = SupportedResourceType.objects.all()
-    resource_names = []
+    resource_types = []
     for name in all_resources:
-        # Get the resource names into a list
-        resource_names.append(name.resource_name)
+        # check resourceType not already loaded to list
+        if name.resourceType in resource_types:
+            pass
+        else:
+            # Get the resourceType into a list
+            resource_types.append(name.resourceType)
 
-    return resource_names
+    return resource_types
+
+
+def get_fhirserver(request):
+    """
+    Get the FHIRServer from apps.fhir.bluebutton.server.models.FHIRServer
+
+    :param request:
+    :return: Id
+    """
 
 
 def evaluate_r(r):
     """
-     Check out what was received back from requst
+     Check out what was received back from request
 
      """
 

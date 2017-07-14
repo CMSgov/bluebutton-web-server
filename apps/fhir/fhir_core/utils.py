@@ -554,6 +554,7 @@ def get_target_url(fhir_url, resource_type):
 
 
 def check_access_interaction_and_resource_type(resource_type, interaction_type):
+    # We need to filter by FHIRServer or deal with multiple items
     try:
         rt = SupportedResourceType.objects.get(resource_name=resource_type)
         if interaction_type not in rt.get_supported_interaction_types():
@@ -599,12 +600,14 @@ def content_is_json_or_xml(response):
 
 
 def valid_interaction(resource):
-    """ Create a list of Interactions for the resource """
+    """ Create a list of Interactions for the resource
+        We need to deal with multiple objects returned or filter by FHIRServer
+    """
 
     interaction_list = []
     try:
         resource_interaction = \
-            SupportedResourceType.objects.get(resource_name=resource)
+            SupportedResourceType.objects.get(resourceType=resource)
     except SupportedResourceType.DoesNotExist:
         # this is a strange error
         # earlier gets should have found a record

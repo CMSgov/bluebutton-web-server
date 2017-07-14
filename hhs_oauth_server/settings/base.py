@@ -458,6 +458,14 @@ BB_CONSENT = {
     'POLICY_URL': "/consent/policy/1/"
 }
 
+# DONE: To support multiple resourceType records in SupportedResourceType
+# We need to have a default FHIR Server as a fallback if the Request.user
+# Does not have a Crosswalk with a default FHIRServer defined.
+# This variable will contain the ID of the Default FHIRServer
+# in the apps.fhir.bluebutton.server.models.FHIRServer table
+
+FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
+
 FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     'PATH': env('THS_FHIR_PATH'),
                     'RELEASE': env('THS_FHIR_RELEASE'),
