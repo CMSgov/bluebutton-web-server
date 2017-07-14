@@ -224,10 +224,6 @@ LOGGING = {
             'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
-        'admin_interface': {
-            'handlers': ['console', 'file_info'],
-            'level': 'INFO',
-        },
         'oauthlib': {
             'handlers': ['console'],
             'level': 'INFO',
