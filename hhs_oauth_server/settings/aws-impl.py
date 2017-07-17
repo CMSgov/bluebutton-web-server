@@ -220,6 +220,10 @@ LOGGING = {
             'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
+        'unsuccessful_login': {
+            'handlers': ['console', 'file_info'],
+            'level': 'INFO',
+        },
         'oauthlib': {
             'handlers': ['console'],
             'level': 'INFO',
