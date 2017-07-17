@@ -193,8 +193,8 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'hhs_oauth_server.accounts': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+            'handlers': ['console', 'file_info'],
+            'level': 'INFO',
         },
         'hhs_server_debug': {
             'handlers': ['console', 'file_debug'],
@@ -217,14 +217,10 @@ LOGGING = {
             'level': 'INFO',
         },
         'oauth2_provider': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'unsuccessful_login': {
             'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
-        'admin_interface': {
+        'unsuccessful_login': {
             'handlers': ['console', 'file_info'],
             'level': 'INFO',
         },
