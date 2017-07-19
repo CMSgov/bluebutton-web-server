@@ -374,13 +374,12 @@ APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
 ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE',
                          'The U.S. Centers for Medicare and Medicaid Services (CMS)')
 ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', 'https://cms.gov')
-PRIVACY_POLICY_URI = env('DJANGO_PRIVACY_POLICY_URI', '/privacy')
-ABOUT_URI = env('DJANGO_ABOUT_URI', '/about')
-
+POLICY_URI = env('DJANGO_POLICY_URI', 'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
+POLICY_TITLE = env('DJANGO_POLICY_TITLE', 'Privacy Policy')
 # LINKS TO DOCS
-USER_DOCS_URI = "http://transparenthealth.github.io/beneficiary-help/"
-USER_DOCS_TITLE = "Beneficiary Help"
-DEVELOPER_DOCS_URI = "https://transparenthealth.github.io/blue-button-developer-docs/"
+USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
+USER_DOCS_TITLE = "User Documentation"
+DEVELOPER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-developer-help"
 DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
 USER_TITLE = "Medicare beneficiaries, health providers, caregivers, and 3rd party application developers"
@@ -416,7 +415,8 @@ SETTINGS_EXPORT = [
     'DEVELOPER_DOCS_URI',
     'DEVELOPER_DOCS_TITLE',
     'ORGANIZATION_TITLE',
-    'PRIVACY_POLICY_URI',
+    'POLICY_URI',
+    'POLICY_TITLE',
     'DISCLOSURE_TEXT',
 
 ]
