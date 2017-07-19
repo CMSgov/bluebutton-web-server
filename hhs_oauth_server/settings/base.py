@@ -470,7 +470,7 @@ FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     'PATH': env('THS_FHIR_PATH'),
                     'RELEASE': env('THS_FHIR_RELEASE'),
                     'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM'),
-                    # RERITE_FROM should be a list
+                    # REWRITE_FROM should be a list
                     'REWRITE_TO': env('THS_FHIR_REWRITE_TO'),
                     # Minutes until search expires
                     'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}

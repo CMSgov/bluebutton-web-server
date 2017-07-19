@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.http import HttpResponse
 
-from apps.fhir.server.models import SupportedResourceType
+from apps.fhir.server.models import SupportedResourceType, ResourceRouter
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -262,12 +262,20 @@ def write_session(request, ikey, content, skey=SESSION_KEY):
         'res_type': resource_type,
         'intn_type': interaction_type,
         'key': key,
-        'vid': vid
+        'vid': vid,
+        'resource_router': rr.id
     }
 
     """
     now = datetime.now()
-    then = now + timedelta(minutes=settings.FHIR_SERVER_CONF['SEARCH_EXPIRY'])
+    # get search expiry from the ResourceRouter record
+    rr_id = content['resource_router']
+    try:
+        rr = ResourceRouter.objects.get(id=rr_id)
+        mins = (rr.server_search_expiry / 60)
+    except ResourceRouter.DoesNotExist:
+        mins = 30
+    then = now + timedelta(minutes=mins)
     expiry = str(then)
 
     if skey not in request.session:
@@ -325,7 +333,8 @@ def read_session(request, ikey, skey=SESSION_KEY):
         'res_type': resource_type,
         'intn_type': interaction_type,
         'key': key,
-        'vid': vid
+        'vid': vid,
+        'resource_router': rr
     }
 
     """
@@ -599,7 +608,7 @@ def content_is_json_or_xml(response):
     return ct_format
 
 
-def valid_interaction(resource):
+def valid_interaction(resource, rr):
     """ Create a list of Interactions for the resource
         We need to deal with multiple objects returned or filter by FHIRServer
     """
@@ -607,7 +616,8 @@ def valid_interaction(resource):
     interaction_list = []
     try:
         resource_interaction = \
-            SupportedResourceType.objects.get(resourceType=resource)
+            SupportedResourceType.objects.get(resourceType=resource,
+                                              fhir_source=rr)
     except SupportedResourceType.DoesNotExist:
         # this is a strange error
         # earlier gets should have found a record

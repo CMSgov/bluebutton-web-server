@@ -1,78 +1,31 @@
-[{"model": "auth.user", "pk": 1,
-  "fields": {"password": "pbkdf2_sha256$24000$oR7zKrUTcNbV$yMYqzxCjjS+HRWG2r2Y9cXnq+0R+Sz4XAFtFH+0M11w=",
-             "last_login": "2016-05-24T01:26:55.086Z",
-             "is_superuser": true,
-             "username": "bob",
-             "first_name": "Bob",
-             "last_name": "Bee",
-             "email": "bob@example.net",
-             "is_staff": true,
-             "is_active": true,
-             "date_joined": "2016-05-24T01:23:37.368Z",
-             "groups": [],
-             "user_permissions": []}
-},
-  {"model": "auth.user", "pk": 2,
-  "fields": {"password": "pbkdf2_sha256$24000$oR7zKrUTcNbV$yMYqzxCjjS+HRWG2r2Y9cXnq+0R+Sz4XAFtFH+0M11w=",
-             "last_login": "2016-05-24T01:26:55.086Z",
-             "is_superuser": false,
-             "username": "alan",
-             "first_name": "Alan",
-             "last_name": "Aaa",
-             "email": "Alan@example.net",
-             "is_staff": false,
-             "is_active": false,
-             "date_joined": "2016-05-24T01:23:37.368Z",
-             "groups": [],
-             "user_permissions": []}
-},
-  {"model": "auth.user", "pk": 3,
-  "fields": {"password": "pbkdf2_sha256$24000$oR7zKrUTcNbV$yMYqzxCjjS+HRWG2r2Y9cXnq+0R+Sz4XAFtFH+0M11w=",
-             "last_login": "2016-05-24T01:26:55.086Z",
-             "is_superuser": false,
-             "username": "mark",
-             "first_name": "Mark",
-             "last_name": "Mmmm",
-             "email": "mark@example.net",
-             "is_staff": false,
-             "is_active": false,
-             "date_joined": "2016-05-24T01:23:37.368Z",
-             "groups": [],
-             "user_permissions": []}
-},
-  {"model": "server.resourcerouter",
-   "pk": 1,
-   "fields": {
-      "name": "The main server [Default]",
-      "server_address": "https://fhir.backend.bluebutton.hhsdevcloud.us",
-      "server_path": "/",
-      "server_release": "baseDstu3/",
-      "server_search_expiry": 1800,
-      "fhir_url": "https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/",
-      "shard_by": "Patient",
-      "client_auth": true,
-      "cert_file": "./ca.cert.pem",
-      "key_file": "./ca.key.nocrypt.pem",
-      "server_verify": false,
-      "supported_resource": [
-        1,
-        2,
-        6,
-        7,
-        10,
-        11,
-        12
-      ]
-    }
-  },
-  {"model": "bluebutton.crosswalk",
+[
+{
+  "model": "server.resourcerouter",
   "pk": 1,
-  "fields": {"user": 1,
-             "fhir_source": 1,
-             "fhir_id": "4995802",
-             "date_created": "2016-05-25T05:03:49.342Z"}
- },
-  {
+  "fields": {
+    "name": "HHS IDEA Lab Sandbox[Default]",
+    "server_address": "https://fhir.backend.bluebutton.hhsdevcloud.us",
+    "server_path": "/",
+    "server_release": "baseDstu3/",
+    "server_search_expiry": 1800,
+    "fhir_url": "https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/",
+    "shard_by": "Patient",
+    "client_auth": true,
+    "cert_file": "./ca.cert.pem",
+    "key_file": "./ca.key.nocrypt.pem",
+    "server_verify": false,
+    "supported_resource": [
+      1,
+      2,
+      6,
+      7,
+      10,
+      11,
+      12
+    ]
+  }
+},
+{
   "model": "server.supportedresourcetype",
   "pk": 1,
   "fields": {
@@ -372,13 +325,13 @@
     "search_add": ""
   }
 },
-{
+  {
   "model": "server.supportedresourcetype",
   "pk": 13,
   "fields": {
-    "resource_name": "ClaimResponse",
+    "resource_name": "ExplanationOfBenefit-2",
     "fhir_source": 1,
-    "resourceType": "ClaimResponse",
+    "resourceType": "ExplanationOfBenefit",
     "secure_access": true,
     "json_schema": "{}",
     "get": true,
@@ -392,9 +345,34 @@
     "patch": false,
     "delete": false,
     "override_url_id": false,
-    "override_search": false,
-    "search_block": "",
-    "search_add": ""
+    "override_search": true,
+    "search_block": "patient, claim, resource_type",
+    "search_add": "patient=%PATIENT%"
   }
+},
+  {
+    "model": "server.supportedresourcetype",
+    "pk": 14,
+    "fields": {
+      "resource_name": "ExplanationOfBenefit-3",
+      "fhir_source": 1,
+      "resourceType": "ExplanationOfBenefit",
+      "secure_access": true,
+      "json_schema": "{}",
+      "get": true,
+      "read": true,
+      "vread": true,
+      "history": true,
+      "search": true,
+      "put": false,
+      "create": false,
+      "update": false,
+      "patch": false,
+      "delete": false,
+      "override_url_id": false,
+      "override_search": true,
+      "search_block": "patient, claim, resource_type, _format ",
+      "search_add": "patient=%PATIENT%"
+    }
 }
 ]

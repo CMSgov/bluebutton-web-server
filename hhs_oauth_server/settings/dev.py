@@ -15,6 +15,8 @@ SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME', 'Ben')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME', 'Barker')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL', 'ben@example.com')
 
+FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
+
 # overrides FHIR server configuration with fake values
 FHIR_SERVER_CONF = {
     'SERVER': env('THS_FHIR_SERVER', 'http://fhir.bbonfhir.com/'),

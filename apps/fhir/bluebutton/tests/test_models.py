@@ -17,7 +17,8 @@ class TestModels(BaseApiTest):
         # created a default user
         fs = ResourceRouter.objects.create(name="Main Server",
                                            fhir_url="http://localhost:8000/fhir/",
-                                           shard_by="Patient")
+                                           shard_by="Patient",
+                                           server_search_expiry=1800)
 
         cw = Crosswalk.objects.create(user=user,
                                       fhir_source=fs,
@@ -40,7 +41,8 @@ class TestModels(BaseApiTest):
         # created a default user
         fs = ResourceRouter.objects.create(name="Main Server",
                                            fhir_url="http://localhost:8000/fhir/",
-                                           shard_by="Patient")
+                                           shard_by="Patient",
+                                           server_search_expiry=1800)
 
         Crosswalk.objects.create(user=user,
                                  fhir_source=fs,

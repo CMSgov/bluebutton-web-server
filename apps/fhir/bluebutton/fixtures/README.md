@@ -2,7 +2,7 @@
 
 Run the following command to create fixtures from the data in the database
 
-    python manage.py dumpdata --format=json bluebutton > ./apps/fhir/bluebutton/fixtures/fhir_bluebutton_testdata.json
+    python manage.py dumpdata bluebutton --format=json --indent=2 >./apps/fhir/bluebutton/fixtures/fhir_bluebutton_testdata.json
 
 The above command will:
  - Run the dumpdata process

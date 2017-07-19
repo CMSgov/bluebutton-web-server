@@ -30,6 +30,9 @@ class ResourceRouter(models.Model):
                                       default="baseDstu3/",
                                       verbose_name="FHIR release with "
                                                    "terminating /")
+    server_search_expiry = models.IntegerField(verbose_name="Search expires "
+                                                            "in seconds",
+                                               default=1800)
     fhir_url = models.URLField(verbose_name="Full URL to FHIR API with "
                                             "terminating /")
     shard_by = models.CharField(max_length=80,
