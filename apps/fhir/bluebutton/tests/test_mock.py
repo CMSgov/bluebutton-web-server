@@ -345,6 +345,7 @@ class UtilsTestCase(unittest.TestCase):
         # expected = json.loads(expected_text,
         #                       object_pairs_hook=OrderedDict)
 
+        print("\nRewrite_list:%s" % rewrite_url_list)
         print("\n\n\nResponse:", result)
         print("\n\n\nExpected:", expected_text)
 
