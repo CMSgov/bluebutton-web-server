@@ -17,7 +17,7 @@ from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
 # from django.http import HttpResponseRedirect
 
-from hhs_oauth_server.utils import is_python2
+# from hhs_oauth_server.utils import is_python2
 from apps.fhir.fhir_core.utils import (kickout_403,
                                        kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
