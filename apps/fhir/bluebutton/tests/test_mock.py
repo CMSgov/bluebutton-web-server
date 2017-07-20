@@ -29,7 +29,7 @@ from apps.fhir.bluebutton.utils import (post_process_request,
                                         pretty_json,
                                         get_resourcerouter)
 
-# from apps.fhir.server.models import ResourceRouter
+from apps.fhir.server.models import ResourceRouter
 
 from .data_conformance import CONFORMANCE
 
@@ -42,6 +42,19 @@ class UtilsTestCase(unittest.TestCase):
     def setUp(self):
         # Setup the RequestFactory
         # I could probably update this to use a Mock()
+        self.resrtr = ResourceRouter.objects.create(
+            name="The main server [Default]",
+            server_address="https://fhir.backend.bluebutton.hhsdevcloud.us",
+            server_path="/",
+            server_release="baseDstu3/",
+            server_search_expiry=1800,
+            fhir_url="https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/",
+            shard_by="Patient",
+            client_auth=True,
+            cert_file="/ca.cert.pem",
+            key_file="./ca.key.nocrypt.pem",
+            server_verify=False)
+
         self.factory = RequestFactory()
 
     def test_post_process_request_json(self):
@@ -67,7 +80,12 @@ class UtilsTestCase(unittest.TestCase):
          """
         fmt = "json"
 
+        rr_id = self.resrtr.id
+        print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
         rr = get_resourcerouter()
+
+        print("\nRR-testfetch:%s\n" % rr)
+
         default_url = rr.server_address
 
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
@@ -226,7 +244,12 @@ class UtilsTestCase(unittest.TestCase):
 
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
+        rr_id = self.resrtr.id
+        print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
         rr = get_resourcerouter()
+
+        print("\nRR-testfetch:%s\n" % rr)
+
         default_url = rr.server_address
         # print("\n\n", default_url)
 
@@ -451,23 +474,25 @@ class RequestCallMockTest(unittest.TestCase):
 
     def setUp(self):
         # Setup the RequestFactory
-        # rr = ResourceRouter.objects.create(
-        #     name="The main server [Default]",
-        #     server_address="https://fhir.backend.bluebutton.hhsdevcloud.us",
-        #     server_path="/",
-        #     server_release="baseDstu3/",
-        #     server_search_expiry=1800,
-        #     fhir_url="https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/",
-        #     shard_by="Patient",
-        #     client_auth=True,
-        #     cert_file="/ca.cert.pem",
-        #     key_file="./ca.key.nocrypt.pem",
-        #     server_verify=False)
+        self.resrtr = ResourceRouter.objects.create(
+            name="The main server [Default]",
+            server_address="https://fhir.backend.bluebutton.hhsdevcloud.us",
+            server_path="/",
+            server_release="baseDstu3/",
+            server_search_expiry=1800,
+            fhir_url="https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/",
+            shard_by="Patient",
+            client_auth=True,
+            cert_file="/ca.cert.pem",
+            key_file="./ca.key.nocrypt.pem",
+            server_verify=False)
         self.factory = RequestFactory()
 
     @patch('apps.fhir.bluebutton.utils.requests')
     def test_fetch(self, mock_requests):
 
+        rr_id = self.resrtr.id
+        print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
         rr = get_resourcerouter()
 
         print("\nRR-testfetch:%s\n" % rr)
