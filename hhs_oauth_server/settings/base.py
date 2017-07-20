@@ -3,7 +3,7 @@ import dj_database_url
 import socket
 import datetime
 from getenv import env
-from ..utils import bool_env, int_env
+from ..utils import bool_env, int_env, is_python2
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import ugettext_lazy as _
@@ -28,6 +28,9 @@ SECRET_KEY = env('DJANGO_SECRET_KEY',
 if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
     print("WARNING: Generate your secret key and set in environment "
           "variable: DJANGO_SECRET_KEY")
+
+# Set Python2 to use for unicode field conversion to text
+RUNNING_PYTHON2 = is_python2()
 
 # Use to skip LDAP tests
 AUTH_LDAP_ACTIVE = False
@@ -458,11 +461,19 @@ BB_CONSENT = {
     'POLICY_URL': "/consent/policy/1/"
 }
 
+# DONE: To support multiple resourceType records in SupportedResourceType
+# We need to have a default FHIR Server as a fallback if the Request.user
+# Does not have a Crosswalk with a default FHIRServer defined.
+# This variable will contain the ID of the Default FHIRServer
+# in the apps.fhir.bluebutton.server.models.FHIRServer table
+
+FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
+
 FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     'PATH': env('THS_FHIR_PATH'),
                     'RELEASE': env('THS_FHIR_RELEASE'),
                     'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM'),
-                    # RERITE_FROM should be a list
+                    # REWRITE_FROM should be a list
                     'REWRITE_TO': env('THS_FHIR_REWRITE_TO'),
                     # Minutes until search expires
                     'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}
