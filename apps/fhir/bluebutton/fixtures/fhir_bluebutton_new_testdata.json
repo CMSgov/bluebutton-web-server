@@ -1,0 +1,91 @@
+[
+{"model": "auth.user", "pk": 1,
+  "fields": {"password": "pbkdf2_sha256$24000$oR7zKrUTcNbV$yMYqzxCjjS+HRWG2r2Y9cXnq+0R+Sz4XAFtFH+0M11w=",
+             "last_login": "2016-05-24T01:26:55.086Z",
+             "is_superuser": true,
+             "username": "bob",
+             "first_name": "Bob",
+             "last_name": "Bee",
+             "email": "bob@example.net",
+             "is_staff": true,
+             "is_active": true,
+             "date_joined": "2016-05-24T01:23:37.368Z",
+             "groups": [],
+             "user_permissions": []}
+},
+  {"model": "auth.user", "pk": 2,
+  "fields": {"password": "pbkdf2_sha256$24000$oR7zKrUTcNbV$yMYqzxCjjS+HRWG2r2Y9cXnq+0R+Sz4XAFtFH+0M11w=",
+             "last_login": "2016-05-24T01:26:55.086Z",
+             "is_superuser": true,
+             "username": "alan",
+             "first_name": "Alan",
+             "last_name": "Aaa",
+             "email": "alan@example.net",
+             "is_staff": true,
+             "is_active": true,
+             "date_joined": "2016-05-24T01:23:37.368Z",
+             "groups": [],
+             "user_permissions": []}
+},
+  {"model": "auth.user", "pk": 3,
+  "fields": {"password": "pbkdf2_sha256$24000$oR7zKrUTcNbV$yMYqzxCjjS+HRWG2r2Y9cXnq+0R+Sz4XAFtFH+0M11w=",
+             "last_login": "2016-05-24T01:26:55.086Z",
+             "is_superuser": true,
+             "username": "mark",
+             "first_name": "Mark",
+             "last_name": "Maa",
+             "email": "mark@example.net",
+             "is_staff": true,
+             "is_active": true,
+             "date_joined": "2016-05-24T01:23:37.368Z",
+             "groups": [],
+             "user_permissions": []}
+},
+{
+  "model": "bluebutton.crosswalk",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "fhir_source": 1,
+    "fhir_id": "Patient/9342511",
+    "date_created": "2016-07-01T19:37:00.452Z",
+    "mb_user": "",
+    "user_id_hash": "",
+    "beneid": ""
+  }
+},
+{
+  "model": "bluebutton.crosswalk",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "fhir_source": 1,
+    "fhir_id": "Patient/9342511",
+    "date_created": "2016-08-25T15:55:10.338Z",
+    "mb_user": "",
+    "user_id_hash": "",
+    "beneid": ""
+  }
+},
+{
+  "model": "bluebutton.crosswalk",
+  "pk": 3,
+  "fields": {
+    "user": 3,
+    "fhir_source": 1,
+    "fhir_id": "Patient/9342703",
+    "date_created": "2016-08-29T03:15:48.436Z",
+    "mb_user": "",
+    "user_id_hash": "",
+    "beneid": ""
+  }
+},
+{
+  "model": "bluebutton.bluebuttontext",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "bb_content": "This is a text file. it is garbage.\r\nocfadasd\r\nasdanfs,. kaa  fffmnfsndbgnnm .gnmgn  g g .agnngnmgmnsad sd d,mnsg sggsg"
+  }
+}
+]

@@ -1,5 +1,8 @@
 from .base import *
+from ..utils import is_python2
 
+# Set Python2 to use for unicode field conversion to text
+RUNNING_PYTHON2 = is_python2()
 
 # removing security enforcement in development mode
 DEBUG = True
@@ -14,6 +17,8 @@ SLS_PASSWORD = env('DJANGO_SLS_PASSWORD', 'pbkdf2_sha256$24000$V6XjGqYYNGY7$13tF
 SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME', 'Ben')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME', 'Barker')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL', 'ben@example.com')
+
+FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
 
 # overrides FHIR server configuration with fake values
 FHIR_SERVER_CONF = {

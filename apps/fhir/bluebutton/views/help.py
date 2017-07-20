@@ -18,6 +18,7 @@ from ...server.models import SupportedResourceType
 def bluebutton_help(request):
     """
     Get Supported Resource Types and display resources
+    Do we need to filter by FHIRServer?
     :param request:
     :return:
     """

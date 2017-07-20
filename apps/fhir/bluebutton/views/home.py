@@ -19,7 +19,8 @@ except ImportError:
     # python3
     from urllib.parse import urlencode
 
-from django.conf import settings
+# from django.conf import settings
+
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render, HttpResponse
 
@@ -35,7 +36,9 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         pretty_json,
                                         conformance_or_capability,
                                         get_crosswalk,
-                                        get_resource_names)
+                                        get_resource_names,
+                                        get_resourcerouter,
+                                        build_rewrite_list)
 
 from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               dom_conformance_filter)
@@ -179,8 +182,10 @@ def fhir_conformance(request, *args, **kwargs):
         # logger.debug('Crosswalk for %s does not exist' % request.user)
 
     if cx:
+        rr = get_resourcerouter(cx)
         call_to = cx.fhir_source.fhir_url
     else:
+        rr = get_resourcerouter()
         call_to = FhirServerUrl()
 
     resource_type = conformance_or_capability(call_to)
@@ -230,7 +235,7 @@ def fhir_conformance(request, *args, **kwargs):
 
     # logger.debug("Format:%s" % back_end_format)
 
-    rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
+    rewrite_url_list = build_rewrite_list(cx)
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
     text_out = post_process_request(request,
@@ -247,7 +252,7 @@ def fhir_conformance(request, *args, **kwargs):
 
         # logger.debug("is xml filtered?%s" % requested_format)
         xml_dom = xml_to_dom(text_out)
-        text_out = dom_conformance_filter(xml_dom)
+        text_out = dom_conformance_filter(xml_dom, rr)
         # logger.debug("Text from XML function:\n%s\n=========" % text_out)
         if 'html' not in requested_format:
             return HttpResponse(text_out,
@@ -269,7 +274,7 @@ def fhir_conformance(request, *args, **kwargs):
         #                      content_type='application/%s' % fmt)
     elif back_end_format == 'json':
         # logger.debug('We got json back in od')
-        od = conformance_filter(text_out, back_end_format)
+        od = conformance_filter(text_out, back_end_format, rr)
         text_out = pretty_json(od)
         if 'html' not in requested_format:
             return HttpResponse(text_out,
@@ -277,7 +282,7 @@ def fhir_conformance(request, *args, **kwargs):
                                              '%s' % requested_format)
     else:
         # let's make sure we have json to deliver:
-        od = conformance_filter(text_out, back_end_format)
+        od = conformance_filter(text_out, back_end_format, rr)
         text_out = pretty_json(od)
 
     # logger.debug('We got a different format:%s' % back_end_format)
@@ -293,7 +298,7 @@ def fhir_conformance(request, *args, **kwargs):
                      'source': cx.fhir_source.name}})
 
 
-def conformance_filter(text_block, fmt):
+def conformance_filter(text_block, fmt, rr=None):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
@@ -306,22 +311,29 @@ def conformance_filter(text_block, fmt):
     #     return xml_dict
 
     # Get a list of resource names
-    resource_names = get_resource_names()
+    if rr is None:
+        rr = get_resourcerouter()
+
+    resource_names = get_resource_names(rr)
     ct = 0
 
     for k in text_block['rest']:
         for i, v in k.items():
             if i == 'resource':
                 supported_resources = get_supported_resources(v,
-                                                              resource_names)
+                                                              resource_names,
+                                                              rr)
                 text_block['rest'][ct]['resource'] = supported_resources
         ct += 1
 
     return text_block
 
 
-def get_supported_resources(resources, resource_names):
+def get_supported_resources(resources, resource_names, rr=None):
     """ Filter resources for resource type matches """
+
+    if rr is None:
+        rr = get_resourcerouter()
 
     resource_list = []
     # if resource 'type in resource_names add resource to resource_list
@@ -329,7 +341,7 @@ def get_supported_resources(resources, resource_names):
         for k, v in item.items():
             if k == 'type':
                 if v in resource_names:
-                    filtered_item = get_interactions(v, item)
+                    filtered_item = get_interactions(v, item, rr)
                     # logger.debug("Filtered Item:%s" % filtered_item)
 
                     resource_list.append(filtered_item)
@@ -342,7 +354,7 @@ def get_supported_resources(resources, resource_names):
     return resource_list
 
 
-def get_interactions(resource, item):
+def get_interactions(resource, item, rr=None):
     """ filter interactions within an approved resource
 
     interaction":[{"code":"read"},
@@ -355,7 +367,11 @@ def get_interactions(resource, item):
                   {"code":"search-type"}
     """
 
-    valid_interactions = valid_interaction(resource)
+    # DONE: Add rr to call
+    if rr is None:
+        rr = get_resourcerouter()
+
+    valid_interactions = valid_interaction(resource, rr)
     permitted_interactions = []
 
     # Now we have a resource let's filter the interactions
