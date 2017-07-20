@@ -1,4 +1,5 @@
 # import json
+from django.conf import settings
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
@@ -122,6 +123,22 @@ class ResourceRouter(models.Model):
                 rProtectedTypeCount += 1
 
         return rProtectedTypeCount
+
+    def server_address_text(self):
+        if settings.RUNNING_PYTHON2:
+            server_address_text = self.server_address.encode('utf-8')
+        else:
+            server_address_text = self.server_address
+
+        return server_address_text
+
+    def fhir_url_text(self):
+        if settings.RUNNING_PYTHON2:
+            fhir_url_text = self.fhir_url.encode('utf-8')
+        else:
+            fhir_url_text = self.fhir_url
+
+        return fhir_url_text
 
 
 @python_2_unicode_compatible

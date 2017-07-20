@@ -507,7 +507,12 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         #            "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
 
         rr = get_resourcerouter()
-        expected = rr.server_address
+        if settings.RUNNING_PYTHON2:
+            rr_server_address = rr.server_address.encode('utf-8')
+        else:
+            rr_server_address = rr.server_address
+
+        expected = rr_server_address
         expected += rr.server_path
         expected += rr.server_release
         if expected.endswith('/'):

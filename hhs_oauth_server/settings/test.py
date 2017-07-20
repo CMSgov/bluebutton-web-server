@@ -1,5 +1,10 @@
 from .dev import *
 
+from ..utils import is_python2
+
+# Set Python2 to use for unicode field conversion to text
+RUNNING_PYTHON2 = is_python2()
+
 del LOGGING['loggers']
 # SMS
 SEND_SMS = False

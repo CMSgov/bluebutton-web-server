@@ -17,6 +17,7 @@ from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
 # from django.http import HttpResponseRedirect
 
+from hhs_oauth_server.utils import is_python2
 from apps.fhir.fhir_core.utils import (kickout_403,
                                        kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
@@ -515,7 +516,12 @@ def FhirServerUrl(server=None, path=None, release=None):
 
     rr_def = get_resourcerouter()
 
-    fhir_server = notNone(server, rr_def.server_address)
+    if settings.RUNNING_PYTHON2:
+        rr_server_address = rr_def.server_address.encode('utf-8')
+    else:
+        rr_server_address = rr_def.server_address
+
+    fhir_server = notNone(server, rr_server_address)
 
     fhir_path = notNone(path, rr_def.server_path)
 
@@ -665,10 +671,15 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         return in_text
 
     rr_def = get_resourcerouter()
+    if settings.RUNNING_PYTHON2:
+        rr_def_server_address = rr_def.server_address.encode('utf-8')
+    else:
+        rr_def_server_address = rr_def.server_address
 
-    if isinstance(rr_def.server_address, str):
-        if rr_def.server_address not in urls_be_gone:
-            urls_be_gone.append(rr_def.server_address)
+    if isinstance(rr_def_server_address, str):
+        if rr_def_server_address not in urls_be_gone:
+
+            urls_be_gone.append(rr_def_server_address)
 
     # TODO: Remove after python2.7 debug
     print("\nURLS to Remove:%s" % urls_be_gone)
@@ -707,8 +718,12 @@ def build_conformance_url():
     """ Build the Conformance URL call string """
 
     rr_def = get_resourcerouter()
+    if settings.RUNNING_PYTHON2:
+        rr_def_server_address = rr_def.server_address.encode('utf-8')
+    else:
+        rr_def_server_address = rr_def.server_address
 
-    call_to = rr_def.server_address
+    call_to = rr_def_server_address
     call_to += rr_def.server_path
     call_to += rr_def.server_release
     call_to += '/metadata'

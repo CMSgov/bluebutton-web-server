@@ -21,7 +21,7 @@ except ImportError:
 from collections import OrderedDict
 from django.test import RequestFactory
 
-# from django.conf import settings
+from django.conf import settings
 
 from apps.fhir.bluebutton.utils import (post_process_request,
                                         build_output_dict,
@@ -86,7 +86,10 @@ class UtilsTestCase(unittest.TestCase):
 
         print("\nRR-testfetch:%s\n" % rr)
 
-        default_url = rr.server_address
+        if settings.RUNNING_PYTHON2:
+            default_url = rr.server_address.encode('utf-8')
+        else:
+            default_url = rr.server_address
 
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
@@ -253,7 +256,11 @@ class UtilsTestCase(unittest.TestCase):
 
         print("\nRR-testfetch:%s\n" % rr)
 
-        default_url = rr.server_address
+        if settings.RUNNING_PYTHON2:
+            default_url = rr.server_address.encode('utf-8')
+        else:
+            default_url = rr.server_address
+
         # print("\n\n", default_url)
 
         input_text = 'dddd anything '
