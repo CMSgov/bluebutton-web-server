@@ -100,7 +100,8 @@ class UtilsTestCase(unittest.TestCase):
 
         host_path = 'http://www.replaced.com'
         r_text = '{}'
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
 
         if default_url.endswith("/"):
@@ -158,7 +159,8 @@ class UtilsTestCase(unittest.TestCase):
 
         host_path = 'http://www.replaced.com'
         r_text = input_text
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
 
         if default_url.endswith("/"):
@@ -196,7 +198,8 @@ class UtilsTestCase(unittest.TestCase):
 
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
 
         if default_url.endswith("/"):
