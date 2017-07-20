@@ -179,8 +179,8 @@ class UtilsTestCase(unittest.TestCase):
         expected = json.loads(expected_text,
                               object_pairs_hook=OrderedDict)
 
-        # print("\n\n\nResponse:", response)
-        # print("\n\n\nExpected:", expected)
+        print("\n\n\nResponse:", result)
+        print("\n\n\nExpected:", expected)
 
         self.assertEqual(result, expected, assert_msg)
 
@@ -342,8 +342,8 @@ class UtilsTestCase(unittest.TestCase):
         # expected = json.loads(expected_text,
         #                       object_pairs_hook=OrderedDict)
 
-        # print("\n\n\nResponse:", response)
-        # print("\n\n\nExpected:", expected)
+        print("\n\n\nResponse:", result)
+        print("\n\n\nExpected:", expected_text)
 
         self.assertEqual(result, expected_text, assert_msg)
 
