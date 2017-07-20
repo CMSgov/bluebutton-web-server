@@ -638,9 +638,16 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
         host_path = host_path[:-1]
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
+
+        # TODO: Remove after python2.7 debug
+        print("\nReplacing: [%s] with [%s]  \n" % (find_url, host_path))
+
         logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
     else:
         out_text = in_text
+
+        # TODO: Remove after python2.7 debug
+        print('Passing [%s] to [%s]' % (in_text, "out_text"))
         logger_debug.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
 
     return out_text
@@ -659,10 +666,12 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
 
     rr_def = get_resourcerouter()
 
-    if isinstance(rr_def.fhir_url, str):
-        if rr_def.fhir_url not in urls_be_gone:
-            urls_be_gone.append(rr_def.fhir_url)
+    if isinstance(rr_def.server_address, str):
+        if rr_def.server_address not in urls_be_gone:
+            urls_be_gone.append(rr_def.server_address)
 
+    # TODO: Remove after python2.7 debug
+    print("\nURLS to Remove:%s" % urls_be_gone)
     for kill_url in urls_be_gone:
         # work through the list making replacements
         if kill_url.endswith('/'):
