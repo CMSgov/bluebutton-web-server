@@ -1,11 +1,144 @@
 # import json
+from django.conf import settings
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
-from .utils import (text_to_list,
-                    # list_to_text,
-                    # add_to_text_list,
-                    init_text_list)
+from apps.fhir.server.utils import (text_to_list,
+                                    # list_to_text,
+                                    # add_to_text_list,
+                                    init_text_list)
+
+
+@python_2_unicode_compatible
+class ResourceRouter(models.Model):
+    """
+    Server URL at Profile level
+    eg.
+    https://fhir-server1.cmsblue.cms.gov/fhir/baseDstu2/
+    https://fhir-server2.cmsblue.cms.gov/fhir/stu3/
+
+    ID will be used as reference in CrossWalk
+    """
+
+    name = models.CharField(max_length=254,
+                            verbose_name="Friendly Server Name")
+    server_address = models.URLField(verbose_name="Server Name in URL form")
+    server_path = models.CharField(max_length=254,
+                                   default="/",
+                                   verbose_name="path to API with "
+                                                "terminating /")
+    server_release = models.CharField(max_length=254,
+                                      default="baseDstu3/",
+                                      verbose_name="FHIR release with "
+                                                   "terminating /")
+    server_search_expiry = models.IntegerField(verbose_name="Search expires "
+                                                            "in seconds",
+                                               default=1800)
+    fhir_url = models.URLField(verbose_name="Full URL to FHIR API with "
+                                            "terminating /")
+    shard_by = models.CharField(max_length=80,
+                                default='Patient',
+                                verbose_name='Key Resource type')
+
+    supported_resource = models.ManyToManyField('SupportedResourceType')
+
+    client_auth = models.BooleanField(default=False,
+                                      help_text="Is Client Authentication "
+                                                "Required?")
+    # Certs and keys will be stored in files and folders under
+    # FHIR_CLIENT_CERTSTORE (set in base.py)
+    # default will be BASE_DIR + /../certstore
+    cert_file = models.TextField(max_length=250,
+                                 blank=True,
+                                 null=True,
+                                 help_text="Name of Client Certificate file")
+    key_file = models.TextField(max_length=250,
+                                blank=True,
+                                null=True,
+                                help_text="Name of Client Key file")
+    server_verify = models.BooleanField(default=False,
+                                        help_text="Server Verify "
+                                                  "(Default=False)")
+
+    def __str__(self):
+        return self.name
+
+    # """
+    # If SupportedResourceType is not hosted on default server
+    # then enter the server url here.
+    # Enter full URL and path
+    # """
+    # fhir_path = models.URLField(blank=True,
+    #                             verbose_name="Default FHIR URL with "
+    #                                          "terminating /",
+    #                             help_text="Exclude the resource. eg. "
+    #                                       "<b>https://fhirserver.com/fhir/"
+    #                                       "Patient/</b> is entered as "
+    #                                       "<b>https://fhirserver.com/fhir/"
+    #                                       "</b></br>Leave blank to accept "
+    #                                       "system default.")
+    # # Add fhir_path unless the resource is defined via crosswalk
+    #
+    # def __str__(self):
+    #     return self.supported_resource.resource_name
+
+    def get_resources(self):
+        rType = []
+        for s in self.supported_resource.all():
+            rType.append(s.resourceType)
+
+        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
+        return rType
+
+    def get_protected_resources(self):
+        rProtectedType = []
+        for s in self.supported_resource.all():
+            if s.secure_access:
+                rProtectedType.append(s.resourceType)
+
+        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
+        return rProtectedType
+
+    def get_open_resources(self):
+        rOpenType = []
+        for s in self.supported_resource.all():
+            if not s.secure_access:
+                rOpenType.append(s.resourceType)
+
+        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
+        return rOpenType
+
+    def get_open_resource_count(self):
+        rOpenTypeCount = 0
+        for s in self.supported_resource.all():
+            if not s.secure_access:
+                rOpenTypeCount += 1
+
+        return rOpenTypeCount
+
+    def get_protected_resource_count(self):
+        rProtectedTypeCount = 0
+        for s in self.supported_resource.all():
+            if s.secure_access:
+                rProtectedTypeCount += 1
+
+        return rProtectedTypeCount
+
+    def server_address_text(self):
+        if settings.RUNNING_PYTHON2:
+            server_address_text = self.server_address.encode('utf-8')
+        else:
+            server_address_text = self.server_address
+
+        return server_address_text
+
+    def fhir_url_text(self):
+        if settings.RUNNING_PYTHON2:
+            fhir_url_text = self.fhir_url.encode('utf-8')
+        else:
+            fhir_url_text = self.fhir_url
+
+        return fhir_url_text
 
 
 @python_2_unicode_compatible
@@ -13,11 +146,18 @@ class SupportedResourceType(models.Model):
     # unique resource_name
     resource_name = models.CharField(max_length=255,
                                      unique=True,
-                                     db_index=True)
+                                     db_index=True,
+                                     verbose_name="unique Resource "
+                                                  "name in this table")
+    # FHIR_Server
+    fhir_source = models.ForeignKey(ResourceRouter,
+                                    blank=True,
+                                    null=True)
     # fhir_resourceType
     resourceType = models.CharField(max_length=250,
                                     unique=False,
-                                    db_index=True)
+                                    db_index=True,
+                                    verbose_name="Actual FHIR Resource Type")
     # should user be logged in to access this resource
     secure_access = models.BooleanField(default=True,
                                         verbose_name="Secured resource",
@@ -205,107 +345,3 @@ class SupportedResourceType(models.Model):
     def login_to_access(self):
         # Should the user be logged in to access this resource
         return self.secure_access
-
-
-@python_2_unicode_compatible
-class ResourceRouter(models.Model):
-    """
-    Server URL at Profile level
-    eg.
-    https://fhir-server1.cmsblue.cms.gov/fhir/baseDstu2/
-    https://fhir-server2.cmsblue.cms.gov/fhir/stu3/
-
-    ID will be used as reference in CrossWalk
-    """
-
-    name = models.CharField(max_length=254,
-                            verbose_name="Friendly Server Name")
-    fhir_url = models.URLField(verbose_name="Full URL to FHIR API with "
-                                            "terminating /")
-    shard_by = models.CharField(max_length=80,
-                                default='Patient',
-                                verbose_name='Key Resource type')
-
-    supported_resource = models.ManyToManyField(SupportedResourceType)
-
-    client_auth = models.BooleanField(default=False,
-                                      help_text="Is Client Authentication "
-                                                "Required?")
-    # Certs and keys will be stored in files and folders under
-    # FHIR_CLIENT_CERTSTORE (set in base.py)
-    # default will be BASE_DIR + /../certstore
-    cert_file = models.TextField(max_length=250,
-                                 blank=True,
-                                 null=True,
-                                 help_text="Name of Client Certificate file")
-    key_file = models.TextField(max_length=250,
-                                blank=True,
-                                null=True,
-                                help_text="Name of Client Key file")
-    server_verify = models.BooleanField(default=False,
-                                        help_text="Server Verify "
-                                                  "(Default=False)")
-
-    def __str__(self):
-        return self.name
-
-    # """
-    # If SupportedResourceType is not hosted on default server
-    # then enter the server url here.
-    # Enter full URL and path
-    # """
-    # fhir_path = models.URLField(blank=True,
-    #                             verbose_name="Default FHIR URL with "
-    #                                          "terminating /",
-    #                             help_text="Exclude the resource. eg. "
-    #                                       "<b>https://fhirserver.com/fhir/"
-    #                                       "Patient/</b> is entered as "
-    #                                       "<b>https://fhirserver.com/fhir/"
-    #                                       "</b></br>Leave blank to accept "
-    #                                       "system default.")
-    # # Add fhir_path unless the resource is defined via crosswalk
-    #
-    # def __str__(self):
-    #     return self.supported_resource.resource_name
-
-    def get_resources(self):
-        rType = []
-        for s in self.supported_resource.all():
-            rType.append(s.resourceType)
-
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
-        return rType
-
-    def get_protected_resources(self):
-        rProtectedType = []
-        for s in self.supported_resource.all():
-            if s.secure_access:
-                rProtectedType.append(s.resourceType)
-
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
-        return rProtectedType
-
-    def get_open_resources(self):
-        rOpenType = []
-        for s in self.supported_resource.all():
-            if not s.secure_access:
-                rOpenType.append(s.resourceType)
-
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
-        return rOpenType
-
-    def get_open_resource_count(self):
-        rOpenTypeCount = 0
-        for s in self.supported_resource.all():
-            if not s.secure_access:
-                rOpenTypeCount += 1
-
-        return rOpenTypeCount
-
-    def get_protected_resource_count(self):
-        rProtectedTypeCount = 0
-        for s in self.supported_resource.all():
-            if s.secure_access:
-                rProtectedTypeCount += 1
-
-        return rProtectedTypeCount

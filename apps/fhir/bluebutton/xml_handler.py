@@ -15,7 +15,7 @@ import logging
 import defusedxml.ElementTree as ET
 
 
-from apps.fhir.bluebutton.utils import get_resource_names
+from apps.fhir.bluebutton.utils import get_resource_names, get_resourcerouter
 from apps.fhir.fhir_core.utils import valid_interaction
 
 FHIR_NAMESPACE = {'fhir': 'http://hl7.org/fhir'}
@@ -43,7 +43,7 @@ def xml_to_dom(xml_string):
     return dom
 
 
-def dom_conformance_filter(dom, ns=FHIR_NAMESPACE):
+def dom_conformance_filter(dom, rr=None, ns=FHIR_NAMESPACE):
     """
     filter conformance statement to remove unsupported resources and
     interactions
@@ -52,8 +52,10 @@ def dom_conformance_filter(dom, ns=FHIR_NAMESPACE):
     :return:
     """
 
+    if rr is None:
+        rr = get_resourcerouter()
     # Now we need to filter the Dom Conformance Statement
-    dom = filter_dom(dom, ns)
+    dom = filter_dom(dom, rr, ns)
 
     # Then convert back to text to allow publishng
     back_to_xml = ET.tostring(dom).decode("utf-8")
@@ -79,7 +81,7 @@ def string_to_dom(content, ns=FHIR_NAMESPACE):
     return root
 
 
-def filter_dom(root, ns=FHIR_NAMESPACE):
+def filter_dom(root, rr=None, ns=FHIR_NAMESPACE):
     """
     remove unwanted elements from dom
     :param dom:
@@ -87,8 +89,10 @@ def filter_dom(root, ns=FHIR_NAMESPACE):
     :return:
     """
 
+    if rr is None:
+        rr = get_resourcerouter()
     # Get the published fhir resources as a list
-    pub_resources = get_resource_names()
+    pub_resources = get_resource_names(rr)
 
     element_rest = root.findall('{%s}rest' % ns_string(ns), ns)
     for rest in element_rest:
@@ -115,7 +119,8 @@ def filter_dom(root, ns=FHIR_NAMESPACE):
                     # check interaction code against supported resource type
                     # actions
                     # remove disabled actions
-                    pub_interactions = valid_interaction(no_ns_name(t.attrib))
+                    pub_interactions = valid_interaction(no_ns_name(t.attrib),
+                                                         rr)
                     # logger.debug("Interactions:%s" % pub_interactions)
 
                     for e in element_interaction:
