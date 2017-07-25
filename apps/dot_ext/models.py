@@ -57,7 +57,7 @@ class Endorsement(models.Model):
                 k = json.loads(r.text)
                 payload = verify_poet(self.jwt, k)
                 if 'iss' in payload:
-                    if payload['iss']== k['kid']:
+                    if payload['iss'] == k['kid']:
                         return True
         except ConnectionError:
             pass
