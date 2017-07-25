@@ -2,11 +2,12 @@
 
 Run the following command to create fixtures from the data in the database
 
-    python manage.py dumpdata --format=json server > ./apps/fhir/server/fixtures/fhir_server_testdata.json
+    python manage.py dumpdata --format=json --indent=2 server > ./apps/fhir/server/fixtures/fhir_server_testdata.json
 
 The above command will:
  - Run the dumpdata process
  - format the output as json
+ - indent 2 spaces for easier readability
  - just export from the models in apps.fhir.server app
  - pipe the output to a file in the apps.fhir.server.fixtures folder
  
