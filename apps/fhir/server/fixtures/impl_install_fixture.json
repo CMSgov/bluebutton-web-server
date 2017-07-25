@@ -74,7 +74,6 @@
     "search_add": "patient=%PATIENT%"
   }
 },
-,
 {
   "model": "server.supportedresourcetype",
   "pk": 3,
