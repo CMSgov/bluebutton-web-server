@@ -22,7 +22,7 @@ def oauth_create(request, resource_type):
 
 @csrf_exempt
 @capability_protected_resource()
-def oauth_read_or_update_or_delete(request, resource_type, id):
+def oauth_read_or_update_or_delete(request, resource_type, id, *args, **kwargs):
     """
     Route to read, update, or delete based on HTTP method FHIR Interaction
     """

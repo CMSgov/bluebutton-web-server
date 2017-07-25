@@ -240,7 +240,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
 
         Crosswalk.objects.get(pk=1)
         fhir_id = "Patient/9342511"
-        response = add_params(srtc, fhir_id)
+        response = add_params(srtc, patient_id='1234', key=fhir_id)
 
         # print("\nResponse for %s: %s\n" % (srtc, response))
 
@@ -252,14 +252,14 @@ class BlueButtonUtilSrtcTestCase(TestCase):
 
         Crosswalk.objects.get(pk=1)
         fhir_id = "Patient/9342511"
-        response = add_params(srtc, fhir_id)
+        response = add_params(srtc, patient_id=fhir_id, key='1234')
         self.assertEquals(response, [])
 
         # Test Patient= in Patient Resource
         srtc = SupportedResourceType.objects.get(pk=1)
         Crosswalk.objects.get(pk=1)
         fhir_id = "Patient/9342511"
-        response = add_params(srtc, fhir_id)
+        response = add_params(srtc, patient_id=fhir_id, key='1234')
         # print("Response:(%s)" % response)
         # print("JSON Dumps:%s" % json.dumps(response))
         self.assertEquals(response, [])
@@ -269,7 +269,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
 
-        # print("Response:%s" % response)
+        # print("\nResponse:%s" % response)
         # print("compare to:%s" % [])
 
         self.assertEquals(response, ['patient='])
@@ -361,23 +361,26 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         # SRTC = EOB
         srtc = SupportedResourceType.objects.get(pk=13)
         fhir_id = '4995802'
-        response = build_params(get_ish_1, srtc, fhir_id)
+        key = '1234'
+        response = build_params(get_ish_1, srtc, key=key, patient_id=fhir_id)
         expected = '?_format=json&keep=keep_this&patient=4995802'
         self.assertEqual(response.__contains__(get_ish_1['keep']), True)
         self.assertEqual(response.__contains__(get_ish_1['_format']), True)
 
         # Test 2: Get - No parameters, SRTC Valid, Key is good
         get_ish_2 = {}
-        response = build_params(get_ish_2, srtc, fhir_id)
+        key = '1234'
+        response = build_params(get_ish_2, srtc, key=fhir_id, patient_id=key)
         expected = '?patient=4995802&_format=json'
         self.assertEquals(response, expected)
 
         # Test 3: GET has parameters, SRTC is None, key is empty
         srtc = None
         key = ''
-        response = build_params(get_ish_1, srtc, key)
+        response = build_params(get_ish_1, srtc, key=key, patient_id='')
         resp_dict = dict(parse_qsl(response[1:]))
-        expected = '?keep=keep_this&resource_type=some_resource&_format=json&claim=123456'
+        expected = '?keep=keep_this&resource_type=some_r' \
+                   'esource&_format=json&claim=123456'
         expe_dict = dict(parse_qsl(expected[1:]))
         self.assertDictEqual(resp_dict, expe_dict)
 
