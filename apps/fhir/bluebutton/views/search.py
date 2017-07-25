@@ -280,11 +280,8 @@ def read_search(request,
             del payload['patient']
         payload['_id'] = id_dict['_id']
 
-
-    substitute_fhir_id = False
     for pyld_k, pyld_v in payload.items():
         if '%PATIENT%' in pyld_v:
-            substitute_fhir_id = True
             # replace %PATIENT% with cx.fhir_id
 
             payload = payload_var_replace(payload,
