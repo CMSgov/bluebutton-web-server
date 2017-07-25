@@ -89,9 +89,6 @@ INSTALLED_APPS = [
     # /.well-known/ endpoints
     'apps.wellknown',
 
-    # Endorsement example TODO migrate to reusable app
-    'apps.endorse',
-
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
@@ -379,6 +376,14 @@ ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE',
 ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', 'https://cms.gov')
 POLICY_URI = env('DJANGO_POLICY_URI', 'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
 POLICY_TITLE = env('DJANGO_POLICY_TITLE', 'Privacy Policy')
+TOS_URI = env('DJANGO_TOS_URI', '#')
+TOS_TITLE = env('DJANGO_TOS_TITLE', 'Terms of Service')
+TAG_LINE_1 = env('DJANGO_TAG_LINE_1', 'Share your Medicare data')
+TAG_LINE_2 = env('DJANGO_TAG_LINE_2', 'with applications, organizations, and people you trust.')
+EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
+EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
+
+
 # LINKS TO DOCS
 USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
 USER_DOCS_TITLE = "User Documentation"
@@ -421,7 +426,11 @@ SETTINGS_EXPORT = [
     'POLICY_URI',
     'POLICY_TITLE',
     'DISCLOSURE_TEXT',
-
+    'TOS_URI',
+    'TOS_TITLE',
+    'TAG_LINE_1',
+    'TAG_LINE_2',
+    'EXPLAINATION_LINE'
 ]
 
 
