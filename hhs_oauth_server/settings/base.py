@@ -466,7 +466,6 @@ BB_CONSENT = {
 # Does not have a Crosswalk with a default FHIRServer defined.
 # This variable will contain the ID of the Default FHIRServer
 # in the apps.fhir.bluebutton.server.models.FHIRServer table
-
 FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
 
 FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
@@ -480,6 +479,15 @@ FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
 
 FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, '../certstore'))
+
+# Timeout for request call
+REQUEST_CALL_TIMEOUT = (5, 120)
+
+# url parameters we don't want to pass through to the back-end server
+FRONT_END_STRIP_PARAMS = ['access_token',
+                          'state',
+                          'response_type',
+                          'client_id']
 
 # cert_file and key_file are referenced relative to BASE_DIR/../certstore
 # used by FhirServer_Auth()

@@ -29,3 +29,9 @@ FHIR_SERVER_CONF = {
     'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM', ['http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2', ]),
     'REWRITE_TO': env('THS_FHIR_REWRITE_TO', 'http://localhost:8000/bluebutton/fhir/v1'),
 }
+
+# url parameters we don't want to pass through to the back-end server
+FRONT_END_STRIP_PARAMS = ['access_token',
+                          'state',
+                          'response_type',
+                          'client_id']
