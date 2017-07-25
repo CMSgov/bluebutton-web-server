@@ -184,8 +184,8 @@ class UtilsTestCase(unittest.TestCase):
         expected = json.loads(expected_text,
                               object_pairs_hook=OrderedDict)
 
-        print("\n\n\nResponse:", result)
-        print("\n\n\nExpected:", expected)
+        # print("\n\n\nResponse:", result)
+        # print("\n\n\nExpected:", expected)
 
         self.assertEqual(result, expected, assert_msg)
 
@@ -250,11 +250,11 @@ class UtilsTestCase(unittest.TestCase):
 
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        rr_id = self.resrtr.id
-        print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
+        # rr_id = self.resrtr.id
+        # print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
         rr = get_resourcerouter()
 
-        print("\nRR-testfetch:%s\n" % rr)
+        # print("\nRR-testfetch:%s\n" % rr)
 
         if settings.RUNNING_PYTHON2:
             default_url = rr.server_address.encode('utf-8')
@@ -352,9 +352,9 @@ class UtilsTestCase(unittest.TestCase):
         # expected = json.loads(expected_text,
         #                       object_pairs_hook=OrderedDict)
 
-        print("\nRewrite_list:%s" % rewrite_url_list)
-        print("\n\n\nResponse:", result)
-        print("\n\n\nExpected:", expected_text)
+        # print("\nRewrite_list:%s" % rewrite_url_list)
+        # print("\n\n\nResponse:", result)
+        # print("\n\n\nExpected:", expected_text)
 
         self.assertEqual(result, expected_text, assert_msg)
 
@@ -502,11 +502,11 @@ class RequestCallMockTest(unittest.TestCase):
     @patch('apps.fhir.bluebutton.utils.requests')
     def test_fetch(self, mock_requests):
 
-        rr_id = self.resrtr.id
-        print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
-        rr = get_resourcerouter()
+        # rr_id = self.resrtr.id
+        # print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
 
-        print("\nRR-testfetch:%s\n" % rr)
+        # rr = get_resourcerouter()
+        # print("\nRR-testfetch:%s\n" % rr)
 
         request = self.factory.get('http://someurl.com/test.text')
         mock_requests.get.return_value.status_code = 200

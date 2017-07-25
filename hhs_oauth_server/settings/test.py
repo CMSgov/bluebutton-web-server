@@ -28,3 +28,11 @@ FHIR_SERVER_CONF = {
                      'http://replace.com/baseDstu2'],
     'REWRITE_TO': 'http://localhost:8000/bluebutton/fhir/v1',
 }
+
+# url parameters we don't want to pass through to the back-end server
+FRONT_END_STRIP_PARAMS = ['access_token',
+                          'state',
+                          'response_type',
+                          'client_id']
+
+REQUEST_CALL_TIMEOUT = (5, 120)
