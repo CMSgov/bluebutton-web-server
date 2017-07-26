@@ -281,7 +281,9 @@ def read_search(request,
         payload['_id'] = id_dict['_id']
 
     for pyld_k, pyld_v in payload.items():
-        if '%PATIENT%' in pyld_v:
+        if pyld_v is None:
+            pass
+        elif '%PATIENT%' in pyld_v:
             # replace %PATIENT% with cx.fhir_id
 
             payload = payload_var_replace(payload,
