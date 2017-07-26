@@ -52,7 +52,6 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
        values in the linked fhir_server model.
 
     """
-    # TODO: Separate out parameters for call_url
 
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
@@ -127,6 +126,113 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     return r
 
 
+def request_get_with_parms(request,
+                           call_url,
+                           search_params={},
+                           cx=None,
+                           fail_redirect="/",
+                           timeout=None):
+    """  call to request or redirect on fail
+    call_url = target server URL and search parameters to be sent
+    cx = Crosswalk record. The crosswalk is keyed off Request.user
+    fail_redirect allows routing to a page on failure
+    timoeout allows a timeout in seconds to be set.
+
+    FhirServer is joined to Crosswalk.
+    FhirServerAuth and FhirServerVerify receive cx and lookup
+       values in the linked fhir_server model.
+
+    """
+
+    # Updated to receive cx (Crosswalk entry for user)
+    # call FhirServer_Auth(cx) to get authentication
+    auth_state = FhirServerAuth(cx)
+
+    logger.debug("Auth_state:%s" % auth_state)
+
+    verify_state = FhirServerVerify(cx)
+    if auth_state['client_auth']:
+        # cert puts cert and key file together
+        # (cert_file_path, key_file_path)
+        # Cert_file_path and key_file_ath are fully defined paths to
+        # files on the appserver.
+        logger.debug('Cert:%s , Key:%s' % (auth_state['cert_file'],
+                                           auth_state['key_file']))
+
+        cert = (auth_state['cert_file'], auth_state['key_file'])
+    else:
+        cert = ()
+
+    logger.debug("\nrequest.get settings:%s\n"
+                 "params=%s\n"
+                 "cert:%s\ntimeout:%s\n"
+                 "verify:%s\n"
+                 "======="
+                 "========\n" % (call_url,
+                                 search_params,
+                                 cert,
+                                 timeout,
+                                 verify_state))
+
+    for k, v in search_params.items():
+        logger.debug("\nkey:%s - value:%s" % (k, v))
+
+    try:
+        if timeout:
+            r = requests.get(call_url,
+                             params=search_params,
+                             cert=cert,
+                             timeout=timeout,
+                             verify=verify_state)
+        else:
+            r = requests.get(call_url,
+                             params=search_params,
+                             cert=cert,
+                             verify=verify_state)
+
+        logger.debug("Request.get:%s" % call_url)
+
+        logger.debug("Status of Request:%s" % r.status_code)
+
+        if r.status_code in ERROR_CODE_LIST:
+            r.raise_for_status()
+        # except requests.exceptions.HTTPError as r_err:
+
+    except requests.ConnectionError as e:
+        logger.debug('Connection Problem to FHIR '
+                     'Server: %s : %s' % (call_url, e))
+        return error_status('Connection Problem to FHIR '
+                            'Server: %s:%s' % (call_url, e),
+                            504)
+
+    except requests.exceptions.HTTPError as e:
+        # except requests.exceptions.RequestException as r_err:
+        r_err = requests.exceptions.RequestException
+        logger.debug('Problem connecting to FHIR Server: %s' % call_url)
+        logger.debug('Exception: %s' % r_err)
+        handle_e = handle_http_error(e)
+        handle_e = handle_e
+
+        messages.error(request, 'Problem connecting to FHIR Server.')
+
+        logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
+
+        if 'text' in r:
+            r_text = r.text
+        return error_status(e, r_text)
+
+        # return HttpResponseRedirect(fail_redirect)
+
+    # logger.debug("Evaluating r:%s" % evaluate_r(r))
+
+    if r.status_code in ERROR_CODE_LIST:
+        logger.debug("\nRequest Error Status Code:%s" % r.status_code)
+        logger_debug.debug("\nError Status Code:%s" % r.status_code)
+        return error_status(r, r.status_code)
+
+    return r
+
+
 def notNone(value=None, default=None):
     """
     Test value. Return Default if None
@@ -151,7 +257,8 @@ def strip_oauth(get={}):
         # logger.debug("Nothing to strip GET is empty:%s" % get)
         return strip_oauth
 
-    strip_parms = ['access_token', 'state', 'response_type', 'client_id']
+    strip_parms = settings.FRONT_END_STRIP_PARAMS
+    # ['access_token', 'state', 'response_type', 'client_id']
 
     # logger.debug('Removing:%s from: %s' % (strip_parms, get))
 
@@ -189,7 +296,7 @@ def block_params(get, srtc):
     return search_params
 
 
-def add_params(srtc, key=None):
+def add_params(srtc, patient_id=None, key=None):
     """ Add filtering parameters to search string """
 
     # srtc.get_search_add will return a list
@@ -205,6 +312,8 @@ def add_params(srtc, key=None):
 
     # add_params = ''
     add_params = []
+
+    # print("\n########################\n")
 
     if srtc:
         if srtc.override_search:
@@ -233,18 +342,31 @@ def add_params(srtc, key=None):
                     # only replace 'patient=%PATIENT%' if resource not Patient
                     if '%PATIENT%' in item:
                         if key is None:
-                            key_str = ''
+                            # key_str = ''
+                            patient_str = str(patient_id)
+                            if patient_id is None:
+                                patient_str = ''
+                            # print('\nsetting to patient:%s' % patient_str)
                         else:
                             # force key to string
-                            key_str = str(key)
-                        item = item.replace('%PATIENT%', key_str)
+                            patient_str = str(key)
+                            # print('setting to key:%s' % patient_str)
+                        if patient_str is 'None':
+                            patient_str = ''
+                        if patient_str is None:
+                            patient_str = ''
+                        # print("set to nothing?:%s" % patient_str)
+                        item = item.replace('%PATIENT%', patient_str)
                         if '%PATIENT%' in item:
                             # Still there we need to remove
                             item = item.replace('%PATIENT%', '')
 
+                    # print("Added item:%a" % item)
                     add_params.append(item)
-
+            # print('Resulting additional parameters:%s' % add_params)
             logger_debug.debug('Resulting additional parameters:%s' % add_params)
+
+    # print("\n#EXIT####################\n")
 
     return add_params
 
@@ -309,7 +431,7 @@ def concat_parms(front_part={}, back_part={}):
     return concat_parms
 
 
-def build_params(get, srtc, key):
+def build_params(get, srtc, key, patient_id=None):
     """
     Build the URL Parameters.
     We have to skip any in the skip list.
@@ -324,7 +446,12 @@ def build_params(get, srtc, key):
     url_param = block_params(get, srtc)
 
     # Now we need to construct the parameters we need to add
-    add_param = add_params(srtc, key)
+
+    # print("SRTC:%s\npatient=%s\nkey=%s\n" % (srtc,patient_id,key))
+
+    add_param = add_params(srtc, patient_id=patient_id, key=key)
+
+    # print("\nAdd param: %s\n" % add_param)
 
     # Put the parameters together in urlencoded string
     # leading ? and parameters joined by &
@@ -645,15 +772,13 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
 
-        # TODO: Remove after python2.7 debug
-        print("\nReplacing: [%s] with [%s]  \n" % (find_url, host_path))
+        # print("\nReplacing: [%s] with [%s]  \n" % (find_url, host_path))
 
         logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
     else:
         out_text = in_text
 
-        # TODO: Remove after python2.7 debug
-        print('Passing [%s] to [%s]' % (in_text, "out_text"))
+        # print('Passing [%s] to [%s]' % (in_text, "out_text"))
         logger_debug.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
 
     return out_text
@@ -681,8 +806,7 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
 
             urls_be_gone.append(rr_def_server_address)
 
-    # TODO: Remove after python2.7 debug
-    print("\nURLS to Remove:%s" % urls_be_gone)
+    # print("\nURLS to Remove:%s" % urls_be_gone)
     for kill_url in urls_be_gone:
         # work through the list making replacements
         if kill_url.endswith('/'):
@@ -821,7 +945,7 @@ def get_default_path(resource_name, cx=None):
         default_path = cx.fhir_source.fhir_url
     else:
         try:
-            rr = get_resourcerouter(cx)
+            rr = get_resourcerouter()
             default_path = rr.fhir_url
             # logger_debug.debug("\nDEFAULT_URL=%s" % default_path)
 

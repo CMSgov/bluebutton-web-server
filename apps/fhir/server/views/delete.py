@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from .utils import check_access_interaction_and_resource_type
+from apps.fhir.bluebutton.utils import (get_crosswalk,
+                                        get_resourcerouter)
 
 
 @csrf_exempt
@@ -13,11 +15,19 @@ def delete(request, resource_type, id):
     """
     Delete FHIR Interaction
     Example client use in curl:
-    curl -X DELETE -H 'Content-Type: application/json' --data @test.json http://127.0.0.1:8000/fhir/Practitioner/12345
+    curl -X DELETE -H 'Content-Type: application/json' \
+         --data @test.json http://127.0.0.1:8000/fhir/Practitioner/12345
     """
     interaction_type = 'delete'
+
+    cx = get_crosswalk(request.user)
+    # cx will be the crosswalk record or None
+    rr = get_resourcerouter(cx)
+
     # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type, interaction_type)
+    deny = check_access_interaction_and_resource_type(resource_type,
+                                                      interaction_type,
+                                                      rr)
     if deny:
         # If not allowed, return a 4xx error.
         return deny
