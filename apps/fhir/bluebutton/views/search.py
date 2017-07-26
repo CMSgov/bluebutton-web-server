@@ -22,7 +22,7 @@ from apps.fhir.fhir_core.utils import (build_querystring,
                                        write_session)
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
-                                        add_params,
+                                        # add_params,
                                         block_params,
                                         build_output_dict,
                                         build_rewrite_list,
@@ -257,9 +257,9 @@ def read_search(request,
     # resource_id = id_dict['url_id']
 
     # Add the srtc.search_add parameters
-    added_params = add_params(srtc,
-                              patient_id=id_dict['patient'],
-                              key=id_dict['url_id'])
+    # added_params = add_params(srtc,
+    #                           patient_id=id_dict['patient'],
+    #                           key=id_dict['url_id'])
 
     # print("Added Params:%s" % added_params)
 
