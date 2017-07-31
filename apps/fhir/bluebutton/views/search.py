@@ -22,7 +22,7 @@ from apps.fhir.fhir_core.utils import (build_querystring,
                                        write_session)
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
-                                        add_params,
+                                        # add_params,
                                         block_params,
                                         build_output_dict,
                                         build_rewrite_list,
@@ -246,7 +246,7 @@ def read_search(request,
     # remove the srtc.search_block parameters
     payload = block_params(payload, srtc)
 
-    print("rt_id:%s" % str(id))
+    # print("id:%s" % str(id))
     # move resource_id to _id=resource_id
     id_dict = set_resource_id(srtc, id, cx.fhir_id)
     # id_dict['query_mode'] = 'search' | 'read'
@@ -257,37 +257,42 @@ def read_search(request,
     # resource_id = id_dict['url_id']
 
     # Add the srtc.search_add parameters
-    added_params = add_params(srtc,
-                              patient_id=id_dict['patient'],
-                              key=id_dict['url_id'])
+    # added_params = add_params(srtc,
+    #                           patient_id=id_dict['patient'],
+    #                           key=id_dict['url_id'])
 
-    print("Added Params:%s" % added_params)
+    # print("Added Params:%s" % added_params)
 
     params_list = search_add_to_list(srtc.search_add)
 
-    print("Params_List:%s" % params_list)
+    # print("Params_List:%s" % params_list)
 
     payload = payload_additions(payload, params_list)
 
-    print('id_dict:%s' % id_dict)
+    # print('id_dict:%s' % id_dict)
+    # print("what have we got?:%s" % id_dict)
     if id_dict['_id']:
         # add rt_id into the search parameters
         if id_dict['_id'] is not None:
             payload['_id'] = id_dict['_id']
 
     if resource_type.lower() == 'patient':
+        # print("Working resource:%s" % resource_type)
+        payload['_id'] = id_dict['patient']
         if payload['patient']:
             del payload['patient']
-        payload['_id'] = id_dict['_id']
 
     for pyld_k, pyld_v in payload.items():
-        if '%PATIENT%' in pyld_v:
+        if pyld_v is None:
+            pass
+        elif '%PATIENT%' in pyld_v:
             # replace %PATIENT% with cx.fhir_id
 
             payload = payload_var_replace(payload,
                                           pyld_k,
                                           new_value=id_dict['patient'],
                                           old_value='%PATIENT%')
+    # print("post futzing:%s" % id_dict)
     # add the _format setting
     payload['_format'] = back_end_format
 
