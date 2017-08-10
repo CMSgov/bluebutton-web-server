@@ -14,7 +14,6 @@ def user_code_register(request):
         form = EndUserRegisterForm(request.POST)
         if form.is_valid():
             form.save()
-
             messages.info(
                 request, _('Please check your email for a link to complete registration.'))
             return HttpResponseRedirect(reverse('home'))

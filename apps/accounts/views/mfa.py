@@ -56,7 +56,7 @@ def mfa_code_confirm(request, uid):
                 # User's AAL is 2 factor
                 up = UserProfile.objects.get(user=user)
                 up.aal = '2'
-                us.save()
+                up.save()
                 login(request, user)
                 mfac.delete()
                 next_param = request.GET.get('next', '')
@@ -127,7 +127,7 @@ def mfa_login(request):
                     # Else, just login as normal without MFA
                     # User's AAL is single factor
                     up.aal = '1'
-                    us.save()
+                    up.save()
                     login(request, user)
                     logger.info(
                         "Successful login from {}".format(
