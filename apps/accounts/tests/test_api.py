@@ -4,8 +4,9 @@ from __future__ import absolute_import
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
-
 from apps.test import BaseApiTest
+from ..models import UserProfile
+
 
 ENCODED = settings.ENCODING
 
@@ -41,11 +42,14 @@ class TestUserSelfEndpoint(BaseApiTest):
                                  first_name='John',
                                  last_name='Smith',
                                  email='john@smith.net')
+        up = UserProfile.objects.create(user=user)
+
         # Get an access token for the user 'john'
         access_token = self._get_access_token('john', '123456')
         # Authenticate the request with the bearer access token
         auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
-        response = self.client.get(reverse('openid_connect_userinfo'), **auth_headers)
+        response = self.client.get(
+            reverse('openid_connect_userinfo'), **auth_headers)
         self.assertEqual(response.status_code, 200)
         # Check if the content of the response corresponds to the expected json
         expected_json = {
@@ -55,6 +59,10 @@ class TestUserSelfEndpoint(BaseApiTest):
             'family_name': user.last_name,
             'email': user.email,
             'iat': DjangoJSONEncoder().default(user.date_joined),
+            'ial': up.ial,
+            'aal': up.aal,
+            'loa': up.loa,
+            'vot': up.vot()
         }
         self.assertJSONEqual(response.content.decode(ENCODED), expected_json)
 

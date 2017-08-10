@@ -1,0 +1,2618 @@
+swagger: '2.0'
+info:
+  description: >-
+  
+    **D R A F T --D R A F T --D R A F T -- D R A F T -- D R A F T -- D R A F T**
+    
+    
+    The Centers for Medicare & Medicaid Services (CMS) Blue Button API is a 
+    developer-friendly, standards-based, data API that enables Medicare 
+    beneficiaries to connect their Medicare claims data to the applications, 
+    services, and research programs they trust. 
+    
+    
+    Up to three years of claims information can be accessed using the 
+    HL7 Fast Health Care interoperability Resource (FHIR) specification.
+
+    
+    Fast Healthcare Interoperability Resources (FHIR, pronounced "Fire") defines
+    a set of "resources" that represent granular clinical concepts. The
+    resources can be managed in isolation, or aggregated into complex documents.
+    Technically, FHIR is designed for the web; the resources are based on simple
+    XML or JSON structures, with an http-based RESTful protocol where each
+    resource has predictable URL. Where possible, open internet standards are
+    used for data representation. 
+    
+    
+    The **CMS Blue Button API** is keyed by a unique Patient id. This id is 
+    used to apply filter parameters in requests and searches to limit the information
+    returned to that of the logged in user.
+    
+    
+    In FHIR terms the **Medicare Beneficiary** is the "**Patient**." In order to be 
+    consistent with the FHIR specification we will use the term Patient throughout this
+    documentation to refer to the Medicare Beneficiary.
+    
+  title: CMS Blue Button API (DRAFT)
+  version: '0.0.10'
+host: dev.bluebutton.cms.fhirservice.net
+schemes:
+  - https
+basePath: /bluebutton/fhir/v1
+tags:
+  - name: Bundle
+  - name: CapabilityStatement
+  - name: Coverage
+  - name: ExplanationOfBenefit
+  - name: OperationDefinition
+  - name: OperationOutcome
+  - name: Organization
+  - name: Patient
+  - name: Practitioner
+  
+definitions:
+  Bundle:
+    description: 'A complex object that can contain multiple objects.'
+    type: object
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      meta:
+        type: object
+        properties:
+          fhir_comments:
+            type: array
+            items:
+              properties: {}
+          lastUpdated:
+            type: string
+            minLength: 1
+        required:
+          - fhir_comments
+          - lastUpdated
+      type:
+        type: string
+        minLength: 1
+      total:
+        type: number
+      _total:
+        type: object
+        properties:
+          fhir_comments:
+            type: array
+            items:
+              properties: {}
+        required:
+          - fhir_comments
+      link:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - relation
+            - url
+          properties:
+            fhir_comments:
+              type: array
+              items:
+                properties: {}
+            relation:
+              type: string
+              minLength: 1
+            url:
+              type: string
+              minLength: 1
+      entry:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - fullUrl
+          properties:
+            fhir_comments:
+              type: array
+              items:
+                properties: {}
+            fullUrl:
+              type: string
+              minLength: 1
+            resource:
+              type: object
+              properties:
+                resourceType:
+                  type: string
+                  minLength: 1
+                id:
+                  type: string
+                  minLength: 1
+                text:
+                  type: object
+                  properties:
+                    fhir_comments:
+                      type: array
+                      items:
+                        properties: {}
+                    status:
+                      type: string
+                      minLength: 1
+                    div:
+                      type: string
+                      minLength: 1
+                  required:
+                    - fhir_comments
+                    - status
+                    - div
+                medicationReference:
+                  type: object
+                  properties:
+                    reference:
+                      type: string
+                      minLength: 1
+                  required:
+                    - reference
+                patient:
+                  type: object
+                  properties:
+                    reference:
+                      type: string
+                      minLength: 1
+                  required:
+                    - reference
+              required:
+                - resourceType
+                - id
+                - text
+                - medicationReference
+                - patient
+            search:
+              type: object
+              properties:
+                fhir_comments:
+                  type: array
+                  items:
+                    properties: {}
+                mode:
+                  type: string
+                  minLength: 1
+                _mode:
+                  type: object
+                  properties:
+                    fhir_comments:
+                      type: array
+                      items:
+                        properties: {}
+                  required:
+                    - fhir_comments
+                score:
+                  type: number
+                _score:
+                  type: object
+                  properties:
+                    fhir_comments:
+                      type: array
+                      items:
+                        properties: {}
+                  required:
+                    - fhir_comments
+              required:
+                - fhir_comments
+                - mode
+                - _mode
+                - score
+                - _score
+    required:
+      - resourceType
+      - id
+      - meta
+      - type
+      - total
+      - _total
+      - link
+      - entry
+  CapabilityStatement: {}
+  Coverage:
+    description: >-
+      The Coverage resource identifies the Medicare insurance plans the beneficiary is covered by.
+    type: object
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      text:
+        type: object
+        properties:
+          status:
+            type: string
+            minLength: 1
+          div:
+            type: string
+            minLength: 1
+        required:
+          - status
+          - div
+      issuerReference:
+        type: object
+        properties:
+          reference:
+            type: string
+            minLength: 1
+        required:
+          - reference
+      period:
+        type: object
+        properties:
+          start:
+            type: string
+            minLength: 1
+          end:
+            type: string
+            minLength: 1
+        required:
+          - start
+          - end
+      type:
+        type: object
+        properties:
+          system:
+            type: string
+            minLength: 1
+          code:
+            type: string
+            minLength: 1
+          display:
+            type: string
+            minLength: 1
+        required:
+          - system
+          - code
+          - display
+      planholderReference:
+        type: object
+        properties:
+          reference:
+            type: string
+            minLength: 1
+        required:
+          - reference
+      beneficiaryReference:
+        type: object
+        properties:
+          reference:
+            type: string
+            minLength: 1
+        required:
+          - reference
+      relationship:
+        type: object
+        properties:
+          code:
+            type: string
+            minLength: 1
+        required:
+          - code
+      identifier:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - system
+            - value
+          properties:
+            system:
+              type: string
+              minLength: 1
+            value:
+              type: string
+              minLength: 1
+      plan:
+        type: string
+        minLength: 1
+      subPlan:
+        type: string
+        minLength: 1
+      dependent:
+        type: number
+      sequence:
+        type: number
+    required:
+      - resourceType
+      - id
+      - text
+      - issuerReference
+      - period
+      - type
+      - planholderReference
+      - beneficiaryReference
+      - relationship
+      - identifier
+      - plan
+      - subPlan
+      - dependent
+      - sequence
+  ExplanationOfBenefit:
+    description: >-
+      The ExplanationOfBenefit Resource definition. This details the procedures, services 
+      medicines and equipment that a beneficiary has received as a result of Medicare 
+      coverage. An ExplanationOfBenefit resource will typically contain multiple claim line
+      details. For example a doctor's office visit may identify tests conducted, procedures
+      performed and medications issued. 
+    type: object
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      text:
+        type: object
+        properties:
+          status:
+            type: string
+            minLength: 1
+          div:
+            type: string
+            minLength: 1
+        required:
+          - status
+          - div
+      identifier:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - system
+            - value
+          properties:
+            system:
+              type: string
+              minLength: 1
+            value:
+              type: string
+              minLength: 1
+      claimReference:
+        type: object
+        properties:
+          reference:
+            type: string
+            minLength: 1
+        required:
+          - reference
+      created:
+        type: string
+        minLength: 1
+      _created:
+        type: object
+        properties:
+          fhir_comments:
+            type: array
+            items:
+              properties: {}
+        required:
+          - fhir_comments
+      disposition:
+        type: string
+        minLength: 1
+      organizationReference:
+        type: object
+        properties:
+          reference:
+            type: string
+            minLength: 1
+        required:
+          - reference
+      patientReference:
+        type: object
+        properties:
+          reference:
+            type: string
+            minLength: 1
+        required:
+          - reference
+      coverage:
+        type: object
+        properties:
+          coverageReference:
+            type: object
+            properties:
+              reference:
+                type: string
+                minLength: 1
+            required:
+              - reference
+        required:
+          - coverageReference
+      item:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - sequence
+            - servicedDate
+          properties:
+            sequence:
+              type: number
+            type:
+              type: object
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+              required:
+                - code
+            providerReference:
+              type: object
+              properties:
+                reference:
+                  type: string
+                  minLength: 1
+              required:
+                - reference
+            service:
+              type: object
+              properties:
+                system:
+                  type: string
+                  minLength: 1
+                code:
+                  type: string
+                  minLength: 1
+              required:
+                - system
+                - code
+            servicedDate:
+              type: string
+              minLength: 1
+            unitPrice:
+              type: object
+              properties:
+                value:
+                  type: number
+                system:
+                  type: string
+                  minLength: 1
+                code:
+                  type: string
+                  minLength: 1
+              required:
+                - value
+                - system
+                - code
+            net:
+              type: object
+              properties:
+                value:
+                  type: number
+                system:
+                  type: string
+                  minLength: 1
+                code:
+                  type: string
+                  minLength: 1
+              required:
+                - value
+                - system
+                - code
+            adjudication:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              items:
+                properties:
+                  category:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        minLength: 1
+                    required:
+                      - code
+                  amount:
+                    type: object
+                    properties:
+                      value:
+                        type: number
+                      system:
+                        type: string
+                        minLength: 1
+                      code:
+                        type: string
+                        minLength: 1
+                    required:
+                      - value
+                      - system
+                      - code
+      totalCost:
+        type: object
+        properties:
+          value:
+            type: number
+          system:
+            type: string
+            minLength: 1
+          code:
+            type: string
+            minLength: 1
+        required:
+          - value
+          - system
+          - code
+      totalBenefit:
+        type: object
+        properties:
+          value:
+            type: number
+          system:
+            type: string
+            minLength: 1
+          code:
+            type: string
+            minLength: 1
+        required:
+          - value
+          - system
+          - code
+    required:
+      - resourceType
+      - id
+      - text
+      - identifier
+      - claimReference
+      - created
+      - _created
+      - disposition
+      - organizationReference
+      - patientReference
+      - coverage
+      - item
+      - totalCost
+      - totalBenefit
+  OperationDefinition:
+    description: 'Operation Definition structure'
+    type: object
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      text:
+        type: object
+        properties:
+          status:
+            type: string
+            minLength: 1
+          div:
+            type: string
+            minLength: 1
+        required:
+          - status
+          - div
+      url:
+        type: string
+        minLength: 1
+      version:
+        type: string
+        minLength: 1
+      name:
+        type: string
+        minLength: 1
+      status:
+        type: string
+        minLength: 1
+      kind:
+        type: string
+        minLength: 1
+      date:
+        type: string
+        minLength: 1
+      publisher:
+        type: string
+        minLength: 1
+      contact:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              minLength: 1
+            telecom:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              items:
+                required:
+                  - system
+                  - value
+                properties:
+                  system:
+                    type: string
+                    minLength: 1
+                  value:
+                    type: string
+                    minLength: 1
+      description:
+        type: string
+        minLength: 1
+      code:
+        type: string
+        minLength: 1
+      comment:
+        type: string
+        minLength: 1
+      base:
+        type: object
+        properties:
+          reference:
+            type: string
+            minLength: 1
+        required:
+          - reference
+      system:
+        type: boolean
+      type:
+        type: array
+        items:
+          properties: {}
+      instance:
+        type: boolean
+      parameter:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - name
+            - use
+            - min
+            - max
+            - documentation
+            - type
+          properties:
+            name:
+              type: string
+              minLength: 1
+            use:
+              type: string
+              minLength: 1
+            min:
+              type: number
+            max:
+              type: string
+              minLength: 1
+            documentation:
+              type: string
+              minLength: 1
+            type:
+              type: string
+              minLength: 1
+    required:
+      - resourceType
+      - id
+      - text
+      - url
+      - version
+      - name
+      - status
+      - kind
+      - date
+      - publisher
+      - contact
+      - description
+      - code
+      - comment
+      - base
+      - system
+      - type
+      - instance
+      - parameter
+  OperationOutcome:
+    description: >-
+      An OperationOutcome message is typically issued when there is an issue with a
+      FHIR request. For example when a resource is not supported on the FHIR Server
+      or the search syntax is not understood.
+      
+    type: object
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      text:
+        type: object
+        properties:
+          status:
+            type: string
+            minLength: 1
+          div:
+            type: string
+            minLength: 1
+        required:
+          - status
+          - div
+      issue:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - severity
+            - code
+            - diagnostics
+          properties:
+            severity:
+              type: string
+              minLength: 1
+            code:
+              type: string
+              minLength: 1
+            details:
+              type: object
+              properties:
+                text:
+                  type: string
+                  minLength: 1
+              required:
+                - text
+            diagnostics:
+              type: string
+              minLength: 1
+            location:
+              type: array
+              items:
+                properties: {}
+    required:
+      - resourceType
+      - id
+      - text
+      - issue
+  Organization:
+    description: 'Organization Structure'
+    type: object
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      text:
+        type: object
+        properties:
+          status:
+            type: string
+            minLength: 1
+          div:
+            type: string
+            minLength: 1
+        required:
+          - status
+          - div
+      extension:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - url
+            - valueString
+          properties:
+            fhir_comments:
+              type: array
+              items:
+                properties: {}
+            url:
+              type: string
+              minLength: 1
+            valueString:
+              type: string
+              minLength: 1
+      name:
+        type: string
+        minLength: 1
+      telecom:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - system
+            - value
+          properties:
+            system:
+              type: string
+              minLength: 1
+            value:
+              type: string
+              minLength: 1
+      address:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - city
+            - state
+            - postalCode
+            - country
+          properties:
+            line:
+              type: array
+              items:
+                properties: {}
+            city:
+              type: string
+              minLength: 1
+            state:
+              type: string
+              minLength: 1
+            postalCode:
+              type: string
+              minLength: 1
+            country:
+              type: string
+              minLength: 1
+    required:
+      - resourceType
+      - id
+      - text
+      - extension
+      - name
+      - telecom
+      - address
+  Patient:
+    description: >-
+      The Patient Resource definition. Blue Button records are keyed from this resource.
+      A Patient is a Medicare Beneficiary.
+      
+      
+      This resource covers data about patients/beneficiaries involved in a wide range of
+      health-related activities, including Curative activities, Psychiatric care, 
+      Social services, Nursing and assisted living, Personal health tracking and 
+      exercise data.
+        
+
+      The data in the resource covers the "__who__" information about the patient. Its
+      attributes are focused on the demographic information necessary to support the
+      administrative, financial, and logistic procedures. A patient record is generally
+      created and maintained by each organization providing care for a patient. A patient
+      receiving care at multiple organizations may therefore have their information 
+      present in multiple patient resources.
+      
+    type: object
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      text:
+        type: object
+        properties:
+          status:
+            type: string
+            minLength: 1
+          div:
+            type: string
+            minLength: 1
+        required:
+          - status
+          - div
+      identifier:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - use
+            - system
+            - value
+          properties:
+            use:
+              type: string
+              minLength: 1
+            type:
+              type: object
+              properties:
+                coding:
+                  type: array
+                  uniqueItems: true
+                  minItems: 1
+                  items:
+                    required:
+                      - system
+                      - code
+                    properties:
+                      system:
+                        type: string
+                        minLength: 1
+                      code:
+                        type: string
+                        minLength: 1
+              required:
+                - coding
+            system:
+              type: string
+              minLength: 1
+            value:
+              type: string
+              minLength: 1
+      active:
+        type: boolean
+      name:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - use
+          properties:
+            use:
+              type: string
+              minLength: 1
+            family:
+              type: array
+              items:
+                properties: {}
+            given:
+              type: array
+              items:
+                properties: {}
+      gender:
+        type: string
+        minLength: 1
+      photo:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - contentType
+            - data
+          properties:
+            contentType:
+              type: string
+              minLength: 1
+            data:
+              type: string
+              minLength: 1
+      contact:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          properties:
+            relationship:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              items:
+                properties:
+                  coding:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - system
+                        - code
+                      properties:
+                        system:
+                          type: string
+                          minLength: 1
+                        code:
+                          type: string
+                          minLength: 1
+            organization:
+              type: object
+              properties:
+                reference:
+                  type: string
+                  minLength: 1
+                display:
+                  type: string
+                  minLength: 1
+              required:
+                - reference
+                - display
+      managingOrganization:
+        type: object
+        properties:
+          reference:
+            type: string
+            minLength: 1
+          display:
+            type: string
+            minLength: 1
+        required:
+          - reference
+          - display
+      link:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - type
+          properties:
+            other:
+              type: object
+              properties:
+                reference:
+                  type: string
+                  minLength: 1
+              required:
+                - reference
+            type:
+              type: string
+              minLength: 1
+    required:
+      - resourceType
+      - id
+      - text
+      - identifier
+      - active
+      - name
+      - gender
+      - photo
+      - contact
+      - managingOrganization
+      - link
+  Practitioner:
+    description: 'The Provider (a.k.a. Practitioner/Doctor) definition'
+    type: object
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      text:
+        type: object
+        properties:
+          status:
+            type: string
+            minLength: 1
+          div:
+            type: string
+            minLength: 1
+        required:
+          - status
+          - div
+      identifier:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          required:
+            - system
+            - value
+          properties:
+            system:
+              type: string
+              minLength: 1
+            value:
+              type: string
+              minLength: 1
+      active:
+        type: boolean
+      name:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          properties:
+            family:
+              type: array
+              items:
+                properties: {}
+            given:
+              type: array
+              items:
+                properties: {}
+            prefix:
+              type: array
+              items:
+                properties: {}
+      practitionerRole:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          properties:
+            organization:
+              type: object
+              properties:
+                reference:
+                  type: string
+                  minLength: 1
+              required:
+                - reference
+            role:
+              type: object
+              properties:
+                fhir_comments:
+                  type: array
+                  items:
+                    properties: {}
+                coding:
+                  type: array
+                  uniqueItems: true
+                  minItems: 1
+                  items:
+                    required:
+                      - system
+                      - code
+                    properties:
+                      system:
+                        type: string
+                        minLength: 1
+                      code:
+                        type: string
+                        minLength: 1
+              required:
+                - fhir_comments
+                - coding
+            period:
+              type: object
+              properties:
+                start:
+                  type: string
+                  minLength: 1
+                end:
+                  type: string
+                  minLength: 1
+              required:
+                - start
+                - end
+            location:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              items:
+                required:
+                  - reference
+                  - display
+                properties:
+                  reference:
+                    type: string
+                    minLength: 1
+                  display:
+                    type: string
+                    minLength: 1
+            healthcareService:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              items:
+                required:
+                  - reference
+                properties:
+                  reference:
+                    type: string
+                    minLength: 1
+      qualification:
+        type: array
+        uniqueItems: true
+        minItems: 1
+        items:
+          properties:
+            identifier:
+              type: array
+              uniqueItems: true
+              minItems: 1
+              items:
+                required:
+                  - system
+                  - value
+                properties:
+                  system:
+                    type: string
+                    minLength: 1
+                  value:
+                    type: string
+                    minLength: 1
+            code:
+              type: object
+              properties:
+                text:
+                  type: string
+                  minLength: 1
+              required:
+                - text
+            period:
+              type: object
+              properties:
+                start:
+                  type: string
+                  minLength: 1
+              required:
+                - start
+            issuer:
+              type: object
+              properties:
+                display:
+                  type: string
+                  minLength: 1
+              required:
+                - display
+    required:
+      - resourceType
+      - id
+      - text
+      - identifier
+      - active
+      - name
+      - practitionerRole
+      - qualification
+  
+
+paths:
+  /Bundle:
+    get:
+      tags:
+        - Bundle
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: identifier
+          type: string
+          in: query
+          description: Persistent identifier for the bundle
+        - name: composition
+          type: string
+          in: query
+          description: >-
+            The first resource in the bundle, if the bundle type is "document" -
+            this is a composition, and this parameter provides access to
+            searches its contents
+        - name: _id
+          type: string
+          in: query
+          description: The ID of the resource
+        - name: message
+          type: string
+          in: query
+          description: >-
+            The first resource in the bundle, if the bundle type is "message" -
+            this is a message header, and this parameter provides access to
+            search its contents
+        - name: type
+          type: string
+          in: query
+          description: >-
+            document | message | transaction | transaction-response | batch |
+            batch-response | history | searchset | collection
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Bundle'
+  '/Bundle/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - Bundle
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Bundle'
+  '/Bundle/{id}/_history':
+    get:
+      tags:
+        - Bundle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /Bundle/_history:
+    get:
+      tags:
+        - Bundle
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  '/Bundle/{id}/_history/{vid}':
+    get:
+      tags:
+        - Bundle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Bundle'
+  /CapabilityStatement:
+    get:
+      tags:
+        - CapabilityStatement
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: date
+          type: string
+          in: query
+          description: The capability statement publication date
+          format: date
+        - name: resource-profile
+          type: string
+          in: query
+          description: A profile id invoked in a capability statement
+        - name: software
+          type: string
+          in: query
+          description: Part of a the name of a software application
+        - name: resource
+          type: string
+          in: query
+          description: Name of a resource mentioned in a capability statement
+        - name: jurisdiction
+          type: string
+          in: query
+          description: Intended jurisdiction for the capability statement
+        - name: format
+          type: string
+          in: query
+          description: formats supported (xml | json | ttl | mime type)
+        - name: description
+          type: string
+          in: query
+          description: The description of the capability statement
+        - name: fhirversion
+          type: string
+          in: query
+          description: The version of FHIR
+        - name: title
+          type: string
+          in: query
+          description: The human-friendly name of the capability statement
+        - name: version
+          type: string
+          in: query
+          description: The business version of the capability statement
+        - name: supported-profile
+          type: string
+          in: query
+          description: Profiles for use cases supported
+        - name: url
+          type: string
+          in: query
+          description: The uri that identifies the capability statement
+        - name: mode
+          type: string
+          in: query
+          description: Mode - restful (server/client) or messaging (sender/receiver)
+        - name: security-service
+          type: string
+          in: query
+          description: OAuth | SMART-on-FHIR | NTLM | Basic | Kerberos | Certificates
+        - name: name
+          type: string
+          in: query
+          description: Computationally friendly name of the capability statement
+        - name: publisher
+          type: string
+          in: query
+          description: Name of the publisher of the capability statement
+        - name: _id
+          type: string
+          in: query
+          description: The ID of the resource
+        - name: event
+          type: string
+          in: query
+          description: Event code in a capability statement
+        - name: guide
+          type: string
+          in: query
+          description: Implementation guides supported
+        - name: status
+          type: string
+          in: query
+          description: The current status of the capability statement
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/CapabilityStatement'
+  '/CapabilityStatement/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - CapabilityStatement
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CapabilityStatement'
+
+  /CapabilityStatement/{id}/_history:
+    get:
+      tags:
+        - CapabilityStatement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /CapabilityStatement/_history:
+    get:
+      tags:
+        - CapabilityStatement
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /CapabilityStatement/{id}/_history/{vid}:
+    get:
+      tags:
+        - CapabilityStatement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CapabilityStatement'
+
+
+  /Coverage:
+    get:
+      tags:
+        - Coverage
+        - Patient
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: identifier
+          type: string
+          in: query
+          description: The primary identifier of the insured and the coverage
+        - name: subgroup
+          type: string
+          in: query
+          description: Sub-group identifier
+        - name: subscriber
+          type: string
+          in: query
+          description: Reference to the subscriber
+        - name: subplan
+          type: string
+          in: query
+          description: Sub-plan identifier
+        - name: type
+          type: string
+          in: query
+          description: 'The kind of coverage (health plan, auto, Workers Compensation)'
+        - name: sequence
+          type: string
+          in: query
+          description: Sequence number
+        - name: payor
+          type: string
+          in: query
+          description: The identity of the insurer or party paying for services
+        - name: beneficiary
+          type: string
+          in: query
+          description: Covered party
+        - name: subclass
+          type: string
+          in: query
+          description: Sub-class identifier
+        - name: _id
+          type: string
+          in: query
+          description: The ID of the resource
+        - name: class
+          type: string
+          in: query
+          description: Class identifier
+        - name: dependent
+          type: string
+          in: query
+          description: Dependent number
+        - name: plan
+          type: string
+          in: query
+          description: A plan or policy identifier
+        - name: group
+          type: string
+          in: query
+          description: Group identifier
+        - name: policy-holder
+          type: string
+          in: query
+          description: Reference to the policyholder
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Coverage'
+  '/Coverage/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - Coverage
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Coverage'
+
+  '/Coverage/{id}/_history':
+    get:
+      tags:
+        - Coverage
+        - Patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /Coverage/_history:
+    get:
+      tags:
+        - Coverage
+        - Patient
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  '/Coverage/{id}/_history/{vid}':
+    get:
+      tags:
+        - Coverage
+        - Patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Coverage'
+
+  /ExplanationOfBenefit:
+    get:
+      tags:
+        - ExplanationOfBenefit
+        - Patient
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: care-team
+          type: string
+          in: query
+          description: Member of the CareTeam
+        - name: coverage
+          type: string
+          in: query
+          description: The plan under which the claim was adjudicated
+        - name: identifier
+          type: string
+          in: query
+          description: The business identifier of the Explanation of Benefit
+        - name: created
+          type: string
+          in: query
+          description: The creation date for the EOB
+          format: date
+        - name: encounter
+          type: string
+          in: query
+          description: Encounters associated with a billed line item
+        - name: payee
+          type: string
+          in: query
+          description: The party receiving any payment for the Claim
+        - name: disposition
+          type: string
+          in: query
+          description: The contents of the disposition message
+        - name: provider
+          type: string
+          in: query
+          description: The reference to the provider
+        - name: patient
+          type: string
+          in: query
+          description: >- 
+            The reference to the patient. This query parameter is always added with the logged in user's fhir_id applied. This limits the data returned to only that of the loged in user.
+        - name: organization
+          type: string
+          in: query
+          description: The reference to the providing organization
+        - name: claim
+          type: string
+          in: query
+          description: The reference to the claim
+        - name: enterer
+          type: string
+          in: query
+          description: The party responsible for the entry of the Claim
+        - name: _id
+          type: string
+          in: query
+          description: The ID of the resource
+        - name: facility
+          type: string
+          in: query
+          description: Facility responsible for the goods and services
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ExplanationOfBenefit'
+  '/ExplanationOfBenefit/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - ExplanationOfBenefit
+        - Patient
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ExplanationOfBenefit'
+
+  '/ExplanationOfBenefit/{id}/_history':
+    get:
+      tags:
+        - ExplanationOfBenefit
+        - Patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /ExplanationOfBenefit/_history:
+    get:
+      tags:
+        - ExplanationOfBenefit
+        - Patient
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  '/ExplanationOfBenefit/{id}/_history/{vid}':
+    get:
+      tags:
+        - ExplanationOfBenefit
+        - Patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ExplanationOfBenefit'
+  
+  /OperationDefinition:
+    get:
+      tags:
+        - OperationDefinition
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: date
+          type: string
+          in: query
+          description: The operation definition publication date
+          format: date
+        - name: code
+          type: string
+          in: query
+          description: Name used to invoke the operation
+        - name: instance
+          type: string
+          in: query
+          description: Invoke on an instance?
+        - name: kind
+          type: string
+          in: query
+          description: operation | query
+        - name: jurisdiction
+          type: string
+          in: query
+          description: Intended jurisdiction for the operation definition
+        - name: description
+          type: string
+          in: query
+          description: The description of the operation definition
+        - name: type
+          type: string
+          in: query
+          description: Invole at the type level?
+        - name: version
+          type: string
+          in: query
+          description: The business version of the operation definition
+        - name: url
+          type: string
+          in: query
+          description: The uri that identifies the operation definition
+        - name: system
+          type: string
+          in: query
+          description: Invoke at the system level?
+        - name: name
+          type: string
+          in: query
+          description: Computationally friendly name of the operation definition
+        - name: publisher
+          type: string
+          in: query
+          description: Name of the publisher of the operation definition
+        - name: _id
+          type: string
+          in: query
+          description: The ID of the resource
+        - name: param-profile
+          type: string
+          in: query
+          description: Profile on the type
+        - name: base
+          type: string
+          in: query
+          description: Marks this as a profile of the base
+        - name: status
+          type: string
+          in: query
+          description: The current status of the operation definition
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/OperationDefinition'
+  '/OperationDefinition/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - OperationDefinition
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/OperationDefinition'
+  '/OperationDefinition/{id}/_history':
+    get:
+      tags:
+        - OperationDefinition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /OperationDefinition/_history:
+    get:
+      tags:
+        - OperationDefinition
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  '/OperationDefinition/{id}/_history/{vid}':
+    get:
+      tags:
+        - OperationDefinition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/OperationDefinition'
+  /OperationOutcome:
+    get:
+      tags:
+        - OperationOutcome
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: _id
+          type: string
+          in: query
+          description: The ID of the resource
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/OperationOutcome'
+  '/OperationOutcome/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - OperationOutcome
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/OperationOutcome'
+  '/OperationOutcome/{id}/_history':
+    get:
+      tags:
+        - OperationOutcome
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /OperationOutcome/_history:
+    get:
+      tags:
+        - OperationOutcome
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  '/OperationOutcome/{id}/_history/{vid}':
+    get:
+      tags:
+        - OperationOutcome
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/OperationOutcome'
+  
+  /Organization:
+    get:
+      tags:
+        - Organization
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: identifier
+          type: string
+          in: query
+          description: >-
+            Any identifier for the organization (not the accreditation issuer's
+            identifier)
+        - name: partof
+          type: string
+          in: query
+          description: An organization of which this organization forms a part
+        - name: address
+          type: string
+          in: query
+          description: A (part of the) address of the organization
+        - name: address-state
+          type: string
+          in: query
+          description: A state specified in an address
+        - name: active
+          type: string
+          in: query
+          description: >-
+            A server defined search that may match any of the string fields in
+            the Address, including line, city, state, country, postalCode,
+            and/or text
+        - name: type
+          type: string
+          in: query
+          description: A code for the type of organization
+        - name: address-postalcode
+          type: string
+          in: query
+          description: A postal code specified in an address
+        - name: address-country
+          type: string
+          in: query
+          description: A country specified in an address
+        - name: endpoint
+          type: string
+          in: query
+          description: >-
+            Technical endpoints providing access to services operated for the
+            organization
+        - name: phonetic
+          type: string
+          in: query
+          description: >-
+            A portion of the organization's name using some kind of phonetic
+            matching algorithm
+        - name: address-use
+          type: string
+          in: query
+          description: A use code specified in an address
+        - name: name
+          type: string
+          in: query
+          description: A portion of the organization's name or alias
+        - name: _id
+          type: string
+          in: query
+          description: The ID of the resource
+        - name: address-city
+          type: string
+          in: query
+          description: A city specified in an address
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Organization'
+  '/Organization/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - Organization
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Organization'
+
+  '/Organization/{id}/_history':
+    get:
+      tags:
+        - Organization
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /Organization/_history:
+    get:
+      tags:
+        - Organization
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  '/Organization/{id}/_history/{vid}':
+    get:
+      tags:
+        - Organization
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Organization'
+ 
+  /Patient:
+    get:
+      tags:
+        - Patient
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: birthdate
+          type: string
+          in: query
+          description: The patient's date of birth
+          format: date
+        - name: deceased
+          type: string
+          in: query
+          description: 'This patient has been marked as deceased, or as a death date entered'
+        - name: address-state
+          type: string
+          in: query
+          description: A state specified in an address
+        - name: gender
+          type: string
+          in: query
+          description: Gender of the patient
+        - name: animal-species
+          type: string
+          in: query
+          description: The species for animal patients
+        - name: link
+          type: string
+          in: query
+          description: All patients linked to the given patient
+        - name: language
+          type: string
+          in: query
+          description: Language code (irrespective of use value)
+        - name: animal-breed
+          type: string
+          in: query
+          description: The breed for animal patients
+        - name: address-country
+          type: string
+          in: query
+          description: A country specified in an address
+        - name: death-date
+          type: string
+          in: query
+          description: The date of death has been provided and satisfies this search value
+          format: date
+        - name: phonetic
+          type: string
+          in: query
+          description: >-
+            A portion of either family or given name using some kind of phonetic
+            matching algorithm
+        - name: telecom
+          type: string
+          in: query
+          description: The value in any kind of telecom details of the patient
+        - name: address-city
+          type: string
+          in: query
+          description: A city specified in an address
+        - name: email
+          type: string
+          in: query
+          description: A value in an email contact
+        - name: given
+          type: string
+          in: query
+          description: A portion of the given name of the patient
+        - name: identifier
+          type: string
+          in: query
+          description: A patient identifier
+        - name: address
+          type: string
+          in: query
+          description: >-
+            A server defined search that may match any of the string fields in
+            the Address, including line, city, state, country, postalCode,
+            and/or text
+        - name: general-practitioner
+          type: string
+          in: query
+          description: >-
+            Patient's nominated general practitioner, not the organization that
+            manages the record
+        - name: active
+          type: string
+          in: query
+          description: Whether the patient record is active
+        - name: address-postalcode
+          type: string
+          in: query
+          description: A postalCode specified in an address
+        - name: phone
+          type: string
+          in: query
+          description: A value in a phone contact
+        - name: organization
+          type: string
+          in: query
+          description: The organization at which this person is a patient
+        - name: address-use
+          type: string
+          in: query
+          description: A use code specified in an address
+        - name: name
+          type: string
+          in: query
+          description: >-
+            A server defined search that may match any of the string fields in
+            the HumanName, including family, give, prefix, suffix, suffix,
+            and/or text
+        - name: _id
+          type: string
+          in: query
+          description: >-
+            The ID of the resource. 
+            
+            The CMS Blue Button API will override any id entered
+            with the logged in user's fhir_id. This prevents one user making a request for another user's information.
+        - name: family
+          type: string
+          in: query
+          description: A portion of the family name of the patient
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Patient'
+  '/Patient/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - Patient
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Patient'
+  '/Patient/{id}/_history':
+    get:
+      tags:
+        - Patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /Patient/_history:
+    get:
+      tags:
+        - Patient
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  '/Patient/{id}/_history/{vid}':
+    get:
+      tags:
+        - Patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Patient'
+ 
+  /Practitioner:
+    get:
+      tags:
+        - Practitioner
+      parameters:
+        - name: _language
+          type: string
+          in: query
+          description: The language of the resource
+        - name: given
+          type: string
+          in: query
+          description: A portion of the given name
+        - name: identifier
+          type: string
+          in: query
+          description: A practitioner's Identifier
+        - name: address
+          type: string
+          in: query
+          description: >-
+            A server defined search that may match any of the string fields in
+            the Address, including line, city, state, country, postalCode,
+            and/or text
+        - name: address-state
+          type: string
+          in: query
+          description: A state specified in an address
+        - name: gender
+          type: string
+          in: query
+          description: Gender of the practitioner
+        - name: active
+          type: string
+          in: query
+          description: Whether the practitioner record is active
+        - name: address-postalcode
+          type: string
+          in: query
+          description: A postalCode specified in an address
+        - name: address-country
+          type: string
+          in: query
+          description: A country specified in an address
+        - name: phonetic
+          type: string
+          in: query
+          description: >-
+            A portion of either family or given name using some kind of phonetic
+            matching algorithm
+        - name: phone
+          type: string
+          in: query
+          description: A value in a phone contact
+        - name: address-use
+          type: string
+          in: query
+          description: A use code specified in an address
+        - name: name
+          type: string
+          in: query
+          description: >-
+            A server defined search that may match any of the string fields in
+            the HumanName, including family, give, prefix, suffix, suffix,
+            and/or text
+        - name: telecom
+          type: string
+          in: query
+          description: The value in any kind of contact
+        - name: _id
+          type: string
+          in: query
+          description: The ID of the resource
+        - name: address-city
+          type: string
+          in: query
+          description: A city specified in an address
+        - name: communication
+          type: string
+          in: query
+          description: One of the languages that the practitioner can communicate with
+        - name: family
+          type: string
+          in: query
+          description: A portion of the family name
+        - name: email
+          type: string
+          in: query
+          description: A value in an email contact
+        - name: _format
+          in: query
+          type: string
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Practitioner'
+  '/Practitioner/{id}':
+    parameters:
+      - in: path
+        required: true
+        name: id
+        type: string
+    get:
+      tags:
+        - Practitioner
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Practitioner'
+  '/Practitioner/{id}/_history':
+    get:
+      tags:
+        - Practitioner
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  /Practitioner/_history:
+    get:
+      tags:
+        - Practitioner
+      parameters:
+        - name: _count
+          in: query
+          type: string
+        - name: _since
+          in: query
+          type: string
+      responses:
+        '200':
+          description: Success
+  '/Practitioner/{id}/_history/{vid}':
+    get:
+      tags:
+        - Practitioner
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: vid
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Practitioner'
+
