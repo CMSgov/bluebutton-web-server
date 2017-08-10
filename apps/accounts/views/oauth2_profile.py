@@ -5,6 +5,7 @@ from oauth2_provider.decorators import protected_resource
 from collections import OrderedDict
 from django.contrib.auth.decorators import login_required
 
+
 @require_GET
 @protected_resource()
 def openidconnect_userinfo(request):
@@ -25,7 +26,6 @@ def openidconnect_userinfo(request):
     data['aal'] = up.aal
     data['loa'] = up.loa
     return JsonResponse(data)
-
 
 
 @require_GET
