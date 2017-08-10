@@ -4,6 +4,7 @@ from ..models import UserProfile
 from oauth2_provider.decorators import protected_resource
 from collections import OrderedDict
 
+
 @require_GET
 @protected_resource()
 def openidconnect_userinfo(request):
@@ -21,5 +22,5 @@ def openidconnect_userinfo(request):
     data['iat'] = user.date_joined
     data['vot'] = up.vot()
     data['ial'] = up.ial
-    data['aal'] = up.aal   
+    data['aal'] = up.aal
     return JsonResponse(data)

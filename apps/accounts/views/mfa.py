@@ -55,7 +55,7 @@ def mfa_code_confirm(request, uid):
                 user.backend = 'django.contrib.auth.backends.ModelBackend'
                 # User's AAL is 2 factor
                 up = UserProfile.objects.get(user=user)
-                up.aal='2'
+                up.aal = '2'
                 us.save()
                 login(request, user)
                 mfac.delete()
@@ -126,7 +126,7 @@ def mfa_login(request):
                         return HttpResponseRedirect(rev)
                     # Else, just login as normal without MFA
                     # User's AAL is single factor
-                    up.aal='1'
+                    up.aal = '1'
                     us.save()
                     login(request, user)
                     logger.info(

@@ -199,7 +199,7 @@ class UserProfile(models.Model):
         else:
             name = '%s %s' % (self.user.first_name, self.user.last_name)
         return name
-    
+
     def vot(self):
         r = "P%s" % (self.IAL)
         if self.AAL in ('1', '2'):
