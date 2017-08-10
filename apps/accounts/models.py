@@ -55,6 +55,7 @@ LOA_CHOICES = (
 # Identity assurance level
 IAL_CHOICES = (
     ('', 'Undefined'),
+    ('0', 'IAL1'),
     ('1', 'IAL1'),
     ('2', 'IAL2'),
     ('3', 'IAL3'),
@@ -65,6 +66,7 @@ IAL_CHOICES = (
 # Authenticator Assurance Level
 AAL_CHOICES = (
     ('', 'Undefined'),
+    ('0', 'AAL0'),
     ('1', 'AAL1'),
     ('2', 'AAL2'),
     ('3', 'AAL3'),
@@ -197,6 +199,14 @@ class UserProfile(models.Model):
         else:
             name = '%s %s' % (self.user.first_name, self.user.last_name)
         return name
+    
+    def vot(self):
+        r = "P%s" % (self.IAL)
+        if self.AAL in ('1', '2'):
+            r = r + "Cc"
+        if self.AAL == '2':
+            r = r + "Cb"
+        return r
 
     def save(self, **kwargs):
         if self.mfa_login_mode:
