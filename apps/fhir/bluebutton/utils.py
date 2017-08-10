@@ -17,6 +17,7 @@ from django.contrib import messages
 # from django.core.urlresolvers import reverse_lazy
 # from django.http import HttpResponseRedirect
 
+# from hhs_oauth_server.utils import is_python2
 from apps.fhir.fhir_core.utils import (kickout_403,
                                        kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
@@ -51,17 +52,22 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
        values in the linked fhir_server model.
 
     """
-    # TODO: Separate out parameters for call_url
 
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
+
+    logger.debug("Auth_state:%s" % auth_state)
+
     verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
         # cert puts cert and key file together
         # (cert_file_path, key_file_path)
         # Cert_file_path and key_file_ath are fully defined paths to
         # files on the appserver.
+        logger.debug('Cert:%s , Key:%s' % (auth_state['cert_file'],
+                                           auth_state['key_file']))
+
         cert = (auth_state['cert_file'], auth_state['key_file'])
     else:
         cert = ()
@@ -74,6 +80,8 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
                              verify=verify_state)
         else:
             r = requests.get(call_url, cert=cert, verify=verify_state)
+
+        logger.debug("Request.get:%s" % call_url)
 
         logger.debug("Status of Request:%s" % r.status_code)
 
@@ -118,6 +126,113 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     return r
 
 
+def request_get_with_parms(request,
+                           call_url,
+                           search_params={},
+                           cx=None,
+                           fail_redirect="/",
+                           timeout=None):
+    """  call to request or redirect on fail
+    call_url = target server URL and search parameters to be sent
+    cx = Crosswalk record. The crosswalk is keyed off Request.user
+    fail_redirect allows routing to a page on failure
+    timoeout allows a timeout in seconds to be set.
+
+    FhirServer is joined to Crosswalk.
+    FhirServerAuth and FhirServerVerify receive cx and lookup
+       values in the linked fhir_server model.
+
+    """
+
+    # Updated to receive cx (Crosswalk entry for user)
+    # call FhirServer_Auth(cx) to get authentication
+    auth_state = FhirServerAuth(cx)
+
+    logger.debug("Auth_state:%s" % auth_state)
+
+    verify_state = FhirServerVerify(cx)
+    if auth_state['client_auth']:
+        # cert puts cert and key file together
+        # (cert_file_path, key_file_path)
+        # Cert_file_path and key_file_ath are fully defined paths to
+        # files on the appserver.
+        logger.debug('Cert:%s , Key:%s' % (auth_state['cert_file'],
+                                           auth_state['key_file']))
+
+        cert = (auth_state['cert_file'], auth_state['key_file'])
+    else:
+        cert = ()
+
+    logger.debug("\nrequest.get settings:%s\n"
+                 "params=%s\n"
+                 "cert:%s\ntimeout:%s\n"
+                 "verify:%s\n"
+                 "======="
+                 "========\n" % (call_url,
+                                 search_params,
+                                 cert,
+                                 timeout,
+                                 verify_state))
+
+    for k, v in search_params.items():
+        logger.debug("\nkey:%s - value:%s" % (k, v))
+
+    try:
+        if timeout:
+            r = requests.get(call_url,
+                             params=search_params,
+                             cert=cert,
+                             timeout=timeout,
+                             verify=verify_state)
+        else:
+            r = requests.get(call_url,
+                             params=search_params,
+                             cert=cert,
+                             verify=verify_state)
+
+        logger.debug("Request.get:%s" % call_url)
+
+        logger.debug("Status of Request:%s" % r.status_code)
+
+        if r.status_code in ERROR_CODE_LIST:
+            r.raise_for_status()
+        # except requests.exceptions.HTTPError as r_err:
+
+    except requests.ConnectionError as e:
+        logger.debug('Connection Problem to FHIR '
+                     'Server: %s : %s' % (call_url, e))
+        return error_status('Connection Problem to FHIR '
+                            'Server: %s:%s' % (call_url, e),
+                            504)
+
+    except requests.exceptions.HTTPError as e:
+        # except requests.exceptions.RequestException as r_err:
+        r_err = requests.exceptions.RequestException
+        logger.debug('Problem connecting to FHIR Server: %s' % call_url)
+        logger.debug('Exception: %s' % r_err)
+        handle_e = handle_http_error(e)
+        handle_e = handle_e
+
+        messages.error(request, 'Problem connecting to FHIR Server.')
+
+        logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
+
+        if 'text' in r:
+            r_text = r.text
+        return error_status(e, r_text)
+
+        # return HttpResponseRedirect(fail_redirect)
+
+    # logger.debug("Evaluating r:%s" % evaluate_r(r))
+
+    if r.status_code in ERROR_CODE_LIST:
+        logger.debug("\nRequest Error Status Code:%s" % r.status_code)
+        logger_debug.debug("\nError Status Code:%s" % r.status_code)
+        return error_status(r, r.status_code)
+
+    return r
+
+
 def notNone(value=None, default=None):
     """
     Test value. Return Default if None
@@ -142,7 +257,8 @@ def strip_oauth(get={}):
         # logger.debug("Nothing to strip GET is empty:%s" % get)
         return strip_oauth
 
-    strip_parms = ['access_token', 'state', 'response_type', 'client_id']
+    strip_parms = settings.FRONT_END_STRIP_PARAMS
+    # ['access_token', 'state', 'response_type', 'client_id']
 
     # logger.debug('Removing:%s from: %s' % (strip_parms, get))
 
@@ -180,7 +296,7 @@ def block_params(get, srtc):
     return search_params
 
 
-def add_params(srtc, key=None):
+def add_params(srtc, patient_id=None, key=None):
     """ Add filtering parameters to search string """
 
     # srtc.get_search_add will return a list
@@ -196,6 +312,8 @@ def add_params(srtc, key=None):
 
     # add_params = ''
     add_params = []
+
+    # print("\n########################\n")
 
     if srtc:
         if srtc.override_search:
@@ -213,23 +331,42 @@ def add_params(srtc, key=None):
 
             add_params = []
             for item in params_list:
+                # print("\nSRTC:%s\n   \noverride:%s\n"
+                #       "    item:%s\n"
+                #       "         from: %s\n\n" % (srtc,
+                #                                  srtc.override_search,
+                #                                  item,
+                #                                  params_list))
                 # Run through list and do variable replacement
-                if srtc.resource_name.lower() not in item:
+                if srtc.resourceType.lower() not in item.lower():
                     # only replace 'patient=%PATIENT%' if resource not Patient
                     if '%PATIENT%' in item:
                         if key is None:
-                            key_str = ''
+                            # key_str = ''
+                            patient_str = str(patient_id)
+                            if patient_id is None:
+                                patient_str = ''
+                            # print('\nsetting to patient:%s' % patient_str)
                         else:
                             # force key to string
-                            key_str = str(key)
-                        item = item.replace('%PATIENT%', key_str)
+                            patient_str = str(key)
+                            # print('setting to key:%s' % patient_str)
+                        if patient_str is 'None':
+                            patient_str = ''
+                        if patient_str is None:
+                            patient_str = ''
+                        # print("set to nothing?:%s" % patient_str)
+                        item = item.replace('%PATIENT%', patient_str)
                         if '%PATIENT%' in item:
                             # Still there we need to remove
                             item = item.replace('%PATIENT%', '')
 
+                    # print("Added item:%a" % item)
                     add_params.append(item)
-
+            # print('Resulting additional parameters:%s' % add_params)
             logger_debug.debug('Resulting additional parameters:%s' % add_params)
+
+    # print("\n#EXIT####################\n")
 
     return add_params
 
@@ -294,7 +431,7 @@ def concat_parms(front_part={}, back_part={}):
     return concat_parms
 
 
-def build_params(get, srtc, key):
+def build_params(get, srtc, key, patient_id=None):
     """
     Build the URL Parameters.
     We have to skip any in the skip list.
@@ -309,7 +446,12 @@ def build_params(get, srtc, key):
     url_param = block_params(get, srtc)
 
     # Now we need to construct the parameters we need to add
-    add_param = add_params(srtc, key)
+
+    # print("SRTC:%s\npatient=%s\nkey=%s\n" % (srtc,patient_id,key))
+
+    add_param = add_params(srtc, patient_id=patient_id, key=key)
+
+    # print("\nAdd param: %s\n" % add_param)
 
     # Put the parameters together in urlencoded string
     # leading ? and parameters joined by &
@@ -442,11 +584,15 @@ def FhirServerAuth(cx=None):
     # Get default clientauth settings from base.py
     # Receive a crosswalk.id or None
     # Return a dict
-    # FHIR_DEFAULT_AUTH = {'client_auth': False,
-    #                      'cert_file': '',
-    #                      'key_file': ''}
-    auth_settings = settings.FHIR_DEFAULT_AUTH
-    if cx:
+
+    auth_settings = {}
+    if cx is None:
+        rr = get_resourcerouter()
+        auth_settings['client_auth'] = rr.client_auth
+        auth_settings['cert_file'] = rr.cert_file
+        auth_settings['key_file'] = rr.key_file
+    else:
+        # cx is passed in
         auth_settings['client_auth'] = cx.fhir_source.client_auth
         auth_settings['cert_file'] = cx.fhir_source.cert_file
         auth_settings['key_file'] = cx.fhir_source.key_file
@@ -475,6 +621,19 @@ def FhirServerVerify(cx=None):
 
 
 def FhirServerUrl(server=None, path=None, release=None):
+    # DONE: Replace pull from settings with use of FHIR_SERVER_DEFAULT
+    # lookup in ResourceRouter table to construct url
+    # Use settings.FHIR_SERVER_DEFAULT to lookup in ResourceRouter
+    #     server_address = models.URLField(verbose_name="Server Name in URL form")
+    #     server_path = models.CharField(max_length=254,
+    #                                    default="/",
+    #                                    verbose_name="path to API with "
+    #                                                 "terminating /")
+    #     server_release = models.CharField(max_length=254,
+    #                                       default="baseDstu3/",
+    #                                       verbose_name="FHIR release with "
+    #                                                    "terminating /")
+
     # fhir_server_configuration =
     # {'SERVER':'http://fhir-test.bbonfhir.com:8081',
     #                              'PATH':'/',
@@ -482,15 +641,18 @@ def FhirServerUrl(server=None, path=None, release=None):
     # FHIR_SERVER_CONF = fhir_server_configuration
     # FHIR_SERVER = FHIR_SERVER_CONF['SERVER'] + FHIR_SERVER_CONF['PATH']
 
-    # print("server[%s] or %s" % (server,settings.FHIR_SERVER_CONF['SERVER']))
-    # print("path[%s]" % path)
-    # print("release[%s]" % release)
+    rr_def = get_resourcerouter()
 
-    fhir_server = notNone(server, settings.FHIR_SERVER_CONF['SERVER'])
+    if settings.RUNNING_PYTHON2:
+        rr_server_address = rr_def.server_address.encode('utf-8')
+    else:
+        rr_server_address = rr_def.server_address
 
-    fhir_path = notNone(path, settings.FHIR_SERVER_CONF['PATH'])
+    fhir_server = notNone(server, rr_server_address)
 
-    fhir_release = notNone(release, settings.FHIR_SERVER_CONF['RELEASE'])
+    fhir_path = notNone(path, rr_def.server_path)
+
+    fhir_release = notNone(release, rr_def.server_release)
 
     if fhir_release is not None:
         if not fhir_release.endswith('/'):
@@ -508,12 +670,19 @@ def FhirServerUrl(server=None, path=None, release=None):
     return result
 
 
-def check_access_interaction_and_resource_type(resource_type, intn_type):
+def check_access_interaction_and_resource_type(resource_type, intn_type, rr):
     """ usage is deny = check_access_interaction_and_resource_type()
 
-     """
+    :param
+    resource_type: resource
+    intn_type: interaction type
+    rr: ResourceRouter
+
+
+    """
     try:
-        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        rt = SupportedResourceType.objects.get(resourceType=resource_type,
+                                               fhir_source=rr)
         # force comparison to lower case to make case insensitive check
         if intn_type.lower() not in map(str.lower,
                                         rt.get_supported_interaction_types()):
@@ -531,11 +700,19 @@ def check_access_interaction_and_resource_type(resource_type, intn_type):
     return False
 
 
-def check_rt_controls(resource_type):
+def check_rt_controls(resource_type, rr=None):
     # Check for controls to apply to this resource_type
     # logger.debug('Resource_Type =%s' % resource_type)
+    # We may get more than one resourceType returned.
+    # We need to deal with that.
+    # Best option is to pass fhir_server from Crosswalk to this call
+
+    if rr is None:
+        rr = get_resourcerouter()
+
     try:
-        srtc = SupportedResourceType.objects.get(resource_name=resource_type)
+        srtc = SupportedResourceType.objects.get(resourceType=resource_type,
+                                                 fhir_source=rr)
     except SupportedResourceType.DoesNotExist:
         srtc = None
 
@@ -594,9 +771,14 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
         host_path = host_path[:-1]
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
+
+        # print("\nReplacing: [%s] with [%s]  \n" % (find_url, host_path))
+
         logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
     else:
         out_text = in_text
+
+        # print('Passing [%s] to [%s]' % (in_text, "out_text"))
         logger_debug.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
 
     return out_text
@@ -613,14 +795,18 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         # Nothing in the list to be replaced
         return in_text
 
-    if isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], list):
-        for u in settings.FHIR_SERVER_CONF['REWRITE_FROM']:
-            if u not in urls_be_gone:
-                urls_be_gone.append(u)
-    elif isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], str):
-        if not settings.FHIR_SERVER_CONF['REWRITE_FROM'] in urls_be_gone:
-            urls_be_gone.append(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
+    rr_def = get_resourcerouter()
+    if settings.RUNNING_PYTHON2:
+        rr_def_server_address = rr_def.server_address.encode('utf-8')
+    else:
+        rr_def_server_address = rr_def.server_address
 
+    if isinstance(rr_def_server_address, str):
+        if rr_def_server_address not in urls_be_gone:
+
+            urls_be_gone.append(rr_def_server_address)
+
+    # print("\nURLS to Remove:%s" % urls_be_gone)
     for kill_url in urls_be_gone:
         # work through the list making replacements
         if kill_url.endswith('/'):
@@ -655,9 +841,15 @@ def get_host_url(request, resource_type=''):
 def build_conformance_url():
     """ Build the Conformance URL call string """
 
-    call_to = settings.FHIR_SERVER_CONF['SERVER']
-    call_to += settings.FHIR_SERVER_CONF['PATH']
-    call_to += settings.FHIR_SERVER_CONF['RELEASE']
+    rr_def = get_resourcerouter()
+    if settings.RUNNING_PYTHON2:
+        rr_def_server_address = rr_def.server_address.encode('utf-8')
+    else:
+        rr_def_server_address = rr_def.server_address
+
+    call_to = rr_def_server_address
+    call_to += rr_def.server_path
+    call_to += rr_def.server_release
     call_to += '/metadata'
 
     return call_to
@@ -745,15 +937,15 @@ def pretty_json(od, indent=PRETTY_JSON_INDENT):
     return json.dumps(od, indent=indent)
 
 
-def get_default_path(resource_name, crosswalk_source=None):
+def get_default_path(resource_name, cx=None):
     """ Get default Path for resource """
 
     # logger_debug.debug("\nGET_DEFAULT_URL:%s" % resource_name)
-    if crosswalk_source:
-        default_path = crosswalk_source
+    if cx:
+        default_path = cx.fhir_source.fhir_url
     else:
         try:
-            rr = ResourceRouter.objects.get(supported_resource__resource_name=resource_name)
+            rr = get_resourcerouter()
             default_path = rr.fhir_url
             # logger_debug.debug("\nDEFAULT_URL=%s" % default_path)
 
@@ -815,7 +1007,8 @@ def get_crosswalk(user):
 
 def conformance_or_capability(fhir_url):
     """ Check FHIR Url for FHIR Version.
-    :return resource type (STU3 switches from ConformanceStatement to CapabilityStatement
+    :return resource type (STU3 switches from ConformanceStatement
+            to CapabilityStatement
 
     :param fhir_url:
     :return:
@@ -829,21 +1022,50 @@ def conformance_or_capability(fhir_url):
     return resource_type
 
 
-def get_resource_names():
-    """ Get names for all approved resources """
+def get_resource_names(rr=None):
+    """ Get names for all approved resources
+        We need to receive FHIRServer and filter list
+        :return list of FHIR resourceTypes
+    """
+    # TODO: filter by FHIRServer
 
-    all_resources = SupportedResourceType.objects.all()
-    resource_names = []
+    if rr is None:
+        rr = get_resourcerouter()
+    all_resources = SupportedResourceType.objects.filter(fhir_source=rr)
+    resource_types = []
     for name in all_resources:
-        # Get the resource names into a list
-        resource_names.append(name.resource_name)
+        # check resourceType not already loaded to list
+        if name.resourceType in resource_types:
+            pass
+        else:
+            # Get the resourceType into a list
+            resource_types.append(name.resourceType)
 
-    return resource_names
+    return resource_types
+
+
+def get_resourcerouter(cx=None):
+    """
+    get the default from settings.FHIR_SERVER_DEFAULT
+
+    :cx = Receive the crosswalk record
+    :return ResourceRouter
+
+    """
+
+    if cx is None:
+        # use the default setting
+        rr = ResourceRouter.objects.get(pk=settings.FHIR_SERVER_DEFAULT)
+    else:
+        # use the user's default ResourceRouter from cx
+        rr = cx.fhir_source
+
+    return rr
 
 
 def evaluate_r(r):
     """
-     Check out what was received back from requst
+     Check out what was received back from request
 
      """
 
@@ -863,6 +1085,30 @@ def evaluate_r(r):
     #     logger.debug("No JSON")
     #
     # logger.debug("END EVALUATE_R ===")
+
+
+def build_rewrite_list(cx=None):
+    """
+    Build the rewrite_list of server addresses
+
+    :return: rewrite_list
+    """
+
+    rewrite_list = []
+    if cx:
+        rewrite_list.append(cx.fhir_source.fhir_url)
+
+    rr = get_resourcerouter()
+    # get the default ResourceRouter entry
+    if rr.fhir_url not in rewrite_list:
+        rewrite_list.append(rr.fhir_url)
+
+    if isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], list):
+        rewrite_list.extend(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
+    elif isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], str):
+        rewrite_list.append(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
+
+    return rewrite_list
 
 
 def handle_http_error(e):

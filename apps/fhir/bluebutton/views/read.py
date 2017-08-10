@@ -4,6 +4,7 @@ import logging
 from collections import OrderedDict
 
 from django.conf import settings
+
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -26,20 +27,23 @@ from apps.fhir.fhir_core.utils import (kickout_403,
                                        get_div_from_json
                                        )
 
-from apps.fhir.bluebutton.utils import (
-    request_call,
-    check_rt_controls,
-    check_access_interaction_and_resource_type,
-    masked_id,
-    strip_oauth,
-    build_params,
-    FhirServerUrl,
-    get_host_url,
-    build_output_dict,
-    post_process_request,
-    pretty_json,
-    get_default_path,
-    get_crosswalk)
+from apps.fhir.bluebutton.utils import (request_call,
+                                        check_rt_controls,
+                                        check_access_interaction_and_resource_type,
+                                        masked_id,
+                                        strip_oauth,
+                                        build_params,
+                                        FhirServerUrl,
+                                        get_host_url,
+                                        build_output_dict,
+                                        post_process_request,
+                                        pretty_json,
+                                        get_default_path,
+                                        get_crosswalk,
+                                        get_resourcerouter,
+                                        build_rewrite_list)
+
+from apps.fhir.bluebutton.views.search import read_search
 
 from apps.fhir.bluebutton.xml_handler import get_div_from_xml
 
@@ -53,10 +57,9 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 # Attempting to set a timeout for connection and request for longer requests
 # eg. Search.
-REQUEST_TIMEOUT = (5, 120)
 
 
-def read(request, resource_type, r_id, *args, **kwargs):
+def read(request, resource_type, id, *args, **kwargs):
     """
     Read from Remote FHIR Server
 
@@ -66,12 +69,12 @@ def read(request, resource_type, r_id, *args, **kwargs):
 
     interaction_type = 'read'
 
-    read_fhir = generic_read(request,
-                             interaction_type,
-                             resource_type,
-                             r_id,
-                             *args,
-                             **kwargs)
+    read_fhir = read_search(request,
+                            interaction_type,
+                            resource_type,
+                            id,
+                            *args,
+                            **kwargs)
 
     return read_fhir
 
@@ -79,7 +82,7 @@ def read(request, resource_type, r_id, *args, **kwargs):
 def generic_read(request,
                  interaction_type,
                  resource_type,
-                 r_id=None,
+                 id=None,
                  vid=None,
                  *args,
                  **kwargs):
@@ -116,7 +119,7 @@ def generic_read(request,
 
 
     """
-    # TODO: Fix to allow url_id in url for non-key resources.
+    # DONE: Fix to allow url_id in url for non-key resources.
     # eg. Patient is key resource so replace url if override_url_id is True
     # if override_url_id is not set allow url_id to be applied and check
     # if search_override is True.
@@ -124,14 +127,21 @@ def generic_read(request,
     logger.debug('\n========================\n'
                  'INTERACTION_TYPE: %s' % interaction_type)
 
+    # Get the users crosswalk
+    cx = get_crosswalk(request.user)
+
+    # cx will be the crosswalk record or None
+    rr = get_resourcerouter(cx)
+
     # Check if this interaction type and resource type combo is allowed.
     deny = check_access_interaction_and_resource_type(resource_type,
-                                                      interaction_type)
+                                                      interaction_type,
+                                                      rr)
     if deny:
         # if not allowed, return a 4xx error.
         return deny
 
-    srtc = check_rt_controls(resource_type)
+    srtc = check_rt_controls(resource_type, rr)
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
 
@@ -140,7 +150,7 @@ def generic_read(request,
                            ' Login is required:'
                            '%s' % (resource_type, request.user.is_anonymous()))
     # logger.debug('srtc: %s' % srtc)
-    cx = get_crosswalk(request.user)
+
     if cx is None:
         logger.debug('Crosswalk for %s does not exist' % request.user)
 
@@ -175,21 +185,14 @@ def generic_read(request,
     # change source of default_url to ResourceRouter
 
     default_path = get_default_path(srtc.resource_name,
-                                    crosswalk_source=cx.fhir_source.fhir_url)
+                                    cx=cx)
     # get the default path for resource with ending "/"
     # You need to add resource_type + "/" for full url
-
-    # Add default FHIR Server URL to re-write
-
-    rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
-    # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
     if srtc:
         # logger.debug('SRTC:%s' % srtc)
 
         fhir_url = default_path + resource_type + '/'
-        # Add to the rewrite_url list
-        rewrite_url_list.append(default_path)
 
         if srtc.override_url_id:
             fhir_url += cx.fhir_id + "/"
@@ -199,21 +202,19 @@ def generic_read(request,
         logger.debug('CX:%s' % cx)
         if cx:
             fhir_url = cx.get_fhir_resource_url(resource_type)
-            rewrite_url_list.append(fhir_url.replace(resource_type + '/', ''))
         else:
             # logger.debug('FHIRServer:%s' % FhirServerUrl())
             fhir_url = FhirServerUrl() + resource_type + '/'
 
-    if FhirServerUrl()[:-1] not in rewrite_url_list:
-        rewrite_url_list.append(FhirServerUrl()[:-1])
-
-    logger.debug('FHIR URL:%s' % fhir_url)
-    logger.debug('Rewrite List:%s' % rewrite_url_list)
+    # #### SEARCH
 
     if interaction_type == 'search':
         key = None
     else:
-        key = masked_id(resource_type, cx, srtc, r_id, slash=False)
+        key = masked_id(resource_type, cx, srtc, id, slash=False)
+
+        print("\nMasked_id-key:%s from r_id:%s "
+              "and cx-fhir_id:%s\n" % (key, id, cx.fhir_id))
 
         # add key to fhir_url unless already in place.
         fhir_url = add_key_to_fhir_url(fhir_url, key)
@@ -240,22 +241,26 @@ def generic_read(request,
     else:
         back_end_format = "json"
 
+    # #### SEARCH
+
     if interaction_type == 'search':
         if cx is not None:
             # logger.debug("cx.fhir_id=%s" % cx.fhir_id)
             if cx.fhir_id.__contains__('/'):
-                r_id = cx.fhir_id.split('/')[1]
+                id = cx.fhir_id.split('/')[1]
             else:
-                r_id = cx.fhir_id
+                id = cx.fhir_id
             # logger.debug("Patient Id:%s" % r_id)
 
-    if resource_type == "Patient":
-        key = r_id
+    if resource_type.lower() == "patient":
+        key = cx.fhir_id
+    else:
+        key = id
 
     pass_params = build_params(pass_params,
                                srtc,
-                               # key,
-                               r_id,
+                               key,
+                               patient_id=cx.fhir_id
                                )
 
     # Add the call type ( READ = nothing, VREAD, _HISTORY)
@@ -279,7 +284,7 @@ def generic_read(request,
                          pass_to,
                          cx,
                          reverse_lazy('home'),
-                         timeout=REQUEST_TIMEOUT)
+                         timeout=settings.REQUEST_CALL_TIMEOUT)
     else:
         r = request_call(request, pass_to, cx, reverse_lazy('home'))
 
@@ -333,7 +338,8 @@ def generic_read(request,
     host_path = get_host_url(request, resource_type)[:-1]
     # logger.debug('host path:%s' % host_path)
 
-    rewrite_url_list = settings.FHIR_SERVER_CONF['REWRITE_FROM']
+    # Add default FHIR Server URL to re-write
+    rewrite_url_list = build_rewrite_list(cx)
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
     # ct_detail = get_content_type(r)
@@ -377,7 +383,8 @@ def generic_read(request,
             'res_type': resource_type,
             'intn_type': interaction_type,
             'key': key,
-            'vid': vid
+            'vid': vid,
+            'resource_router': rr.id
         }
         sesn_var = write_session(request, ikey, content, skey=SESSION_KEY)
         if sesn_var:

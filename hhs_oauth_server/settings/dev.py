@@ -1,5 +1,8 @@
 from .base import *
+from ..utils import is_python2
 
+# Set Python2 to use for unicode field conversion to text
+RUNNING_PYTHON2 = is_python2()
 
 # removing security enforcement in development mode
 DEBUG = True
@@ -15,6 +18,8 @@ SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME', 'Ben')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME', 'Barker')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL', 'ben@example.com')
 
+FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
+
 # overrides FHIR server configuration with fake values
 FHIR_SERVER_CONF = {
     'SERVER': env('THS_FHIR_SERVER', 'http://fhir.bbonfhir.com/'),
@@ -24,3 +29,9 @@ FHIR_SERVER_CONF = {
     'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM', ['http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2', ]),
     'REWRITE_TO': env('THS_FHIR_REWRITE_TO', 'http://localhost:8000/bluebutton/fhir/v1'),
 }
+
+# url parameters we don't want to pass through to the back-end server
+FRONT_END_STRIP_PARAMS = ['access_token',
+                          'state',
+                          'response_type',
+                          'client_id']

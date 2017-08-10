@@ -3,7 +3,7 @@ import dj_database_url
 import socket
 import datetime
 from getenv import env
-from ..utils import bool_env, int_env
+from ..utils import bool_env, int_env, is_python2
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import ugettext_lazy as _
@@ -28,6 +28,9 @@ SECRET_KEY = env('DJANGO_SECRET_KEY',
 if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
     print("WARNING: Generate your secret key and set in environment "
           "variable: DJANGO_SECRET_KEY")
+
+# Set Python2 to use for unicode field conversion to text
+RUNNING_PYTHON2 = is_python2()
 
 # Use to skip LDAP tests
 AUTH_LDAP_ACTIVE = False
@@ -85,9 +88,6 @@ INSTALLED_APPS = [
     'apps.capabilities',
     # /.well-known/ endpoints
     'apps.wellknown',
-
-    # Endorsement example TODO migrate to reusable app
-    'apps.endorse',
 
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
@@ -376,6 +376,14 @@ ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE',
 ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', 'https://cms.gov')
 POLICY_URI = env('DJANGO_POLICY_URI', 'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
 POLICY_TITLE = env('DJANGO_POLICY_TITLE', 'Privacy Policy')
+TOS_URI = env('DJANGO_TOS_URI', '#')
+TOS_TITLE = env('DJANGO_TOS_TITLE', 'Terms of Service')
+TAG_LINE_1 = env('DJANGO_TAG_LINE_1', 'Share your Medicare data')
+TAG_LINE_2 = env('DJANGO_TAG_LINE_2', 'with applications, organizations, and people you trust.')
+EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
+EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
+
+
 # LINKS TO DOCS
 USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
 USER_DOCS_TITLE = "User Documentation"
@@ -418,10 +426,18 @@ SETTINGS_EXPORT = [
     'POLICY_URI',
     'POLICY_TITLE',
     'DISCLOSURE_TEXT',
-
+    'TOS_URI',
+    'TOS_TITLE',
+    'TAG_LINE_1',
+    'TAG_LINE_2',
+    'EXPLAINATION_LINE'
 ]
 
 
+# Dynamic client registration Protocol
+# "O" = Open to everyone
+# "" = Disabled.
+DCRP = env('DJANGO_DCRP', '')
 # Make sessions die out fast for more security ------------------
 # Logout after 90 minutes of inactivity = moderate requirementnt
 SESSION_COOKIE_AGE = 5400
@@ -458,17 +474,33 @@ BB_CONSENT = {
     'POLICY_URL': "/consent/policy/1/"
 }
 
+# DONE: To support multiple resourceType records in SupportedResourceType
+# We need to have a default FHIR Server as a fallback if the Request.user
+# Does not have a Crosswalk with a default FHIRServer defined.
+# This variable will contain the ID of the Default FHIRServer
+# in the apps.fhir.bluebutton.server.models.FHIRServer table
+FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
+
 FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     'PATH': env('THS_FHIR_PATH'),
                     'RELEASE': env('THS_FHIR_RELEASE'),
                     'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM'),
-                    # RERITE_FROM should be a list
+                    # REWRITE_FROM should be a list
                     'REWRITE_TO': env('THS_FHIR_REWRITE_TO'),
                     # Minutes until search expires
                     'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}
 
 FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, '../certstore'))
+
+# Timeout for request call
+REQUEST_CALL_TIMEOUT = (5, 120)
+
+# url parameters we don't want to pass through to the back-end server
+FRONT_END_STRIP_PARAMS = ['access_token',
+                          'state',
+                          'response_type',
+                          'client_id']
 
 # cert_file and key_file are referenced relative to BASE_DIR/../certstore
 # used by FhirServer_Auth()

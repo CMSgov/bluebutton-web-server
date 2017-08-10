@@ -22,14 +22,18 @@ def create(request, resource_type):
     Create FHIR Interaction
     Example client use in curl:
     curl -H 'Content-Type: application/json' --data @test.json http://127.0.0.1:8000/fhir/Practitioner
+
+    We need to deal with possible multiple resourceType or filter by
+    FHIRServer from Crosswalk
     """
+    # TODO: Filter by FHIRServer
     interaction_type = 'create'
     # re-route to hello if no resource type is given:
     if not resource_type:
         return hello(request)
 
     try:
-        rt = SupportedResourceType.objects.get(resource_name=resource_type)
+        rt = SupportedResourceType.objects.get(resourceType=resource_type)
         if interaction_type not in rt.get_supported_interaction_types() and request.method == 'GET':
             # GET means that this is a search so re-route
             return search(request, resource_type)

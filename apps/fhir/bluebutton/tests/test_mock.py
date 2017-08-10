@@ -26,7 +26,10 @@ from django.conf import settings
 from apps.fhir.bluebutton.utils import (post_process_request,
                                         build_output_dict,
                                         request_call,
-                                        pretty_json)
+                                        pretty_json,
+                                        get_resourcerouter)
+
+from apps.fhir.server.models import ResourceRouter
 
 from .data_conformance import CONFORMANCE
 
@@ -34,9 +37,24 @@ from .data_conformance import CONFORMANCE
 class UtilsTestCase(unittest.TestCase):
     """ testing mock pass of request data """
 
+    fixtures = ['fhir_bluebutton_test_rt.json']
+
     def setUp(self):
         # Setup the RequestFactory
         # I could probably update this to use a Mock()
+        self.resrtr = ResourceRouter.objects.create(
+            name="The main server [Default]",
+            server_address="https://fhir.backend.bluebutton.hhsdevcloud.us",
+            server_path="/",
+            server_release="baseDstu3/",
+            server_search_expiry=1800,
+            fhir_url="https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/",
+            shard_by="Patient",
+            client_auth=True,
+            cert_file="/ca.cert.pem",
+            key_file="./ca.key.nocrypt.pem",
+            server_verify=False)
+
         self.factory = RequestFactory()
 
     def test_post_process_request_json(self):
@@ -62,21 +80,37 @@ class UtilsTestCase(unittest.TestCase):
          """
         fmt = "json"
 
+        rr_id = self.resrtr.id
+        print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
+        rr = get_resourcerouter()
+
+        print("\nRR-testfetch:%s\n" % rr)
+
+        if settings.RUNNING_PYTHON2:
+            default_url = rr.server_address.encode('utf-8')
+        else:
+            default_url = rr.server_address
+
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        default_url = settings.FHIR_SERVER_CONF['REWRITE_FROM']
-        # print("\n\n", default_url)
+        print("\nDefault_url:%s\n" % default_url)
 
         input_text = 'dddd anything '
-        input_text += default_url[0]
+        input_text += default_url
         input_text += ' will get replaced more stuff '
         input_text += 'http://www.example.com:8000 and '
         input_text += 'http://example.com:8000/ okay'
 
         host_path = 'http://www.replaced.com'
         r_text = '{}'
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
+
+        if default_url.endswith("/"):
+            pass
+        else:
+            rewrite_url_list.append(default_url + '/')
 
         result = post_process_request(request,
                                       fmt,
@@ -94,7 +128,7 @@ class UtilsTestCase(unittest.TestCase):
         """
 
         input_text = '{"next": "dddd anything '
-        input_text += default_url[0]
+        input_text += default_url
         input_text += ' will get replaced more stuff '
         input_text += 'http://www.example.com:8000 and '
         input_text += 'http://example.com:8000/ okay"}'
@@ -119,7 +153,7 @@ class UtilsTestCase(unittest.TestCase):
         """
 
         input_text = '{"next": "dddd anything '
-        input_text += default_url[0]
+        input_text += default_url
         input_text += ' will get replaced more stuff '
         input_text += 'http://www.example.com:8000 and '
         input_text += 'http://example.com:8000/ okay"}'
@@ -128,8 +162,15 @@ class UtilsTestCase(unittest.TestCase):
 
         host_path = 'http://www.replaced.com'
         r_text = input_text
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
+
+        if default_url.endswith("/"):
+            pass
+        else:
+            rewrite_url_list.append(default_url + '/')
+
         result = post_process_request(request,
                                       fmt,
                                       host_path,
@@ -143,7 +184,7 @@ class UtilsTestCase(unittest.TestCase):
         expected = json.loads(expected_text,
                               object_pairs_hook=OrderedDict)
 
-        # print("\n\n\nResponse:", response)
+        # print("\n\n\nResponse:", result)
         # print("\n\n\nExpected:", expected)
 
         self.assertEqual(result, expected, assert_msg)
@@ -153,15 +194,21 @@ class UtilsTestCase(unittest.TestCase):
         """
 
         input_text = '{"next": "dddd anything '
-        input_text += default_url[0]
+        input_text += default_url
         input_text += ' will get replaced more stuff '
         input_text += 'http://www.example.com:8000 and '
         input_text += 'http://example.com:8000/ okay"}'
 
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
+
+        if default_url.endswith("/"):
+            pass
+        else:
+            rewrite_url_list.append(default_url + '/')
 
         result = post_process_request(request,
                                       fmt,
@@ -203,19 +250,35 @@ class UtilsTestCase(unittest.TestCase):
 
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        default_url = settings.FHIR_SERVER_CONF['REWRITE_FROM']
+        # rr_id = self.resrtr.id
+        # print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
+        rr = get_resourcerouter()
+
+        # print("\nRR-testfetch:%s\n" % rr)
+
+        if settings.RUNNING_PYTHON2:
+            default_url = rr.server_address.encode('utf-8')
+        else:
+            default_url = rr.server_address
+
         # print("\n\n", default_url)
 
         input_text = 'dddd anything '
-        input_text += default_url[0]
+        input_text += default_url
         input_text += ' will get replaced more stuff '
         input_text += 'http://www.example.com:8000 and '
         input_text += 'http://example.com:8000/ okay'
 
         host_path = 'http://www.replaced.com'
         r_text = ''
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
+
+        if default_url.endswith("/"):
+            pass
+        else:
+            rewrite_url_list.append(default_url + '/')
 
         result = post_process_request(request,
                                       fmt,
@@ -233,7 +296,7 @@ class UtilsTestCase(unittest.TestCase):
         """
 
         input_text = '<next> "dddd anything '
-        input_text += default_url[0]
+        input_text += default_url
         input_text += ' will get replaced more stuff '
         input_text += 'http://www.example.com:8000 and '
         input_text += 'http://example.com:8000/ okay"</next>'
@@ -258,7 +321,7 @@ class UtilsTestCase(unittest.TestCase):
         """
 
         input_text = '<next> "dddd anything '
-        input_text += default_url[0]
+        input_text += default_url
         input_text += ' will get replaced more stuff '
         input_text += 'http://www.example.com:8000 and '
         input_text += 'http://example.com:8000/ okay"</next>'
@@ -267,8 +330,15 @@ class UtilsTestCase(unittest.TestCase):
 
         host_path = 'http://www.replaced.com'
         r_text = input_text
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
+
+        if default_url.endswith("/"):
+            pass
+        else:
+            rewrite_url_list.append(default_url + '/')
+
         result = post_process_request(request,
                                       fmt,
                                       host_path,
@@ -282,8 +352,9 @@ class UtilsTestCase(unittest.TestCase):
         # expected = json.loads(expected_text,
         #                       object_pairs_hook=OrderedDict)
 
-        # print("\n\n\nResponse:", response)
-        # print("\n\n\nExpected:", expected)
+        # print("\nRewrite_list:%s" % rewrite_url_list)
+        # print("\n\n\nResponse:", result)
+        # print("\n\n\nExpected:", expected_text)
 
         self.assertEqual(result, expected_text, assert_msg)
 
@@ -292,15 +363,23 @@ class UtilsTestCase(unittest.TestCase):
         """
 
         input_text = '<next> "dddd anything '
-        input_text += default_url[0]
+        input_text += default_url
         input_text += ' will get replaced more stuff '
         input_text += 'http://www.example.com:8000 and '
         input_text += 'http://example.com:8000/ okay"</next>'
 
+        r_text = input_text
+
         request = self.factory.get('/cmsblue/fhir/v1/Patient')
 
-        rewrite_url_list = ['http://www.example.com:8000',
+        rewrite_url_list = [default_url,
+                            'http://www.example.com:8000',
                             'http://example.com']
+
+        if default_url.endswith("/"):
+            pass
+        else:
+            rewrite_url_list.append(default_url + '/')
 
         result = post_process_request(request,
                                       fmt,
@@ -402,12 +481,32 @@ class UtilsTestCase(unittest.TestCase):
 class RequestCallMockTest(unittest.TestCase):
     """ Testing patch to requests.get in request_call """
 
+    fixtures = ['fhir_bluebutton_test_rt.json']
+
     def setUp(self):
         # Setup the RequestFactory
+        self.resrtr = ResourceRouter.objects.create(
+            name="The main server [Default]",
+            server_address="https://fhir.backend.bluebutton.hhsdevcloud.us",
+            server_path="/",
+            server_release="baseDstu3/",
+            server_search_expiry=1800,
+            fhir_url="https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/",
+            shard_by="Patient",
+            client_auth=True,
+            cert_file="/ca.cert.pem",
+            key_file="./ca.key.nocrypt.pem",
+            server_verify=False)
         self.factory = RequestFactory()
 
     @patch('apps.fhir.bluebutton.utils.requests')
     def test_fetch(self, mock_requests):
+
+        # rr_id = self.resrtr.id
+        # print("\nResRtr-testfetch:%s=%s\n" % (rr_id, self.resrtr))
+
+        # rr = get_resourcerouter()
+        # print("\nRR-testfetch:%s\n" % rr)
 
         request = self.factory.get('http://someurl.com/test.text')
         mock_requests.get.return_value.status_code = 200

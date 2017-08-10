@@ -7,6 +7,7 @@ import hashlib
 import logging
 import requests
 import datetime
+import json
 
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -15,7 +16,7 @@ from django.utils import timezone
 
 from requests.exceptions import ConnectionError, TooManyRedirects, Timeout
 from oauth2_provider.models import AbstractApplication
-from poetri.verify_poet import verify_poet
+from poetri.verify_jws_with_jwk import verify_poet
 
 from apps.capabilities.models import ProtectedCapability
 
@@ -43,67 +44,27 @@ class Endorsement(models.Model):
         return self.title
 
     def url(self):
-        url = 'http://%s/.well-known/poet.pem' % (self.iss)
+        url = 'http://%s/.well-known/poet.jwk' % (self.iss)
         return url
 
     def signature_verified(self):
-        url = 'http://%s/.well-known/poet.pem' % (self.iss)
-        print("URL is: ", url)
+
         try:
+            url = 'https://%s/.well-known/poet.jwk' % (self.iss)
             r = requests.get(url, timeout=3)
+
             if r.status_code == 200:
-                payload = verify_poet(self.jwt, r.text)
+                k = json.loads(r.text)
+                payload = verify_poet(self.jwt, k)
                 if 'iss' in payload:
-                    return True
+                    if payload['iss'] == k['kid']:
+                        return True
         except ConnectionError:
             pass
         except TooManyRedirects:
             pass
         except Timeout:
             pass
-
-        url = 'http://%s/.well-known/poet.jwks' % (self.iss)
-        try:
-            r = requests.get(url, timeout=3)
-            if r.status_code == 200:
-                payload = verify_poet(self.jwt, r.text)
-                if 'iss' in payload:
-                    return True
-        except ConnectionError:
-            pass
-        except TooManyRedirects:
-            pass
-        except Timeout:
-            pass
-
-        try:
-            url = 'https://%s/.well-known/poet.pem' % (self.iss)
-            r = requests.get(url, timeout=3)
-            if r.status_code == 200:
-                payload = verify_poet(self.jwt, r.text)
-                if 'iss' in payload:
-                    return True
-        except ConnectionError:
-            pass
-        except TooManyRedirects:
-            pass
-        except Timeout:
-            pass
-
-        try:
-            url = 'https://%s/.well-known/poet.jwks' % (self.iss)
-            r = requests.get(url, timeout=3)
-            if r.status_code == 200:
-                payload = verify_poet(self.jwt, r.text)
-                if 'iss' in payload:
-                    return True
-        except ConnectionError:
-            pass
-        except TooManyRedirects:
-            pass
-        except Timeout:
-            pass
-
         return False
 
     def payload(self):

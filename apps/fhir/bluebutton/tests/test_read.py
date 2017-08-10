@@ -14,28 +14,32 @@ import apps.fhir.bluebutton.utils
 import apps.fhir.bluebutton.views.home
 from apps.fhir.bluebutton.views.home import (conformance_filter)
 
+# from apps.fhir.server.models import ResourceRouter
+
+# from django.conf import settings
 from django.test import TestCase, RequestFactory
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
 # from .data_conformance_filtered import FILTERED_CONFORMANCE
+# from apps.fhir.bluebutton.utils import get_resourcerouter
 
 
 class ConformanceReadRequestTest(TestCase):
     """ Check the BlueButton API call  """
+
+    # 'fhir_server_testdata_prep.json',
+    fixtures = ['fhir_bluebutton_test_rt.json']
+
     def setUp(self):
         # Setup the RequestFactory
         self.factory = RequestFactory()
-        self.fixtures = [
-            'fhir_server_testdata_prep.json',
-            'fhir_bluebutton_test_rt.json'
-        ]
 
     @patch('apps.fhir.bluebutton.utils.requests')
     def test_fhir_bluebutton_read_conformance_testcase(self, mock_requests):
         """ Checking Conformance
 
-            The @patch replaces the call to requests ith mock_requests
+            The @patch replaces the call to requests with mock_requests
 
         """
 

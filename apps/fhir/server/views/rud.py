@@ -8,7 +8,7 @@ from .read import read
 
 
 @csrf_exempt
-def read_or_update_or_delete(request, resource_type, id):
+def read_or_update_or_delete(request, resource_type, id, *args, **kwargs):
     """
     Route to read, update, or delete based on HTTP method FHIR Interaction
     """

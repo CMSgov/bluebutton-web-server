@@ -7,12 +7,21 @@ from django.http import HttpResponse
 from apps.fhir.fhir_core.utils import (kickout_400)
 
 from .utils import check_access_interaction_and_resource_type
+from apps.fhir.bluebutton.utils import (get_crosswalk,
+                                        get_resourcerouter)
 
 
 def history(request, resource_type, id):
     interaction_type = '_history'
+
+    cx = get_crosswalk(request.user)
+    # cx will be the crosswalk record or None
+    rr = get_resourcerouter(cx)
+
     # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type, interaction_type)
+    deny = check_access_interaction_and_resource_type(resource_type,
+                                                      interaction_type,
+                                                      rr)
     if deny:
         # If not allowed, return a 4xx error.
         return deny
@@ -40,8 +49,15 @@ def history(request, resource_type, id):
 
 def vread(request, resource_type, id, vid):
     interaction_type = 'vread'
+
+    cx = get_crosswalk(request.user)
+    # cx will be the crosswalk record or None
+    rr = get_resourcerouter(cx)
+
     # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type, interaction_type)
+    deny = check_access_interaction_and_resource_type(resource_type,
+                                                      interaction_type,
+                                                      rr)
     if deny:
         # If not allowed, return a 4xx error.
         return deny

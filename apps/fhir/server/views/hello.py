@@ -12,7 +12,11 @@ def hello(request):
     Hello FHIR
     Example client use in curl:
     curl http://127.0.0.1:8000/fhir/hello
+
+
     """
+    # TODO: We need to deal with multiple resourceTypes
+
     res_types = SupportedResourceType.objects.all()
     interactions = []
     for r in res_types:
