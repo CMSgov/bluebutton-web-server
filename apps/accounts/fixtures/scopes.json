@@ -1,6 +1,3 @@
-no custom variables set:[../custom-envvars.py] - Not Found
-WARNING: Generate your secret key and set in environment variable: DJANGO_SECRET_KEY
-[<RegexURLPattern monfhir_oauth_read_or_update_or_delete oauth2/(?P<resource_type>[^/]+)/(?P<id>[^/]+)>, <RegexURLPattern monfhir_oauth_create oauth2/(?P<resource_type>[^/]+)>, <RegexURLPattern monfhir_hello hello>, <RegexURLPattern monfhir_vread (?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)>, <RegexURLPattern monfhir_history (?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history>, <RegexURLPattern monfhir_read_or_update_or_delete (?P<resource_type>[^/]+)/(?P<id>[^/]+)>, <RegexURLPattern monfhir_create (?P<resource_type>[^/]+)>, <RegexURLPattern monfhir_search (?P<resource_type>[^/]+)?>]
 [
 {
     "model": "capabilities.protectedcapability",
