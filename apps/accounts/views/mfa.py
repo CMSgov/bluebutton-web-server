@@ -53,7 +53,10 @@ def mfa_code_confirm(request, uid):
             if user.is_active:
                 # Fake backend here since its not needed.
                 user.backend = 'django.contrib.auth.backends.ModelBackend'
-                # Else, just login as normal without MFA
+                # User's AAL is 2 factor
+                up = UserProfile.objects.get(user=user)
+                up.aal = '2'
+                up.save()
                 login(request, user)
                 mfac.delete()
                 next_param = request.GET.get('next', '')
@@ -108,7 +111,6 @@ def mfa_login(request):
                         if up.mfa_login_mode == "EMAIL":
                             messages.info(
                                 request, _('An access code was sent to your email. Please enter it here.'))
-
                         rev = reverse('mfa_code_confirm', args=(mfac.uid,))
                         # Fetch the next and urlencode
                         if request.GET.get('next', ''):
@@ -123,6 +125,9 @@ def mfa_login(request):
 
                         return HttpResponseRedirect(rev)
                     # Else, just login as normal without MFA
+                    # User's AAL is single factor
+                    up.aal = '1'
+                    up.save()
                     login(request, user)
                     logger.info(
                         "Successful login from {}".format(

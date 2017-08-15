@@ -55,6 +55,7 @@ LOA_CHOICES = (
 # Identity assurance level
 IAL_CHOICES = (
     ('', 'Undefined'),
+    ('0', 'IAL0'),
     ('1', 'IAL1'),
     ('2', 'IAL2'),
     ('3', 'IAL3'),
@@ -65,6 +66,7 @@ IAL_CHOICES = (
 # Authenticator Assurance Level
 AAL_CHOICES = (
     ('', 'Undefined'),
+    ('0', 'AAL0'),
     ('1', 'AAL1'),
     ('2', 'AAL2'),
     ('3', 'AAL3'),
@@ -102,26 +104,26 @@ class UserProfile(models.Model):
     organization_name = models.CharField(max_length=255,
                                          blank=True,
                                          default='')
-    loa = models.CharField(default='',
+    loa = models.CharField(default='2',
                            choices=LOA_CHOICES,
                            max_length=1,
                            blank=True,
                            verbose_name="Level of Assurance",
                            help_text="Legacy and Deprecated. Using IAL AAL is recommended.")
 
-    ial = models.CharField(default='',
+    ial = models.CharField(default='2',
                            choices=IAL_CHOICES,
                            max_length=1,
                            blank=True,
                            verbose_name="Identity Assurance Level",
-                           help_text="See NIST SP 800 63 A for definitions.")
+                           help_text="See NIST SP 800 63 3A for definitions.")
 
     aal = models.CharField(default='1',
                            choices=AAL_CHOICES,
                            max_length=1,
                            blank=True,
                            verbose_name="Authenticator Assurance Level",
-                           help_text="See NIST SP 800 63 B for definitions.")
+                           help_text="See NIST SP 800 63 3 B for definitions.")
 
     user_type = models.CharField(default='DEV',
                                  choices=USER_CHOICES,
@@ -197,6 +199,14 @@ class UserProfile(models.Model):
         else:
             name = '%s %s' % (self.user.first_name, self.user.last_name)
         return name
+
+    def vot(self):
+        r = "P%s" % (self.ial)
+        if self.aal in ('1', '2'):
+            r = r + "Cc"
+        if self.aal == '2':
+            r = r + "Cb"
+        return r
 
     def save(self, **kwargs):
         if self.mfa_login_mode:
