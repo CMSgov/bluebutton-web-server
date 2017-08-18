@@ -48,6 +48,8 @@ class RequestInviteAdmin(admin.ModelAdmin):
         'last_name',
         'organization',
         'email',
+        'issue_invite',
+        'invite_sent',
         'added')
     search_fields = ('first_name', 'last_name', 'organization', 'email')
 
