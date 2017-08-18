@@ -97,6 +97,13 @@ MFA_CHOICES = (
     ('SMS', "Text Message (SMS)"),
 )
 
+ISSUE_INVITE = (
+    ('', 'Not Set'),
+    ('YES', 'Yes - Send Invite'),
+    ('NO', 'NO - Do not send invite'),
+    ('DONE', 'Invite has been sent')
+)
+
 
 @python_2_unicode_compatible
 class UserProfile(models.Model):
@@ -296,6 +303,10 @@ class RequestInvite(models.Model):
     organization = models.CharField(max_length=150, blank=True, default="")
     email = models.EmailField(max_length=150)
     added = models.DateField(auto_now_add=True)
+    issue_invite = models.CharField(max_length=4,
+                                    choices=ISSUE_INVITE,
+                                    default="")
+    invite_sent = models.BooleanField(default=False)
 
     def __str__(self):
         r = '%s %s as a %s' % (self.first_name, self.last_name, self.user_type)
@@ -309,6 +320,17 @@ class RequestInvite(models.Model):
                     self.last_name,
                     self.email))
             notify_admin_of_invite_request(self)
+
+            if self.issue_invite == "YES" and self.invite_sent is False:
+                # Add record to Invitation
+                object, created = Invitation.objects.update_or_create(email=self.email,
+                                                                      code=random_code())
+                if created:
+                    self.issue_invite = "DONE"
+                    self.invite_sent = True
+                else:
+                    self.issue_invite = ""
+
             super(RequestInvite, self).save(**kwargs)
 
     class Meta:
