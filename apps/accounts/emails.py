@@ -50,6 +50,7 @@ def send_invite_to_create_account(invitation):
     context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
                "CODE": invitation.code,
                "URL": invitation.url(),
+               "EMAIL": invitation.email,
                }
 
     subject = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
@@ -70,7 +71,8 @@ def send_invitation_code_to_user(user_code_invitation):
     htmly = get_template('email-user-code-by-email.html')
     context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
                "CODE": user_code_invitation.code,
-               "URL": user_code_invitation.url()}
+               "URL": user_code_invitation.url(),
+               "EMAIL": user_code_invitation.email}
     subject = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
                                             user_code_invitation.code)
     from_email = settings.DEFAULT_FROM_EMAIL

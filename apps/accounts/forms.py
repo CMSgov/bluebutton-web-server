@@ -263,12 +263,28 @@ class EndUserRegisterForm(forms.Form):
 
 
 class SignupForm(forms.Form):
-    invitation_code = forms.CharField(max_length=30, label=_("Invitation Code")
+    invitation_code = forms.CharField(max_length=30,
+                                      label=_("Invitation Code"),
+                                      help_text=_("An Invitation Code is "
+                                                  "needed in order to "
+                                                  "create your account. "
+                                                  "<br/>You "
+                                                  "probably received one by "
+                                                  "email.")
                                       )
-    username = forms.CharField(max_length=30, label=_("User"))
-    email = forms.EmailField(max_length=255, label=_("Email"))
-    first_name = forms.CharField(max_length=100, label=_("First Name"))
-    last_name = forms.CharField(max_length=100, label=_("Last Name"))
+    username = forms.CharField(max_length=30,
+                               label=_("User"),
+                               help_text=_("Choose the username you will "
+                                           "use to access your account."))
+    email = forms.EmailField(max_length=255,
+                             label=_("Email"),
+                             help_text=_("Your email address is needed for "
+                                         "password reset and other "
+                                         "notifications."))
+    first_name = forms.CharField(max_length=100,
+                                 label=_("First Name"))
+    last_name = forms.CharField(max_length=100,
+                                label=_("Last Name"))
     mobile_phone_number = USPhoneNumberField(required=False,
                                              label=_("Mobile Phone Number "
                                                      "(Optional)"),
@@ -280,16 +296,28 @@ class SignupForm(forms.Form):
                                         label=_("Organization Name"),
                                         required=False
                                         )
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=120,
+    password1 = forms.CharField(widget=forms.PasswordInput,
+                                max_length=120,
                                 label=_("Password"))
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=120,
-                                label=_("Password (again)"))
+    password2 = forms.CharField(widget=forms.PasswordInput,
+                                max_length=120,
+                                label=_("Password (again)"),
+                                help_text=_("We are asking you to re-enter "
+                                            "your chosen password to make "
+                                            "sure it was entered correctly."))
     password_reset_question_1 = forms.ChoiceField(choices=QUESTION_1_CHOICES)
     password_reset_answer_1 = forms.CharField(max_length=50)
     password_reset_question_2 = forms.ChoiceField(choices=QUESTION_2_CHOICES)
     password_reset_answer_2 = forms.CharField(max_length=50)
     password_reset_question_3 = forms.ChoiceField(choices=QUESTION_3_CHOICES)
-    password_reset_answer_3 = forms.CharField(max_length=50)
+    password_reset_answer_3 = forms.CharField(max_length=50,
+                                              help_text=_("We use your "
+                                                          "answers during any "
+                                                          "password reset "
+                                                          "request. <br/>"
+                                                          "Make sure you "
+                                                          "remember your "
+                                                          "answers!"))
 
     required_css_class = 'required'
 
