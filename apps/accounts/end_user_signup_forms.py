@@ -49,9 +49,8 @@ class SimpleUserSignupForm(forms.Form):
     username = forms.CharField(max_length=30,
                                label=_("User Name *"),
                                help_text=_("Choose your desired user name. "
-                                           "<br/>You will use it to " 
-                                           "access your account.")
-    )
+                                           "<br/>You will use it to "
+                                           "access your account."))
     password1 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
                                 label=_("Password"))
