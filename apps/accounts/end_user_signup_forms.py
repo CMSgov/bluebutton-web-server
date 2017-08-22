@@ -22,26 +22,46 @@ MEDICARE_SUFFIX_CHOICES = (('A', 'A'), ('A0', 'A0'), ('A1', 'A1'), ('A2', 'A2'),
 
 
 class SimpleUserSignupForm(forms.Form):
-    invitation_code = forms.CharField(max_length=30, label=_("Invitation Code *"),
-                                      help_text=_("While in pilot mode, "
+    invitation_code = forms.CharField(max_length=30,
+                                      label=_("Invitation Code *"),
+                                      help_text=_("While we pilot "
+                                                  "this service, "
                                                   "an invitation code "
-                                                  "is needed to register.")
+                                                  "is needed to register."
+                                                  "<br/>You "
+                                                  "probably received one by "
+                                                  "email.")
                                       )
     first_name = forms.CharField(max_length=100, label=_("First Name"))
     last_name = forms.CharField(max_length=100, label=_("Last Name"))
 
-    id_number = forms.CharField(max_length=15, label=_("Medicare Number *"),
-                                help_text=_("The 9 digit number on your Medicare card."
-                                            "We use this to lookup your medical records.")
+    id_number = forms.CharField(max_length=15,
+                                label=_("Medicare Number *"),
+                                help_text=_("The 9 digit number on "
+                                            "your Medicare card.<br/>"
+                                            "We use this to lookup "
+                                            "your records.")
                                 )
-    email = forms.EmailField(max_length=75, label=_("Email *"),
-                             help_text=_("We will send a verification email to this address."))
-    username = forms.CharField(max_length=30, label=_("User Name *"),
-                               help_text=_("Choose your desired user name."))
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=120,
+    email = forms.EmailField(max_length=75,
+                             label=_("Email *"),
+                             help_text=_("We will send a verification "
+                                         "email to this address."))
+    username = forms.CharField(max_length=30,
+                               label=_("User Name *"),
+                               help_text=_("Choose your desired user name. "
+                                           "<br/>You will use it to " 
+                                           "access your account.")
+    )
+    password1 = forms.CharField(widget=forms.PasswordInput,
+                                max_length=120,
                                 label=_("Password"))
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=120,
-                                label=_("Password (again)"))
+    password2 = forms.CharField(widget=forms.PasswordInput,
+                                max_length=120,
+                                label=_("Password (again)"),
+                                help_text=_("We are asking you to re-enter "
+                                            "your chosen password to make "
+                                            "sure it was entered correctly.")
+                                )
     this_is_me_or_agent = forms.CharField(widget=forms.CheckboxInput,
                                           label=_("This is me or I've been given permission to do this *"), required=True,
                                           help_text="I attest the above information is about me "
@@ -50,7 +70,9 @@ class SimpleUserSignupForm(forms.Form):
                                           "the person above is one of your parents.")
     agree_to_terms = forms.CharField(widget=forms.CheckboxInput,
                                      label=_("Agree *"), required=True,
-                                     help_text="I agree to https://www.mymedicare.gov/help/popup/cms-mbp_oswca_popuphelp.aspx")
+                                     help_text="I agree to <a "
+                                               "href=https://www.mymedicare.gov/help/popup/cms-mbp_oswca_popuphelp.aspx>"
+                                               "Medicare Online Services and Web Confidentiality Agreement</a>")
     human_x = randint(1, 9)
     human_y = randint(1, 9)
     human_z = human_x + human_y
