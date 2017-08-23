@@ -20,7 +20,8 @@ def authenticated_home(request):
 
         # this is a GET
         context = {'name': name, 'profile': profile,
-                   'crosswalk': crosswalk}
+                   'crosswalk': crosswalk,
+                   'fhir_id': crosswalk.fhir_id}
         template = 'authenticated-home.html'
     else:
         name = ('home')
