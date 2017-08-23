@@ -18,10 +18,17 @@ def authenticated_home(request):
         except Crosswalk.DoesNotExist:
             crosswalk = None
 
+        if crosswalk is None:
+            fhir_id = '0'
+        else:
+            fhir_id = crosswalk.fhir_id
+
+        if fhir_id is '':
+            fhir_id = '0'
         # this is a GET
         context = {'name': name, 'profile': profile,
                    'crosswalk': crosswalk,
-                   'fhir_id': crosswalk.fhir_id}
+                   'fhir_id': fhir_id}
         template = 'authenticated-home.html'
     else:
         name = ('home')
