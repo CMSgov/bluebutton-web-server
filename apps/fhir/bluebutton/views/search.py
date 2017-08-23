@@ -18,6 +18,7 @@ from apps.fhir.fhir_core.utils import (build_querystring,
                                        get_target_url,
                                        kickout_400,
                                        kickout_403,
+                                       kickout_404,
                                        SESSION_KEY,
                                        write_session)
 
@@ -188,6 +189,9 @@ def read_search(request,
     srtc = check_rt_controls(resource_type, rr)
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
+
+    if srtc is None:
+        return kickout_404('Unsupported ResourceType')
 
     if srtc.secure_access and request.user.is_anonymous():
         return kickout_403('Error 403: %s Resource access is controlled.'
@@ -393,8 +397,10 @@ def read_search(request,
             request,
             'bluebutton/default_xml.html',
             {'output': text_out,
+             'fhir_id': cx.fhir_id,
              'content': {'parameters': query_string,
                          'resource_type': resource_type,
+                         'id': id,
                          'request_method': "GET",
                          'interaction_type': interaction_type,
                          'div_texts': [div_text, ],
@@ -409,8 +415,10 @@ def read_search(request,
         request,
         'bluebutton/default.html',
         {'output': text_out,
+         'fhir_id': cx.fhir_id,
          'content': {'parameters': query_string,
                      'resource_type': resource_type,
+                     'id': id,
                      'request_method': "GET",
                      'interaction_type': interaction_type,
                      'div_texts': div_text,

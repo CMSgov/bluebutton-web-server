@@ -4,7 +4,7 @@ You have been invited to join the {{ APPLICATION_TITLE }} community.
 
 Please complete the signup by completing the form at:
 
-{{ URL }}?invitation_code={{ CODE }}
+{{ URL }}?invitation_code={{ CODE }}{% if EMAIL %}&email={{ EMAIL }}{% endif %}
 
 Your Invitation code is: {{ CODE }}
 
