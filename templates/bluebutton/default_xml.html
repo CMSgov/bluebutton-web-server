@@ -7,12 +7,14 @@
     </div>
 
     <div class="col-lg-12 well">
+     {% if content.div_texts|length > 0 %}
         <h6>Embedded Text Content</h6>
         <span class="text embedded">
             {% for div_text in content.div_texts %}
                 {{ div_text|safe }}
             {% endfor %}
         </span>
+     {% endif %}
         <h6>Structured Record</h6>
         <div class="col-lg-12">
 <pre>
