@@ -43,7 +43,7 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         build_rewrite_list)
 
-from apps.fhir.bluebutton.views.search import read_search
+# from apps.fhir.bluebutton.views.search import read_search
 
 from apps.fhir.bluebutton.xml_handler import get_div_from_xml
 
@@ -203,7 +203,7 @@ def generic_read(request,
 
         # logger.debug('fhir_url:%s' % fhir_url)
         else:
-            fhir_url += id +"/"
+            fhir_url += id + "/"
 
     else:
         logger.debug('CX:%s' % cx)
