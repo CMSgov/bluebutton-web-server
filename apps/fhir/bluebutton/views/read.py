@@ -69,12 +69,12 @@ def read(request, resource_type, id, *args, **kwargs):
 
     interaction_type = 'read'
 
-    read_fhir = read_search(request,
-                            interaction_type,
-                            resource_type,
-                            id,
-                            *args,
-                            **kwargs)
+    read_fhir = generic_read(request,
+                             interaction_type,
+                             resource_type,
+                             id,
+                             *args,
+                             **kwargs)
 
     return read_fhir
 
@@ -108,6 +108,9 @@ def generic_read(request,
     Get the target server info
 
     Get the request modifiers
+    - change url_id
+    - remove unwanted search parameters
+    - add search parameters
 
     Construct the call
 
@@ -121,7 +124,7 @@ def generic_read(request,
     """
     # DONE: Fix to allow url_id in url for non-key resources.
     # eg. Patient is key resource so replace url if override_url_id is True
-    # if override_url_id is not set allow url_id to be applied and check
+    # if override_url_id is not set allow id to be applied and check
     # if search_override is True.
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
     logger.debug('\n========================\n'
@@ -148,7 +151,8 @@ def generic_read(request,
     if srtc.secure_access and request.user.is_anonymous():
         return kickout_403('Error 403: %s Resource access is controlled.'
                            ' Login is required:'
-                           '%s' % (resource_type, request.user.is_anonymous()))
+                           '%s' % (resource_type,
+                                   request.user.is_anonymous()))
     # logger.debug('srtc: %s' % srtc)
 
     if cx is None:
@@ -198,6 +202,9 @@ def generic_read(request,
             fhir_url += cx.fhir_id + "/"
 
         # logger.debug('fhir_url:%s' % fhir_url)
+        else:
+            fhir_url += id +"/"
+
     else:
         logger.debug('CX:%s' % cx)
         if cx:
@@ -411,8 +418,10 @@ def generic_read(request,
             request,
             'bluebutton/default_xml.html',
             {'output': text_out,
+             'fhir_id': cx.fhir_id,
              'content': {'parameters': query_string,
                          'resource_type': resource_type,
+                         'id': id,
                          'request_method': "GET",
                          'interaction_type': interaction_type,
                          'div_texts': [div_text, ],
@@ -423,12 +432,16 @@ def generic_read(request,
         div_text = get_div_from_json(od['bundle'])
 
     # logger.debug('We got a different format:%s' % requested_format)
+    logger.debug('id or key: %s/%s' % (id, key))
+
     return render(
         request,
         'bluebutton/default.html',
         {'output': text_out,
+         'fhir_id': cx.fhir_id,
          'content': {'parameters': query_string,
                      'resource_type': resource_type,
+                     'id': id,
                      'request_method': "GET",
                      'interaction_type': interaction_type,
                      'div_texts': div_text,
