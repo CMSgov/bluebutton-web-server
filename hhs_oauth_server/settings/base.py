@@ -445,8 +445,8 @@ SESSION_COOKIE_AGE = 5400
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Change these for production
-USER_ID_SALT = "ChangeMePleaseIReallyM3anIT"
-USER_ID_ITERATIONS = 24000
+USER_ID_SALT = env('DJANGO_USER_ID_SALT', "ChangeMePleaseIReallyM3anIT")
+USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "24000"))
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER')
