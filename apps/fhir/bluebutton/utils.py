@@ -219,7 +219,10 @@ def request_get_with_parms(request,
 
         if 'text' in r:
             r_text = r.text
-        return error_status(e, r_text)
+        else:
+            r_text = "Error Status:%s. %s " % (r.status_code, request.GET)
+            logger.debug("error code:%s issue:%s" % (r.status_code, r_text))
+        return error_status(r, status_code=r.status_code)
 
         # return HttpResponseRedirect(fail_redirect)
 
