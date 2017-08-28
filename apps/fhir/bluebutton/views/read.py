@@ -59,7 +59,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 # eg. Search.
 
 
-def read(request, resource_type, id, *args, **kwargs):
+def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     """
     Read from Remote FHIR Server
 
@@ -73,6 +73,7 @@ def read(request, resource_type, id, *args, **kwargs):
                              interaction_type,
                              resource_type,
                              id,
+                             via_oauth,
                              *args,
                              **kwargs)
 
@@ -83,6 +84,7 @@ def generic_read(request,
                  interaction_type,
                  resource_type,
                  id=None,
+                 via_oauth=False,
                  vid=None,
                  *args,
                  **kwargs):
@@ -130,8 +132,13 @@ def generic_read(request,
     logger.debug('\n========================\n'
                  'INTERACTION_TYPE: %s' % interaction_type)
 
-    # Get the users crosswalk
-    cx = get_crosswalk(request.user)
+    # if via_oauth we need to call crosswalk with
+    if via_oauth:
+        # get crosswalk from the resource_owner
+        cx - get_crosswalk(request.resource_owner)
+    else:
+        # Get the users crosswalk
+        cx = get_crosswalk(request.user)
 
     # cx will be the crosswalk record or None
     rr = get_resourcerouter(cx)

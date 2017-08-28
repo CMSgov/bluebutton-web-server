@@ -60,7 +60,7 @@ DF_EXTRA_INFO = False
 
 
 @csrf_exempt
-def search_simple(request, resource_type, *args, **kwargs):
+def search_simple(request, resource_type, via_oauth=False, *args, **kwargs):
     """Route to search FHIR Interaction"""
 
     if request.method == 'GET':
@@ -68,14 +68,14 @@ def search_simple(request, resource_type, *args, **kwargs):
         logger.debug("searching with Resource:"
                      "%s and Id:%s" % (resource_type, id))
 
-        return read_search(request, resource_type, id)
+        return read_search(request, resource_type, id, via_oauth)
 
     # elif request.method == 'PUT':
     #     # update
-    #     return update(request, resource_type, id)
+    #     return update(request, resource_type, id, via_oauth)
     # elif request.method == 'DELETE':
     #     # delete
-    #     return delete(request, resource_type, id)
+    #     return delete(request, resource_type, id, via_oauth)
     # else:
     # Not supported.
     msg = "HTTP method %s not supported at this URL." % (request.method)
@@ -85,7 +85,7 @@ def search_simple(request, resource_type, *args, **kwargs):
     return kickout_400(msg)
 
 
-def search(request, resource_type, *args, **kwargs):
+def search(request, resource_type, via_oauth=False, *args, **kwargs):
     """
     Search from Remote FHIR Server
 
