@@ -58,7 +58,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = 'Mark Scrimshire:@ekivemark'
 
 
-def fhir_search_home(request):
+def fhir_search_home(request, via_oauth=False):
     """ Check if search parameters are in the GET
 
      if not pass through to authenticated_home
@@ -71,12 +71,12 @@ def fhir_search_home(request):
             if '_getpages' in request.GET:
                 # print("We got something to get")
 
-                return rebuild_fhir_search(request)
+                return rebuild_fhir_search(request, via_oauth)
 
     return authenticated_home(request)
 
 
-def rebuild_fhir_search(request):
+def rebuild_fhir_search(request, via_oauth=False):
     """ Rebuild the Search String
 
     We will start to use a session variable
@@ -116,7 +116,12 @@ def rebuild_fhir_search(request):
         key = sn_vr['key']
         vid = sn_vr['vid']
 
-        cx = get_crosswalk(request.user)
+        if via_oauth:
+            # get to user via resource_owner
+            cx = get_crosswalk(request.resource_owner)
+        else:
+            # get user via logged in user
+            cx = get_crosswalk(request.user)
 
         # logger.debug("Calling:%s" % url_call)
         r = request_call(request,
@@ -163,7 +168,7 @@ def rebuild_fhir_search(request):
     return authenticated_home(request)
 
 
-def fhir_conformance(request, *args, **kwargs):
+def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
     BaseDstu2 = "Conformance"
@@ -175,8 +180,14 @@ def fhir_conformance(request, *args, **kwargs):
     if not request.user.is_authenticated():
         return authenticated_home(request)
 
+    if via_oauth:
+        # get user via resource_owner
+        get_user = request.resource_owner
+    else:
+        get_user = request.user
+
     try:
-        cx = Crosswalk.objects.get(user=request.user)
+        cx = Crosswalk.objects.get(user=get_user)
     except Crosswalk.DoesNotExist:
         cx = None
         # logger.debug('Crosswalk for %s does not exist' % request.user)
