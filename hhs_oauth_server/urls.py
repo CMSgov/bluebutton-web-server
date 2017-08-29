@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^education/', include('apps.education.urls')),
     url(r'^api/', include('apps.api.urls')),
     url(r'^fhir/v3/', include('apps.fhir.server.urls')),
+    url(r'^protected/bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls_oauth')),
     url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
     url(r'^capabilities/', include('apps.capabilities.urls')),
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),

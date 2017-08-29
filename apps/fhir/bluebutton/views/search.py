@@ -5,12 +5,15 @@ import logging
 from collections import OrderedDict
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 
 from django.views.decorators.csrf import csrf_exempt
 
 from django.shortcuts import render
+from apps.dot_ext.decorators import capability_protected_resource
+
 
 from apps.fhir.fhir_core.utils import (build_querystring,
                                        find_ikey,
@@ -85,7 +88,8 @@ def search_simple(request, resource_type, via_oauth=False, *args, **kwargs):
     return kickout_400(msg)
 
 
-def search(request, resource_type, via_oauth=False, *args, **kwargs):
+@login_required()
+def search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server
 
@@ -132,13 +136,75 @@ def search(request, resource_type, via_oauth=False, *args, **kwargs):
 
     if "_getpages" in request.GET:
         # Handle the next searchset
-        search = fhir_search_home(request)
+        search = fhir_search_home(request, via_oauth=False)
     else:
         # Otherwise we should have a resource_type and can perform a search
         search = read_search(request,
                              interaction_type,
                              resource_type,
                              # rt_id=None,
+                             via_oauth=False,
+                             *args,
+                             **kwargs)
+    return search
+
+
+@capability_protected_resource()
+def oauth_search(request, resource_type, *args, **kwargs):
+    """
+    Search from Remote FHIR Server
+
+    # Example client use in curl:
+    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
+    """
+
+    interaction_type = 'search'
+
+    logger.debug("Received:%s" % resource_type)
+    logger_debug.debug("Received:%s" % resource_type)
+
+    conformance = False
+    if "_getpages" in request.GET:
+        # a request can be made without a resource name
+        # if the GET Parameters include _getpages it is asking for the
+        # next batch of resources from a previous search
+        conformance = False
+        logger.debug("We need to get a searchset: %s" % request.GET)
+
+    elif resource_type is None:
+        conformance = True
+    elif resource_type.lower() == 'metadata':
+        # metadata is a valid resourceType to request the
+        # Conformance/Capability Statement
+        conformance = True
+    elif resource_type.lower == 'conformance':
+        # Conformance is the Dstu2 name for the list of resources supported
+        conformance = True
+    elif resource_type.lower == "capability":
+        # Capability is the Stu3 name for the list of resources supported
+        conformance = True
+
+    if conformance:
+        return fhir_conformance(request, resource_type, *args, **kwargs)
+
+    logger.debug("Interaction:%s. "
+                 "Calling generic_read for %s" % (interaction_type,
+                                                  resource_type))
+
+    logger_debug.debug("Interaction:%s. "
+                       "Calling generic_read for %s" % (interaction_type,
+                                                        resource_type))
+
+    if "_getpages" in request.GET:
+        # Handle the next searchset
+        search = fhir_search_home(request, via_oauth=True)
+    else:
+        # Otherwise we should have a resource_type and can perform a search
+        search = read_search(request,
+                             interaction_type,
+                             resource_type,
+                             # rt_id=None,
+                             via_oauth=True,
                              *args,
                              **kwargs)
     return search
@@ -147,6 +213,7 @@ def search(request, resource_type, via_oauth=False, *args, **kwargs):
 def read_search(request,
                 interaction_type,
                 resource_type,
+                via_oauth=False,
                 id=None,
                 vid=None,
                 *args,
@@ -173,7 +240,10 @@ def read_search(request,
                  'INTERACTION_TYPE: %s' % interaction_type)
 
     # Get the users crosswalk
-    cx = get_crosswalk(request.user)
+    if via_oauth:
+        cx = get_crosswalk(request.resource_owner)
+    else:
+        cx = get_crosswalk(request.user)
 
     # cx will be the crosswalk record or None
     rr = get_resourcerouter(cx)
