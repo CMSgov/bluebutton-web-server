@@ -263,11 +263,12 @@ def read_search(request,
     if srtc is None:
         return kickout_404('Unsupported ResourceType')
 
-    if srtc.secure_access and request.user.is_anonymous():
-        return kickout_403('Error 403: %s Resource access is controlled.'
-                           ' Login is required:'
-                           '%s' % (resource_type, request.user.is_anonymous()))
-        # logger.debug('srtc: %s' % srtc)
+    if not via_oauth:
+        if srtc.secure_access and request.user.is_anonymous():
+            return kickout_403('Error 403: %s Resource access is controlled.'
+                               ' Login is required:'
+                               '%s' % (resource_type, request.user.is_anonymous()))
+            # logger.debug('srtc: %s' % srtc)
 
     if (cx is None and srtc is not None):
         # There is a srtc record so we need to check override_search
@@ -304,6 +305,9 @@ def read_search(request,
 
     # requested_format = 'json' | 'xml' | 'html'
     requested_format = save_request_format(input_parameters)
+    if via_oauth and requested_format == "html":
+        # default to "json"
+        requested_format = "json"
 
     format_mode = eval_format_type(requested_format)
 

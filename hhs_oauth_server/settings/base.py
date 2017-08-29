@@ -497,6 +497,7 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 REQUEST_CALL_TIMEOUT = (5, 120)
 
 # url parameters we don't want to pass through to the back-end server
+# FRONT_END_STRIP_PARAMS = []
 FRONT_END_STRIP_PARAMS = ['access_token',
                           'state',
                           'response_type',
