@@ -178,12 +178,14 @@ def generic_read(request,
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
 
-    if srtc.secure_access and request.user.is_anonymous():
-        return kickout_403('Error 403: %s Resource access is controlled.'
-                           ' Login is required:'
-                           '%s' % (resource_type,
-                                   request.user.is_anonymous()))
-    # logger.debug('srtc: %s' % srtc)
+    if not via_oauth:
+        # we don't need to check if user is anonymous if coming via_oauth
+        if srtc.secure_access and request.user.is_anonymous():
+            return kickout_403('Error 403: %s Resource access is controlled.'
+                               ' Login is required:'
+                               '%s' % (resource_type,
+                                       request.user.is_anonymous()))
+        # logger.debug('srtc: %s' % srtc)
 
     if cx is None:
         logger.debug('Crosswalk for %s does not exist' % request.user)
@@ -196,11 +198,6 @@ def generic_read(request,
             return kickout_403('Error 403: %s Resource is access controlled.'
                                ' No records are linked to user:'
                                '%s' % (resource_type, request.user))
-
-    # Need to check if user is logged in.
-    # request.user.is_anonymous()
-    #
-    # if request.user.is_anonymous():
 
     # Request.user = user
     # interaction_type = read | _history | vread
@@ -250,8 +247,8 @@ def generic_read(request,
     else:
         key = masked_id(resource_type, cx, srtc, id, slash=False)
 
-        print("\nMasked_id-key:%s from r_id:%s "
-              "and cx-fhir_id:%s\n" % (key, id, cx.fhir_id))
+        # print("\nMasked_id-key:%s from r_id:%s "
+        #       "and cx-fhir_id:%s\n" % (key, id, cx.fhir_id))
 
         # add key to fhir_url unless already in place.
         fhir_url = add_key_to_fhir_url(fhir_url, key)
@@ -269,7 +266,12 @@ def generic_read(request,
     # Let's store the inbound requested format
     # We need to simplify the format call to the backend
     # so that we get data we can manipulate
+
+    # if format is not defined and we come in via_oauth
+    # then default to json for format
     requested_format = request_format(pass_params)
+    if requested_format == "html" and via_oauth:
+        requested_format = "json"
 
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
