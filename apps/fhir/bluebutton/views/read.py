@@ -4,7 +4,7 @@ import logging
 from collections import OrderedDict
 
 from django.conf import settings
-
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -59,9 +59,32 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 # eg. Search.
 
 
+@login_required()
 def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     """
     Read from Remote FHIR Server
+
+    # Example client use in curl:
+    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
+    """
+
+    interaction_type = 'read'
+
+    read_fhir = generic_read(request,
+                             interaction_type,
+                             resource_type,
+                             id,
+                             via_oauth,
+                             *args,
+                             **kwargs)
+
+    return read_fhir
+
+
+def oauth_read(request, resource_type, id, via_oauth, *args, **kwargs):
+    """
+    Read from Remote FHIR Server
+    Called from oauth.py
 
     # Example client use in curl:
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
@@ -135,7 +158,7 @@ def generic_read(request,
     # if via_oauth we need to call crosswalk with
     if via_oauth:
         # get crosswalk from the resource_owner
-        cx - get_crosswalk(request.resource_owner)
+        cx = get_crosswalk(request.resource_owner)
     else:
         # Get the users crosswalk
         cx = get_crosswalk(request.user)
