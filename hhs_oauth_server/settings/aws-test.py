@@ -5,11 +5,11 @@ import datetime
 from getenv import env
 from ..utils import bool_env
 
-# Add testac to Dev/Test environments only
-if 'apps.fhir.testac' not in INSTALLED_APPS:
-    INSTALLED_APPS = INSTALLED_APPS + [
-        'apps.fhir.testac',
-    ]
+# # Add testac to Dev/Test environments only
+# if 'apps.fhir.testac' not in INSTALLED_APPS:
+#     INSTALLED_APPS = INSTALLED_APPS + [
+#         'apps.fhir.testac',
+#     ]
 
 # Set ADMINS and MANAGERS
 ADMINS = (

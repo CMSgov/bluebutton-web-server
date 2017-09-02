@@ -11,10 +11,13 @@
             </div>
             
              <div class="row">
-              <div class="col-lg-12">
+               <div class="col-lg-12">
                   You have been invited to join the {{ APPLICATION_TITLE }} community.
-                  Complete you signup by completing the form at <a href={{URL}}>{{URL}}</a>
-                </div>
+                  Complete you signup by completing the form at <a href={{URL}}?invitation_code={{ CODE }}{% if EMAIL %}&email={{ EMAIL }}{% endif %}>{{URL}}</a>
+               </div>
+               <div class=" col-lg-12">
+                   Your invitation code is: <em>{{ CODE }}</em>
+               </div>
               </div>
             
             <div class="row">

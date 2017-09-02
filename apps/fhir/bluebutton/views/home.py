@@ -23,6 +23,7 @@ except ImportError:
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render, HttpResponse
+from django.contrib.auth.decorators import login_required
 
 # from apps.fhir.bluebutton.models import ResourceTypeControl
 from apps.fhir.bluebutton.models import Crosswalk
@@ -42,6 +43,8 @@ from apps.fhir.bluebutton.utils import (request_call,
 
 from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               dom_conformance_filter)
+from apps.dot_ext.decorators import capability_protected_resource
+
 
 from apps.fhir.fhir_core.utils import (read_session,
                                        get_search_param_format,
@@ -58,7 +61,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = 'Mark Scrimshire:@ekivemark'
 
 
-def fhir_search_home(request):
+def fhir_search_home(request, via_oauth=False):
     """ Check if search parameters are in the GET
 
      if not pass through to authenticated_home
@@ -71,12 +74,12 @@ def fhir_search_home(request):
             if '_getpages' in request.GET:
                 # print("We got something to get")
 
-                return rebuild_fhir_search(request)
+                return rebuild_fhir_search(request, via_oauth)
 
     return authenticated_home(request)
 
 
-def rebuild_fhir_search(request):
+def rebuild_fhir_search(request, via_oauth=False):
     """ Rebuild the Search String
 
     We will start to use a session variable
@@ -116,7 +119,12 @@ def rebuild_fhir_search(request):
         key = sn_vr['key']
         vid = sn_vr['vid']
 
-        cx = get_crosswalk(request.user)
+        if via_oauth:
+            # get to user via resource_owner
+            cx = get_crosswalk(request.resource_owner)
+        else:
+            # get user via logged in user
+            cx = get_crosswalk(request.user)
 
         # logger.debug("Calling:%s" % url_call)
         r = request_call(request,
@@ -163,7 +171,8 @@ def rebuild_fhir_search(request):
     return authenticated_home(request)
 
 
-def fhir_conformance(request, *args, **kwargs):
+@capability_protected_resource()
+def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
     BaseDstu2 = "Conformance"
@@ -175,8 +184,156 @@ def fhir_conformance(request, *args, **kwargs):
     if not request.user.is_authenticated():
         return authenticated_home(request)
 
+    if via_oauth:
+        # get user via resource_owner
+        get_user = request.resource_owner
+    else:
+        get_user = request.user
+
     try:
-        cx = Crosswalk.objects.get(user=request.user)
+        cx = Crosswalk.objects.get(user=get_user)
+    except Crosswalk.DoesNotExist:
+        cx = None
+        # logger.debug('Crosswalk for %s does not exist' % request.user)
+
+    if cx:
+        rr = get_resourcerouter(cx)
+        call_to = cx.fhir_source.fhir_url
+    else:
+        rr = get_resourcerouter()
+        call_to = FhirServerUrl()
+
+    resource_type = conformance_or_capability(call_to)
+
+    if call_to.endswith('/'):
+        call_to += 'metadata'
+    else:
+        call_to += '/metadata'
+
+    pass_params = strip_oauth(request.GET)
+    # pass_params should be an OrderedDict after strip_auth
+    # logger.debug("result from strip_oauth:%s" % pass_params)
+
+    # Let's store the inbound requested format
+    # We need to simplify the format call to the backend
+    # so that we get data we can manipulate
+    requested_format = request_format(pass_params)
+
+    # now we simplify the format/_format request for the back-end
+    pass_params = strip_format_for_back_end(pass_params)
+    back_end_format = pass_params['_format']
+
+    encoded_params = urlencode(pass_params)
+    #
+    # Add ? to front of parameters if needed
+    pass_params = prepend_q(encoded_params)
+
+    # logger.debug("Calling:%s" % call_to + pass_params)
+
+    ####################################################
+    ####################################################
+
+    r = request_call(request,
+                     call_to + pass_params,
+                     cx,
+                     reverse_lazy('authenticated_home'))
+
+    ####################################################
+    ####################################################
+
+    text_out = ''
+    host_path = get_host_url(request, '?')
+
+    # get 'xml' 'json' or ''
+    # fmt = get_search_param_format(request.META['QUERY_STRING'])
+    # force to json
+
+    # logger.debug("Format:%s" % back_end_format)
+
+    rewrite_url_list = build_rewrite_list(cx)
+    # print("Starting Rewrite_list:%s" % rewrite_url_list)
+
+    text_out = post_process_request(request,
+                                    back_end_format,
+                                    host_path,
+                                    r.text,
+                                    rewrite_url_list)
+
+    query_string = build_querystring(request.GET.copy())
+    # logger.debug("Query:%s" % query_string)
+
+    if 'xml' in requested_format:
+        # logger.debug('We got xml back in od')
+
+        # logger.debug("is xml filtered?%s" % requested_format)
+        xml_dom = xml_to_dom(text_out)
+        text_out = dom_conformance_filter(xml_dom, rr)
+        # logger.debug("Text from XML function:\n%s\n=========" % text_out)
+        if 'html' not in requested_format:
+            return HttpResponse(text_out,
+                                content_type='application'
+                                             '/%s' % requested_format)
+        else:
+            # logger.debug("Sending text_out for display: %s" % text_out[0:100])
+            return render(
+                request,
+                'bluebutton/default_xml.html',
+                {'output': text_out,
+                 'content': {'parameters': query_string,
+                             'resource_type': resource_type,
+                             'request_method': "GET",
+                             'interaction_type': "metadata",
+                             'source': cx.fhir_source.name}})
+
+            # return HttpResponse( tostring(dict_to_xml('content', od)),
+        #                      content_type='application/%s' % fmt)
+    elif back_end_format == 'json':
+        # logger.debug('We got json back in od')
+        od = conformance_filter(text_out, back_end_format, rr)
+        text_out = pretty_json(od)
+        if 'html' not in requested_format:
+            return HttpResponse(text_out,
+                                content_type='application/'
+                                             '%s' % requested_format)
+    else:
+        # let's make sure we have json to deliver:
+        od = conformance_filter(text_out, back_end_format, rr)
+        text_out = pretty_json(od)
+
+    # logger.debug('We got a different format:%s' % back_end_format)
+
+    return render(
+        request,
+        'bluebutton/default.html',
+        {'output': text_out,
+         'content': {'parameters': query_string,
+                     'resource_type': resource_type,
+                     'request_method': "GET",
+                     'interaction_type': "metadata",
+                     'source': cx.fhir_source.name}})
+
+
+@login_required()
+def fhir_conformance(request, via_oauth=False, *args, **kwargs):
+    """ Pull and filter fhir Conformance statement
+
+    BaseDstu2 = "Conformance"
+    BaseStu3 = "CapabilityStatement"
+
+    metadata call
+
+    """
+    if not request.user.is_authenticated():
+        return authenticated_home(request)
+
+    if via_oauth:
+        # get user via resource_owner
+        get_user = request.resource_owner
+    else:
+        get_user = request.user
+
+    try:
+        cx = Crosswalk.objects.get(user=get_user)
     except Crosswalk.DoesNotExist:
         cx = None
         # logger.debug('Crosswalk for %s does not exist' % request.user)

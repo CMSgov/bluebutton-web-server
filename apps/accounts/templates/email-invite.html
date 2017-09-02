@@ -14,8 +14,8 @@
               <div class="col-lg-12">
                   You have been invited to join the {{ APPLICATION_TITLE }} community.<br/>
                   Your invitation code is: <strong>{{ CODE }}</strong>.<br/>
-                  You may now register <a href={{ URL }}?invitation_code={{ CODE }}> using this link</a>.<br/>
-                  Or paste this url into your browser: {{ URL }}?invitation_code={{ CODE }}
+                  You may now register <a href={{ URL }}?invitation_code={{ CODE }}{% if EMAIL %}&email={{ EMAIL }}{% endif %}> using this link</a>.<br/>
+                  Or paste this url into your browser: {{ URL }}?invitation_code={{ CODE }}{% if EMAIL %}&email={{ EMAIL }}{% endif %}
 
                 </div>
               </div>

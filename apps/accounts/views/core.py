@@ -108,7 +108,7 @@ def reissue_api_keys(request):
 @ratelimit(key='ip', rate='10/h', method=['POST'], block=True)
 def create_account(request):
 
-    name = "Create a Developer Account"
+    name = "Create your %s Account" % settings.APPLICATION_TITLE
 
     if request.method == 'POST':
         form = SignupForm(request.POST)

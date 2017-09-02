@@ -4,7 +4,7 @@ import logging
 from collections import OrderedDict
 
 from django.conf import settings
-
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -43,7 +43,7 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         build_rewrite_list)
 
-from apps.fhir.bluebutton.views.search import read_search
+# from apps.fhir.bluebutton.views.search import read_search
 
 from apps.fhir.bluebutton.xml_handler import get_div_from_xml
 
@@ -59,7 +59,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 # eg. Search.
 
 
-def read(request, resource_type, id, *args, **kwargs):
+@login_required()
+def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     """
     Read from Remote FHIR Server
 
@@ -69,12 +70,35 @@ def read(request, resource_type, id, *args, **kwargs):
 
     interaction_type = 'read'
 
-    read_fhir = read_search(request,
-                            interaction_type,
-                            resource_type,
-                            id,
-                            *args,
-                            **kwargs)
+    read_fhir = generic_read(request,
+                             interaction_type,
+                             resource_type,
+                             id,
+                             via_oauth,
+                             *args,
+                             **kwargs)
+
+    return read_fhir
+
+
+def oauth_read(request, resource_type, id, via_oauth, *args, **kwargs):
+    """
+    Read from Remote FHIR Server
+    Called from oauth.py
+
+    # Example client use in curl:
+    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
+    """
+
+    interaction_type = 'read'
+
+    read_fhir = generic_read(request,
+                             interaction_type,
+                             resource_type,
+                             id,
+                             via_oauth,
+                             *args,
+                             **kwargs)
 
     return read_fhir
 
@@ -83,6 +107,7 @@ def generic_read(request,
                  interaction_type,
                  resource_type,
                  id=None,
+                 via_oauth=False,
                  vid=None,
                  *args,
                  **kwargs):
@@ -108,6 +133,9 @@ def generic_read(request,
     Get the target server info
 
     Get the request modifiers
+    - change url_id
+    - remove unwanted search parameters
+    - add search parameters
 
     Construct the call
 
@@ -121,14 +149,19 @@ def generic_read(request,
     """
     # DONE: Fix to allow url_id in url for non-key resources.
     # eg. Patient is key resource so replace url if override_url_id is True
-    # if override_url_id is not set allow url_id to be applied and check
+    # if override_url_id is not set allow id to be applied and check
     # if search_override is True.
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
     logger.debug('\n========================\n'
                  'INTERACTION_TYPE: %s' % interaction_type)
 
-    # Get the users crosswalk
-    cx = get_crosswalk(request.user)
+    # if via_oauth we need to call crosswalk with
+    if via_oauth:
+        # get crosswalk from the resource_owner
+        cx = get_crosswalk(request.resource_owner)
+    else:
+        # Get the users crosswalk
+        cx = get_crosswalk(request.user)
 
     # cx will be the crosswalk record or None
     rr = get_resourcerouter(cx)
@@ -145,11 +178,14 @@ def generic_read(request,
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
 
-    if srtc.secure_access and request.user.is_anonymous():
-        return kickout_403('Error 403: %s Resource access is controlled.'
-                           ' Login is required:'
-                           '%s' % (resource_type, request.user.is_anonymous()))
-    # logger.debug('srtc: %s' % srtc)
+    if not via_oauth:
+        # we don't need to check if user is anonymous if coming via_oauth
+        if srtc.secure_access and request.user.is_anonymous():
+            return kickout_403('Error 403: %s Resource access is controlled.'
+                               ' Login is required:'
+                               '%s' % (resource_type,
+                                       request.user.is_anonymous()))
+        # logger.debug('srtc: %s' % srtc)
 
     if cx is None:
         logger.debug('Crosswalk for %s does not exist' % request.user)
@@ -162,11 +198,6 @@ def generic_read(request,
             return kickout_403('Error 403: %s Resource is access controlled.'
                                ' No records are linked to user:'
                                '%s' % (resource_type, request.user))
-
-    # Need to check if user is logged in.
-    # request.user.is_anonymous()
-    #
-    # if request.user.is_anonymous():
 
     # Request.user = user
     # interaction_type = read | _history | vread
@@ -198,6 +229,9 @@ def generic_read(request,
             fhir_url += cx.fhir_id + "/"
 
         # logger.debug('fhir_url:%s' % fhir_url)
+        else:
+            fhir_url += id + "/"
+
     else:
         logger.debug('CX:%s' % cx)
         if cx:
@@ -213,8 +247,8 @@ def generic_read(request,
     else:
         key = masked_id(resource_type, cx, srtc, id, slash=False)
 
-        print("\nMasked_id-key:%s from r_id:%s "
-              "and cx-fhir_id:%s\n" % (key, id, cx.fhir_id))
+        # print("\nMasked_id-key:%s from r_id:%s "
+        #       "and cx-fhir_id:%s\n" % (key, id, cx.fhir_id))
 
         # add key to fhir_url unless already in place.
         fhir_url = add_key_to_fhir_url(fhir_url, key)
@@ -232,7 +266,12 @@ def generic_read(request,
     # Let's store the inbound requested format
     # We need to simplify the format call to the backend
     # so that we get data we can manipulate
+
+    # if format is not defined and we come in via_oauth
+    # then default to json for format
     requested_format = request_format(pass_params)
+    if requested_format == "html" and via_oauth:
+        requested_format = "json"
 
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
@@ -411,8 +450,10 @@ def generic_read(request,
             request,
             'bluebutton/default_xml.html',
             {'output': text_out,
+             'fhir_id': cx.fhir_id,
              'content': {'parameters': query_string,
                          'resource_type': resource_type,
+                         'id': id,
                          'request_method': "GET",
                          'interaction_type': interaction_type,
                          'div_texts': [div_text, ],
@@ -423,12 +464,16 @@ def generic_read(request,
         div_text = get_div_from_json(od['bundle'])
 
     # logger.debug('We got a different format:%s' % requested_format)
+    logger.debug('id or key: %s/%s' % (id, key))
+
     return render(
         request,
         'bluebutton/default.html',
         {'output': text_out,
+         'fhir_id': cx.fhir_id,
          'content': {'parameters': query_string,
                      'resource_type': resource_type,
+                     'id': id,
                      'request_method': "GET",
                      'interaction_type': interaction_type,
                      'div_texts': div_text,
