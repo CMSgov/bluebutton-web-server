@@ -1,16 +1,23 @@
 import logging
+import binascii
 from random import randint
 
+from localflavor.us.forms import USPhoneNumberField
+
 from django import forms
-from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.utils.dates import MONTHS
 from django.utils.translation import ugettext_lazy as _
+from django.utils.crypto import pbkdf2
 
 from .models import UserProfile, create_activation_key, UserRegisterCode
-from localflavor.us.forms import USPhoneNumberField
-from django.utils.dates import MONTHS
+from apps.fhir.bluebutton.models import Crosswalk
+
 from .views.core import MFA_CHOICES
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 MEDICARE_SUFFIX_CHOICES = (('A', 'A'), ('A0', 'A0'), ('A1', 'A1'), ('A2', 'A2'), ('A3', 'A3'),
@@ -153,6 +160,13 @@ class SimpleUserSignupForm(forms.Form):
                                    user_type="BEN",
                                    create_applications=False,
                                    )
+
+        # TODO: Add Crosswalk Create.
+        Crosswalk.objects.create(user=new_user,
+                                 user_id_hash=binascii.hexlify(pbkdf2(self.cleaned_data['id_number'],
+                                                                      settings.USER_ID_SALT,
+                                                                      settings.USER_ID_ITERATIONS)).decode("ascii"))
+        #
         group = Group.objects.get(name='BlueButton')
         new_user.groups.add(group)
 
