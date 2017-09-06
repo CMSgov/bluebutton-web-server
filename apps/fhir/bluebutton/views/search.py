@@ -14,7 +14,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from apps.dot_ext.decorators import capability_protected_resource
 
-
 from apps.fhir.fhir_core.utils import (build_querystring,
                                        find_ikey,
                                        get_div_from_json,
