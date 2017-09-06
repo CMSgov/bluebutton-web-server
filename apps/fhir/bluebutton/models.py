@@ -168,6 +168,7 @@ class Fhir_Response(Response):
                            "_result": "",
                            "_owner": "",
                            "encoding": "utf-8",
+                           "_content": ""
                            }
 
         # Add extra fields to Response Object
