@@ -195,6 +195,9 @@ def error_status(r, status_code=404, reason='undefined error occurred'):
     :param reason:
     :return:
     """
+
+    logger.debug("R:%s" % r)
+    logger.debug("status_code:%s" % status_code)
     try:
         error_detail = r.text
 
@@ -207,6 +210,7 @@ def error_status(r, status_code=404, reason='undefined error occurred'):
     except:
         error_detail = ""
 
+    logger.debug("Reason:%s" % reason)
     if reason == 'undefined error occurred':
         if status_code == 404:
             reason = 'page not found'
@@ -246,6 +250,10 @@ def error_status(r, status_code=404, reason='undefined error occurred'):
 
     response['errors'] = [reason, error_detail]
     response['code'] = status_code
+    response['status_code'] = status_code
+    response['text'] = reason
+
+    logger.debug("Errors: %s" % response)
 
     return HttpResponse(json.dumps(response, indent=4),
                         status=status_code,

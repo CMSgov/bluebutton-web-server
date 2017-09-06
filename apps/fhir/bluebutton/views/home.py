@@ -8,6 +8,7 @@ FILE: home.py
 Created: 6/27/16 3:24 PM
 
 """
+import json
 import logging
 
 from collections import OrderedDict
@@ -50,6 +51,7 @@ from apps.fhir.fhir_core.utils import (read_session,
                                        get_search_param_format,
                                        strip_format_for_back_end,
                                        SESSION_KEY,
+                                       ERROR_CODE_LIST,
                                        valid_interaction,
                                        build_querystring,
                                        request_format)
@@ -372,6 +374,8 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
 
     # logger.debug("Calling:%s" % call_to + pass_params)
 
+    query_string = build_querystring(request.GET.copy())
+
     ####################################################
     ####################################################
 
@@ -385,6 +389,26 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
 
     text_out = ''
     host_path = get_host_url(request, '?')
+
+    if r.status_code in ERROR_CODE_LIST:
+        logger.debug("We have an error code to deal with: %s" % r.status_code)
+        if 'html' in requested_format.lower():
+            return render(
+                request,
+                'bluebutton/default.html',
+                {'output': pretty_json(r._content, indent=4),
+                 'fhir_id': cx.fhir_id,
+                 'content': {'parameters': query_string,
+                             'resource_type': resource_type,
+                             'id': id,
+                             'request_method': "GET",
+                             'interaction_type': "search",
+                             'div_texts': "",
+                             'source': cx.fhir_source.name}})
+        else:
+            return HttpResponse(json.dumps(r._content, indent=4),
+                                status=r.status_code,
+                                content_type='application/json')
 
     # get 'xml' 'json' or ''
     # fmt = get_search_param_format(request.META['QUERY_STRING'])
@@ -400,8 +424,9 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
                                     host_path,
                                     r.text,
                                     rewrite_url_list)
+    # define query string further up before request_call
+    # query_string = build_querystring(request.GET.copy())
 
-    query_string = build_querystring(request.GET.copy())
     # logger.debug("Query:%s" % query_string)
 
     if 'xml' in requested_format:

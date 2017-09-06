@@ -141,7 +141,7 @@ def create_account(request):
 @login_required
 def account_settings(request):
     name = _('Account Settings')
-    up = get_object_or_404(UserProfile, user=request.user)
+    up, created = UserProfile.objects.get_or_create(user=request.user)
 
     groups = request.user.groups.values_list('name', flat=True)
     for g in groups:
@@ -159,10 +159,10 @@ def account_settings(request):
             request.user.save()
             # update the user profile
             up.organization_name = data['organization_name']
-            up.create_applications = data['create_applications']
             up.mfa_login_mode = data['mfa_login_mode']
             up.mobile_phone_number = data['mobile_phone_number']
             up.create_applications = data['create_applications']
+            up.authorize_applications = True
             up.save()
             messages.success(request,
                              'Your account settings have been updated.')
@@ -210,12 +210,4 @@ def pick_reverse_login():
     Check settings.MFA to determine which reverse call to make
     :return:
     """
-    try:
-        is_mfa = settings.MFA
-    except:
-        is_mfa = False
-
-    if is_mfa:
-        return HttpResponseRedirect(reverse('mfa_login'))
-    else:
-        return HttpResponseRedirect(reverse('login'))
+    return HttpResponseRedirect(reverse('mfa_login'))
