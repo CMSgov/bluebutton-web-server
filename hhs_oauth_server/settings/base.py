@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'bootstrapform',
     'axes',
+    'social_django',  # Python Social Auth
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 
@@ -139,6 +140,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
@@ -337,13 +339,9 @@ LOGGING = {
     },
 }
 
-# third parties
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    # 'apps.accounts.auth.SettingsBackend',
-    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
-)
+
+# Django Oauth Tookit settings and customizations
 
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
 # removing apps. by using AppConfig for apps.dot_ext
@@ -366,20 +364,26 @@ DOT_EXPIRES_IN = (
     (864000 * 365 * 10, _('10 Years')),
 )
 
-
+# The name of an external oauth2 provider.
+EXTERNAL_AUTH_NAME = "MyMedicare.gov"
+ALLOW_END_USER_EXTERNAL_AUTH = ""
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
-ORGANIZATION_TITLE = env('DJANGO_ORGANIZATION_TITLE',
-                         'The U.S. Centers for Medicare and Medicaid Services (CMS)')
+ORGANIZATION_TITLE = env(
+    'DJANGO_ORGANIZATION_TITLE',
+    'The U.S. Centers for Medicare and Medicaid Services (CMS)')
 ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', 'https://cms.gov')
-POLICY_URI = env('DJANGO_POLICY_URI', 'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
+POLICY_URI = env(
+    'DJANGO_POLICY_URI',
+    'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
 POLICY_TITLE = env('DJANGO_POLICY_TITLE', 'Privacy Policy')
 TOS_URI = env('DJANGO_TOS_URI', '#')
 TOS_TITLE = env('DJANGO_TOS_TITLE', 'Terms of Service')
 TAG_LINE_1 = env('DJANGO_TAG_LINE_1', 'Share your Medicare data')
-TAG_LINE_2 = env('DJANGO_TAG_LINE_2', 'with applications, organizations, and people you trust.')
+TAG_LINE_2 = env('DJANGO_TAG_LINE_2',
+                 'with applications, organizations, and people you trust.')
 EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
 EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 
@@ -430,7 +434,9 @@ SETTINGS_EXPORT = [
     'TOS_TITLE',
     'TAG_LINE_1',
     'TAG_LINE_2',
-    'EXPLAINATION_LINE'
+    'EXPLAINATION_LINE',
+    'EXTERNAL_AUTH_NAME',
+    'ALLOW_END_USER_EXTERNAL_AUTH'
 ]
 
 
@@ -512,10 +518,46 @@ FHIR_DEFAULT_AUTH = {'client_auth': False,
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
 
-LOGIN_REDIRECT_URL = '/accounts/mfa/login'
+LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/mfa/login'
 
 REQUIRE_AUTHORIZE_APP_FLAG = False
 
 # Move Admin to a variable url location
 ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
+
+# Python Social Auth Settings.
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.mail.mail_validation',
+    'social_core.pipeline.user.create_user',
+    'apps.accounts.auth_backends.pipeline.create_user_profile',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.debug.debug',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'social_core.pipeline.debug.debug'
+)
+# python-social-auth settings
+EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
+
+
+# python-social-auth settings
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
+
+SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ['next']
+SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
+
+# instagram oauth
+SOCIAL_AUTH_IDME_KEY = '48816722463c11864931ee88972ffcbf'
+SOCIAL_AUTH_IDME_SECRET = '5803b9efd261c0d0a679bd4e4cc7e558'
+SOCIAL_AUTH_IDME_SCOPE = ['identity']
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'apps.accounts.auth_backends.oauth2io.OAuth2ioOAuth2',
+)
