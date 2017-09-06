@@ -1,4 +1,4 @@
-# import json
+import json
 import logging
 
 from collections import OrderedDict
@@ -17,7 +17,7 @@ from apps.fhir.fhir_core.utils import (kickout_403,
                                        # content_is_json_or_xml,
                                        # get_content_type,
                                        SESSION_KEY,
-                                       error_status,
+                                       # error_status,
                                        ERROR_CODE_LIST,
                                        build_querystring,
                                        strip_format_for_back_end,
@@ -313,6 +313,7 @@ def generic_read(request,
         pass_to += pass_params
 
     logger.debug("\nMaking request:%s" % pass_to)
+    query_string = build_querystring(request.GET.copy())
 
     ###############################################
     ###############################################
@@ -334,34 +335,60 @@ def generic_read(request,
     # logger.debug("r returned: %s" % r)
 
     # Check for Error here
-    try:
-        error_check = r.text
-        logger.debug("We got r.text back:%s" % r.text[:200] + "...")
-    except:
-        error_check = "HttpResponse status_code=502"
-        logger.debug("Something went wrong with call to %s" % pass_to)
-    logger.debug("Checking for errors:%s" % error_check[:200] + "...")
-    if 'status_code' in error_check:
-        # logger.debug("We have a status code to check: %s" % r)
-        if r.status_code in ERROR_CODE_LIST:
-            logger.debug("\nError Status Code:%s" % r.status_code)
-            return error_status(r, r.status_code)
-    elif 'status_code=302' in error_check:
-        return error_status(r, 302)
-    elif 'status_code=502' in error_check:
-        return error_status(r, 502)
-    else:
-        logger.debug("Status Code:%s "
-                     "in:%s" % (r.status_code, r))
+    logger.debug("what is in r:\n#######\n%s\n##########\n" % dir(r))
+    logger.debug("status: %s/%s" % (r.status_code, r._status_code))
+    # logger.debug("text: %s\n#############\n" % (r.text))
 
-    # We should have a 200 - good record to deal with
-    # We can occasionaly get a 200 with a Connection Error. eg. Timeout
-    try:
-        if "ConnectionError" in r.text:
-            logger.debug("Error:%s" % r.text)
-            return error_status(r, 502)
-    except:
-        pass
+    if r.status_code in ERROR_CODE_LIST:
+        logger.debug("We have an error code to deal with: %s" % r.status_code)
+        if 'html' in requested_format.lower():
+            return render(
+                request,
+                'bluebutton/default.html',
+                {'output': pretty_json(r._content, indent=4),
+                 'fhir_id': cx.fhir_id,
+                 'content': {'parameters': query_string,
+                             'resource_type': resource_type,
+                             'id': id,
+                             'request_method': "GET",
+                             'interaction_type': interaction_type,
+                             'div_texts': "",
+                             'source': cx.fhir_source.name}})
+        else:
+            return HttpResponse(json.dumps(r._content, indent=4),
+                                status=r.status_code,
+                                content_type='application/json')
+
+        # return error_status(r, r.status_code, r._text)
+
+    # try:
+    #     error_check = r.text
+    #     # logger.debug("We got r.text back:%s" % r.text[:200] + "...")
+    # except:
+    #     error_check = "HttpResponse status_code=502"
+    #     logger.debug("Something went wrong with call to %s" % pass_to)
+    # logger.debug("Checking for errors:%s" % error_check[:200] + "...")
+    # if 'status_code' in error_check:
+    #     # logger.debug("We have a status code to check: %s" % r)
+    #     if r.status_code in ERROR_CODE_LIST:
+    #         logger.debug("\nError Status Code:%s" % r.status_code)
+    #         return error_status(r, r.status_code)
+    # elif 'status_code=302' in error_check:
+    #     return error_status(r, 302)
+    # elif 'status_code=502' in error_check:
+    #     return error_status(r, 502)
+    # else:
+    #     logger.debug("Status Code:%s "
+    #                  "in:%s" % (r.status_code, r))
+    #
+    # # We should have a 200 - good record to deal with
+    # # We can occasionally get a 200 with a Connection Error. eg. Timeout
+    # try:
+    #     if "ConnectionError" in r.text:
+    #         logger.debug("Error:%s" % r.text)
+    #         return error_status(r, 502)
+    # except:
+    #     pass
 
     text_out = ''
     # if 'text' in r:
@@ -441,7 +468,8 @@ def generic_read(request,
         return HttpResponse(pretty_json(od['bundle']),
                             content_type='application/%s' % requested_format)
 
-    query_string = build_querystring(request.GET.copy())
+    # define query string further up before request_call
+    # query_string = build_querystring(request.GET.copy())
     if "xml" in requested_format:
         # logger.debug("Sending text_out for display: %s" % text_out[0:100])
         div_text = get_div_from_xml(text_out)

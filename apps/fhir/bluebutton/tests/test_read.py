@@ -48,7 +48,7 @@ class ConformanceReadRequestTest(TestCase):
 
         # Now we can setup the responses we want to the call
         mock_requests.get.return_value.status_code = 200
-        mock_requests.get.return_value.text = CONFORMANCE
+        mock_requests.get.return_value.content = CONFORMANCE
 
         # Make the call to request_call which uses requests.get
         # patch will intercept the call to requests.get and
@@ -59,10 +59,12 @@ class ConformanceReadRequestTest(TestCase):
                                                          fail_redirect="/")
 
         # Activate the print statement if you want to see what was returned
-        # print("\nText:%s" % result.text)
+        print("\nText:%s" % result._response.content[:100])
+        print("\nResult:%s" % dir(result))
+        print("\nr in Result:%s" % result._response.text[:100])
 
         # Test for a match
-        self.assertEqual(result.text, CONFORMANCE)
+        self.assertEqual(result._response.content, CONFORMANCE)
 
     @patch('apps.fhir.bluebutton.views.home.get_resource_names')
     def test_fhir_conformance_filter(self, mock_get_resource_names):
