@@ -154,6 +154,7 @@ class Fhir_Response(Response):
     def __init__(self, req_response=Response):
         if req_response is None:
             req_response = Response
+
         for k, v in req_response.__dict__.items():
             self.__dict__[k] = v
 
