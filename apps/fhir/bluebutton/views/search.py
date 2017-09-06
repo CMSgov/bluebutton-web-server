@@ -5,19 +5,23 @@ import logging
 from collections import OrderedDict
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 
 from django.views.decorators.csrf import csrf_exempt
 
 from django.shortcuts import render
+from apps.dot_ext.decorators import capability_protected_resource
 
 from apps.fhir.fhir_core.utils import (build_querystring,
                                        find_ikey,
                                        get_div_from_json,
                                        get_target_url,
+                                       ERROR_CODE_LIST,
                                        kickout_400,
                                        kickout_403,
+                                       kickout_404,
                                        SESSION_KEY,
                                        write_session)
 
@@ -59,7 +63,7 @@ DF_EXTRA_INFO = False
 
 
 @csrf_exempt
-def search_simple(request, resource_type, *args, **kwargs):
+def search_simple(request, resource_type, via_oauth=False, *args, **kwargs):
     """Route to search FHIR Interaction"""
 
     if request.method == 'GET':
@@ -67,14 +71,14 @@ def search_simple(request, resource_type, *args, **kwargs):
         logger.debug("searching with Resource:"
                      "%s and Id:%s" % (resource_type, id))
 
-        return read_search(request, resource_type, id)
+        return read_search(request, resource_type, id, via_oauth)
 
     # elif request.method == 'PUT':
     #     # update
-    #     return update(request, resource_type, id)
+    #     return update(request, resource_type, id, via_oauth)
     # elif request.method == 'DELETE':
     #     # delete
-    #     return delete(request, resource_type, id)
+    #     return delete(request, resource_type, id, via_oauth)
     # else:
     # Not supported.
     msg = "HTTP method %s not supported at this URL." % (request.method)
@@ -84,6 +88,7 @@ def search_simple(request, resource_type, *args, **kwargs):
     return kickout_400(msg)
 
 
+@login_required()
 def search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server
@@ -131,13 +136,76 @@ def search(request, resource_type, *args, **kwargs):
 
     if "_getpages" in request.GET:
         # Handle the next searchset
-        search = fhir_search_home(request)
+        search = fhir_search_home(request, via_oauth=False)
+
     else:
         # Otherwise we should have a resource_type and can perform a search
         search = read_search(request,
                              interaction_type,
                              resource_type,
                              # rt_id=None,
+                             via_oauth=False,
+                             *args,
+                             **kwargs)
+    return search
+
+
+@capability_protected_resource()
+def oauth_search(request, resource_type, *args, **kwargs):
+    """
+    Search from Remote FHIR Server
+
+    # Example client use in curl:
+    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
+    """
+
+    interaction_type = 'search'
+
+    logger.debug("Received:%s" % resource_type)
+    logger_debug.debug("Received:%s" % resource_type)
+
+    conformance = False
+    if "_getpages" in request.GET:
+        # a request can be made without a resource name
+        # if the GET Parameters include _getpages it is asking for the
+        # next batch of resources from a previous search
+        conformance = False
+        logger.debug("We need to get a searchset: %s" % request.GET)
+
+    elif resource_type is None:
+        conformance = True
+    elif resource_type.lower() == 'metadata':
+        # metadata is a valid resourceType to request the
+        # Conformance/Capability Statement
+        conformance = True
+    elif resource_type.lower == 'conformance':
+        # Conformance is the Dstu2 name for the list of resources supported
+        conformance = True
+    elif resource_type.lower == "capability":
+        # Capability is the Stu3 name for the list of resources supported
+        conformance = True
+
+    if conformance:
+        return fhir_conformance(request, resource_type, *args, **kwargs)
+
+    logger.debug("Interaction:%s. "
+                 "Calling generic_read for %s" % (interaction_type,
+                                                  resource_type))
+
+    logger_debug.debug("Interaction:%s. "
+                       "Calling generic_read for %s" % (interaction_type,
+                                                        resource_type))
+
+    if "_getpages" in request.GET:
+        # Handle the next searchset
+        search = fhir_search_home(request, via_oauth=True)
+    else:
+        # Otherwise we should have a resource_type and can perform a search
+        search = read_search(request,
+                             interaction_type,
+                             resource_type,
+                             # rt_id=None,
+                             via_oauth=False,
                              *args,
                              **kwargs)
     return search
@@ -146,6 +214,7 @@ def search(request, resource_type, *args, **kwargs):
 def read_search(request,
                 interaction_type,
                 resource_type,
+                via_oauth=False,
                 id=None,
                 vid=None,
                 *args,
@@ -172,7 +241,10 @@ def read_search(request,
                  'INTERACTION_TYPE: %s' % interaction_type)
 
     # Get the users crosswalk
-    cx = get_crosswalk(request.user)
+    if via_oauth:
+        cx = get_crosswalk(request.resource_owner)
+    else:
+        cx = get_crosswalk(request.user)
 
     # cx will be the crosswalk record or None
     rr = get_resourcerouter(cx)
@@ -189,11 +261,15 @@ def read_search(request,
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
 
-    if srtc.secure_access and request.user.is_anonymous():
-        return kickout_403('Error 403: %s Resource access is controlled.'
-                           ' Login is required:'
-                           '%s' % (resource_type, request.user.is_anonymous()))
-        # logger.debug('srtc: %s' % srtc)
+    if srtc is None:
+        return kickout_404('Unsupported ResourceType')
+
+    if not via_oauth:
+        if srtc.secure_access and request.user.is_anonymous():
+            return kickout_403('Error 403: %s Resource access is controlled.'
+                               ' Login is required:'
+                               '%s' % (resource_type, request.user.is_anonymous()))
+            # logger.debug('srtc: %s' % srtc)
 
     if (cx is None and srtc is not None):
         # There is a srtc record so we need to check override_search
@@ -230,6 +306,9 @@ def read_search(request,
 
     # requested_format = 'json' | 'xml' | 'html'
     requested_format = save_request_format(input_parameters)
+    if via_oauth and requested_format == "html":
+        # default to "json"
+        requested_format = "json"
 
     format_mode = eval_format_type(requested_format)
 
@@ -296,6 +375,10 @@ def read_search(request,
     # add the _format setting
     payload['_format'] = back_end_format
 
+    query_string = build_querystring(request.GET.copy())
+
+    ###############################################
+    ###############################################
     # Make the request_call
     r = request_get_with_parms(request,
                                target_url,
@@ -305,7 +388,8 @@ def read_search(request,
                                timeout=settings.REQUEST_CALL_TIMEOUT
                                )
 
-    ################################################
+    ###############################################
+    ###############################################
     #
     # Now we process the response from the back-end
     #
@@ -315,6 +399,26 @@ def read_search(request,
     #     r_status_code = r.status_code
     # else:
     #     r_status_code = 500
+
+    if r.status_code in ERROR_CODE_LIST:
+        logger.debug("We have an error code to deal with: %s" % r.status_code)
+        if 'html' in requested_format.lower():
+            return render(
+                request,
+                'bluebutton/default.html',
+                {'output': pretty_json(r._content, indent=4),
+                 'fhir_id': cx.fhir_id,
+                 'content': {'parameters': query_string,
+                             'resource_type': resource_type,
+                             'id': id,
+                             'request_method': "GET",
+                             'interaction_type': interaction_type,
+                             'div_texts': "",
+                             'source': cx.fhir_source.name}})
+        else:
+            return HttpResponse(json.dumps(r._content, indent=4),
+                                status=r.status_code,
+                                content_type='application/json')
 
     rewrite_list = build_rewrite_list(cx)
     host_path = get_host_url(request, resource_type)[:-1]
@@ -384,7 +488,6 @@ def read_search(request,
         return HttpResponse(pretty_json(od['bundle']),
                             content_type='application/%s' % requested_format)
 
-    query_string = build_querystring(request.GET.copy())
     if "xml" in requested_format:
         # logger.debug("Sending text_out for display: %s" % text_out[0:100])
         div_text = get_div_from_xml(text_out)
@@ -393,8 +496,10 @@ def read_search(request,
             request,
             'bluebutton/default_xml.html',
             {'output': text_out,
+             'fhir_id': cx.fhir_id,
              'content': {'parameters': query_string,
                          'resource_type': resource_type,
+                         'id': id,
                          'request_method': "GET",
                          'interaction_type': interaction_type,
                          'div_texts': [div_text, ],
@@ -409,8 +514,10 @@ def read_search(request,
         request,
         'bluebutton/default.html',
         {'output': text_out,
+         'fhir_id': cx.fhir_id,
          'content': {'parameters': query_string,
                      'resource_type': resource_type,
+                     'id': id,
                      'request_method': "GET",
                      'interaction_type': interaction_type,
                      'div_texts': div_text,
