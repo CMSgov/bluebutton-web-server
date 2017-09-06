@@ -1,3 +1,7 @@
+import logging
+
+from requests import Response
+
 from django.conf import settings
 from django.db import models
 
@@ -5,6 +9,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from apps.fhir.server.models import ResourceRouter
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 # @python_2_unicode_compatible
@@ -134,3 +140,38 @@ class BlueButtonText(models.Model):
                                               self.user.last_name,
                                               self.bb_content[:30],
                                               len(self.bb_content))
+
+
+class Fhir_Response(Response):
+    """
+    Build a more consistent Response object
+    requests.Response can be missing fields if an error is encountered
+    The purpose of this object is to encapsulate request.Response
+    and make sure the items needed further upstream are present.
+
+    """
+
+    def __init__(self, req_response=Response):
+        if req_response is None:
+            req_response = Response
+
+        for k, v in req_response.__dict__.items():
+            self.__dict__[k] = v
+
+        extend_response = {"_response": req_response,
+                           "_text": "",
+                           "_json": "{}",
+                           "_xml": "</>",
+                           "_status_code": "",
+                           "_call_url": "",
+                           "_cx": Crosswalk,
+                           "_result": "",
+                           "_owner": "",
+                           "encoding": "utf-8",
+                           "_content": ""
+                           }
+
+        # Add extra fields to Response Object
+        for k, v in extend_response.items():
+            # logger.debug("Key:%s with Value:%s" % (k, v))
+            self.__dict__[k] = v

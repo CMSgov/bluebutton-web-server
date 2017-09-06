@@ -23,10 +23,11 @@ from apps.fhir.fhir_core.utils import (kickout_403,
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
 from apps.fhir.bluebutton.models import (BlueButtonText)
-from apps.fhir.fhir_core.utils import (error_status,
-                                       ERROR_CODE_LIST)
 
-from .models import Crosswalk
+# from apps.fhir.fhir_core.utils import (error_status,
+#                                        ERROR_CODE_LIST)
+
+from .models import Crosswalk, Fhir_Response
 
 PRETTY_JSON_INDENT = 4
 
@@ -73,6 +74,11 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         cert = ()
 
     try:
+
+        ####################################################################
+        ####################################################################
+        ####################################################################
+
         if timeout:
             r = requests.get(call_url,
                              cert=cert,
@@ -81,20 +87,49 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         else:
             r = requests.get(call_url, cert=cert, verify=verify_state)
 
+        ####################################################################
+        ####################################################################
+        ####################################################################
+
         logger.debug("Request.get:%s" % call_url)
 
         logger.debug("Status of Request:%s" % r.status_code)
 
-        if r.status_code in ERROR_CODE_LIST:
-            r.raise_for_status()
-        # except requests.exceptions.HTTPError as r_err:
+        fhir_response = build_fhir_response(request, call_url, cx, r)
+
+        logger.debug("Leaving request_call with "
+                     "fhir_Response: %s" % fhir_response)
+
+        return fhir_response
+
+        # if r.status_code in ERROR_CODE_LIST:
+        #     r.raise_for_status()
+        # # except requests.exceptions.HTTPError as r_err:
 
     except requests.ConnectionError as e:
-        logger.debug('Connection Problem to FHIR '
-                     'Server: %s : %s' % (call_url, e))
-        return error_status('Connection Problem to FHIR '
-                            'Server: %s:%s' % (call_url, e),
-                            504)
+        # logger.debug('Connection Problem to FHIR '
+        #              'Server: %s : %s' % (call_url, e))
+        logger.debug("Request.GET:%s" % request.GET)
+        # logger.debug("what is in e:\n#######\n%s\n##########\n" % dir(e))
+
+        fhir_response = build_fhir_response(request,
+                                            call_url,
+                                            cx,
+                                            r=None,
+                                            e=e)
+
+        # for attr in dir(e):
+        #     if attr == "characters_written":
+        #         pass
+        #     else:
+        #         logger.debug("e.%s = %s" % (attr, getattr(e, attr)))
+        # e.status_code = 504
+        # e.text = '{\"errors\": [\"Connection Problem to FHIR Server\", \"status_code: 504\"], \"code\": 504}'
+        # logger.debug("what is in amended e:\n#######\n%s\n##########\n" % dir(e))
+        #
+        # return error_status(e, 504, reason=e.text)
+
+        return fhir_response
 
     except requests.exceptions.HTTPError as e:
         # except requests.exceptions.RequestException as r_err:
@@ -104,6 +139,12 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         handle_e = handle_http_error(e)
         handle_e = handle_e
 
+        fhir_response = build_fhir_response(request,
+                                            call_url,
+                                            cx,
+                                            r=None,
+                                            e=e)
+
         messages.error(request, 'Problem connecting to FHIR Server.')
 
         e = requests.Response
@@ -112,18 +153,24 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         # logger.debug("Status_Code:%s" % r.status_code)
         # e.status_code = 502
 
-        return error_status(e, r.text)
+        # return error_status(e, 502, reason=r.text)
+        # return error_status(fhir_response, 502, reason=r.text)
 
         # return HttpResponseRedirect(fail_redirect)
+        return fhir_response
 
     # logger.debug("Evaluating r:%s" % evaluate_r(r))
 
-    if r.status_code in ERROR_CODE_LIST:
-        logger.debug("\nRequest Error Status Code:%s" % r.status_code)
-        logger_debug.debug("\nError Status Code:%s" % r.status_code)
-        return error_status(r, r.status_code)
+    # if r.status_code in ERROR_CODE_LIST:
+    #
+    #     fhir_response = build_fhir_response(request, call_url, cx, r)
+    #
+    #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
+    #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
+    #     return error_status(fhir_response, r.status_code)
+    #     # return error_status(r, r.status_code)
 
-    return r
+    return fhir_response
 
 
 def request_get_with_parms(request,
@@ -177,6 +224,10 @@ def request_get_with_parms(request,
     for k, v in search_params.items():
         logger.debug("\nkey:%s - value:%s" % (k, v))
 
+        ####################################################################
+        ####################################################################
+        ####################################################################
+
     try:
         if timeout:
             r = requests.get(call_url,
@@ -190,20 +241,85 @@ def request_get_with_parms(request,
                              cert=cert,
                              verify=verify_state)
 
-        logger.debug("Request.get:%s" % call_url)
+        ####################################################################
+        ####################################################################
+        ####################################################################
 
+        logger.debug("Request.get:%s" % call_url)
         logger.debug("Status of Request:%s" % r.status_code)
 
-        if r.status_code in ERROR_CODE_LIST:
-            r.raise_for_status()
-        # except requests.exceptions.HTTPError as r_err:
+        fhir_response = build_fhir_response(request, call_url, cx, r)
+
+        logger.debug("Leaving request_call_with_parms with "
+                     "fhir_Response: %s" % fhir_response)
+
+        return fhir_response
+
+        # if r.status_code in ERROR_CODE_LIST:
+        #     r.raise_for_status()
+        # # except requests.exceptions.HTTPError as r_err:
+
+    # except requests.ConnectionError as e:
+    #     logger.debug('Connection Problem to FHIR '
+    #                  'Server: %s : %s' % (call_url, e))
+    #     return error_status('Connection Problem to FHIR '
+    #                         'Server: %s:%s' % (call_url, e),
+    #                         504)
+    #
+    # except requests.exceptions.HTTPError as e:
+    #     # except requests.exceptions.RequestException as r_err:
+    #     r_err = requests.exceptions.RequestException
+    #     logger.debug('Problem connecting to FHIR Server: %s' % call_url)
+    #     logger.debug('Exception: %s' % r_err)
+    #     handle_e = handle_http_error(e)
+    #     handle_e = handle_e
+    #
+    #     messages.error(request, 'Problem connecting to FHIR Server.')
+    #
+    #     logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
+    #
+    #     if 'text' in r:
+    #         r_text = r.text
+    #     else:
+    #         r_text = "Error Status:%s. %s " % (r.status_code, request.GET)
+    #         logger.debug("error code:%s issue:%s" % (r.status_code, r_text))
+    #     return error_status(r, status_code=r.status_code)
+    #
+    #     # return HttpResponseRedirect(fail_redirect)
+    #
+    # # logger.debug("Evaluating r:%s" % evaluate_r(r))
+    #
+    # if r.status_code in ERROR_CODE_LIST:
+    #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
+    #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
+    #     return error_status(r, r.status_code)
+    #
+    # return r
 
     except requests.ConnectionError as e:
-        logger.debug('Connection Problem to FHIR '
-                     'Server: %s : %s' % (call_url, e))
-        return error_status('Connection Problem to FHIR '
-                            'Server: %s:%s' % (call_url, e),
-                            504)
+        # logger.debug('Connection Problem to FHIR '
+        #              'Server: %s : %s' % (call_url, e))
+        logger.debug("Request.GET:%s" % request.GET)
+        # logger.debug("what is in e:\n#######\n%s\n##########\n" % dir(e))
+
+        fhir_response = build_fhir_response(request,
+                                            call_url,
+                                            cx,
+                                            r=None,
+                                            e=e)
+
+        # for attr in dir(e):
+        #     if attr == "characters_written":
+        #         pass
+        #     else:
+        #         logger.debug("e.%s = %s" % (attr, getattr(e, attr)))
+        # e.status_code = 504
+        # e.text = '{\"errors\": [\"Connection Problem to FHIR Server\", \"status_code: 504\"], \"code\": 504}'
+        # logger.debug("what is in amended e:\n#######\n%s\n##########\n" % dir(e))
+        #
+        # return error_status(e, 504, reason=e.text)
+
+        return fhir_response
 
     except requests.exceptions.HTTPError as e:
         # except requests.exceptions.RequestException as r_err:
@@ -213,27 +329,38 @@ def request_get_with_parms(request,
         handle_e = handle_http_error(e)
         handle_e = handle_e
 
+        fhir_response = build_fhir_response(request,
+                                            call_url,
+                                            cx,
+                                            r=None,
+                                            e=e)
+
         messages.error(request, 'Problem connecting to FHIR Server.')
 
+        e = requests.Response
+        # e.text = r_err
         logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
+        # logger.debug("Status_Code:%s" % r.status_code)
+        # e.status_code = 502
 
-        if 'text' in r:
-            r_text = r.text
-        else:
-            r_text = "Error Status:%s. %s " % (r.status_code, request.GET)
-            logger.debug("error code:%s issue:%s" % (r.status_code, r_text))
-        return error_status(r, status_code=r.status_code)
+        # return error_status(e, 502, reason=r.text)
+        # return error_status(fhir_response, 502, reason=r.text)
 
         # return HttpResponseRedirect(fail_redirect)
+        return fhir_response
 
-    # logger.debug("Evaluating r:%s" % evaluate_r(r))
+        # logger.debug("Evaluating r:%s" % evaluate_r(r))
 
-    if r.status_code in ERROR_CODE_LIST:
-        logger.debug("\nRequest Error Status Code:%s" % r.status_code)
-        logger_debug.debug("\nError Status Code:%s" % r.status_code)
-        return error_status(r, r.status_code)
+        # if r.status_code in ERROR_CODE_LIST:
+        #
+        #     fhir_response = build_fhir_response(request, call_url, cx, r)
+        #
+        #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
+        #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
+        #     return error_status(fhir_response, r.status_code)
+        #     # return error_status(r, r.status_code)
 
-    return r
+    return fhir_response
 
 
 def notNone(value=None, default=None):
@@ -1123,3 +1250,113 @@ def handle_http_error(e):
     logger.debug("In handle http_error - e:%s" % e)
 
     return e
+
+
+def build_fhir_response(request, call_url, cx, r=None, e=None):
+    """
+    setup a response object to return up the chain with consistent content
+    if requests hits an error fields like text or json don't get created.
+    So the purpose of fhir_response is to create a predictable object that
+    can be handled further up the stack.
+
+    :return:
+    """
+
+    if r is None:
+        r_dir = []
+    else:
+        r_dir = dir(r)
+
+    logger.debug("r to work with:\n%s\n#####################\n" % r_dir)
+
+    if e is None:
+        e_dir = []
+    else:
+        e_dir = dir(e)
+    logger.debug("e to deal with:\n%s\n#####################\n" % e_dir)
+
+    if 'status_code' in r_dir:
+        logger.debug("r status:%s\n" % r.status_code)
+    else:
+        logger.debug("r status: not returned\n")
+
+    fhir_response = Fhir_Response(r)
+
+    fhir_response.call_url = call_url
+    fhir_response.cx = cx
+
+    if len(r_dir) > 0:
+
+        logger.debug("r._content:%s" % r._content)
+
+        if 'status_code' in r_dir:
+            fhir_response._status_code = r.status_code
+        else:
+            fhir_response._status_code = '000'
+
+        if 'text' in r_dir:
+            fhir_response._text = r.text
+
+            if r.text[0] == "<":
+                logger.debug("\nLooks like XML....[%s]" % r.text[:10])
+                fhir_response._xml = r.text
+
+        else:
+            fhir_response._text = "No Text returned"
+
+        if 'json' in r_dir:
+            fhir_response._json = r.json
+        else:
+            fhir_response._json = {}
+
+        if 'user' in request:
+            fhir_response._owner = request.user + ":"
+        else:
+            fhir_response._owner = ":"
+
+        if 'resource_owner' in request:
+            fhir_response._owner = request.resource_owner
+        else:
+            fhir_response._owner += ""
+
+    elif len(e_dir) > 0:
+        # logger.debug("e._content:%s" % e._content)
+        fhir_response.status_code = 504
+        fhir_response._status_code = fhir_response.status_code
+        fhir_response._json = {"errors": ["The gateway has timed out",
+                                          "Failed to reach FHIR Database."],
+                               "code": fhir_response.status_code,
+                               "status_code": fhir_response.status_code,
+                               "text": "The gateway has timed out"}
+        fhir_response._text = fhir_response._json
+        fhir_response._content = fhir_response._json
+    else:
+        fhir_response.status_code = '000'
+        fhir_response._status_code = '000'
+        fhir_response._text = "No Text returned"
+        fhir_response._json = {}
+
+        if 'user' in request:
+            fhir_response._owner = request.user + ":"
+        else:
+            fhir_response._owner = ":"
+        if 'resource_owner' in request:
+            fhir_response._owner += request.resource_owner
+        else:
+            fhir_response._owner += ""
+
+    if e:
+        logger.debug("\ne_response:START\n")
+        e_dir = dir(e)
+        for k in e_dir:
+            if k == "characters_written":
+                pass
+            elif k == 'arg':
+                for i in e.arg:
+                    logger.debug("arg:%s" % i)
+            else:
+                logger.debug("%s:%s" % (k, e.__getattribute__(k)))
+
+        logger.debug("\ne_response:END\n")
+
+    return fhir_response
