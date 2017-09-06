@@ -20,12 +20,15 @@ from .views.core import MFA_CHOICES
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-MEDICARE_SUFFIX_CHOICES = (('A', 'A'), ('A0', 'A0'), ('A1', 'A1'), ('A2', 'A2'), ('A3', 'A3'),
-                           ('A4', 'A4'), ('A5', 'A5'), ('A6',
-                                                        'A6'), ('A7', 'A7'), ('A8', 'A8'),
-                           ('A9', 'A9'), ('B', 'B'), ('B1',
-                                                      'B1'), ('B2', 'B2'), ('B3', 'B3'),
-                           ('B4', 'B4'), ('B5', 'B5'), ('B6', 'B6'), ('B7', 'B7'))
+MEDICARE_SUFFIX_CHOICES = (('A', 'A'), ('A0', 'A0'), ('A1', 'A1'),
+                           ('A2', 'A2'), ('A3', 'A3'),
+                           ('A4', 'A4'), ('A5', 'A5'), ('A6', 'A6'),
+                           ('A7', 'A7'), ('A8', 'A8'),
+                           ('A9', 'A9'), ('B', 'B'),
+                           ('B1', 'B1'),
+                           ('B2', 'B2'), ('B3', 'B3'),
+                           ('B4', 'B4'), ('B5', 'B5'),
+                           ('B6', 'B6'), ('B7', 'B7'))
 
 
 class SimpleUserSignupForm(forms.Form):
