@@ -12,7 +12,10 @@ File created by: ''
 
 
 def resource_from_scopes(oauth_permissions):
-    """ Extract resource names from permissions/scopes """
+    """ Extract resource names from permissions/scopes
+        make sure permissions is a list and not a string
+        before processing
+    """
     if oauth_permissions:
         if isinstance(oauth_permissions, str):
             o_permissions = [oauth_permissions, ]
