@@ -15,7 +15,7 @@ def resource_from_scopes(oauth_permissions):
     """ Extract resource names from permissions/scopes """
     if oauth_permissions:
         if isinstance(oauth_permissions, str):
-            o_permissions = [oauth_permissions,]
+            o_permissions = [oauth_permissions, ]
         else:
             o_permissions = oauth_permissions
 
