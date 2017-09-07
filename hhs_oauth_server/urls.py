@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^home/', include('apps.home.urls')),
     url(r'^o/', include('apps.dot_ext.urls')),
+    url(r'^social-auth/', include('social_django.urls', namespace='social')),
     # Admin
     url(r'^admin/', include(admin.site.urls)),
 
