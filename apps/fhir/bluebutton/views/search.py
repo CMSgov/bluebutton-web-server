@@ -14,11 +14,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from apps.dot_ext.decorators import capability_protected_resource
 
-
 from apps.fhir.fhir_core.utils import (build_querystring,
                                        find_ikey,
                                        get_div_from_json,
                                        get_target_url,
+                                       ERROR_CODE_LIST,
                                        kickout_400,
                                        kickout_403,
                                        kickout_404,
@@ -137,6 +137,7 @@ def search(request, resource_type, *args, **kwargs):
     if "_getpages" in request.GET:
         # Handle the next searchset
         search = fhir_search_home(request, via_oauth=False)
+
     else:
         # Otherwise we should have a resource_type and can perform a search
         search = read_search(request,
@@ -204,7 +205,7 @@ def oauth_search(request, resource_type, *args, **kwargs):
                              interaction_type,
                              resource_type,
                              # rt_id=None,
-                             via_oauth=True,
+                             via_oauth=False,
                              *args,
                              **kwargs)
     return search
@@ -374,6 +375,10 @@ def read_search(request,
     # add the _format setting
     payload['_format'] = back_end_format
 
+    query_string = build_querystring(request.GET.copy())
+
+    ###############################################
+    ###############################################
     # Make the request_call
     r = request_get_with_parms(request,
                                target_url,
@@ -383,7 +388,8 @@ def read_search(request,
                                timeout=settings.REQUEST_CALL_TIMEOUT
                                )
 
-    ################################################
+    ###############################################
+    ###############################################
     #
     # Now we process the response from the back-end
     #
@@ -393,6 +399,26 @@ def read_search(request,
     #     r_status_code = r.status_code
     # else:
     #     r_status_code = 500
+
+    if r.status_code in ERROR_CODE_LIST:
+        logger.debug("We have an error code to deal with: %s" % r.status_code)
+        if 'html' in requested_format.lower():
+            return render(
+                request,
+                'bluebutton/default.html',
+                {'output': pretty_json(r._content, indent=4),
+                 'fhir_id': cx.fhir_id,
+                 'content': {'parameters': query_string,
+                             'resource_type': resource_type,
+                             'id': id,
+                             'request_method': "GET",
+                             'interaction_type': interaction_type,
+                             'div_texts': "",
+                             'source': cx.fhir_source.name}})
+        else:
+            return HttpResponse(json.dumps(r._content, indent=4),
+                                status=r.status_code,
+                                content_type='application/json')
 
     rewrite_list = build_rewrite_list(cx)
     host_path = get_host_url(request, resource_type)[:-1]
@@ -462,7 +488,6 @@ def read_search(request,
         return HttpResponse(pretty_json(od['bundle']),
                             content_type='application/%s' % requested_format)
 
-    query_string = build_querystring(request.GET.copy())
     if "xml" in requested_format:
         # logger.debug("Sending text_out for display: %s" % text_out[0:100])
         div_text = get_div_from_xml(text_out)

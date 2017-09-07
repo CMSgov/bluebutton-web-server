@@ -11,7 +11,7 @@
 {% block Content %}
 
 
-    <div class="hero-unit text-center">
+<div class="hero-unit text-center">
 
 
 
@@ -23,10 +23,15 @@
     <a class="btn btn-primary btn-lg" href="{{settings.USER_DOCS_URI}}" role="button">Learn more</a>
   </p>
 
- <p>If you've already got an account then <a href="{% url 'mfa_login' %}">login</a>.</p>
+ <p>If you've already got an account then <a href="{% url 'mfa_login' %}">login </a>
+ {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
+    or login with <a href="{% url 'social:begin' 'oauth2io' %}">{{settings.EXTERNAL_AUTH_NAME}}</a>  or
+    <a href="{% url 'social:begin' 'idme' %}">ID.me</a>
+  
+ {% endif %}
 
 
-    </div>
+</div>
 
 
 {% endblock %}

@@ -9,7 +9,7 @@
     "schemes": [
         "https"
     ],
-    "basePath": "/bluebutton/fhir/v1",
+    "basePath": "/protected/bluebutton/fhir/v1",
     "tags": [
         {
             "name": "Bundle"
