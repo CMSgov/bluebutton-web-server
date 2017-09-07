@@ -59,9 +59,9 @@ class ConformanceReadRequestTest(TestCase):
                                                          fail_redirect="/")
 
         # Activate the print statement if you want to see what was returned
-        print("\nText:%s" % result._response.content[:100])
-        print("\nResult:%s" % dir(result))
-        print("\nr in Result:%s" % result._response.text[:100])
+        # print("\nText:%s" % result._response.content[:100])
+        # print("\nResult:%s" % dir(result))
+        # print("\nr in Result:%s" % result._response.text[:100])
 
         # Test for a match
         self.assertEqual(result._response.content, CONFORMANCE)
