@@ -95,7 +95,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
 
         logger.debug("Status of Request:%s" % r.status_code)
 
-        fhir_response = build_fhir_response(request, call_url, cx, r)
+        fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
 
         logger.debug("Leaving request_call with "
                      "fhir_Response: %s" % fhir_response)
@@ -248,7 +248,7 @@ def request_get_with_parms(request,
         logger.debug("Request.get:%s" % call_url)
         logger.debug("Status of Request:%s" % r.status_code)
 
-        fhir_response = build_fhir_response(request, call_url, cx, r)
+        fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
 
         logger.debug("Leaving request_call_with_parms with "
                      "fhir_Response: %s" % fhir_response)
@@ -1287,7 +1287,7 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
 
     if len(r_dir) > 0:
 
-        logger.debug("r._content:%s" % r._content)
+        # logger.debug("r._content:%s" % r._content)
 
         if 'status_code' in r_dir:
             fhir_response._status_code = r.status_code
@@ -1296,6 +1296,8 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
 
         if 'text' in r_dir:
             fhir_response._text = r.text
+
+            print("copied text(%s) to _text" % r.text[:100])
 
             if r.text[0] == "<":
                 logger.debug("\nLooks like XML....[%s]" % r.text[:10])
