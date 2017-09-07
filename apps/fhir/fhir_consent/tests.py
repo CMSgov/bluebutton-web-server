@@ -14,7 +14,7 @@ from .models import fhir_Consent, CONSENT_STATE
 from .views import (rt_consent_activate,
                     rt_consent_directive_activate)
 
-from ..build_fhir.utils.utils import pretty_json
+# from ..build_fhir.utils.utils import pretty_json
 from ..build_fhir.utils.utils_fhir_dt import dt_period
 
 from ..bluebutton.models import Crosswalk
