@@ -1443,4 +1443,3 @@ def get_response_text(fhir_response=None):
         logger.debug("giving up...")
         text_in = ""
         return text_in
-
