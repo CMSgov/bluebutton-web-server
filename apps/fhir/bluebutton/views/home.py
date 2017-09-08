@@ -261,7 +261,6 @@ def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
         if text_in == "":
             text_in = r._text
 
-
     text_out = post_process_request(request,
                                     back_end_format,
                                     host_path,
