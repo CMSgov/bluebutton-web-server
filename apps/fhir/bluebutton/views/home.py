@@ -40,7 +40,8 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_crosswalk,
                                         get_resource_names,
                                         get_resourcerouter,
-                                        build_rewrite_list)
+                                        build_rewrite_list,
+                                        get_response_text)
 
 from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               dom_conformance_filter)
@@ -238,7 +239,9 @@ def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
     r = request_call(request,
                      call_to + pass_params,
                      cx,
-                     reverse_lazy('authenticated_home'))
+                     reverse_lazy('authenticated_home'),
+                     timeout=rr.wait_time
+                     )
 
     ####################################################
     ####################################################
@@ -255,11 +258,7 @@ def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
     rewrite_url_list = build_rewrite_list(cx)
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
-    text_in = ""
-    if 'text' in r:
-        text_in = r.text
-        if text_in == "":
-            text_in = r._text
+    text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
                                     back_end_format,
@@ -425,15 +424,15 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     rewrite_url_list = build_rewrite_list(cx)
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
-    text_in = ""
-    print("Capability text: %s\n" % r.text)
-    print("Capability _text: %s\n" % r._text)
+    text_in = get_response_text(fhir_response=r)
+    # print("Capability text: %s\n" % r.text)
+    # print("Capability _text: %s\n" % r._text)
 
-    text_in = r.text
-    if text_in == "":
-        print("Capability assigning _text: %s\n" % r._text[:100])
-
-        text_in = r._text
+    # text_in = r.text
+    # if text_in == "":
+    #     print("Capability assigning _text: %s\n" % r._text[:100])
+    #
+    #     text_in = r._text
 
     text_out = post_process_request(request,
                                     back_end_format,
