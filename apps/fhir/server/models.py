@@ -59,6 +59,12 @@ class ResourceRouter(models.Model):
     server_verify = models.BooleanField(default=False,
                                         help_text="Server Verify "
                                                   "(Default=False)")
+    wait_time = models.IntegerField(default=30,
+                                    null=False,
+                                    blank=True,
+                                    verbose_name="Server wait time (Seconds)",
+                                    help_text="Seconds to wait before timing "
+                                              "out a call to this server.")
 
     def __str__(self):
         return self.name
