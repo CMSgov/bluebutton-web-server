@@ -499,15 +499,18 @@ def conformance_filter(text_block, fmt, rr=None):
     resource_names = get_resource_names(rr)
     ct = 0
 
-    for k in text_block['rest']:
-        for i, v in k.items():
-            if i == 'resource':
-                supported_resources = get_supported_resources(v,
-                                                              resource_names,
-                                                              rr)
-                text_block['rest'][ct]['resource'] = supported_resources
-        ct += 1
+    if text_block:
+        for k in text_block['rest']:
+            for i, v in k.items():
+                if i == 'resource':
+                    supported_resources = get_supported_resources(v,
+                                                                  resource_names,
+                                                                  rr)
+                    text_block['rest'][ct]['resource'] = supported_resources
+            ct += 1
 
+    else:
+        text_block = ""
     return text_block
 
 
