@@ -413,7 +413,11 @@ def generic_read(request,
     #                                                   back_end_format))
 
     try:
+        print("r.text:%s\n" %r.text)
+        print("r._text:%s\n" % r._text)
         text_in = r.text
+        if text_in == "":
+            text_in = r._text
     except:
         text_in = ""
 

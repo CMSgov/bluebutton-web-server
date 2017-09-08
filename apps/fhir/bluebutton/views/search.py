@@ -423,8 +423,13 @@ def read_search(request,
     rewrite_list = build_rewrite_list(cx)
     host_path = get_host_url(request, resource_type)[:-1]
 
+    print("r.text=%s\n" % r.text)
+    print("r._text is:%s\n" % r._text)
+
     try:
         text_in = r.text
+        if text_in == "":
+            text_in = r._text
     except:
         text_in = ""
 

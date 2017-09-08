@@ -255,10 +255,17 @@ def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
     rewrite_url_list = build_rewrite_list(cx)
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
+    text_in = ""
+    if 'text' in r:
+        text_in = r.text
+        if text_in == "":
+            text_in = r._text
+
+
     text_out = post_process_request(request,
                                     back_end_format,
                                     host_path,
-                                    r.text,
+                                    text_in,
                                     rewrite_url_list)
 
     query_string = build_querystring(request.GET.copy())
@@ -419,10 +426,20 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     rewrite_url_list = build_rewrite_list(cx)
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
+    text_in = ""
+    print("Capability text: %s\n" % r.text)
+    print("Capability _text: %s\n" % r._text)
+
+    text_in = r.text
+    if text_in == "":
+        print("Capability assigning _text: %s\n" % r._text[:100])
+
+        text_in = r._text
+
     text_out = post_process_request(request,
                                     back_end_format,
                                     host_path,
-                                    r.text,
+                                    text_in,
                                     rewrite_url_list)
     # define query string further up before request_call
     # query_string = build_querystring(request.GET.copy())
