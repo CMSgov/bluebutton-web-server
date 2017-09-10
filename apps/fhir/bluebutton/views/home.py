@@ -189,7 +189,10 @@ def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
 
     if via_oauth:
         # get user via resource_owner
-        get_user = request.resource_owner
+        if 'resource_owner' in request:
+            get_user = request.resource_owner
+        else:
+            get_user = request.user
     else:
         get_user = request.user
 
@@ -335,7 +338,10 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
 
     if via_oauth:
         # get user via resource_owner
-        get_user = request.resource_owner
+        if 'resource_owner' in request:
+            get_user = request.resource_owner
+        else:
+            get_user = request.user
     else:
         get_user = request.user
 

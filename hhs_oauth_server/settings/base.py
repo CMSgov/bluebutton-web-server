@@ -500,7 +500,7 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, '../certstore'))
 
 # Timeout for request call
-REQUEST_CALL_TIMEOUT = (5, 120)
+REQUEST_CALL_TIMEOUT = (30, 120)
 
 # url parameters we don't want to pass through to the back-end server
 # FRONT_END_STRIP_PARAMS = []
