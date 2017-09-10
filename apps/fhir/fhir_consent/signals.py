@@ -19,10 +19,12 @@ import logging
 # from ..build_fhir.utils.utils import pretty_json
 
 # from collections import OrderedDict
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 # from django.conf import settings
 from oauth2_provider.models import AccessToken
+from apps.dot_ext.models import Application
 
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
@@ -49,9 +51,12 @@ def write_consent(sender, **kwargs):
     # print("\n\nKWARGS:%s" % kwargs)
     # Write Consent JSON
 
+    logger.debug("\n\nA_Tkn:%s\n\n" % A_Tkn)
     # Write fhir_Consent
-    # print("\n\nA_Tkn:%s\n\n" % A_Tkn)
-    A_Usr = A_Tkn['_user_cache']
+
+    # A_Usr = A_Tkn['_user_cache']
+    User = get_user_model()
+    A_Usr = User.objects.get(id=A_Tkn['user_id'])
 
     A_App = A_Tkn['_application_cache']
     # print("App:%s" % A_App)
@@ -59,8 +64,9 @@ def write_consent(sender, **kwargs):
     A_Appname = A_App.name
 
     A_Action = "granted"
-    friendly_language = build_friendly_language(A_Tkn,
+    friendly_language = build_friendly_language(A_Usr.username,
                                                 A_Action,
+                                                A_Tkn['scope'],
                                                 A_Appname)
 
     consent_now = timezone.now()
@@ -117,19 +123,22 @@ def revoke_consent(sender, **kwargs):
     A_Tkn = kwargs['instance'].__dict__
 
     # print("\n\nKWARGS:%s" % kwargs)
+    logger.debug("\n\nA_Tkn:%s\n\n" % A_Tkn)
     # update Consent JSON
-    # print("\n\nA_Tkn:%s\n\n" % A_Tkn)
 
-    A_Usr = A_Tkn['_user_cache']
+    User = get_user_model()
+    A_Usr = User.objects.get(id=A_Tkn['user_id'])
 
-    A_App = A_Tkn['_application_cache']
+    A_App = Application.objects.get(pk=A_Tkn['application_id'])
+
     # print("App:%s" % A_App)
     # print("Revoking App:%s" % A_App.name)
     A_Appname = A_App.name
     A_Action = "revoked"
 
-    friendly_language = build_friendly_language(A_Tkn,
+    friendly_language = build_friendly_language(A_Usr.username,
                                                 A_Action,
+                                                A_Tkn['scope'],
                                                 A_Appname)
     revoke_now = timezone.now()
     # NOTE: dt_instant and dt_period create string representations of date
@@ -181,7 +190,7 @@ def revoke_consent(sender, **kwargs):
     return
 
 
-def build_friendly_language(A_Tkn, A_Action, A_Appname):
+def build_friendly_language(User_name, A_Action, Scopes, A_Appname):
     """
     build friendly language string for consent
 
@@ -189,9 +198,9 @@ def build_friendly_language(A_Tkn, A_Action, A_Appname):
     """
     friendly_language = "Beneficiary (%s) %s " \
                         "(%s) permission to " \
-                        "application:%s." % (A_Tkn['_user_cache'],
+                        "application:%s." % (User_name,
                                              A_Action,
-                                             A_Tkn['scope'],
+                                             Scopes,
                                              A_Appname)
 
     return friendly_language
