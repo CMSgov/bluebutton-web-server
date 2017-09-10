@@ -24,7 +24,7 @@ def openid_configuration(request):
     else:
         logger.debug("HOSTNAME_URL [%s] "
                      "does not contain http prefix. "
-                     "data[issuer]:%s" % (HOSTNAME_URL, data['issuer']))
+                     "data[issuer]:%s" % (settings.HOSTNAME_URL, data['issuer']))
         # no http/https prefix in HOST_NAME_URL so we add it
         if request.is_secure():
             http_mode = 'https://'
