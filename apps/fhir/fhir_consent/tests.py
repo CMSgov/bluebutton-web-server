@@ -9,9 +9,11 @@ from apps.test import BaseApiTest
 from django.contrib.auth.models import User
 
 from apps.accounts.models import UserProfile
-from .models import fhir_Consent
+
+from .models import fhir_Consent, CONSENT_STATE
 from .views import (rt_consent_activate,
                     rt_consent_directive_activate)
+
 # from ..build_fhir.utils.utils import pretty_json
 from ..build_fhir.utils.utils_fhir_dt import dt_period
 
@@ -104,13 +106,21 @@ class FHIR_ConsentResourceActionTest(BaseApiTest):
         create_consent = fhir_Consent()
         create_consent.user = u
         create_consent.application = app
+
+        # CONSENT_STATE = (
+        #     ("0", "REVOKED"),
+        #     ("2", "CREATED"),
+        #     ("4", "UPDATED"),
+        # )
+
+        create_consent.state = "2"
         create_consent.save()
 
         # logger.debug("\n created Consent:%s" % create_consent)
         # logger.debug("\nKey:%s" % create_consent.key)
 
         granted = create_consent.status()
-        self.assertEqual(granted, "VALID")
+        self.assertEqual(granted, dict(CONSENT_STATE)[create_consent.state])
 
         revocation = create_consent.revoke_consent(True)
         logger.debug("\n Revocation:%s" % revocation)
@@ -267,6 +277,7 @@ class AccessTokenSignalTest(BaseApiTest):
 
         usr = self.user
         app = self._create_application('ThePHR', user=usr)
+        state = "2"
         # xwalk = Crosswalk.objects.get(user=usr)
 
         this_moment = timezone.now()
@@ -281,7 +292,9 @@ class AccessTokenSignalTest(BaseApiTest):
                        "patient/ExplanationOfBenefit.read"]
         a_tkn.save()
 
-        f_c = fhir_Consent.objects.get(user=usr, application=app)
+        f_c = fhir_Consent.objects.get(user=usr,
+                                       application=app,
+                                       state=state)
         # print("\nConsent:%s" % f_c)
         # print("\nJSON Consent:\n%s\n" % pretty_json(f_c.consent))
 
@@ -299,6 +312,6 @@ class AccessTokenSignalTest(BaseApiTest):
 
         f_c = fhir_Consent.objects.get(user=usr, application=app)
         # print("\nUpdated Consent:%s" % f_c)
-        # print("\nUpdated JSON Consent:\n%s\n" % pretty_json(f_c.consent))
+        # print("\nUpdated JSON Consent:\n%s...\n" % pretty_json(f_c.consent)[:200])
 
         self.assertEqual(f_c.consent['meta']['versionId'], "2")

@@ -40,7 +40,8 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_crosswalk,
                                         get_resource_names,
                                         get_resourcerouter,
-                                        build_rewrite_list)
+                                        build_rewrite_list,
+                                        get_response_text)
 
 from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               dom_conformance_filter)
@@ -188,7 +189,10 @@ def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
 
     if via_oauth:
         # get user via resource_owner
-        get_user = request.resource_owner
+        if 'resource_owner' in request:
+            get_user = request.resource_owner
+        else:
+            get_user = request.user
     else:
         get_user = request.user
 
@@ -238,7 +242,9 @@ def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
     r = request_call(request,
                      call_to + pass_params,
                      cx,
-                     reverse_lazy('authenticated_home'))
+                     reverse_lazy('authenticated_home'),
+                     timeout=rr.wait_time
+                     )
 
     ####################################################
     ####################################################
@@ -255,10 +261,12 @@ def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
     rewrite_url_list = build_rewrite_list(cx)
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
+    text_in = get_response_text(fhir_response=r)
+
     text_out = post_process_request(request,
                                     back_end_format,
                                     host_path,
-                                    r.text,
+                                    text_in,
                                     rewrite_url_list)
 
     query_string = build_querystring(request.GET.copy())
@@ -330,7 +338,10 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
 
     if via_oauth:
         # get user via resource_owner
-        get_user = request.resource_owner
+        if 'resource_owner' in request:
+            get_user = request.resource_owner
+        else:
+            get_user = request.user
     else:
         get_user = request.user
 
@@ -419,10 +430,20 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     rewrite_url_list = build_rewrite_list(cx)
     # print("Starting Rewrite_list:%s" % rewrite_url_list)
 
+    text_in = get_response_text(fhir_response=r)
+    # print("Capability text: %s\n" % r.text)
+    # print("Capability _text: %s\n" % r._text)
+
+    # text_in = r.text
+    # if text_in == "":
+    #     print("Capability assigning _text: %s\n" % r._text[:100])
+    #
+    #     text_in = r._text
+
     text_out = post_process_request(request,
                                     back_end_format,
                                     host_path,
-                                    r.text,
+                                    text_in,
                                     rewrite_url_list)
     # define query string further up before request_call
     # query_string = build_querystring(request.GET.copy())
@@ -499,15 +520,18 @@ def conformance_filter(text_block, fmt, rr=None):
     resource_names = get_resource_names(rr)
     ct = 0
 
-    for k in text_block['rest']:
-        for i, v in k.items():
-            if i == 'resource':
-                supported_resources = get_supported_resources(v,
-                                                              resource_names,
-                                                              rr)
-                text_block['rest'][ct]['resource'] = supported_resources
-        ct += 1
+    if text_block:
+        for k in text_block['rest']:
+            for i, v in k.items():
+                if i == 'resource':
+                    supported_resources = get_supported_resources(v,
+                                                                  resource_names,
+                                                                  rr)
+                    text_block['rest'][ct]['resource'] = supported_resources
+            ct += 1
 
+    else:
+        text_block = ""
     return text_block
 
 

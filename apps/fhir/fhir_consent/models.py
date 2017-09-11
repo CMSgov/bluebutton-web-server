@@ -7,7 +7,15 @@ from django.utils import timezone
 
 from jsonfield import JSONField
 
-# Create your models here.
+CONSENT_STATE = (
+    ("0", "REVOKED"),
+    ("2", "CREATED"),
+    ("4", "UPDATED"),
+)
+# e.g. state = "2" , value = "CREATED"
+# v = dict(CONSENT_STATE)[state]
+# CONSENT_STATE_FLIP = {value: key for key, value in CONSENT_STATE}
+# k = dict(CONSENT_STATE_FLIP[value]
 
 
 class fhir_Consent(models.Model):
@@ -20,11 +28,21 @@ class fhir_Consent(models.Model):
     revoked = models.DateTimeField(blank=True, null=True)
     valid_until = models.DateTimeField(blank=True, null=True)
     key = models.TextField(max_length=250, blank=True, null=True)
+    state = models.CharField(max_length=1,
+                             choices=CONSENT_STATE,
+                             blank=True,
+                             null=True,
+                             default="2")
+    # choice = CREATED (2) | REVOKED (0) | UPDATED (4)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
+        """ On save, update timestamps """
         if not self.id:
             self.created = timezone.now()
+            self.state = "2"
+        else:
+            self.state = "4"
+
         # Update the key field
         self.key = self.user.username + ":" + self.application.name + "["
         self.key += self.created.strftime('%Y-%m-%dT%H:%M.%S') + "]"
@@ -43,16 +61,31 @@ class fhir_Consent(models.Model):
         if confirm is True:
             if not self.revoked:
                 self.revoked = timezone.now()
+                # CONSENT_STATE = (
+                #     ("0", "REVOKED"),
+                #     ("2", "CREATED"),
+                #     ("4", "UPDATED"),
+                # )
+
+                self.state = "0"
 
         return super(fhir_Consent, self).save(*args, **kwargs)
 
     def status(self):
-        consent_status = None
-        if self.revoked:
-            consent_status = "REVOKED"
+        consent_state = None
+
+        # CONSENT_STATE = (
+        #     ("0", "REVOKED"),
+        #     ("2", "CREATED"),
+        #     ("4", "UPDATED"),
+        # )
+
+        if self.revoked and self.state == "0":
+            consent_state = dict(CONSENT_STATE)[self.state]
         else:
-            consent_status = "VALID"
-        return consent_status
+            consent_state = dict(CONSENT_STATE)[self.state]
+
+        return consent_state
 
     def granted(self):
         if self.created and self.revoked:
