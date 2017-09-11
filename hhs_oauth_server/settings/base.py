@@ -115,9 +115,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'bootstrapform',
     'axes',
-    # disabling social_auth to troubleshoot
-    # NotImplementedError at /o/authorize/
-    # 'social_django',  # Python Social Auth
+    'social_django',  # Python Social Auth
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 
