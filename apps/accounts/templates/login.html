@@ -35,8 +35,7 @@
 		 <div class="hero-unit text-center">
 		 
 		   <p class="lead">
-    <a class="btn btn-primary btn-lg" href="{% url 'social:begin' 'oauth2io' %}?next={{ request.GET.next | urlencode }}" role="button">{{settings.EXTERNAL_AUTH_NAME}}</a>
-
+             <a class="btn btn-primary btn-lg" href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}?next={{ request.GET.next | urlencode }}"  role="button">{{settings.EXTERNAL_AUTH_NAME}}</a>
 		   </p>
 	   {% else %}
 	   <div class="hero-unit">
