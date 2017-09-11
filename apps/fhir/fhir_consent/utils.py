@@ -12,12 +12,22 @@ File created by: ''
 
 
 def resource_from_scopes(oauth_permissions):
-    """ Extract resorce names from permissions/scopes """
+    """ Extract resource names from permissions/scopes
+        make sure permissions is a list and not a string
+        before processing
+    """
     if oauth_permissions:
+        if isinstance(oauth_permissions, str):
+            o_permissions = [oauth_permissions, ]
+        else:
+            o_permissions = oauth_permissions
 
+        # print("o_permissions: %s\n%s"
+        #       "\n#################" % (type(o_permissions),
+        #                                o_permissions))
         resource_list = []
 
-        for scope in oauth_permissions:
+        for scope in o_permissions:
             # print("\nScope:%s" % scope)
             if 'code' in scope:
                 resource_action = scope['code'].split("/")
@@ -31,7 +41,8 @@ def resource_from_scopes(oauth_permissions):
                 pass
             else:
                 resource_list.append(resource[0])
-
+        # print("\nResource List for Consent:\n%s"
+        #       "\n####################" % resource_list)
         return resource_list
     else:
         return None

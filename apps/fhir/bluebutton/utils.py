@@ -95,7 +95,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
 
         logger.debug("Status of Request:%s" % r.status_code)
 
-        fhir_response = build_fhir_response(request, call_url, cx, r)
+        fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
 
         logger.debug("Leaving request_call with "
                      "fhir_Response: %s" % fhir_response)
@@ -105,6 +105,17 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         # if r.status_code in ERROR_CODE_LIST:
         #     r.raise_for_status()
         # # except requests.exceptions.HTTPError as r_err:
+
+    except requests.exceptions.Timeout as e:
+
+        logger.debug("Gateway timeout talking to back-end server")
+        fhir_response = build_fhir_response(request,
+                                            call_url,
+                                            cx,
+                                            r=None,
+                                            e=e)
+
+        return fhir_response
 
     except requests.ConnectionError as e:
         # logger.debug('Connection Problem to FHIR '
@@ -248,7 +259,7 @@ def request_get_with_parms(request,
         logger.debug("Request.get:%s" % call_url)
         logger.debug("Status of Request:%s" % r.status_code)
 
-        fhir_response = build_fhir_response(request, call_url, cx, r)
+        fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
 
         logger.debug("Leaving request_call_with_parms with "
                      "fhir_Response: %s" % fhir_response)
@@ -295,6 +306,17 @@ def request_get_with_parms(request,
     #     return error_status(r, r.status_code)
     #
     # return r
+
+    except requests.exceptions.Timeout as e:
+
+        logger.debug("Gateway timeout talking to back-end server")
+        fhir_response = build_fhir_response(request,
+                                            call_url,
+                                            cx,
+                                            r=None,
+                                            e=e)
+
+        return fhir_response
 
     except requests.ConnectionError as e:
         # logger.debug('Connection Problem to FHIR '
@@ -1267,18 +1289,18 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
     else:
         r_dir = dir(r)
 
-    logger.debug("r to work with:\n%s\n#####################\n" % r_dir)
+    # logger.debug("r to work with:\n%s\n#####################\n" % r_dir)
 
     if e is None:
         e_dir = []
     else:
         e_dir = dir(e)
-    logger.debug("e to deal with:\n%s\n#####################\n" % e_dir)
+    # logger.debug("e to deal with:\n%s\n#####################\n" % e_dir)
 
-    if 'status_code' in r_dir:
-        logger.debug("r status:%s\n" % r.status_code)
-    else:
-        logger.debug("r status: not returned\n")
+    # if 'status_code' in r_dir:
+    #     logger.debug("r status:%s\n" % r.status_code)
+    # else:
+    #     logger.debug("r status: not returned\n")
 
     fhir_response = Fhir_Response(r)
 
@@ -1287,7 +1309,7 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
 
     if len(r_dir) > 0:
 
-        logger.debug("r._content:%s" % r._content)
+        # logger.debug("r._content:%s" % r._content)
 
         if 'status_code' in r_dir:
             fhir_response._status_code = r.status_code
@@ -1296,6 +1318,8 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
 
         if 'text' in r_dir:
             fhir_response._text = r.text
+
+            # print("copied text(%s) to _text" % r.text[:100])
 
             if r.text[0] == "<":
                 logger.debug("\nLooks like XML....[%s]" % r.text[:10])
@@ -1360,3 +1384,62 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
         logger.debug("\ne_response:END\n")
 
     return fhir_response
+
+
+def get_response_text(fhir_response=None):
+    """
+    fhir_response: Fhir_Response class returned from request call
+    Receive the fhir_response and get the text element
+    text is in response.text or response._text
+
+    :param fhir_response:
+    :return:
+    """
+
+    # logger.debug("\nfhir_response:%s" % dir(fhir_response))
+    # logger.debug("\nChecking .text:%s\n"
+    #              "_response.text:%s\n"
+    #              "and _text:%s\n" % (fhir_response.text[:40],
+    #                                  fhir_response._response.text[:40],
+    #                                  fhir_response._text[:40]))
+
+    text_in = ""
+
+    if not fhir_response:
+        # logger.debug("\nfhir_response not passed to get_response_text")
+        text_in = ""
+        return text_in
+
+    try:
+        text_in = fhir_response.text
+        if len(text_in) > 0:
+            # logger.debug("returning .text:%s" % fhir_response.text[:40])
+            return text_in
+
+    except:
+        # logger.debug("Nothing in .text")
+        pass
+
+    try:
+        text_in = fhir_response._response.text
+        if len(text_in) > 0:
+            # logger.debug("returning "
+            #              "_response.text:%s" % fhir_response.text[:40])
+            return text_in
+
+    except:
+        # logger.debug("Nothing in ._response.text")
+        pass
+
+    try:
+        text_in = fhir_response._text
+        if len(text_in) > 0:
+            # logger.debug("returning "
+            #              "_text:%s" % fhir_response._text[:40])
+            return text_in
+
+    except:
+        logger.debug("Nothing in ._text")
+        logger.debug("giving up...")
+        text_in = ""
+        return text_in

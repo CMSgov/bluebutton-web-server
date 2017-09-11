@@ -23,11 +23,11 @@
     <a class="btn btn-primary btn-lg" href="{{settings.USER_DOCS_URI}}" role="button">Learn more</a>
   </p>
 
- <p>If you've already got an account then <a href="{% url 'mfa_login' %}">login </a>
+ <p>If you've already got an account then login with
  {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
-    or login with <a href="{% url 'social:begin' 'oauth2io' %}">{{settings.EXTERNAL_AUTH_NAME}}</a>  or
-    <a href="{% url 'social:begin' 'idme' %}">ID.me</a>
-  
+       <a href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}">{{settings.EXTERNAL_AUTH_NAME}}</a>
+    {% else %}
+       <a href="{% url 'mfa_login' %}">here</a>.
  {% endif %}
 
 

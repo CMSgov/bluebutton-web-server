@@ -4,7 +4,7 @@ import logging
 
 from collections import OrderedDict
 
-from django.conf import settings
+# from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
@@ -37,7 +37,8 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         get_resourcerouter,
                                         post_process_request,
                                         pretty_json,
-                                        strip_oauth)
+                                        strip_oauth,
+                                        get_response_text)
 
 # from apps.fhir.bluebutton.views.read import generic_read
 
@@ -385,7 +386,7 @@ def read_search(request,
                                json.loads(json.dumps(payload)),
                                cx,
                                reverse_lazy('home'),
-                               timeout=settings.REQUEST_CALL_TIMEOUT
+                               timeout=rr.wait_time
                                )
 
     ###############################################
@@ -423,10 +424,7 @@ def read_search(request,
     rewrite_list = build_rewrite_list(cx)
     host_path = get_host_url(request, resource_type)[:-1]
 
-    try:
-        text_in = r.text
-    except:
-        text_in = ""
+    text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
                                     back_end_format,
