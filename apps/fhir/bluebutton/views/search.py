@@ -185,6 +185,9 @@ def oauth_search(request, resource_type, *args, **kwargs):
     elif resource_type.lower == "capability":
         # Capability is the Stu3 name for the list of resources supported
         conformance = True
+    elif resource_type.lower == "capabilitystatement":
+        # Capability is the Stu3 name for the list of resources supported
+        conformance = True
 
     if conformance:
         return fhir_conformance(request, resource_type, *args, **kwargs)
@@ -206,7 +209,7 @@ def oauth_search(request, resource_type, *args, **kwargs):
                              interaction_type,
                              resource_type,
                              # rt_id=None,
-                             via_oauth=False,
+                             via_oauth=True,
                              *args,
                              **kwargs)
     return search
@@ -239,7 +242,9 @@ def read_search(request,
     """
 
     logger.debug('\n========================\n'
-                 'INTERACTION_TYPE: %s' % interaction_type)
+                 'INTERACTION_TYPE: %s - via OAuth:%s' % (interaction_type,
+                                                          via_oauth))
+    logger.debug("Request.path:%s" % request.path)
 
     # Get the users crosswalk
     if via_oauth:
@@ -357,9 +362,12 @@ def read_search(request,
             payload['_id'] = id_dict['_id']
 
     if resource_type.lower() == 'patient':
-        # print("Working resource:%s" % resource_type)
+        logger.debug("Working resource:%s" % resource_type)
+        logger.debug("Working payload:%s" % payload)
+        logger.debug("id_dict:%s" % id_dict)
+
         payload['_id'] = id_dict['patient']
-        if payload['patient']:
+        if 'patient' in payload:
             del payload['patient']
 
     for pyld_k, pyld_v in payload.items():
