@@ -19,7 +19,7 @@ def openid_configuration(request):
 
     if "http://" in data["issuer"].lower():
         pass
-    elif "https://" in data["issue"].lower():
+    elif "https://" in data["issuer"].lower():
         pass
     else:
         logger.debug("HOSTNAME_URL [%s] "
