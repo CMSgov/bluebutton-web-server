@@ -1443,3 +1443,24 @@ def get_response_text(fhir_response=None):
         logger.debug("giving up...")
         text_in = ""
         return text_in
+
+
+def get_delegator(request, via_oauth=False):
+    """
+    When accessing by OAuth we need to replace the request.user with
+    the request.resource_owner.
+    This is the user giving the OAuth app permission to access
+    resources on their behalf
+
+    :return: delegator
+    """
+
+    if via_oauth:
+        if 'resource_owner' in request:
+            delegator = request.resource_owner
+        else:
+            delegator = request.user
+    else:
+        delegator = request.user
+
+    return delegator
