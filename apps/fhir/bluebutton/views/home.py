@@ -43,13 +43,10 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         build_rewrite_list,
                                         get_response_text,
                                         get_delegator)
-                                        build_rewrite_list,
-                                        get_response_text)
 
 from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               dom_conformance_filter)
-from apps.dot_ext.decorators import capability_protected_resource
-
+# from apps.dot_ext.decorators import capability_protected_resource
 
 from apps.fhir.fhir_core.utils import (read_session,
                                        get_search_param_format,
