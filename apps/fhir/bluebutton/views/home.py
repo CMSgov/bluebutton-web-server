@@ -24,7 +24,7 @@ except ImportError:
 
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render, HttpResponse
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
 
 # from apps.fhir.bluebutton.models import ResourceTypeControl
 from apps.fhir.bluebutton.models import Crosswalk
