@@ -97,7 +97,7 @@ def oauth_read(request, resource_type, id, via_oauth, *args, **kwargs):
                              interaction_type,
                              resource_type,
                              id,
-                             via_oauth,
+                             via_oauth=via_oauth,
                              *args,
                              **kwargs)
 
@@ -154,7 +154,8 @@ def generic_read(request,
     # if search_override is True.
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
     logger.debug('\n========================\n'
-                 'INTERACTION_TYPE: %s' % interaction_type)
+                 'INTERACTION_TYPE: %s - Via Oauth:%s' % (interaction_type,
+                                                          via_oauth))
 
     # if via_oauth we need to call crosswalk with
     if via_oauth:
