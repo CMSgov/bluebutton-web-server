@@ -16,8 +16,7 @@ import defusedxml.ElementTree as ET
 
 
 from apps.fhir.bluebutton.utils import (get_resource_names,
-                                        get_resourcerouter,
-                                        build_oauth_resource)
+                                        get_resourcerouter)
 
 from apps.fhir.fhir_core.utils import valid_interaction
 

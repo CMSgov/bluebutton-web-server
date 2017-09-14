@@ -1481,7 +1481,7 @@ def build_oauth_resource(request, format_type="json"):
 
     if format_type.lower() == "xml":
 
-        security =  """
+        security = """
 <security>
     <extension url="http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris">
         <extension url="token">
@@ -1489,11 +1489,11 @@ def build_oauth_resource(request, format_type="json"):
         </extension>
         <extension url="authorize">
             <valueUri>%s</valueUri>
-        </extension>        
+        </extension>
     </extension>
 
 </security>
-    """ % (endpoints['token_endpoint'], endpoints['authorization_endpoint'])
+        """ % (endpoints['token_endpoint'], endpoints['authorization_endpoint'])
 
     else:   # json
 
@@ -1506,7 +1506,8 @@ def build_oauth_resource(request, format_type="json"):
                      "valueUri": endpoints['token_endpoint']},
                     {"url": "authorize",
                      "valueUri": endpoints['authorization_endpoint']}]
-                }]
+             }
+        ]
 
     # print("\nSecurity Statement is:%s" % security)
     return security
