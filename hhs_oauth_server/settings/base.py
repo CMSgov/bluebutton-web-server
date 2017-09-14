@@ -364,9 +364,6 @@ DOT_EXPIRES_IN = (
     (864000 * 365 * 10, _('10 Years')),
 )
 
-# The name of an external oauth2 provider.
-EXTERNAL_AUTH_NAME = "MyMedicare.gov"
-ALLOW_END_USER_EXTERNAL_AUTH = ""
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
@@ -387,7 +384,6 @@ TAG_LINE_2 = env('DJANGO_TAG_LINE_2',
 EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
 EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 
-
 # LINKS TO DOCS
 USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
 USER_DOCS_TITLE = "User Documentation"
@@ -404,13 +400,11 @@ civil and criminal penalties. This system may be monitored, recorded, and subjec
 
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
-
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
-
 
 # include settings values in SETTING_EXPORT to use values in Templates.
 # eg. {{ settings.APPLICATION_TITLE }}
@@ -436,7 +430,8 @@ SETTINGS_EXPORT = [
     'TAG_LINE_2',
     'EXPLAINATION_LINE',
     'EXTERNAL_AUTH_NAME',
-    'ALLOW_END_USER_EXTERNAL_AUTH'
+    'ALLOW_END_USER_EXTERNAL_AUTH',
+    'SOCIAL_AUTH_BACKEND_NAME'
 ]
 
 
@@ -500,7 +495,7 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, '../certstore'))
 
 # Timeout for request call
-REQUEST_CALL_TIMEOUT = (5, 120)
+REQUEST_CALL_TIMEOUT = (30, 120)
 
 # url parameters we don't want to pass through to the back-end server
 # FRONT_END_STRIP_PARAMS = []
@@ -542,20 +537,17 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
     'social_core.pipeline.debug.debug'
 )
-# python-social-auth settings
+# The name of an external oauth2 provider.
+EXTERNAL_AUTH_NAME = "MyMedicare.gov"
+ALLOW_END_USER_EXTERNAL_AUTH = ""
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
-
+SOCIAL_AUTH_BACKEND_NAME = "oauth2io"
 
 # python-social-auth settings
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ['next']
 SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
-
-# instagram oauth
-SOCIAL_AUTH_IDME_KEY = '48816722463c11864931ee88972ffcbf'
-SOCIAL_AUTH_IDME_SECRET = '5803b9efd261c0d0a679bd4e4cc7e558'
-SOCIAL_AUTH_IDME_SCOPE = ['identity']
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',

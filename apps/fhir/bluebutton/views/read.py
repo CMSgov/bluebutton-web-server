@@ -3,7 +3,7 @@ import logging
 
 from collections import OrderedDict
 
-from django.conf import settings
+# from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
@@ -41,7 +41,8 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_default_path,
                                         get_crosswalk,
                                         get_resourcerouter,
-                                        build_rewrite_list)
+                                        build_rewrite_list,
+                                        get_response_text)
 
 # from apps.fhir.bluebutton.views.search import read_search
 
@@ -96,7 +97,7 @@ def oauth_read(request, resource_type, id, via_oauth, *args, **kwargs):
                              interaction_type,
                              resource_type,
                              id,
-                             via_oauth,
+                             via_oauth=via_oauth,
                              *args,
                              **kwargs)
 
@@ -153,7 +154,8 @@ def generic_read(request,
     # if search_override is True.
     # interaction_type = 'read' or '_history' or 'vread' or 'search'
     logger.debug('\n========================\n'
-                 'INTERACTION_TYPE: %s' % interaction_type)
+                 'INTERACTION_TYPE: %s - Via Oauth:%s' % (interaction_type,
+                                                          via_oauth))
 
     # if via_oauth we need to call crosswalk with
     if via_oauth:
@@ -324,7 +326,7 @@ def generic_read(request,
                          pass_to,
                          cx,
                          reverse_lazy('home'),
-                         timeout=settings.REQUEST_CALL_TIMEOUT)
+                         timeout=rr.wait_time)
     else:
         r = request_call(request, pass_to, cx, reverse_lazy('home'))
 
@@ -335,7 +337,7 @@ def generic_read(request,
     # logger.debug("r returned: %s" % r)
 
     # Check for Error here
-    logger.debug("what is in r:\n#######\n%s\n##########\n" % dir(r))
+    # logger.debug("what is in r:\n#######\n%s\n##########\n" % dir(r))
     logger.debug("status: %s/%s" % (r.status_code, r._status_code))
     # logger.debug("text: %s\n#############\n" % (r.text))
 
@@ -412,10 +414,7 @@ def generic_read(request,
     # logger.debug('Content-Type:%s \n work with %s' % (ct_detail,
     #                                                   back_end_format))
 
-    try:
-        text_in = r.text
-    except:
-        text_in = ""
+    text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
                                     back_end_format,

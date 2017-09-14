@@ -4,7 +4,7 @@ import logging
 
 from collections import OrderedDict
 
-from django.conf import settings
+# from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
@@ -37,7 +37,8 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         get_resourcerouter,
                                         post_process_request,
                                         pretty_json,
-                                        strip_oauth)
+                                        strip_oauth,
+                                        get_response_text)
 
 # from apps.fhir.bluebutton.views.read import generic_read
 
@@ -184,6 +185,9 @@ def oauth_search(request, resource_type, *args, **kwargs):
     elif resource_type.lower == "capability":
         # Capability is the Stu3 name for the list of resources supported
         conformance = True
+    elif resource_type.lower == "capabilitystatement":
+        # Capability is the Stu3 name for the list of resources supported
+        conformance = True
 
     if conformance:
         return fhir_conformance(request, resource_type, *args, **kwargs)
@@ -205,7 +209,7 @@ def oauth_search(request, resource_type, *args, **kwargs):
                              interaction_type,
                              resource_type,
                              # rt_id=None,
-                             via_oauth=False,
+                             via_oauth=True,
                              *args,
                              **kwargs)
     return search
@@ -238,7 +242,9 @@ def read_search(request,
     """
 
     logger.debug('\n========================\n'
-                 'INTERACTION_TYPE: %s' % interaction_type)
+                 'INTERACTION_TYPE: %s - via OAuth:%s' % (interaction_type,
+                                                          via_oauth))
+    logger.debug("Request.path:%s" % request.path)
 
     # Get the users crosswalk
     if via_oauth:
@@ -356,9 +362,12 @@ def read_search(request,
             payload['_id'] = id_dict['_id']
 
     if resource_type.lower() == 'patient':
-        # print("Working resource:%s" % resource_type)
+        logger.debug("Working resource:%s" % resource_type)
+        logger.debug("Working payload:%s" % payload)
+        logger.debug("id_dict:%s" % id_dict)
+
         payload['_id'] = id_dict['patient']
-        if payload['patient']:
+        if 'patient' in payload:
             del payload['patient']
 
     for pyld_k, pyld_v in payload.items():
@@ -385,7 +394,7 @@ def read_search(request,
                                json.loads(json.dumps(payload)),
                                cx,
                                reverse_lazy('home'),
-                               timeout=settings.REQUEST_CALL_TIMEOUT
+                               timeout=rr.wait_time
                                )
 
     ###############################################
@@ -423,10 +432,7 @@ def read_search(request,
     rewrite_list = build_rewrite_list(cx)
     host_path = get_host_url(request, resource_type)[:-1]
 
-    try:
-        text_in = r.text
-    except:
-        text_in = ""
+    text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
                                     back_end_format,
