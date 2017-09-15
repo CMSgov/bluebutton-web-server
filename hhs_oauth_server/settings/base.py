@@ -376,7 +376,7 @@ POLICY_URI = env(
     'DJANGO_POLICY_URI',
     'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
 POLICY_TITLE = env('DJANGO_POLICY_TITLE', 'Privacy Policy')
-TOS_URI = env('DJANGO_TOS_URI', '#')
+TOS_URI = env('DJANGO_TOS_URI', 'https://www.medicare.gov/find-a-plan/staticpages/UserAgreement.aspx')
 TOS_TITLE = env('DJANGO_TOS_TITLE', 'Terms of Service')
 TAG_LINE_1 = env('DJANGO_TAG_LINE_1', 'Share your Medicare data')
 TAG_LINE_2 = env('DJANGO_TAG_LINE_2',
