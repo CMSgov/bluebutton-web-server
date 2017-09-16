@@ -71,6 +71,7 @@ def create_eob_capability(group,
     description = "ExplanationOfBenefit FHIR Resource"
     smart_scope_string = "patient/ExplanationOfBenefit.read"
     pr = []
+    pr.append(["GET", "%sExplanationOfBenefit/" % fhir_prefix])
     pr.append(["GET", "%sExplanationOfBenefit/[id]" % fhir_prefix])
     pr.append(["GET", "%sExplanationOfBenefit/[id]/_history" % fhir_prefix])
     pr.append(["GET", "%sExplanationOfBenefit/[id]/_history/[vid]" % fhir_prefix])
@@ -91,6 +92,7 @@ def create_coverage_capability(group,
     description = "Coverage FHIR Resource"
     smart_scope_string = "patient/Coverage.read"
     pr = []
+    pr.append(["GET", "%sCoverage/" % fhir_prefix])
     pr.append(["GET", "%sCoverage/[id]" % fhir_prefix])
     pr.append(["GET", "%sCoverage/[id]/_history" % fhir_prefix])
     pr.append(["GET", "%sCoverage/[id]/_history/[vid]" % fhir_prefix])
@@ -105,7 +107,7 @@ def create_coverage_capability(group,
 
 
 class Command(BaseCommand):
-    help = 'Create BlueButton group and scopes'
+    help = 'Create BlueButton Group and Scopes'
 
     def handle(self, *args, **options):
         g = create_group()
