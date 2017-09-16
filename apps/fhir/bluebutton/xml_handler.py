@@ -15,7 +15,9 @@ import logging
 import defusedxml.ElementTree as ET
 
 
-from apps.fhir.bluebutton.utils import get_resource_names, get_resourcerouter
+from apps.fhir.bluebutton.utils import (get_resource_names,
+                                        get_resourcerouter)
+
 from apps.fhir.fhir_core.utils import valid_interaction
 
 FHIR_NAMESPACE = {'fhir': 'http://hl7.org/fhir'}
@@ -57,11 +59,11 @@ def dom_conformance_filter(dom, rr=None, ns=FHIR_NAMESPACE):
     # Now we need to filter the Dom Conformance Statement
     dom = filter_dom(dom, rr, ns)
 
-    # Then convert back to text to allow publishng
+    # Then convert back to text to allow publishing
     back_to_xml = ET.tostring(dom).decode("utf-8")
 
-    # logger.debug("New XML:\n%s" % back_to_xml)
-    # logger.debug("XML is type:%s" % type(back_to_xml))
+    logger.debug("New XML:\n%s" % back_to_xml)
+    logger.debug("XML is type:%s" % type(back_to_xml))
 
     return back_to_xml
     # return xml_to_dict
@@ -172,6 +174,25 @@ def get_named_child(root, named=None, x_field='tag'):
                 pass
 
     return kids
+
+
+def append_security(xml_text, security_statement):
+    """
+    pass in an xml text block
+    append a security xml text block to it
+    :param xml_text:
+    :param security_statement:
+    :return:
+    """
+
+    xml_dom = xml_to_dom(xml_text)
+    sec_dom = xml_to_dom(security_statement)
+    xml_dom.append(sec_dom)
+
+    back_to_xml = ET.tostring(xml_dom).decode("utf-8")
+
+    print("\nUpdated DOM:%s" % back_to_xml)
+    return back_to_xml
 
 
 def no_ns_name(name_string, ns=FHIR_NAMESPACE):
