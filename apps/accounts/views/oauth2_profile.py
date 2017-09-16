@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from ..models import UserProfile
+from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.decorators import protected_resource
 from collections import OrderedDict
 from django.contrib.auth.decorators import login_required
@@ -21,10 +22,15 @@ def openidconnect_userinfo(request):
     data['family_name'] = user.last_name
     data['email'] = user.email
     data['iat'] = user.date_joined
-    data['vot'] = up.vot()
-    data['ial'] = up.ial
-    data['aal'] = up.aal
-    data['loa'] = up.loa
+    data['ial'] = up.ial  # experimental
+    # data['ial'] = up.ial # experimental
+    # data['vot'] = up.vot() # experimental
+
+    # Get the FHIR ID if its there
+    fhir_id = get_fhir_id(user)
+    if fhir_id:
+        data['fhir_id'] = fhir_id
+
     return JsonResponse(data)
 
 
@@ -43,8 +49,22 @@ def userinfo_w_login(request):
     data['family_name'] = user.last_name
     data['email'] = user.email
     data['iat'] = user.date_joined
-    data['vot'] = up.vot()
-    data['ial'] = up.ial
-    data['aal'] = up.aal
-    data['loa'] = up.loa
+    data['iat'] = user.date_joined
+    data['ial'] = up.ial     # experimental
+    # data['ial'] = up.ial   # experimental
+    # data['vot'] = up.vot() # experimental
+
+    # Get the FHIR ID if its there
+    fhir_id = get_fhir_id(request.user)
+    if fhir_id:
+        data['fhir_id'] = fhir_id
     return JsonResponse(data)
+
+
+def get_fhir_id(user):
+
+    r = None
+    if Crosswalk.objects.filter(user=user).exists():
+        c = Crosswalk.objects.get(user=user)
+        r = c.fhir_id
+    return r
