@@ -42,10 +42,12 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         build_rewrite_list,
                                         get_response_text,
-                                        get_delegator)
+                                        get_delegator,
+                                        build_oauth_resource)
 
 from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
-                                              dom_conformance_filter)
+                                              dom_conformance_filter,
+                                              append_security)
 # from apps.dot_ext.decorators import capability_protected_resource
 
 from apps.fhir.fhir_core.utils import (read_session,
@@ -58,6 +60,7 @@ from apps.fhir.fhir_core.utils import (read_session,
                                        request_format)
 
 from apps.home.views import authenticated_home
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -216,14 +219,6 @@ def metadata(request, via_oauth=False, *args, **kwargs):
 
     # get request.user or request.resource_owner
     get_user = get_delegator(request, via_oauth)
-    if via_oauth:
-        # get user via resource_owner
-        if 'resource_owner' in request:
-            get_user = request.resource_owner
-        else:
-            get_user = request.user
-    else:
-        get_user = request.user
 
     try:
         cx = Crosswalk.objects.get(user=get_user)
@@ -336,6 +331,13 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         # logger.debug("is xml filtered?%s" % requested_format)
         xml_dom = xml_to_dom(text_out)
         text_out = dom_conformance_filter(xml_dom, rr)
+
+        # Append Security to ConformanceStatement
+        security_endpoint = build_oauth_resource(request,
+                                                 format_type="xml")
+        text_out = append_security(text_out,
+                                   security_endpoint)
+
         # logger.debug("Text from XML function:\n%s\n=========" % text_out)
         if 'html' not in requested_format:
             return HttpResponse(text_out,
@@ -355,18 +357,26 @@ def metadata(request, via_oauth=False, *args, **kwargs):
 
             # return HttpResponse( tostring(dict_to_xml('content', od)),
         #                      content_type='application/%s' % fmt)
-    elif back_end_format == 'json':
+    else:
+        # back_end_format == 'json'
         # logger.debug('We got json back in od')
         od = conformance_filter(text_out, back_end_format, rr)
+
+        # Append Security to ConformanceStatement
+        security_endpoint = build_oauth_resource(request,
+                                                 format_type="json")
+        od['security'] = security_endpoint
+
         text_out = pretty_json(od)
         if 'html' not in requested_format:
             return HttpResponse(text_out,
                                 content_type='application/'
                                              '%s' % requested_format)
-    else:
-        # let's make sure we have json to deliver:
-        od = conformance_filter(text_out, back_end_format, rr)
-        text_out = pretty_json(od)
+        if 'security' in od:
+            print("%s" % pretty_json(od['security'], indent=4))
+        else:
+            print("No security content in Conformance")
+            print("od: %s" % pretty_json(od, indent=4))
 
     # logger.debug('We got a different format:%s' % back_end_format)
 
@@ -414,7 +424,6 @@ def conformance_filter(text_block, fmt, rr=None):
     else:
         text_block = ""
 
-    # print("\ntext_block:\n%s\n############" % text_block)
     return text_block
 
 
