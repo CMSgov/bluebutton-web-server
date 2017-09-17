@@ -15,16 +15,30 @@ def openid_configuration(request):
     Views that returns openid_configuration.
     """
     data = OrderedDict()
-    data["issuer"] = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
+    issuer = base_issuer(request)
 
-    if "http://" in data["issuer"].lower():
+    data = build_endpoint_info(data, issuer=issuer)
+
+    print(".well-known data:%s" % data)
+
+    return JsonResponse(data)
+
+
+def base_issuer(request):
+    """
+    define the base url for issuer
+
+    """
+    issuer = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
+
+    if "http://" in issuer.lower():
         pass
-    elif "https://" in data["issuer"].lower():
+    elif "https://" in issuer.lower():
         pass
     else:
         logger.debug("HOSTNAME_URL [%s] "
-                     "does not contain http prefix. "
-                     "data[issuer]:%s" % (settings.HOSTNAME_URL, data['issuer']))
+                     "does not contain http or https prefix. "
+                     "Issuer:%s" % (settings.HOSTNAME_URL, issuer))
         # no http/https prefix in HOST_NAME_URL so we add it
         if request.is_secure():
             http_mode = 'https://'
@@ -32,21 +46,29 @@ def openid_configuration(request):
             http_mode = 'http://'
 
         # prefix hostname with http/https://
-        data["issuer"] = http_mode + data["issuer"]
+        issuer = http_mode + issuer
 
-    data["authorization_endpoint"] = data['issuer'] + \
-        reverse('oauth2_provider:authorize')
-    data["token_endpoint"] = data['issuer'] + reverse('oauth2_provider:token')
-    data["userinfo_endpoint"] = data['issuer'] + \
-        reverse('openid_connect_userinfo')
+    return issuer
+
+
+def build_endpoint_info(data=OrderedDict(), issuer=""):
+    """
+    construct the data package
+    issuer should be http: or https:// prefixed url.
+
+    :param data:
+    :return:
+    """
+    data["issuer"] = issuer
+    data["authorization_endpoint"] = issuer + reverse('oauth2_provider:authorize')
+    data["token_endpoint"] = issuer + reverse('oauth2_provider:token')
+    data["userinfo_endpoint"] = issuer + reverse('openid_connect_userinfo')
     data["ui_locales_supported"] = ["en-US", ]
     # data["service_documentation"] = getattr(settings, 'DEVELOPER_DOCS', "")
-    data["grant_types_supported"] = ["implicit", "authorization_code", "refresh_token",
+    data["grant_types_supported"] = ["implicit", "authorization_code",
+                                     "refresh_token",
                                      "password", "client_credentials"]
     if settings.DCRP:
-        data["registration_endpoint"] = data[
-            "issuer"] + reverse('dcrp_register')
+        data["registration_endpoint"] = issuer + reverse('dcrp_register')
 
-    print(".well-known data:%s" % data)
-
-    return JsonResponse(data)
+    return data

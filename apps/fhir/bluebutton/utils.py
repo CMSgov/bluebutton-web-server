@@ -27,6 +27,8 @@ from apps.fhir.bluebutton.models import (BlueButtonText)
 # from apps.fhir.fhir_core.utils import (error_status,
 #                                        ERROR_CODE_LIST)
 
+from apps.wellknown.views import (base_issuer, build_endpoint_info)
+
 from .models import Crosswalk, Fhir_Response
 
 PRETTY_JSON_INDENT = 4
@@ -1464,3 +1466,48 @@ def get_delegator(request, via_oauth=False):
         delegator = request.user
 
     return delegator
+
+
+def build_oauth_resource(request, format_type="json"):
+    """
+    Create a resource entry for oauth endpoint(s) for insertion
+    into the conformance/capabilityStatement
+
+    :return: security
+    """
+    endpoints = build_endpoint_info(OrderedDict(),
+                                    issuer=base_issuer(request))
+    print("\nEndpoints:%s" % endpoints)
+
+    if format_type.lower() == "xml":
+
+        security = """
+<security>
+    <extension url="http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris">
+        <extension url="token">
+            <valueUri>%s</valueUri>
+        </extension>
+        <extension url="authorize">
+            <valueUri>%s</valueUri>
+        </extension>
+    </extension>
+
+</security>
+        """ % (endpoints['token_endpoint'], endpoints['authorization_endpoint'])
+
+    else:   # json
+
+        security = {}
+
+        security['extension'] = [
+            {"url": "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris",
+             "extension": [
+                    {"url": "token",
+                     "valueUri": endpoints['token_endpoint']},
+                    {"url": "authorize",
+                     "valueUri": endpoints['authorization_endpoint']}]
+             }
+        ]
+
+    # print("\nSecurity Statement is:%s" % security)
+    return security
