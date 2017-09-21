@@ -53,7 +53,7 @@ def send_invite_to_create_account(invitation):
                "EMAIL": invitation.email,
                }
 
-    subject = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
+    subject = '[%s] Invitation Code: %s' % (settings.APPLICATION_TITLE,
                                             invitation.code)
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = invitation.email
@@ -73,7 +73,7 @@ def send_invitation_code_to_user(user_code_invitation):
                "CODE": user_code_invitation.code,
                "URL": user_code_invitation.url(),
                "EMAIL": user_code_invitation.email}
-    subject = '[%s] Invitation Code: %s' % (settings.ORGANIZATION_NAME,
+    subject = '[%s] Invitation Code: %s' % (settings.APPLICATION_TITLE,
                                             user_code_invitation.code)
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = user_code_invitation.email
@@ -121,75 +121,51 @@ def mfa_via_email(user, code):
 
 
 def send_password_reset_url_via_email(user, reset_key):
-    if settings.SEND_EMAIL:
-        subject = '[%s] Your password ' \
-                  'reset request' % (settings.ORGANIZATION_NAME)
-        from_email = settings.DEFAULT_FROM_EMAIL
-        to = user.email
-        link = '%s%s' % (settings.HOSTNAME_URL,
-                         reverse('password_reset_email_verify',
-                                 args=(reset_key,)))
-        html_content = """'
-        <P>
-        Click on the link to reset your password.<br>
-        <a href='%s'> %s</a>
-        </p>
-        <p>
-        Thank you,
-        </p>
-        <p>
-        The %s Team
+    plaintext = get_template('email-password-reset-link.txt')
+    htmly = get_template('email-password-reset-link.html')
+    subject = '[%s] Link to reset your password' % (settings.APPLICATION_TITLE)
+    from_email = settings.DEFAULT_FROM_EMAIL
+    to_email = user.email
+    password_reset_link = '%s%s' % (settings.HOSTNAME_URL,
+                                    reverse('password_reset_email_verify',
+                                            args=(reset_key,)))
 
-        </P>
-        """ % (link, link, settings.APPLICATION_TITLE)
-
-        text_content = """
-        Click on the link to reset your password.
-        %s
-
-
-        Thank you,
-
-        The %s Team
-
-        """ % (link, settings.APPLICATION_TITLE)
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-        msg.attach_alternative(html_content, 'text/html')
-        msg.send()
+    context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
+               "FIRST_NAME": user.first_name,
+               "LAST_NAME": user.last_name,
+               "PASSWORD_RESET_LINK": password_reset_link}
+    text_content = plaintext.render(context)
+    html_content = htmly.render(context)
+    msg = EmailMultiAlternatives(
+        subject, text_content, from_email, [
+            to_email, ])
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
 
 
 def send_activation_key_via_email(user, signup_key):
     """Do not call this directly.  Instead use create_signup_key in utils."""
-    subject = '[%s] Verify your email.' % (settings.ORGANIZATION_NAME)
+    plaintext = get_template('email-activate.txt')
+    htmly = get_template('email-activate.html')
+    subject = '[%s] Verify your email to complete account signup' % (
+        settings.APPLICATION_TITLE)
     from_email = settings.DEFAULT_FROM_EMAIL
-    to = user.email
+    to_email = user.email
     activation_link = '%s%s' % (settings.HOSTNAME_URL,
                                 reverse('activation_verify',
                                         args=(signup_key,)))
-
-    html_content = """
-       <p>
-       Hello %s. Please click the link to activate your account.<br>
-       <a href=%s a> %s</a><br>
-
-       Thank you,<br>
-
-       The %s Team
-       </p>
-       """ % (user.first_name, activation_link, activation_link, settings.APPLICATION_TITLE)
-
-    text_content = """
-       Hello %s. Please click the link to activate your account.
-
-        %s
-
-       Thank you,
-
-       The %s Team
-
-       """ % (user.first_name, activation_link, settings.APPLICATION_TITLE)
-    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-    msg.attach_alternative(html_content, 'text/html')
+    context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
+               "FIRST_NAME": user.first_name,
+               "LAST_NAME": user.last_name,
+               "ACTIVATION_LINK": activation_link}
+    subject = '[%s] Verify your email to complete your account setup.' % (
+        settings.APPLICATION_TITLE)
+    text_content = plaintext.render(context)
+    html_content = htmly.render(context)
+    msg = EmailMultiAlternatives(
+        subject, text_content, from_email, [
+            to_email, ])
+    msg.attach_alternative(html_content, "text/html")
     msg.send()
 
 
