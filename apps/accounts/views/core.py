@@ -138,7 +138,7 @@ def create_account(request):
             form.save()
             messages.success(request,
                              _("Your account was created. Please "
-                               "check your email to verify your account"
+                               "check your email to verify your account "
                                "before logging in."))
             return pick_reverse_login()
         else:
