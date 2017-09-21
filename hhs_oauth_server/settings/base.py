@@ -367,7 +367,7 @@ DOT_EXPIRES_IN = (
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API Developer Preview')
 ORGANIZATION_TITLE = env(
     'DJANGO_ORGANIZATION_TITLE',
     'The U.S. Centers for Medicare and Medicaid Services (CMS)')

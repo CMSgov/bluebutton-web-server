@@ -40,8 +40,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         response = self.client.post(self.url, form_data, follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Please check your email '
-                                      'to verify your account.')
+        self.assertContains(response, 'Please check your email')
 
         # verify username is lowercase
         User = get_user_model()
