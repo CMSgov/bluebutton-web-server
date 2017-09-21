@@ -10,7 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 from ratelimit.decorators import ratelimit
 from ..forms import (RequestInviteForm, AccountSettingsForm,
                      LoginForm,
-                     SignupForm)
+                     SignupForm,
+                     RequestInviteEndUserForm,)
 from ..models import *
 from ..utils import validate_activation_key
 from django.conf import settings
@@ -22,30 +23,51 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 @never_cache
 @ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
 def request_invite(request):
-    name = 'Request an Invite'
     if request.method == 'POST':
         form = RequestInviteForm(request.POST)
         if form.is_valid():
             invite_request = form.save()
             messages.success(
                 request,
-                _('Your invite request has been received.  '
-                  'You will be contacted by email when your '
+                _('You will be contacted by email when your '
                   'invitation is ready.'),
             )
             logger.debug("email to invite:%s" % invite_request.email)
             return pick_reverse_login()
         else:
-            return render(request, 'generic/bootstrapform.html', {
-                'name': name,
+            return render(request, 'developer-invite-request.html', {
                 'form': form,
             })
     else:
         # this is an HTTP  GET
         return render(request,
-                      'generic/bootstrapform.html',
-                      {'name': name,
-                       'form': RequestInviteForm()})
+                      'developer-invite-request.html',
+                      {'form': RequestInviteForm()})
+
+
+@never_cache
+@ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
+def request_invite_enduser(request):
+    if request.method == 'POST':
+        form = RequestInviteEndUserForm(request.POST)
+        if form.is_valid():
+            invite_request = form.save()
+            messages.success(
+                request,
+                _('You will be contacted by email when your '
+                  'invitation is ready.'),
+            )
+            logger.debug("email to invite:%s" % invite_request.email)
+            return pick_reverse_login()
+        else:
+            return render(request, 'enduser-invite-request.html', {
+                'form': form,
+            })
+    else:
+        # this is an HTTP  GET
+        return render(request,
+                      'enduser-invite-request.html',
+                      {'form': RequestInviteEndUserForm(initial={'user_type': 'BEN'})})
 
 
 def mylogout(request):
@@ -116,8 +138,8 @@ def create_account(request):
             form.save()
             messages.success(request,
                              _("Your account was created. Please "
-                               "check your email to verify your account."))
-
+                               "check your email to verify your account "
+                               "before logging in."))
             return pick_reverse_login()
         else:
             # return the bound form with errors
