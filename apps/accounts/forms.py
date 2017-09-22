@@ -39,7 +39,7 @@ class RequestInviteForm(forms.ModelForm):
 
     class Meta:
         model = RequestInvite
-        fields = ('first_name', 'last_name', 'email', 'user_type')
+        fields = ('first_name', 'last_name', 'email',)
 
     user_type = 'DEV'
     human_x = randint(1, 9)
@@ -61,6 +61,14 @@ class RequestInviteForm(forms.ModelForm):
             raise forms.ValidationError(_('You are either not human or '
                                           'just just really bad at math.'))
         return human
+
+
+class RequestInviteEndUserForm(RequestInviteForm):
+
+    class Meta:
+        model = RequestInvite
+        fields = ('first_name', 'last_name', 'email', 'user_type')
+    required_css_class = 'required'
 
 
 class SecretQuestionForm(forms.Form):

@@ -355,19 +355,19 @@ OAUTH2_PROVIDER = {
 # These choices will be available in the expires_in field
 # of the oauth2 authorization page.
 DOT_EXPIRES_IN = (
-    (86400 * 365 * 100, _('Forever')),
+    (86400 * 365 * 5, _('5 Years')),
     (86400, _('1 Day')),
     (86400 * 7, _('1 Week')),
     (86400 * 365, _('1 Year')),
-    (259200 * 365 * 3, _('3 Years')),
-    (432000 * 365 * 5, _('5 Years')),
-    (864000 * 365 * 10, _('10 Years')),
+    (86400 * 365 * 3, _('3 Years')),
+    (86400 * 365 * 10, _('10 Years')),
+    (86400 * 365 * 100, _('Forever')),
 )
 
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API')
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API Developer Preview')
 ORGANIZATION_TITLE = env(
     'DJANGO_ORGANIZATION_TITLE',
     'The U.S. Centers for Medicare and Medicaid Services (CMS)')
