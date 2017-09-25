@@ -65,8 +65,11 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     data["userinfo_endpoint"] = issuer + reverse('openid_connect_userinfo')
     data["ui_locales_supported"] = ["en-US", ]
     # data["service_documentation"] = getattr(settings, 'DEVELOPER_DOCS', "")
-    data["grant_types_supported"] = ["implicit", "authorization_code",
-                                     "refresh_token"]
+    
+    data["grant_types_supported"] = []
+    for i in settings.GRANT_TYPES:
+        data["grant_types_supported"].append(i[0])
+    data["grant_types_supported"].append("refresh_token")
     if settings.DCRP:
         data["registration_endpoint"] = issuer + reverse('dcrp_register')
 
