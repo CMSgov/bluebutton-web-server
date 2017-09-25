@@ -18,49 +18,43 @@
         <ul class="unstyled">
             <li>
                 <p><b>{% trans "Client ID" %}</b></p>
-                <input class="input-block-level" type="text" value="{{ application.client_id }}" readonly>
+                <p><pre>{{ application.client_id }}"</pre></p>
             </li>
 
             <li>
                 <p><b>{% trans "Client Secret" %}</b></p>
-                <input class="input-block-level" type="text" value="{{ application.client_secret }}" readonly>
+                <p><pre>{{ application.client_secret }}"</pre></p>
             </li>
 
             <li>
                 <p><b>{% trans "Client Type" %}</b></p>
-                <p>{{ application.client_type }}</p>
+                <p><pre>{{ application.client_type }}</pre></p>
+            </li>
+            
+            <li>
+                <p><b>{% trans "Grant Type" %}</b></p>
+                <p><pre>{{ application.authorization_grant_type }}</pre></p>
             </li>
 
             <li>
-                <p><b>{% trans "Scope Tags" %}</b></p>
-
-                <p>
+                <p><b>{% trans "Scopes" %}</b></p> 
                 {% for s in application.scope.all %}
-                <strong>{{ s.slug }}, </strong>
+                    <pre>{{ s.slug }}</pre>
                 {% endfor %}
-                </p>
-
-
             </li>
 
             <li>
-                <p><b>{% trans "Scopes Detail" %}</b></p>
+                <p><b>{% trans "Scope Detail By Tag" %}</b></p>
                 {% for s in application.scope.all %}
                 <p>Tag: <strong>{{ s.slug }}</strong></p>
-                <p>URLs for <strong>{{ s.slug }}</strong>:</p>
                 <p><pre>{{ s.protected_resources }}</pre></p>
                 {% endfor %}
             </li>
 
 
             <li>
-                <p><b>{% trans "Authorization Grant Type" %}</b></p>
-                <p>{{ application.authorization_grant_type }}</p>
-            </li>
-
-            <li>
                 <p><b>{% trans "Redirect Uris" %}</b></p>
-                <textarea class="input-block-level" readonly>{{ application.redirect_uris }}</textarea>
+                <pre>{{ application.redirect_uris }}</pre>
             </li>
         </ul>
 
