@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     'bootstrapform',
     'axes',
     'social_django',  # Python Social Auth
+    
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 
@@ -364,6 +365,16 @@ DOT_EXPIRES_IN = (
     (86400 * 365 * 100, _('Forever')),
 )
 
+GRANT_AUTHORIZATION_CODE = "authorization-code"
+GRANT_IMPLICIT = "implicit"
+# GRANT_PASSWORD = "password"
+# GRANT_CLIENT_CREDENTIALS = "client-credentials"
+GRANT_TYPES = (
+        (GRANT_AUTHORIZATION_CODE, _("Authorization code")),
+        (GRANT_IMPLICIT, _("Implicit")),
+        # (GRANT_PASSWORD, _("Resource owner password-based")),
+        # (GRANT_CLIENT_CREDENTIALS, _("Client credentials")),
+)
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
