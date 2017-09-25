@@ -10,7 +10,6 @@ from collections import OrderedDict
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
-
 from apps.capabilities.models import ProtectedCapability
 from .models import Endorsement
 
@@ -55,6 +54,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             for i in pcs:
                 choices.append([i.pk, i.title])
         self.fields['scope'].choices = choices
+        self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
+        self.fields['client_type'].initial = 'confidential'
 
     class Meta:
         model = get_application_model()

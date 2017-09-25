@@ -6,7 +6,6 @@ oauth2_provider_urls = ([
     url(r'^applications/register/$', views.ApplicationRegistration.as_view(), name="register"),
     url(r'^applications/(?P<pk>\d+)/update/$', views.ApplicationUpdate.as_view(), name="update"),
     url(r'^authorize/$', views.AuthorizationView.as_view(), name="authorize"),
-    # url(r'^approve/$', TemplateView.as_view(template_name='oauth2_provider/s4sapprove.html'), name='approve'),
     url(r'', include('oauth2_provider.urls')),
 ], 'oauth2_provider', 'oauth2_provider')
 
