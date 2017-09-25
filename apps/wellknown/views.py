@@ -60,12 +60,13 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     :return:
     """
     data["issuer"] = issuer
-    data["authorization_endpoint"] = issuer + reverse('oauth2_provider:authorize')
+    data["authorization_endpoint"] = issuer + \
+        reverse('oauth2_provider:authorize')
     data["token_endpoint"] = issuer + reverse('oauth2_provider:token')
     data["userinfo_endpoint"] = issuer + reverse('openid_connect_userinfo')
     data["ui_locales_supported"] = ["en-US", ]
     # data["service_documentation"] = getattr(settings, 'DEVELOPER_DOCS', "")
-    
+
     data["grant_types_supported"] = []
     for i in settings.GRANT_TYPES:
         data["grant_types_supported"].append(i[0])
