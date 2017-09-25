@@ -116,7 +116,7 @@ INSTALLED_APPS = [
     'bootstrapform',
     'axes',
     'social_django',  # Python Social Auth
-    
+
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 
@@ -370,15 +370,16 @@ GRANT_IMPLICIT = "implicit"
 # GRANT_PASSWORD = "password"
 # GRANT_CLIENT_CREDENTIALS = "client-credentials"
 GRANT_TYPES = (
-        (GRANT_AUTHORIZATION_CODE, _("Authorization code")),
-        (GRANT_IMPLICIT, _("Implicit")),
-        # (GRANT_PASSWORD, _("Resource owner password-based")),
-        # (GRANT_CLIENT_CREDENTIALS, _("Client credentials")),
+    (GRANT_AUTHORIZATION_CODE, _("Authorization code")),
+    (GRANT_IMPLICIT, _("Implicit")),
+    # (GRANT_PASSWORD, _("Resource owner password-based")),
+    # (GRANT_CLIENT_CREDENTIALS, _("Client credentials")),
 )
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
-APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API Developer Preview')
+APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE',
+                        'CMS Blue Button API Developer Preview')
 ORGANIZATION_TITLE = env(
     'DJANGO_ORGANIZATION_TITLE',
     'The U.S. Centers for Medicare and Medicaid Services (CMS)')
@@ -387,7 +388,8 @@ POLICY_URI = env(
     'DJANGO_POLICY_URI',
     'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
 POLICY_TITLE = env('DJANGO_POLICY_TITLE', 'Privacy Policy')
-TOS_URI = env('DJANGO_TOS_URI', 'https://www.medicare.gov/find-a-plan/staticpages/UserAgreement.aspx')
+TOS_URI = env('DJANGO_TOS_URI',
+              'https://www.medicare.gov/find-a-plan/staticpages/UserAgreement.aspx')
 TOS_TITLE = env('DJANGO_TOS_TITLE', 'Terms of Service')
 TAG_LINE_1 = env('DJANGO_TAG_LINE_1', 'Share your Medicare data')
 TAG_LINE_2 = env('DJANGO_TAG_LINE_2',
