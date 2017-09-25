@@ -66,8 +66,7 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     data["ui_locales_supported"] = ["en-US", ]
     # data["service_documentation"] = getattr(settings, 'DEVELOPER_DOCS', "")
     data["grant_types_supported"] = ["implicit", "authorization_code",
-                                     "refresh_token",
-                                     "password", "client_credentials"]
+                                     "refresh_token"]
     if settings.DCRP:
         data["registration_endpoint"] = issuer + reverse('dcrp_register')
 
