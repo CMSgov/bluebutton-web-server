@@ -11,7 +11,6 @@ import binascii
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-
 @python_2_unicode_compatible
 class Crosswalk(models.Model):
     """
@@ -30,10 +29,10 @@ class Crosswalk(models.Model):
     fhir_id = models.CharField(max_length=80,
                                blank=True, default="")
     date_created = models.DateTimeField(auto_now_add=True)
-    
+
     user_id_type = models.CharField(max_length=1,
-                               default=settings.USER_ID_TYPE_DEFAULT,
-                               choices = settings.USER_ID_TYPE_CHOICES)
+                                    default=settings.USER_ID_TYPE_DEFAULT,
+                                    choices=settings.USER_ID_TYPE_CHOICES)
     user_id_hash = models.CharField(max_length=64,
                                     blank=True,
                                     default="",
@@ -43,12 +42,11 @@ class Crosswalk(models.Model):
         return '%s %s' % (self.user.first_name, self.user.last_name)
 
     def encrypt_and_set_user_id_hash(self, plaintext_user_id):
-        
-        self.user_id_hash =  binascii.hexlify(pbkdf2(plaintext_user_id,
-                                              settings.USERID_ENCRYPT_SALT,
-                                              settings.USERID_ENCRYPT_NUM_ITERS)).decode("ascii")
-        return  self.user_id_hash 
 
+        self.user_id_hash = binascii.hexlify(pbkdf2(plaintext_user_id,
+                                                    settings.USERID_ENCRYPT_SALT,
+                                                    settings.USERID_ENCRYPT_NUM_ITERS)).decode("ascii")
+        return self.user_id_hash
 
     def get_fhir_patient_url(self):
         # Return the fhir server url and {Resource_name}/{id}
