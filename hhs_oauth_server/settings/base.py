@@ -116,7 +116,6 @@ INSTALLED_APPS = [
     'bootstrapform',
     'axes',
     'social_django',  # Python Social Auth
-
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 
@@ -566,3 +565,12 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth_backends.oauth2io.OAuth2ioOAuth2',
 )
+
+USERID_ENCRYPT_SALT = "CHANGE_THIS_SALT"
+USERID_ENCRYPT_NUM_ITERS = 26000
+
+USER_ID_TYPE_CHOICES = (('H', 'HICN'),
+                        ('M', 'MBI'),
+                        ('S', 'SSN'))
+
+USER_ID_TYPE_DEFAULT = "H"
