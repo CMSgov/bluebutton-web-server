@@ -22,7 +22,6 @@ urlpatterns = [
     url(r'^register', register, name='dcrp_register'),
     url(r'.well-known/', include('apps.wellknown.urls')),
     url(r'^consent/', include('apps.fhir.fhir_consent.urls')),
-    url(r'^education/', include('apps.education.urls')),
     url(r'^api/', include('apps.api.urls')),
     url(r'^fhir/v3/', include('apps.fhir.server.urls')),
     url(r'^protected/bluebutton/fhir/v1/',
