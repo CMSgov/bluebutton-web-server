@@ -297,7 +297,7 @@ class MFACode(models.Model):
 @python_2_unicode_compatible
 class RequestInvite(models.Model):
     user_type = models.CharField(max_length=3, choices=USER_CHOICES,
-                                 default="")
+                                 default="DEV")
     first_name = models.CharField(max_length=150, default="")
     last_name = models.CharField(max_length=150, default="")
     organization = models.CharField(max_length=150, blank=True, default="")
