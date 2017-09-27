@@ -1,29 +1,29 @@
 
-<div class="container-fluid">
+<div class="usa-width-four-fourths container-fluid">
 <!-- &copy; 2015-2017 Videntity Systems, Inc.  --> 
-    <div class="footer-wrapper">
+    <div class="ds-l-row footer-wrapper">
 <hr>
-        <div class="row text-center h4" >
+        <div class="ds-l-row text-center ds-l-row ds-l-col--12 h4 " >
             <a href="{{settings.TOS_URI}}">{{settings.TOS_TITLE}}</a> |
                 <a href="{{settings.POLICY_URI}}">{{settings.POLICY_TITLE}}</a> |
                 <a href="{{settings.USER_DOCS_URI}}">{{settings.USER_DOCS_TITLE}}</a> |
                 <a href="{{settings.DEVELOPER_DOCS_URI}}">{{settings.DEVELOPER_DOCS_TITLE}}</a>
         </div>
         
-         <div class="row text-center" >
-            <div class="col-lg-12 em h6">
+         <div class="usa-width-one-whole ds-l-row usa-footer usa-footer-small text-center " >
+            <p class="usa-font usa-footer-small">
             {{ settings.APPLICATION_TITLE }} is operated by {{settings.ORGANIZATION_TITLE }}. {{settings.DISCLOSURE_TEXT}}
 
-            </div>
+            </p>
         </div>
       
         
        {% if user.is_superuser %}
-           {% if settings.ALLOWED_HOSTS %}<div><small>{{ settings.ALLOWED_HOSTS|last }}</small></div>
+           {% if settings.ALLOWED_HOSTS %}<div class="ds-l-row ds-u-fill--gray-lightest ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
            {% endif %}
        {% else %}
            {% if settings.DEBUG %}
-               <div><small>{{ settings.ALLOWED_HOSTS|last }}</small></div>
+               <div class="ds-l-row ds-u-fill--gray-lightest ds-u-font-style--italic ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
            {% endif %}
        {% endif %}
   </div> <!-- /.footer-wrapper -->

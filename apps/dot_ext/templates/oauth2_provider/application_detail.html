@@ -3,7 +3,7 @@
 {% load i18n %}
 {% block content %}
     <div class="row">
-        <div class="col-lg-12">
+        <div class="ds-col-lg-12">
             <ol class="breadcrumb">
                 <li ><a href="/">Home</a></li>
                 <li ><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
@@ -13,7 +13,7 @@
     </div>
 
     <div class="block-center">
-        <h3 class="block-center-heading">{{ application.name }}</h3>
+        <h3 class="ds-h3">{{ application.name }}</h3>
 
         <ul class="unstyled">
             <li>
@@ -66,8 +66,8 @@
 
         <div class="btn-toolbar">
             <a class="btn" href="{% url "oauth2_provider:list" %}">{% trans "Go Back" %}</a>
-            <a class="btn btn-primary" href="{% url "oauth2_provider:update" application.id %}">{% trans "Edit" %}</a>
-            <a class="btn btn-danger" href="{% url "oauth2_provider:delete" application.id %}">{% trans "Delete" %}</a>
+            <a class="usa-button usa-button usa-button-primary" href="{% url "oauth2_provider:update" application.id %}">{% trans "Edit" %}</a>
+            <a class="usa-button usa-button usa-button-danger" href="{% url "oauth2_provider:delete" application.id %}">{% trans "Delete" %}</a>
         </div>
     </div>
 {% endblock content %}

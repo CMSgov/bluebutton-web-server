@@ -1,75 +1,68 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block Content %}
 
+{% block messages %}
 
-  <div class="container">
-    
       <div class="row">
          <div class="col-lg-8">
            {% include "include/messages.html" %}
          </div>
-       </div>
-    
+      </div>
 
 <div id="messages">
-            <div class="alert alert-warning">
-              <a class="close" data-dismiss="alert">×</a>
-              
+            <div class="ds-row ds-base-inverse usa-alert-info usa-alert-no_icon ">
+              <div class="ds-l-col-lg-1"><i class="fa fa-info-circle fa-2x" aria-hidden="true"></i>
+                <a class="close" data-dismiss="alert">×</a>
 
-             NOTICE: {{settings.DISCLOSURE_TEXT }}
+                   NOTICE: {{settings.DISCLOSURE_TEXT }}
+
+              </div>
             </div>
-
 </div>
+{% endblock %}
+
+{% block Content %}
 
 
-
-      <div class="hero-unit">
-      <h1>{% trans "Login" %}</h1>
+    <div class="hero-unit">
+      <h1 class="ds-h1">{% trans "Login" %}</h1>
 	  
       <div class="row">
-      <div class="span7 center">
 
-		 {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
-		 <div class="hero-unit text-center">
-		 
-		   <p class="lead">
-             <a class="btn btn-primary btn-lg" href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}?next={{ request.GET.next | urlencode }}"  role="button">{{settings.EXTERNAL_AUTH_NAME}}</a>
-		   </p>
-	   {% else %}
-	   <div class="hero-unit">
-	   
-       <form class="well" method="post" action="">
-          {% csrf_token %}
-          <table>
-          
-          {% load bootstrap %}
-          {{ form|bootstrap }}
-  
-          </table>
-          <input type="submit" class="btn-xlarge btn-primary btn-block" value="{% trans 'Login' %}" />
-            <!-- btn-xlarge currently defined in base.html.
-                 TODO: need to move to css file with other button settings-->
-            <br/>
+         {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
+            <div class="hero-unit text-center">
 
-            <a href="{% url 'forgot_password' %}">Forgot Password?</a> | <a href="{% url 'request_invite' %}">
-                  {% trans "Request Invite" %}</a>
-        </form>
-  
- {% endif %}
-		
-		
-		
+                <p class="lead">
+                    <a class="btn btn-primary btn-lg" href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}?next={{ request.GET.next | urlencode }}"  role="button">{{settings.EXTERNAL_AUTH_NAME}}</a>
+                </p>
+         {% else %}
+            <div class="hero-unit">
 
-      </div>
-	  
-	  
-	  
-    </div>
+                <form class="well" method="post" action="">
+                   {% csrf_token %}
+                   <table>
+
+                      {% load bootstrap %}
+                      {{ form|bootstrap }}
+
+                   </table>
+                   <input type="submit" class="usa-button usa-button btn-xlarge btn-block" value="{% trans 'Login' %}" />
+                      <!-- btn-xlarge currently defined in base.html.
+                      TODO: need to move to css file with other button settings-->
+                      <br/>
+
+                      <a href="{% url 'forgot_password' %}">Forgot Password?</a> | <a href="{% url 'request_invite' %}">
+                      {% trans "Request Invite" %}</a>
+                </form>
+
+        {% endif %}
+
+            </div>
+
+
 	  </div>
   
-
 
 {% endblock %}
 

@@ -3,7 +3,7 @@
 {% load i18n %}
 {% block content %}
     <div class="row">
-        <div class="col-lg-12">
+        <div class="ds-col-lg-12">
             <ol class="breadcrumb">
                 <li ><a href="/">Home</a></li>
                 <li class="active"><a href="{% url "oauth2_provider:list" %}">{% trans "Registered Applications" %}</a></li>
@@ -14,7 +14,7 @@
     
     <div class="alert alert-info">
     <button type="button" class="close" data-dismiss="alert">×</button>
-    <h4>{%trans "What is this?" %}</h4>
+    <h4 class="ds-h4">{%trans "What is this?" %}</h4>
     Here is where application developers register applications and create OAuth2 credentials.
     If you are not an application developer, perhaps you meant to go to the
     <a href="{% url 'oauth2_provider:authorized-token-list' %}">application token page</a>.
@@ -23,7 +23,7 @@
 
 
     <div class="block-center">
-        <h3 class="block-center-heading">{% trans "Registered Applications" %}</h3>
+        <h3 class="ds-h3">{% trans "Registered Applications" %}</h3>
         {% if applications %}
             <ul>
                 {% for application in applications %}
@@ -33,7 +33,7 @@
                 {% endfor %}
             </ul>
 
-            <a class="btn btn-success" href="{% url "oauth2_provider:register" %}">Register New Application</a>
+            <a class="usa-button usa-button  usa-button-success" href="{% url "oauth2_provider:register" %}">Register New Application</a>
         {% else %}
             <p>{% trans "No applications defined" %}. <a href="{% url 'oauth2_provider:register' %}">{% trans "Click here" %}</a> {% trans "if you want to register a new one" %}</p>
         {% endif %}

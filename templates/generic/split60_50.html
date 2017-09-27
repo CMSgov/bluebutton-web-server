@@ -7,7 +7,7 @@
 
       <div class="row">
 
-        <div class="col-lg-12">
+        <div class="ds-col-lg-12">
           <h1 class="page-header">{{name}} <small>{{subname}}</small></h1>
         </div>
 
@@ -15,7 +15,7 @@
 	  
 	  <div class="row">
 
-        <div class="col-lg-12">
+        <div class="ds-col-lg-12">
           * Required Fields
         </div>
 
@@ -24,7 +24,7 @@
 
       <div class="row">
 
-        <div class="col-lg-12">
+        <div class="ds-col-lg-12">
 	  
 	
 
@@ -39,7 +39,7 @@
  
 <div class="row">
   
-    <div class="col-lg-8">
+    <div class="ds-col-lg-8">
       {% include "include/messages.html" %}
       
       <form class="well" method="post" action="" enctype="multipart/form-data">
@@ -48,7 +48,7 @@
 	{% load bootstrap %}
 	{{ form|bootstrap }}
         
-	<input type="submit" class="btn btn-success btn-large"  value="{% trans 'Continue' %}" /><br>
+	<input type="submit" class="usa-button usa-button usa-button-success btn-large"  value="{% trans 'Continue' %}" /><br>
 	<a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
       
       </form>
@@ -60,8 +60,4 @@
 
     </div><!-- /.container -->
 
-  
-
 {% endblock %}
-
-
