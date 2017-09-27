@@ -19,7 +19,7 @@ These instructions provide a quick start for developers new to the project.
 Follow these steps on the command line.
 
     # prepare your repository folder
-    git clone https://github.com/transparenthealth/hhs_oauth_server.git
+    git clone https://github.com/HHSIDEAlab/hhs_oauth_server.git
     cd hhs_oauth_server
 
     # create the virtualenv

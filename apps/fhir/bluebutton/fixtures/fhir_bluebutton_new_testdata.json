@@ -49,9 +49,7 @@
     "fhir_source": 1,
     "fhir_id": "Patient/9342511",
     "date_created": "2016-07-01T19:37:00.452Z",
-    "mb_user": "",
-    "user_id_hash": "",
-    "beneid": ""
+    "user_id_hash": ""
   }
 },
 {
@@ -62,9 +60,7 @@
     "fhir_source": 1,
     "fhir_id": "Patient/9342511",
     "date_created": "2016-08-25T15:55:10.338Z",
-    "mb_user": "",
-    "user_id_hash": "",
-    "beneid": ""
+    "user_id_hash": ""
   }
 },
 {
@@ -75,9 +71,7 @@
     "fhir_source": 1,
     "fhir_id": "Patient/9342703",
     "date_created": "2016-08-29T03:15:48.436Z",
-    "mb_user": "",
-    "user_id_hash": "",
-    "beneid": ""
+    "user_id_hash": ""
   }
 },
 {

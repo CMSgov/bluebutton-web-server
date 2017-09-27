@@ -1,68 +1,14 @@
 import logging
-
 from requests import Response
-
 from django.conf import settings
 from django.db import models
-
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
-
 from apps.fhir.server.models import ResourceRouter
+from django.utils.crypto import pbkdf2
+import binascii
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-
-# @python_2_unicode_compatible
-# class FhirServer(models.Model):
-#     """
-#     Server URL at Profile level
-#     eg.
-#     https://fhir-server1.cmsblue.cms.gov/fhir/baseDstu2/
-#     https://fhir-server2.cmsblue.cms.gov/fhir/stu3/
-#
-#     ID will be used as reference in CrossWalk
-#     Added server_address, server_path and server_release
-#     This will enable removal of settings values
-#     Instead information will be pulled for default values from
-#     FHIR_SERVER_DEFAULT.id in ResourceRouter table
-#     """
-#
-#     name = models.CharField(max_length=254,
-#                             verbose_name="Friendly Server Name")
-#     server_address = models.URLField(verbose_name="Server Name in URL form")
-#     server_path = models.CharField(max_length=254,
-#                                    default="/",
-#                                    verbose_name="path to API with "
-#                                                 "terminating /")
-#     server_release = models.CharField(max_length=254,
-#                                       default="baseDstu3/",
-#                                       verbose_name="FHIR release with "
-#                                                    "terminating /")
-#     fhir_url = models.URLField(verbose_name="Full URL to FHIR API with "
-#                                             "terminating /")
-#     shard_by = models.CharField(max_length=80,
-#                                 default='Patient',
-#                                 verbose_name='Key Resource type')
-#     client_auth = models.BooleanField(default=False,
-#                                       help_text="Is Client Authentication Required?")
-#     # Certs and keys will be stored in files and folders under
-#     # FHIR_CLIENT_CERTSTORE (set in base.py)
-#     # default will be BASE_DIR + /../certstore
-#     cert_file = models.TextField(max_length=250,
-#                                  blank=True,
-#                                  null=True,
-#                                  help_text="Name of Client Certificate file")
-#     key_file = models.TextField(max_length=250,
-#                                 blank=True,
-#                                 null=True,
-#                                 help_text="Name of Client Key file")
-#     server_verify = models.BooleanField(default=False,
-#                                         help_text="Server Verify "
-#                                                   "(Default=False)")
-#
-#     def __str__(self):
-#         return self.name
 
 
 @python_2_unicode_compatible
@@ -83,19 +29,24 @@ class Crosswalk(models.Model):
     fhir_id = models.CharField(max_length=80,
                                blank=True, default="")
     date_created = models.DateTimeField(auto_now_add=True)
-    mb_user = models.CharField(max_length=250,
-                               blank=True, default="")
+
+    user_id_type = models.CharField(max_length=1,
+                                    default=settings.USER_ID_TYPE_DEFAULT,
+                                    choices=settings.USER_ID_TYPE_CHOICES)
     user_id_hash = models.CharField(max_length=64,
                                     blank=True,
                                     default="",
-                                    verbose_name="Hash of User ID")
-    beneid = models.CharField(max_length=11,
-                              blank=True,
-                              default="",
-                              verbose_name="Beneficiary Id")
+                                    verbose_name="PBKDF2 of User ID")
 
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
+
+    def encrypt_and_set_user_id_hash(self, plaintext_user_id):
+
+        self.user_id_hash = binascii.hexlify(pbkdf2(plaintext_user_id,
+                                                    settings.USERID_ENCRYPT_SALT,
+                                                    settings.USERID_ENCRYPT_NUM_ITERS)).decode("ascii")
+        return self.user_id_hash
 
     def get_fhir_patient_url(self):
         # Return the fhir server url and {Resource_name}/{id}
