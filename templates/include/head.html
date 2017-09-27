@@ -49,6 +49,11 @@
     <link href="{% static 'font-awesome/css/font-awesome.min.css' %}"
           rel="stylesheet">
 
+    <!-- Design-System CSS -->
+    <link rel="stylesheet" href="{% static 'design-system/css/uswds.css' %}" type="text/css"text/css">
+
+    <!-- End of Design-System CSS additions -->
+
     {% with settings.THEME.PATH|add:'bootstrap.min.css' as theme_css_static %}
    <link href="{% static theme_css_static %}" rel="stylesheet">
     {% endwith %}

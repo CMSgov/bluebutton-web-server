@@ -1,0 +1,56 @@
+{% load static %}
+  <header class="usa-header" role="banner">
+    <!-- Gov banner BEGIN -->
+    <div class="row container-fluid">
+
+        <header class="nav-header">
+              <div class="nav navbar">
+
+                <a href="https://www.medicare.gov/" title="Medicare.gov - the Official U.S. Government Site for Medicare" target="_blank" class="sr-set">
+
+                    <img id="mainHeaderBBLogo" src="{%  static 'design-system/img/bb-logo-55x55.png' %}" alt="Medicare.gov - the Official U.S. Government Site for the Medicare Blue Button API" class="hide-in-hcmode">
+                    <img id="mainHeaderLogo" src="{%  static 'design-system/img/medicare-logo.png' %}" alt="Medicare.gov - the Official U.S. Government Site for Medicare" class="hide-in-hcmode">
+                <span class="sr-only"><sl:translate> opens a new tab</sl:translate></span></a>
+
+            <div class="nav navbar-right ">
+                <div class="navbar-right" id="rightnav" role="navigation" aria-label="Resources">
+                    <ul class="nav navbar-header navbar-right">
+                    <!--Non-Responsive code-->
+                    <li class="nav navbar-right">
+                        <!--Displays "Espanol"-->
+                        <a href="#" onclick="return false;" title="Español" data-main="toggleLanguage">
+                            <span lang="es">Español&nbsp;</span>
+                        </a>
+                    </li>
+
+                   <li class="nav navbar-right">
+                        <!--Displays "MyMedicare.gov Login"-->
+                        <a href="https://www.mymedicare.gov/" title="MyMedicare.gov Login">
+                            MyMedicare.gov Login&nbsp;|
+                        </a>
+                    </li>
+                   <li class="nav navbar-right">
+                        <!--Displays "How it works" Btn-->
+                        <a href="#about/about" class="howItWorksLink" title="About">
+                            About &nbsp;|<span class="sr-only">  </span>
+                        </a>
+                    </li>
+
+                   <li class="nav navbar-right">
+                        <a href="#" title="Home" id="toolHome">
+                            Home&nbsp;|<!--Displays the respective tool Home button"-->
+                        </a>
+                    </li>
+
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        </header>
+    </div>
+
+   </header>
+
+    <!-- Gov banner END -->
