@@ -362,7 +362,19 @@ class UserRegisterCode(models.Model):
         return r
 
     def url(self):
-        return "%s%s?username=%s&code=%s" % (settings.HOSTNAME_URL,
+        hostname = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
+
+        if "http://" in hostname.lower():
+            pass
+        elif "https://" in hostname.lower():
+            pass
+        else:
+            logger.debug("HOSTNAME_URL [%s] "
+                         "does not contain http or https prefix. "
+                         "Issuer:%s" % (settings.HOSTNAME_URL, hostname))
+            # no http/https prefix in HOST_NAME_URL so we add it
+            hostname = "https://%s" % (hostname)
+        return "%s%s?username=%s&code=%s" % (hostname,
                                              reverse('user_code_register'),
                                              self.username, self.code)
 
@@ -406,7 +418,19 @@ class Invitation(models.Model):
         return self.code
 
     def url(self):
-        return "%s%s" % (settings.HOSTNAME_URL,
+        hostname = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
+
+        if "http://" in hostname.lower():
+            pass
+        elif "https://" in hostname.lower():
+            pass
+        else:
+            logger.debug("HOSTNAME_URL [%s] "
+                         "does not contain http or https prefix. "
+                         "Issuer:%s" % (settings.HOSTNAME_URL, hostname))
+            # no http/https prefix in HOST_NAME_URL so we add it
+            hostname = "https://%s" % (hostname)
+        return "%s%s" % (hostname,
                          reverse('accounts_create_account'))
 
     def save(self, commit=True, **kwargs):
@@ -464,8 +488,8 @@ class ValidPasswordResetKey(models.Model):
             # send an email with reset url
             send_password_reset_url_via_email(
                 self.user, self.reset_password_key)
-            logger.info("Password reset sent to Invitation sent to {} ({})".format(self.user.username,
-                                                                                   self.user.email))
+            logger.info("Password reset sent to {} ({})".format(self.user.username,
+                                                                self.user.email))
             super(ValidPasswordResetKey, self).save(**kwargs)
 
 

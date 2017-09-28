@@ -1,17 +1,11 @@
 import random
+import logging
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
-
-""" Found a bug in EmailMultiAlternatives
-    A spurious "None" / None was being added in the __init__
-    I copied the message.py code to hhs_oauth_server
-    and added a patch to check for "None" or None
-    and remove it from the list.
-
-"""
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def random_secret(y=40):
@@ -126,7 +120,7 @@ def send_password_reset_url_via_email(user, reset_key):
     subject = '[%s] Link to reset your password' % (settings.APPLICATION_TITLE)
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = user.email
-    password_reset_link = '%s%s' % (settings.HOSTNAME_URL,
+    password_reset_link = '%s%s' % (get_hostname(),
                                     reverse('password_reset_email_verify',
                                             args=(reset_key,)))
 
@@ -151,7 +145,7 @@ def send_activation_key_via_email(user, signup_key):
         settings.APPLICATION_TITLE)
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = user.email
-    activation_link = '%s%s' % (settings.HOSTNAME_URL,
+    activation_link = '%s%s' % (get_hostname(),
                                 reverse('activation_verify',
                                         args=(signup_key,)))
     context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
@@ -203,7 +197,7 @@ def send_invite_request_notices(invite_request):
     """ % (invite_request.first_name,
            invite_request.last_name,
            settings.ORGANIZATION_NAME,
-           settings.HOSTNAME_URL,
+           get_hostname(),
            u_type,
            settings.ORGANIZATION_NAME)
 
@@ -212,7 +206,7 @@ def send_invite_request_notices(invite_request):
     """ % (invite_request.first_name,
            invite_request.last_name,
            settings.ORGANIZATION_NAME,
-           settings.HOSTNAME_URL)
+           get_hostname())
     msg = EmailMultiAlternatives(subject, text_content, from_email,
                                  [to, settings.INVITE_REQUEST_ADMIN])
     msg.attach_alternative(html_content, 'text/html')
@@ -220,3 +214,19 @@ def send_invite_request_notices(invite_request):
     # print("\n\nMESSAGE EMAIL - INVITE REQUEST: %s / %s" % (to, msg.to))
 
     msg.send()
+
+
+def get_hostname():
+    hostname = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
+
+    if "http://" in hostname.lower():
+        pass
+    elif "https://" in hostname.lower():
+        pass
+    else:
+        logger.debug("HOSTNAME_URL [%s] "
+                     "does not contain http or https prefix. "
+                     "Issuer:%s" % (settings.HOSTNAME_URL, hostname))
+        # no http/https prefix in HOST_NAME_URL so we add it
+        hostname = "https://%s" % (hostname)
+    return hostname
