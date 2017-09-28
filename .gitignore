@@ -4,6 +4,9 @@
 *~
 .cache/
 
+# SLS Backend
+apps/accounts/sls_auth_backend.py
+
 # Django
 /_start/settings/local.py
 local.py

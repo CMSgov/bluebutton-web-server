@@ -46,12 +46,13 @@ class RequestInviteAdmin(admin.ModelAdmin):
     list_display = (
         'first_name',
         'last_name',
+        'user_type',
         'organization',
         'email',
         'issue_invite',
         'invite_sent',
         'added')
-    search_fields = ('first_name', 'last_name', 'organization', 'email')
+    search_fields = ('first_name', 'last_name', 'user_type', 'organization', 'email')
 
 
 admin.site.register(RequestInvite, RequestInviteAdmin)

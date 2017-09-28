@@ -41,7 +41,6 @@ class RequestInviteForm(forms.ModelForm):
         model = RequestInvite
         fields = ('first_name', 'last_name', 'email',)
 
-    user_type = 'DEV'
     human_x = randint(1, 9)
     human_y = randint(1, 9)
     human_z = human_x + human_y
