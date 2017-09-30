@@ -28,7 +28,10 @@ def notify_admin_of_invite_request(request_invite):
                                                            request_invite.first_name,
                                                            request_invite.last_name)
     from_email = settings.DEFAULT_FROM_EMAIL
-    to_email = settings.DEFAULT_FROM_EMAIL
+    if settings.DEFAULT_FROM_EMAIL == settings.DEFAULT_ADMIN_EMAIL:
+        to_email = settings.DEFAULT_ADMIN_EMAIL
+    else:
+        to_email = [settings.DEFAULT_ADMIN_EMAIL, settings.DEFAULT_FROM_EMAIL]
     text_content = plaintext.render(context)
     html_content = htmly.render(context)
     msg = EmailMultiAlternatives(
