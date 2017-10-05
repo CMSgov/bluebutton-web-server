@@ -29,7 +29,7 @@ def openidconnect_userinfo(request):
     # Get the FHIR ID if its there
     fhir_id = get_fhir_id(user)
     if fhir_id:
-        data['fhir_id'] = fhir_id
+        data['patient'] = fhir_id
 
     return JsonResponse(data)
 
@@ -57,7 +57,7 @@ def userinfo_w_login(request):
     # Get the FHIR ID if its there
     fhir_id = get_fhir_id(request.user)
     if fhir_id:
-        data['fhir_id'] = fhir_id
+        data['patient'] = fhir_id
     return JsonResponse(data)
 
 
