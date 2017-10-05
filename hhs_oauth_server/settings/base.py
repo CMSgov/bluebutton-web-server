@@ -351,6 +351,7 @@ OAUTH2_PROVIDER = {
                               'SingleAccessTokenValidator',
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
+    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR'
 }
 
 # These choices will be available in the expires_in field
