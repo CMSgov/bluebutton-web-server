@@ -225,6 +225,7 @@ STATICFILES_DIRS = [
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
+DEFAULT_ADMIN_EMAIL = env('DJANGO_ADMIN_EMAIL', 'change-me@example.com')
 
 # email backend options are:
 # 'django.core.mail.backends.smtp.EmailBackend'
@@ -350,6 +351,7 @@ OAUTH2_PROVIDER = {
                               'SingleAccessTokenValidator',
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
+    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR'
 }
 
 # These choices will be available in the expires_in field
