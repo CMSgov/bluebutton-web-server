@@ -25,9 +25,12 @@ urlpatterns = [
     url(r'^consent/', include('apps.fhir.fhir_consent.urls')),
     url(r'^api/', include('apps.api.urls')),
     url(r'^fhir/v3/', include('apps.fhir.server.urls')),
-    url(r'^protected/bluebutton/fhir/v1/$', fhir_conformance, 'fhir_conformance'),
-    url(r'^protected/bluebutton/fhir/v1/metadata', fhir_conformance, 'fhir_conformance'),
-    url(r'^protected/bluebutton/fhir/v1/meta', fhir_conformance, 'fhir_conformance'),
+    url(r'^protected/bluebutton/fhir/v1/$',
+        fhir_conformance, 'fhir_conformance'),
+    url(r'^protected/bluebutton/fhir/v1/metadata',
+        fhir_conformance, 'fhir_conformance'),
+    url(r'^protected/bluebutton/fhir/v1/meta',
+        fhir_conformance, 'fhir_conformance'),
     url(r'^protected/bluebutton/fhir/v1/',
         include('apps.fhir.bluebutton.urls_oauth')),
     url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
@@ -47,7 +50,7 @@ if IsAppInstalled("apps.extapi"):
     urlpatterns += [
         url(r'^extapi/', include('apps.extapi.urls')),
     ]
-    
+
 if IsAppInstalled("apps.testclient"):
     urlpatterns += [
         url(r'^testclient/', include('apps.testclient.urls')),
