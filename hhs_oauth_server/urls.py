@@ -7,6 +7,7 @@ from django.contrib import admin
 from apps.accounts.views.oauth2_profile import (openidconnect_userinfo,
                                                 userinfo_w_login)
 from apps.dot_ext.views.dcrp import register
+from apps.fhir.bluebutton.views.home import fhir_conformance
 from apps.fhir.bluebutton.views.home import fhir_search_home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 admin.autodiscover()
@@ -24,6 +25,9 @@ urlpatterns = [
     url(r'^consent/', include('apps.fhir.fhir_consent.urls')),
     url(r'^api/', include('apps.api.urls')),
     url(r'^fhir/v3/', include('apps.fhir.server.urls')),
+    url(r'^protected/bluebutton/fhir/v1/$', fhir_conformance, 'fhir_conformance'),
+    url(r'^protected/bluebutton/fhir/v1/metadata', fhir_conformance, 'fhir_conformance'),
+    url(r'^protected/bluebutton/fhir/v1/meta', fhir_conformance, 'fhir_conformance'),
     url(r'^protected/bluebutton/fhir/v1/',
         include('apps.fhir.bluebutton.urls_oauth')),
     url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
@@ -42,6 +46,11 @@ urlpatterns = [
 if IsAppInstalled("apps.extapi"):
     urlpatterns += [
         url(r'^extapi/', include('apps.extapi.urls')),
+    ]
+    
+if IsAppInstalled("apps.testclient"):
+    urlpatterns += [
+        url(r'^testclient/', include('apps.testclient.urls')),
     ]
 
 urlpatterns += [
