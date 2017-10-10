@@ -82,6 +82,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # 1st Party (in-house) ----------
+    # A test client
+    'apps.testclient',
     # Account related services
     'apps.accounts',
     # Define scopes and related protected resource URLs.

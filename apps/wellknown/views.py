@@ -19,7 +19,7 @@ def openid_configuration(request):
 
     data = build_endpoint_info(data, issuer=issuer)
 
-    print(".well-known data:%s" % data)
+    # print(".well-known data:%s" % data)
 
     return JsonResponse(data)
 
