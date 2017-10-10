@@ -45,7 +45,7 @@ class fhir_Consent(models.Model):
 
         # Update the key field
         self.key = self.user.username + ":" + self.application.name + "["
-        self.key += self.created.strftime('%Y-%m-%dT%H:%M.%S') + "]"
+        # self.key += self.created.strftime('%Y-%m-%dT%H:%M.%S') + "]"
 
         if self.valid_until:
             # print("\nChecking valid_until"
