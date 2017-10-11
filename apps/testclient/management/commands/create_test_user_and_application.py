@@ -54,6 +54,8 @@ def create_user(group):
 def create_application(user, group):
     Application.objects.filter(name="TestApp").delete()
     redirect_uri = "%s/testclient/callback" % (settings.HOSTNAME_URL)
+    if not(redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
+        redirect_uri = "https://" + redirect_uri
     a = Application.objects.create(name="TestApp",
                                    redirect_uris=redirect_uri,
                                    user=user,
@@ -98,3 +100,4 @@ class Command(BaseCommand):
         print("client_id:", a.client_id)
         print("client_secret:", a.client_secret)
         print("access_token:", t.token)
+        print("redirect_uri:", a.redirect_uris)
