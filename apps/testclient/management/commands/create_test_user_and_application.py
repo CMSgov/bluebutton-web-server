@@ -10,6 +10,7 @@ from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AccessToken
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
 
 
 __author__ = "Alan Viars"
@@ -52,9 +53,9 @@ def create_user(group):
 
 def create_application(user, group):
     Application.objects.filter(name="TestApp").delete()
-
+    redirect_uri = "%s/testclient/callback" % (settings.HOSTNAME_URL)
     a = Application.objects.create(name="TestApp",
-                                   redirect_uris="http://localhost:8000/testclient/callback",
+                                   redirect_uris=redirect_uri,
                                    user=user,
                                    client_type="confidential",
                                    authorization_grant_type="authorization-code")
@@ -90,7 +91,6 @@ class Command(BaseCommand):
         # Delete any pre-existing BlueButton Scopes
         # print("Deleting pre-existing scope in the BlueButton group.")
         # ProtectedCapability.objects.filter(group=g).delete()
-        #
         u = create_user(g)
         a = create_application(u, g)
         t = create_test_token(u, a)
