@@ -17,9 +17,10 @@ def callback(request):
 
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
+    auth_uri = settings.HOSTNAME_URL + request.get_full_path()
     token = oas.fetch_token(request.session['token_uri'],
                             client_secret=request.session['client_secret'],
-                            authorization_response=request.get_full_path())
+                            authorization_response=auth_uri)
     request.session['token'] = token
     response['token_response'] = OrderedDict()
 
