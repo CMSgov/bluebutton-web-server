@@ -27,7 +27,6 @@ from django.shortcuts import render, HttpResponse
 # from django.contrib.auth.decorators import login_required
 
 # from apps.fhir.bluebutton.models import ResourceTypeControl
-from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import (request_call,
                                         FhirServerUrl,
                                         get_host_url,
@@ -42,7 +41,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         build_rewrite_list,
                                         get_response_text,
-                                        get_delegator,
                                         build_oauth_resource)
 
 from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
@@ -216,22 +214,9 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     :param kwargs:
     :return:
     """
-
-    # get request.user or request.resource_owner
-    get_user = get_delegator(request, via_oauth)
-
-    try:
-        cx = Crosswalk.objects.get(user=get_user)
-    except Crosswalk.DoesNotExist:
-        cx = None
-        # logger.debug('Crosswalk for %s does not exist' % request.user)
-
-    if cx:
-        rr = get_resourcerouter(cx)
-        call_to = cx.fhir_source.fhir_url
-    else:
-        rr = get_resourcerouter()
-        call_to = FhirServerUrl()
+    cx = None
+    rr = get_resourcerouter()
+    call_to = FhirServerUrl()
 
     resource_type = conformance_or_capability(call_to)
 
