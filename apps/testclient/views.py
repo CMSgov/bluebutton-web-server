@@ -20,7 +20,7 @@ def callback(request):
     auth_uri = settings.HOSTNAME_URL + request.get_full_path()
     token = oas.fetch_token(request.session['token_uri'],
                             client_secret=request.session['client_secret'],
-                            authorization_response=auth_ur)
+                            authorization_response=auth_uri)
     request.session['token'] = token
     response['token_response'] = OrderedDict()
 
