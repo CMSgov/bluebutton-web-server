@@ -973,6 +973,19 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
     return in_text
 
 
+def get_fhir_id(cx=None):
+    """
+    Get the fhir_id from crosswalk
+    :param cx:
+    :return: fhir_id or None
+    """
+
+    if cx is None:
+        return None
+    else:
+        return cx.fhir_id
+
+
 def get_host_url(request, resource_type=''):
     """ get the full url and split on resource_type """
 
@@ -990,6 +1003,18 @@ def get_host_url(request, resource_type=''):
     # logger_debug.debug('Full_url as list:%s' % full_url_list)
 
     return full_url_list[0]
+
+
+def get_fhir_source_name(cx=None):
+    """
+    Get cx.source.name from Crosswalk or return empty string
+    :param cx:
+    :return:
+    """
+    if cx is None:
+        return ""
+    else:
+        return cx.fhir_source.name
 
 
 def build_conformance_url():
