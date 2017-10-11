@@ -13,9 +13,12 @@ def test_setup():
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id
     response['client_secret'] = oa2client.client_secret
-    response['resource_uri'] = settings.HOSTNAME_URL
-    response['redirect_uri'] = '%s/testclient/callback' % settings.HOSTNAME_URL
-    response['authorization_uri'] = '%s/o/authorize/' % settings.HOSTNAME_URL
-    response['token_uri'] = '%s/o/token/' % settings.HOSTNAME_URL
-    response['userinfo_uri'] = '%s/connect/userinfo' % settings.HOSTNAME_URL
+    host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
+    if not (host.startswith("http://") or host.startswith("https://")):
+        host = "https://" + host
+    response['resource_uri'] = host
+    response['redirect_uri'] = '%s/testclient/callback' % host
+    response['authorization_uri'] = '%s/o/authorize/' % host
+    response['token_uri'] = '%s/o/token/' % host
+    response['userinfo_uri'] = '%s/connect/userinfo' % host
     return(response)
