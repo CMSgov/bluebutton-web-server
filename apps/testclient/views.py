@@ -17,11 +17,11 @@ def callback(request):
 
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
-    
+
     host = settings.HOSTNAME_URL
-    
+
     if not(host.startswith("http://") or host.startswith("https://")):
-        host = "https://%s" % (host)    
+        host = "https://%s" % (host)
     auth_uri = host + request.get_full_path()
     token = oas.fetch_token(request.session['token_uri'],
                             client_secret=request.session['client_secret'],
@@ -43,7 +43,7 @@ def callback(request):
         reverse('openid-configuration')
 
     response['fhir_metadata_uri'] = host + \
-        reverse('fhir_conformance_metadata') 
+        reverse('fhir_conformance_metadata')
 
     response['test_page'] = host + reverse('test_links')
 

@@ -80,16 +80,16 @@ def create_test_token(user, application):
 
     now = timezone.now()
     expires = now + timedelta(days=1)
-    
+
     scopes = application.scope.all()
     scope = []
     for s in scopes:
         scope.append(s.slug)
-    
+
     t = AccessToken.objects.create(user=user, application=application,
                                    token="sample-token-string",
                                    expires=expires,
-                                   scope= ' '.join(scope))
+                                   scope=' '.join(scope))
     return t
 
 

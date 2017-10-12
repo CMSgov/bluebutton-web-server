@@ -5,20 +5,19 @@ from django.test.client import Client
 from django.test import TestCase
 from .utils import test_setup
 from django.core.urlresolvers import reverse
-from unittest import skipIf, skip
+from unittest import skipIf
 from django.conf import settings
 
 __author__ = "Alan Viars"
-
 
 
 class BlueButtonClientApiUSerInfoTest(TestCase):
     """
     Test the BlueButton API UserInfo Endpoint
     """
-    
+
     fixtures = ['testfixture']
-    
+
     def setUp(self):
         call_command('create_blue_button_scopes')
         call_command('create_test_user_and_application')
@@ -39,15 +38,14 @@ class BlueButtonClientApiUSerInfoTest(TestCase):
         self.assertEqual(jr['sub'], self.username)
 
 
-
-@skipIf(settings.OFFLINE, "Can't reach external sites.")  
+@skipIf(settings.OFFLINE, "Can't reach external sites.")
 class BlueButtonClientApiFHIRTest(TestCase):
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
     """
-    
+
     fixtures = ['testfixture']
-    
+
     def setUp(self):
 
         call_command('create_blue_button_scopes')
@@ -61,22 +59,22 @@ class BlueButtonClientApiFHIRTest(TestCase):
         """
         Test get patient
         """
-        uri = "%s%s?format=json" % (self.testclient_setup['patient_uri'], self.patient)
+        uri = "%s%s?format=json" % (
+            self.testclient_setup['patient_uri'], self.patient)
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response,self.patient)
-        
-  
+        self.assertContains(response, self.patient)
+
     def test_get_eob(self):
         """
         Test get eob
         """
-        uri = "%s?patient=%sformat=json" % (self.testclient_setup['eob_uri'], self.patient)
+        uri = "%s?patient=%sformat=json" % (
+            self.testclient_setup['eob_uri'], self.patient)
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "ExplanationOfBenefit")
 
-      
     def test_get_coverage(self):
         """
         Test get coverage
@@ -84,16 +82,17 @@ class BlueButtonClientApiFHIRTest(TestCase):
         uri = "%s/?format=json" % (self.testclient_setup['coverage_uri'])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-        
-        
-@skipIf(settings.OFFLINE, "Can't reach external sites.")     
+
+
+@skipIf(settings.OFFLINE, "Can't reach external sites.")
 class BlueButtonClientApiFHIRMEetadataDiscoveryTest(TestCase):
     """
     Test the BlueButton Discovery Endpoints
     These are public URIs
     """
-    
+
     fixtures = ['testfixture']
+
     def setUp(self):
         self.client = Client()
 
@@ -101,23 +100,23 @@ class BlueButtonClientApiFHIRMEetadataDiscoveryTest(TestCase):
         """
         Test get fhir metadata discovery
         """
-        response = self.client.get(reverse('fhir_conformance_metadata')+"?format=json")
+        response = self.client.get(
+            reverse('fhir_conformance_metadata') + "?format=json")
         self.assertEqual(response.status_code, 200)
         jr = response.json()
         self.assertEqual(jr['resourceType'], "CapabilityStatement")
-        self.assertContains(response,"http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris")
-        
-        
-      
+        self.assertContains(
+            response, "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris")
+
+
 class BlueButtonClientApiOIDCDiscoveryTest(TestCase):
     """
     Test the BlueButton OIDC Discovery Endpoint
     Public URIs
     """
-    
+
     def setUp(self):
         self.client = Client()
-
 
     def test_get_oidc_discovery(self):
         """
@@ -125,6 +124,5 @@ class BlueButtonClientApiOIDCDiscoveryTest(TestCase):
         """
         response = self.client.get(reverse('openid-configuration'))
         self.assertEqual(response.status_code, 200)
-        jr = response.json()
+        # jr = response.json()
         self.assertContains(response, "userinfo_endpoint")
-        
