@@ -29,6 +29,8 @@ from django.shortcuts import render, HttpResponse
 # from apps.fhir.bluebutton.models import ResourceTypeControl
 from apps.fhir.bluebutton.utils import (request_call,
                                         FhirServerUrl,
+                                        get_fhir_id,
+                                        get_fhir_source_name,
                                         get_host_url,
                                         strip_oauth,
                                         build_output_dict,
@@ -268,14 +270,14 @@ def metadata(request, via_oauth=False, *args, **kwargs):
                 request,
                 'bluebutton/default.html',
                 {'output': pretty_json(r._content, indent=4),
-                 'fhir_id': cx.fhir_id,
+                 'fhir_id': get_fhir_id(cx),
                  'content': {'parameters': query_string,
                              'resource_type': resource_type,
                              'id': id,
                              'request_method': "GET",
                              'interaction_type': "search",
                              'div_texts': "",
-                             'source': cx.fhir_source.name}})
+                             'source': get_fhir_source_name(cx)}})
         else:
             return HttpResponse(json.dumps(r._content, indent=4),
                                 status=r.status_code,
@@ -338,7 +340,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
                              'resource_type': resource_type,
                              'request_method': "GET",
                              'interaction_type': "metadata",
-                             'source': cx.fhir_source.name}})
+                             'source': get_fhir_source_name(cx)}})
 
             # return HttpResponse( tostring(dict_to_xml('content', od)),
         #                      content_type='application/%s' % fmt)

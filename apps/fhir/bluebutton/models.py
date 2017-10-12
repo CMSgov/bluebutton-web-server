@@ -23,6 +23,9 @@ class Crosswalk(models.Model):
     """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    # fhir_src = models.ForeignKey(ResourceRouter,
+    #                              blank=True,
+    #                              null=True)
     fhir_source = models.ForeignKey(ResourceRouter,
                                     blank=True,
                                     null=True)
