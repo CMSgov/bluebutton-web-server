@@ -36,3 +36,5 @@ FRONT_END_STRIP_PARAMS = ['access_token',
                           'client_id']
 
 REQUEST_CALL_TIMEOUT = (5, 120)
+
+OFFLINE = True

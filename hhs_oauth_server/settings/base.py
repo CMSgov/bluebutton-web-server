@@ -578,3 +578,6 @@ USER_ID_TYPE_CHOICES = (('H', 'HICN'),
                         ('S', 'SSN'))
 
 USER_ID_TYPE_DEFAULT = "H"
+
+# Set to true when testing and outside access is not available (e.g. online Travis CI)
+OFFLINE = False
