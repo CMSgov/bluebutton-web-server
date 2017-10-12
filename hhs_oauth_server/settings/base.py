@@ -82,6 +82,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # 1st Party (in-house) ----------
+    # A test client
+    'apps.testclient',
     # Account related services
     'apps.accounts',
     # Define scopes and related protected resource URLs.
@@ -576,3 +578,6 @@ USER_ID_TYPE_CHOICES = (('H', 'HICN'),
                         ('S', 'SSN'))
 
 USER_ID_TYPE_DEFAULT = "H"
+
+# Set to true when testing and outside access is not available (e.g. online Travis CI)
+OFFLINE = False
