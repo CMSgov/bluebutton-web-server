@@ -22,7 +22,6 @@ from apps.fhir.fhir_core.utils import (kickout_403,
                                        kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
-from apps.fhir.bluebutton.models import (BlueButtonText)
 
 # from apps.fhir.fhir_core.utils import (error_status,
 #                                        ERROR_CODE_LIST)
@@ -692,46 +691,6 @@ def get_url_query_string(get, skip_parm=[]):
 
     # logger.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
     return qs
-
-
-def bb_update_or_create(user=None, bb_text=None):
-    """
-    Create a BlueButtonText record if user not found
-    else update the record with bb_text
-    :param user:
-    :param bb_text:
-    :return:
-    """
-
-    if not bb_text:
-        # no text to update
-        return None
-    result = None
-    if user:
-        bene, created = BlueButtonText.objects.update_or_create(
-            identifier=user, defaults={"bb_content": bb_text}
-        )
-        if bene.bb_content:
-            result = created
-        else:
-            result = None
-        result = created
-        logger_debug.debug(msg="Beneficiary:%s, content:%s" % (bene, created))
-    return result
-
-
-def check_for_bb_text(user=None):
-    """
-    Check if there is bb_text
-    :param user:
-    :return:
-    """
-
-    try:
-        bb = BlueButtonText.objects.get(user=user)
-        return bb
-    except BlueButtonText.DoesNotExist:
-        return None
 
 
 def FhirServerAuth(cx=None):

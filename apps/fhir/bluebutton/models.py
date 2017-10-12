@@ -3,7 +3,7 @@ from requests import Response
 from django.conf import settings
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.translation import ugettext_lazy as _
+# from django.utils.translation import ugettext_lazy as _
 from apps.fhir.server.models import ResourceRouter
 from django.utils.crypto import pbkdf2
 import binascii
@@ -73,27 +73,6 @@ class Crosswalk(models.Model):
         if resource_type:
             full_url += resource_type + '/'
         return full_url
-
-
-class BlueButtonText(models.Model):
-    """
-    User account and BlueButton Text File
-    Moved from CrossWalk for better efficiency.
-
-    """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    bb_content = models.TextField(verbose_name="Blue Button Text File",
-                                  blank=True,
-                                  null=True,
-                                  help_text=_("The MyMedicare.gov Blue "
-                                              "Button text file is "
-                                              "stored here."))
-
-    def __str__(self):
-        return '%s %s:%s[more...%s chars]' % (self.user.first_name,
-                                              self.user.last_name,
-                                              self.bb_content[:30],
-                                              len(self.bb_content))
 
 
 class Fhir_Response(Response):
