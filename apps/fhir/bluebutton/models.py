@@ -75,27 +75,6 @@ class Crosswalk(models.Model):
         return full_url
 
 
-class BlueButtonText(models.Model):
-    """
-    User account and BlueButton Text File
-    Moved from CrossWalk for better efficiency.
-
-    """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    bb_content = models.TextField(verbose_name="Blue Button Text File",
-                                  blank=True,
-                                  null=True,
-                                  help_text=_("The MyMedicare.gov Blue "
-                                              "Button text file is "
-                                              "stored here."))
-
-    def __str__(self):
-        return '%s %s:%s[more...%s chars]' % (self.user.first_name,
-                                              self.user.last_name,
-                                              self.bb_content[:30],
-                                              len(self.bb_content))
-
-
 class Fhir_Response(Response):
     """
     Build a more consistent Response object
