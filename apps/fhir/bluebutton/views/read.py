@@ -203,7 +203,6 @@ def generic_read(request,
                                ' No records are linked to user:'
                                '%s' % (resource_type, request.user))
 
-
     # TODO: Compare id to cx.fhir_id and return 403 if they don't match for
     # Resource Type - Patient
 
