@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.dot_ext.models import Application
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AccessToken
@@ -47,7 +48,8 @@ def create_user(group):
                                password_reset_answer_3='Bentley')
 
     u.groups.add(group)
-    c, g_o_c = Crosswalk.objects.get_or_create(user=u, fhir_id="3979")
+    c, g_o_c = Crosswalk.objects.get_or_create(user=u, fhir_id="3979",
+                                               fhir_source=get_resourcerouter())
     return u
 
 
@@ -71,7 +73,6 @@ def create_application(user, group):
     for t in titles:
         c = ProtectedCapability.objects.get(title=t)
         a.scope.add(c)
-
     return a
 
 
@@ -79,9 +80,16 @@ def create_test_token(user, application):
 
     now = timezone.now()
     expires = now + timedelta(days=1)
+
+    scopes = application.scope.all()
+    scope = []
+    for s in scopes:
+        scope.append(s.slug)
+
     t = AccessToken.objects.create(user=user, application=application,
                                    token="sample-token-string",
-                                   expires=expires)
+                                   expires=expires,
+                                   scope=' '.join(scope))
     return t
 
 
