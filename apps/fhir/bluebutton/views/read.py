@@ -30,6 +30,8 @@ from apps.fhir.fhir_core.utils import (kickout_403,
 from apps.fhir.bluebutton.utils import (request_call,
                                         check_rt_controls,
                                         check_access_interaction_and_resource_type,
+                                        get_fhir_id,
+                                        get_fhir_source_name,
                                         masked_id,
                                         strip_oauth,
                                         build_params,
@@ -201,6 +203,9 @@ def generic_read(request,
                                ' No records are linked to user:'
                                '%s' % (resource_type, request.user))
 
+    # TODO: Compare id to cx.fhir_id and return 403 if they don't match for
+    # Resource Type - Patient
+
     # Request.user = user
     # interaction_type = read | _history | vread
     # resource_type = 'Patient | Practitioner | ExplanationOfBenefit ...'
@@ -228,7 +233,7 @@ def generic_read(request,
         fhir_url = default_path + resource_type + '/'
 
         if srtc.override_url_id:
-            fhir_url += cx.fhir_id + "/"
+            fhir_url += get_fhir_id(cx) + "/"
 
         # logger.debug('fhir_url:%s' % fhir_url)
         else:
@@ -288,20 +293,20 @@ def generic_read(request,
         if cx is not None:
             # logger.debug("cx.fhir_id=%s" % cx.fhir_id)
             if cx.fhir_id.__contains__('/'):
-                id = cx.fhir_id.split('/')[1]
+                id = get_fhir_id(cx).split('/')[1]
             else:
-                id = cx.fhir_id
+                id = get_fhir_id(cx)
             # logger.debug("Patient Id:%s" % r_id)
 
     if resource_type.lower() == "patient":
-        key = cx.fhir_id
+        key = get_fhir_id(cx)
     else:
         key = id
 
     pass_params = build_params(pass_params,
                                srtc,
                                key,
-                               patient_id=cx.fhir_id
+                               patient_id=get_fhir_id(cx)
                                )
 
     # Add the call type ( READ = nothing, VREAD, _HISTORY)
@@ -348,14 +353,14 @@ def generic_read(request,
                 request,
                 'bluebutton/default.html',
                 {'output': pretty_json(r._content, indent=4),
-                 'fhir_id': cx.fhir_id,
+                 'fhir_id': get_fhir_id(cx),
                  'content': {'parameters': query_string,
                              'resource_type': resource_type,
                              'id': id,
                              'request_method': "GET",
                              'interaction_type': interaction_type,
                              'div_texts': "",
-                             'source': cx.fhir_source.name}})
+                             'source': get_fhir_source_name(cx)}})
         else:
             return HttpResponse(json.dumps(r._content, indent=4),
                                 status=r.status_code,
@@ -477,14 +482,14 @@ def generic_read(request,
             request,
             'bluebutton/default_xml.html',
             {'output': text_out,
-             'fhir_id': cx.fhir_id,
+             'fhir_id': get_fhir_id(cx),
              'content': {'parameters': query_string,
                          'resource_type': resource_type,
                          'id': id,
                          'request_method': "GET",
                          'interaction_type': interaction_type,
                          'div_texts': [div_text, ],
-                         'source': cx.fhir_source.name}})
+                         'source': get_fhir_source_name(cx)}})
 
     else:
         text_out = pretty_json(od['bundle'])
@@ -504,4 +509,4 @@ def generic_read(request,
                      'request_method': "GET",
                      'interaction_type': interaction_type,
                      'div_texts': div_text,
-                     'source': cx.fhir_source.name}})
+                     'source': get_fhir_source_name(cx)}})
