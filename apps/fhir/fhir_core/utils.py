@@ -660,6 +660,7 @@ def valid_interaction(resource, rr):
 def request_format(query_params):
     """
     Save the _format or format received
+    change default to json if nothing supplied.
     :param query_params:
     :return:
     """
@@ -672,7 +673,7 @@ def request_format(query_params):
     elif "format" in query_params:
         req_format = query_params["format"]
     else:
-        req_format = "html"
+        req_format = "json"
     #
     # logger.debug("Saving requested format:%s" % req_format)
 

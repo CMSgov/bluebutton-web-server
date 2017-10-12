@@ -21,4 +21,7 @@ def test_setup():
     response['authorization_uri'] = '%s/o/authorize/' % host
     response['token_uri'] = '%s/o/token/' % host
     response['userinfo_uri'] = '%s/connect/userinfo' % host
+    response['patient_uri'] = '%s/protected/bluebutton/fhir/v1/Patient/' % host
+    response['eob_uri'] = '%s/protected/bluebutton/fhir/v1/ExplanationOfBenefit/' % host
+    response['coverage_uri'] = '%s/protected/bluebutton/fhir/v1/Coverage/' % host
     return(response)

@@ -73,13 +73,5 @@
     "date_created": "2016-08-29T03:15:48.436Z",
     "user_id_hash": ""
   }
-},
-{
-  "model": "bluebutton.bluebuttontext",
-  "pk": 1,
-  "fields": {
-    "user": 1,
-    "bb_content": "This is a text file. it is garbage.\r\nocfadasd\r\nasdanfs,. kaa  fffmnfsndbgnnm .gnmgn  g g .agnngnmgmnsad sd d,mnsg sggsg"
-  }
 }
 ]
