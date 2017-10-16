@@ -48,7 +48,8 @@ def create_user(group):
                                password_reset_answer_3='Bentley')
 
     u.groups.add(group)
-    c, g_o_c = Crosswalk.objects.get_or_create(user=u, fhir_id="3979",
+    c, g_o_c = Crosswalk.objects.get_or_create(user=u,
+                                               fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
                                                fhir_source=get_resourcerouter())
     return u
 
