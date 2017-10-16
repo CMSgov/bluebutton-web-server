@@ -4,12 +4,16 @@ from django.contrib.auth.models import Group
 from django.core.urlresolvers import reverse
 from django.contrib.auth import get_user_model
 from apps.accounts.models import Invitation, UserProfile
+from apps.fhir.bluebutton.models import Crosswalk
+from django.conf import settings
 
 
 class CreateDeveloperAccountTestCase(TestCase):
     """
-    Test Account Creation
+    Test Developer Account Creation
     """
+
+    fixtures = ['testfixture']
 
     def setUp(self):
         Invitation.objects.create(code='1234', email='bambam@example.com')
@@ -47,6 +51,10 @@ class CreateDeveloperAccountTestCase(TestCase):
         u = User.objects.get(username="bambam")
         self.assertEqual(u.username, "bambam")
         self.assertEqual(u.email, "bambam@example.com")
+
+        # Ensure developer account has a sample FHIR id crosswalk entry.
+        self.assertEqual(Crosswalk.objects.filter(user=u,
+                                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists(), True)
 
     def test_account_create_shold_fail_when_password_too_short(self):
         """

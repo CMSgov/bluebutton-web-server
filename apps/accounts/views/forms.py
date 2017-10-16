@@ -1,22 +1,16 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import logging
 from random import randint
-from django.conf import settings
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import ugettext_lazy as _
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import get_resourcerouter
+
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key, UserRegisterCode
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 from localflavor.us.forms import USPhoneNumberField
 import csv
-
-__author__ = "Alan Viars"
-
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -47,6 +41,7 @@ class RequestInviteForm(forms.ModelForm):
         model = RequestInvite
         fields = ('first_name', 'last_name', 'email',)
 
+    user_type = 'DEV'
     human_x = randint(1, 9)
     human_y = randint(1, 9)
     human_z = human_x + human_y
@@ -409,10 +404,6 @@ class SignupForm(forms.Form):
                                    password_reset_answer_3=self.cleaned_data[
                                        'password_reset_answer_3']
                                    )
-        # Attach the user to the default patient.
-        Crosswalk.objects.create(user=new_user, fhir_source=get_resourcerouter(),
-                                 fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID)
-
         group = Group.objects.get(name='BlueButton')
         new_user.groups.add(group)
 
