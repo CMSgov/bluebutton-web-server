@@ -22,10 +22,7 @@ class Crosswalk(models.Model):
     HICN and BeneID added
     """
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    # fhir_src = models.ForeignKey(ResourceRouter,
-    #                              blank=True,
-    #                              null=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL)
     fhir_source = models.ForeignKey(ResourceRouter,
                                     blank=True,
                                     null=True)
