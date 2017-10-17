@@ -40,6 +40,9 @@
 
                 {% if profile.user_type == "DEV" or profile == None or profile.create_applications %}
 				    <div class="row well">
+                                <!-- CI_TESTING:START -->
+                                <!-- test_developer_can_register_apps -->
+                                <!-- CI_TESTING:END -->
 					    	    <h4 class="ds-h4">Developer / Advanced User Feature</h4>
                         <p class="usa-font-lead">Click the button below to register an application to obtain
                         the application credentials that are needed in order to access the {{ settings.APPLICATION_TITLE }}.</p>
