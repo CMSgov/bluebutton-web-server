@@ -28,16 +28,28 @@
     <div class="usa-font-lead usa-font-lead ">
         <div class="ds-col-lg-12">
 
-				<div class="btn-group-justified">
-					<a href="{% url 'oauth2_provider:authorized-token-list' %}" >
-					  <button type="button" class="usa-button usa-button usa-button-primary"> <i class="fa fa-legal"></i>  Application Tokens</button></a>
-                    {% if profile.user_type == "DEV" or profile == None or profile.create_applications %} 
-					<a href="{% url 'oauth2_provider:list' %}">
-						 <button type="button" class="usa-button usa-button usa-button-primary"> <i class="fa fa-key"></i>  Application Registration
-					</button></a>
-					{% endif %}
+            <div class="btn-group-justified">
+                <div class="row">
+                    <p class="usa-font-lead">Click the button to see which applications you have given
+                    permission to get your Medicare claims data:</p>
+                        <a href="{% url 'oauth2_provider:authorized-token-list' %}" >
+                          <button type="button" class="usa-button usa-button usa-button-primary"> <i class="fa fa-legal"></i>  Application Tokens
+                          </button>
+                        </a>
+                </div>
 
-				</div>
+                {% if profile.user_type == "DEV" or profile == None or profile.create_applications %}
+				    <div class="row well">
+					    	    <h4 class="ds-h4">Developer / Advanced User Feature</h4>
+                        <p class="usa-font-lead">Click the button below to register an application to obtain
+                        the application credentials that are needed in order to access the {{ settings.APPLICATION_TITLE }}.</p>
+                        <a href="{% url 'oauth2_provider:list' %}">
+                            <button type="button" class="usa-button usa-button usa-button-primary"> <i class="fa fa-key"></i>  Application Registration
+                            </button>
+                        </a>
+				    </div>
+                {% endif %}
+			</div>
 	    </div>
 		
     </div> <!-- /.row -->
