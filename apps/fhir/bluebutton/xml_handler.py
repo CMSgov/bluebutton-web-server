@@ -193,7 +193,7 @@ def append_security(xml_text, security_statement, ns=FHIR_NAMESPACE):
     sec_dom = xml_to_dom(security_statement)
 
     for rest_item in element_rest:
-        rest_item.append( sec_dom)
+        rest_item.append(sec_dom)
 
     # Add sec_dom to "rest" section of dom
 
