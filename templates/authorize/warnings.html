@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{{ settings.APPLICATION_TITLE }}{% endblock %}
+{% block pretitle %}{% endblock %}
+{% block extra_head %}
+{% endblock %}
+
+
+{% block pagename %} Warnings {% endblock %}
+{% block Content %}
+
+
+<div class="ds-col-l-12">
+
+     <h1>Notices</h1>
+      <h2 class="usa-font-lead" style="align-content: center">The Transmitted Copy is Under Someone Else's Control</h2>
+      <hr class="my-4">
+      <p class="usa-font-lead">This is where we scare the pants off of the Beneficiary so that they
+      realize that they are letting their information out of our hands......</p>
+
+      <p class="usa-font-lead">
+          <a href="javascript:history.go(-1)">
+              <button type="button" class="usa-button usa-button usa-button-primary"> <i class="fa fa-chevron-circle-left"></i>  Go Back to Previous Page
+              </button>
+          </a>
+      </p>
+
+</div>
+
+
+{% endblock %}
