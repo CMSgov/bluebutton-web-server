@@ -1,9 +1,12 @@
-<div id="messages">
+<div class="ds-col-lg-12" id="messages">
         {% if messages %}
           {% for message in messages %}
-            <div class="alert alert-{{message.tags}}">
-              <a class="close" data-dismiss="alert">×</a>
-              {{message}}
+            <div class="ds-c-alert--{{message.tags}}">
+                <div class="ds-c-alert__body">
+                    <a class="close" data-dismiss="alert">×</a>
+                    <p class="ds-c-alert__text">
+                      {{message}}</p>
+                </div>
             </div>
           {% endfor %}
         {% endif %}

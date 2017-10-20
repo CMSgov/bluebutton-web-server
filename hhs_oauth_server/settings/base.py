@@ -447,7 +447,8 @@ SETTINGS_EXPORT = [
     'EXPLAINATION_LINE',
     'EXTERNAL_AUTH_NAME',
     'ALLOW_END_USER_EXTERNAL_AUTH',
-    'SOCIAL_AUTH_BACKEND_NAME'
+    'SOCIAL_AUTH_BACKEND_NAME',
+    'OAUTH2_AUTHORIZATION_FORM'
 ]
 
 
@@ -564,6 +565,11 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ['next']
 SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
+
+# adding ability to change authorize form and text in DOT authorize.html
+# OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
+OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
+
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
