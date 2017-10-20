@@ -176,22 +176,30 @@ def get_named_child(root, named=None, x_field='tag'):
     return kids
 
 
-def append_security(xml_text, security_statement):
+def append_security(xml_text, security_statement, ns=FHIR_NAMESPACE):
     """
     pass in an xml text block
     append a security xml text block to it
+    xml_text needs to be the "rest" segment
     :param xml_text:
     :param security_statement:
     :return:
     """
 
-    xml_dom = xml_to_dom(xml_text)
+    root = xml_to_dom(xml_text)
+
+    element_rest = root.findall('{%s}rest' % ns_string(ns), ns)
+
     sec_dom = xml_to_dom(security_statement)
-    xml_dom.append(sec_dom)
 
-    back_to_xml = ET.tostring(xml_dom).decode("utf-8")
+    for rest_item in element_rest:
+        rest_item.append(sec_dom)
 
-    print("\nUpdated DOM:%s" % back_to_xml)
+    # Add sec_dom to "rest" section of dom
+
+    back_to_xml = ET.tostring(root).decode("utf-8")
+
+    # print("\nUpdated DOM:%s" % back_to_xml)
     return back_to_xml
 
 
