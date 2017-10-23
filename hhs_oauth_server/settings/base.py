@@ -149,6 +149,12 @@ CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
+# Style and UI skins is set here. The default is 'the_skin'
+ENGINE_SKIN = 'the_skin/'
+# ENGINE_SKIN = 'cms/'
+# An empty ENGINE_SKIN value uses templates from th base templates directory
+# ENGINE_SKIN = ""
+
 # TEMPLATES.context_processor:
 # 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
 # enables custom code to be branched in templates eg.
@@ -164,7 +170,7 @@ ROOT_URLCONF = 'hhs_oauth_server.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, ('templates/' + ENGINE_SKIN))],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -174,6 +180,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django_settings_export.settings_export',
                 'hhs_oauth_server.hhs_oauth_server_context.active_apps',
+            ],
+            'builtins': [
+                'apps.home.templatetags.engine_skin',
             ],
         },
     },
@@ -378,6 +387,7 @@ GRANT_TYPES = (
     # (GRANT_PASSWORD, _("Resource owner password-based")),
     # (GRANT_CLIENT_CREDENTIALS, _("Client credentials")),
 )
+
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
@@ -428,6 +438,7 @@ SETTINGS_EXPORT = [
     'DEBUG',
     'ALLOWED_HOSTS',
     'APPLICATION_TITLE',
+    'ENGINE_SKIN',
     'THEME',
     'STATIC_URL',
     'STATIC_ROOT',
