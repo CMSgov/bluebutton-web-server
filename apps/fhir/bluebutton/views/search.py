@@ -463,7 +463,7 @@ def read_search(request,
     ikey = ''
     try:
         ikey = find_ikey(r.text)
-    except:
+    except Exception:
         ikey = ''
 
     if ikey is not '':

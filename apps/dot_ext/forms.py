@@ -28,7 +28,7 @@ class EndorsementForm(forms.ModelForm):
 
         try:
             decoded_payload = jwtl.decode(jwtc, verify=False)
-        except:
+        except Exception:
             msg = _('Invalid JWT.')
             raise forms.ValidationError(msg)
 
