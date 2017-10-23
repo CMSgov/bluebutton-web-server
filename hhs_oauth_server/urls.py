@@ -41,10 +41,10 @@ urlpatterns = [
     url(r'^o/', include('apps.dot_ext.urls')),
     # Adding Medicare Notices and Warning pages
     url(r'notices',
-        TemplateView.as_view(template_name=settings.ENGINE_SKIN+'authorize/notices.html'),
+        TemplateView.as_view(template_name='authorize/notices.html'),
         name='notices'),
     url(r'warnings',
-        TemplateView.as_view(template_name=settings.ENGINE_SKIN+'authorize/warnings.html'),
+        TemplateView.as_view(template_name='authorize/warnings.html'),
         name='warnings'),
 
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
