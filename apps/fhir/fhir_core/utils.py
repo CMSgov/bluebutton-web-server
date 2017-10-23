@@ -207,7 +207,7 @@ def error_status(r, status_code=404, reason='undefined error occurred'):
                 error_detail += r.text
             elif 'json' in r:
                 error_detail = r.json
-    except:
+    except Exception:
         error_detail = ""
 
     logger.debug("Reason:%s" % reason)

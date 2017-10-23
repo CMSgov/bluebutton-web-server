@@ -28,7 +28,7 @@ def nppes_update(request):
         try:
             j = json.loads(request.body, object_pairs_hook=OrderedDict)
             response = validate_pjson(request.body, 'update')
-        except:
+        except Exception:
             errors.append('The string did not contain valid JSON.')
 
         if response['errors']:

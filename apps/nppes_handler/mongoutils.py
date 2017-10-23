@@ -34,7 +34,7 @@ def update_mongo_pjson(document, database_name='nppes', collection_name='pjson')
             document['_id'] = myobject['_id']
             collection.save(document)
             response_dict['code'] = 200
-    except:
+    except Exception:
         response_dict['code'] = 500
         response_dict['errors'] = [str(sys.exc_info()), ]
 
