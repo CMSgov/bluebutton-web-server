@@ -35,6 +35,8 @@ TEMPLATES = [
     },
 ]
 
+OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
+
 
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER', 'ben')
