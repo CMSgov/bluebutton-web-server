@@ -1,18 +1,17 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load engine_skin %}
 {% block extrahead %}
-    <script src="{% static 'js/switch_content.js' %}"></script>
+    <script src="{% skin_static 'js/switch_content.js' %}"></script>
 {% endblock %}
 {% block title %}{% trans "Help with CMS Blue Button API" %}{% endblock %}
 {% block breadcrumbs %}
-    <div class="container">
-        <ul class="breadcrumb">
-            <li><a href="{% url 'home' %}">Home</a></li>
+    <ul class="breadcrumb">
+        <li><a href="{% url 'home' %}">Home</a></li>
 
-            <li class="active">Help</li>
+        <li class="active">Help</li>
         </ul>
-    </div>
 {% endblock %}
 {% block pagename %}Help with CMS Blue Button API{% endblock %}
 
@@ -20,9 +19,9 @@
 <div class="section">
     <div class="container">
         <div class="row">
-            <div class="col-md-8 col-sm-12">
+            <div class="ds-col-md-8 ds-col-sm-12">
 
-                <h1>Blue Button Help</h1>
+                <h1 class="ds-h1">Blue Button Help</h1>
 
                  <p>To use the Blue Button APi you need an account on
                      <a href="http://www.mymedicare.gov">MyMedicare.gov</a>.
@@ -45,8 +44,8 @@
                 <br/>
 
             </div>
-            <div class="col-md-4 col-sm-12">
-                <img src="{% static 'img/layout/bluebuttonapiv1.png' %}"
+            <div class="ds-col-md-4 ds-col-sm-12">
+                <img src="{% skin_static 'img/layout/bluebuttonapiv1.png' %}"
                     style="height:300px">
             </div>
 
@@ -56,7 +55,7 @@
 <div class="section">
     <div class="container">
         <div class="row">
-            <div class="col-md-12">
+            <div class="ds-col-md-12">
 
             </div>
         </div>

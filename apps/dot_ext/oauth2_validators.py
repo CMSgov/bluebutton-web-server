@@ -18,7 +18,7 @@ class SingleAccessTokenValidator(OAuth2Validator):
     def save_bearer_token(self, token, request, *args, **kwargs):
         """
         Check if an access_token exists for the couple user/application
-        that is valid and authorized for the same scopes and esures that
+        that is valid and authorized for the same scopes and ensures that
         no refresh token was used.
 
         If all the conditions are true the same access_token is issued.
