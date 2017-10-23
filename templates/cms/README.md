@@ -9,7 +9,7 @@ Engine.
 ### base.py settings file
 base.py has a setting:
 
-ENGINE_SKIN = '/the_skin'
+ENGINE_SKIN = 'the_skin' + '/'
 
 This value can be overridden in an alternative settings file that imports 
 from base.py.
@@ -30,7 +30,7 @@ and a builtins list is added to define a templatetag:
     TEMPLATES = [
         {
             
-            'DIRS': [os.path.join(BASE_DIR, ('templates/' + ENGINE_SKIN))],
+            'DIRS': [os.path.join(BASE_DIR, ENGINE_SKIN+'templates')],
             'builtins': ['apps.home.templatetags.engine_skin',],
         },
     ]
@@ -52,22 +52,9 @@ references.
     TEMPLATES = [
         {
             
-           'DIRS': [os.path.join(BASE_DIR, ('templates/' + ENGINE_SKIN))],        
+           'DIRS': [os.path.join(BASE_DIR, ENGINE_SKIN+'templates')],        
            
  
- ### Using static content from the sitestatic
- 
- To load static content from your skin directory add the following load
- command at the top of your template:
- 
-    {% load engine_skin %}
-    
- Then anywhere in your template where you want to use content from sitestatic
- use the {% skin_static "string" %} command. 
- 
- skin_static works in the same way as the {% static %} command except it 
- adds settings.ENGINE_SKIN between the STATIC_URL and the variable passed
- to the static command. 
 
 
 All of the assets used to implement the_skin are then placed in a matching 
