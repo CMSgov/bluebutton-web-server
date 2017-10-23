@@ -542,10 +542,10 @@ def dt_diagnosis(diag_list):
     ct = 1
     dt = []
     for d in diag_list:
-        l = {"sequence": str(ct),
-             "diagnosis": {"system": "http://hl7.org/fhir/sid/icd-9-cm/diagnosis",
-                           "code": d}}
-        dt.append(l)
+        ln = {"sequence": str(ct),
+              "diagnosis": {"system": "http://hl7.org/fhir/sid/icd-9-cm/diagnosis",
+                            "code": d}}
+        dt.append(ln)
         ct += 1
 
     return dt
