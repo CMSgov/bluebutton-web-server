@@ -1,6 +1,6 @@
 {%  extends "base.html" %}
 {% block Content %}
-
+<div class="container container-fluid">
     <h1 class="ds-h1">{{ content.resource_type }} [{{ content.request_method }}/{{ content.interaction_type }}]</h1>
     <h2 class="ds-h4">parameters: {{ content.parameters }}</h2>
 
@@ -21,5 +21,5 @@
         {{ output.note }}
     </div>
     {% if content.source %}<div class="ds-l-row ds-l-col-12 usa-font-lead">[source: {{ content.source }}]</div>{% endif %}
-
+</div>
 {% endblock %}

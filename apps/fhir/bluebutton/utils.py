@@ -59,7 +59,8 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
 
-    logger.debug("Auth_state:%s" % auth_state)
+    # logger.debug("Auth_state:%s" % auth_state)
+    # logger.debug("Calling: %s" % call_url)
 
     verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
