@@ -1,0 +1,10 @@
+Hello {{token.user.first_name}} {{token.user.last_name}}:
+
+Access to your health information was just granted to {{ APP_NAME }}.  This message is a courtesy notification.
+
+If you are aware of this action there is nothing to do.
+If you did not approve access to this {{ APP_NAME }} please change your password and revoke access.
+
+{{HOSTNAME}}
+
+ - The {{ APPLICATION_TITLE }} Team
