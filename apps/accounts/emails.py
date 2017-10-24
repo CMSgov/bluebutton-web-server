@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import random
 import logging
 from django.conf import settings
@@ -5,7 +7,10 @@ from django.core.urlresolvers import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
+__author__ = "Alan Viars"
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
 
 
 def random_secret(y=40):
