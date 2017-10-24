@@ -1,0 +1,54 @@
+{% load static %}
+<div class="row ds-l-row footer-wrapper panel-footer">
+
+    <div class="ds-l-row text-center ds-l-row ds-l-col--12 h4 " >
+        <a href="{{settings.TOS_URI}}">{{settings.TOS_TITLE}}</a> |
+        <a href="{{settings.DEVELOPER_DOCS_URI}}">{{settings.DEVELOPER_DOCS_TITLE}}</a> |
+        <a href="{{settings.USER_DOCS_URI}}">{{settings.USER_DOCS_TITLE}}</a>
+    </div>
+
+    <div class="row nav ">
+        <div class="row footer-nav-container">
+            <ul class="footer-leftMenu ">
+
+                    <li class="nav navbar-left"><a href="https://www.medicare.gov/about-us/about-medicare.html" title="Learn more about Medicare">about medicare</a></li>
+
+                    <li class="nav navbar-left"><a href="https://www.medicare.gov/glossary/a.html" title="Go to the Medicare glossary">medicare glossary</a></li>
+
+            </ul>
+            <ul class="footer-rightMenu">
+
+                    <li class="nav navbar-right"><a href="https://www.medicare.gov/about-us/accessibility/accessibility-aids.html" title="Accessibility">accessibility</a></li>
+
+                    <li class="nav navbar-right"> <a href="{{settings.POLICY_URI}}" title="{{settings.POLICY_TITLE}}">{{settings.POLICY_TITLE|lower }}</a></li>
+
+                    <li class="nav navbar-right"><a href="https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html" title="Privacy settings">privacy setting</a></li>
+
+                    <li class="nav navbar-right"><a href="https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/index.html" title="Linking policy">linking policy</a></li>
+
+                    <li class="nav navbar-right"><a href="https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Help.html" title="Using this site">using this site</a></li>
+
+                    <li class="nav navbar-right"><a href="https://www.medicare.gov/about-us/plain-writing/plain-writing.html" title="Plain writing">plain writing</a></li>
+
+                    <li class="nav navbar-right"><a href="https://www.medicare.gov/about-us/nondiscrimination/nondiscrimination-notice.html" title="Nondiscrimination">nondiscrimination</a></li>
+
+
+            </ul>
+        </div>
+        <div class="row container-fluid footer-logo-container">
+    	    <div class="footer-img-mclogo">
+                <img src="{% static 'design-system/img/footer-mclogo.png' %}" alt="Medicare.gov" class="hide-in-hcmode">
+            </div>
+            <div class="footer-summary">
+        	    A federal government website managed and paid for by the
+                <a href="https://www.cms.gov/" title="Centers for Medicare &amp; Medicaid Services">
+                U.S. Centers for Medicare &amp; Medicaid Services
+                </a><br>
+                7500 Security Boulevard, Baltimore, MD 21244
+            </div>
+            <div class="footer-img-hhc">
+                <img src="{% static 'design-system/img/footer-hhc.png' %}" alt="Department of Health and Human services USA Logo" class="hide-in-hcmode">
+            </div>
+        </div>
+    </div>
+</div>

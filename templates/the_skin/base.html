@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+{% load static %}
+{% load engine_skin %}
+
+<html lang="en">
+<head>
+
+
+	{% load i18n %}
+        <title>
+        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+        </title>
+	
+    {% block head %}
+        {% include "include/head.html" %}
+    {% endblock %}
+
+    {% block extra_head %}
+    {% endblock %}
+
+    <style>
+        body {
+        {#  position: relative; #}
+        {#        add padding text-outline:allow for Top Nav - Not needed with Side nav; #}
+         padding-top: 90px;
+         padding-bottom: 40px;
+        {#            background-color: #f5f5f5;#}
+        }
+{#        .block-center {#}
+{#            max-width: 500px;#}
+{#            padding: 19px 29px 29px;#}
+{#            margin: 0 auto 20px;#}
+{#            background-color: #fff;#}
+{#            border: 1px solid #e5e5e5;#}
+{#            -webkit-border-radius: 5px;#}
+{#            -moz-border-radius: 5px;#}
+{#            border-radius: 5px;#}
+{#            -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);#}
+{#            -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);#}
+{#            box-shadow: 0 1px 2px rgba(0,0,0,.05);#}
+{#        }#}
+{#        .block-center .block-center-heading {#}
+{#            margin-bottom: 10px;#}
+{#        }#}
+        .btn-xlarge {
+        {#  padding: 8px 18px; #}
+        {#     font-size: 28px; //change this to your desired size #}
+            line-height: normal; -->
+            -webkit-border-radius: 4px;
+               -moz-border-radius: 4px;
+                    border-radius: 4px;
+        }
+
+</style>
+{#    {% with '/static/'|add:settings.THEME.PATH|add:"head_style.html" as theme_head_style%}#}
+{#    {% include theme_head_style %}#}
+{#    {% endwith %}#}
+
+</head>
+<body class="ds-base usa-grid">
+ {% include "include/top-nav-responsive.html" %}
+
+    <main class="row container-fluid" id="main-content">
+
+        <div class="row container-fluid">
+
+            {% block breadcrumbs %}
+            {% endblock %}
+
+            {% block messages %}
+            {% endblock %}
+
+
+            {% block Content %}
+                {% if template %}{% include template %}{% endif %}
+                {{ content|safe }}
+            {% endblock %}
+        </div>
+
+    </main>
+
+        {% include "include/footer.html" %}
+
+        {% include "include/foot.html" %}
+
+    {% block ExtraJSFoot %}
+	
+	{% endblock %}
+	
+
+</body>
+
+</html>
