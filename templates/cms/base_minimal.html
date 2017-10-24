@@ -9,43 +9,22 @@
     </title>
 
     {% block head %}
-        {% include "include/head.html" %}
+        {% include 'include/head.html' %}
     {% endblock %}
 
     {% block extra_head %}
     {% endblock %}
     <style>
-        body {
-            padding-top: 90px;
-            padding-bottom: 40px;
-        }
+
     </style>
 </head>
 <body>
-<div class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a href="{% url 'home' %}" contenteditable="false"
-            class="navbar-brand"
-            style="vertical-align:top;max-height:100%;max-width:100%">
-            <img src="{% skin_static 'img/layout/bluebuttonapiv1.png' %}"
-                 style="vertical-align:text-top;max-height:100%;max-width:100%"></a>
-        <a href="{% url 'home' %}" contenteditable="false"
-           class="navbar-brand"
-           alt="{{ settings.APPLICATION_TITLE }}">
-                <strong>{{ settings.APPLICATION_TITLE }}</strong>
-        </a>
-    </div>
-    </div>
-</div>
+
 
 <div class="container">
+
+    {% include 'include/header_minimal.html' %}
+
     <div class="row">
         <div class="container">
         {% if messages %}
@@ -77,7 +56,7 @@
         {{ content|safe }}
     {% endblock %}
 </div>
-        {% include "include/footer.html" %}
+        {% include "include/footer_minimal.html" %}
 
         {% include "include/foot.html" %}
 

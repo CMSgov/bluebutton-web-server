@@ -150,10 +150,17 @@ CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
 # Style and UI skins is set here. The default is 'the_skin'
-ENGINE_SKIN = 'the_skin/'
-# ENGINE_SKIN = 'cms/'
+# ENGINE_SKIN = 'the_skin/'
+ENGINE_SKIN = 'cms/'
 # An empty ENGINE_SKIN value uses templates from th base templates directory
 # ENGINE_SKIN = ""
+
+# adding ability to change authorize form and text in DOT authorize.html
+if ENGINE_SKIN == 'cms/':
+    # Medicare uses the Medicare form
+    OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
+else:
+    OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
 
 # TEMPLATES.context_processor:
 # 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
@@ -576,11 +583,6 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ['next']
 SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
-
-# adding ability to change authorize form and text in DOT authorize.html
-# OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
-OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
-
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
