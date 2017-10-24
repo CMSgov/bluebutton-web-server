@@ -59,7 +59,7 @@ def create(request, resource_type):
             j = json.loads(request.body.decode('utf-8'), object_pairs_hook=OrderedDict)
             if not isinstance(j, dict):
                 kickout_400('The request body did not contain a JSON object i.e. {}.')
-        except:
+        except Exception:
             return kickout_400("The request body did not contain valid JSON.")
 
         # if j.has_key('id'): # throws error if id not in OrderedDict
@@ -69,7 +69,7 @@ def create(request, resource_type):
         # Check json_schema is valid
         try:
             json_schema = json.loads(rt.json_schema, object_pairs_hook=OrderedDict)
-        except:
+        except Exception:
             return kickout_500('The JSON Schema on the server did not contain valid JSON.')
 
         # Check jsonschema

@@ -85,7 +85,7 @@ def check_for_json(request_body):
         if not isinstance(j, type(OrderedDict())):
             return {"error": "invalid_client_metadata",
                     "erros_desscription": "The request body did not contain a JSON object."}
-    except:
+    except Exception:
         return {"error": "invalid_client_metadata",
                 "error_description": "The request body did not contain valid JSON"
                 }

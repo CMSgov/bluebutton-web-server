@@ -17,9 +17,15 @@ def callback(request):
 
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
+
+    host = settings.HOSTNAME_URL
+
+    if not(host.startswith("http://") or host.startswith("https://")):
+        host = "https://%s" % (host)
+    auth_uri = host + request.get_full_path()
     token = oas.fetch_token(request.session['token_uri'],
                             client_secret=request.session['client_secret'],
-                            authorization_response=request.get_full_path())
+                            authorization_response=auth_uri)
     request.session['token'] = token
     response['token_response'] = OrderedDict()
 
@@ -33,13 +39,13 @@ def callback(request):
     response[request.session['userinfo_uri']] = userinfo
     request.session['patient'] = userinfo['patient']
 
-    response['oidc_discovery_uri'] = settings.HOSTNAME_URL + \
+    response['oidc_discovery_uri'] = host + \
         reverse('openid-configuration')
 
-    response['fhir_metadata_uri'] = settings.HOSTNAME_URL + \
-        '/protected/bluebutton/fhir/v1/metadata'
+    response['fhir_metadata_uri'] = host + \
+        reverse('fhir_conformance_metadata')
 
-    response['test_page'] = settings.HOSTNAME_URL + reverse('test_links')
+    response['test_page'] = host + reverse('test_links')
 
     return JsonResponse(response)
 
@@ -67,6 +73,7 @@ def test_patient(request):
         request.session['client_id'], token=request.session['token'])
     patient_uri = "%s/protected/bluebutton/fhir/v1/Patient/%s?_format=json" % (
         request.session['resource_uri'], request.session['patient'])
+    print(patient_uri)
     patient = oas.get(patient_uri).json()
     return JsonResponse(patient)
 

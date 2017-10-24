@@ -140,7 +140,7 @@ class SimpleUserSignupForm(forms.Form):
         invitation_code = self.cleaned_data['invitation_code']
         try:
             UserRegisterCode.objects.get(used=False, code=invitation_code)
-        except:
+        except Exception:
             raise forms.ValidationError(_('The invitation code is not valid.'))
         return invitation_code
 

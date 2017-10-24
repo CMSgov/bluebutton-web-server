@@ -2,8 +2,11 @@
 
 {% load i18n %}
 {% block content %}
+    <!-- CI_TESTING:START -->
+    <!-- test_dot_ext_application_list -->
+    <!-- CI_TESTING:END -->
     <div class="row">
-        <div class="col-lg-12">
+        <div class="ds-col-lg-12">
             <ol class="breadcrumb">
                 <li ><a href="/">Home</a></li>
                 <li class="active"><a href="{% url "oauth2_provider:list" %}">{% trans "Registered Applications" %}</a></li>
@@ -11,19 +14,19 @@
         </div>
     </div>
     
-    
-    <div class="alert alert-info">
-    <button type="button" class="close" data-dismiss="alert">×</button>
-    <h4>{%trans "What is this?" %}</h4>
-    Here is where application developers register applications and create OAuth2 credentials.
-    If you are not an application developer, perhaps you meant to go to the
-    <a href="{% url 'oauth2_provider:authorized-token-list' %}">application token page</a>.
-    
+    <div class="row container-fluid">
+        <div class="alert alert-info">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4 class="ds-h4">{%trans "What is this?" %}</h4>
+            Here is where application developers register applications and create OAuth2 credentials.
+            If you are not an application developer, perhaps you meant to go to the
+            <a href="{% url 'oauth2_provider:authorized-token-list' %}">application token page</a>.
+
+        </div>
     </div>
 
-
     <div class="block-center">
-        <h3 class="block-center-heading">{% trans "Registered Applications" %}</h3>
+        <h3 class="ds-h3">{% trans "Registered Applications" %}</h3>
         {% if applications %}
             <ul>
                 {% for application in applications %}
@@ -33,9 +36,15 @@
                 {% endfor %}
             </ul>
 
-            <a class="btn btn-success" href="{% url "oauth2_provider:register" %}">Register New Application</a>
+            <a class="usa-button usa-button  usa-button-success" href="{% url "oauth2_provider:register" %}">Register New Application</a>
         {% else %}
-            <p>{% trans "No applications defined" %}. <a href="{% url 'oauth2_provider:register' %}">{% trans "Click here" %}</a> {% trans "if you want to register a new one" %}</p>
+            <p>{% trans "No applications defined. Register a New Application:" %}
+                <a href="{% url 'oauth2_provider:register' %}">
+                    <button type="button" class="usa-button usa-button usa-button-primary">
+                        <i class="fa fa-plus-square"></i>  Register a New Application
+                    </button>
+                </a>
+            </p>
         {% endif %}
     </div>
 {% endblock content %}

@@ -5,11 +5,13 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.dot_ext.models import Application
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AccessToken
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
 
 
 __author__ = "Alan Viars"
@@ -46,15 +48,19 @@ def create_user(group):
                                password_reset_answer_3='Bentley')
 
     u.groups.add(group)
-    c, g_o_c = Crosswalk.objects.get_or_create(user=u, fhir_id="3979")
+    c, g_o_c = Crosswalk.objects.get_or_create(user=u,
+                                               fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                               fhir_source=get_resourcerouter())
     return u
 
 
 def create_application(user, group):
     Application.objects.filter(name="TestApp").delete()
-
+    redirect_uri = "%s/testclient/callback" % (settings.HOSTNAME_URL)
+    if not(redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
+        redirect_uri = "https://" + redirect_uri
     a = Application.objects.create(name="TestApp",
-                                   redirect_uris="http://localhost:8000/testclient/callback",
+                                   redirect_uris=redirect_uri,
                                    user=user,
                                    client_type="confidential",
                                    authorization_grant_type="authorization-code")
@@ -68,7 +74,6 @@ def create_application(user, group):
     for t in titles:
         c = ProtectedCapability.objects.get(title=t)
         a.scope.add(c)
-
     return a
 
 
@@ -76,9 +81,16 @@ def create_test_token(user, application):
 
     now = timezone.now()
     expires = now + timedelta(days=1)
+
+    scopes = application.scope.all()
+    scope = []
+    for s in scopes:
+        scope.append(s.slug)
+
     t = AccessToken.objects.create(user=user, application=application,
                                    token="sample-token-string",
-                                   expires=expires)
+                                   expires=expires,
+                                   scope=' '.join(scope))
     return t
 
 
@@ -90,7 +102,6 @@ class Command(BaseCommand):
         # Delete any pre-existing BlueButton Scopes
         # print("Deleting pre-existing scope in the BlueButton group.")
         # ProtectedCapability.objects.filter(group=g).delete()
-        #
         u = create_user(g)
         a = create_application(u, g)
         t = create_test_token(u, a)
@@ -98,3 +109,4 @@ class Command(BaseCommand):
         print("client_id:", a.client_id)
         print("client_secret:", a.client_secret)
         print("access_token:", t.token)
+        print("redirect_uri:", a.redirect_uris)

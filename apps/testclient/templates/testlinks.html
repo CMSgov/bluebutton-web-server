@@ -11,6 +11,7 @@
  <p>These calls require a token to be attached to your session.  The
 test redirect_uri callback function {% url 'testclient-callback' %} will do this for you.
  Use this <a href="{% url 'authorize_link' %}">sample Authorization flow</a> to set the token, then come back here to make the calls.
+ Calls requiring an access token will fail unless the above step is completed.
  </p>
       
     
@@ -19,7 +20,7 @@ test redirect_uri callback function {% url 'testclient-callback' %} will do this
      <li> <a href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
      <li> <a href="{% url 'test_patient' %}">Patient</a> </li>
      <li> <a href="{% url 'test_coverage' %}">Coverage</a> </li>
-     <li> <a href="{% url 'fhir_conformance' %}?format=json">FHIR Metadata (No Token Needed)</a> </li>
+     <li> <a href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata (No Token Needed)</a> </li>
      <li> <a href="{% url 'openid-configuration' %}">OIDC Discovery (No Token Needed)</a> </li>
      </ul>
      

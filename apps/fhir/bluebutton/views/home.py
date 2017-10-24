@@ -27,9 +27,10 @@ from django.shortcuts import render, HttpResponse
 # from django.contrib.auth.decorators import login_required
 
 # from apps.fhir.bluebutton.models import ResourceTypeControl
-from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import (request_call,
                                         FhirServerUrl,
+                                        get_fhir_id,
+                                        get_fhir_source_name,
                                         get_host_url,
                                         strip_oauth,
                                         build_output_dict,
@@ -42,7 +43,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         build_rewrite_list,
                                         get_response_text,
-                                        get_delegator,
                                         build_oauth_resource)
 
 from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
@@ -216,22 +216,9 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     :param kwargs:
     :return:
     """
-
-    # get request.user or request.resource_owner
-    get_user = get_delegator(request, via_oauth)
-
-    try:
-        cx = Crosswalk.objects.get(user=get_user)
-    except Crosswalk.DoesNotExist:
-        cx = None
-        # logger.debug('Crosswalk for %s does not exist' % request.user)
-
-    if cx:
-        rr = get_resourcerouter(cx)
-        call_to = cx.fhir_source.fhir_url
-    else:
-        rr = get_resourcerouter()
-        call_to = FhirServerUrl()
+    cx = None
+    rr = get_resourcerouter()
+    call_to = FhirServerUrl()
 
     resource_type = conformance_or_capability(call_to)
 
@@ -283,14 +270,14 @@ def metadata(request, via_oauth=False, *args, **kwargs):
                 request,
                 'bluebutton/default.html',
                 {'output': pretty_json(r._content, indent=4),
-                 'fhir_id': cx.fhir_id,
+                 'fhir_id': get_fhir_id(cx),
                  'content': {'parameters': query_string,
                              'resource_type': resource_type,
                              'id': id,
                              'request_method': "GET",
                              'interaction_type': "search",
                              'div_texts': "",
-                             'source': cx.fhir_source.name}})
+                             'source': get_fhir_source_name(cx)}})
         else:
             return HttpResponse(json.dumps(r._content, indent=4),
                                 status=r.status_code,
@@ -330,6 +317,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
 
         # logger.debug("is xml filtered?%s" % requested_format)
         xml_dom = xml_to_dom(text_out)
+
         text_out = dom_conformance_filter(xml_dom, rr)
 
         # Append Security to ConformanceStatement
@@ -353,7 +341,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
                              'resource_type': resource_type,
                              'request_method': "GET",
                              'interaction_type': "metadata",
-                             'source': cx.fhir_source.name}})
+                             'source': get_fhir_source_name(cx)}})
 
             # return HttpResponse( tostring(dict_to_xml('content', od)),
         #                      content_type='application/%s' % fmt)
@@ -365,7 +353,9 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         # Append Security to ConformanceStatement
         security_endpoint = build_oauth_resource(request,
                                                  format_type="json")
-        od['security'] = security_endpoint
+        print("OD:\n%s" % od['rest'])
+        od['rest'][0]['security'] = security_endpoint
+        print("OD+Security:\n%s" % od)
 
         text_out = pretty_json(od)
         if 'html' not in requested_format:
@@ -387,8 +377,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
          'content': {'parameters': query_string,
                      'resource_type': resource_type,
                      'request_method': "GET",
-                     'interaction_type': "metadata",
-                     'source': cx.fhir_source.name}})
+                     'interaction_type': "metadata"}})
 
 
 def conformance_filter(text_block, fmt, rr=None):
