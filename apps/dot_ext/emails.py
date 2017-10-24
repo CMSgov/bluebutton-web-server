@@ -10,8 +10,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = "Alan Viars"
 
 
-
-
 def send_access_token_notifcation(token):
     plaintext = get_template('email-access-token-granted.txt')
     htmly = get_template('email-access-token-granted.html')
@@ -20,7 +18,7 @@ def send_access_token_notifcation(token):
                "HOSTNAME": get_hostname()
                }
     subject = '[%s] You just granted access to %s' % (settings.APPLICATION_TITLE,
-                                            token.application.name)
+                                                      token.application.name)
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = token.user.email
     text_content = plaintext.render(context)
@@ -30,9 +28,6 @@ def send_access_token_notifcation(token):
             to_email, ])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
-
-
-
 
 
 def get_hostname():

@@ -12,7 +12,6 @@ __author__ = "Alan Viars"
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-
 def random_secret(y=40):
     return ''.join(random.choice('abcdefghijklmnopqrstuvwxyz'
                                  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
