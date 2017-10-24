@@ -20,6 +20,9 @@
     <div class="ds-l-col-12 usa-font-lead">
         {{ output.note }}
     </div>
-    {% if content.source %}<div class="ds-l-row ds-l-col-12 usa-font-lead">[source: {{ content.source }}]</div>{% endif %}
+    {% if content.source %}
+        <div class="ds-l-row ds-l-col-12 usa-font-lead">[source: {{ content.source }}]</div>
+    {% endif %}
+
 </div>
 {% endblock %}

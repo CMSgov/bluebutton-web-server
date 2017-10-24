@@ -1,4 +1,5 @@
 {% load static %}
+{% load engine_skin %}
   <header >
     <!-- Gov banner BEGIN -->
     <div class="row container-fluid">
@@ -9,8 +10,8 @@
 
                     <a href="/" title="Medicare Blue Button API - the Official U.S. Government Site for Medicare Blue Button API"  class="sr-set">
 
-                        <img id="mainHeaderBBLogo" src="{%  static 'design-system/img/bb-logo-55x55.png' %}" alt="Medicare.gov - the Official U.S. Government Site for the Medicare Blue Button API" class="hide-in-hcmode">
-                        <img id="mainHeaderLogo" src="{%  static 'design-system/img/medicare-logo.png' %}" alt="Medicare.gov - the Official U.S. Government Site for Medicare" class="hide-in-hcmode">
+                        <img id="mainHeaderBBLogo" src="{%  skin_static 'design-system/img/bb-logo-55x55.png' %}" alt="Medicare.gov - the Official U.S. Government Site for the Medicare Blue Button API" class="hide-in-hcmode">
+                        <img id="mainHeaderLogo" src="{%  skin_static 'design-system/img/medicare-logo.png' %}" alt="Medicare.gov - the Official U.S. Government Site for Medicare" class="hide-in-hcmode">
                     <span class="sr-only"><sl:translate> opens a new tab</sl:translate></span></a>
 
                 <div class="navbar-right">
