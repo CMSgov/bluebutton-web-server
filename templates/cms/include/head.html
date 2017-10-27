@@ -54,7 +54,7 @@
     <!-- End of Design-System CSS additions -->
 
     {% with settings.THEME.PATH|add:'bootstrap.min.css' as theme_css_static %}
-   <link href="{% static theme_css_static %}" rel="stylesheet">
+   <link href="{% skin_static theme_css_static %}" rel="stylesheet">
     {% endwith %}
 
 

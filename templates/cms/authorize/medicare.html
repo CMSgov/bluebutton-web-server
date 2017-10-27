@@ -22,7 +22,6 @@
 
         <div class="block-center">
 
-            <hr>
 
             {% if not error %}
                 <form id="authorizationForm" method="post">
@@ -37,7 +36,7 @@
 
                     <p class="usa-font-lead">{% trans "This application requires the following permissions:" %}</p>
                     <div class="form-group">
-                        {{ form.scope|bootstrap }}
+
                         {{ form.expires_in|bootstrap }}
 
                         {{ form.non_field_errors }}

@@ -15,7 +15,7 @@
             {{ settings.APPLICATION_TITLE }} is operated by {{settings.ORGANIZATION_TITLE }}. {{settings.DISCLOSURE_TEXT}}
             </p>
          </div>
-         <div class="row container-fluid" >
+         <div class="container-fluid row-container-fluid" >
 
              {% if user.is_superuser %}
                     {% if settings.ALLOWED_HOSTS %}<div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
