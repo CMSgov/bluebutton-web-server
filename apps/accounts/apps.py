@@ -6,4 +6,4 @@ __author__ = "Alan Viars"
 class OAuth2AccountsConfig(AppConfig):
     name = 'apps.accounts'
     label = 'accounts'
-    verbose_name = "OAuth2 Accounts"
+    verbose_name = "Accounts and Invites"
