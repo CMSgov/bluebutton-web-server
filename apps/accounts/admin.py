@@ -61,6 +61,7 @@ admin.site.register(RequestInvite, RequestInviteAdmin)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'name', 'user_type')
     search_fields = ('user', 'user_type')
+    raw_id_fields = ("user", )
 
 
 admin.site.register(UserProfile, UserProfileAdmin)
@@ -81,6 +82,7 @@ class MFACodeAdmin(admin.ModelAdmin):
                     'endpoint',
                     'expires')
     search_fields = ('mode', 'endpoint')
+    raw_id_fields = ("user", )
 
 
 admin.site.register(MFACode, MFACodeAdmin)

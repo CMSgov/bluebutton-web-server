@@ -22,6 +22,9 @@ dj-database-url
 pyjwt
 jsonfield
 
+# test coverage
+coverage
+python-coveralls
 
 # notifications
 django-ses
