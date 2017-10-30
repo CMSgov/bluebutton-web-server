@@ -1,24 +1,16 @@
 {% load static %}
 {% load engine_skin %}
-<<<<<<< HEAD
-<div class="container-fluid footer footer-nav ">
-    <div class="footer-nav-container">
 
-        <div class="ds ds-l-row text-center ds-l-col--12" >
-            <a href="https://www.medicare.gov/find-a-plan/staticpages/UserAgreement.aspx">Terms of Service</a>&nbsp;|&nbsp;
-            <a href="https://hhsidealab.github.io/bluebutton-developer-help">Developer Documentation</a>&nbsp;|&nbsp;
-            <a href="https://hhsidealab.github.io/bluebutton-user-help">User Documentation</a>
-=======
 <div class="row container-fluid">
-    <div class="row ds-l-row footer-wrapper panel-footer">
+    <div class="row footer-wrapper panel-footer">
 
-        <div class="ds-l-row text-center center ds-l-row ds-l-col--12 h4 " >
+        <div class="text-center center ds-l-col--12 h4 " >
             <a href="{{settings.TOS_URI}}">{{settings.TOS_TITLE}}</a> |
             <a href="{{settings.DEVELOPER_DOCS_URI}}">{{settings.DEVELOPER_DOCS_TITLE}}</a> |
             <a href="{{settings.USER_DOCS_URI}}">{{settings.USER_DOCS_TITLE}}</a>
         </div>
 
-        <div class="row nav ">
+        <div class="row nav container-fluid">
             <div class="row footer-nav-container">
     	<ul class="footer-leftMenu ">
 
@@ -59,34 +51,9 @@
         </div>
         <div class="footer-img-hhc">
             <img src="{% skin_static 'design-system/img/footer-hhc.png' %}" alt="Department of Health and Human services USA Logo" class="hide-in-hcmode">
->>>>>>> 93e7fd1782ef9a588acf5fbf61eb95293b6db905
+
         </div>
     </div>
 
-    <div class="usa-footer-nav ">
-        <div class="usa-footer-nav">
-            <div class="usa-footer-img-mclogo">
-                <img src="{% skin_static 'design-system/img/footer-mclogo.png' %}" alt="Medicare.gov" class="hide-in-hcmode">
-            </div>
-            <div class="usa-footer-summary">
-                A federal government website managed and paid for by the
-                <a href="https://www.cms.gov/" title="Centers for Medicare &amp; Medicaid Services">
-                    U.S. Centers for Medicare &amp; Medicaid Services
-                </a><br>
-                7500 Security Boulevard, Baltimore, MD 21244
-            </div>
-        </div>
-<<<<<<< HEAD
-        <div class="usa-footer-logo-img">
-            <img src="{% skin_static 'design-system/img/footer-hhc.png' %}" alt="Department of Health and Human services USA Logo" class="hide-in-hcmode">
-        </div>
-=======
-
-
-    </div> <!-- /.footer-wrapper -->
-        
->>>>>>> 93e7fd1782ef9a588acf5fbf61eb95293b6db905
-
-    </div>
 
 </div> <!-- /.footer-wrapper -->
