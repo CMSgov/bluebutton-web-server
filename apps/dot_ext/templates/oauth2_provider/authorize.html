@@ -1,9 +1,10 @@
 {% extends "oauth2_provider/base.html" %}
 
 {% load static %}
+{% load engine_skin %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'design-system/css/mpn.css' %} type="text/css">
+<link rel="stylesheet" href="{% skin_static 'design-system/css/mpn.css' %} type="text/css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script>
 $(document).ready(function(){
@@ -52,6 +53,6 @@ $(document).ready(function(){
 mpnData = { "hipaa": { "protected": "No" }, "use": { "scientificResearch": true, "primaryService": true, "marketing": true }, "share": {}, "sell": {}, "store": {}, "encryption": {}, "privacy": {}, "user": {}, "deactivation": {}, "policy": {}, "breach": {}, "contact": { "name": "xvdsvfsdgdsfgds" } } 
 </script>
     
-    <script src="{% static '/js/TransparentHealth-mpnDisplay.min.js' %}"></script>
+    <script src="{% skin_static '/js/TransparentHealth-mpnDisplay.min.js' %}"></script>
 {% endblock %}
  
