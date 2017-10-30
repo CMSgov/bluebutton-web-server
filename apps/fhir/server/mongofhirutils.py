@@ -82,7 +82,7 @@ def update_mongo_fhir(document, database_name, collection_name, id):
         myobject['id'] = str(myobjectid)
         del myobject['_id']
         response_dict['result'] = myobject
-    except:
+    except Exception:
         response_dict['code'] = 500
         response_dict['details'] = str(sys.exc_info())
     return response_dict

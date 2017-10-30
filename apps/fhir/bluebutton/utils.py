@@ -59,7 +59,8 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
 
-    logger.debug("Auth_state:%s" % auth_state)
+    # logger.debug("Auth_state:%s" % auth_state)
+    # logger.debug("Calling: %s" % call_url)
 
     verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
@@ -1219,7 +1220,7 @@ def evaluate_r(r):
     #     rjson = r.json()
     #     logger.debug("Pretty r.json():\n%s" % pretty_json(rjson))
     #
-    # except:
+    # except Exception:
     #     logger.debug("No JSON")
     #
     # logger.debug("END EVALUATE_R ===")
@@ -1402,7 +1403,7 @@ def get_response_text(fhir_response=None):
             # logger.debug("returning .text:%s" % fhir_response.text[:40])
             return text_in
 
-    except:
+    except Exception:
         # logger.debug("Nothing in .text")
         pass
 
@@ -1413,7 +1414,7 @@ def get_response_text(fhir_response=None):
             #              "_response.text:%s" % fhir_response.text[:40])
             return text_in
 
-    except:
+    except Exception:
         # logger.debug("Nothing in ._response.text")
         pass
 
@@ -1424,7 +1425,7 @@ def get_response_text(fhir_response=None):
             #              "_text:%s" % fhir_response._text[:40])
             return text_in
 
-    except:
+    except Exception:
         logger.debug("Nothing in ._text")
         logger.debug("giving up...")
         text_in = ""

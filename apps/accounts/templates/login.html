@@ -1,30 +1,26 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block Content %}
 
+{% block messages %}
 
-  <div class="container">
-    
       <div class="row">
          <div class="col-lg-8">
            {% include "include/messages.html" %}
          </div>
-       </div>
-    
-
-<div id="messages">
-            <div class="alert alert-warning">
-              <a class="close" data-dismiss="alert">×</a>
-              
-
-             NOTICE: {{settings.DISCLOSURE_TEXT }}
-            </div>
-
-</div>
+      </div>
 
 
+    <div class="alert alert-info" role="alert">
 
+      NOTICE: {{settings.DISCLOSURE_TEXT }}
+
+  </div>
+
+
+{% endblock %}
+
+{% block Content %}
 
 
 		 {% if settings.ALLOW_END_USER_EXTERNAL_AUTH == "E" %}
@@ -102,23 +98,26 @@
                  TODO: need to move to css file with other button settings-->
             <br/>
 
-            <a href="{% url 'forgot_password' %}">Forgot Password?</a> | <a href="{% url 'request_invite' %}">
-                  {% trans "Request Invite" %}</a>
+            <a href="{% url 'forgot_password' %}">Forgot Password?</a> |
+           {% if settings.ENGINE_SKIN == 'cms/' %}
+               <a href="https://www.mymedicare.gov/registration.aspx"
+                  target="_blank">
+                      {% trans "Create Your MyMedicare Account" %}</a>
+           {% else %}
+               <a href="{% url 'request_invite' %}">
+                      {% trans "Request Invite" %}</a>
+           {% endif %}
+
         </form>
   
  {% endif %}
 		
-		
-		
 
-      </div>
-	  
-	  
-	  
-    </div>
+            </div>
+
+
 	  </div>
   
-
 
 {% endblock %}
 

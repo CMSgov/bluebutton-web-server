@@ -1,0 +1,299 @@
+@import url("https://fonts.googleapis.com/css?family=Playfair+Display+SC|Roboto+Condensed|Tinos");
+    body {
+    margin: 0;
+}
+.policyDisplay {
+    background-color: #efefef;
+    padding: none;
+    border: none;
+    width: 100%;
+    overflow: scroll;
+}
+.policyDisplay html, .policyDisplay body, .policyDisplay div, .policyDisplay span, .policyDisplay applet, .policyDisplay object, .policyDisplay iframe, .policyDisplay h1, .policyDisplay h2, .policyDisplay h3, .policyDisplay h4, .policyDisplay h5, .policyDisplay h6, .policyDisplay p, .policyDisplay blockquote, .policyDisplay pre, .policyDisplay a, .policyDisplay abbr, .policyDisplay acronym, .policyDisplay address, .policyDisplay big, .policyDisplay cite, .policyDisplay code, .policyDisplay del, .policyDisplay dfn, .policyDisplay em, .policyDisplay img, .policyDisplay ins, .policyDisplay kbd, .policyDisplay q, .policyDisplay s, .policyDisplay samp, .policyDisplay small, .policyDisplay strike, .policyDisplay strong, .policyDisplay sub, .policyDisplay sup, .policyDisplay tt, .policyDisplay var, .policyDisplay b, .policyDisplay u, .policyDisplay i, .policyDisplay center, .policyDisplay dl, .policyDisplay dt, .policyDisplay dd, .policyDisplay ol, .policyDisplay ul, .policyDisplay li, .policyDisplay fieldset, .policyDisplay form, .policyDisplay label, .policyDisplay legend, .policyDisplay table, .policyDisplay caption, .policyDisplay tbody, .policyDisplay tfoot, .policyDisplay thead, .policyDisplay tr, .policyDisplay th, .policyDisplay td, .policyDisplay article, .policyDisplay aside, .policyDisplay canvas, .policyDisplay details, .policyDisplay embed, .policyDisplay figure, .policyDisplay figcaption, .policyDisplay footer, .policyDisplay header, .policyDisplay hgroup, .policyDisplay menu, .policyDisplay nav, .policyDisplay output, .policyDisplay ruby, .policyDisplay section, .policyDisplay summary, .policyDisplay time, .policyDisplay mark, .policyDisplay audio, .policyDisplay video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+.policyDisplay body {
+    height: 100vh;
+    line-height: 1;
+    width: 100vw;
+}
+.policyDisplay ol, .policyDisplay ul {
+    list-style: none;
+}
+.policyDisplay blockquote, .policyDisplay q {
+    quotes: none;
+}
+.policyDisplay blockquote:before, .policyDisplay blockquote:after, .policyDisplay q:before, .policyDisplay q:after {
+    content: '';
+    content: none;
+}
+.policyDisplay table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+.policyDisplay *, .policyDisplay *:before, .policyDisplay *:after {
+    box-sizing: border-box;
+}
+.policyDisplay a {
+    text-decoration: none;
+    cursor: pointer;
+    color: #a9361e;
+}
+.policyDisplay * p {
+    font-family: "Roboto Condensed", sans-serif;
+    width: 100%}
+.policyDisplay * h3 {
+    font-size: 1.2em;
+    text-align: left;
+    padding: 10px;
+    background-color: #fff;
+    font-family: "Tinos", serif;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+.policyDisplay h4 {
+    display: flex;
+    font-size: 1.2em;
+    padding: 0 10px;
+}
+.policyDisplay * h5 {
+    display: inline-block;
+    font-style: italic;
+    margin-bottom: 5px;
+    font-family: "Roboto Condensed", sans-serif;
+}
+.policyDisplay header {
+    width: 100%;
+    margin: 0 auto 10px auto;
+    height: 55px;
+    top: 0;
+    font-family: "Playfair Display SC", serif;
+}
+.policyDisplay header h1 {
+    color: #fff;
+    font-size: 2em;
+}
+.policyDisplay header #key-list {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+.policyDisplay header .key-name {
+    padding: 0;
+    width: inherit;
+}
+.policyDisplay header .key-item {
+    float: left;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    width: inherit;
+    font-weight: bold;
+    font-family: "Roboto Condensed", sans-serif;
+    transition: .2s ease;
+    padding: 0 0 10px 0;
+}
+.policyDisplay header .key-item.first {
+    height: 18px;
+}
+.policyDisplay header .key-item.active {
+    padding: 0 10px 0 10px;
+}
+.policyDisplay .answer {
+    border-radius: 5px;
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: center;
+    font-family: "Roboto Condensed", sans-serif;
+    cursor: pointer;
+}
+.policyDisplay .alert {
+    font-weight: bold;
+    height: 12px;
+    width: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+}
+.policyDisplay .alert.red {
+    background-color: #d25131;
+}
+.policyDisplay .alert.green {
+    background-color: #768e76;
+}
+.policyDisplay .alert.yellow {
+    background-color: #e4bc5c;
+}
+.policyDisplay .alert.blue {
+    background-color: #90a3b2;
+}
+.policyDisplay .more-arrow-container {
+    border-left: 2px solid #fff;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 5px 0 0 0;
+    cursor: pointer;
+}
+.policyDisplay .more-arrow-container .idSell-arrow, .policyDisplay .more-arrow-container .idShare-arrow, .policyDisplay .more-arrow-container .nonIdShare-arrow, .policyDisplay .more-arrow-container .nonIdSell-arrow, .policyDisplay .more-arrow-container .privacy-arrow {
+    border-bottom: 2px solid #fff;
+    cursor: pointer;
+}
+.policyDisplay .more-arrow-container .idSell-arrow.active, .policyDisplay .more-arrow-container .idShare-arrow.active, .policyDisplay .more-arrow-container .nonIdShare-arrow.active, .policyDisplay .more-arrow-container .nonIdSell-arrow.active, .policyDisplay .more-arrow-container .privacy-arrow.active {
+    -ms-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+.policyDisplay .more-arrow-container .idSell-arrow.active:hover, .policyDisplay .more-arrow-container .idShare-arrow.active:hover, .policyDisplay .more-arrow-container .nonIdShare-arrow.active:hover, .policyDisplay .more-arrow-container .nonIdSell-arrow.active:hover, .policyDisplay .more-arrow-container .privacy-arrow.active:hover {
+    border-bottom: 2px solid #fff;
+}
+.policyDisplay .more-arrow-container .idSell-arrow:hover, .policyDisplay .more-arrow-container .idShare-arrow:hover, .policyDisplay .more-arrow-container .nonIdShare-arrow:hover, .policyDisplay .more-arrow-container .nonIdSell-arrow:hover, .policyDisplay .more-arrow-container .privacy-arrow:hover {
+    border-bottom: 2px solid black;
+}
+.policyDisplay .more-arrow-container #more-info {
+    padding-bottom: 3px;
+    margin-right: 3px;
+}
+.policyDisplay .idShareHide, .policyDisplay .idSellHide, .policyDisplay .nonShareHide, .policyDisplay .nonSellHide, .policyDisplay .privacyHide {
+    display: none;
+}
+.policyDisplay .mpn-container-styles, .policyDisplay .mpn-hipaa-container, .policyDisplay .mpn-use-container, .policyDisplay .mpn-id-container, .policyDisplay .mpn-nonId-container, .policyDisplay .mpn-data-storage-container, .policyDisplay .mpn-encryption-container, .policyDisplay .mpn-user-access-container, .policyDisplay .mpn-privacy-container, .policyDisplay .mpn-deactivation-container, .policyDisplay .mpn-policy-container, .policyDisplay .mpn-breach-container, .policyDisplay .mpn-contact-container {
+    width: 70%;
+    margin: 0 auto;
+    background-color: #fff;
+    margin-bottom: 5px;
+}
+.policyDisplay .statement-styles, .policyDisplay .mpn-hipaa-container .hipaa-info, .policyDisplay .mpn-hipaa-container .use-info, .policyDisplay .mpn-use-container .hipaa-info, .policyDisplay .mpn-use-container .use-info, .policyDisplay .mpn-id-container .id-share, .policyDisplay .mpn-id-container .id-sell, .policyDisplay .mpn-id-container .nonId-share, .policyDisplay .mpn-id-container .nonId-sell, .policyDisplay .mpn-nonId-container .id-share, .policyDisplay .mpn-nonId-container .id-sell, .policyDisplay .mpn-nonId-container .nonId-share, .policyDisplay .mpn-nonId-container .nonId-sell, .policyDisplay .mpn-data-storage-container .local-storage, .policyDisplay .mpn-data-storage-container .third-storage, .policyDisplay .mpn-encryption-container .encrypt-local, .policyDisplay .mpn-encryption-container .encrypt-third, .policyDisplay .mpn-encryption-container .encrypt-trans, .policyDisplay .mpn-user-access-container #user-qid, .policyDisplay .mpn-privacy-container .privacy-access, .policyDisplay .mpn-privacy-container .privacy-access-no, .policyDisplay .mpn-privacy-container .privacy-social, .policyDisplay .mpn-deactivation-container .deactivation-info, .policyDisplay .mpn-policy-container .policy-question, .policyDisplay .mpn-breach-container .breach-question {
+    width: 90%;
+    margin: 0 auto;
+    border-top: 1px solid #d6d6d6;
+    padding: 15px 10px;
+    font-family: "Tinos", serif;
+}
+.policyDisplay .info-styles, .policyDisplay .mpn-id-container .share-info, .policyDisplay .mpn-id-container .sell-info, .policyDisplay .mpn-nonId-container .share-info, .policyDisplay .mpn-nonId-container .sell-info, .policyDisplay .mpn-user-access-container .user-options, .policyDisplay .mpn-privacy-container .privacy-access-info, .policyDisplay .mpn-policy-container .policy-question .policy-info, .policyDisplay .mpn-breach-container .breach-question .breach-info {
+    padding: 5px;
+    line-height: 20px;
+    width: 83%;
+    margin: 0 auto;
+}
+.policyDisplay .mpn-point {
+    margin: 6px 10px 0 0;
+    height: 5px;
+    width: 5px;
+    background-color: black;
+    border-radius: 50%}
+.policyDisplay .mpn-info-list {
+    padding: 10px 0 0 30px;
+}
+.policyDisplay .mpn-info-list li {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+.policyDisplay .mpn-info-list li p {
+    width: 100%}
+.policyDisplay .mpn-hipaa-container, .policyDisplay .mpn-use-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-hipaa-container .hipaa-info, .policyDisplay .mpn-use-container .hipaa-info {
+    font-size: 1.2em;
+}
+.policyDisplay .mpn-hipaa-container .use-info, .policyDisplay .mpn-use-container .use-info {
+    line-height: 20px;
+}
+.policyDisplay .mpn-id-container, .policyDisplay .mpn-nonId-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-data-storage-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-data-storage-container .local-storage, .policyDisplay .mpn-data-storage-container .third-storage {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.policyDisplay .mpn-data-storage-container .local-storage .more-arrow-container, .policyDisplay .mpn-data-storage-container .third-storage .more-arrow-container {
+    display: none;
+}
+.policyDisplay .mpn-encryption-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-encryption-container .encrypt-local, .policyDisplay .mpn-encryption-container .encrypt-third, .policyDisplay .mpn-encryption-container .encrypt-trans {
+    box-shadow: none;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.policyDisplay .mpn-encryption-container .encrypt-local p, .policyDisplay .mpn-encryption-container .encrypt-third p, .policyDisplay .mpn-encryption-container .encrypt-trans p {
+    display: inline-block;
+    margin-left: 10px;
+}
+.policyDisplay .mpn-encryption-container .encrypt-local .more-arrow-container, .policyDisplay .mpn-encryption-container .encrypt-third .more-arrow-container, .policyDisplay .mpn-encryption-container .encrypt-trans .more-arrow-container {
+    display: none;
+}
+.policyDisplay .mpn-user-access-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-privacy-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-privacy-container .privacy-access-no .more-arrow-container {
+    display: none;
+}
+.policyDisplay .mpn-privacy-container .privacy-social .more-arrow-container {
+    display: none;
+}
+.policyDisplay .mpn-deactivation-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-deactivation-container .deactivation-info {
+    font-size: 1.2em;
+}
+.policyDisplay .mpn-policy-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-policy-container .policy-question .policy-info {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+.policyDisplay .mpn-breach-container {
+    border-radius: 3px;
+}
+.policyDisplay .mpn-breach-container .breach-question .breach-info {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+.policyDisplay .mpn-contact-container {
+    margin-bottom: 30px;
+    border-radius: 3px;
+}
+.policyDisplay .mpn-contact-container .contact-info {
+    padding: 5px;
+    line-height: 25px;
+    font-family: "Roboto Condensed", sans-serif;
+}
+.policyDisplay .mpn-contact-container .contact-info p {
+    display: inline;
+    color: #6E6F71;
+}
+.policyDisplay .mpn-contact-container .contact-info i {
+    font-size: 1.1em;
+}
+/*# sourceMappingURL=main.min.css.map */
+/*# sourceCSS=http://transparenthealth.org.s3.amazonaws.com/mpn/css/mpn.min.css */

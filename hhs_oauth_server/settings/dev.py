@@ -11,6 +11,33 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN', 'sales@videntity.com')
 
+# Skin settings
+ENGINE_SKIN = 'the_skin/'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, ('templates/' + ENGINE_SKIN))],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'django_settings_export.settings_export',
+                'hhs_oauth_server.hhs_oauth_server_context.active_apps',
+            ],
+            'builtins': [
+                'apps.home.templatetags.engine_skin',
+            ],
+        },
+    },
+]
+
+OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
+
+
 # Stub for Custom Authentication Backend
 SLS_USER = env('DJANGO_SLS_USER', 'ben')
 SLS_PASSWORD = env('DJANGO_SLS_PASSWORD', 'pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aaTohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys=')
