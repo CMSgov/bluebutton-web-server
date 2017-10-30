@@ -50,11 +50,15 @@
 
     <!-- Design-System CSS -->
     <link rel="stylesheet" href="{% skin_static 'design-system/css/uswds.css' %}" type="text/css"text/css">
+    <link rel="stylesheet" href="{% skin_static 'design-system/css/mpn.css' %}" type="text/css"text/css">
+    <link rel="stylesheet" href="{% skin_static 'design-system/css/layout.css' %}" type="text/css"text/css">
+    <link rel="stylesheet" href="{% skin_static 'design-system/css/footer.css' %}" type="text/css"text/css">
+
 
     <!-- End of Design-System CSS additions -->
 
     {% with settings.THEME.PATH|add:'bootstrap.min.css' as theme_css_static %}
-   <link href="{% skin_static theme_css_static %}" rel="stylesheet">
+   <link href="{% static theme_css_static %}" rel="stylesheet">
     {% endwith %}
 
 

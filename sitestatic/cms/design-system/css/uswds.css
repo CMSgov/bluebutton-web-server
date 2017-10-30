@@ -472,7 +472,7 @@ html {
 
 body {
   background-color: #ffffff;
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
 }
 
 .lt-ie9 * {
@@ -4498,6 +4498,7 @@ input.usa-input-medium {
     color: #567482;
     word-break: normal;
     white-space: pre;
+    overflow: auto;
     background: transparent;
     border: 0; }
 .usa-layout-docs-main_content .highlight {

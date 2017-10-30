@@ -13,20 +13,20 @@
         </title>
 	
     {% block head %}
-        {% include "include/head_ds.html" %}
+        {% include "include/head.html" %}
     {% endblock %}
 
     {% block extra_head %}
     {% endblock %}
 
     <style>
-        body {
+        {#   body { #}
         {#  position: relative; #}
         {#        add padding text-outline:allow for Top Nav - Not needed with Side nav; #}
         {# padding-top: 90px; #}
-        {# padding-bottom: 40px; #};
+        {# padding-bottom: 40px; #}
 {#            background-color: #f5f5f5;#}
-        }
+        {# } #}
 {#        .block-center {#}
 {#            max-width: 500px;#}
 {#            padding: 19px 29px 29px;#}
@@ -58,11 +58,12 @@
 {#    {% endwith %}#}
 
 </head>
-<body class="ds ds-base usa-grid">
+<body>
 
     {% include "include/header.html" %}
 
     <main class="usa-grid usa-section usa-content usa-layout-docs" id="main-content">
+
         {% include "include/side-nav.html" %}
 
         <div class="usa-width-three-fourths usa-layout-docs-main_content">
