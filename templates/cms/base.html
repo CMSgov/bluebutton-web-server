@@ -23,27 +23,30 @@
     </style>
 
 </head>
-<body class="ds-base usa-grid">
+<body class="ds ds-base ">
 
     {% include "include/header.html" %}
 
-    <main class="usa-grid usa-section usa-content usa-layout-docs" id="main-content">
+    <main class="ds-l-container-fluid preview__grid " id="main-content">
 
-        {% include "include/side-nav.html" %}
+        <div class="ds-l-row">
+            <div class="ds-base ds-l-lg-col--3">
+                {% include "include/side-nav.html" %}
+            </div>
+            <div class="ds-base ds ds-l-lg-col--9">
 
-        <div class="usa-width-three-fourths usa-layout-docs-main_content">
+                {% block breadcrumbs %}
+                {% endblock %}
 
-            {% block breadcrumbs %}
-            {% endblock %}
-
-            {% block messages %}
-            {% endblock %}
+                {% block messages %}
+                {% endblock %}
 
 
-            {% block Content %}
-                {% if template %}{% include template %}{% endif %}
-                {{ content|safe }}
-            {% endblock %}
+                {% block Content %}
+                    {% if template %}{% include template %}{% endif %}
+                    {{ content|safe }}
+                {% endblock %}
+            </div>
         </div>
 
     </main>

@@ -1,16 +1,16 @@
 {% load static %}
 {% load engine_skin %}
-<div class="row container-fluid">
-    <div class="row ds-l-row footer-wrapper panel-footer">
+<div class="ds-l-row container-fluid">
+    <div class="ds-l-row footer-wrapper panel-footer">
 
-        <div class="ds-l-row text-center ds-l-row ds-l-col--12 h4 " >
+        <div class="ds-u-text-align--center text-center center ds-l-col--12 h4 " >
             <a href="{{settings.TOS_URI}}">{{settings.TOS_TITLE}}</a> |
             <a href="{{settings.DEVELOPER_DOCS_URI}}">{{settings.DEVELOPER_DOCS_TITLE}}</a> |
             <a href="{{settings.USER_DOCS_URI}}">{{settings.USER_DOCS_TITLE}}</a>
         </div>
 
-        <div class="row nav ">
-            <div class="row footer-nav-container">
+        <div class="ds-l-row container-fluid">
+            <div class="ds-l-row footer-nav-container">
 
      </div>
     <div class="row container-fluid ds-row footer-logo-container">
@@ -35,11 +35,11 @@
     </div> <!-- /.footer-wrapper -->
         
        {% if user.is_superuser %}
-           {% if settings.ALLOWED_HOSTS %}<div class="ds-l-row ds-u-fill--gray-lightest ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
+           {% if settings.ALLOWED_HOSTS %}<div class="ds-l-row container-fluid ds-u-fill--gray-lightest ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
            {% endif %}
        {% else %}
            {% if settings.DEBUG %}
-               <div class="ds-l-row ds-u-fill--gray-lightest ds-u-font-style--italic ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
+               <div class="ds-l-row container-fluid ds-u-fill--gray-lightest ds-u-font-style--italic ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
            {% endif %}
        {% endif %}
 
