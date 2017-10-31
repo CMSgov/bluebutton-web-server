@@ -151,6 +151,7 @@ ROOT_URLCONF = 'hhs_oauth_server.urls'
 
 # Style and UI skins is set here. The default is 'the_skin'
 # ENGINE_SKIN = 'the_skin/'
+# ENGINE_SKIN = 'usds/'
 ENGINE_SKIN = 'cms/'
 # An empty ENGINE_SKIN value uses templates from th base templates directory
 # ENGINE_SKIN = ""
