@@ -11,17 +11,18 @@
 {% block Content %}
 
 
-<div class="ds-col-l-12">
+<div class="row container-fluid ds-col-l--12">
 
-     <h1>{{settings.TAG_LINE_1}}</h1>
-      <h2 class="usa-font-lead" style="align-content: center">{{settings.TAG_LINE_2}}</h2>
-      <hr class="my-4">
-      <p class="usa-font-lead">{{settings.EXPLAINATION_LINE}}</p>
-      <p class="usa-font-lead">
-        <a class="usa-button usa-button" href="{{settings.USER_DOCS_URI}}" role="button"> Learn more </a>
+     <h1 class="ds-h1">{{settings.TAG_LINE_1}}</h1>
+      <h2 class="ds-h2" >{{settings.TAG_LINE_2}}</h2>
+      <hr class="ds-h4">
+      <p class="ds-text--lead ds-u-measure--wide">{{settings.EXPLAINATION_LINE}}</p>
+      <p class="ds-text--lead ds-u-measure--wide">
+
+        <a class="ds-c-button ds-c-button--primary" href="{{settings.USER_DOCS_URI}}" role="button"> Learn more </a>
       </p>
 
-     <p class="usa-font-lead">If you've already got an account then login
+     <p class="ds-text--lead ds-u-measure--wide">If you've already got an account then login
          {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
                <a href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}">{{settings.EXTERNAL_AUTH_NAME}}</a>
          {% else %}
@@ -31,6 +32,5 @@
 
 
 </div>
-
 
 {% endblock %}
