@@ -5,7 +5,6 @@ django-bootstrap-form
 django-cors-headers
 django-localflavor
 django-settings-export
-# django-fhir
 
 # support
 boto
@@ -17,7 +16,9 @@ pytz
 configparser
 dj-database-url
 pyjwt
-jsonfield
+pymongo
+
+
 
 # test coverage
 coverage
@@ -39,6 +40,7 @@ python-openid
 django-oauth-toolkit-scopes-backend
 poetri
 django-axes
+pyldap
 django-ratelimit
 # for screen scraping
 robobrowser
