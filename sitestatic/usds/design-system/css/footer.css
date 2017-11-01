@@ -1,0 +1,80 @@
+footer {
+    font-size: 13px;
+    color: #666
+}
+
+.footer-nav-container {
+    text-transform: uppercase;
+    margin: 20px 0;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top: 1px solid #DDD;
+    border-bottom: 1px solid #DDD
+}
+
+.footer-nav-container ul {
+    margin-bottom: 0
+}
+
+.footer-nav-container ul li {
+    display: inline-block
+}
+
+.footer-nav-container ul li:first-child a {
+    border: 0
+}
+
+.footer-nav-container ul.footer-leftMenu {
+    float: left;
+    width: 40%
+}
+
+.footer-nav-container ul.footer-rightMenu {
+    float: right;
+    text-align: right;
+    width: 60%
+}
+
+.footer-nav-container ul a {
+    color: #666;
+    border-left: 1px solid #666;
+    text-decoration: none;
+    line-height: 1em;
+    padding: 0 5px;
+    display: inline-block;
+    margin: 5px 0;
+    font-size: 13px
+}
+
+.footer-nav-container ul a:focus, .footer-nav-container ul a:hover {
+    text-decoration: underline
+}
+
+.footer-logo-container {
+    padding-bottom: 30px
+}
+
+.footer-logo-container > div {
+    float: left;
+    padding: 0 15px
+}
+
+.footer-logo-container > div.footer-img-hhc {
+    float: right
+}
+
+.footer-img-mclogo, .footer-summary {
+    margin-top: 15px
+}
+
+footer, header, main {
+    position: relative
+}
+
+header {
+    z-index: 900
+}
+
+footer {
+    z-index: 0
+}
