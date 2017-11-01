@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.6"
+  - "3.5"
 
 sudo: false
 
@@ -8,7 +8,7 @@ env:
   - TOX_ENV=py27
   - TOX_ENV=py34
   - TOX_ENV=py35
-  - TOX_ENV=py363
+  - TOX_ENV=py36
   - TOX_ENV=flake8
 
 matrix:
