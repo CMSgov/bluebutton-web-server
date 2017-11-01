@@ -7,9 +7,6 @@ django-localflavor
 django-settings-export
 # django-fhir
 
-# backing services
-pymongo
-
 # support
 boto
 boto3
