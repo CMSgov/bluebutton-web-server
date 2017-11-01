@@ -10,16 +10,14 @@
          </div>
       </div>
 
-<div id="messages">
-            <div class="ds-row ds-base-inverse usa-alert-info usa-alert-no_icon ">
-              <div class="ds-l-col-lg-1"><i class="fa fa-info-circle fa-2x" aria-hidden="true"></i>
-                <a class="close" data-dismiss="alert">×</a>
 
-                   NOTICE: {{settings.DISCLOSURE_TEXT }}
+    <div class="alert alert-info" role="alert">
 
-              </div>
-            </div>
-</div>
+      NOTICE: {{settings.DISCLOSURE_TEXT }}
+
+  </div>
+
+
 {% endblock %}
 
 {% block Content %}
@@ -100,8 +98,16 @@
                  TODO: need to move to css file with other button settings-->
             <br/>
 
-            <a href="{% url 'forgot_password' %}">Forgot Password?</a> | <a href="{% url 'request_invite' %}">
-                  {% trans "Request Invite" %}</a>
+            <a href="{% url 'forgot_password' %}">Forgot Password?</a> |
+           {% if settings.ENGINE_SKIN == 'cms/' %}
+               <a href="https://www.mymedicare.gov/registration.aspx"
+                  target="_blank">
+                      {% trans "Create Your MyMedicare Account" %}</a>
+           {% else %}
+               <a href="{% url 'request_invite' %}">
+                      {% trans "Request Invite" %}</a>
+           {% endif %}
+
         </form>
   
  {% endif %}

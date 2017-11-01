@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+
+{% load static %}
+{% load engine_skin %}
+
+<html lang="en">
+<head>
+
+
+	{% load i18n %}
+        <title>
+        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+        </title>
+	
+    {% block head %}
+        {% include "include/head.html" %}
+    {% endblock %}
+
+    {% block extra_head %}
+    {% endblock %}
+
+    <style>
+    </style>
+
+</head>
+<body class="ds-base usa-grid">
+
+    {% include "include/header.html" %}
+
+    <main class="usa-grid usa-section usa-content usa-layout-docs" id="main-content">
+
+        {% include "include/side-nav.html" %}
+
+        <div class="usa-width-three-fourths usa-layout-docs-main_content">
+
+            {% block breadcrumbs %}
+            {% endblock %}
+
+            {% block messages %}
+            {% endblock %}
+
+
+            {% block Content %}
+                {% if template %}{% include template %}{% endif %}
+                {{ content|safe }}
+            {% endblock %}
+        </div>
+
+    </main>
+
+        {% include "include/footer.html" %}
+
+        {% include "include/foot.html" %}
+
+    {% block ExtraJSFoot %}
+	
+	{% endblock %}
+
+
+</body>
+
+</html>
