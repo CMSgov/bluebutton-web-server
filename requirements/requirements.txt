@@ -48,9 +48,8 @@ pycodestyle==2.0.0        # via flake8
 pycparser==2.14           # via cffi
 pyflakes==1.2.3           # via flake8
 pyjwt==1.5.3
-pyldap==2.4.25.1
-pymongo==3.2.2
 python-coveralls==2.9.1
+pymongo==3.2.2
 python-openid==2.2.5
 pytz==2016.4
 requests==2.18.4

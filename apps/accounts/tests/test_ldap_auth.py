@@ -5,13 +5,15 @@ from django.test.client import Client
 from django.core.urlresolvers import reverse
 from apps.accounts.models import UserProfile
 # from ..ldap_auth import LDAPBackend
-from unittest import skipUnless, skip
+from unittest import skipUnless
 
 
-@skip("Skipping")
+__author__ = "Alan Viars"
+
+
 class LDAPLoginTestCase(TestCase):
     """
-    Test LDAP Login
+    Test LDAP Login if the LDAP module is installed.
     """
 
     def setUp(self):
@@ -19,10 +21,8 @@ class LDAPLoginTestCase(TestCase):
         self.url = reverse('mfa_login')
         Group.objects.create(name='BlueButton')
 
-    @skipUnless(settings.AUTH_LDAP_ACTIVE,
-                "Requires real running LDAP server. Test locally")
-    # @skipUnless(LDAPBackend().can_connect_to_ldap(),
-    #             "Requires real running LDAP server. Test locally")
+    @skipUnless('django_ldap.backends.ldap_auth.LDAPBackend' in settings.AUTHENTICATION_BACKENDS,
+                "Skip unless LDAP auth backend is active.")
     def test_mymedicare_valid_login_succeeds(self):
         """
         Test LDAP valid login succeeds.
@@ -49,10 +49,8 @@ class LDAPLoginTestCase(TestCase):
             # The user is logged in
             self.assertContains(response, "Logout")
 
-    @skipUnless(settings.AUTH_LDAP_ACTIVE,
-                "Requires real running LDAP server. Test locally")
-    # @skipUnless(LDAPBackend().can_connect_to_ldap(),
-    #             "Requires real running LDAP server. Test locally")
+    @skipUnless('django_ldap.backends.ldap_auth.LDAPBackend' in settings.AUTHENTICATION_BACKENDS,
+                "Skip unless LDAP auth backend is active.")
     def test_mymedicare_invalid_login_fails(self):
         """
         Test LDAP invalid login attempt fails.
