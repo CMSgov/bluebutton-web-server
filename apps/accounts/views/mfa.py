@@ -22,8 +22,8 @@ failed_login_log = logging.getLogger('unsuccessful_logins')
 
 @receiver(user_login_failed)
 def user_login_failed_callback(sender, credentials, **kwargs):
-    l = "Login failed for %s." % (credentials['username'])
-    failed_login_log.warning(l)
+    lw = "Login failed for %s." % (credentials['username'])
+    failed_login_log.warning(lw)
 
 
 @never_cache

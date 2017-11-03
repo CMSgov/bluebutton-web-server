@@ -371,7 +371,7 @@ def generic_read(request,
     # try:
     #     error_check = r.text
     #     # logger.debug("We got r.text back:%s" % r.text[:200] + "...")
-    # except:
+    # except Exception:
     #     error_check = "HttpResponse status_code=502"
     #     logger.debug("Something went wrong with call to %s" % pass_to)
     # logger.debug("Checking for errors:%s" % error_check[:200] + "...")
@@ -394,7 +394,7 @@ def generic_read(request,
     #     if "ConnectionError" in r.text:
     #         logger.debug("Error:%s" % r.text)
     #         return error_status(r, 502)
-    # except:
+    # except Exception:
     #     pass
 
     text_out = ''
@@ -440,7 +440,7 @@ def generic_read(request,
     ikey = ''
     try:
         ikey = find_ikey(r.text)
-    except:
+    except Exception:
         ikey = ''
 
     if ikey is not '':

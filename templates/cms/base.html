@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+{% load static %}
+{% load engine_skin %}
+
+<html lang="en">
+<head>
+
+
+	{% load i18n %}
+        <title>
+        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+        </title>
+	
+    {% block head %}
+        {% include "include/head.html" %}
+    {% endblock %}
+
+    {% block extra_head %}
+    {% endblock %}
+
+    <style>
+    </style>
+
+</head>
+
+<body class="ds ds-base ">
+
+    {% include "include/header.html" %}
+
+    <main class="ds-l-container-fluid preview__grid " id="main-content">
+
+        <div class="ds-l-row">
+            <div class="ds-base ds-l-lg-col--3">
+                {% include "include/side-nav.html" %}
+            </div>
+            <div class="ds-base ds ds-l-lg-col--9">
+
+                {% block breadcrumbs %}
+                {% endblock %}
+
+                {% block messages %}
+                {% endblock %}
+
+
+                {% block Content %}
+                    {% if template %}{% include template %}{% endif %}
+                    {{ content|safe }}
+                {% endblock %}
+            </div>
+        </div>
+
+    </main>
+
+        {% include "include/footer.html" %}
+
+        {% include "include/foot.html" %}
+
+    {% block ExtraJSFoot %}
+	
+	{% endblock %}
+
+
+</body>
+
+</html>

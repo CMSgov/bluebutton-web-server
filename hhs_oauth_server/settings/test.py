@@ -38,3 +38,6 @@ FRONT_END_STRIP_PARAMS = ['access_token',
 REQUEST_CALL_TIMEOUT = (5, 120)
 
 OFFLINE = True
+
+# un-comment the line to test LDAP
+# AUTHENTICATION_BACKENDS += ('django_ldap.backends.ldap_auth.LDAPBackend',)

@@ -2,8 +2,11 @@
 
 {% load i18n %}
 {% block content %}
+    <!-- CI_TESTING:START -->
+    <!-- test_dot_ext_application_delete -->
+    <!-- CI_TESTING:END -->
     <div class="row">
-        <div class="col-lg-12">
+        <div class="ds-col-lg-12">
             <ol class="breadcrumb">
                 <li><a href="/">Home</a></li>
                 <li><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
@@ -14,7 +17,7 @@
     </div>
 
     <div class="block-center">
-        <h3 class="block-center-heading">{% trans "Are you sure to delete the application" %} {{ application.name }}?</h3>
+        <h3 class="ds-h3">{% trans "Are you sure to delete the application" %} {{ application.name }}?</h3>
         <form method="post" action="{% url 'oauth2_provider:delete' application.pk %}">
             {% csrf_token %}
 

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+{% load static %}
+{% load engine_skin %}
+<html lang="en">
+<head>
+    <title>
+        {% block pretitle %}{% endblock %}
+        {% block title %} {{ APPLICATION_TITLE }} {% endblock %}
+    </title>
+
+    {% block head %}
+        {% include 'include/head.html' %}
+    {% endblock %}
+
+    {% block extra_head %}
+    {% endblock %}
+    <style>
+
+    </style>
+</head>
+<body class="ds ds-base">
+
+
+    {% include 'include/header_minimal.html' %}
+
+       <main class="ds-l-container-fluid preview__grid " id="main-content">
+
+        <div class="ds-l-row">
+
+            <div class="ds-base ds ds-l-lg-col--12">
+
+                {% block breadcrumbs %}
+                {% endblock %}
+
+                {% block messages %}
+                {% endblock %}
+
+                <div class="container-fluid">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="ds-c-alert alert-dismissible alert-{{ message.tags }}">
+                                {%  if message.tags == "error" %}
+                                    <h4>There was a problem</h4>
+                                {% elif message.tags == "info" %}
+                                    <h4>Just letting you know...</h4>
+                                {% elif message.tags == "success" %}
+                                    <h4>That worked...</h4>
+                                {% else %}
+                                    <h4>System message:</h4>
+                                {%  endif %}
+                                <button type="button" class="close" data-dismiss="alert">×</button>
+                                <p>
+                                    {{ form.errors }}
+                                    {{ message }}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
+
+
+                {% block Content %}
+                    {% if template %}{% include template %}{% endif %}
+                    {{ content|safe }}
+                {% endblock %}
+            </div>
+        </div>
+
+    </main>
+
+
+    <div>
+        {% include "include/footer_minimal.html" %}
+
+        {% include "include/foot.html" %}
+
+    </div>
+
+    {% block ExtraJSFoot %}
+
+	{% endblock %}
+
+</body>
+
+</html>

@@ -317,6 +317,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
 
         # logger.debug("is xml filtered?%s" % requested_format)
         xml_dom = xml_to_dom(text_out)
+
         text_out = dom_conformance_filter(xml_dom, rr)
 
         # Append Security to ConformanceStatement
@@ -352,7 +353,9 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         # Append Security to ConformanceStatement
         security_endpoint = build_oauth_resource(request,
                                                  format_type="json")
-        od['security'] = security_endpoint
+        print("OD:\n%s" % od['rest'])
+        od['rest'][0]['security'] = security_endpoint
+        print("OD+Security:\n%s" % od)
 
         text_out = pretty_json(od)
         if 'html' not in requested_format:

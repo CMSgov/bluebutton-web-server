@@ -64,7 +64,7 @@ def api_write(request):
                 errors.append('The string did not contain a JSON object.')
             else:
                 j['write'] = True
-        except:
+        except Exception:
             errors.append('The string did not contain valid JSON.')
         if errors:
             response = OrderedDict()
