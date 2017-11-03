@@ -2,7 +2,7 @@ OAuth Server - An OAuth Provider Project
 ========================================
 
 [![Build Status](https://travis-ci.org/TransparentHealth/hhs_oauth_server.svg?branch=develop)](https://travis-ci.org/TransparentHealth/hhs_oauth_server)
-[![Coverage Status](https://coveralls.io/repos/github/TransparentHealth/hhs_oauth_server/badge.svg?branch=master)](https://coveralls.io/github/TransparentHealth/hhs_oauth_server?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/TransparentHealth/hhs_oauth_server/badge.svg?branch=develop)](https://coveralls.io/github/TransparentHealth/hhs_oauth_server?branch=develop)
 
 The project is based in Python 3 and Django 1.9.5. It will operate on Python 2.7, 3.4, and 3.5.
 
