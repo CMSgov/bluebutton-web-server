@@ -42,9 +42,15 @@ def request_invite(request):
             })
     else:
         # this is an HTTP  GET
+        additional_info = """
+        Your request will be reviewed by a member of our team and an invite
+        will then be issued. Please allow up to two business days for the
+        Invite to be issued.
+        """
         return render(request,
                       'developer-invite-request.html',
-                      {'form': RequestInviteForm()})
+                      {'form': RequestInviteForm(),
+                       'additional_info': additional_info})
 
 
 @never_cache
