@@ -32,9 +32,6 @@ if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
 # Set Python2 to use for unicode field conversion to text
 RUNNING_PYTHON2 = is_python2()
 
-# Use to skip LDAP tests
-AUTH_LDAP_ACTIVE = False
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.'
