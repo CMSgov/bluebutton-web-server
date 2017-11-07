@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from ..accounts.models import UserProfile
