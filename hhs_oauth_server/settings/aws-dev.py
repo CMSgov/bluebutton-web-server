@@ -73,6 +73,20 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
+# Style and UI skins is set here. The default is 'the_skin'
+ENGINE_SKIN = 'the_skin/'
+# ENGINE_SKIN = 'usds/'
+# ENGINE_SKIN = 'cms/'
+# An empty ENGINE_SKIN value uses templates from th base templates directory
+# ENGINE_SKIN = ""
+
+# adding ability to change authorize form and text in DOT authorize.html
+if ENGINE_SKIN == 'cms/':
+    # Medicare uses the Medicare form
+    OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
+else:
+    OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
+
 # emails
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
