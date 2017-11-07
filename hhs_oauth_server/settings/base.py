@@ -99,10 +99,8 @@ INSTALLED_APPS = [
 
     # FHIR Server
     # TODO - Add comment to each of these per main function
-    'apps.fhir.fhir_core',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
-    'apps.fhir.build_fhir',
     'apps.fhir.fhir_consent',
 
     # Development Specific - Remove in production

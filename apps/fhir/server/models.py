@@ -1,12 +1,12 @@
-# import json
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
-
 from apps.fhir.server.utils import (text_to_list,
-                                    # list_to_text,
-                                    # add_to_text_list,
                                     init_text_list)
+
+__author__ = "Mark Scrimshire and Alan Viars"
 
 
 @python_2_unicode_compatible
@@ -93,7 +93,8 @@ class ResourceRouter(models.Model):
         for s in self.supported_resource.all():
             rType.append(s.resourceType)
 
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
+        # return "\n".join([s.resourceType for s in
+        # self.supported_resource.all()])
         return rType
 
     def get_protected_resources(self):
@@ -102,7 +103,8 @@ class ResourceRouter(models.Model):
             if s.secure_access:
                 rProtectedType.append(s.resourceType)
 
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
+        # return "\n".join([s.resourceType for s in
+        # self.supported_resource.all()])
         return rProtectedType
 
     def get_open_resources(self):
@@ -111,7 +113,8 @@ class ResourceRouter(models.Model):
             if not s.secure_access:
                 rOpenType.append(s.resourceType)
 
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
+        # return "\n".join([s.resourceType for s in
+        # self.supported_resource.all()])
         return rOpenType
 
     def get_open_resource_count(self):

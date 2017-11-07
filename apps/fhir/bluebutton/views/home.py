@@ -50,14 +50,14 @@ from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               append_security)
 # from apps.dot_ext.decorators import capability_protected_resource
 
-from apps.fhir.fhir_core.utils import (read_session,
-                                       get_search_param_format,
-                                       strip_format_for_back_end,
-                                       SESSION_KEY,
-                                       ERROR_CODE_LIST,
-                                       valid_interaction,
-                                       build_querystring,
-                                       request_format)
+from ..opoutcome_utils import (read_session,
+                               get_search_param_format,
+                               strip_format_for_back_end,
+                               SESSION_KEY,
+                               ERROR_CODE_LIST,
+                               valid_interaction,
+                               build_querystring,
+                               request_format)
 
 from apps.home.views import authenticated_home
 

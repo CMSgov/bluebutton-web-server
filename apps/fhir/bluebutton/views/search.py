@@ -14,16 +14,16 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from apps.dot_ext.decorators import capability_protected_resource
 
-from apps.fhir.fhir_core.utils import (build_querystring,
-                                       find_ikey,
-                                       get_div_from_json,
-                                       get_target_url,
-                                       ERROR_CODE_LIST,
-                                       kickout_400,
-                                       kickout_403,
-                                       kickout_404,
-                                       SESSION_KEY,
-                                       write_session)
+from ..opoutcome_utils import (build_querystring,
+                               find_ikey,
+                               get_div_from_json,
+                               get_target_url,
+                               ERROR_CODE_LIST,
+                               kickout_400,
+                               kickout_403,
+                               kickout_404,
+                               SESSION_KEY,
+                               write_session)
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         # add_params,

@@ -2,7 +2,13 @@ import os
 import json
 import logging
 import requests
-
+from collections import OrderedDict
+from django.conf import settings
+from django.contrib import messages
+from .opoutcome_utils import (kickout_403,
+                              kickout_404)
+from apps.fhir.server.models import (SupportedResourceType,
+                                     ResourceRouter)
 try:
     # python2
     from urllib import urlencode
@@ -10,24 +16,7 @@ except ImportError:
     # python3
     from urllib.parse import urlencode
 
-from collections import OrderedDict
-
-from django.conf import settings
-from django.contrib import messages
-# from django.core.urlresolvers import reverse_lazy
-# from django.http import HttpResponseRedirect
-
-# from hhs_oauth_server.utils import is_python2
-from apps.fhir.fhir_core.utils import (kickout_403,
-                                       kickout_404)
-from apps.fhir.server.models import (SupportedResourceType,
-                                     ResourceRouter)
-
-# from apps.fhir.fhir_core.utils import (error_status,
-#                                        ERROR_CODE_LIST)
-
 from apps.wellknown.views import (base_issuer, build_endpoint_info)
-
 from .models import Crosswalk, Fhir_Response
 
 PRETTY_JSON_INDENT = 4
@@ -162,7 +151,8 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
 
         e = requests.Response
         # e.text = r_err
-        logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
+        logger.debug("HTTPError Status_code:%s" %
+                     requests.exceptions.HTTPError)
         # logger.debug("Status_Code:%s" % r.status_code)
         # e.status_code = 502
 
@@ -363,7 +353,8 @@ def request_get_with_parms(request,
 
         e = requests.Response
         # e.text = r_err
-        logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
+        logger.debug("HTTPError Status_code:%s" %
+                     requests.exceptions.HTTPError)
         # logger.debug("Status_Code:%s" % r.status_code)
         # e.status_code = 502
 
@@ -518,7 +509,8 @@ def add_params(srtc, patient_id=None, key=None):
                     # print("Added item:%a" % item)
                     add_params.append(item)
             # print('Resulting additional parameters:%s' % add_params)
-            logger_debug.debug('Resulting additional parameters:%s' % add_params)
+            logger_debug.debug(
+                'Resulting additional parameters:%s' % add_params)
 
     # print("\n#EXIT####################\n")
 
@@ -1200,30 +1192,6 @@ def get_resourcerouter(cx=None):
         rr = cx.fhir_source
 
     return rr
-
-
-def evaluate_r(r):
-    """
-     Check out what was received back from request
-
-     """
-
-    # logger.debug("=== EVALUATE_R ===")
-    # logger.debug("Dealing with %s" % r)
-    #
-    # logger.debug("r.status_code:%s" % r.status_code)
-    # logger.debug("r.headers:%s" % r.headers)
-    # logger.debug("r.headers['content-type']:%s" % r.headers['content-type'])
-    # logger.debug("r.encoding:%s" % r.encoding)
-    # logger.debug("r.text:%s" % r.text)
-    # try:
-    #     rjson = r.json()
-    #     logger.debug("Pretty r.json():\n%s" % pretty_json(rjson))
-    #
-    # except Exception:
-    #     logger.debug("No JSON")
-    #
-    # logger.debug("END EVALUATE_R ===")
 
 
 def build_rewrite_list(cx=None):
