@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from ..accounts.models import UserProfile
@@ -30,9 +29,9 @@ def authenticated_home(request):
         context = {'name': name, 'profile': profile,
                    'crosswalk': crosswalk,
                    'fhir_id': fhir_id}
-        template = '%sauthenticated-home.html' % settings.ENGINE_SKIN
+        template = 'authenticated-home.html'
     else:
         name = ('home')
         context = {'name': name}
-        template = '%sindex.html' % settings.ENGINE_SKIN
+        template = 'index.html'
     return render(request, template, context)
