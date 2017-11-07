@@ -4,18 +4,18 @@
 {% load engine_skin %}
 
 <section id="begin">
-    <div class="row usa-grid">
+    <div class="row">
         <h1 class="ds-h1">Approve Authorization</h1>
-        <p class="usa-font-lead">
+        <p class="ds-text--lead">
             You are authorizing
             <strong>{{ settings.APPLICATION_TITLE }}</strong> to enable <strong>{{ application.name }}</strong> to have
             access to your Medicare data.
         </p>
-        <p class="usa-font-lead">
+        <p class="ds-text--lead">
              <a href="/notices">
-                  <button type="button" class="usa-button usa-button usa-button-primary"> <i class="fa fa-info-circle"></i> Read Notices</button></a>&nbsp;or&nbsp;
+                  <button type="button" class="ds-c-button ds-c-button--primary"> <i class="fa fa-info-circle"></i> Read Notices</button></a>&nbsp;or&nbsp;
              <a href="/warnings.html">
-                  <button type="button" class="usa-button usa-button usa-button-primary"> <i class="fa fa-exclamation-triangle"></i> Read Warnings </button>
+                  <button type="button" class="ds-c-button ds-c-button--danger"> <i class="fa fa-exclamation-triangle"></i> Read Warnings </button>
              </a>
         </p>
 
@@ -35,7 +35,7 @@
                         {% endif %}
                     {% endfor %}
 
-                    <p class="usa-font-lead">{% trans "This application requires the following permissions:" %}</p>
+                    <p class="ds-text--lead">{% trans "This application requires the following permissions:" %}</p>
                     <div class="form-group">
 
                         {{ form.expires_in|bootstrap }}
@@ -44,16 +44,17 @@
                     </div>
                     <div class="control-group">
                         <div class="controls">
-                            <input type="submit" class="usa-button usa-button usa-button-secondary" value="Do NOT approve access"/>
-                            <input type="submit" class="usa-button usa-button usa-button-active" name="allow" value="Approve Access"/>
+                            <input type="submit" class="ds-c-button ds-c-button ds-c-button--transparent" value="Do NOT approve access"/>
+                            <input type="submit" class="ds-c-button ds-c-button ds-c-button--primary" name="allow" value="Approve Access"/>
                         </div>
+                         &nbsp;<br/>
                     </div>
                 </form>
 
             {% else %}
                 <h2>Error: {{ error.error }}</h2>
                 <p>{{ error.description }}</p>
-                <p class="usa-font-lead">If you are seeing this error it is likely that the
+                <p class="ds-text--lead">If you are seeing this error it is likely that the
                 {% if application.name %}
                     the Application (<strong>{{ application.name }}</strong>) has a problem with their
                     application credentials.
