@@ -19,6 +19,7 @@ urlpatterns = [
         bluebutton_help,
         name='bb_fhir_help'),
 
+    # Move Conformance and Capability above general calls
     # Conformance statement
     url(r'(metadata[^/]+)?',
         fhir_conformance,
