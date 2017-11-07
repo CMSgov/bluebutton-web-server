@@ -81,7 +81,6 @@ ENGINE_SKIN = 'the_skin/'
 # ENGINE_SKIN = ""
 
 # adding ability to change authorize form and text in DOT authorize.html
-
 if ENGINE_SKIN == 'cms/':
     # Medicare uses the Medicare form
     OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
