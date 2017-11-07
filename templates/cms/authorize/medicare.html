@@ -4,7 +4,7 @@
 {% load engine_skin %}
 
 <section id="begin">
-    <div class="row">
+    <div class="ds-base ds ds-l-col--12">
         <h1 class="ds-h1">Approve Authorization</h1>
         <p class="ds-text--lead">
             You are authorizing
@@ -38,9 +38,11 @@
                     <p class="ds-text--lead">{% trans "This application requires the following permissions:" %}</p>
                     <div class="form-group">
 
+
                         {{ form.expires_in|bootstrap }}
 
                         {{ form.non_field_errors }}
+
                     </div>
                     <div class="control-group">
                         <div class="controls">
