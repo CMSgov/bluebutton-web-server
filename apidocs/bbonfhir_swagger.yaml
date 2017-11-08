@@ -37,7 +37,7 @@ info:
   version: 0.0.18
 host: dev.bluebutton.cms.fhirservice.net
 schemes:
-  - http
+  - https
 tags:
   - name: CapabilityStatement
   - name: Coverage

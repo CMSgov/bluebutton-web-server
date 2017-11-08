@@ -7,7 +7,7 @@
   },
   "host": "dev.bluebutton.cms.fhirservice.net",
   "schemes": [
-    "http"
+    "https"
   ],
   "tags": [
     {
