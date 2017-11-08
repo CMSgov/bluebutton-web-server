@@ -47,8 +47,8 @@ securityDefinitions:
   BBOAuth2:
     type: oauth2
     flow: accessCode
-    authorizationUrl: 'http://bbc:8000/o/auth/'
-    tokenUrl: 'http://bbc:8000/o/token'
+    authorizationUrl: 'https://dev.bluebutton.cms.fhirservice.net/o/auth/'
+    tokenUrl: 'https://dev.bluebutton.cms.fhirservice.net/o/token'
     scopes:
       'read:Patient': Grants read access to Patient demographics
       'read:Coverage': Grants read access to coverage records
