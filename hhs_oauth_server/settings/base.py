@@ -145,9 +145,9 @@ CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
 # Style and UI skins is set here. The default is 'the_skin'
-# ENGINE_SKIN = 'the_skin/'
+ENGINE_SKIN = 'the_skin/'
 # ENGINE_SKIN = 'usds/'
-ENGINE_SKIN = 'cms/'
+# ENGINE_SKIN = 'cms/'
 # An empty ENGINE_SKIN value uses templates from th base templates directory
 # ENGINE_SKIN = ""
 
@@ -582,7 +582,6 @@ SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'apps.accounts.auth_backends.oauth2io.OAuth2ioOAuth2',
 )
 
 USERID_ENCRYPT_SALT = "CHANGE_THIS_SALT"

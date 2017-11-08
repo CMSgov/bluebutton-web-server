@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.utils.encoding import python_2_unicode_compatible
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
+from django.utils.timezone import now
 import logging
 
 __author__ = "Mark Scrimshire and Alan Viars"
@@ -24,7 +24,7 @@ class Consent(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     application = models.ForeignKey(settings.OAUTH2_PROVIDER_APPLICATION_MODEL)
     consent = models.TextField(blank=True, default="")
-    created = models.DateTimeField(default=timezone.now())
+    created = models.DateTimeField(default=now)
     modified = models.DateTimeField(auto_now=True)
     # choice = CREATED (2) | REVOKED (0) | UPDATED (4)
 

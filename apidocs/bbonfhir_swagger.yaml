@@ -33,11 +33,11 @@ info:
     In FHIR terms the **Medicare Beneficiary** is the "**Patient**." In order to
     be  consistent with the FHIR specification we will use the term Patient
     throughout this documentation to refer to the Medicare Beneficiary.
-  title: CMS Blue Button API v0.4 (DRAFT)
-  version: 0.0.18
+  title: CMS Blue Button API v0.5 (DRAFT)
+  version: 0.0.19
 host: dev.bluebutton.cms.fhirservice.net
 schemes:
-  - http
+  - https
 tags:
   - name: CapabilityStatement
   - name: Coverage
@@ -47,8 +47,8 @@ securityDefinitions:
   BBOAuth2:
     type: oauth2
     flow: accessCode
-    authorizationUrl: 'http://bbc:8000/o/auth/'
-    tokenUrl: 'http://bbc:8000/o/token'
+    authorizationUrl: 'https://dev.bluebutton.cms.fhirservice.net/o/authorize/'
+    tokenUrl: 'https://dev.bluebutton.cms.fhirservice.net/o/token'
     scopes:
       'read:Patient': Grants read access to Patient demographics
       'read:Coverage': Grants read access to coverage records

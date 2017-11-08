@@ -69,32 +69,10 @@ class ResourceRouter(models.Model):
     def __str__(self):
         return self.name
 
-    # """
-    # If SupportedResourceType is not hosted on default server
-    # then enter the server url here.
-    # Enter full URL and path
-    # """
-    # fhir_path = models.URLField(blank=True,
-    #                             verbose_name="Default FHIR URL with "
-    #                                          "terminating /",
-    #                             help_text="Exclude the resource. eg. "
-    #                                       "<b>https://fhirserver.com/fhir/"
-    #                                       "Patient/</b> is entered as "
-    #                                       "<b>https://fhirserver.com/fhir/"
-    #                                       "</b></br>Leave blank to accept "
-    #                                       "system default.")
-    # # Add fhir_path unless the resource is defined via crosswalk
-    #
-    # def __str__(self):
-    #     return self.supported_resource.resource_name
-
     def get_resources(self):
         rType = []
         for s in self.supported_resource.all():
             rType.append(s.resourceType)
-
-        # return "\n".join([s.resourceType for s in
-        # self.supported_resource.all()])
         return rType
 
     def get_protected_resources(self):
@@ -102,9 +80,6 @@ class ResourceRouter(models.Model):
         for s in self.supported_resource.all():
             if s.secure_access:
                 rProtectedType.append(s.resourceType)
-
-        # return "\n".join([s.resourceType for s in
-        # self.supported_resource.all()])
         return rProtectedType
 
     def get_open_resources(self):
