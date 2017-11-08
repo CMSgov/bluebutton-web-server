@@ -30,6 +30,7 @@ logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
+# consider removing fail_redirect and set a timeout for all calls that can be managed by settings.
 
 def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     """  call to request or redirect on fail
@@ -389,7 +390,7 @@ def notNone(value=None, default=None):
     else:
         return value
 
-
+# Mark for removal ...remove related settings from base.
 def strip_oauth(get={}):
     """ Remove OAuth values from URL Parameters being sent to backend """
 

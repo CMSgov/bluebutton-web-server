@@ -26,7 +26,7 @@ class Crosswalk(models.Model):
     fhir_source = models.ForeignKey(ResourceRouter,
                                     blank=True,
                                     null=True)
-                                    # default=settings.FHIR_SERVER_DEFAULT)
+    # default=settings.FHIR_SERVER_DEFAULT)
     fhir_id = models.CharField(max_length=80,
                                blank=True, default="")
     date_created = models.DateTimeField(auto_now_add=True)

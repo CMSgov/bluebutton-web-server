@@ -268,6 +268,8 @@ def generic_read(request,
 
     # Internal handling format is json
     # Remove the oauth elements from the GET
+
+    # Remove the next line.....
     pass_params = strip_oauth(request.GET)
 
     # Let's store the inbound requested format
