@@ -18,7 +18,7 @@ import defusedxml.ElementTree as ET
 from apps.fhir.bluebutton.utils import (get_resource_names,
                                         get_resourcerouter)
 
-from apps.fhir.fhir_core.utils import valid_interaction
+from .opoutcome_utils import valid_interaction
 
 FHIR_NAMESPACE = {'fhir': 'http://hl7.org/fhir'}
 XML_NAMESPACE = {'xml': 'http://www.w3.org/1999/xhtml'}
@@ -260,7 +260,8 @@ def get_div_from_xml(xml_text, ns=FHIR_NAMESPACE):
     for aggregated_div in aggregated_divs:
         # print("AD:%s" % aggregated_div)
         # print("AD[0]:%s" % aggregated_div[0])
-        div_text += ET.tostring(aggregated_div[0], method="html").decode('utf-8')
+        div_text += ET.tostring(aggregated_div[0],
+                                method="html").decode('utf-8')
         div_text += "\n"
     # div_text = aggregated_divs.tostring()
     # print("DV:%s" % div_text)

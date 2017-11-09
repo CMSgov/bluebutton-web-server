@@ -1,6 +1,4 @@
-# import json
 import os
-
 from collections import OrderedDict
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -35,7 +33,6 @@ from apps.fhir.bluebutton.utils import (
     mask_with_this_url,
     mask_list_with_host,
     get_host_url,
-    # post_process_request,
     prepend_q,
     pretty_json,
     get_default_path,
@@ -48,19 +45,11 @@ ENCODED = settings.ENCODING
 
 
 class BluebuttonUtilsSimpleTestCase(BaseApiTest):
-    # Create a user
-    # username = "bobby"
-    # password = "password"
-    # user = User.objects._create_user(username,
-    #                                  password=password,
-    #                                  email="bob@example.net")
-    # created a default user
-    # logger.debug("user: '%s[%s]'" % (user,user.pk))
-
-    # Now load fixtures
+    # Load fixtures
     fixtures = ['fhir_bluebutton_test_rt.json',
                 'fhir_bluebutton_new_testdata.json',
-                'fhir_server_new_testdata.json']
+                'fhir_server_new_testdata.json',
+                'test_install_fixture.json']
 
     def test_notNone(self):
         """ Test notNone return values """

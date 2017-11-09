@@ -1,12 +1,12 @@
-# import json
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
-
 from apps.fhir.server.utils import (text_to_list,
-                                    # list_to_text,
-                                    # add_to_text_list,
                                     init_text_list)
+
+__author__ = "Mark Scrimshire and Alan Viars"
 
 
 @python_2_unicode_compatible
@@ -69,31 +69,10 @@ class ResourceRouter(models.Model):
     def __str__(self):
         return self.name
 
-    # """
-    # If SupportedResourceType is not hosted on default server
-    # then enter the server url here.
-    # Enter full URL and path
-    # """
-    # fhir_path = models.URLField(blank=True,
-    #                             verbose_name="Default FHIR URL with "
-    #                                          "terminating /",
-    #                             help_text="Exclude the resource. eg. "
-    #                                       "<b>https://fhirserver.com/fhir/"
-    #                                       "Patient/</b> is entered as "
-    #                                       "<b>https://fhirserver.com/fhir/"
-    #                                       "</b></br>Leave blank to accept "
-    #                                       "system default.")
-    # # Add fhir_path unless the resource is defined via crosswalk
-    #
-    # def __str__(self):
-    #     return self.supported_resource.resource_name
-
     def get_resources(self):
         rType = []
         for s in self.supported_resource.all():
             rType.append(s.resourceType)
-
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
         return rType
 
     def get_protected_resources(self):
@@ -101,8 +80,6 @@ class ResourceRouter(models.Model):
         for s in self.supported_resource.all():
             if s.secure_access:
                 rProtectedType.append(s.resourceType)
-
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
         return rProtectedType
 
     def get_open_resources(self):
@@ -111,7 +88,8 @@ class ResourceRouter(models.Model):
             if not s.secure_access:
                 rOpenType.append(s.resourceType)
 
-        # return "\n".join([s.resourceType for s in self.supported_resource.all()])
+        # return "\n".join([s.resourceType for s in
+        # self.supported_resource.all()])
         return rOpenType
 
     def get_open_resource_count(self):
@@ -248,25 +226,26 @@ class SupportedResourceType(models.Model):
     def get_supported_interaction_types(self):
         sit = []
         if self.get:
-            sit.append(self._meta.get_field('get').verbose_name)
+            sit.append(str(self._meta.get_field('get').verbose_name).lower())
         if self.put:
-            sit.append(self._meta.get_field('put').verbose_name)
+            sit.append(str(self._meta.get_field('put').verbose_name).lower())
         if self.create:
-            sit.append(self._meta.get_field('create').verbose_name)
+            sit.append(str(self._meta.get_field('create').verbose_name).lower())
         if self.read:
-            sit.append(self._meta.get_field('read').verbose_name)
+            sit.append(str(self._meta.get_field('read').verbose_name).lower())
         if self.vread:
-            sit.append(self._meta.get_field('vread').verbose_name)
+            sit.append(str(self._meta.get_field('vread').verbose_name).lower())
         if self.update:
-            sit.append(self._meta.get_field('update').verbose_name)
+            sit.append(str(self._meta.get_field('update').verbose_name).lower())
         if self.patch:
-            sit.append(self._meta.get_field('patch').verbose_name)
+            sit.append(str(self._meta.get_field('patch').verbose_name).lower())
         if self.delete:
-            sit.append(self._meta.get_field('delete').verbose_name)
+            sit.append(str(self._meta.get_field('delete').verbose_name).lower())
         if self.search:
-            sit.append(self._meta.get_field('search').verbose_name)
+            sit.append(str(self._meta.get_field('search').verbose_name).lower())
         if self.history:
-            sit.append(self._meta.get_field('history').verbose_name)
+            sit.append(str(self._meta.get_field('history').verbose_name).lower())
+        print(sit)
         return sit
 
     def set_search_block(self, x):

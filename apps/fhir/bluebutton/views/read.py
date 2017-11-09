@@ -9,23 +9,23 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.fhir.fhir_core.utils import (kickout_403,
-                                       write_session,
-                                       find_ikey,
-                                       # get_search_param_format,
-                                       get_target_url,
-                                       # content_is_json_or_xml,
-                                       # get_content_type,
-                                       SESSION_KEY,
-                                       # error_status,
-                                       ERROR_CODE_LIST,
-                                       build_querystring,
-                                       strip_format_for_back_end,
-                                       request_format,
-                                       add_key_to_fhir_url,
-                                       fhir_call_type,
-                                       get_div_from_json
-                                       )
+from ..opoutcome_utils import (kickout_403,
+                               write_session,
+                               find_ikey,
+                               # get_search_param_format,
+                               get_target_url,
+                               # content_is_json_or_xml,
+                               # get_content_type,
+                               SESSION_KEY,
+                               # error_status,
+                               ERROR_CODE_LIST,
+                               build_querystring,
+                               strip_format_for_back_end,
+                               request_format,
+                               add_key_to_fhir_url,
+                               fhir_call_type,
+                               get_div_from_json
+                               )
 
 from apps.fhir.bluebutton.utils import (request_call,
                                         check_rt_controls,
@@ -268,6 +268,8 @@ def generic_read(request,
 
     # Internal handling format is json
     # Remove the oauth elements from the GET
+
+    # Remove the next line.....
     pass_params = strip_oauth(request.GET)
 
     # Let's store the inbound requested format
