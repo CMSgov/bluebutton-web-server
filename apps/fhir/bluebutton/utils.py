@@ -542,19 +542,6 @@ def concat_parms(front_part={}, back_part={}):
     else:
         concat_parms = concat_parm
     logger_debug.debug('resulting string:%s' % concat_parms)
-
-    # We have to do something
-    # joined_parms = '?'
-    #
-    # if len(front_part) != 0:
-    #     joined_parms += front_part
-    #
-    # if len(back_part) == 0:
-    #     # nothing to add
-    #     return joined_parms
-    # else:
-    #     joined_parms += '&' + back_part
-
     return concat_parms
 
 
@@ -740,20 +727,16 @@ def FhirServerUrl(server=None, path=None, release=None):
 
 def check_access_interaction_and_resource_type(resource_type, intn_type, rr):
     """ usage is deny = check_access_interaction_and_resource_type()
-
     :param
     resource_type: resource
     intn_type: interaction type
     rr: ResourceRouter
-
-
     """
 
     try:
         rt = SupportedResourceType.objects.get(resourceType=resource_type,
                                                fhir_source=rr)
         # force comparison to lower case to make case insensitive check
-        print(resource_type, intn_type, rr)
         if str(intn_type).lower() not in rt.get_supported_interaction_types():
             msg = 'The interaction: %s is not permitted on %s FHIR ' \
                   'resources on this FHIR sever.' % (intn_type,
