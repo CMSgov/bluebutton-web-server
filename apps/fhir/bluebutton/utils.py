@@ -395,30 +395,6 @@ def notNone(value=None, default=None):
 # Mark for removal ...remove related settings from base.
 
 
-def strip_oauth(get={}):
-    """ Remove OAuth values from URL Parameters being sent to backend """
-
-    # access_token can be passed in as a part of OAuth protected request.
-    # as can: state=random_state_string&response_type=code&client_id=ABCDEF
-    # Remove them before passing url through to FHIR Server
-
-    strip_oauth = OrderedDict()
-    if get == {}:
-        # logger.debug("Nothing to strip GET is empty:%s" % get)
-        return strip_oauth
-
-    strip_parms = settings.FRONT_END_STRIP_PARAMS
-    # ['access_token', 'state', 'response_type', 'client_id']
-
-    # logger.debug('Removing:%s from: %s' % (strip_parms, get))
-
-    strip_oauth = get_url_query_string(get, strip_parms)
-
-    # logger.debug('resulting url parameters:%s' % strip_oauth)
-
-    return strip_oauth
-
-
 def block_params(get, srtc):
     """ strip parameters from search string - get is a dict """
 
