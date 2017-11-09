@@ -791,14 +791,14 @@ def check_access_interaction_and_resource_type(resource_type, intn_type, rr):
 
 
     """
-    
+
     # print("here", resource_type, intn_type, rr)
     try:
         rt = SupportedResourceType.objects.get(resourceType=resource_type,
                                                fhir_source=rr)
         # force comparison to lower case to make case insensitive check
         if intn_type.lower() not in map(str.lower,
-                                             rt.get_supported_interaction_types()):
+                                        rt.get_supported_interaction_types()):
             msg = 'The interaction: %s is not permitted on %s FHIR ' \
                   'resources on this FHIR sever.' % (intn_type,
                                                      resource_type)
