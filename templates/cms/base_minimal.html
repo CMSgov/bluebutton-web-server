@@ -35,29 +35,7 @@
                 {% block messages %}
                 {% endblock %}
 
-                <div class="container-fluid">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="ds-c-alert alert-dismissible alert-{{ message.tags }}">
-                                {%  if message.tags == "error" %}
-                                    <h4>There was a problem</h4>
-                                {% elif message.tags == "info" %}
-                                    <h4>Just letting you know...</h4>
-                                {% elif message.tags == "success" %}
-                                    <h4>That worked...</h4>
-                                {% else %}
-                                    <h4>System message:</h4>
-                                {%  endif %}
-                                <button type="button" class="close" data-dismiss="alert">×</button>
-                                <p>
-                                    {{ form.errors }}
-                                    {{ message }}
-                                </p>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
 
-                </div>
 
 
                 {% block Content %}

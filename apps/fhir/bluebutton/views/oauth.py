@@ -13,27 +13,11 @@ Based on code written by Alan Viars in TransparentHealth/django-monfhir
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-# from oauth2_provider.decorators import protected_resource
-# from django.views.decorators.http import require_POST
-# from django.conf import settings
-# from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-# from .create import create
-# from .update import update
-# from .delete import delete
+
 from .read import oauth_read
-from apps.fhir.fhir_core.utils import kickout_400
+from ..opoutcome_utils import kickout_400
 from apps.dot_ext.decorators import capability_protected_resource
-
-
-# we are currently only supporting READ /SEARCH /GET functions
-#
-# @require_POST
-# @capability_protected_resource()
-# def oauth_create(request, resource_type):
-#     if request.method == "POST":
-#         return create(request, resource_type, via_oauth=True)
-#     return HttpResponse(status=501)
 
 
 @capability_protected_resource()

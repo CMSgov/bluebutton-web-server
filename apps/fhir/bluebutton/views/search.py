@@ -14,16 +14,16 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from apps.dot_ext.decorators import capability_protected_resource
 
-from apps.fhir.fhir_core.utils import (build_querystring,
-                                       find_ikey,
-                                       get_div_from_json,
-                                       get_target_url,
-                                       ERROR_CODE_LIST,
-                                       kickout_400,
-                                       kickout_403,
-                                       kickout_404,
-                                       SESSION_KEY,
-                                       write_session)
+from ..opoutcome_utils import (build_querystring,
+                               find_ikey,
+                               get_div_from_json,
+                               get_target_url,
+                               ERROR_CODE_LIST,
+                               kickout_400,
+                               kickout_403,
+                               kickout_404,
+                               SESSION_KEY,
+                               write_session)
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         # add_params,
@@ -39,7 +39,6 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         get_resourcerouter,
                                         post_process_request,
                                         pretty_json,
-                                        strip_oauth,
                                         get_response_text)
 
 # from apps.fhir.bluebutton.views.read import generic_read
@@ -324,7 +323,7 @@ def read_search(request,
     back_end_format = set_fhir_format(format_mode)
 
     # remove the oauth parameters
-    payload = strip_oauth(request.GET)
+    payload = request.GET
 
     # Get payload with oauth parameters removed
     # Add the format for back-end

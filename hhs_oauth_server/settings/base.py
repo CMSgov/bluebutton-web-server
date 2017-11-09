@@ -99,10 +99,8 @@ INSTALLED_APPS = [
 
     # FHIR Server
     # TODO - Add comment to each of these per main function
-    'apps.fhir.fhir_core',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
-    'apps.fhir.build_fhir',
     'apps.fhir.fhir_consent',
 
     # Development Specific - Remove in production
@@ -147,9 +145,9 @@ CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
 # Style and UI skins is set here. The default is 'the_skin'
-# ENGINE_SKIN = 'the_skin/'
+ENGINE_SKIN = 'the_skin/'
 # ENGINE_SKIN = 'usds/'
-ENGINE_SKIN = 'cms/'
+# ENGINE_SKIN = 'cms/'
 # An empty ENGINE_SKIN value uses templates from th base templates directory
 # ENGINE_SKIN = ""
 
@@ -530,19 +528,6 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 # Timeout for request call
 REQUEST_CALL_TIMEOUT = (30, 120)
 
-# url parameters we don't want to pass through to the back-end server
-# FRONT_END_STRIP_PARAMS = []
-FRONT_END_STRIP_PARAMS = ['access_token',
-                          'state',
-                          'response_type',
-                          'client_id']
-
-# cert_file and key_file are referenced relative to BASE_DIR/../certstore
-# used by FhirServer_Auth()
-FHIR_DEFAULT_AUTH = {'client_auth': False,
-                     'cert_file': '',
-                     'key_file': ''}
-
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
 
@@ -584,7 +569,6 @@ SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'apps.accounts.auth_backends.oauth2io.OAuth2ioOAuth2',
 )
 
 USERID_ENCRYPT_SALT = "CHANGE_THIS_SALT"
