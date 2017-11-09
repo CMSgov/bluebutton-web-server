@@ -60,7 +60,8 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
     # Now load fixtures
     fixtures = ['fhir_bluebutton_test_rt.json',
                 'fhir_bluebutton_new_testdata.json',
-                'fhir_server_new_testdata.json']
+                'fhir_server_new_testdata.json',
+                'test_install_fixture.json']
 
     def test_notNone(self):
         """ Test notNone return values """

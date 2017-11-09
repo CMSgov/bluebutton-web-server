@@ -30,7 +30,9 @@ logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
-# consider removing fail_redirect and set a timeout for all calls that can be managed by settings.
+# consider removing fail_redirect and set a timeout for all calls that can
+# be managed by settings.
+
 
 def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     """  call to request or redirect on fail
@@ -391,6 +393,8 @@ def notNone(value=None, default=None):
         return value
 
 # Mark for removal ...remove related settings from base.
+
+
 def strip_oauth(get={}):
     """ Remove OAuth values from URL Parameters being sent to backend """
 
@@ -787,12 +791,14 @@ def check_access_interaction_and_resource_type(resource_type, intn_type, rr):
 
 
     """
+    
+    # print("here", resource_type, intn_type, rr)
     try:
         rt = SupportedResourceType.objects.get(resourceType=resource_type,
                                                fhir_source=rr)
         # force comparison to lower case to make case insensitive check
         if intn_type.lower() not in map(str.lower,
-                                        rt.get_supported_interaction_types()):
+                                             rt.get_supported_interaction_types()):
             msg = 'The interaction: %s is not permitted on %s FHIR ' \
                   'resources on this FHIR sever.' % (intn_type,
                                                      resource_type)
