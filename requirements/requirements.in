@@ -16,7 +16,6 @@ pytz
 configparser
 dj-database-url
 pyjwt
-pymongo
 
 
 
@@ -40,11 +39,7 @@ python-openid
 django-oauth-toolkit-scopes-backend
 poetri
 django-axes
-pyldap
 django-ratelimit
-# for screen scraping
-robobrowser
-lxml
 
 # Decorate admin urls to force MFA login
 decorate_url
@@ -52,5 +47,3 @@ decorate_url
 # mock for Python 2
 mock
 
-# ldap for Python2
-python-ldap

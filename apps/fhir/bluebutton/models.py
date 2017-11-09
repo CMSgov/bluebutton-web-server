@@ -26,6 +26,7 @@ class Crosswalk(models.Model):
     fhir_source = models.ForeignKey(ResourceRouter,
                                     blank=True,
                                     null=True)
+    # default=settings.FHIR_SERVER_DEFAULT)
     fhir_id = models.CharField(max_length=80,
                                blank=True, default="")
     date_created = models.DateTimeField(auto_now_add=True)
@@ -37,6 +38,13 @@ class Crosswalk(models.Model):
                                     blank=True,
                                     default="",
                                     verbose_name="PBKDF2 of User ID")
+
+    # def save(self, commit=True, **kwargs):
+    #     if commit:
+    #         if not self.fhir_source:
+    #             self.fhir_source = ResourceRouter.objects.get(
+    #                 pk=settings.FHIR_SERVER_DEFAULT)
+    #         super(Crosswalk, self).save(**kwargs)
 
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
