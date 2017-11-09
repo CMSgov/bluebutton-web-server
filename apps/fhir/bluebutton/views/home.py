@@ -226,7 +226,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     else:
         call_to += '/metadata'
 
-    pass_params = strip_oauth(request.GET)
+    pass_params = request.GET
     # pass_params should be an OrderedDict after strip_auth
     # logger.debug("result from strip_oauth:%s" % pass_params)
 
