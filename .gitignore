@@ -11,6 +11,7 @@ apps/accounts/sls_auth_backend.py
 /_start/settings/local.py
 local.py
 collectedstatic/
+venv
 
 # Testing
 .tox/
