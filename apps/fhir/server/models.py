@@ -245,7 +245,6 @@ class SupportedResourceType(models.Model):
             sit.append(str(self._meta.get_field('search').verbose_name).lower())
         if self.history:
             sit.append(str(self._meta.get_field('history').verbose_name).lower())
-        print(sit)
         return sit
 
     def set_search_block(self, x):

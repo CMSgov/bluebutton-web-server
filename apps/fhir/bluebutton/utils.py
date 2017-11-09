@@ -395,30 +395,6 @@ def notNone(value=None, default=None):
 # Mark for removal ...remove related settings from base.
 
 
-def strip_oauth(get={}):
-    """ Remove OAuth values from URL Parameters being sent to backend """
-
-    # access_token can be passed in as a part of OAuth protected request.
-    # as can: state=random_state_string&response_type=code&client_id=ABCDEF
-    # Remove them before passing url through to FHIR Server
-
-    strip_oauth = OrderedDict()
-    if get == {}:
-        # logger.debug("Nothing to strip GET is empty:%s" % get)
-        return strip_oauth
-
-    strip_parms = settings.FRONT_END_STRIP_PARAMS
-    # ['access_token', 'state', 'response_type', 'client_id']
-
-    # logger.debug('Removing:%s from: %s' % (strip_parms, get))
-
-    strip_oauth = get_url_query_string(get, strip_parms)
-
-    # logger.debug('resulting url parameters:%s' % strip_oauth)
-
-    return strip_oauth
-
-
 def block_params(get, srtc):
     """ strip parameters from search string - get is a dict """
 
@@ -566,19 +542,6 @@ def concat_parms(front_part={}, back_part={}):
     else:
         concat_parms = concat_parm
     logger_debug.debug('resulting string:%s' % concat_parms)
-
-    # We have to do something
-    # joined_parms = '?'
-    #
-    # if len(front_part) != 0:
-    #     joined_parms += front_part
-    #
-    # if len(back_part) == 0:
-    #     # nothing to add
-    #     return joined_parms
-    # else:
-    #     joined_parms += '&' + back_part
-
     return concat_parms
 
 
@@ -764,20 +727,16 @@ def FhirServerUrl(server=None, path=None, release=None):
 
 def check_access_interaction_and_resource_type(resource_type, intn_type, rr):
     """ usage is deny = check_access_interaction_and_resource_type()
-
     :param
     resource_type: resource
     intn_type: interaction type
     rr: ResourceRouter
-
-
     """
 
     try:
         rt = SupportedResourceType.objects.get(resourceType=resource_type,
                                                fhir_source=rr)
         # force comparison to lower case to make case insensitive check
-        print(resource_type, intn_type, rr)
         if str(intn_type).lower() not in rt.get_supported_interaction_types():
             msg = 'The interaction: %s is not permitted on %s FHIR ' \
                   'resources on this FHIR sever.' % (intn_type,

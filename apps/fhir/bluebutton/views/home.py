@@ -32,7 +32,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_fhir_id,
                                         get_fhir_source_name,
                                         get_host_url,
-                                        strip_oauth,
                                         build_output_dict,
                                         prepend_q,
                                         post_process_request,
@@ -227,7 +226,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     else:
         call_to += '/metadata'
 
-    pass_params = strip_oauth(request.GET)
+    pass_params = request.GET
     # pass_params should be an OrderedDict after strip_auth
     # logger.debug("result from strip_oauth:%s" % pass_params)
 

@@ -528,19 +528,6 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 # Timeout for request call
 REQUEST_CALL_TIMEOUT = (30, 120)
 
-# url parameters we don't want to pass through to the back-end server
-# FRONT_END_STRIP_PARAMS = []
-FRONT_END_STRIP_PARAMS = ['access_token',
-                          'state',
-                          'response_type',
-                          'client_id']
-
-# cert_file and key_file are referenced relative to BASE_DIR/../certstore
-# used by FhirServer_Auth()
-FHIR_DEFAULT_AUTH = {'client_auth': False,
-                     'cert_file': '',
-                     'key_file': ''}
-
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
 

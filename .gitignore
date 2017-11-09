@@ -4,17 +4,57 @@
 *~
 .cache/
 
-# SLS Backend
-apps/accounts/sls_auth_backend.py
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Django
 /_start/settings/local.py
 local.py
 collectedstatic/
-venv
 
 # Testing
 .tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
 
 # Database
 *.db
@@ -26,46 +66,12 @@ db.sqlite3
 
 /hhs_oauth_server/settings/local.py
 .idea/
-apps/__pycache__/
-apps/accounts/__pycache__/
-apps/accounts/migrations/__pycache__/
-apps/accounts/tests/__pycache__/
-apps/accounts/views/__pycache__/
-apps/api/__pycache__/
-apps/capabilities/__pycache__/
-apps/capabilities/migrations/__pycache__/
-apps/cmsblue/__pycache__/
-apps/core/__pycache__/
-apps/core/management/__pycache__/
-apps/core/management/commands/__pycache__/
-apps/dot_ext/__pycache__/
-apps/dot_ext/migrations/__pycache__/
-apps/dot_ext/tests/__pycache__/
-apps/dot_ext/views/__pycache__/
-apps/education/__pycache__/
-apps/eimm/__pycache__/
-apps/eimm/forms/__pycache__/
-apps/eimm/migrations/__pycache__/
-apps/eimm/templates/__pycache__/
-apps/eimm/templates/eimm/__pycache__/
-apps/endorse/__pycache__/
-apps/endorse/migrations/__pycache__/
-apps/fhir/__pycache__/
-apps/fhir/bluebutton/__pycache__/
-apps/fhir/bluebutton/fixtures/__pycache__/
-apps/fhir/bluebutton/migrations/__pycache__/
-apps/fhir/bluebutton/tests/__pycache__/
-apps/fhir/bluebutton/views/__pycache__/
-apps/fhir/fhir_core/__pycache__/
-apps/fhir/fhir_core/fixtures/__pycache__/
-apps/fhir/fhir_core/tests/__pycache__/
-apps/fhir/server/__pycache__/
-apps/fhir/server/migrations/__pycache__/
-apps/fhir/server/tests/__pycache__/
-apps/fhir/server/views/__pycache__/
-apps/fhir/tests/__pycache__/
-apps/home/__pycache__/
-apps/home/templatetags/__pycache__/
-apps/nppes_handler/__pycache__/
-hhs_oauth_server/__pycache__/
-hhs_oauth_server/settings/__pycache__/
+
+
+# dotenv
+.env
+
+# virtualenv
+.venv
+venv/
+ENV/
