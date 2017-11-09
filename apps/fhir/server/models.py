@@ -226,25 +226,26 @@ class SupportedResourceType(models.Model):
     def get_supported_interaction_types(self):
         sit = []
         if self.get:
-            sit.append(self._meta.get_field('get').verbose_name)
+            sit.append(str(self._meta.get_field('get').verbose_name).lower())
         if self.put:
-            sit.append(self._meta.get_field('put').verbose_name)
+            sit.append(str(self._meta.get_field('put').verbose_name).lower())
         if self.create:
-            sit.append(self._meta.get_field('create').verbose_name)
+            sit.append(str(self._meta.get_field('create').verbose_name).lower())
         if self.read:
-            sit.append(self._meta.get_field('read').verbose_name)
+            sit.append(str(self._meta.get_field('read').verbose_name).lower())
         if self.vread:
-            sit.append(self._meta.get_field('vread').verbose_name)
+            sit.append(str(self._meta.get_field('vread').verbose_name).lower())
         if self.update:
-            sit.append(self._meta.get_field('update').verbose_name)
+            sit.append(str(self._meta.get_field('update').verbose_name).lower())
         if self.patch:
-            sit.append(self._meta.get_field('patch').verbose_name)
+            sit.append(str(self._meta.get_field('patch').verbose_name).lower())
         if self.delete:
-            sit.append(self._meta.get_field('delete').verbose_name)
+            sit.append(str(self._meta.get_field('delete').verbose_name).lower())
         if self.search:
-            sit.append(self._meta.get_field('search').verbose_name)
+            sit.append(str(self._meta.get_field('search').verbose_name).lower())
         if self.history:
-            sit.append(self._meta.get_field('history').verbose_name)
+            sit.append(str(self._meta.get_field('history').verbose_name).lower())
+        print(sit)
         return sit
 
     def set_search_block(self, x):

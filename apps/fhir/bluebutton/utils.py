@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import os
 import json
 import logging
@@ -734,25 +732,6 @@ def FhirServerVerify(cx=None):
 
 
 def FhirServerUrl(server=None, path=None, release=None):
-    # DONE: Replace pull from settings with use of FHIR_SERVER_DEFAULT
-    # lookup in ResourceRouter table to construct url
-    # Use settings.FHIR_SERVER_DEFAULT to lookup in ResourceRouter
-    #     server_address = models.URLField(verbose_name="Server Name in URL form")
-    #     server_path = models.CharField(max_length=254,
-    #                                    default="/",
-    #                                    verbose_name="path to API with "
-    #                                                 "terminating /")
-    #     server_release = models.CharField(max_length=254,
-    #                                       default="baseDstu3/",
-    #                                       verbose_name="FHIR release with "
-    #                                                    "terminating /")
-
-    # fhir_server_configuration =
-    # {'SERVER':'http://fhir-test.bbonfhir.com:8081',
-    #                              'PATH':'/',
-    #                              'RELEASE':'/baseDstu2'}
-    # FHIR_SERVER_CONF = fhir_server_configuration
-    # FHIR_SERVER = FHIR_SERVER_CONF['SERVER'] + FHIR_SERVER_CONF['PATH']
 
     rr_def = get_resourcerouter()
 
@@ -794,14 +773,12 @@ def check_access_interaction_and_resource_type(resource_type, intn_type, rr):
 
     """
 
-    
     try:
         rt = SupportedResourceType.objects.get(resourceType=resource_type,
                                                fhir_source=rr)
         # force comparison to lower case to make case insensitive check
         print(resource_type, intn_type, rr)
-        if intn_type.lower() not in map(str.lower,
-                                        rt.get_supported_interaction_types()):
+        if str(intn_type).lower() not in rt.get_supported_interaction_types():
             msg = 'The interaction: %s is not permitted on %s FHIR ' \
                   'resources on this FHIR sever.' % (intn_type,
                                                      resource_type)
