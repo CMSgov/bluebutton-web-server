@@ -1,7 +1,9 @@
 import os
 import json
 import logging
+import pytz
 import requests
+import uuid
 
 try:
     # python2
@@ -11,6 +13,9 @@ except ImportError:
     from urllib.parse import urlencode
 
 from collections import OrderedDict
+
+from datetime import datetime
+from pytz import timezone
 
 from django.conf import settings
 from django.contrib import messages
@@ -25,6 +30,8 @@ from apps.fhir.server.models import (SupportedResourceType,
 
 # from apps.fhir.fhir_core.utils import (error_status,
 #                                        ERROR_CODE_LIST)
+
+from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import (base_issuer, build_endpoint_info)
 
@@ -42,6 +49,140 @@ logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
+def is_oauth2(request):
+    """Is the request OAuth2 or not.  Return True or False."""
+    if hasattr(request, 'resource_owner'):
+        return True
+    return False
+
+
+def get_user_from_request(request):
+    """Returns a user or None with login or OAuth2 API"""
+    user = None
+    if hasattr(request, 'resource_owner'):
+        user = request.resource_owner
+    if not request.user.is_anonymous():
+        user = request.user
+    return user
+
+
+def get_access_token_from_request(request):
+    """Returns a user or None with login or OAuth2 API"""
+    token = ""
+    if hasattr(request, 'resource_owner'):
+        bearer, token = request.META['Authorization'].split(' ')
+    return token
+
+
+def get_fhir_now(my_now=None):
+    """ Format a json datetime in xs:datetime format
+
+        .now(): 2012-02-17 09:52:35.033232
+        datetime.datetime.now(pytz.utc).isoformat()
+        '2012-02-17T11:58:44.789024+00:00'
+
+    """
+    if my_now:
+        now_is = my_now
+    else:
+        now_is = datetime.now(timezone(settings.TIME_ZONE))
+
+    format_now = now_is.isoformat()
+
+    return format_now
+
+
+def get_timestamp(request):
+    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+        adds request._logging_start_dt
+
+        we grab it or set a timestamp and return it.
+
+    """
+
+    if not hasattr(request, '_logging_start_dt'):
+        return datetime.now(pytz.utc).isoformat()
+
+    else:
+        return request._logging_start_dt
+
+
+def get_query_id(request):
+    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+        adds request._logging_uuid
+
+        we grab it or set a uuid and return it.
+
+    """
+    if not hasattr(request, '_logging_uuid'):
+        return uuid.uuid1()
+
+    else:
+        return request._logging_uuid
+
+
+def get_query_counter(request):
+    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+        adds request._logging_pass
+
+        we grab it or set a counter and return it.
+
+    """
+    if not hasattr(request, '_logging_pass'):
+        return 1
+
+    else:
+        return request._logging_pass
+
+
+def generate_info_headers(request):
+    """Returns a dict of headers to be sent to the backend"""
+    result = {}
+    # get timestamp from request via Middleware, or get current time
+    result['BlueButton-OriginalQueryTimestamp'] = str(get_timestamp(request))
+
+    # get uuid or set one
+    result['BlueButton-OriginalQueryId'] = str(get_query_id(request))
+
+    # get query counter or set to 1
+    result['BlueButton-OriginalQueryCounter'] = str(get_query_counter(request))
+
+    # Return resource_owner or user
+    user = get_user_from_request(request)
+    print("header:user:", user)
+    cx = get_crosswalk(user)
+    # print(request.META)
+    if cx:
+        # we need to send the HicnHash or the fhir_id
+        if len(cx.fhir_id) > 0:
+            result['BlueButton-BeneficiaryId'] = 'patientId:' + str(cx.fhir_id)
+        else:
+            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(cx.user_id_hash)
+    else:
+        # Set to empty
+        result['BlueButton-BeneficiaryId'] = ""
+
+    if user:
+        result['BlueButton-UserId'] = str(user.id)
+        result['BlueButton-User'] = str(user)
+        result['BlueButton-Application'] = ""
+        result['BlueButton-ApplicationId'] = ""
+        if AccessToken.objects.filter(token=get_access_token_from_request(request)).exists():
+            at = AccessToken.objects.get(token=get_access_token_from_request(request))
+            result['BlueButton-Application'] = str(at.application.name)
+            result['BlueButton-ApplicationId'] = str(at.application.id)
+            result['BlueButton-DeveloperId'] = str(at.application.user.id)
+            result['BlueButton-Developer'] = str(at.application.user)
+        else:
+            result['BlueButton-Application'] = ""
+            result['BlueButton-ApplicationId'] = ""
+            result['BlueButton-DeveloperId'] = ""
+            result['BlueButton-Developer'] = ""
+        # result['token'] = get_access_token_from_request(request)
+    # print("Headers:", result)
+    return result
+
+
 def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
@@ -57,6 +198,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
 
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
+    # print("OAuth2:", is_oauth2(request))
     auth_state = FhirServerAuth(cx)
 
     # logger.debug("Auth_state:%s" % auth_state)
@@ -75,6 +217,9 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     else:
         cert = ()
 
+    header_info = generate_info_headers(request)
+    logger.info(header_info)
+
     try:
 
         ####################################################################
@@ -85,9 +230,13 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
             r = requests.get(call_url,
                              cert=cert,
                              timeout=timeout,
+                             headers=header_info,
                              verify=verify_state)
         else:
-            r = requests.get(call_url, cert=cert, verify=verify_state)
+            r = requests.get(call_url,
+                             cert=cert,
+                             headers=header_info,
+                             verify=verify_state)
 
         ####################################################################
         ####################################################################
@@ -1128,6 +1277,9 @@ def get_crosswalk(user):
     """ Receive Request.user and use as lookup in Crosswalk
         Return Crosswalk or None
     """
+    # Don't do a lookup if user is not defined
+    if user is None:
+        return None
 
     if user.is_anonymous():
         return None

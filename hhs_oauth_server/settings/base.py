@@ -132,6 +132,7 @@ INSTALLED_APPS = [
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -316,6 +317,12 @@ LOGGING = {
         'simple': {
             'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
         },
+        'jsonout': {
+            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", '
+                      '"name": "%(name)s", "message": "%(message)s"}',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+
+        }
     },
     'handlers': {
         'console': {
@@ -351,8 +358,11 @@ LOGGING = {
         'tests': {
             'handlers': ['console'],
             'level': 'DEBUG',
+        },
+        'performance': {
+            'handlers': ['console'],
+            'level': 'INFO',
         }
-
     },
 }
 
@@ -433,6 +443,19 @@ DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
+
+#############################################################################
+# /testclient errors when no SSL present
+#############################################################################
+# IF /testclient fails because the server is running without a certificate
+# eg. on your local machine. You need to un-comment the following line:
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+# NEVER run in PRODUCTION without a certificate and with this setting active
+# A better practice is to set the INSECURE_TRANSPORT setting in an
+# alternate settings file. eg. local.py
+#############################################################################
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
