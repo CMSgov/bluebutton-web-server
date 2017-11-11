@@ -63,8 +63,10 @@ def get_user_from_request(request):
     user = None
     if hasattr(request, 'resource_owner'):
         user = request.resource_owner
-    if not request.user.is_anonymous():
-        user = request.user
+    if hasattr(request, 'user'):
+        if not request.user.is_anonymous():
+            user = request.user
+            
     return user
 
 
