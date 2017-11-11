@@ -2,7 +2,7 @@ import logging
 
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.fhir.fhir_core.utils import kickout_400
+from ..opoutcome_utils import kickout_400
 from apps.fhir.bluebutton.views.read import read
 
 logger = logging.getLogger('hhs_server.%s' % __name__)

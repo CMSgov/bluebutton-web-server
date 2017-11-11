@@ -9,23 +9,23 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.fhir.fhir_core.utils import (kickout_403,
-                                       write_session,
-                                       find_ikey,
-                                       # get_search_param_format,
-                                       get_target_url,
-                                       # content_is_json_or_xml,
-                                       # get_content_type,
-                                       SESSION_KEY,
-                                       # error_status,
-                                       ERROR_CODE_LIST,
-                                       build_querystring,
-                                       strip_format_for_back_end,
-                                       request_format,
-                                       add_key_to_fhir_url,
-                                       fhir_call_type,
-                                       get_div_from_json
-                                       )
+from ..opoutcome_utils import (kickout_403,
+                               write_session,
+                               find_ikey,
+                               # get_search_param_format,
+                               get_target_url,
+                               # content_is_json_or_xml,
+                               # get_content_type,
+                               SESSION_KEY,
+                               # error_status,
+                               ERROR_CODE_LIST,
+                               build_querystring,
+                               strip_format_for_back_end,
+                               request_format,
+                               add_key_to_fhir_url,
+                               fhir_call_type,
+                               get_div_from_json
+                               )
 
 from apps.fhir.bluebutton.utils import (request_call,
                                         check_rt_controls,
@@ -33,7 +33,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_fhir_id,
                                         get_fhir_source_name,
                                         masked_id,
-                                        strip_oauth,
                                         build_params,
                                         FhirServerUrl,
                                         get_host_url,
@@ -205,20 +204,6 @@ def generic_read(request,
 
     # TODO: Compare id to cx.fhir_id and return 403 if they don't match for
     # Resource Type - Patient
-
-    # Request.user = user
-    # interaction_type = read | _history | vread
-    # resource_type = 'Patient | Practitioner | ExplanationOfBenefit ...'
-    # id = fhir_id (potentially masked)
-    # vid = Version Id
-
-    # Check the resource_type to see if it has a url
-    # Check the resource_type to see if masking is required
-    # Get the FHIR_Server (from crosswalk via request.user)
-    # if masked get the fhir_id from crosswalk
-    # if search_override strip search items (search_block)
-    # if search_override add search keys
-
     fhir_url = ''
     # change source of default_url to ResourceRouter
 
@@ -268,7 +253,8 @@ def generic_read(request,
 
     # Internal handling format is json
     # Remove the oauth elements from the GET
-    pass_params = strip_oauth(request.GET)
+
+    pass_params = request.GET
 
     # Let's store the inbound requested format
     # We need to simplify the format call to the backend
@@ -366,48 +352,7 @@ def generic_read(request,
                                 status=r.status_code,
                                 content_type='application/json')
 
-        # return error_status(r, r.status_code, r._text)
-
-    # try:
-    #     error_check = r.text
-    #     # logger.debug("We got r.text back:%s" % r.text[:200] + "...")
-    # except Exception:
-    #     error_check = "HttpResponse status_code=502"
-    #     logger.debug("Something went wrong with call to %s" % pass_to)
-    # logger.debug("Checking for errors:%s" % error_check[:200] + "...")
-    # if 'status_code' in error_check:
-    #     # logger.debug("We have a status code to check: %s" % r)
-    #     if r.status_code in ERROR_CODE_LIST:
-    #         logger.debug("\nError Status Code:%s" % r.status_code)
-    #         return error_status(r, r.status_code)
-    # elif 'status_code=302' in error_check:
-    #     return error_status(r, 302)
-    # elif 'status_code=502' in error_check:
-    #     return error_status(r, 502)
-    # else:
-    #     logger.debug("Status Code:%s "
-    #                  "in:%s" % (r.status_code, r))
-    #
-    # # We should have a 200 - good record to deal with
-    # # We can occasionally get a 200 with a Connection Error. eg. Timeout
-    # try:
-    #     if "ConnectionError" in r.text:
-    #         logger.debug("Error:%s" % r.text)
-    #         return error_status(r, 502)
-    # except Exception:
-    #     pass
-
     text_out = ''
-    # if 'text' in r:
-    #     logger.debug('r:%s' % r.text)
-    #     logger_debug.debug('r:%s' % r.text)
-    # else:
-    #     logger.debug("r not returning text:%s" % r)
-    #     logger_debug.debug("r not returning text:%s" % r)
-    #     logger.debug("r.json: %s" % json.dumps(r.json))
-
-    # logger.debug('Rewrite List:%s' % rewrite_url_list)
-
     host_path = get_host_url(request, resource_type)[:-1]
     # logger.debug('host path:%s' % host_path)
 

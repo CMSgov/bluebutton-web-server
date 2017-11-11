@@ -11,23 +11,22 @@
 {% block Content %}
 
 
-<div class="row container-fluid ds-col-l-12">
+<div class="hero-unit text-center">
 
-     <h1>{{settings.TAG_LINE_1}}</h1>
-      <h2 class="usa-font-lead" style="align-content: center">{{settings.TAG_LINE_2}}</h2>
-      <hr class="my-4">
-      <p class="usa-font-lead">{{settings.EXPLAINATION_LINE}}</p>
-      <p class="usa-font-lead">
-        <a class="usa-button usa-button" href="{{settings.USER_DOCS_URI}}" role="button"> Learn more </a>
-      </p>
+ <h1 class="display-3">{{settings.TAG_LINE_1}}</h1>
+  <p class="lead">{{settings.TAG_LINE_2}}</p>
+  <hr class="my-4">
+  <p>{{settings.EXPLAINATION_LINE}}</p>
+  <p class="lead">
+    <a class="btn btn-primary btn-lg" href="{% url 'request_invite' %}"role="button">Request an Invite to {{ settings.APPLICATION_TITLE }}</a>
+  </p>
 
-     <p class="usa-font-lead">If you've already got an account then login
-         {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
-               <a href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}">{{settings.EXTERNAL_AUTH_NAME}}</a>
-         {% else %}
-               <a href="{% url 'mfa_login' %}"><strong>here</strong></a>.
-         {% endif %}
-     </p>
+ <p>If you've already got an account then login with
+ {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
+       <a href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}">{{settings.EXTERNAL_AUTH_NAME}}</a>
+    {% else %}
+       <a href="{% url 'mfa_login' %}">here</a>.
+ {% endif %}
 
 
 </div>

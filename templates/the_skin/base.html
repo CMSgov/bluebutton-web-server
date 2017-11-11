@@ -19,12 +19,13 @@
     {% block extra_head %}
     {% endblock %}
 
+    {% include "include/fix_header_offset.html" %}
     <style>
 
     </style>
 
 </head>
-<body class="ds-base usa-grid">
+<body class=" container-fluid">
  {% include "include/top-nav-responsive.html" %}
 
     <main class="row container-fluid" id="main-content">
