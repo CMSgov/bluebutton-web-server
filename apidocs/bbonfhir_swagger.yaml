@@ -33,34 +33,422 @@ info:
     In FHIR terms the **Medicare Beneficiary** is the "**Patient**." In order to
     be  consistent with the FHIR specification we will use the term Patient
     throughout this documentation to refer to the Medicare Beneficiary.
-  title: CMS Blue Button API v0.5 (DRAFT)
-  version: 0.0.19
+  version: 0.0.26
+  title: CMS Blue Button API v0.7 (DRAFT)
 host: dev.bluebutton.cms.fhirservice.net
-schemes:
-  - https
 tags:
   - name: CapabilityStatement
   - name: Coverage
   - name: ExplanationOfBenefit
   - name: Patient
+schemes:
+  - https
+paths:
+  /bluebutton/fhir/v1/metadata:
+    get:
+      tags:
+        - CapabilityStatement
+      parameters:
+        - name: _format
+          in: query
+          description: |
+            'Options are "application/json", "application/xml"'
+          required: false
+          type: string
+          enum:
+            - application/json
+            - application/xml
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/CapabilityStatement'
+      security: []
+  /protected/bluebutton/fhir/v1/Coverage/:
+    get:
+      tags:
+        - Coverage
+      parameters:
+        - name: beneficiary
+          in: query
+          description: |
+            The Beneficiary's Fhir_id goes here in the format Patient/Fhir_id
+          required: false
+          type: string
+        - name: _id
+          in: query
+          description: The ID of the resource
+          required: false
+          type: string
+        - name: _format
+          in: query
+          description: |
+            'Options are "application/json", "application/xml"'
+          required: false
+          type: string
+          enum:
+            - application/json
+            - application/xml
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Coverage'
+      security:
+        - Bearer: []
+  '/protected/bluebutton/fhir/v1/Coverage/{id}':
+    get:
+      tags:
+        - Coverage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Coverage'
+      security:
+        - Bearer: []
+  /protected/bluebutton/fhir/v1/ExplanationOfBenefit/:
+    get:
+      tags:
+        - ExplanationOfBenefit
+      parameters:
+        - name: _language
+          in: query
+          description: The language of the resource
+          required: false
+          type: string
+        - name: care-team
+          in: query
+          description: Member of the CareTeam
+          required: false
+          type: string
+        - name: coverage
+          in: query
+          description: The plan under which the claim was adjudicated
+          required: false
+          type: string
+        - name: identifier
+          in: query
+          description: The business identifier of the Explanation of Benefit
+          required: false
+          type: string
+        - name: created
+          in: query
+          description: The creation date for the EOB
+          required: false
+          type: string
+          format: date
+        - name: encounter
+          in: query
+          description: Encounters associated with a billed line item
+          required: false
+          type: string
+        - name: payee
+          in: query
+          description: The party receiving any payment for the Claim
+          required: false
+          type: string
+        - name: disposition
+          in: query
+          description: The contents of the disposition message
+          required: false
+          type: string
+        - name: provider
+          in: query
+          description: The reference to the provider
+          required: false
+          type: string
+        - name: patient
+          in: query
+          description: >-
+            The reference to the patient. This query parameter is always added
+            with the logged in user's fhir_id applied. This limits the data
+            returned to only that of the loged in user.
+          required: false
+          type: string
+        - name: organization
+          in: query
+          description: The reference to the providing organization
+          required: false
+          type: string
+        - name: claim
+          in: query
+          description: The reference to the claim
+          required: false
+          type: string
+        - name: enterer
+          in: query
+          description: The party responsible for the entry of the Claim
+          required: false
+          type: string
+        - name: _id
+          in: query
+          description: The ID of the resource
+          required: false
+          type: string
+        - name: facility
+          in: query
+          description: Facility responsible for the goods and services
+          required: false
+          type: string
+        - name: _format
+          in: query
+          description: |
+            'Options are "application/json", "application/xml"'
+          required: false
+          type: string
+          enum:
+            - application/json
+            - application/xml
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ExplanationOfBenefit'
+      security:
+        - Bearer: []
+  '/protected/bluebutton/fhir/v1/ExplanationOfBenefit/{id}':
+    get:
+      tags:
+        - ExplanationOfBenefit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ExplanationOfBenefit'
+      security:
+        - Bearer: []
+  /protected/bluebutton/fhir/v1/Patient/:
+    get:
+      tags:
+        - ExplanationOfBenefit
+      parameters:
+        - name: _language
+          in: query
+          description: The language of the resource
+          required: false
+          type: string
+        - name: birthdate
+          in: query
+          description: The patient's date of birth
+          required: false
+          type: string
+          format: date
+        - name: deceased
+          in: query
+          description: 'This patient has been marked as deceased, or as a death date entered'
+          required: false
+          type: string
+        - name: address-state
+          in: query
+          description: A state specified in an address
+          required: false
+          type: string
+        - name: gender
+          in: query
+          description: Gender of the patient
+          required: false
+          type: string
+        - name: animal-species
+          in: query
+          description: The species for animal patients
+          required: false
+          type: string
+        - name: link
+          in: query
+          description: All patients linked to the given patient
+          required: false
+          type: string
+        - name: language
+          in: query
+          description: Language code (irrespective of use value)
+          required: false
+          type: string
+        - name: animal-breed
+          in: query
+          description: The breed for animal patients
+          required: false
+          type: string
+        - name: address-country
+          in: query
+          description: A country specified in an address
+          required: false
+          type: string
+        - name: death-date
+          in: query
+          description: The date of death has been provided and satisfies this search value
+          required: false
+          type: string
+          format: date
+        - name: phonetic
+          in: query
+          description: >-
+            A portion of either family or given name using some kind of phonetic
+            matching algorithm
+          required: false
+          type: string
+        - name: telecom
+          in: query
+          description: The value in any kind of telecom details of the patient
+          required: false
+          type: string
+        - name: address-city
+          in: query
+          description: A city specified in an address
+          required: false
+          type: string
+        - name: email
+          in: query
+          description: A value in an email contact
+          required: false
+          type: string
+        - name: given
+          in: query
+          description: A portion of the given name of the patient
+          required: false
+          type: string
+        - name: identifier
+          in: query
+          description: A patient identifier
+          required: false
+          type: string
+        - name: address
+          in: query
+          description: >-
+            A server defined search that may match any of the string fields in
+            the Address, including line, city, state, country, postalCode,
+            and/or text
+          required: false
+          type: string
+        - name: general-practitioner
+          in: query
+          description: >-
+            Patient's nominated general practitioner, not the organization that
+            manages the record
+          required: false
+          type: string
+        - name: active
+          in: query
+          description: Whether the patient record is active
+          required: false
+          type: string
+        - name: address-postalcode
+          in: query
+          description: A postalCode specified in an address
+          required: false
+          type: string
+        - name: phone
+          in: query
+          description: A value in a phone contact
+          required: false
+          type: string
+        - name: organization
+          in: query
+          description: The organization at which this person is a patient
+          required: false
+          type: string
+        - name: address-use
+          in: query
+          description: A use code specified in an address
+          required: false
+          type: string
+        - name: name
+          in: query
+          description: >-
+            A server defined search that may match any of the string fields in
+            the HumanName, including family, give, prefix, suffix, suffix,
+            and/or text
+          required: false
+          type: string
+        - name: _id
+          in: query
+          description: >-
+            The ID of the resource. 
+
+            The CMS Blue Button API will override any id entered with the logged
+            in user's fhir_id. This prevents one user making a request for
+            another user's information.
+          required: false
+          type: string
+        - name: family
+          in: query
+          description: A portion of the family name of the patient
+          required: false
+          type: string
+        - name: _format
+          in: query
+          description: |
+            'Options are "application/json", "application/xml"'
+          required: false
+          type: string
+          enum:
+            - application/json
+            - application/xml
+          x-consoleDefault: application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Patient'
+      security:
+        - Bearer: []
+  '/protected/bluebutton/fhir/v1/Patient/{id}':
+    get:
+      tags:
+        - Patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Patient'
+      security:
+        - Bearer: []
 securityDefinitions:
-  BBOAuth2:
-    type: oauth2
-    flow: accessCode
-    authorizationUrl: 'https://dev.bluebutton.cms.fhirservice.net/o/authorize/'
-    tokenUrl: 'https://dev.bluebutton.cms.fhirservice.net/o/token'
-    scopes:
-      'read:Patient': Grants read access to Patient demographics
-      'read:Coverage': Grants read access to coverage records
-      'read:ExplanationOfBenefit': Grants access to claims information
-      'read:CapabilityStatement': Get the fhir resource specification information
+  Bearer:
+    description: >
+      'Enter your AccessToken prefixed with "Bearer " eg. Bearer
+      sample-token-string'
+    type: apiKey
+    name: Authorization
+    in: header
 definitions:
   CapabilityStatement: {}
   Coverage:
-    description: >-
-      The Coverage resource identifies the Medicare insurance plans the
-      beneficiary is covered by.
     type: object
+    required:
+      - dependent
+      - id
+      - identifier
+      - plan
+      - resourceType
+      - sequence
+      - subPlan
     properties:
       resourceType:
         type: string
@@ -69,92 +457,25 @@ definitions:
         type: string
         minLength: 1
       text:
-        type: object
-        properties:
-          status:
-            type: string
-            minLength: 1
-          div:
-            type: string
-            minLength: 1
-        required:
-          - status
-          - div
+        $ref: '#/definitions/Coverage_text'
       issuerReference:
-        type: object
-        properties:
-          reference:
-            type: string
-            minLength: 1
-        required:
-          - reference
+        $ref: '#/definitions/Coverage_issuerReference'
       period:
-        type: object
-        properties:
-          start:
-            type: string
-            minLength: 1
-          end:
-            type: string
-            minLength: 1
-        required:
-          - start
-          - end
+        $ref: '#/definitions/Coverage_period'
       type:
-        type: object
-        properties:
-          system:
-            type: string
-            minLength: 1
-          code:
-            type: string
-            minLength: 1
-          display:
-            type: string
-            minLength: 1
-        required:
-          - system
-          - code
-          - display
+        $ref: '#/definitions/Coverage_type'
       planholderReference:
-        type: object
-        properties:
-          reference:
-            type: string
-            minLength: 1
-        required:
-          - reference
+        $ref: '#/definitions/Coverage_issuerReference'
       beneficiaryReference:
-        type: object
-        properties:
-          reference:
-            type: string
-            minLength: 1
-        required:
-          - reference
+        $ref: '#/definitions/Coverage_issuerReference'
       relationship:
-        type: object
-        properties:
-          code:
-            type: string
-            minLength: 1
-        required:
-          - code
+        $ref: '#/definitions/Coverage_relationship'
       identifier:
         type: array
         uniqueItems: true
-        minItems: 1
         items:
-          required:
-            - system
-            - value
-          properties:
-            system:
-              type: string
-              minLength: 1
-            value:
-              type: string
-              minLength: 1
+          $ref: '#/definitions/Coverage_identifier'
+        minItems: 1
       plan:
         type: string
         minLength: 1
@@ -165,30 +486,18 @@ definitions:
         type: number
       sequence:
         type: number
-    required:
-      - resourceType
-      - id
-      - text
-      - issuerReference
-      - period
-      - type
-      - planholderReference
-      - beneficiaryReference
-      - relationship
-      - identifier
-      - plan
-      - subPlan
-      - dependent
-      - sequence
-  ExplanationOfBenefit:
     description: >-
-      The ExplanationOfBenefit Resource definition. This details the procedures,
-      services  medicines and equipment that a beneficiary has received as a
-      result of Medicare  coverage. An ExplanationOfBenefit resource will
-      typically contain multiple claim line details. For example a doctor's
-      office visit may identify tests conducted, procedures performed and
-      medications issued. 
+      The Coverage resource identifies the Medicare insurance plans the
+      beneficiary is covered by.
+  ExplanationOfBenefit:
     type: object
+    required:
+      - created
+      - disposition
+      - id
+      - identifier
+      - item
+      - resourceType
     properties:
       resourceType:
         type: string
@@ -197,231 +506,104 @@ definitions:
         type: string
         minLength: 1
       text:
-        type: object
-        properties:
-          status:
-            type: string
-            minLength: 1
-          div:
-            type: string
-            minLength: 1
-        required:
-          - status
-          - div
+        $ref: '#/definitions/Coverage_text'
       identifier:
         type: array
         uniqueItems: true
-        minItems: 1
         items:
-          required:
-            - system
-            - value
-          properties:
-            system:
-              type: string
-              minLength: 1
-            value:
-              type: string
-              minLength: 1
+          $ref: '#/definitions/Coverage_identifier'
+        minItems: 1
       claimReference:
-        type: object
-        properties:
-          reference:
-            type: string
-            minLength: 1
-        required:
-          - reference
+        $ref: '#/definitions/Coverage_issuerReference'
       created:
         type: string
         minLength: 1
       _created:
-        type: object
-        properties:
-          fhir_comments:
-            type: array
-            items:
-              properties: {}
-        required:
-          - fhir_comments
+        $ref: '#/definitions/ExplanationOfBenefit__created'
       disposition:
         type: string
         minLength: 1
       organizationReference:
-        type: object
-        properties:
-          reference:
-            type: string
-            minLength: 1
-        required:
-          - reference
+        $ref: '#/definitions/Coverage_issuerReference'
       patientReference:
-        type: object
-        properties:
-          reference:
-            type: string
-            minLength: 1
-        required:
-          - reference
+        $ref: '#/definitions/Coverage_issuerReference'
       coverage:
-        type: object
-        properties:
-          coverageReference:
-            type: object
-            properties:
-              reference:
-                type: string
-                minLength: 1
-            required:
-              - reference
-        required:
-          - coverageReference
+        $ref: '#/definitions/ExplanationOfBenefit_coverage'
       item:
         type: array
         uniqueItems: true
-        minItems: 1
         items:
-          required:
-            - sequence
-            - servicedDate
-          properties:
-            sequence:
-              type: number
-            type:
-              type: object
-              properties:
-                code:
-                  type: string
-                  minLength: 1
-              required:
-                - code
-            providerReference:
-              type: object
-              properties:
-                reference:
-                  type: string
-                  minLength: 1
-              required:
-                - reference
-            service:
-              type: object
-              properties:
-                system:
-                  type: string
-                  minLength: 1
-                code:
-                  type: string
-                  minLength: 1
-              required:
-                - system
-                - code
-            servicedDate:
-              type: string
-              minLength: 1
-            unitPrice:
-              type: object
-              properties:
-                value:
-                  type: number
-                system:
-                  type: string
-                  minLength: 1
-                code:
-                  type: string
-                  minLength: 1
-              required:
-                - value
-                - system
-                - code
-            net:
-              type: object
-              properties:
-                value:
-                  type: number
-                system:
-                  type: string
-                  minLength: 1
-                code:
-                  type: string
-                  minLength: 1
-              required:
-                - value
-                - system
-                - code
-            adjudication:
-              type: array
-              uniqueItems: true
-              minItems: 1
-              items:
-                properties:
-                  category:
-                    type: object
-                    properties:
-                      code:
-                        type: string
-                        minLength: 1
-                    required:
-                      - code
-                  amount:
-                    type: object
-                    properties:
-                      value:
-                        type: number
-                      system:
-                        type: string
-                        minLength: 1
-                      code:
-                        type: string
-                        minLength: 1
-                    required:
-                      - value
-                      - system
-                      - code
+          $ref: '#/definitions/ExplanationOfBenefit_item'
+        minItems: 1
       totalCost:
-        type: object
-        properties:
-          value:
-            type: number
-          system:
-            type: string
-            minLength: 1
-          code:
-            type: string
-            minLength: 1
-        required:
-          - value
-          - system
-          - code
+        $ref: '#/definitions/ExplanationOfBenefit_unitPrice'
       totalBenefit:
-        type: object
-        properties:
-          value:
-            type: number
-          system:
-            type: string
-            minLength: 1
-          code:
-            type: string
-            minLength: 1
-        required:
-          - value
-          - system
-          - code
-    required:
-      - resourceType
-      - id
-      - text
-      - identifier
-      - claimReference
-      - created
-      - _created
-      - disposition
-      - organizationReference
-      - patientReference
-      - coverage
-      - item
-      - totalCost
-      - totalBenefit
+        $ref: '#/definitions/ExplanationOfBenefit_unitPrice'
+    description: >-
+      The ExplanationOfBenefit Resource definition. This details the procedures,
+      services  medicines and equipment that a beneficiary has received as a
+      result of Medicare  coverage. An ExplanationOfBenefit resource will
+      typically contain multiple claim line details. For example a doctor's
+      office visit may identify tests conducted, procedures performed and
+      medications issued. 
   Patient:
+    type: object
+    required:
+      - active
+      - contact
+      - gender
+      - id
+      - identifier
+      - link
+      - name
+      - photo
+      - resourceType
+    properties:
+      resourceType:
+        type: string
+        minLength: 1
+      id:
+        type: string
+        minLength: 1
+      text:
+        $ref: '#/definitions/Coverage_text'
+      identifier:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/Patient_identifier'
+        minItems: 1
+      active:
+        type: boolean
+      name:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/Patient_name'
+        minItems: 1
+      gender:
+        type: string
+        minLength: 1
+      photo:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/Patient_photo'
+        minItems: 1
+      contact:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/Patient_contact'
+        minItems: 1
+      managingOrganization:
+        $ref: '#/definitions/Patient_organization'
+      link:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/Patient_link'
+        minItems: 1
     description: >-
       The Patient Resource definition. Blue Button records are keyed from this
       resource. A Patient is a Medicare Beneficiary.
@@ -440,897 +622,240 @@ definitions:
       organization providing care for a patient. A patient receiving care at
       multiple organizations may therefore have their information  present in
       multiple patient resources.
-    type: object
-    properties:
-      resourceType:
-        type: string
-        minLength: 1
-      id:
-        type: string
-        minLength: 1
-      text:
-        type: object
-        properties:
-          status:
-            type: string
-            minLength: 1
-          div:
-            type: string
-            minLength: 1
-        required:
-          - status
-          - div
-      identifier:
-        type: array
-        uniqueItems: true
-        minItems: 1
-        items:
-          required:
-            - use
-            - system
-            - value
-          properties:
-            use:
-              type: string
-              minLength: 1
-            type:
-              type: object
-              properties:
-                coding:
-                  type: array
-                  uniqueItems: true
-                  minItems: 1
-                  items:
-                    required:
-                      - system
-                      - code
-                    properties:
-                      system:
-                        type: string
-                        minLength: 1
-                      code:
-                        type: string
-                        minLength: 1
-              required:
-                - coding
-            system:
-              type: string
-              minLength: 1
-            value:
-              type: string
-              minLength: 1
-      active:
-        type: boolean
-      name:
-        type: array
-        uniqueItems: true
-        minItems: 1
-        items:
-          required:
-            - use
-          properties:
-            use:
-              type: string
-              minLength: 1
-            family:
-              type: array
-              items:
-                properties: {}
-            given:
-              type: array
-              items:
-                properties: {}
-      gender:
-        type: string
-        minLength: 1
-      photo:
-        type: array
-        uniqueItems: true
-        minItems: 1
-        items:
-          required:
-            - contentType
-            - data
-          properties:
-            contentType:
-              type: string
-              minLength: 1
-            data:
-              type: string
-              minLength: 1
-      contact:
-        type: array
-        uniqueItems: true
-        minItems: 1
-        items:
-          properties:
-            relationship:
-              type: array
-              uniqueItems: true
-              minItems: 1
-              items:
-                properties:
-                  coding:
-                    type: array
-                    uniqueItems: true
-                    minItems: 1
-                    items:
-                      required:
-                        - system
-                        - code
-                      properties:
-                        system:
-                          type: string
-                          minLength: 1
-                        code:
-                          type: string
-                          minLength: 1
-            organization:
-              type: object
-              properties:
-                reference:
-                  type: string
-                  minLength: 1
-                display:
-                  type: string
-                  minLength: 1
-              required:
-                - reference
-                - display
-      managingOrganization:
-        type: object
-        properties:
-          reference:
-            type: string
-            minLength: 1
-          display:
-            type: string
-            minLength: 1
-        required:
-          - reference
-          - display
-      link:
-        type: array
-        uniqueItems: true
-        minItems: 1
-        items:
-          required:
-            - type
-          properties:
-            other:
-              type: object
-              properties:
-                reference:
-                  type: string
-                  minLength: 1
-              required:
-                - reference
-            type:
-              type: string
-              minLength: 1
+  Coverage_text:
     required:
-      - resourceType
-      - id
-      - text
-      - identifier
-      - active
-      - name
-      - gender
-      - photo
-      - contact
-      - managingOrganization
-      - link
-paths:
-  /bluebutton/fhir/v1/metadata:
-    get:
-      tags:
-        - CapabilityStatement
-      parameters:
-        - name: date
-          type: string
-          in: query
-          description: The capability statement publication date
-          format: date
-        - name: resource-profile
-          type: string
-          in: query
-          description: A profile id invoked in a capability statement
-        - name: software
-          type: string
-          in: query
-        - name: jurisdiction
-          type: string
-          in: query
-          description: Intended jurisdiction for the capability statement
-        - name: format
-          type: string
-          in: query
-          description: formats supported (xml | json | ttl | mime type)
-        - name: description
-          type: string
-          in: query
-          description: The description of the capability statement
-        - name: fhirversion
-          type: string
-          in: query
-          description: The version of FHIR
-        - name: title
-          type: string
-          in: query
-          description: The human-friendly name of the capability statement
-        - name: version
-          type: string
-          in: query
-          description: The business version of the capability statement
-        - name: mode
-          type: string
-          in: query
-          description: Mode - restful (server/client) or messaging (sender/receiver)
-        - name: security-service
-          type: string
-          in: query
-          description: OAuth | SMART-on-FHIR | NTLM | Basic | Kerberos | Certificates
-        - name: name
-          type: string
-          in: query
-          description: Computationally friendly name of the capability statement
-        - name: publisher
-          type: string
-          in: query
-          description: Name of the publisher of the capability statement
-        - name: _id
-          type: string
-          in: query
-          description: The ID of the resource
-        - name: guide
-          type: string
-          in: query
-          description: Implementation guides supported
-        - name: status
-          type: string
-          in: query
-          description: The current status of the capability statement
-        - name: _format
-          in: query
-          type: string
-          x-consoleDefault: application/json
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/CapabilityStatement'
-  /protected/bluebutton/fhir/v1/CapabilityStatement:
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:CapabilityStatement'
-      tags:
-        - CapabilityStatement
-      parameters:
-        - name: date
-          type: string
-          in: query
-          description: The capability statement publication date
-          format: date
-        - name: resource-profile
-          type: string
-          in: query
-          description: A profile id invoked in a capability statement
-        - name: software
-          type: string
-          in: query
-        - name: jurisdiction
-          type: string
-          in: query
-          description: Intended jurisdiction for the capability statement
-        - name: format
-          type: string
-          in: query
-          description: formats supported (xml | json | ttl | mime type)
-        - name: description
-          type: string
-          in: query
-          description: The description of the capability statement
-        - name: fhirversion
-          type: string
-          in: query
-          description: The version of FHIR
-        - name: title
-          type: string
-          in: query
-          description: The human-friendly name of the capability statement
-        - name: version
-          type: string
-          in: query
-          description: The business version of the capability statement
-        - name: mode
-          type: string
-          in: query
-          description: Mode - restful (server/client) or messaging (sender/receiver)
-        - name: security-service
-          type: string
-          in: query
-          description: OAuth | SMART-on-FHIR | NTLM | Basic | Kerberos | Certificates
-        - name: name
-          type: string
-          in: query
-          description: Computationally friendly name of the capability statement
-        - name: publisher
-          type: string
-          in: query
-          description: Name of the publisher of the capability statement
-        - name: _id
-          type: string
-          in: query
-          description: The ID of the resource
-        - name: guide
-          type: string
-          in: query
-          description: Implementation guides supported
-        - name: status
-          type: string
-          in: query
-          description: The current status of the capability statement
-        - name: _format
-          in: query
-          type: string
-          x-consoleDefault: application/json
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/CapabilityStatement'
-  /protected/bluebutton/fhir/v1/Coverage:
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Coverage'
-      tags:
-        - Coverage
-        - Patient
-      parameters:
-        - name: _language
-          type: string
-          in: query
-          description: The language of the resource
-        - name: identifier
-          type: string
-          in: query
-          description: The primary identifier of the insured and the coverage
-        - name: subgroup
-          type: string
-          in: query
-          description: Sub-group identifier
-        - name: subscriber
-          type: string
-          in: query
-          description: Reference to the subscriber
-        - name: subplan
-          type: string
-          in: query
-          description: Sub-plan identifier
-        - name: type
-          type: string
-          in: query
-          description: 'The kind of coverage (health plan, auto, Workers Compensation)'
-        - name: sequence
-          type: string
-          in: query
-          description: Sequence number
-        - name: payor
-          type: string
-          in: query
-          description: The identity of the insurer or party paying for services
-        - name: beneficiary
-          type: string
-          in: query
-          description: Covered party
-        - name: subclass
-          type: string
-          in: query
-          description: Sub-class identifier
-        - name: _id
-          type: string
-          in: query
-          description: The ID of the resource
-        - name: class
-          type: string
-          in: query
-          description: Class identifier
-        - name: dependent
-          type: string
-          in: query
-          description: Dependent number
-        - name: plan
-          type: string
-          in: query
-          description: A plan or policy identifier
-        - name: group
-          type: string
-          in: query
-          description: Group identifier
-        - name: policy-holder
-          type: string
-          in: query
-          description: Reference to the policyholder
-        - name: _format
-          in: query
-          type: string
-          x-consoleDefault: application/json
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Coverage'
-  '/protected/bluebutton/fhir/v1/Coverage/{id}':
-    parameters:
-      - in: path
-        required: true
-        name: id
+      - div
+      - status
+    properties:
+      status:
         type: string
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Coverage'
-      tags:
-        - Coverage
-      parameters: []
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Coverage'
-  '/protected/bluebutton/fhir/v1/Coverage/{id}/_history':
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Coverage'
-      tags:
-        - Coverage
-        - Patient
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-        - name: _count
-          in: query
-          type: string
-        - name: _since
-          in: query
-          type: string
-      responses:
-        '200':
-          description: Success
-  /protected/bluebutton/fhir/v1/Coverage/_history:
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Coverage'
-      tags:
-        - Coverage
-        - Patient
-      parameters:
-        - name: _count
-          in: query
-          type: string
-        - name: _since
-          in: query
-          type: string
-      responses:
-        '200':
-          description: Success
-  '/protected/bluebutton/fhir/v1/Coverage/{id}/_history/{vid}':
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Coverage'
-      tags:
-        - Coverage
-        - Patient
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-        - name: vid
-          in: path
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Coverage'
-  /protected/bluebutton/fhir/v1/ExplanationOfBenefit:
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:ExplanationOfBenefit'
-      tags:
-        - ExplanationOfBenefit
-        - Patient
-      parameters:
-        - name: _language
-          type: string
-          in: query
-          description: The language of the resource
-        - name: care-team
-          type: string
-          in: query
-          description: Member of the CareTeam
-        - name: coverage
-          type: string
-          in: query
-          description: The plan under which the claim was adjudicated
-        - name: identifier
-          type: string
-          in: query
-          description: The business identifier of the Explanation of Benefit
-        - name: created
-          type: string
-          in: query
-          description: The creation date for the EOB
-          format: date
-        - name: encounter
-          type: string
-          in: query
-          description: Encounters associated with a billed line item
-        - name: payee
-          type: string
-          in: query
-          description: The party receiving any payment for the Claim
-        - name: disposition
-          type: string
-          in: query
-          description: The contents of the disposition message
-        - name: provider
-          type: string
-          in: query
-          description: The reference to the provider
-        - name: patient
-          type: string
-          in: query
-          description: >-
-            The reference to the patient. This query parameter is always added
-            with the logged in user's fhir_id applied. This limits the data
-            returned to only that of the loged in user.
-        - name: organization
-          type: string
-          in: query
-          description: The reference to the providing organization
-        - name: claim
-          type: string
-          in: query
-          description: The reference to the claim
-        - name: enterer
-          type: string
-          in: query
-          description: The party responsible for the entry of the Claim
-        - name: _id
-          type: string
-          in: query
-          description: The ID of the resource
-        - name: facility
-          type: string
-          in: query
-          description: Facility responsible for the goods and services
-        - name: _format
-          in: query
-          type: string
-          x-consoleDefault: application/json
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/ExplanationOfBenefit'
-  '/protected/bluebutton/fhir/v1/ExplanationOfBenefit/{id}':
-    parameters:
-      - in: path
-        required: true
-        name: id
+        minLength: 1
+      div:
         type: string
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:ExplanationOfBenefit'
-      tags:
-        - ExplanationOfBenefit
-        - Patient
-      parameters: []
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/ExplanationOfBenefit'
-  '/protected/bluebutton/fhir/v1/ExplanationOfBenefit/{id}/_history':
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:ExplanationOfBenefit'
-      tags:
-        - ExplanationOfBenefit
-        - Patient
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-        - name: _count
-          in: query
-          type: string
-        - name: _since
-          in: query
-          type: string
-      responses:
-        '200':
-          description: Success
-  /protected/bluebutton/fhir/v1/ExplanationOfBenefit/_history:
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:ExplanationOfBenefit'
-      tags:
-        - ExplanationOfBenefit
-        - Patient
-      parameters:
-        - name: _count
-          in: query
-          type: string
-        - name: _since
-          in: query
-          type: string
-      responses:
-        '200':
-          description: Success
-  '/protected/bluebutton/fhir/v1/ExplanationOfBenefit/{id}/_history/{vid}':
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:ExplanationOfBenefit'
-      tags:
-        - ExplanationOfBenefit
-        - Patient
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-        - name: vid
-          in: path
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/ExplanationOfBenefit'
-  /protected/bluebutton/fhir/v1/Patient:
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Patient'
-      tags:
-        - Patient
-      parameters:
-        - name: _language
-          type: string
-          in: query
-          description: The language of the resource
-        - name: birthdate
-          type: string
-          in: query
-          description: The patient's date of birth
-          format: date
-        - name: deceased
-          type: string
-          in: query
-          description: 'This patient has been marked as deceased, or as a death date entered'
-        - name: address-state
-          type: string
-          in: query
-          description: A state specified in an address
-        - name: gender
-          type: string
-          in: query
-          description: Gender of the patient
-        - name: animal-species
-          type: string
-          in: query
-          description: The species for animal patients
-        - name: link
-          type: string
-          in: query
-          description: All patients linked to the given patient
-        - name: language
-          type: string
-          in: query
-          description: Language code (irrespective of use value)
-        - name: animal-breed
-          type: string
-          in: query
-          description: The breed for animal patients
-        - name: address-country
-          type: string
-          in: query
-          description: A country specified in an address
-        - name: death-date
-          type: string
-          in: query
-          description: The date of death has been provided and satisfies this search value
-          format: date
-        - name: phonetic
-          type: string
-          in: query
-          description: >-
-            A portion of either family or given name using some kind of phonetic
-            matching algorithm
-        - name: telecom
-          type: string
-          in: query
-          description: The value in any kind of telecom details of the patient
-        - name: address-city
-          type: string
-          in: query
-          description: A city specified in an address
-        - name: email
-          type: string
-          in: query
-          description: A value in an email contact
-        - name: given
-          type: string
-          in: query
-          description: A portion of the given name of the patient
-        - name: identifier
-          type: string
-          in: query
-          description: A patient identifier
-        - name: address
-          type: string
-          in: query
-          description: >-
-            A server defined search that may match any of the string fields in
-            the Address, including line, city, state, country, postalCode,
-            and/or text
-        - name: general-practitioner
-          type: string
-          in: query
-          description: >-
-            Patient's nominated general practitioner, not the organization that
-            manages the record
-        - name: active
-          type: string
-          in: query
-          description: Whether the patient record is active
-        - name: address-postalcode
-          type: string
-          in: query
-          description: A postalCode specified in an address
-        - name: phone
-          type: string
-          in: query
-          description: A value in a phone contact
-        - name: organization
-          type: string
-          in: query
-          description: The organization at which this person is a patient
-        - name: address-use
-          type: string
-          in: query
-          description: A use code specified in an address
-        - name: name
-          type: string
-          in: query
-          description: >-
-            A server defined search that may match any of the string fields in
-            the HumanName, including family, give, prefix, suffix, suffix,
-            and/or text
-        - name: _id
-          type: string
-          in: query
-          description: >-
-            The ID of the resource. 
-
-            The CMS Blue Button API will override any id entered with the logged
-            in user's fhir_id. This prevents one user making a request for
-            another user's information.
-        - name: family
-          type: string
-          in: query
-          description: A portion of the family name of the patient
-        - name: _format
-          in: query
-          type: string
-          x-consoleDefault: application/json
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Patient'
-  '/protected/bluebutton/fhir/v1/Patient/{id}':
-    parameters:
-      - in: path
-        required: true
-        name: id
+        minLength: 1
+  Coverage_issuerReference:
+    required:
+      - reference
+    properties:
+      reference:
         type: string
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Patient'
-      tags:
-        - Patient
-      parameters: []
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Patient'
-  '/protected/bluebutton/fhir/v1/Patient/{id}/_history':
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Patient'
-      tags:
-        - Patient
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-        - name: _count
-          in: query
-          type: string
-        - name: _since
-          in: query
-          type: string
-      responses:
-        '200':
-          description: Success
-  /Patient/_history:
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Patient'
-      tags:
-        - Patient
-      parameters:
-        - name: _count
-          in: query
-          type: string
-        - name: _since
-          in: query
-          type: string
-      responses:
-        '200':
-          description: Success
-  '/protected/bluebutton/fhir/v1/Patient/{id}/_history/{vid}':
-    get:
-      security:
-        - BBOAuth2:
-            - 'read:Patient'
-      tags:
-        - Patient
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-        - name: vid
-          in: path
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/Patient'
+        minLength: 1
+  Coverage_period:
+    required:
+      - end
+      - start
+    properties:
+      start:
+        type: string
+        minLength: 1
+      end:
+        type: string
+        minLength: 1
+  Coverage_type:
+    required:
+      - code
+      - display
+      - system
+    properties:
+      system:
+        type: string
+        minLength: 1
+      code:
+        type: string
+        minLength: 1
+      display:
+        type: string
+        minLength: 1
+  Coverage_relationship:
+    required:
+      - code
+    properties:
+      code:
+        type: string
+        minLength: 1
+  Coverage_identifier:
+    required:
+      - system
+      - value
+    properties:
+      system:
+        type: string
+        minLength: 1
+      value:
+        type: string
+        minLength: 1
+  ExplanationOfBenefit__created:
+    required:
+      - fhir_comments
+    properties:
+      fhir_comments:
+        type: array
+        items:
+          type: object
+          properties: {}
+  ExplanationOfBenefit_coverage:
+    properties:
+      coverageReference:
+        $ref: '#/definitions/Coverage_issuerReference'
+  ExplanationOfBenefit_service:
+    required:
+      - code
+      - system
+    properties:
+      system:
+        type: string
+        minLength: 1
+      code:
+        type: string
+        minLength: 1
+  ExplanationOfBenefit_unitPrice:
+    required:
+      - code
+      - system
+      - value
+    properties:
+      value:
+        type: number
+      system:
+        type: string
+        minLength: 1
+      code:
+        type: string
+        minLength: 1
+  ExplanationOfBenefit_adjudication:
+    properties:
+      category:
+        $ref: '#/definitions/Coverage_relationship'
+      amount:
+        $ref: '#/definitions/ExplanationOfBenefit_unitPrice'
+  ExplanationOfBenefit_item:
+    required:
+      - sequence
+      - servicedDate
+    properties:
+      sequence:
+        type: number
+      type:
+        $ref: '#/definitions/Coverage_relationship'
+      providerReference:
+        $ref: '#/definitions/Coverage_issuerReference'
+      service:
+        $ref: '#/definitions/ExplanationOfBenefit_service'
+      servicedDate:
+        type: string
+        minLength: 1
+      unitPrice:
+        $ref: '#/definitions/ExplanationOfBenefit_unitPrice'
+      net:
+        $ref: '#/definitions/ExplanationOfBenefit_unitPrice'
+      adjudication:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/ExplanationOfBenefit_adjudication'
+        minItems: 1
+  Patient_type:
+    required:
+      - coding
+    properties:
+      coding:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/ExplanationOfBenefit_service'
+        minItems: 1
+  Patient_identifier:
+    required:
+      - system
+      - use
+      - value
+    properties:
+      use:
+        type: string
+        minLength: 1
+      type:
+        $ref: '#/definitions/Patient_type'
+      system:
+        type: string
+        minLength: 1
+      value:
+        type: string
+        minLength: 1
+  Patient_name:
+    required:
+      - use
+    properties:
+      use:
+        type: string
+        minLength: 1
+      family:
+        type: array
+        items:
+          type: object
+          properties: {}
+      given:
+        type: array
+        items:
+          type: object
+          properties: {}
+  Patient_photo:
+    required:
+      - contentType
+      - data
+    properties:
+      contentType:
+        type: string
+        minLength: 1
+      data:
+        type: string
+        minLength: 1
+  Patient_relationship:
+    properties:
+      coding:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/ExplanationOfBenefit_service'
+        minItems: 1
+  Patient_organization:
+    required:
+      - display
+      - reference
+    properties:
+      reference:
+        type: string
+        minLength: 1
+      display:
+        type: string
+        minLength: 1
+  Patient_contact:
+    properties:
+      relationship:
+        type: array
+        uniqueItems: true
+        items:
+          $ref: '#/definitions/Patient_relationship'
+        minItems: 1
+      organization:
+        $ref: '#/definitions/Patient_organization'
+  Patient_link:
+    required:
+      - type
+    properties:
+      other:
+        $ref: '#/definitions/Coverage_issuerReference'
+      type:
+        type: string
+        minLength: 1
+parameters:
+  UnderFormat:
+    name: _format
+    in: query
+    description: |
+      'Options are "application/json", "application/xml"'
+    required: false
+    type: string
+    enum:
+      - application/json
+      - application/xml
+    x-consoleDefault: application/json
