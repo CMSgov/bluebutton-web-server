@@ -66,7 +66,6 @@ def get_user_from_request(request):
     if hasattr(request, 'user'):
         if not request.user.is_anonymous():
             user = request.user
-            
     return user
 
 
