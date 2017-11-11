@@ -1,12 +1,10 @@
 import json
 import logging
-
-# try:
-#     # python2
-#     from urllib import urlencode
-# except ImportError:
-#     # python3
-#     from urllib.parse import urlencode
+from collections import OrderedDict
+from datetime import datetime, timedelta
+from django.conf import settings
+from django.http import HttpResponse
+from apps.fhir.server.models import SupportedResourceType, ResourceRouter
 
 try:
     # python2
@@ -15,13 +13,6 @@ except ImportError:
     # python3
     from urllib.parse import parse_qs
 
-from collections import OrderedDict
-from datetime import datetime, timedelta
-
-from django.conf import settings
-from django.http import HttpResponse
-
-from apps.fhir.server.models import SupportedResourceType, ResourceRouter
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
