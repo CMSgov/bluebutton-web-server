@@ -1,6 +1,10 @@
 import json
 import logging
 
+#
+# Errors handling is provided by this utils file
+#
+
 # try:
 #     # python2
 #     from urllib import urlencode
