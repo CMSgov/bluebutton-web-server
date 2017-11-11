@@ -323,7 +323,7 @@ def read_search(request,
     back_end_format = set_fhir_format(format_mode)
 
     # remove the oauth parameters
-    payload = request.GET
+    payload = request.GET.copy()
 
     # Get payload with oauth parameters removed
     # Add the format for back-end
