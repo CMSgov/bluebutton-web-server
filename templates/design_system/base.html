@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+	{% load i18n %}
+        <title>
+        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+        </title>
+	
+    {% block head %}
+        {% include "design_system/include/head.html" %}
+    {% endblock %}
+
+    {% block extra_head %}
+    {% endblock %}
+</head>
+<body>
+
+            {% block breadcrumbs %}
+            {% endblock %}
+
+            {% block messages %}
+            {% endblock %}
+
+            {% block Content %}
+                {% if template %}{% include template %}{% endif %}
+                {{ content|safe }}
+            {% endblock %}
+        </div>
+
+    </main>
+
+        {% include "design_system/include/footer.html" %}
+
+        {% include "design_system/include/foot.html" %}
+
+    {% block ExtraJSFoot %}
+	
+	{% endblock %}
+	
+
+</body>
+
+</html>

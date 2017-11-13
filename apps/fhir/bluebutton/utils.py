@@ -73,7 +73,10 @@ def get_access_token_from_request(request):
     """Returns a user or None with login or OAuth2 API"""
     token = ""
     if hasattr(request, 'resource_owner'):
-        bearer, token = request.META['Authorization'].split(' ')
+        if 'HTTP_AUTHORIZATION' in request.META:
+            bearer, token = request.META['HTTP_AUTHORIZATION'].split(' ')
+        if 'Authorization' in request.META:
+            bearer, token = request.META['Authorization'].split(' ')
     return token
 
 

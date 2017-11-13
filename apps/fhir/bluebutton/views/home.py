@@ -268,7 +268,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         if 'html' in requested_format.lower():
             return render(
                 request,
-                'bluebutton/default.html',
+                'default.html',
                 {'output': pretty_json(r._content, indent=4),
                  'fhir_id': get_fhir_id(cx),
                  'content': {'parameters': query_string,
@@ -372,7 +372,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
 
     return render(
         request,
-        'bluebutton/default.html',
+        'default.html',
         {'output': text_out,
          'content': {'parameters': query_string,
                      'resource_type': resource_type,

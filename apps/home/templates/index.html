@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{{ settings.APPLICATION_TITLE }}{% endblock %}
+{% block pretitle %}{% endblock %}
+{% block extra_head %}
+{% endblock %}
+
+
+{% block pagename %} {{ settings.APPLICATION_TITLE }} {% endblock %}
+{% block Content %}
+
+
+<div class="hero-unit text-center">
+
+ <h1 class="display-3">{{settings.TAG_LINE_1}}</h1>
+  <p class="lead">{{settings.TAG_LINE_2}}</p>
+  <hr class="my-4">
+  <p>{{settings.EXPLAINATION_LINE}}</p>
+  <p class="lead">
+    <a class="btn btn-primary btn-lg" href="{% url 'request_invite' %}"role="button">Request an Invite to {{ settings.APPLICATION_TITLE }}</a>
+  </p>
+
+ <p>If you are a developer who already has an account, then <a href="{% url 'mfa_login' %}">login here</a>.
+ {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
+      If you are a Medicare beneficiary,  then 
+       <a href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}"> login with {{settings.EXTERNAL_AUTH_NAME}}</a>
+    {% else %}
+       <a href="{% url 'mfa_login' %}">here</a>.
+ {% endif %}
+
+
+</div>
+
+
+{% endblock %}

@@ -21,12 +21,12 @@ urlpatterns = [
 
     # Move Conformance and Capability above general calls
     # Conformance statement
-    url(r'(metadata[^/]+)?',
+    url(r'^metadata[^/]',
         fhir_conformance,
         name='bb_fhir_conformance'),
 
     # Capability statement
-    url(r'(meta[^/]+)?',
+    url(r'^meta[^/]',
         fhir_conformance,
         name='bb_fhir_conformance'),
 

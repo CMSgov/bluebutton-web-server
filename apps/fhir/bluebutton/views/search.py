@@ -415,7 +415,7 @@ def read_search(request,
         if 'html' in requested_format.lower():
             return render(
                 request,
-                'bluebutton/default.html',
+                'default.html',
                 {'output': pretty_json(r._content, indent=4),
                  'fhir_id': get_fhir_id(cx),
                  'content': {'parameters': query_string,
@@ -501,7 +501,7 @@ def read_search(request,
         # print("DIV TEXT returned:[%s]%s" % (type(div_text), div_text))
         return render(
             request,
-            'bluebutton/default_xml.html',
+            'default_xml.html',
             {'output': text_out,
              'fhir_id': get_fhir_id(cx),
              'content': {'parameters': query_string,
@@ -519,7 +519,7 @@ def read_search(request,
     # logger.debug('We got a different format:%s' % requested_format)
     return render(
         request,
-        'bluebutton/default.html',
+        'default.html',
         {'output': text_out,
          'fhir_id': cx.fhir_id,
          'content': {'parameters': query_string,
