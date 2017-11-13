@@ -74,7 +74,7 @@ STATICFILES_DIRS = [
 ]
 
 # Style and UI skins is set here. The default is 'the_skin'
-ENGINE_SKIN = 'the_skin/'
+ENGINE_SKIN = 'cms/'
 # ENGINE_SKIN = 'usds/'
 # ENGINE_SKIN = 'cms/'
 # An empty ENGINE_SKIN value uses templates from th base templates directory
@@ -192,6 +192,12 @@ LOGGING = {
             'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
+        'jsonout': {
+            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", '
+                      '"name": "%(name)s", "message": "%(message)s"}',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+
+        }
     },
     'filters': {
         'require_debug_true': {
@@ -242,6 +248,12 @@ LOGGING = {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
             'formatter': 'verbose'
+        },
+        'perf_mon': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'jsonout',
+            'filename': '/var/log/pyapps/perf_mon.log',
         }
     },
     'loggers': {
@@ -284,6 +296,10 @@ LOGGING = {
         'tests': {
             'handlers': ['console'],
             'level': 'DEBUG',
+        },
+        'performance': {
+            'handlers': ['console', 'perf_mon'],
+            'level': 'INFO',
         }
     },
 }
