@@ -24,7 +24,7 @@ $(document).ready(function(){
       $('html, body').animate({
         scrollTop: $(hash).offset().top
       }, 800, function(){
-   
+
         // Add hash (#) to URL when done scrolling (default click behavior)
         window.location.hash = hash;
       });
@@ -43,16 +43,15 @@ $(document).ready(function(){
 {% block content %}
 
     <!-- Adding include here  -->
-    {% include settings.OAUTH2_AUTHORIZATION_FORM %}
+    {% include "authorize/default.html" %}
     <!-- end of include -->
 
 {% endblock %}
 
 {% block ExtraJSFoot %}
 	    <script>
-mpnData = { "hipaa": { "protected": "No" }, "use": { "scientificResearch": true, "primaryService": true, "marketing": true }, "share": {}, "sell": {}, "store": {}, "encryption": {}, "privacy": {}, "user": {}, "deactivation": {}, "policy": {}, "breach": {}, "contact": { "name": "xvdsvfsdgdsfgds" } } 
+mpnData = { "hipaa": { "protected": "No" }, "use": { "scientificResearch": true, "primaryService": true, "marketing": true }, "share": {}, "sell": {}, "store": {}, "encryption": {}, "privacy": {}, "user": {}, "deactivation": {}, "policy": {}, "breach": {}, "contact": { "name": "xvdsvfsdgdsfgds" } }
 </script>
-    
+
     <script src="{% skin_static '/js/TransparentHealth-mpnDisplay.min.js' %}"></script>
 {% endblock %}
- 
