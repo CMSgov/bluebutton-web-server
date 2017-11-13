@@ -145,7 +145,7 @@ MFA = True
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
-    'apps.accounts.mymedicare_auth.MyMedicareBackend',
+    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [DEV]')
