@@ -198,6 +198,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     metadata call
 
     """
+
     return metadata(request, via_oauth=False, *args, **kwargs)
 
 
