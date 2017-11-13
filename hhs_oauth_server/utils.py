@@ -11,7 +11,6 @@ File created by: 'MArk Scrimshire: @ekivemark'
 """
 
 from decimal import Decimal
-import platform
 
 TRUE_LIST = [1, "1", "true", "True", "TRUE", "YES", "Yes", "yes", True]
 FALSE_LIST = [0, "0", "False", "FALSE", "false", "NO", "No", "no", False]
