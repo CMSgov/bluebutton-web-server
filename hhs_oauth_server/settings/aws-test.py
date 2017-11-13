@@ -68,9 +68,9 @@ STATICFILES_DIRS = [
 ]
 
 # Style and UI skins is set here. The default is 'the_skin'
-# ENGINE_SKIN = 'the_skin/'
+ENGINE_SKIN = 'the_skin/'
 # ENGINE_SKIN = 'usds/'
-ENGINE_SKIN = 'cms/'
+# ENGINE_SKIN = 'cms/'
 # An empty ENGINE_SKIN value uses templates from th base templates directory
 # ENGINE_SKIN = ""
 
