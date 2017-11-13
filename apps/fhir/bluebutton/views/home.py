@@ -268,7 +268,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
             return render(
                 request,
                 'bluebutton/default.html',
-                {'output': pretty_json(r._content, indent=4),
+                {'output': pretty_json(r._content),
                  'fhir_id': get_fhir_id(cx),
                  'content': {'parameters': query_string,
                              'resource_type': resource_type,
@@ -278,7 +278,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
                              'div_texts': "",
                              'source': get_fhir_source_name(cx)}})
         else:
-            return HttpResponse(json.dumps(r._content, indent=4),
+            return HttpResponse(json.dumps(r._content),
                                 status=r.status_code,
                                 content_type='application/json')
 
@@ -362,10 +362,10 @@ def metadata(request, via_oauth=False, *args, **kwargs):
                                 content_type='application/'
                                              '%s' % requested_format)
         if 'security' in od:
-            print("%s" % pretty_json(od['security'], indent=4))
+            print("%s" % pretty_json(od['security']))
         else:
             print("No security content in Conformance")
-            print("od: %s" % pretty_json(od, indent=4))
+            print("od: %s" % pretty_json(od))
 
     # logger.debug('We got a different format:%s' % back_end_format)
 

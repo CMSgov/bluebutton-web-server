@@ -338,7 +338,7 @@ def generic_read(request,
             return render(
                 request,
                 'bluebutton/default.html',
-                {'output': pretty_json(r._content, indent=4),
+                {'output': pretty_json(r._content),
                  'fhir_id': get_fhir_id(cx),
                  'content': {'parameters': query_string,
                              'resource_type': resource_type,
@@ -348,7 +348,7 @@ def generic_read(request,
                              'div_texts': "",
                              'source': get_fhir_source_name(cx)}})
         else:
-            return HttpResponse(json.dumps(r._content, indent=4),
+            return HttpResponse(json.dumps(r._content),
                                 status=r.status_code,
                                 content_type='application/json')
 

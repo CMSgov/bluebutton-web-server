@@ -37,7 +37,7 @@ def create_userinfo_capability(group,
                                                title=title,
                                                description=description,
                                                slug=scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+                                               protected_resources=json.dumps(pr))
         print("%s - %s created." % (c.slug, c.title))
     return c
 
@@ -59,7 +59,7 @@ def create_patient_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+                                               protected_resources=json.dumps(pr))
         print("%s - %s created" % (c.slug, c.title))
     return c
 
@@ -80,7 +80,7 @@ def create_eob_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+                                               protected_resources=json.dumps(pr))
         print("%s - %s created." % (c.slug, c.title))
     return c
 
@@ -101,7 +101,7 @@ def create_coverage_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+                                               protected_resources=json.dumps(pr))
         print("%s - %s created." % (c.slug, c.title))
     return c
 

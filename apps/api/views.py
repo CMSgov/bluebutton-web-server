@@ -31,7 +31,7 @@ def api_read(request):
     od = OrderedDict()
     od['hello'] = 'World'
     od['oauth2'] = True
-    return HttpResponse(json.dumps(od, indent=4),
+    return HttpResponse(json.dumps(od),
                         content_type='application/json')
 
 # Example in curl calling this write API
@@ -72,14 +72,14 @@ def api_write(request):
             response['status'] = 'Error'
             response['message'] = 'Write Failed.'
             response['errors'] = errors
-            return HttpResponse(json.dumps(response, indent=4),
+            return HttpResponse(json.dumps(response),
                                 content_type='application/json')
         # a valid JSON object was provided.
-        return HttpResponse(json.dumps(j, indent=4),
+        return HttpResponse(json.dumps(j),
                             content_type='application/json')
     # this is a GET
     response = OrderedDict()
     response['code'] = 200
     response['message'] = 'POST JSON as the body of the request to this URL.'
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         content_type='application/json')

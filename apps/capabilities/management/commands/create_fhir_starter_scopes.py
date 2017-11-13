@@ -57,7 +57,7 @@ def create_fhir_readonly_capability(group,
                                                title=title,
                                                description=description,
                                                slug=smart_scope_string,
-                                               protected_resources=json.dumps(pr, indent=4))
+                                               protected_resources=json.dumps(pr))
         print("%s - %s created." % (c.slug, c.title))
     else:
         print("%s - %s skipped because it already existed." %
