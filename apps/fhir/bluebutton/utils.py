@@ -221,6 +221,8 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         cert = ()
 
     header_info = generate_info_headers(request)
+
+    # TODO: send header info to performance log
     logger.info(header_info)
 
     try:
