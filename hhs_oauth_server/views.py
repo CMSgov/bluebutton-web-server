@@ -1,13 +1,9 @@
-from django.conf import settings
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from django.views.decorators.cache import never_cache
-
-
 from django import template
-from django.conf import settings
 register = template.Library()
 
 
