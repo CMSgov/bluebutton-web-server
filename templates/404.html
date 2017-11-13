@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+{% load static %}
+<html lang="en">
+<head>
+    <title>404 - Page not found</title>
+    <style type="text/css">
+strong {
+	color: #39F;
+}
+.Extra404Large {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 64px;
+	font-style: italic;
+	font-weight: bolder;
+	color: #39F;
+}
+.Normal404Text {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 30px;
+	font-style: normal;
+	font-weight: normal;
+	text-transform: none;
+	color: #39F;
+}
+    </style>
+</head>
+<body>
+<h1 class="Extra404Large"><strong>4..oh..4</strong></h1>
+<h1><a href="{% url 'home' %}"
+           alt="{{ settings.APPLICATION_TITLE }}">
+                <strong>{{ settings.APPLICATION_TITLE }}</strong>
+    </a>
+</h1>
+<p class="Normal404Text">whoops! You asked for something we couldn't find.
+
+</p>
+<h3><a href="{% url 'home' %}" >Back to Home Page</a></h3>
+
+<p><a href="{% url 'home' %}"
+            style="max-height:100%;max-width:100%">
+            <img src="{% static 'img/layout/bluebuttonapiv1.png' %}"
+                 style="vertical-align:text-top;max-height:50%;max-width:50%"></a>
+</p>
+
+</body>
+</html>

@@ -62,6 +62,21 @@ DEAFULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
 MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
 # MEDIA_URL = '/media/'
 
+# Style and UI skins is set here. The default is 'the_skin'
+# ENGINE_SKIN = 'the_skin/'
+# ENGINE_SKIN = 'usds/'
+ENGINE_SKIN = 'cms/'
+# An empty ENGINE_SKIN value uses templates from th base templates directory
+# ENGINE_SKIN = ""
+
+# adding ability to change authorize form and text in DOT authorize.html
+
+if ENGINE_SKIN == 'cms/':
+    # Medicare uses the Medicare form
+    OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
+else:
+    OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
@@ -91,7 +106,7 @@ MFA = True
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
-    'apps.accounts.mymedicare_auth.MyMedicareBackend',
+    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [IMPL]')
@@ -134,6 +149,12 @@ LOGGING = {
             'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
+        'jsonout': {
+            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", '
+                      '"name": "%(name)s", "message": "%(message)s"}',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+
+        }
     },
     'filters': {
         'require_debug_true': {
@@ -185,6 +206,12 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'filters': ['require_debug_true'],
             'formatter': 'verbose'
+        },
+        'perf_mon': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'jsonout',
+            'filename': '/var/log/pyapps/perf_mon.log',
         }
     },
     'loggers': {
@@ -231,6 +258,10 @@ LOGGING = {
         'tests': {
             'handlers': ['console'],
             'level': 'DEBUG',
+        },
+        'performance': {
+            'handlers': ['console', 'perf_mon'],
+            'level': 'INFO',
         }
     },
 }

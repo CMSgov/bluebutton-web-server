@@ -130,6 +130,7 @@ INSTALLED_APPS = [
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -144,27 +145,6 @@ CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
-# Style and UI skins is set here. The default is 'the_skin'
-ENGINE_SKIN = 'the_skin/'
-# ENGINE_SKIN = 'usds/'
-# ENGINE_SKIN = 'cms/'
-# An empty ENGINE_SKIN value uses templates from th base templates directory
-# ENGINE_SKIN = ""
-
-# adding ability to change authorize form and text in DOT authorize.html
-if ENGINE_SKIN == 'cms/':
-    # Medicare uses the Medicare form
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
-else:
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
-
-# TEMPLATES.context_processor:
-# 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
-# enables custom code to be branched in templates eg.
-#                 {% if "apps.extapi" in active_apps %}
-#
-#                     {%  include "extapi/get_started.html" %}
-#                 {% endif %}
 # Place all environment/installation specific code in a separate app
 # hhs_oauth_server.hhs_oauth_server_context.py also
 # includes IsAppInstalled to check for target_app in INSTALLED_APPS
@@ -173,7 +153,7 @@ else:
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, ('templates/' + ENGINE_SKIN))],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -184,12 +164,10 @@ TEMPLATES = [
                 'django_settings_export.settings_export',
                 'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
-            'builtins': [
-                'apps.home.templatetags.engine_skin',
-            ],
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
@@ -314,6 +292,12 @@ LOGGING = {
         'simple': {
             'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
         },
+        'jsonout': {
+            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", '
+                      '"name": "%(name)s", "message": "%(message)s"}',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+
+        }
     },
     'handlers': {
         'console': {
@@ -349,8 +333,11 @@ LOGGING = {
         'tests': {
             'handlers': ['console'],
             'level': 'DEBUG',
+        },
+        'performance': {
+            'handlers': ['console'],
+            'level': 'INFO',
         }
-
     },
 }
 
@@ -394,6 +381,7 @@ GRANT_TYPES = (
 # Set the theme
 THEME = THEMES[THEME_SELECTED]
 
+
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE',
                         'CMS Blue Button API Developer Preview')
 ORGANIZATION_TITLE = env(
@@ -432,6 +420,19 @@ DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 
+#############################################################################
+# /testclient errors when no SSL present
+#############################################################################
+# IF /testclient fails because the server is running without a certificate
+# eg. on your local machine. You need to un-comment the following line:
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+# NEVER run in PRODUCTION without a certificate and with this setting active
+# A better practice is to set the INSECURE_TRANSPORT setting in an
+# alternate settings file. eg. local.py
+#############################################################################
+
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
 
@@ -441,7 +442,6 @@ SETTINGS_EXPORT = [
     'DEBUG',
     'ALLOWED_HOSTS',
     'APPLICATION_TITLE',
-    'ENGINE_SKIN',
     'THEME',
     'STATIC_URL',
     'STATIC_ROOT',
@@ -462,7 +462,6 @@ SETTINGS_EXPORT = [
     'EXTERNAL_AUTH_NAME',
     'ALLOW_END_USER_EXTERNAL_AUTH',
     'SOCIAL_AUTH_BACKEND_NAME',
-    'OAUTH2_AUTHORIZATION_FORM'
 ]
 
 

@@ -67,10 +67,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
-# Style and UI skins is set here. The default is 'the_skin'
-# ENGINE_SKIN = 'the_skin/'
+# Style and UI skins is set here. The default is  'the_skin'
+ENGINE_SKIN = 'the_skin/'
 # ENGINE_SKIN = 'usds/'
-ENGINE_SKIN = 'cms/'
+# ENGINE_SKIN = 'cms/'
 # An empty ENGINE_SKIN value uses templates from th base templates directory
 # ENGINE_SKIN = ""
 
@@ -107,7 +107,7 @@ MFA = True
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
-    'apps.accounts.mymedicare_auth.MyMedicareBackend',
+    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [TEST]')
@@ -150,6 +150,12 @@ LOGGING = {
             'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
+        'jsonout': {
+            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", '
+                      '"name": "%(name)s", "message": "%(message)s"}',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+
+        }
     },
     'filters': {
         'require_debug_true': {
@@ -201,6 +207,12 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
             'filters': ['require_debug_true'],
             'formatter': 'verbose'
+        },
+        'perf_mon': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'jsonout',
+            'filename': '/var/log/pyapps/perf_mon.log',
         }
     },
     'loggers': {
@@ -243,6 +255,10 @@ LOGGING = {
         'tests': {
             'handlers': ['console'],
             'level': 'DEBUG',
+        },
+        'performance': {
+            'handlers': ['console', 'perf_mon'],
+            'level': 'INFO',
         }
     },
 }
