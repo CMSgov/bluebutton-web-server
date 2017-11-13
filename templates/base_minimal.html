@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <title>
+        {% block pretitle %}{% endblock %}
+        {% block title %} {{ APPLICATION_TITLE }} {% endblock %}
+    </title>
+
+    {% block head %}
+        {% include "include/head.html" %}
+    {% endblock %}
+
+    {% block extra_head %}
+    {% endblock %}
+    <style>
+        body {
+            padding-top: 90px;
+            padding-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a href="{% url 'home' %}" contenteditable="false"
+            class="navbar-brand"
+            style="vertical-align:top;max-height:100%;max-width:100%">
+            <img src="{% static 'img/layout/bluebuttonapiv1.png' %}"
+                 style="vertical-align:text-top;max-height:100%;max-width:100%"></a>
+        <a href="{% url 'home' %}" contenteditable="false"
+           class="navbar-brand"
+           alt="{{ settings.APPLICATION_TITLE }}">
+                <strong>{{ settings.APPLICATION_TITLE }}</strong>
+        </a>
+    </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-dismissible alert-{{ message.tags }}">
+            {%  if message.tags == "error" %}
+                <h4>There was a problem</h4>
+            {% elif message.tags == "info" %}
+                <h4>Just letting you know...</h4>
+            {% elif message.tags == "success" %}
+                <h4>That worked...</h4>
+            {% else %}
+                <h4>System message:</h4>
+            {%  endif %}
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <p>
+                {{ form.errors }}
+                {{ message }}
+            </p>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        </div>
+    </div>
+    {% block Content %}
+
+        {% if template %}{% include template %}{% endif %}
+        {{ content|safe }}
+    {% endblock %}
+</div>
+        {% include "include/footer.html" %}
+
+        {% include "include/foot.html" %}
+
+    {% block ExtraJSFoot %}
+
+	{% endblock %}
+
+</body>
+
+</html>

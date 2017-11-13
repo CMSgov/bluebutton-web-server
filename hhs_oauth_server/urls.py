@@ -36,7 +36,6 @@ urlpatterns = [
     url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
     url(r'^capabilities/', include('apps.capabilities.urls')),
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
-    url(r'^home/', include('apps.home.urls')),
     url(r'^o/', include('apps.dot_ext.urls')),
     # Adding Medicare Notices and Warning pages
     url(r'notices',

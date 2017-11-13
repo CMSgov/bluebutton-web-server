@@ -58,7 +58,7 @@ from ..opoutcome_utils import (read_session,
                                build_querystring,
                                request_format)
 
-from apps.home.views import authenticated_home
+from hhs_oauth_server.views import authenticated_home
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
