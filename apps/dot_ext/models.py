@@ -11,7 +11,6 @@ import json
 
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
 
 from requests.exceptions import ConnectionError, TooManyRedirects, Timeout
@@ -24,7 +23,6 @@ from apps.capabilities.models import ProtectedCapability
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-@python_2_unicode_compatible
 class Endorsement(models.Model):
     title = models.CharField(max_length=255,
                              default='')

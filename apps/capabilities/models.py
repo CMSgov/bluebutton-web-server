@@ -12,11 +12,9 @@ except ImportError:
 
 from django.db import models
 from django.contrib.auth.models import Group
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.lru_cache import lru_cache
 
 
-@python_2_unicode_compatible
 class ProtectedCapability(models.Model):
     title = models.CharField(max_length=255,
                              default='',

@@ -1,14 +1,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from django.utils.encoding import python_2_unicode_compatible
 from django.db import models
 from apps.fhir.server.utils import (text_to_list,
                                     init_text_list)
 
-__author__ = "Mark Scrimshire and Alan Viars"
 
-
-@python_2_unicode_compatible
 class ResourceRouter(models.Model):
     """
     Server URL at Profile level
@@ -116,7 +112,6 @@ class ResourceRouter(models.Model):
         return fhir_url_text
 
 
-@python_2_unicode_compatible
 class SupportedResourceType(models.Model):
     # unique resource_name
     resource_name = models.CharField(max_length=255,
