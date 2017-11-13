@@ -9,8 +9,11 @@ from apps.accounts.views.oauth2_profile import (openidconnect_userinfo,
                                                 userinfo_w_login)
 from apps.dot_ext.views.dcrp import register
 from apps.fhir.bluebutton.views.home import fhir_conformance
-from apps.fhir.bluebutton.views.home import fhir_search_home
+from apps.home.views import home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
+
+__author__ = "Alan Viars"
+
 admin.autodiscover()
 
 ADMIN_REDIRECTOR = getattr(settings, 'ADMIN_PREPEND_URL', '')
@@ -36,7 +39,6 @@ urlpatterns = [
     url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
     url(r'^capabilities/', include('apps.capabilities.urls')),
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
-    url(r'^home/', include('apps.home.urls')),
     url(r'^o/', include('apps.dot_ext.urls')),
     # Adding Medicare Notices and Warning pages
     url(r'notices',
@@ -66,5 +68,5 @@ if IsAppInstalled("apps.testclient"):
 
 urlpatterns += [
     # Catch all
-    url(r'^$', fhir_search_home, name='home'),
+    url(r'^$', home, name='home'),
 ]

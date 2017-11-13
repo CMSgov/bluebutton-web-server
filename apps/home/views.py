@@ -1,13 +1,23 @@
-from django.conf import settings
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 from ..accounts.models import UserProfile
 from ..fhir.bluebutton.models import Crosswalk
 from django.views.decorators.cache import never_cache
 
+__author__ = "Alan Viars"
+
+
+def home(request):
+    template = "index.html"
+    if request.user.is_authenticated():
+        return authenticated_home(request)
+    return render(request, template, {})
+
 
 @never_cache
 def authenticated_home(request):
+
+    template = 'authenticated-home.html'
     if request.user.is_authenticated():
         name = _('Authenticated Home')
         try:
@@ -30,9 +40,8 @@ def authenticated_home(request):
         context = {'name': name, 'profile': profile,
                    'crosswalk': crosswalk,
                    'fhir_id': fhir_id}
-        template = '%sauthenticated-home.html' % settings.ENGINE_SKIN
     else:
         name = ('home')
         context = {'name': name}
-        template = '%sindex.html' % settings.ENGINE_SKIN
+
     return render(request, template, context)

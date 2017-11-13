@@ -114,7 +114,6 @@ TEMPLATES = [
                 'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
             'builtins': [
-                'apps.home.templatetags.engine_skin',
             ],
         },
     },

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+
+
+	{% load i18n %}
+        <title>
+        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+        </title>
+	
+    {% block head %}
+        {% include "include/head.html" %}
+    {% endblock %}
+
+    {% block extra_head %}
+    {% endblock %}
+
+    {% include "include/fix_header_offset.html" %}
+    <style>
+
+    </style>
+
+</head>
+<body class="container-fluid">
+ {% include "include/top-nav-responsive.html" %}
+
+    <main class="row container-fluid" id="main-content">
+
+        <div class="row container-fluid">
+
+            {% block breadcrumbs %}
+            {% endblock %}
+
+            {% block messages %}
+            {% endblock %}
+
+
+            {% block Content %}
+                {% if template %}{% include template %}{% endif %}
+                {{ content|safe }}
+            {% endblock %}
+        </div>
+
+    </main>
+
+        {% include "include/footer.html" %}
+
+        {% include "include/foot.html" %}
+
+    {% block ExtraJSFoot %}
+	
+	{% endblock %}
+	
+
+</body>
+
+</html>

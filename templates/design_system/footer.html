@@ -1,0 +1,32 @@
+{% load static %}
+<div class="row container-fluid">
+    <div class="row footer-wrapper panel-footer">
+
+        <div class="text-center row col-lg-12 h4 " >
+            <a href="{{settings.TOS_URI}}">{{settings.TOS_TITLE}}</a> |
+            <a href="{{settings.DEVELOPER_DOCS_URI}}">{{settings.DEVELOPER_DOCS_TITLE}}</a> |
+            <a href="{{settings.USER_DOCS_URI}}">{{settings.USER_DOCS_TITLE}}</a>
+        </div>
+
+
+         <div class="row-container-fluid" >
+            <p class="row-container-fluid footer-small well">
+            {{ settings.APPLICATION_TITLE }} is operated by {{settings.ORGANIZATION_TITLE }}. {{settings.DISCLOSURE_TEXT}}
+            </p>
+         </div>
+         <div class="container-fluid row-container-fluid" >
+
+             {% if user.is_superuser %}
+                    {% if settings.ALLOWED_HOSTS %}<div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
+                    {% endif %}
+             {% else %}
+                    {% if settings.DEBUG %}
+                       <div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-style--italic ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
+                    {% endif %}
+             {% endif %}
+
+        </div>
+    </div> <!-- /.footer-wrapper -->
+        
+
+</div><!-- /.container-fluid -->
