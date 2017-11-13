@@ -152,7 +152,7 @@ def generate_info_headers(request):
 
     # Return resource_owner or user
     user = get_user_from_request(request)
-    print("header:user:", user)
+    # print("header:user:", user)
     cx = get_crosswalk(user)
     # print(request.META)
     if cx:
