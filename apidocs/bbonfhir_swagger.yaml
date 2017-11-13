@@ -33,8 +33,8 @@ info:
     In FHIR terms the **Medicare Beneficiary** is the "**Patient**." In order to
     be  consistent with the FHIR specification we will use the term Patient
     throughout this documentation to refer to the Medicare Beneficiary.
-  version: 0.0.26
-  title: CMS Blue Button API v0.7 (DRAFT)
+  version: 0.0.27
+  title: CMS Blue Button API v0.8 (DRAFT)
 host: dev.bluebutton.cms.fhirservice.net
 tags:
   - name: CapabilityStatement
@@ -240,7 +240,7 @@ paths:
   /protected/bluebutton/fhir/v1/Patient/:
     get:
       tags:
-        - ExplanationOfBenefit
+        - Patient
       parameters:
         - name: _language
           in: query
