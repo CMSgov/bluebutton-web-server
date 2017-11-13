@@ -698,10 +698,7 @@ def FhirServerUrl(server=None, path=None, release=None):
 
     rr_def = get_resourcerouter()
 
-    if settings.RUNNING_PYTHON2:
-        rr_server_address = rr_def.server_address.encode('utf-8')
-    else:
-        rr_server_address = rr_def.server_address
+    rr_server_address = rr_def.server_address
 
     fhir_server = notNone(server, rr_server_address)
 
@@ -848,10 +845,7 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         return in_text
 
     rr_def = get_resourcerouter()
-    if settings.RUNNING_PYTHON2:
-        rr_def_server_address = rr_def.server_address.encode('utf-8')
-    else:
-        rr_def_server_address = rr_def.server_address
+    rr_def_server_address = rr_def.server_address
 
     if isinstance(rr_def_server_address, str):
         if rr_def_server_address not in urls_be_gone:
@@ -919,10 +913,7 @@ def build_conformance_url():
     """ Build the Conformance URL call string """
 
     rr_def = get_resourcerouter()
-    if settings.RUNNING_PYTHON2:
-        rr_def_server_address = rr_def.server_address.encode('utf-8')
-    else:
-        rr_def_server_address = rr_def.server_address
+    rr_def_server_address = rr_def.server_address
 
     call_to = rr_def_server_address
     call_to += rr_def.server_path

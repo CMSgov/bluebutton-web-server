@@ -7,7 +7,7 @@ __author__ = "Alan Viars"
 
 
 def create_groups():
-    groups = ["HelpDesk", "InviteBeneficiary", "InviteDeveloper", "ModifyUser"]
+    groups = ["InviteBeneficiary", "InviteDeveloper", "ModifyUser"]
     created_groups = []
     for group in groups:
         g, created = Group.objects.get_or_create(name=group)
@@ -20,14 +20,6 @@ def create_groups():
 
 
 def create_permissions(created_groups):
-
-    if created_groups["HelpDesk"]:
-        g = Group.objects.get(name="HelpDesk")
-        p = Permission.objects.get(name='Can add user profile')
-        g.permissions.add(p)
-        p = Permission.objects.get(name='Can change user profile')
-        g.permissions.add(p)
-
     if created_groups["InviteBeneficiary"]:
         g = Group.objects.get(name="InviteBeneficiary")
         p = Permission.objects.get(name='Can add Invite Request')

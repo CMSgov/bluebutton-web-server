@@ -29,17 +29,6 @@
 },
 {
     "model": "auth.group",
-    "pk": 19,
-    "fields": {
-        "name": "HelpDesk",
-        "permissions": [
-            19,
-            20
-        ]
-    }
-},
-{
-    "model": "auth.group",
     "pk": 20,
     "fields": {
         "name": "ModifyUser",
