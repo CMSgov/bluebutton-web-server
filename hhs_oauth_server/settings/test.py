@@ -1,7 +1,5 @@
 from .dev import *
 
-from ..utils import is_python2
-
 del LOGGING['loggers']
 # SMS
 SEND_SMS = False

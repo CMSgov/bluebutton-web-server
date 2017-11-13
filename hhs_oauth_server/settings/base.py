@@ -3,7 +3,7 @@ import dj_database_url
 import socket
 import datetime
 from getenv import env
-from ..utils import bool_env, int_env, is_python2
+from ..utils import bool_env, int_env
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import ugettext_lazy as _

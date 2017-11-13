@@ -39,16 +39,3 @@ def int_env(env_val):
     """ convert to integer from String """
 
     return int(Decimal(float(env_val)))
-
-
-def is_python2():
-    """
-        Check if Python 2.x because we need to deal with
-        unicode to text conversion for URLfields
-
-    """
-
-    if platform.python_version_tuple()[0] == '2':
-        return True
-    else:
-        return False

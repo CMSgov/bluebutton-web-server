@@ -1,5 +1,4 @@
 from .base import *
-from ..utils import is_python2
 
 # removing security enforcement in development mode
 DEBUG = True
