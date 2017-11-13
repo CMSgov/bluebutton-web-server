@@ -19,6 +19,17 @@ urlpatterns = [
         bluebutton_help,
         name='bb_fhir_help'),
 
+    # Move Conformance and Capability above general calls
+    # Conformance statement
+    url(r'(metadata[^/]+)?',
+        fhir_conformance,
+        name='bb_fhir_conformance'),
+
+    # Capability statement
+    url(r'(meta[^/]+)?',
+        fhir_conformance,
+        name='bb_fhir_conformance'),
+
     # Vread GET --------------------------------
     url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)/_history/(?P<vid>[^/]+)',
         vread,
@@ -42,13 +53,4 @@ urlpatterns = [
     url(r'(?P<resource_type>[^/]+)?', search,
         name='bb_fhir_search'),
 
-    # Conformance statement
-    url(r'(metadata[^/]+)?',
-        fhir_conformance,
-        name='bb_fhir_conformance'),
-
-    # Capability statement
-    url(r'(meta[^/]+)?',
-        fhir_conformance,
-        name='bb_fhir_conformance'),
 ]

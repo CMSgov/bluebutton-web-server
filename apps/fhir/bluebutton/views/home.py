@@ -32,7 +32,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_fhir_id,
                                         get_fhir_source_name,
                                         get_host_url,
-                                        strip_oauth,
                                         build_output_dict,
                                         prepend_q,
                                         post_process_request,
@@ -50,14 +49,14 @@ from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               append_security)
 # from apps.dot_ext.decorators import capability_protected_resource
 
-from apps.fhir.fhir_core.utils import (read_session,
-                                       get_search_param_format,
-                                       strip_format_for_back_end,
-                                       SESSION_KEY,
-                                       ERROR_CODE_LIST,
-                                       valid_interaction,
-                                       build_querystring,
-                                       request_format)
+from ..opoutcome_utils import (read_session,
+                               get_search_param_format,
+                               strip_format_for_back_end,
+                               SESSION_KEY,
+                               ERROR_CODE_LIST,
+                               valid_interaction,
+                               build_querystring,
+                               request_format)
 
 from apps.home.views import authenticated_home
 
@@ -227,7 +226,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     else:
         call_to += '/metadata'
 
-    pass_params = strip_oauth(request.GET)
+    pass_params = request.GET
     # pass_params should be an OrderedDict after strip_auth
     # logger.debug("result from strip_oauth:%s" % pass_params)
 
