@@ -76,12 +76,6 @@ ENGINE_SKIN = 'cms/'
 
 # adding ability to change authorize form and text in DOT authorize.html
 
-if ENGINE_SKIN == 'cms/':
-    # Medicare uses the Medicare form
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
-else:
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
-
 # emails
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.

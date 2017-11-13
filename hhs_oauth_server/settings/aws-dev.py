@@ -80,12 +80,6 @@ ENGINE_SKIN = 'the_skin/'
 # An empty ENGINE_SKIN value uses templates from th base templates directory
 # ENGINE_SKIN = ""
 
-# adding ability to change authorize form and text in DOT authorize.html
-if ENGINE_SKIN == 'cms/':
-    # Medicare uses the Medicare form
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
-else:
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
 
 # TEMPLATES.context_processor:
 # 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
