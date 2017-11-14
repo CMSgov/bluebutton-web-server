@@ -62,21 +62,6 @@ DEAFULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
 MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
 # MEDIA_URL = '/media/'
 
-# Style and UI skins is set here. The default is 'the_skin'
-# ENGINE_SKIN = 'the_skin/'
-# ENGINE_SKIN = 'usds/'
-ENGINE_SKIN = 'cms/'
-# An empty ENGINE_SKIN value uses templates from th base templates directory
-# ENGINE_SKIN = ""
-
-# adding ability to change authorize form and text in DOT authorize.html
-
-if ENGINE_SKIN == 'cms/':
-    # Medicare uses the Medicare form
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
-else:
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
-
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
