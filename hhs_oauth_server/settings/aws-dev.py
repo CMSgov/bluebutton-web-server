@@ -73,52 +73,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
-# Style and UI skins is set here. The default is  'the_skin'
-# ENGINE_SKIN = 'cms/'
-# ENGINE_SKIN = 'usds/'
-ENGINE_SKIN = 'the_skin/'
-# An empty ENGINE_SKIN value uses templates from th base templates directory
-# ENGINE_SKIN = ""
-
-# adding ability to change authorize form and text in DOT authorize.html
-if ENGINE_SKIN == 'cms/':
-    # Medicare uses the Medicare form
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/medicare.html'
-else:
-    OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
-
-# TEMPLATES.context_processor:
-# 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
-# enables custom code to be branched in templates eg.
-#                 {% if "apps.extapi" in active_apps %}
-#
-#                     {%  include "extapi/get_started.html" %}
-#                 {% endif %}
-# Place all environment/installation specific code in a separate app
-# hhs_oauth_server.hhs_oauth_server_context.py also
-# includes IsAppInstalled to check for target_app in INSTALLED_APPS
-# This enables implementation specific code to be branched inside views and
-# functions.
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, ('templates/' + ENGINE_SKIN))],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'django_settings_export.settings_export',
-                'hhs_oauth_server.hhs_oauth_server_context.active_apps',
-            ],
-            'builtins': [
-            ],
-        },
-    },
-]
-
 # emails
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
