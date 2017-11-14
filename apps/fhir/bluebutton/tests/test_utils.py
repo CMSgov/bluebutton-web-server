@@ -9,12 +9,7 @@ from apps.fhir.bluebutton.models import (Crosswalk)
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
 
-try:
-    # python2
-    from urlparse import parse_qsl
-except ImportError:
-    # python3
-    from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl
 from apps.fhir.bluebutton.utils import (
     notNone,
     block_params,
@@ -456,10 +451,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         #            "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
 
         rr = get_resourcerouter()
-        if settings.RUNNING_PYTHON2:
-            rr_server_address = rr.server_address.encode('utf-8')
-        else:
-            rr_server_address = rr.server_address
+        rr_server_address = rr.server_address
 
         expected = rr_server_address
         expected += rr.server_path

@@ -4,19 +4,11 @@ from __future__ import unicode_literals
 import json
 import re
 
-try:
-    # this import should work on python2 only
-    from itertools import izip as zip
-except ImportError:
-    pass
-
 from django.db import models
 from django.contrib.auth.models import Group
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.lru_cache import lru_cache
 
 
-@python_2_unicode_compatible
 class ProtectedCapability(models.Model):
     title = models.CharField(max_length=255,
                              default='',
