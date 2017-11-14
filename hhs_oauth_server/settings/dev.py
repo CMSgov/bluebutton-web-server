@@ -12,9 +12,6 @@ HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env(
     'DJANGO_INVITE_REQUEST_ADMIN', 'change-me@example.com')
 
-# Skin settings
-ENGINE_SKIN = 'the_skin/'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
