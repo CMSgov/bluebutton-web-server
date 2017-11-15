@@ -71,7 +71,7 @@ for more information. Continue the installation by issuing the following command
     (copy both x509 files, in PEM format, inside certstore)
 
 If your backend FHIR server does not require certificate-based authorization
-then this step can be omitted.    
+then the previous step can be omitted. 
     
 Making calls to a back-end FHIR server requires that you set a series of 
 variables before running tests or the server itself.
@@ -84,13 +84,13 @@ Note you can find the path to your Python3 binary by typing `which python3`.
 Running Tests
 -------------
 
-Simply:
+Run the following:
 
     python runtests.py
     
-You can run individual applications tests as well.  See https://docs.djangoproject.com/en/1.11/topics/testing/overview/#running-tests
-for more information
-
+You can run individual applications tests as well.
+See https://docs.djangoproject.com/en/1.11/topics/testing/overview/#running-tests
+for more information.
 
     
 Custom Environment Variables
@@ -101,7 +101,7 @@ are stored in to the repository. This project has created a structure that
 enables sensitive values to be defined via Environment Variables. The convention
 we have used is as follows:
 
-    - A file "custom-envvars.py" is defined in the parent directory. ie. Where
+    - A file `custom-envvars.py` is defined in the parent directory. ie. Where
     the project is git cloned from.
     - Custom-envvars.py is a python file that will set an environment variable
     if it has not already been defined.
@@ -109,7 +109,7 @@ we have used is as follows:
     - the base.py settings will then define various settings using an 
     environment variable, or a default if a variable is not found.
     
-An example of a custom-envvars.py file is shown below:
+An example of a `custom-envvars.py` file is shown below:
 
     import os
 
