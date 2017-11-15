@@ -1,7 +1,5 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from django.utils.encoding import python_2_unicode_compatible
-from django.conf import settings
 from django.db import models
 from apps.fhir.server.utils import (text_to_list,
                                     init_text_list)
@@ -9,7 +7,6 @@ from apps.fhir.server.utils import (text_to_list,
 __author__ = "Mark Scrimshire and Alan Viars"
 
 
-@python_2_unicode_compatible
 class ResourceRouter(models.Model):
     """
     Server URL at Profile level
@@ -109,23 +106,15 @@ class ResourceRouter(models.Model):
         return rProtectedTypeCount
 
     def server_address_text(self):
-        if settings.RUNNING_PYTHON2:
-            server_address_text = self.server_address.encode('utf-8')
-        else:
-            server_address_text = self.server_address
-
+        server_address_text = self.server_address
         return server_address_text
 
     def fhir_url_text(self):
-        if settings.RUNNING_PYTHON2:
-            fhir_url_text = self.fhir_url.encode('utf-8')
-        else:
-            fhir_url_text = self.fhir_url
+        fhir_url_text = self.fhir_url
 
         return fhir_url_text
 
 
-@python_2_unicode_compatible
 class SupportedResourceType(models.Model):
     # unique resource_name
     resource_name = models.CharField(max_length=255,

@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import python_2_unicode_compatible
 import boto3
 from django.core.urlresolvers import reverse
 from .emails import (send_password_reset_url_via_email,
@@ -105,7 +104,6 @@ ISSUE_INVITE = (
 )
 
 
-@python_2_unicode_compatible
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
     organization_name = models.CharField(max_length=255,
@@ -226,7 +224,6 @@ class UserProfile(models.Model):
         super(UserProfile, self).save(**kwargs)
 
 
-@python_2_unicode_compatible
 class MFACode(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     uid = models.CharField(blank=True,
@@ -294,7 +291,6 @@ class MFACode(models.Model):
         super(MFACode, self).save(**kwargs)
 
 
-@python_2_unicode_compatible
 class RequestInvite(models.Model):
     user_type = models.CharField(max_length=3, choices=USER_CHOICES,
                                  default="DEV")
@@ -337,7 +333,6 @@ class RequestInvite(models.Model):
         verbose_name = "Invite Request"
 
 
-@python_2_unicode_compatible
 class UserRegisterCode(models.Model):
     user_id_hash = models.CharField(max_length=64, blank=True, default="")
     code = models.CharField(max_length=30, db_index=True)
@@ -404,7 +399,6 @@ class UserRegisterCode(models.Model):
             super(UserRegisterCode, self).save(**kwargs)
 
 
-@python_2_unicode_compatible
 class Invitation(models.Model):
     code = models.CharField(max_length=10, unique=True)
     email = models.EmailField(blank=True)
@@ -443,7 +437,6 @@ class Invitation(models.Model):
             super(Invitation, self).save(**kwargs)
 
 
-@python_2_unicode_compatible
 class ActivationKey(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     key = models.CharField(default=uuid.uuid4, max_length=40)
@@ -465,7 +458,6 @@ class ActivationKey(models.Model):
         super(ActivationKey, self).save(**kwargs)
 
 
-@python_2_unicode_compatible
 class ValidPasswordResetKey(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     reset_password_key = models.CharField(max_length=50, blank=True)
@@ -516,7 +508,6 @@ def create_activation_key(user):
     return key
 
 
-@python_2_unicode_compatible
 class EmailWebhook(models.Model):
     email = models.EmailField(max_length=150, default="", blank=True)
     status = models.CharField(max_length=30, default="", blank=True)
