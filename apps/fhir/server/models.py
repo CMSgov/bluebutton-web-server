@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from django.conf import settings
 from django.db import models
 from apps.fhir.server.utils import (text_to_list,
                                     init_text_list)

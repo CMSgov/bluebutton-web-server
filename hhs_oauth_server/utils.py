@@ -1,17 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
-"""
-hhs_oauth_server
-FILE: utils
-Created: 10/20/16 11:06 PM
-
-File created by: 'MArk Scrimshire: @ekivemark'
-"""
-
 from decimal import Decimal
-import platform
 
 TRUE_LIST = [1, "1", "true", "True", "TRUE", "YES", "Yes", "yes", True]
 FALSE_LIST = [0, "0", "False", "FALSE", "false", "NO", "No", "no", False]
