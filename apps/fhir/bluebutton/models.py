@@ -2,8 +2,6 @@ import logging
 from requests import Response
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
-# from django.utils.translation import ugettext_lazy as _
 from apps.fhir.server.models import ResourceRouter
 from django.utils.crypto import pbkdf2
 import binascii
@@ -11,7 +9,6 @@ import binascii
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-@python_2_unicode_compatible
 class Crosswalk(models.Model):
     """
     HICN/BeneID to User to FHIR Source Crosswalk and back.

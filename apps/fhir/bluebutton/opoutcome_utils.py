@@ -7,12 +7,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from apps.fhir.server.models import SupportedResourceType, ResourceRouter
 
-try:
-    # python2
-    from urlparse import parse_qs
-except ImportError:
-    # python3
-    from urllib.parse import parse_qs
+from urllib.parse import parse_qs
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)

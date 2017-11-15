@@ -12,13 +12,7 @@ import json
 import logging
 
 from collections import OrderedDict
-
-try:
-    # python2
-    from urllib import urlencode
-except ImportError:
-    # python3
-    from urllib.parse import urlencode
+from urllib.parse import urlencode
 
 # from django.conf import settings
 
