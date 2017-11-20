@@ -14,7 +14,7 @@ from ..forms import (RequestInviteForm, AccountSettingsForm,
                      LoginForm,
                      SignupForm,
                      RequestInviteEndUserForm,)
-from ..models import *
+from ..models import UserProfile
 from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
