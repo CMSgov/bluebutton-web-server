@@ -43,7 +43,3 @@ django-ratelimit
 
 # Decorate admin urls to force MFA login
 decorate_url
-
-# mock for Python 2
-mock
-
