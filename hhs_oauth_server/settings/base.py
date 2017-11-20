@@ -383,7 +383,7 @@ APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE',
                         'CMS Blue Button API Developer Preview')
 ORGANIZATION_TITLE = env(
     'DJANGO_ORGANIZATION_TITLE',
-    'The U.S. Centers for Medicare and Medicaid Services (CMS)')
+    'The U.S. Centers for Medicare & Medicaid Services (CMS)')
 ORGANIZATION_URI = env('DJANGO_ORGANIZATION_URI', 'https://cms.gov')
 POLICY_URI = env(
     'DJANGO_POLICY_URI',
