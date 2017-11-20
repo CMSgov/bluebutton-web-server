@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from .views import *
+from .views import api_read, api_write
 
 
 urlpatterns = [
