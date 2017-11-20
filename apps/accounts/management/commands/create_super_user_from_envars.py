@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+
 def create_superuser(username, password, email):
     try:
         u = User.objects.get(username=username)
