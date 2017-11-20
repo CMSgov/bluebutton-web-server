@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 import json
 import apps.fhir.bluebutton.utils
 import apps.fhir.bluebutton.views.home
