@@ -12,13 +12,11 @@ def bool_env(env_val):
             return True
         if env_val in FALSE_LIST:
             return False
-        # print("Return:%s" % env_val)
         return env_val
     else:
         if env_val in FALSE_LIST:
             return False
 
-        # print("Returning:%s" % env_val)
         return
 
 

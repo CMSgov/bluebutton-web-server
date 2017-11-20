@@ -22,7 +22,6 @@ class Check_BooleanVariable_Test(TestCase):
         for x in TRUE_LIST:
             expect = True
             result = bool_env(x)
-            # print("%s is %s" % (x, expect))
             self.assertEqual(result, expect)
 
     def test_negative_values(self):
@@ -31,7 +30,6 @@ class Check_BooleanVariable_Test(TestCase):
         for y in FALSE_LIST:
             expect = False
             result = bool_env(y)
-            # print("%s=%s" % (y, expect))
             self.assertEqual(result, expect)
 
 
@@ -49,8 +47,5 @@ class Check_IntFromText_Test(TestCase):
                     ("1000000000001", 1000000000001)]
 
         for x, y in int_list:
-
             result = int_env(x)
-            # print("\n%s=%s" % (x, result))
-
             self.assertEqual(result, y)
