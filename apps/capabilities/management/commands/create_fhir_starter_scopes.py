@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
+import logging
 import json
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
@@ -7,6 +8,7 @@ from ...models import ProtectedCapability
 
 __author__ = "Alan Viars"
 
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 fhir_prefix = "/protected/bluebutton/fhir/v1/"
 
@@ -28,9 +30,9 @@ def create_group(name="BlueButton"):
 
     g, created = Group.objects.get_or_create(name=name)
     if created:
-        print("%s group created" % (name))
+        logger.info("%s group created" % (name))
     else:
-        print("%s group pre-existing. Create skipped." % (name))
+        logger.info("%s group pre-existing. Create skipped." % (name))
     return g
 
 
@@ -58,10 +60,6 @@ def create_fhir_readonly_capability(group,
                                                description=description,
                                                slug=smart_scope_string,
                                                protected_resources=json.dumps(pr, indent=4))
-        print("%s - %s created." % (c.slug, c.title))
-    else:
-        print("%s - %s skipped because it already existed." %
-              (smart_scope_string, title))
     return c
 
 
@@ -72,5 +70,3 @@ class Command(BaseCommand):
         g = create_group()
         for r in supported_resources:
             create_fhir_readonly_capability(g, r)
-
-        print("Done. Stay classy, San Diego.")

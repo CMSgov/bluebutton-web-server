@@ -42,11 +42,6 @@ class ConformanceReadRequestTest(TestCase):
                                                          cx=None,
                                                          fail_redirect="/")
 
-        # Activate the print statement if you want to see what was returned
-        # print("\nText:%s" % result._response.content[:100])
-        # print("\nResult:%s" % dir(result))
-        # print("\nr in Result:%s" % result._response.text[:100])
-
         # Test for a match
         self.assertEqual(result._response.content, CONFORMANCE)
 
@@ -65,7 +60,6 @@ class ConformanceReadRequestTest(TestCase):
         result = conformance_filter(conform_out,
                                     "json")
 
-        # print("\nResult from Filter:%s" % pretty_json(result))
         if "vision" in result['rest'][0]['resource']:
             filter_works = False
         else:

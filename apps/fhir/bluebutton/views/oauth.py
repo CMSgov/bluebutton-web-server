@@ -24,8 +24,6 @@ from apps.dot_ext.decorators import capability_protected_resource
 def oauth_read_or_update_or_delete(request, resource_type, id):
     """Route to read, update, or delete based on HTTP method FHIR Interaction"""
 
-    print("\nin oauth_read_or_update_or_delete: %s , %s" % (resource_type,
-                                                            id))
     if request.method == 'GET':
         # Read
         return oauth_read(request, resource_type, id, via_oauth=True)

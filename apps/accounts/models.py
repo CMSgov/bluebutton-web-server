@@ -279,14 +279,14 @@ class MFACode(models.Model):
                     }
                 )
             elif self.mode == "SMS" and not up.mobile_phone_number:
-                print("Cannot send SMS. No phone number on file.")
+                logger.info("Cannot send SMS. No phone number on file.")
             elif self.mode == "EMAIL" and self.user.email:
                 # "Send SMS to self.user.email
                 mfa_via_email(self.user, self.code)
             elif self.mode == "EMAIL" and not self.user.email:
-                print("Cannot send email. No email_on_file.")
+                logger.info("Cannot send email. No email_on_file.")
             else:
-                """No MFA code sent"""
+                # No MFA code sent
                 pass
         super(MFACode, self).save(**kwargs)
 

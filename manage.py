@@ -17,7 +17,6 @@ if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                           "hhs_oauth_server.settings.base")
 
-    # print("DATABASES_CUSTOM=%s" % os.environ.get('DATABASES_CUSTOM'))
     from django.core.management import execute_from_command_line
 
     execute_from_command_line(sys.argv)

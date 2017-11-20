@@ -86,24 +86,3 @@ class MFALoginTestCase(TestCase):
         # Now that a valid code is provided, the user is logged in (sees
         # Logout)
         self.assertContains(response, 'Logout')
-
-    # @override_settings(MFACode=True)
-    # def test_pick_reverse_login_mfa_true(self):
-    #     """
-    #
-    #     :return:
-    #     """
-    #
-    #     response = pick_reverse_login()
-    #     self.assertContains(response, 'acounts/mfa/login')
-    #
-    # @override_settings(MFACode=False)
-    # def test_pick_reverse_login_mfa_false(self):
-    #     """
-    #
-    #     :return:
-    #     """
-    #
-    #     response = pick_reverse_login()
-    #     print("No:MFA_Login Response:%s" % response)
-    #     self.assertContains(response, 'acounts/login')

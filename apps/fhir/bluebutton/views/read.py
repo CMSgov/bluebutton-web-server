@@ -239,9 +239,6 @@ def generic_read(request,
     else:
         key = masked_id(resource_type, cx, srtc, id, slash=False)
 
-        # print("\nMasked_id-key:%s from r_id:%s "
-        #       "and cx-fhir_id:%s\n" % (key, id, cx.fhir_id))
-
         # add key to fhir_url unless already in place.
         fhir_url = add_key_to_fhir_url(fhir_url, key)
 
@@ -358,11 +355,6 @@ def generic_read(request,
 
     # Add default FHIR Server URL to re-write
     rewrite_url_list = build_rewrite_list(cx)
-    # print("Starting Rewrite_list:%s" % rewrite_url_list)
-
-    # ct_detail = get_content_type(r)
-    # logger.debug('Content-Type:%s \n work with %s' % (ct_detail,
-    #                                                   back_end_format))
 
     text_in = get_response_text(fhir_response=r)
 
@@ -391,7 +383,6 @@ def generic_read(request,
     if ikey is not '':
 
         save_url = get_target_url(fhir_url, resource_type)
-        # print("Store fhir_url:%s but only: %s" % (fhir_url,save_url))
         content = {
             'fhir_to': save_url,
             'rwrt_list': rewrite_url_list,
@@ -418,11 +409,8 @@ def generic_read(request,
                             content_type='application/%s' % requested_format)
 
     # define query string further up before request_call
-    # query_string = build_querystring(request.GET.copy())
     if "xml" in requested_format:
-        # logger.debug("Sending text_out for display: %s" % text_out[0:100])
         div_text = get_div_from_xml(text_out)
-        # print("DIV TEXT returned:[%s]%s" % (type(div_text), div_text))
         return render(
             request,
             'default_xml.html',

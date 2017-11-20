@@ -76,8 +76,6 @@ def string_to_dom(content, ns=FHIR_NAMESPACE):
     :param content:
     :return:
     """
-    # ns = FHIR_NAMESPACE
-    # print("Content:\n%s\n=================" % content)
     root = ET.fromstring(content)
 
     return root
@@ -128,16 +126,7 @@ def filter_dom(root, rr=None, ns=FHIR_NAMESPACE):
                     for e in element_interaction:
                         for c in e.findall('{%s}code' % ns_string(ns)):
                             e_action = c.attrib['value']
-                            # print("What is element:%s" % e_action)
-                            if e_action in pub_interactions:
-                                pass
-                                # logger.debug("Interaction "
-                                #              "Enabled:%s" % e_action)
-                                # No change - valid interaction
-                            else:
-                                # logger.debug("Interaction "
-                                #              "Removed:%s" % e_action)
-                                # Remove interaction from the resource
+                            if e_action not in pub_interactions:
                                 resource.remove(e)
 
                 else:
@@ -199,7 +188,6 @@ def append_security(xml_text, security_statement, ns=FHIR_NAMESPACE):
 
     back_to_xml = ET.tostring(root).decode("utf-8")
 
-    # print("\nUpdated DOM:%s" % back_to_xml)
     return back_to_xml
 
 
@@ -246,29 +234,18 @@ def get_div_from_xml(xml_text, ns=FHIR_NAMESPACE):
     dom = string_to_dom(xml_text)
 
     dom_text = dom.findall('{%s}text' % ns_string(ns))
-    # print("DOM Text:%s" % dom_text)
     aggregated_divs = []
 
     for divot in dom_text:
         child_list = get_named_child(divot,
                                      '{%s}div' % ns_string(XML_NAMESPACE))
-        # print("Child list of div elements:%s" % child_list)
         aggregated_divs.append(child_list)
 
-    # print("Divs to publish:%s" % aggregated_divs)
     div_text = ""
     for aggregated_div in aggregated_divs:
-        # print("AD:%s" % aggregated_div)
-        # print("AD[0]:%s" % aggregated_div[0])
         div_text += ET.tostring(aggregated_div[0],
                                 method="html").decode('utf-8')
         div_text += "\n"
-    # div_text = aggregated_divs.tostring()
-    # print("DV:%s" % div_text)
-    # Replace html: in output
-    # <html:div xmlns:html="http://www.w3.org/1999/xhtml">
-    #      <html:div class="hapiHeaderText"> William Yung
-    #         <html:b>CHEN </html:b>
 
     div_text = div_text.replace("html:", "")
 
@@ -277,5 +254,4 @@ def get_div_from_xml(xml_text, ns=FHIR_NAMESPACE):
     #      <div class="hapiHeaderText"> William Yung
     #         <b>CHEN </b>
     #      </div>
-    # print("filtered DV:%s" % div_text)
     return div_text

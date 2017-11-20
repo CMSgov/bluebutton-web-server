@@ -332,31 +332,14 @@ def read_search(request,
     # remove the srtc.search_block parameters
     payload = block_params(payload, srtc)
 
-    # print("id:%s" % str(id))
     # move resource_id to _id=resource_id
     id_dict = set_resource_id(srtc, id, get_fhir_id(cx))
-    # id_dict['query_mode'] = 'search' | 'read'
-    # id_dict['url_id'] = '' | id
-    # id_dict['_id'] = id  | ''
-    # id_dict['patient'] = patient_id | ''
-
-    # resource_id = id_dict['url_id']
 
     # Add the srtc.search_add parameters
-    # added_params = add_params(srtc,
-    #                           patient_id=id_dict['patient'],
-    #                           key=id_dict['url_id'])
-
-    # print("Added Params:%s" % added_params)
-
     params_list = search_add_to_list(srtc.search_add)
-
-    # print("Params_List:%s" % params_list)
 
     payload = payload_additions(payload, params_list)
 
-    # print('id_dict:%s' % id_dict)
-    # print("what have we got?:%s" % id_dict)
     if id_dict['_id']:
         # add rt_id into the search parameters
         if id_dict['_id'] is not None:
@@ -381,7 +364,7 @@ def read_search(request,
                                           pyld_k,
                                           new_value=id_dict['patient'],
                                           old_value='%PATIENT%')
-    # print("post futzing:%s" % id_dict)
+
     # add the _format setting
     payload['_format'] = back_end_format
 
@@ -468,7 +451,6 @@ def read_search(request,
     if ikey is not '':
 
         save_url = get_target_url(target_url, resource_type)
-        # print("Store target_url:%s but only: %s" % (target_url,save_url))
         content = {
             'fhir_to': save_url,
             'rwrt_list': rewrite_list,
@@ -496,9 +478,7 @@ def read_search(request,
                             content_type='application/%s' % requested_format)
 
     if "xml" in requested_format:
-        # logger.debug("Sending text_out for display: %s" % text_out[0:100])
         div_text = get_div_from_xml(text_out)
-        # print("DIV TEXT returned:[%s]%s" % (type(div_text), div_text))
         return render(
             request,
             'default_xml.html',

@@ -9,7 +9,6 @@ __author__ = "Alan Viars"
 
 def load_fixture():
     myfix = os.path.join(os.path.dirname(__file__), "fhir_server.json")
-    print("Loading fixture @ ", myfix)
     call_command('loaddata', myfix)
 
 

@@ -227,7 +227,6 @@ class EmailMessage(object):
             if isinstance(to, six.string_types):
                 raise TypeError('"to" argument must be a list or tuple')
             self.to = list(to)
-            # print("\nTo is now:%s" % self.to)
         else:
             self.to = []
         if cc:
@@ -440,12 +439,6 @@ class EmailMultiAlternatives(EmailMessage):
         bytestrings). The SafeMIMEText class will handle any necessary encoding
         conversions.
         """
-        # print("\nIn EmailMultiAlternatives: %s" % (to))
-        # Encoutered a bug where to has 'None' or None as last element
-        # in the list which seems to cause an error sending email.
-        # By removing this bad item the email send works.
-        # None appears to be added in the __init__ phase.
-        # This is why this whole section was copied from the django library.
 
         to = self.clean_list(to)
 
@@ -478,7 +471,6 @@ class EmailMultiAlternatives(EmailMessage):
     def clean_list(self, addr_list):
         """ Remove None or 'None' from addressees list """
 
-        print("Addressees:%s" % addr_list)
         clean_list = []
         for email in addr_list:
             if email is not None:
@@ -487,5 +479,4 @@ class EmailMultiAlternatives(EmailMessage):
                 else:
                     pass
 
-        print("Cleaned List:%s" % clean_list)
         return clean_list

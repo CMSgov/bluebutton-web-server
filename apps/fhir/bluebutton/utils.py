@@ -17,9 +17,6 @@ from .opoutcome_utils import (kickout_403,
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
 
-# from apps.fhir.fhir_core.utils import (error_status,
-#                                        ERROR_CODE_LIST)
-
 from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import (base_issuer, build_endpoint_info)
@@ -144,9 +141,7 @@ def generate_info_headers(request):
 
     # Return resource_owner or user
     user = get_user_from_request(request)
-    # print("header:user:", user)
     cx = get_crosswalk(user)
-    # print(request.META)
     if cx:
         # we need to send the HicnHash or the fhir_id
         if len(cx.fhir_id) > 0:
@@ -173,8 +168,7 @@ def generate_info_headers(request):
             result['BlueButton-ApplicationId'] = ""
             result['BlueButton-DeveloperId'] = ""
             result['BlueButton-Developer'] = ""
-        # result['token'] = get_access_token_from_request(request)
-    # print("Headers:", result)
+
     return result
 
 
@@ -193,11 +187,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
 
     # Updated to receive cx (Crosswalk entry for user)
     # call FhirServer_Auth(cx) to get authentication
-    # print("OAuth2:", is_oauth2(request))
     auth_state = FhirServerAuth(cx)
-
-    # logger.debug("Auth_state:%s" % auth_state)
-    # logger.debug("Calling: %s" % call_url)
 
     verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
@@ -266,27 +256,13 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         return fhir_response
 
     except requests.ConnectionError as e:
-        # logger.debug('Connection Problem to FHIR '
-        #              'Server: %s : %s' % (call_url, e))
         logger.debug("Request.GET:%s" % request.GET)
-        # logger.debug("what is in e:\n#######\n%s\n##########\n" % dir(e))
 
         fhir_response = build_fhir_response(request,
                                             call_url,
                                             cx,
                                             r=None,
                                             e=e)
-
-        # for attr in dir(e):
-        #     if attr == "characters_written":
-        #         pass
-        #     else:
-        #         logger.debug("e.%s = %s" % (attr, getattr(e, attr)))
-        # e.status_code = 504
-        # e.text = '{\"errors\": [\"Connection Problem to FHIR Server\", \"status_code: 504\"], \"code\": 504}'
-        # logger.debug("what is in amended e:\n#######\n%s\n##########\n" % dir(e))
-        #
-        # return error_status(e, 504, reason=e.text)
 
         return fhir_response
 
@@ -307,28 +283,9 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         messages.error(request, 'Problem connecting to FHIR Server.')
 
         e = requests.Response
-        # e.text = r_err
         logger.debug("HTTPError Status_code:%s" %
                      requests.exceptions.HTTPError)
-        # logger.debug("Status_Code:%s" % r.status_code)
-        # e.status_code = 502
-
-        # return error_status(e, 502, reason=r.text)
-        # return error_status(fhir_response, 502, reason=r.text)
-
-        # return HttpResponseRedirect(fail_redirect)
         return fhir_response
-
-    # logger.debug("Evaluating r:%s" % evaluate_r(r))
-
-    # if r.status_code in ERROR_CODE_LIST:
-    #
-    #     fhir_response = build_fhir_response(request, call_url, cx, r)
-    #
-    #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
-    #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
-    #     return error_status(fhir_response, r.status_code)
-    #     # return error_status(r, r.status_code)
 
     return fhir_response
 
@@ -415,47 +372,6 @@ def request_get_with_parms(request,
 
         return fhir_response
 
-        # if r.status_code in ERROR_CODE_LIST:
-        #     r.raise_for_status()
-        # # except requests.exceptions.HTTPError as r_err:
-
-    # except requests.ConnectionError as e:
-    #     logger.debug('Connection Problem to FHIR '
-    #                  'Server: %s : %s' % (call_url, e))
-    #     return error_status('Connection Problem to FHIR '
-    #                         'Server: %s:%s' % (call_url, e),
-    #                         504)
-    #
-    # except requests.exceptions.HTTPError as e:
-    #     # except requests.exceptions.RequestException as r_err:
-    #     r_err = requests.exceptions.RequestException
-    #     logger.debug('Problem connecting to FHIR Server: %s' % call_url)
-    #     logger.debug('Exception: %s' % r_err)
-    #     handle_e = handle_http_error(e)
-    #     handle_e = handle_e
-    #
-    #     messages.error(request, 'Problem connecting to FHIR Server.')
-    #
-    #     logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
-    #
-    #     if 'text' in r:
-    #         r_text = r.text
-    #     else:
-    #         r_text = "Error Status:%s. %s " % (r.status_code, request.GET)
-    #         logger.debug("error code:%s issue:%s" % (r.status_code, r_text))
-    #     return error_status(r, status_code=r.status_code)
-    #
-    #     # return HttpResponseRedirect(fail_redirect)
-    #
-    # # logger.debug("Evaluating r:%s" % evaluate_r(r))
-    #
-    # if r.status_code in ERROR_CODE_LIST:
-    #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
-    #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
-    #     return error_status(r, r.status_code)
-    #
-    # return r
-
     except requests.exceptions.Timeout as e:
 
         logger.debug("Gateway timeout talking to back-end server")
@@ -512,25 +428,6 @@ def request_get_with_parms(request,
         # e.text = r_err
         logger.debug("HTTPError Status_code:%s" %
                      requests.exceptions.HTTPError)
-        # logger.debug("Status_Code:%s" % r.status_code)
-        # e.status_code = 502
-
-        # return error_status(e, 502, reason=r.text)
-        # return error_status(fhir_response, 502, reason=r.text)
-
-        # return HttpResponseRedirect(fail_redirect)
-        return fhir_response
-
-        # logger.debug("Evaluating r:%s" % evaluate_r(r))
-
-        # if r.status_code in ERROR_CODE_LIST:
-        #
-        #     fhir_response = build_fhir_response(request, call_url, cx, r)
-        #
-        #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
-        #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
-        #     return error_status(fhir_response, r.status_code)
-        #     # return error_status(r, r.status_code)
 
     return fhir_response
 
@@ -593,8 +490,6 @@ def add_params(srtc, patient_id=None, key=None):
     # add_params = ''
     add_params = []
 
-    # print("\n########################\n")
-
     if srtc:
         if srtc.override_search:
             params_list = srtc.get_search_add()
@@ -611,43 +506,29 @@ def add_params(srtc, patient_id=None, key=None):
 
             add_params = []
             for item in params_list:
-                # print("\nSRTC:%s\n   \noverride:%s\n"
-                #       "    item:%s\n"
-                #       "         from: %s\n\n" % (srtc,
-                #                                  srtc.override_search,
-                #                                  item,
-                #                                  params_list))
                 # Run through list and do variable replacement
                 if srtc.resourceType.lower() not in item.lower():
                     # only replace 'patient=%PATIENT%' if resource not Patient
                     if '%PATIENT%' in item:
                         if key is None:
-                            # key_str = ''
                             patient_str = str(patient_id)
                             if patient_id is None:
                                 patient_str = ''
-                            # print('\nsetting to patient:%s' % patient_str)
                         else:
                             # force key to string
                             patient_str = str(key)
-                            # print('setting to key:%s' % patient_str)
                         if patient_str is 'None':
                             patient_str = ''
                         if patient_str is None:
                             patient_str = ''
-                        # print("set to nothing?:%s" % patient_str)
                         item = item.replace('%PATIENT%', patient_str)
                         if '%PATIENT%' in item:
                             # Still there we need to remove
                             item = item.replace('%PATIENT%', '')
 
-                    # print("Added item:%a" % item)
                     add_params.append(item)
-            # print('Resulting additional parameters:%s' % add_params)
             logger_debug.debug(
                 'Resulting additional parameters:%s' % add_params)
-
-    # print("\n#EXIT####################\n")
 
     return add_params
 
@@ -715,11 +596,7 @@ def build_params(get, srtc, key, patient_id=None):
 
     # Now we need to construct the parameters we need to add
 
-    # print("SRTC:%s\npatient=%s\nkey=%s\n" % (srtc,patient_id,key))
-
     add_param = add_params(srtc, patient_id=patient_id, key=key)
-
-    # print("\nAdd param: %s\n" % add_param)
 
     # Put the parameters together in urlencoded string
     # leading ? and parameters joined by &
@@ -975,13 +852,10 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
 
-        # print("\nReplacing: [%s] with [%s]  \n" % (find_url, host_path))
-
         logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
     else:
         out_text = in_text
 
-        # print('Passing [%s] to [%s]' % (in_text, "out_text"))
         logger_debug.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
 
     return out_text
@@ -1006,7 +880,6 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
 
             urls_be_gone.append(rr_def_server_address)
 
-    # print("\nURLS to Remove:%s" % urls_be_gone)
     for kill_url in urls_be_gone:
         # work through the list making replacements
         if kill_url.endswith('/'):
@@ -1368,8 +1241,6 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
         if 'text' in r_dir:
             fhir_response._text = r.text
 
-            # print("copied text(%s) to _text" % r.text[:100])
-
             if r.text[0] == "<":
                 logger.debug("\nLooks like XML....[%s]" % r.text[:10])
                 fhir_response._xml = r.text
@@ -1455,29 +1326,21 @@ def get_response_text(fhir_response=None):
     text_in = ""
 
     if not fhir_response:
-        # logger.debug("\nfhir_response not passed to get_response_text")
         text_in = ""
         return text_in
 
     try:
         text_in = fhir_response.text
         if len(text_in) > 0:
-            # logger.debug("returning .text:%s" % fhir_response.text[:40])
             return text_in
-
     except Exception:
-        # logger.debug("Nothing in .text")
         pass
 
     try:
         text_in = fhir_response._response.text
         if len(text_in) > 0:
-            # logger.debug("returning "
-            #              "_response.text:%s" % fhir_response.text[:40])
             return text_in
-
     except Exception:
-        # logger.debug("Nothing in ._response.text")
         pass
 
     try:
@@ -1524,7 +1387,7 @@ def build_oauth_resource(request, format_type="json"):
     """
     endpoints = build_endpoint_info(OrderedDict(),
                                     issuer=base_issuer(request))
-    print("\nEndpoints:%s" % endpoints)
+    logger.info("\nEndpoints:%s" % endpoints)
 
     if format_type.lower() == "xml":
 
@@ -1556,5 +1419,4 @@ def build_oauth_resource(request, format_type="json"):
              }
         ]
 
-    # print("\nSecurity Statement is:%s" % security)
     return security
