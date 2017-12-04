@@ -67,6 +67,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
+OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
+
 # emails
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.

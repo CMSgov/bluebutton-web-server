@@ -1,8 +1,4 @@
 from .base import *
-from ..utils import is_python2
-
-# Set Python2 to use for unicode field conversion to text
-RUNNING_PYTHON2 = is_python2()
 
 # removing security enforcement in development mode
 DEBUG = True
@@ -11,9 +7,6 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env(
     'DJANGO_INVITE_REQUEST_ADMIN', 'change-me@example.com')
-
-# Skin settings
-ENGINE_SKIN = 'the_skin/'
 
 TEMPLATES = [
     {

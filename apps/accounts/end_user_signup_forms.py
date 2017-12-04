@@ -16,7 +16,7 @@ from django.utils.crypto import pbkdf2
 from .models import UserProfile, create_activation_key, UserRegisterCode
 from ..fhir.bluebutton.models import Crosswalk
 
-from .views.core import MFA_CHOICES
+from .models import MFA_CHOICES
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 

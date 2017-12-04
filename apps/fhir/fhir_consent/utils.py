@@ -22,13 +22,9 @@ def resource_from_scopes(oauth_permissions):
         else:
             o_permissions = oauth_permissions
 
-        # print("o_permissions: %s\n%s"
-        #       "\n#################" % (type(o_permissions),
-        #                                o_permissions))
         resource_list = []
 
         for scope in o_permissions:
-            # print("\nScope:%s" % scope)
             if 'code' in scope:
                 resource_action = scope['code'].split("/")
             else:
@@ -37,12 +33,10 @@ def resource_from_scopes(oauth_permissions):
                 resource = resource_action[1].split(".")
             else:
                 resource = resource_action
-            if resource[0] in resource_list:
-                pass
-            else:
+
+            if resource[0] not in resource_list:
                 resource_list.append(resource[0])
-        # print("\nResource List for Consent:\n%s"
-        #       "\n####################" % resource_list)
+
         return resource_list
     else:
         return None

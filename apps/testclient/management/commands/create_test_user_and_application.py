@@ -99,9 +99,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         g = create_group()
-        # Delete any pre-existing BlueButton Scopes
-        # print("Deleting pre-existing scope in the BlueButton group.")
-        # ProtectedCapability.objects.filter(group=g).delete()
         u = create_user(g)
         a = create_application(u, g)
         t = create_test_token(u, a)

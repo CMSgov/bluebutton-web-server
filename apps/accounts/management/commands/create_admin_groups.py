@@ -12,10 +12,6 @@ def create_groups():
     for group in groups:
         g, created = Group.objects.get_or_create(name=group)
         created_groups.append(created)
-        if created:
-            print("%s group created" % (group))
-        else:
-            print("%s group pre-existing. Create skipped." % (group))
     return dict(zip(groups, created_groups))
 
 
@@ -64,4 +60,3 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         cg = create_groups()
         create_permissions(cg)
-        print("Done. Stay classy, San Diego.")

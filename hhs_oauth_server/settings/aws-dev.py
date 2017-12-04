@@ -73,6 +73,40 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
+OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
+
+# TEMPLATES.context_processor:
+# 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
+# enables custom code to be branched in templates eg.
+#                 {% if "apps.extapi" in active_apps %}
+#
+#                     {%  include "extapi/get_started.html" %}
+#                 {% endif %}
+# Place all environment/installation specific code in a separate app
+# hhs_oauth_server.hhs_oauth_server_context.py also
+# includes IsAppInstalled to check for target_app in INSTALLED_APPS
+# This enables implementation specific code to be branched inside views and
+# functions.
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, ('templates/'))],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'django_settings_export.settings_export',
+                'hhs_oauth_server.hhs_oauth_server_context.active_apps',
+            ],
+            'builtins': [
+            ],
+        },
+    },
+]
+
 # emails
 SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
 # If using AWS SES, the email below must first be verified.
