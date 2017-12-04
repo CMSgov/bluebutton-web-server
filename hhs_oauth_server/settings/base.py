@@ -401,7 +401,7 @@ EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 # LINKS TO DOCS
 USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
 USER_DOCS_TITLE = "User Documentation"
-DEVELOPER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-developer-help"
+DEVELOPER_DOCS_URI = "https://cmsgov.github.io/bluebutton-developer-help"
 DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
 USER_TITLE = "Medicare beneficiaries, health providers, caregivers, and 3rd party application developers"
