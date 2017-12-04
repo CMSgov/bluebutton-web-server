@@ -12,13 +12,7 @@ import json
 import logging
 
 from collections import OrderedDict
-
-try:
-    # python2
-    from urllib import urlencode
-except ImportError:
-    # python3
-    from urllib.parse import urlencode
+from urllib.parse import urlencode
 
 # from django.conf import settings
 
@@ -77,8 +71,6 @@ def fhir_search_home(request, via_oauth=False):
 
         if request.method == 'GET':
             if '_getpages' in request.GET:
-                # print("We got something to get")
-
                 return rebuild_fhir_search(request, via_oauth)
 
     return authenticated_home(request)
@@ -198,6 +190,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     metadata call
 
     """
+
     return metadata(request, via_oauth=False, *args, **kwargs)
 
 
@@ -267,8 +260,8 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         if 'html' in requested_format.lower():
             return render(
                 request,
-                'bluebutton/default.html',
-                {'output': pretty_json(r._content, indent=4),
+                'default.html',
+                {'output': pretty_json(r._content),
                  'fhir_id': get_fhir_id(cx),
                  'content': {'parameters': query_string,
                              'resource_type': resource_type,
@@ -278,7 +271,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
                              'div_texts': "",
                              'source': get_fhir_source_name(cx)}})
         else:
-            return HttpResponse(json.dumps(r._content, indent=4),
+            return HttpResponse(json.dumps(r._content),
                                 status=r.status_code,
                                 content_type='application/json')
 
@@ -289,17 +282,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     # logger.debug("Format:%s" % back_end_format)
 
     rewrite_url_list = build_rewrite_list(cx)
-    # print("Starting Rewrite_list:%s" % rewrite_url_list)
-
     text_in = get_response_text(fhir_response=r)
-    # print("Capability text: %s\n" % r.text)
-    # print("Capability _text: %s\n" % r._text)
-
-    # text_in = r.text
-    # if text_in == "":
-    #     print("Capability assigning _text: %s\n" % r._text[:100])
-    #
-    #     text_in = r._text
 
     text_out = post_process_request(request,
                                     back_end_format,
@@ -352,26 +335,17 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         # Append Security to ConformanceStatement
         security_endpoint = build_oauth_resource(request,
                                                  format_type="json")
-        print("OD:\n%s" % od['rest'])
         od['rest'][0]['security'] = security_endpoint
-        print("OD+Security:\n%s" % od)
 
         text_out = pretty_json(od)
         if 'html' not in requested_format:
             return HttpResponse(text_out,
                                 content_type='application/'
                                              '%s' % requested_format)
-        if 'security' in od:
-            print("%s" % pretty_json(od['security'], indent=4))
-        else:
-            print("No security content in Conformance")
-            print("od: %s" % pretty_json(od, indent=4))
-
-    # logger.debug('We got a different format:%s' % back_end_format)
 
     return render(
         request,
-        'bluebutton/default.html',
+        'default.html',
         {'output': text_out,
          'content': {'parameters': query_string,
                      'resource_type': resource_type,
@@ -431,11 +405,6 @@ def get_supported_resources(resources, resource_names, rr=None):
                     # logger.debug("Filtered Item:%s" % filtered_item)
 
                     resource_list.append(filtered_item)
-                else:
-                    pass
-                    # print('\nDisposing of %s' % v)
-            else:
-                pass
 
     return resource_list
 

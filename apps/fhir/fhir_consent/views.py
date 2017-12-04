@@ -135,7 +135,6 @@ def rt_consent_directive_activate(user,
     rt['bindingAttachment'] = dt_system_attachment(BB_CONSENT_AGREEMENT_URL,
                                                    BB_CONSENT_URL_TITLE)
 
-    # print("\n%s" % pretty_json(rt))
     return rt
 
 
@@ -171,7 +170,6 @@ def rt_consent_activate(user, app, oauth_period, oauth_permission):
     # oauth_permission dict (scopes)
     rt['pupose'] = oauth_permission
 
-    # print("\n%s" % pretty_json(rt))
     return rt
 
 

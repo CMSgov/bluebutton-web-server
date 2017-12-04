@@ -1,17 +1,13 @@
 import json
 import logging
+
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.http import HttpResponse
 from apps.fhir.server.models import SupportedResourceType, ResourceRouter
 
-try:
-    # python2
-    from urlparse import parse_qs
-except ImportError:
-    # python3
-    from urllib.parse import parse_qs
+from urllib.parse import parse_qs
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -283,24 +279,14 @@ def write_session(request, ikey, content, skey=SESSION_KEY):
     else:
         search_keys = request.session[skey]
 
-    # print("Search Keys:%s - %s[%s]" % (skey,
-    #                                    ikey,
-    #                                    search_keys))
-
     # Now we have the total search dict with an expires setting
     if ikey not in search_keys:
-        # print("\nContent:%s\n" % content)
         content['cache_id'] = ikey
         content['expires'] = expiry
 
-        # print("\nContent:%s\n" % content)
-
         search_keys[ikey] = content
-        # print("\nSession Content-Search_keys:%s:%s" % (skey, search_keys))
-
     else:
         old_content = search_keys[ikey]
-        # print("\nreturned search_keys       :%s:%s" % (skey, search_keys))
         if isinstance(content, dict):
             # update content with whatever is submitted
             for k, v in content.items():
@@ -309,15 +295,10 @@ def write_session(request, ikey, content, skey=SESSION_KEY):
         # don't update the expires setting
         # don't update the cache_id
 
-        # print("\nupdated session_content:%s:%s" % (skey, old_content))
         search_keys[ikey] = old_content
-        # print("\nupdated     search keys:%s:%s" % (skey, search_keys))
+
     # write session variables back
     request.session[skey] = search_keys
-
-    # logger.debug("\nWritten session:%s - %s:%s" % (skey,
-    #                                                ikey,
-    #                                                request.session[skey]))
 
     return True
 
@@ -343,34 +324,19 @@ def read_session(request, ikey, skey=SESSION_KEY):
     now = str(datetime.now())
 
     if skey in request.session:
-        # print("\n\nReading Session:%s - %s:%s" % (skey,
-        #                                           ikey,
-        #                                           request.session[skey]))
         if ikey in request.session[skey]:
-            # print("\n\nfound key:%s" % ikey)
             session_keys = request.session[skey]
             if 'expires' in session_keys[ikey]:
-                # print("\nChecking for Expiry..")
                 if session_keys[ikey]['expires'] < now:
-                    request.session[skey].pop(ikey, None)
-
                     # action = "DEL"
-                    # print("\n\n Removed %s:%s" % (ikey, request.session[skey]))
+                    request.session[skey].pop(ikey, None)
                 else:
                     # action = "PULL"
                     result = session_keys[ikey]
             else:
-                # print("\n\nGetting Session Data:%s" % session_keys[ikey])
-                result = session_keys[ikey]
                 # action = "UNEXPIRED"
-        else:
-            # print("\n%s not found" % ikey)
-            pass
-    else:
-        # action = "SKIP"
-        pass
+                result = session_keys[ikey]
 
-    # print("\n\nSession Key[%s]%s:%s:%s" % (skey, action, ikey, result))
     return result
 
 
@@ -746,10 +712,8 @@ def get_div_from_json(raw_json):
     div_text = []
     if raw_json:
         for k, v in raw_json.items():
-            # print("k:%s" % k)
             if k == "text":
                 if 'div' in v:
-                    # print("TEXT FOUND:%s [%s]" % (k, v))
                     div_text.append(v['div'])
 
     return div_text

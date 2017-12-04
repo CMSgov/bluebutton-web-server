@@ -9,12 +9,7 @@ from apps.fhir.bluebutton.models import (Crosswalk)
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
 
-try:
-    # python2
-    from urlparse import parse_qsl
-except ImportError:
-    # python3
-    from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl
 from apps.fhir.bluebutton.utils import (
     notNone,
     block_params,
@@ -182,19 +177,14 @@ class BlueButtonUtilSrtcTestCase(TestCase):
 
         srtc = SupportedResourceType.objects.get(pk=2)
 
-        # print("SRTC: %s" % srtc.resource_name)
-
         Crosswalk.objects.get(pk=1)
         fhir_id = "Patient/9342511"
         response = add_params(srtc, patient_id='1234', key=fhir_id)
-
-        # print("\nResponse for %s: %s\n" % (srtc, response))
 
         self.assertEquals(response, ['patient=Patient/9342511'])
 
         # Test Patient= in EOB resource
         srtc = SupportedResourceType.objects.get(pk=1)
-        # print("SRTC: %s" % srtc.resource_name)
 
         Crosswalk.objects.get(pk=1)
         fhir_id = "Patient/9342511"
@@ -206,17 +196,12 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         Crosswalk.objects.get(pk=1)
         fhir_id = "Patient/9342511"
         response = add_params(srtc, patient_id=fhir_id, key='1234')
-        # print("Response:(%s)" % response)
-        # print("JSON Dumps:%s" % json.dumps(response))
         self.assertEquals(response, [])
 
         # Test no fhir =_id in EOB
         srtc = SupportedResourceType.objects.get(pk=2)
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
-
-        # print("\nResponse:%s" % response)
-        # print("compare to:%s" % [])
 
         self.assertEquals(response, ['patient='])
 
@@ -230,9 +215,6 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         srtc = None
         Crosswalk.objects.get(pk=1)
         response = add_params(srtc)
-
-        # print("Response 2:%s" % type(response))
-        # print("compare to 2:%s" % [])
 
         self.assertEquals(response, [])
 
@@ -416,8 +398,6 @@ class BlueButtonUtilSrtcTestCase(TestCase):
 
         response = FhirServerAuth()
 
-        # print("Test 1: FHIRServerAuth %s %s" % (response, expected))
-
         self.assertDictEqual(response, expected)
 
         """ Test 2: pass cx """
@@ -430,7 +410,6 @@ class BlueButtonUtilSrtcTestCase(TestCase):
                                               cx.fhir_source.cert_file),
                     'key_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
                                              cx.fhir_source.key_file)}
-        # print("\n Test 2: FHIRServerAuth %s %s" % (response, expected))
 
         self.assertDictEqual(response, expected)
 
@@ -456,10 +435,7 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         #            "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
 
         rr = get_resourcerouter()
-        if settings.RUNNING_PYTHON2:
-            rr_server_address = rr.server_address.encode('utf-8')
-        else:
-            rr_server_address = rr.server_address
+        rr_server_address = rr.server_address
 
         expected = rr_server_address
         expected += rr.server_path
@@ -548,7 +524,6 @@ class BlueButtonUtilsRtTestCase(TestCase):
         response = check_rt_controls(resource_type)
         expect = SupportedResourceType.objects.get(resourceType=resource_type,
                                                    fhir_source=rr)
-        # print("Resource:", response.id,"=", expect.id)
 
         self.assertEquals(response.id, expect.id)
 
@@ -794,7 +769,6 @@ class BlueButtonUtilRequestTest(TestCase):
 
         default_url = ['http://disappear.com',
                        'http://www.disappear.com']
-        # print("\n\ndefault_url:%s" % default_url)
 
         input_text = 'dddd anything '
         input_text += default_url[0]
@@ -851,9 +825,6 @@ class BlueButtonUtilRequestTest(TestCase):
                    ' will get replaced ' \
                    'more stuff http://www.replaced.com and ' \
                    'http://www.replaced.com:8000/ okay'
-
-        # print("\n\n\nResponse:", response)
-        # print("\n\n\nExpected:", expected)
 
         self.assertEqual(response, expected)
 

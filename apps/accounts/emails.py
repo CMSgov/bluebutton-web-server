@@ -216,8 +216,6 @@ def send_invite_request_notices(invite_request):
                                  [to, settings.INVITE_REQUEST_ADMIN])
     msg.attach_alternative(html_content, 'text/html')
 
-    # print("\n\nMESSAGE EMAIL - INVITE REQUEST: %s / %s" % (to, msg.to))
-
     msg.send()
 
 

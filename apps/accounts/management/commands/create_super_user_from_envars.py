@@ -4,14 +4,14 @@ from getenv import env
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
+import logging
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
+
 
 def create_superuser(username, password, email):
-    # First we check if the superuser exists.
-    # If  it does we will reset password.
-    # If we don't test for a user first then the Save causes an Integrity Error
     try:
         u = User.objects.get(username=username)
-        print("%s account exists. Resetting password" % username)
     except User.DoesNotExist:
         # Otherwise we instantiate the super user
         u = User(username=username, first_name="Super", last_name="User",
@@ -36,10 +36,10 @@ class Command(BaseCommand):
             # create a super user
             r = create_superuser(super_username, super_password, super_email)
             if r:
-                print('Superuser created/updated.')
+                logger.info('Superuser created/updated.')
             else:
-                print('Something went wrong')
+                logger.info('Something went wrong creating/updating superuser')
         else:
-            print(
+            logger.debug(
                 'Environment variables DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_PASSWORD,',
                 'DJANGO_SUPERUSER_EMAIL must be set before using this command.')

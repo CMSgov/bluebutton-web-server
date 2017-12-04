@@ -26,9 +26,7 @@ class SettingsBackend(object):
             pwd_valid = check_password(password, settings.SETTINGS_AUTH_PASSWORD)
         else:
             pwd_valid = False
-        # pwd_valid = check_password(password, pwd_to_compare)
         if login_valid and pwd_valid:
-            # print("VALID SLS USER AND PASSWORD")
             try:
                 user = User.objects.get(username=username)
             except User.DoesNotExist:

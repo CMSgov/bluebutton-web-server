@@ -6,9 +6,9 @@ from django.core.urlresolvers import reverse
 from django.core.management.base import BaseCommand
 from ...models import ProtectedCapability
 
-__author__ = "Alan Viars"
+import logging
 
-
+logger = logging.getLogger('hhs_server.%s' % __name__)
 fhir_prefix = "/protected/bluebutton/fhir/v1/"
 
 
@@ -16,9 +16,9 @@ def create_group(name="BlueButton"):
 
     g, created = Group.objects.get_or_create(name=name)
     if created:
-        print("%s group created" % (name))
+        logger.info("%s group created" % (name))
     else:
-        print("%s group pre-existing. Create skipped." % (name))
+        logger.info("%s group pre-existing. Create skipped." % (name))
     return g
 
 
@@ -38,7 +38,6 @@ def create_userinfo_capability(group,
                                                description=description,
                                                slug=scope_string,
                                                protected_resources=json.dumps(pr, indent=4))
-        print("%s - %s created." % (c.slug, c.title))
     return c
 
 
@@ -60,7 +59,6 @@ def create_patient_capability(group,
                                                description=description,
                                                slug=smart_scope_string,
                                                protected_resources=json.dumps(pr, indent=4))
-        print("%s - %s created" % (c.slug, c.title))
     return c
 
 
@@ -81,7 +79,6 @@ def create_eob_capability(group,
                                                description=description,
                                                slug=smart_scope_string,
                                                protected_resources=json.dumps(pr, indent=4))
-        print("%s - %s created." % (c.slug, c.title))
     return c
 
 
@@ -102,7 +99,6 @@ def create_coverage_capability(group,
                                                description=description,
                                                slug=smart_scope_string,
                                                protected_resources=json.dumps(pr, indent=4))
-        print("%s - %s created." % (c.slug, c.title))
     return c
 
 
@@ -111,12 +107,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         g = create_group()
-        # Delete any pre-existing BlueButton Scopes
-        # print("Deleting pre-existing scope in the BlueButton group.")
-        # ProtectedCapability.objects.filter(group=g).delete()
-        #
         create_userinfo_capability(g)
         create_patient_capability(g, fhir_prefix)
         create_eob_capability(g, fhir_prefix)
         create_coverage_capability(g, fhir_prefix)
-        print("Done. Stay classy, San Diego.")

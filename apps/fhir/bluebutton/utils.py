@@ -1,20 +1,23 @@
 import os
 import json
 import logging
+import pytz
 import requests
+import uuid
+
+from urllib.parse import urlencode
 from collections import OrderedDict
+from datetime import datetime
+from pytz import timezone
+
 from django.conf import settings
 from django.contrib import messages
 from .opoutcome_utils import (kickout_403,
                               kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
-try:
-    # python2
-    from urllib import urlencode
-except ImportError:
-    # python3
-    from urllib.parse import urlencode
+
+from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import (base_issuer, build_endpoint_info)
 from .models import Crosswalk, Fhir_Response
@@ -34,6 +37,141 @@ logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 # be managed by settings.
 
 
+def is_oauth2(request):
+    """Is the request OAuth2 or not.  Return True or False."""
+    if hasattr(request, 'resource_owner'):
+        return True
+    return False
+
+
+def get_user_from_request(request):
+    """Returns a user or None with login or OAuth2 API"""
+    user = None
+    if hasattr(request, 'resource_owner'):
+        user = request.resource_owner
+    if hasattr(request, 'user'):
+        if not request.user.is_anonymous():
+            user = request.user
+    return user
+
+
+def get_access_token_from_request(request):
+    """Returns a user or None with login or OAuth2 API"""
+    token = ""
+    if hasattr(request, 'resource_owner'):
+        if 'HTTP_AUTHORIZATION' in request.META:
+            bearer, token = request.META['HTTP_AUTHORIZATION'].split(' ')
+        if 'Authorization' in request.META:
+            bearer, token = request.META['Authorization'].split(' ')
+    return token
+
+
+def get_fhir_now(my_now=None):
+    """ Format a json datetime in xs:datetime format
+
+        .now(): 2012-02-17 09:52:35.033232
+        datetime.datetime.now(pytz.utc).isoformat()
+        '2012-02-17T11:58:44.789024+00:00'
+
+    """
+    if my_now:
+        now_is = my_now
+    else:
+        now_is = datetime.now(timezone(settings.TIME_ZONE))
+
+    format_now = now_is.isoformat()
+
+    return format_now
+
+
+def get_timestamp(request):
+    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+        adds request._logging_start_dt
+
+        we grab it or set a timestamp and return it.
+
+    """
+
+    if not hasattr(request, '_logging_start_dt'):
+        return datetime.now(pytz.utc).isoformat()
+
+    else:
+        return request._logging_start_dt
+
+
+def get_query_id(request):
+    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+        adds request._logging_uuid
+
+        we grab it or set a uuid and return it.
+
+    """
+    if not hasattr(request, '_logging_uuid'):
+        return uuid.uuid1()
+
+    else:
+        return request._logging_uuid
+
+
+def get_query_counter(request):
+    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+        adds request._logging_pass
+
+        we grab it or set a counter and return it.
+
+    """
+    if not hasattr(request, '_logging_pass'):
+        return 1
+
+    else:
+        return request._logging_pass
+
+
+def generate_info_headers(request):
+    """Returns a dict of headers to be sent to the backend"""
+    result = {}
+    # get timestamp from request via Middleware, or get current time
+    result['BlueButton-OriginalQueryTimestamp'] = str(get_timestamp(request))
+
+    # get uuid or set one
+    result['BlueButton-OriginalQueryId'] = str(get_query_id(request))
+
+    # get query counter or set to 1
+    result['BlueButton-OriginalQueryCounter'] = str(get_query_counter(request))
+
+    # Return resource_owner or user
+    user = get_user_from_request(request)
+    cx = get_crosswalk(user)
+    if cx:
+        # we need to send the HicnHash or the fhir_id
+        if len(cx.fhir_id) > 0:
+            result['BlueButton-BeneficiaryId'] = 'patientId:' + str(cx.fhir_id)
+        else:
+            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(cx.user_id_hash)
+    else:
+        # Set to empty
+        result['BlueButton-BeneficiaryId'] = ""
+
+    if user:
+        result['BlueButton-UserId'] = str(user.id)
+        result['BlueButton-User'] = str(user)
+        result['BlueButton-Application'] = ""
+        result['BlueButton-ApplicationId'] = ""
+        if AccessToken.objects.filter(token=get_access_token_from_request(request)).exists():
+            at = AccessToken.objects.get(token=get_access_token_from_request(request))
+            result['BlueButton-Application'] = str(at.application.name)
+            result['BlueButton-ApplicationId'] = str(at.application.id)
+            result['BlueButton-DeveloperId'] = str(at.application.user.id)
+            result['BlueButton-Developer'] = str(at.application.user)
+        else:
+            result['BlueButton-Application'] = ""
+            result['BlueButton-ApplicationId'] = ""
+            result['BlueButton-DeveloperId'] = ""
+            result['BlueButton-Developer'] = ""
+
+    return result
+
+
 def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
@@ -51,9 +189,6 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     # call FhirServer_Auth(cx) to get authentication
     auth_state = FhirServerAuth(cx)
 
-    # logger.debug("Auth_state:%s" % auth_state)
-    # logger.debug("Calling: %s" % call_url)
-
     verify_state = FhirServerVerify(cx)
     if auth_state['client_auth']:
         # cert puts cert and key file together
@@ -67,6 +202,11 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     else:
         cert = ()
 
+    header_info = generate_info_headers(request)
+
+    # TODO: send header info to performance log
+    logger.info(header_info)
+
     try:
 
         ####################################################################
@@ -77,9 +217,13 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
             r = requests.get(call_url,
                              cert=cert,
                              timeout=timeout,
+                             headers=header_info,
                              verify=verify_state)
         else:
-            r = requests.get(call_url, cert=cert, verify=verify_state)
+            r = requests.get(call_url,
+                             cert=cert,
+                             headers=header_info,
+                             verify=verify_state)
 
         ####################################################################
         ####################################################################
@@ -112,27 +256,13 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         return fhir_response
 
     except requests.ConnectionError as e:
-        # logger.debug('Connection Problem to FHIR '
-        #              'Server: %s : %s' % (call_url, e))
         logger.debug("Request.GET:%s" % request.GET)
-        # logger.debug("what is in e:\n#######\n%s\n##########\n" % dir(e))
 
         fhir_response = build_fhir_response(request,
                                             call_url,
                                             cx,
                                             r=None,
                                             e=e)
-
-        # for attr in dir(e):
-        #     if attr == "characters_written":
-        #         pass
-        #     else:
-        #         logger.debug("e.%s = %s" % (attr, getattr(e, attr)))
-        # e.status_code = 504
-        # e.text = '{\"errors\": [\"Connection Problem to FHIR Server\", \"status_code: 504\"], \"code\": 504}'
-        # logger.debug("what is in amended e:\n#######\n%s\n##########\n" % dir(e))
-        #
-        # return error_status(e, 504, reason=e.text)
 
         return fhir_response
 
@@ -153,28 +283,9 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
         messages.error(request, 'Problem connecting to FHIR Server.')
 
         e = requests.Response
-        # e.text = r_err
         logger.debug("HTTPError Status_code:%s" %
                      requests.exceptions.HTTPError)
-        # logger.debug("Status_Code:%s" % r.status_code)
-        # e.status_code = 502
-
-        # return error_status(e, 502, reason=r.text)
-        # return error_status(fhir_response, 502, reason=r.text)
-
-        # return HttpResponseRedirect(fail_redirect)
         return fhir_response
-
-    # logger.debug("Evaluating r:%s" % evaluate_r(r))
-
-    # if r.status_code in ERROR_CODE_LIST:
-    #
-    #     fhir_response = build_fhir_response(request, call_url, cx, r)
-    #
-    #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
-    #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
-    #     return error_status(fhir_response, r.status_code)
-    #     # return error_status(r, r.status_code)
 
     return fhir_response
 
@@ -261,47 +372,6 @@ def request_get_with_parms(request,
 
         return fhir_response
 
-        # if r.status_code in ERROR_CODE_LIST:
-        #     r.raise_for_status()
-        # # except requests.exceptions.HTTPError as r_err:
-
-    # except requests.ConnectionError as e:
-    #     logger.debug('Connection Problem to FHIR '
-    #                  'Server: %s : %s' % (call_url, e))
-    #     return error_status('Connection Problem to FHIR '
-    #                         'Server: %s:%s' % (call_url, e),
-    #                         504)
-    #
-    # except requests.exceptions.HTTPError as e:
-    #     # except requests.exceptions.RequestException as r_err:
-    #     r_err = requests.exceptions.RequestException
-    #     logger.debug('Problem connecting to FHIR Server: %s' % call_url)
-    #     logger.debug('Exception: %s' % r_err)
-    #     handle_e = handle_http_error(e)
-    #     handle_e = handle_e
-    #
-    #     messages.error(request, 'Problem connecting to FHIR Server.')
-    #
-    #     logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
-    #
-    #     if 'text' in r:
-    #         r_text = r.text
-    #     else:
-    #         r_text = "Error Status:%s. %s " % (r.status_code, request.GET)
-    #         logger.debug("error code:%s issue:%s" % (r.status_code, r_text))
-    #     return error_status(r, status_code=r.status_code)
-    #
-    #     # return HttpResponseRedirect(fail_redirect)
-    #
-    # # logger.debug("Evaluating r:%s" % evaluate_r(r))
-    #
-    # if r.status_code in ERROR_CODE_LIST:
-    #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
-    #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
-    #     return error_status(r, r.status_code)
-    #
-    # return r
-
     except requests.exceptions.Timeout as e:
 
         logger.debug("Gateway timeout talking to back-end server")
@@ -358,25 +428,6 @@ def request_get_with_parms(request,
         # e.text = r_err
         logger.debug("HTTPError Status_code:%s" %
                      requests.exceptions.HTTPError)
-        # logger.debug("Status_Code:%s" % r.status_code)
-        # e.status_code = 502
-
-        # return error_status(e, 502, reason=r.text)
-        # return error_status(fhir_response, 502, reason=r.text)
-
-        # return HttpResponseRedirect(fail_redirect)
-        return fhir_response
-
-        # logger.debug("Evaluating r:%s" % evaluate_r(r))
-
-        # if r.status_code in ERROR_CODE_LIST:
-        #
-        #     fhir_response = build_fhir_response(request, call_url, cx, r)
-        #
-        #     logger.debug("\nRequest Error Status Code:%s" % r.status_code)
-        #     logger_debug.debug("\nError Status Code:%s" % r.status_code)
-        #     return error_status(fhir_response, r.status_code)
-        #     # return error_status(r, r.status_code)
 
     return fhir_response
 
@@ -439,8 +490,6 @@ def add_params(srtc, patient_id=None, key=None):
     # add_params = ''
     add_params = []
 
-    # print("\n########################\n")
-
     if srtc:
         if srtc.override_search:
             params_list = srtc.get_search_add()
@@ -457,43 +506,29 @@ def add_params(srtc, patient_id=None, key=None):
 
             add_params = []
             for item in params_list:
-                # print("\nSRTC:%s\n   \noverride:%s\n"
-                #       "    item:%s\n"
-                #       "         from: %s\n\n" % (srtc,
-                #                                  srtc.override_search,
-                #                                  item,
-                #                                  params_list))
                 # Run through list and do variable replacement
                 if srtc.resourceType.lower() not in item.lower():
                     # only replace 'patient=%PATIENT%' if resource not Patient
                     if '%PATIENT%' in item:
                         if key is None:
-                            # key_str = ''
                             patient_str = str(patient_id)
                             if patient_id is None:
                                 patient_str = ''
-                            # print('\nsetting to patient:%s' % patient_str)
                         else:
                             # force key to string
                             patient_str = str(key)
-                            # print('setting to key:%s' % patient_str)
                         if patient_str is 'None':
                             patient_str = ''
                         if patient_str is None:
                             patient_str = ''
-                        # print("set to nothing?:%s" % patient_str)
                         item = item.replace('%PATIENT%', patient_str)
                         if '%PATIENT%' in item:
                             # Still there we need to remove
                             item = item.replace('%PATIENT%', '')
 
-                    # print("Added item:%a" % item)
                     add_params.append(item)
-            # print('Resulting additional parameters:%s' % add_params)
             logger_debug.debug(
                 'Resulting additional parameters:%s' % add_params)
-
-    # print("\n#EXIT####################\n")
 
     return add_params
 
@@ -561,11 +596,7 @@ def build_params(get, srtc, key, patient_id=None):
 
     # Now we need to construct the parameters we need to add
 
-    # print("SRTC:%s\npatient=%s\nkey=%s\n" % (srtc,patient_id,key))
-
     add_param = add_params(srtc, patient_id=patient_id, key=key)
-
-    # print("\nAdd param: %s\n" % add_param)
 
     # Put the parameters together in urlencoded string
     # leading ? and parameters joined by &
@@ -698,10 +729,7 @@ def FhirServerUrl(server=None, path=None, release=None):
 
     rr_def = get_resourcerouter()
 
-    if settings.RUNNING_PYTHON2:
-        rr_server_address = rr_def.server_address.encode('utf-8')
-    else:
-        rr_server_address = rr_def.server_address
+    rr_server_address = rr_def.server_address
 
     fhir_server = notNone(server, rr_server_address)
 
@@ -824,13 +852,10 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
 
-        # print("\nReplacing: [%s] with [%s]  \n" % (find_url, host_path))
-
         logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
     else:
         out_text = in_text
 
-        # print('Passing [%s] to [%s]' % (in_text, "out_text"))
         logger_debug.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
 
     return out_text
@@ -848,17 +873,13 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         return in_text
 
     rr_def = get_resourcerouter()
-    if settings.RUNNING_PYTHON2:
-        rr_def_server_address = rr_def.server_address.encode('utf-8')
-    else:
-        rr_def_server_address = rr_def.server_address
+    rr_def_server_address = rr_def.server_address
 
     if isinstance(rr_def_server_address, str):
         if rr_def_server_address not in urls_be_gone:
 
             urls_be_gone.append(rr_def_server_address)
 
-    # print("\nURLS to Remove:%s" % urls_be_gone)
     for kill_url in urls_be_gone:
         # work through the list making replacements
         if kill_url.endswith('/'):
@@ -919,10 +940,7 @@ def build_conformance_url():
     """ Build the Conformance URL call string """
 
     rr_def = get_resourcerouter()
-    if settings.RUNNING_PYTHON2:
-        rr_def_server_address = rr_def.server_address.encode('utf-8')
-    else:
-        rr_def_server_address = rr_def.server_address
+    rr_def_server_address = rr_def.server_address
 
     call_to = rr_def_server_address
     call_to += rr_def.server_path
@@ -1066,6 +1084,9 @@ def get_crosswalk(user):
     """ Receive Request.user and use as lookup in Crosswalk
         Return Crosswalk or None
     """
+    # Don't do a lookup if user is not defined
+    if user is None:
+        return None
 
     if user.is_anonymous():
         return None
@@ -1220,8 +1241,6 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
         if 'text' in r_dir:
             fhir_response._text = r.text
 
-            # print("copied text(%s) to _text" % r.text[:100])
-
             if r.text[0] == "<":
                 logger.debug("\nLooks like XML....[%s]" % r.text[:10])
                 fhir_response._xml = r.text
@@ -1307,29 +1326,21 @@ def get_response_text(fhir_response=None):
     text_in = ""
 
     if not fhir_response:
-        # logger.debug("\nfhir_response not passed to get_response_text")
         text_in = ""
         return text_in
 
     try:
         text_in = fhir_response.text
         if len(text_in) > 0:
-            # logger.debug("returning .text:%s" % fhir_response.text[:40])
             return text_in
-
     except Exception:
-        # logger.debug("Nothing in .text")
         pass
 
     try:
         text_in = fhir_response._response.text
         if len(text_in) > 0:
-            # logger.debug("returning "
-            #              "_response.text:%s" % fhir_response.text[:40])
             return text_in
-
     except Exception:
-        # logger.debug("Nothing in ._response.text")
         pass
 
     try:
@@ -1376,7 +1387,7 @@ def build_oauth_resource(request, format_type="json"):
     """
     endpoints = build_endpoint_info(OrderedDict(),
                                     issuer=base_issuer(request))
-    print("\nEndpoints:%s" % endpoints)
+    logger.info("\nEndpoints:%s" % endpoints)
 
     if format_type.lower() == "xml":
 
@@ -1408,5 +1419,4 @@ def build_oauth_resource(request, format_type="json"):
              }
         ]
 
-    # print("\nSecurity Statement is:%s" % security)
     return security

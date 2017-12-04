@@ -73,7 +73,6 @@ def test_patient(request):
         request.session['client_id'], token=request.session['token'])
     patient_uri = "%s/protected/bluebutton/fhir/v1/Patient/%s?_format=json" % (
         request.session['resource_uri'], request.session['patient'])
-    print(patient_uri)
     patient = oas.get(patient_uri).json()
     return JsonResponse(patient)
 
