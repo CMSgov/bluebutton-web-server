@@ -4,11 +4,6 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-# allow-all-external is needed when FIPS-140.2 is enabled
-# call pip install -r requirements/requirements.txt -i https://pypi.org/simple/
-#
---allow-all-external
-
 boto3==1.4.0
 boto==2.40.0
 botocore==1.4.93          # via boto3, s3transfer
