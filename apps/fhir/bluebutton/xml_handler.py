@@ -10,8 +10,6 @@ Created: 3/28/17 3:00 PM
 File created by: ''
 """
 import logging
-# import xml.etree.ElementTree as ET
-# Replacing xml.etree.ElementTree to avoid xml exploits
 import defusedxml.ElementTree as ET
 
 
