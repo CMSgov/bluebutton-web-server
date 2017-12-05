@@ -4,8 +4,6 @@ from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from apps.accounts.models import UserProfile
-from getenv import env
-from unittest import skipUnless
 
 
 class LoginTestCase(TestCase):
@@ -102,23 +100,3 @@ class LoginTestCase(TestCase):
             # No SLS Auth in backend
             SLS_Auth_disabled = True
             self.assertEqual(SLS_Auth_disabled, True)
-
-    @skipUnless(env('MM_USER', ''),
-                "Requires real MyMedicare credentials. Test locally")
-    def test_mymedicare_valid_login_succeeds(self):
-        """
-        Test MyMedicare valid login succeeds.
-        When user is authenticated by MyMedicare, then user is presumed a benny
-        """
-        form_data = {'username': env('MM_USER', 'CHANGE_ME'),
-                     'password': env('MM_PASS', 'CHANGE_ME')}
-        response = self.client.post(self.url,
-                                    form_data,
-                                    follow=True)
-        up = UserProfile.objects.get(
-            user__username=env(
-                'MM_USER', 'CHANGE_ME'))
-        # This user is a beneficiary.
-        self.assertEqual(up.user_type, 'BEN')
-        # The user is logged in
-        self.assertContains(response, "Logout")
