@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.dot_ext.decorators import capability_protected_resource
@@ -32,7 +32,6 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         get_host_url,
                                         get_resourcerouter,
                                         post_process_request,
-                                        pretty_json,
                                         get_response_text)
 
 from apps.fhir.bluebutton.views.home import (fhir_conformance,
@@ -428,5 +427,4 @@ def read_search(request,
     if requested_format == 'xml':
         return HttpResponse(r.text, content_type='application/xml')
 
-    return HttpResponse(pretty_json(od['bundle']),
-                        content_type='application/json')
+    return JsonResponse(od['bundle'])

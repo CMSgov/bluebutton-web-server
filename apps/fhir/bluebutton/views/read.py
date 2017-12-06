@@ -3,7 +3,7 @@ import logging
 from collections import OrderedDict
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 from ..opoutcome_utils import (kickout_403,
                                write_session,
@@ -27,7 +27,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_host_url,
                                         build_output_dict,
                                         post_process_request,
-                                        pretty_json,
                                         get_default_path,
                                         get_crosswalk,
                                         get_resourcerouter,
@@ -355,5 +354,4 @@ def generic_read(request,
         return HttpResponse(r.text,
                             content_type='application/xml')
 
-    return HttpResponse(pretty_json(od['bundle']),
-                        content_type='application/json')
+    return JsonResponse(od['bundle'])

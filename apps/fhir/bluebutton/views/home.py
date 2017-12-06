@@ -14,14 +14,14 @@ import logging
 from collections import OrderedDict
 from urllib.parse import urlencode
 from django.core.urlresolvers import reverse_lazy
-from django.shortcuts import render, HttpResponse
+from django.http import JsonResponse
+from django.shortcuts import HttpResponse
 from apps.fhir.bluebutton.utils import (request_call,
                                         FhirServerUrl,
                                         get_host_url,
                                         build_output_dict,
                                         prepend_q,
                                         post_process_request,
-                                        pretty_json,
                                         get_crosswalk,
                                         get_resource_names,
                                         get_resourcerouter,
@@ -112,7 +112,6 @@ def rebuild_fhir_search(request, via_oauth=False):
             # get user via logged in user
             cx = get_crosswalk(request.user)
 
-        # logger.debug("Calling:%s" % url_call)
         r = request_call(request,
                          url_call,
                          cx,
@@ -138,16 +137,9 @@ def rebuild_fhir_search(request, via_oauth=False):
                                text_out)
 
         if fmt == 'xml':
-            return HttpResponse(r.text, content_type='application/%s' % fmt)
-        elif fmt == 'json':
-            return HttpResponse(pretty_json(od),
-                                content_type='application/%s' % fmt)
+            return HttpResponse(r.text, content_type='application/xml')
 
-        return render(
-            request,
-            'bluebutton/default.html',
-            {'content': pretty_json(od), 'output': od},
-        )
+        return JsonResponse(od)
 
     return authenticated_home(request)
 
@@ -250,25 +242,16 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         od = conformance_filter(text_out, back_end_format, rr)
 
         # Append Security to ConformanceStatement
-        security_endpoint = build_oauth_resource(request,
-                                                 format_type="json")
+        security_endpoint = build_oauth_resource(request, format_type="json")
         od['rest'][0]['security'] = security_endpoint
 
-        text_out = pretty_json(od)
-        return HttpResponse(text_out, content_type='application/json')
+        return JsonResponse(od)
 
 
 def conformance_filter(text_block, fmt, rr=None):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
-    # if fmt == "xml":
-    #     # First attempt at xml filtering
-    #     # logger.debug("xml block as text:\n%s" % text_block)
-    #
-    #     xml_dict = xml_to_dict(text_block)
-    #     # logger.debug("xml dict:\n%s" % xml_dict)
-    #     return xml_dict
 
     # Get a list of resource names
     if rr is None:
