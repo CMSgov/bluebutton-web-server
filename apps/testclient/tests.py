@@ -125,4 +125,3 @@ class BlueButtonClientApiOIDCDiscoveryTest(TestCase):
         response = self.client.get(reverse('openid-configuration'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "userinfo_endpoint")
-        
