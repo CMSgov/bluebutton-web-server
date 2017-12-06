@@ -88,58 +88,6 @@ def init_text_list(replace_with=''):
     return (list_to_text(new_text_list))
 
 
-def eval_format_type(format_defn=None):
-    """
-    Evaluate the content of _format and return 'json' (default)
-    or 'xml' | 'html'
-    :param format_defn: the value of _format url parameter
-    :return: format_type
-
-                xml	                    json
-    Resource	application/xml+fhir	application/json+fhir
-    Bundle	    application/atom+xml	application/json+fhir
-    TagList	    application/xml+fhir	application/json+fhir
-
-    """
-
-    json_type = 'json'
-    xml_type = 'xml'
-    atom_type = 'xml'
-    html_type = 'html'
-
-    if format_defn is None:
-        return json_type
-
-    if 'json' in format_defn.lower():
-        return json_type
-    elif 'xml' in format_defn.lower():
-        return xml_type
-    elif 'atom' in format_defn.lower():
-        return atom_type
-    elif 'html' in format_defn.lower():
-        return html_type
-    else:
-        # not sure what was requested so we will report it and default to json
-        logger.error('_format request is unknown:%s' % format_defn)
-        return json_type
-
-    # catch all
-    return json_type
-
-
-def save_request_format(input_parameters):
-    """
-
-    :param input_parameters:
-    :return:
-    """
-
-    if "_format" in input_parameters:
-        return input_parameters['_format']
-
-    return None
-
-
 def set_fhir_format(fmt_type):
     """
     Get the fmt_type: json|xml|html

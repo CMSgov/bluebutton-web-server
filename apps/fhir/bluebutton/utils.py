@@ -1022,7 +1022,6 @@ def prepend_q(pass_params):
             pass
         else:
             pass_params = '?' + pass_params
-        # logger_debug.debug("Parameters:", pass_params)
     return pass_params
 
 
@@ -1101,23 +1100,6 @@ def get_crosswalk(user):
         pass
 
     return None
-
-
-def conformance_or_capability(fhir_url):
-    """ Check FHIR Url for FHIR Version.
-    :return resource type (STU3 switches from ConformanceStatement
-            to CapabilityStatement
-
-    :param fhir_url:
-    :return:
-    """
-
-    if "stu3" in fhir_url.lower():
-        resource_type = "CapabilityStatement"
-    else:
-        resource_type = "Conformance"
-
-    return resource_type
 
 
 def get_resource_names(rr=None):
