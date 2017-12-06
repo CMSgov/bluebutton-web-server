@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load static %}
 {% load has_group %}
-<!-- &copy; 2015-2017 Videntity Systems, Inc.  --> 
+<!-- &copy; 2015-2017 Videntity Systems, Inc.  -->
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
 
   <div class="container">
@@ -46,20 +46,20 @@
             <ul class="dropdown-menu">
                 <li><a href="{% url 'test_links' %}"> <i class="fa fa-check"></i> Sample Test Client</a></li>
                 <li><a href="{% url 'bb_fhir_conformance' %}"> <i class="fa fa-fire"></i> FHIR<sup>&reg;</sup> Capability Statement</a></li>
-                <li>{% if fhir_id == None %}<a href="{% url 'bb_fhir_read_or_update_or_delete' resource_type="Patient" id="0" %}{% else %}<a href="{% url 'bb_fhir_read_or_update_or_delete' resource_type="Patient" id=fhir_id %}{% endif %}/?_format=html"> <i class="fa fa-user-circle"></i> My Patient record</a></li>
-                <li><a href="{% url 'bb_fhir_search' resource_type="Coverage" %}/?_format=html"> <i class="fa fa-umbrella"></i> My Coverage</a></li>
-               <li><a href="{% url 'bb_fhir_search' resource_type="ExplanationOfBenefit" %}/?_format=html"> <i class="fa fa-file-text-o"></i> My FHIR<sup>&reg;</sup> ExplanationOfBenefit records</a></li>
+                <li>{% if fhir_id == None %}<a href="{% url 'bb_fhir_read_or_update_or_delete' resource_type="Patient" id="0" %}{% else %}<a href="{% url 'bb_fhir_read_or_update_or_delete' resource_type="Patient" id=fhir_id %}{% endif %}/"> <i class="fa fa-user-circle"></i> My Patient record</a></li>
+                <li><a href="{% url 'bb_fhir_search' resource_type="Coverage" %}/"> <i class="fa fa-umbrella"></i> My Coverage</a></li>
+               <li><a href="{% url 'bb_fhir_search' resource_type="ExplanationOfBenefit" %}/"> <i class="fa fa-file-text-o"></i> My FHIR<sup>&reg;</sup> ExplanationOfBenefit records</a></li>
              {% if "apps.sandbox" in active_apps %}
                 <li class="divider"></li>
                   <li> &nbsp;&nbsp;<i class="fa fa-gears"></i> Sandbox </li>
             {% endif %}
             </ul>
         </li>
-		
+
 
         {% endif %}
-		
-		
+
+
 		{% if user.is_authenticated %}
 
         <li class="dropdown">
