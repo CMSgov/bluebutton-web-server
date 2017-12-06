@@ -4,29 +4,24 @@ import logging
 
 from collections import OrderedDict
 
-# from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse
-
 from django.views.decorators.csrf import csrf_exempt
 
-from django.shortcuts import render
 from apps.dot_ext.decorators import capability_protected_resource
 
-from ..opoutcome_utils import (build_querystring,
-                               find_ikey,
-                               get_div_from_json,
+from ..opoutcome_utils import (find_ikey,
                                get_target_url,
                                ERROR_CODE_LIST,
                                kickout_400,
                                kickout_403,
                                kickout_404,
+                               request_format,
                                SESSION_KEY,
                                write_session)
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
-                                        # add_params,
                                         block_params,
                                         build_output_dict,
                                         build_rewrite_list,
@@ -34,23 +29,16 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         check_rt_controls,
                                         get_crosswalk,
                                         get_fhir_id,
-                                        get_fhir_source_name,
                                         get_host_url,
                                         get_resourcerouter,
                                         post_process_request,
                                         pretty_json,
                                         get_response_text)
 
-# from apps.fhir.bluebutton.views.read import generic_read
-
 from apps.fhir.bluebutton.views.home import (fhir_conformance,
                                              fhir_search_home)
-from apps.fhir.bluebutton.xml_handler import get_div_from_xml
 
-
-from apps.fhir.server.utils import (eval_format_type,
-                                    save_request_format,
-                                    set_fhir_format,
+from apps.fhir.server.utils import (set_fhir_format,
                                     set_resource_id,
                                     search_add_to_list,
                                     payload_additions,
@@ -310,17 +298,10 @@ def read_search(request,
     # Sve the display _format
 
     input_parameters = request.GET
-
-    # requested_format = 'json' | 'xml' | 'html'
-    requested_format = save_request_format(input_parameters)
-    if via_oauth and requested_format == "html":
-        # default to "json"
-        requested_format = "json"
-
-    format_mode = eval_format_type(requested_format)
+    requested_format = request_format(input_parameters)
 
     # prepare the back-end _format setting
-    back_end_format = set_fhir_format(format_mode)
+    back_end_format = set_fhir_format(requested_format)
 
     # request.GET is immutable so take a copy to allow the values to be edited.
     payload = request.GET.copy()
@@ -368,8 +349,6 @@ def read_search(request,
     # add the _format setting
     payload['_format'] = back_end_format
 
-    query_string = build_querystring(request.GET.copy())
-
     ###############################################
     ###############################################
     # Make the request_call
@@ -388,30 +367,11 @@ def read_search(request,
     #
     ################################################
 
-    # if 'status_code' in r:
-    #     r_status_code = r.status_code
-    # else:
-    #     r_status_code = 500
-
     if r.status_code in ERROR_CODE_LIST:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
-        if 'html' in requested_format.lower():
-            return render(
-                request,
-                'default.html',
-                {'output': pretty_json(r._content, indent=4),
-                 'fhir_id': get_fhir_id(cx),
-                 'content': {'parameters': query_string,
-                             'resource_type': resource_type,
-                             'id': id,
-                             'request_method': "GET",
-                             'interaction_type': interaction_type,
-                             'div_texts': "",
-                             'source': get_fhir_source_name(cx)}})
-        else:
-            return HttpResponse(json.dumps(r._content, indent=4),
-                                status=r.status_code,
-                                content_type='application/json')
+        return HttpResponse(json.dumps(r._content, indent=4),
+                            status=r.status_code,
+                            content_type='application/json')
 
     rewrite_list = build_rewrite_list(cx)
     host_path = get_host_url(request, resource_type)[:-1]
@@ -465,47 +425,8 @@ def read_search(request,
             logger.debug("Problem writing session variables."
                          " Returned %s" % sesn_var)
 
-    if format_mode == 'xml':
-        # logger.debug('We got xml back in od')
-        return HttpResponse(r.text,
-                            content_type='application/%s' % requested_format)
-        # return HttpResponse(tostring(dict_to_xml('content', od)),
-        #                     content_type='application/%s' % requested_format)
+    if requested_format == 'xml':
+        return HttpResponse(r.text, content_type='application/xml')
 
-    elif format_mode == 'json':
-        # logger.debug('We got json back in od')
-        return HttpResponse(pretty_json(od['bundle']),
-                            content_type='application/%s' % requested_format)
-
-    if "xml" in requested_format:
-        div_text = get_div_from_xml(text_out)
-        return render(
-            request,
-            'default_xml.html',
-            {'output': text_out,
-             'fhir_id': get_fhir_id(cx),
-             'content': {'parameters': query_string,
-                         'resource_type': resource_type,
-                         'id': id,
-                         'request_method': "GET",
-                         'interaction_type': interaction_type,
-                         'div_texts': [div_text, ],
-                         'source': get_fhir_source_name(cx)}})
-
-    else:
-        text_out = pretty_json(od['bundle'])
-        div_text = get_div_from_json(od['bundle'])
-
-    # logger.debug('We got a different format:%s' % requested_format)
-    return render(
-        request,
-        'default.html',
-        {'output': text_out,
-         'fhir_id': cx.fhir_id,
-         'content': {'parameters': query_string,
-                     'resource_type': resource_type,
-                     'id': id,
-                     'request_method': "GET",
-                     'interaction_type': interaction_type,
-                     'div_texts': div_text,
-                     'source': get_fhir_source_name(cx)}})
+    return HttpResponse(pretty_json(od['bundle']),
+                        content_type='application/json')
