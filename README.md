@@ -17,7 +17,7 @@ This software implements SMART on FHIR Authorization flow.  http://docs.smarthea
 
 
 For more information on the patient-facing API, CMS Blue Button API see
-See https://dmsgov.github.io/bluebutton-developer-help/ for more information.
+See https://cmsgov.github.io/bluebutton-developer-help/ for more information.
 
 
 This document outlines setting up the server for development or your own environment.
