@@ -76,13 +76,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # 1st Party (in-house) ----------
-    # A test client
-    'apps.testclient',
-    # Account related services
     'apps.accounts',
-    # Define scopes and related protected resource URLs.
     'apps.capabilities',
-    # /.well-known/ endpoints
     'apps.wellknown',
 
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
@@ -90,26 +85,16 @@ INSTALLED_APPS = [
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
     'apps.dot_ext.apps.dot_extConfig',
-
-    # Landing pages, etc.
     'apps.home',
-
-    # FHIR Server
-    # TODO - Add comment to each of these per main function
     'apps.fhir.server',
     'apps.fhir.bluebutton',
     'apps.fhir.fhir_consent',
-
-    # Development Specific - Remove in production
-
-    # TODO migrate to move to sandbox or apps.fhir.sandbox
-    'apps.sandbox',
 
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
     'axes',
-    'social_django',  # Python Social Auth
+    'social_django',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 
@@ -241,33 +226,7 @@ EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', None)
 EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', None)
 EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 
-# Code from SMTP.py:
-#         self.host = host or settings.EMAIL_HOST
-#         self.port = port or settings.EMAIL_PORT
-#         self.username = settings.EMAIL_HOST_USER if username is None else username
-#         self.password = settings.EMAIL_HOST_PASSWORD if password is None else password
-#         self.use_tls = settings.EMAIL_USE_TLS if use_tls is None else use_tls
-#         self.use_ssl = settings.EMAIL_USE_SSL if use_ssl is None else use_ssl
-#         self.timeout = settings.EMAIL_TIMEOUT if timeout is None else timeout
-#         self.ssl_keyfile = settings.EMAIL_SSL_KEYFILE if ssl_keyfile is None else ssl_keyfile
-#         self.ssl_certfile = settings.EMAIL_SSL_CERTFILE if ssl_certfile is None else ssl_certfile
-#         if self.use_ssl and self.use_tls:
-#             raise ValueError(
-#                 "EMAIL_USE_TLS/EMAIL_USE_SSL are mutually exclusive, so only set "
-#                 "one of those settings to True.")
-
-# SMS
 SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
-
-# MFA - Active or Not or False
-# If using MFA enabled login this value is used to determine if
-# reverse with mfa_login or reverse with login is called
-#     if settings.MFA:
-#         return HttpResponseRedirect(reverse('mfa_login'))
-#     else:
-#         return HttpResponseRedirect(reverse('login'))
-
-
 MFA = True
 
 # AWS Credentials need to support SES, SQS and SNS
@@ -366,13 +325,9 @@ DOT_EXPIRES_IN = (
 
 GRANT_AUTHORIZATION_CODE = "authorization-code"
 GRANT_IMPLICIT = "implicit"
-# GRANT_PASSWORD = "password"
-# GRANT_CLIENT_CREDENTIALS = "client-credentials"
 GRANT_TYPES = (
     (GRANT_AUTHORIZATION_CODE, _("Authorization code")),
     (GRANT_IMPLICIT, _("Implicit")),
-    # (GRANT_PASSWORD, _("Resource owner password-based")),
-    # (GRANT_CLIENT_CREDENTIALS, _("Client credentials")),
 )
 
 # Set the theme
@@ -401,7 +356,7 @@ EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 # LINKS TO DOCS
 USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
 USER_DOCS_TITLE = "User Documentation"
-DEVELOPER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-developer-help"
+DEVELOPER_DOCS_URI = "https://cmsgov.github.io/bluebutton-developer-help"
 DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
 USER_TITLE = "Medicare beneficiaries, health providers, caregivers, and 3rd party application developers"
@@ -576,6 +531,3 @@ USER_ID_TYPE_CHOICES = (('H', 'HICN'),
 
 USER_ID_TYPE_DEFAULT = "H"
 DEFAULT_SAMPLE_FHIR_ID = "3979"
-
-# Set to true when testing and outside access is not available (e.g. online Travis CI)
-OFFLINE = False
