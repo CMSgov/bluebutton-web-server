@@ -2,8 +2,6 @@ import json
 
 import logging
 
-from collections import OrderedDict
-
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, JsonResponse
@@ -20,7 +18,6 @@ from ..opoutcome_utils import (find_ikey,
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         block_params,
-                                        build_output_dict,
                                         build_rewrite_list,
                                         check_access_interaction_and_resource_type,
                                         check_rt_controls,
@@ -101,7 +98,6 @@ def search(request, resource_type, *args, **kwargs):
         search = read_search(request,
                              interaction_type,
                              resource_type,
-                             # rt_id=None,
                              via_oauth=False,
                              *args,
                              **kwargs)
@@ -355,14 +351,6 @@ def read_search(request,
         display_key = id_dict['patient']
     else:
         display_key = id
-    od = build_output_dict(request,
-                           OrderedDict(),
-                           resource_type,
-                           display_key,
-                           vid,
-                           interaction_type,
-                           requested_format,
-                           text_out)
 
     ################################################
     #
@@ -394,4 +382,4 @@ def read_search(request,
     if requested_format == 'xml':
         return HttpResponse(r.text, content_type='application/xml')
 
-    return JsonResponse(od['bundle'])
+    return JsonResponse(text_out)

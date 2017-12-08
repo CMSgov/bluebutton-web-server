@@ -22,7 +22,7 @@ def kickout_301(reason, status_code=301):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason]
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -32,7 +32,7 @@ def kickout_302(reason, status_code=302):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason]
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -47,7 +47,7 @@ def kickout_400(reason, status_code=400):
     issue['severity'] = 'fatal'
     issue['code'] = 'exception'
     issue['details'] = reason
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -63,7 +63,7 @@ def kickout_401(reason, status_code=401):
     issue['code'] = 'security'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -79,7 +79,7 @@ def kickout_402(reason, status_code=402):
     issue['code'] = 'security'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -95,7 +95,7 @@ def kickout_403(reason, status_code=403):
     issue['code'] = 'security'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -111,7 +111,7 @@ def kickout_404(reason, status_code=404):
     issue['code'] = 'not-found'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -127,7 +127,7 @@ def kickout_500(reason, status_code=500):
     issue['code'] = 'exception'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -137,7 +137,7 @@ def kickout_501(reason, status_code=501):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Not Implemented']
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -147,7 +147,7 @@ def kickout_502(reason, status_code=502):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Bad Gateway']
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -157,7 +157,7 @@ def kickout_503(reason, status_code=503):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Gateway Timeout']
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -167,7 +167,7 @@ def kickout_504(reason, status_code=504):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Gateway Timeout']
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -241,7 +241,7 @@ def error_status(r, status_code=404, reason='undefined error occurred'):
 
     logger.debug("Errors: %s" % response)
 
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
