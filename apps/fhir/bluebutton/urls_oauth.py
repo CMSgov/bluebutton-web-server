@@ -6,7 +6,6 @@ from apps.fhir.bluebutton.views.oauth import oauth_read_or_update_or_delete
 from apps.fhir.bluebutton.views.vread import oauth_vread
 from apps.fhir.bluebutton.views.search import oauth_search
 from apps.fhir.bluebutton.views.home import oauth_fhir_conformance
-# from apps.fhir.bluebutton.views.help import bluebutton_help
 
 admin.autodiscover()
 
