@@ -28,7 +28,6 @@ from apps.fhir.bluebutton.utils import (
     mask_list_with_host,
     get_host_url,
     prepend_q,
-    pretty_json,
     get_default_path,
     dt_patient_reference,
     crosswalk_patient_id,
@@ -93,7 +92,6 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
 
         srtc = SupportedResourceType.objects.get(pk=2)
 
-        # <QueryDict: {'_format': ['json']}>
         get_ish_1 = {
             '_format': ['json'],
             'access_token': ['some_Token'],
@@ -109,18 +107,6 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
             'client_id': ['Some_Client_id'],
             'keep': ['keep_this'],
         }
-
-        # TODO: this is not used
-        # get_ish_3 = {
-        #     '_format': ['json'],
-        #     'access_token': ['some_Token'],
-        #     'state': ['some_State'],
-        #     'claim': ['some_Claim'],
-        #     'claimresponse': ['some_ClaimResponse'],
-        #     'response_type': ['some_Response_Type'],
-        #     'client_id': ['Some_Client_id'],
-        #     'keep': ['keep_this'],
-        # }
 
         get_ish_4 = {
             'access_token': ['some_Token'],
@@ -141,16 +127,6 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         for k, v in response.items():
             if k in get_ish_4:
                 self.assertEquals(v, get_ish_4[k])
-
-    def test_pretty_json(self):
-        """ Test text dict or list is converted to pretty json(indent=4) """
-
-        od = '{"format": ["application/xml+fhir","application/json+fhir"]}'
-        response = pretty_json(od, indent=5)
-        expected = '"{\\"format\\": [\\"application/xml+fhir\\",' \
-                   '\\"application/json+fhir\\"]}"'
-
-        self.assertEqual(response, expected)
 
 
 class BlueButtonUtilSrtcTestCase(TestCase):

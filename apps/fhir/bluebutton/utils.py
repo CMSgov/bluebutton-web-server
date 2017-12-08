@@ -1025,12 +1025,6 @@ def prepend_q(pass_params):
     return pass_params
 
 
-def pretty_json(od, indent=PRETTY_JSON_INDENT):
-    """ Print OrderedDict as pretty indented JSON """
-
-    return json.dumps(od, indent=indent)
-
-
 def get_default_path(resource_name, cx=None):
     """ Get default Path for resource """
 
