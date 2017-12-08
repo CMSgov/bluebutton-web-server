@@ -7,14 +7,11 @@ from collections import OrderedDict
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 
 from apps.dot_ext.decorators import capability_protected_resource
 
 from ..opoutcome_utils import (find_ikey,
                                get_target_url,
-                               ERROR_CODE_LIST,
-                               kickout_400,
                                kickout_403,
                                kickout_404,
                                request_format,
@@ -47,34 +44,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
-
-DF_EXTRA_INFO = False
-
-
-@csrf_exempt
-def search_simple(request, resource_type, via_oauth=False, *args, **kwargs):
-    """Route to search FHIR Interaction"""
-
-    if request.method == 'GET':
-        # Search
-        logger.debug("searching with Resource:"
-                     "%s and Id:%s" % (resource_type, id))
-
-        return read_search(request, resource_type, id, via_oauth)
-
-    # elif request.method == 'PUT':
-    #     # update
-    #     return update(request, resource_type, id, via_oauth)
-    # elif request.method == 'DELETE':
-    #     # delete
-    #     return delete(request, resource_type, id, via_oauth)
-    # else:
-    # Not supported.
-    msg = "HTTP method %s not supported at this URL." % (request.method)
-    # logger_info.info(msg)
-    logger.debug(msg)
-
-    return kickout_400(msg)
 
 
 @login_required()
@@ -263,7 +232,6 @@ def read_search(request,
             return kickout_403('Error 403: %s Resource access is controlled.'
                                ' Login is required:'
                                '%s' % (resource_type, request.user.is_anonymous()))
-            # logger.debug('srtc: %s' % srtc)
 
     if (cx is None and srtc is not None):
         # There is a srtc record so we need to check override_search
@@ -366,9 +334,9 @@ def read_search(request,
     #
     ################################################
 
-    if r.status_code in ERROR_CODE_LIST:
+    if r.status_code >= 300:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
-        return HttpResponse(json.dumps(r._content, indent=4),
+        return HttpResponse(json.dumps(r._content),
                             status=r.status_code,
                             content_type='application/json')
 
@@ -408,7 +376,6 @@ def read_search(request,
         ikey = ''
 
     if ikey is not '':
-
         save_url = get_target_url(target_url, resource_type)
         content = {
             'fhir_to': save_url,
