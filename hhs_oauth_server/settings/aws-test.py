@@ -42,7 +42,7 @@ if DEBUG:
 TEST_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
     'storages',
-# A test client - moved to aws-test / dev /impl settings
+    # A test client - moved to aws-test / dev /impl settings
     'apps.testclient',
 
 ]
