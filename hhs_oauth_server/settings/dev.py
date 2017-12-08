@@ -8,6 +8,28 @@ HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env(
     'DJANGO_INVITE_REQUEST_ADMIN', 'change-me@example.com')
 
+TEST_SPECIFIC_APPS = [
+    # Installation/Site Specific apps based on  -----------------
+    # 'storages',
+    # A test client - moved to aws-test / dev /impl settings
+    'apps.testclient',
+
+]
+INSTALLED_APPS += TEST_SPECIFIC_APPS
+
+# Optional Apps will be loaded by environment.
+# We need to be able to check in the urls.py and in html so that we only call
+# active reverse matches.
+# Therefore add name of optional apps here.
+# then add to this list in the settings file for the environment.
+# every optional app should have their name added to this list
+# Then this variable will be added to SETTINGS_EXPORT below
+# so we can test in html templates
+OPTIONAL_INSTALLED_APPS += ["testclient", ]
+
+# Skin settings
+ENGINE_SKIN = 'the_skin/'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

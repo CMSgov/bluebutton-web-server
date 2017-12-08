@@ -76,6 +76,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # 1st Party (in-house) ----------
+
+    # A test client - moved to aws-test / dev /impl settings
+    # 'apps.testclient',
+
+    # Account related services
     'apps.accounts',
     'apps.capabilities',
     'apps.wellknown',
@@ -99,6 +104,16 @@ INSTALLED_APPS = [
     'oauth2_provider',
 
 ]
+
+# Optional Apps will be loaded by environment.
+# We need to be able to check in the urls.py and in html so that we only call
+# active reverse matches.
+# Therefore add name of optional apps here.
+# then add to this list in the settings file for the environment.
+# every optional app should have their name added to this list
+# Then this variable will be added to SETTINGS_EXPORT below
+# so we can test in html templates
+OPTIONAL_INSTALLED_APPS = ["", ]
 
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
@@ -414,6 +429,7 @@ SETTINGS_EXPORT = [
     'EXTERNAL_AUTH_NAME',
     'ALLOW_END_USER_EXTERNAL_AUTH',
     'SOCIAL_AUTH_BACKEND_NAME',
+    'OPTIONAL_INSTALLED_APPS',
 ]
 
 

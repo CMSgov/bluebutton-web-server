@@ -40,8 +40,21 @@ if DEBUG:
 IMPL_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
     'storages',
+    # A test client - moved to aws-test / dev /impl settings
+    'apps.testclient',
+
 ]
 INSTALLED_APPS += IMPL_SPECIFIC_APPS
+
+# Optional Apps will be loaded by environment.
+# We need to be able to check in the urls.py and in html so that we only call
+# active reverse matches.
+# Therefore add name of optional apps here.
+# then add to this list in the settings file for the environment.
+# every optional app should have their name added to this list
+# Then this variable will be added to SETTINGS_EXPORT below
+# so we can test in html templates
+OPTIONAL_INSTALLED_APPS += ["testclient", ]
 
 # AWS Credentials need to support SES, SQS and SNS
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
