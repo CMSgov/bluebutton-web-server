@@ -1,9 +1,10 @@
 import json
 import logging
 from collections import OrderedDict
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
                                write_session,
@@ -39,6 +40,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 # eg. Search.
 
 
+@csrf_exempt
 @login_required()
 def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     """
@@ -47,6 +49,9 @@ def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     # Example client use in curl:
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
     """
+
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
 
     interaction_type = 'read'
 
