@@ -267,7 +267,7 @@ def read_search(request,
     back_end_format = set_fhir_format(requested_format)
 
     # request.GET is immutable so take a copy to allow the values to be edited.
-    payload = request.GET.copy()
+    payload = {}
 
     # Get payload with oauth parameters removed
     # Add the format for back-end
