@@ -4,7 +4,7 @@ Blue Button Web Server
 [![Build Status](https://travis-ci.org/TransparentHealth/hhs_oauth_server.svg?branch=develop)](https://travis-ci.org/TransparentHealth/hhs_oauth_server)
 [![Coverage Status](https://coveralls.io/repos/github/TransparentHealth/hhs_oauth_server/badge.svg?branch=develop)](https://coveralls.io/github/TransparentHealth/hhs_oauth_server?branch=develop)
 
-This server servers as a data provider for sharing Medicare claims data with third parties.
+This server serves as a data provider for sharing Medicare claims data with third parties.
 The server connects to MyMedicare.gov for authentication, and uses OAuth to confirm permission
 grants to external app developers. The data itself comes from a back end FHIR server
 (https://github.com/CMSgov/bluebutton-data-server), which in turn pulls data from the CMS
