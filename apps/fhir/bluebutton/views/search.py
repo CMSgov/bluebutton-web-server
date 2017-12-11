@@ -2,28 +2,18 @@ import json
 
 import logging
 
-from collections import OrderedDict
-
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 
 from apps.dot_ext.decorators import capability_protected_resource
 
-from ..opoutcome_utils import (find_ikey,
-                               get_target_url,
-                               ERROR_CODE_LIST,
-                               kickout_400,
-                               kickout_403,
+from ..opoutcome_utils import (kickout_403,
                                kickout_404,
-                               request_format,
-                               SESSION_KEY,
-                               write_session)
+                               request_format)
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         block_params,
-                                        build_output_dict,
                                         build_rewrite_list,
                                         check_access_interaction_and_resource_type,
                                         check_rt_controls,
@@ -34,8 +24,7 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         post_process_request,
                                         get_response_text)
 
-from apps.fhir.bluebutton.views.home import (fhir_conformance,
-                                             fhir_search_home)
+from apps.fhir.bluebutton.views.home import fhir_conformance
 
 from apps.fhir.server.utils import (set_fhir_format,
                                     set_resource_id,
@@ -47,34 +36,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
-
-DF_EXTRA_INFO = False
-
-
-@csrf_exempt
-def search_simple(request, resource_type, via_oauth=False, *args, **kwargs):
-    """Route to search FHIR Interaction"""
-
-    if request.method == 'GET':
-        # Search
-        logger.debug("searching with Resource:"
-                     "%s and Id:%s" % (resource_type, id))
-
-        return read_search(request, resource_type, id, via_oauth)
-
-    # elif request.method == 'PUT':
-    #     # update
-    #     return update(request, resource_type, id, via_oauth)
-    # elif request.method == 'DELETE':
-    #     # delete
-    #     return delete(request, resource_type, id, via_oauth)
-    # else:
-    # Not supported.
-    msg = "HTTP method %s not supported at this URL." % (request.method)
-    # logger_info.info(msg)
-    logger.debug(msg)
-
-    return kickout_400(msg)
 
 
 @login_required()
@@ -92,14 +53,8 @@ def search(request, resource_type, *args, **kwargs):
     logger_debug.debug("Received:%s" % resource_type)
 
     conformance = False
-    if "_getpages" in request.GET:
-        # a request can be made without a resource name
-        # if the GET Parameters include _getpages it is asking for the
-        # next batch of resources from a previous search
-        conformance = False
-        logger.debug("We need to get a searchset: %s" % request.GET)
 
-    elif resource_type is None:
+    if resource_type is None:
         conformance = True
     elif resource_type.lower() == 'metadata':
         # metadata is a valid resourceType to request the
@@ -123,20 +78,12 @@ def search(request, resource_type, *args, **kwargs):
                        "Calling generic_read for %s" % (interaction_type,
                                                         resource_type))
 
-    if "_getpages" in request.GET:
-        # Handle the next searchset
-        search = fhir_search_home(request, via_oauth=False)
-
-    else:
-        # Otherwise we should have a resource_type and can perform a search
-        search = read_search(request,
-                             interaction_type,
-                             resource_type,
-                             # rt_id=None,
-                             via_oauth=False,
-                             *args,
-                             **kwargs)
-    return search
+    return read_search(request,
+                       interaction_type,
+                       resource_type,
+                       via_oauth=False,
+                       *args,
+                       **kwargs)
 
 
 @capability_protected_resource()
@@ -154,14 +101,8 @@ def oauth_search(request, resource_type, *args, **kwargs):
     logger_debug.debug("Received:%s" % resource_type)
 
     conformance = False
-    if "_getpages" in request.GET:
-        # a request can be made without a resource name
-        # if the GET Parameters include _getpages it is asking for the
-        # next batch of resources from a previous search
-        conformance = False
-        logger.debug("We need to get a searchset: %s" % request.GET)
 
-    elif resource_type is None:
+    if resource_type is None:
         conformance = True
     elif resource_type.lower() == 'metadata':
         # metadata is a valid resourceType to request the
@@ -188,19 +129,12 @@ def oauth_search(request, resource_type, *args, **kwargs):
                        "Calling generic_read for %s" % (interaction_type,
                                                         resource_type))
 
-    if "_getpages" in request.GET:
-        # Handle the next searchset
-        search = fhir_search_home(request, via_oauth=True)
-    else:
-        # Otherwise we should have a resource_type and can perform a search
-        search = read_search(request,
-                             interaction_type,
-                             resource_type,
-                             # rt_id=None,
-                             via_oauth=True,
-                             *args,
-                             **kwargs)
-    return search
+    return read_search(request,
+                       interaction_type,
+                       resource_type,
+                       via_oauth=True,
+                       *args,
+                       **kwargs)
 
 
 def read_search(request,
@@ -263,7 +197,6 @@ def read_search(request,
             return kickout_403('Error 403: %s Resource access is controlled.'
                                ' Login is required:'
                                '%s' % (resource_type, request.user.is_anonymous()))
-            # logger.debug('srtc: %s' % srtc)
 
     if (cx is None and srtc is not None):
         # There is a srtc record so we need to check override_search
@@ -303,7 +236,7 @@ def read_search(request,
     back_end_format = set_fhir_format(requested_format)
 
     # request.GET is immutable so take a copy to allow the values to be edited.
-    payload = request.GET.copy()
+    payload = {}
 
     # Get payload with oauth parameters removed
     # Add the format for back-end
@@ -366,9 +299,9 @@ def read_search(request,
     #
     ################################################
 
-    if r.status_code in ERROR_CODE_LIST:
+    if r.status_code >= 300:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
-        return HttpResponse(json.dumps(r._content, indent=4),
+        return HttpResponse(json.dumps(r._content),
                             status=r.status_code,
                             content_type='application/json')
 
@@ -383,48 +316,7 @@ def read_search(request,
                                     text_in,
                                     rewrite_list)
 
-    if resource_type.lower() == 'patient':
-        display_key = id_dict['patient']
-    else:
-        display_key = id
-    od = build_output_dict(request,
-                           OrderedDict(),
-                           resource_type,
-                           display_key,
-                           vid,
-                           interaction_type,
-                           requested_format,
-                           text_out)
-
-    ################################################
-    #
-    # Now display the result
-    #
-    ################################################
-    ikey = ''
-    try:
-        ikey = find_ikey(r.text)
-    except Exception:
-        ikey = ''
-
-    if ikey is not '':
-
-        save_url = get_target_url(target_url, resource_type)
-        content = {
-            'fhir_to': save_url,
-            'rwrt_list': rewrite_list,
-            'res_type': resource_type,
-            'intn_type': interaction_type,
-            'key': display_key,
-            'vid': vid,
-            'resource_router': rr.id
-        }
-        sesn_var = write_session(request, ikey, content, skey=SESSION_KEY)
-        if sesn_var:
-            logger.debug("Problem writing session variables."
-                         " Returned %s" % sesn_var)
-
     if requested_format == 'xml':
         return HttpResponse(r.text, content_type='application/xml')
 
-    return JsonResponse(od['bundle'])
+    return JsonResponse(text_out)
