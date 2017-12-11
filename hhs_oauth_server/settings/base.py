@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.capabilities',
     'apps.wellknown',
+    'apps.testclient',
 
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
@@ -378,7 +379,7 @@ INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 # IF /testclient fails because the server is running without a certificate
 # eg. on your local machine. You need to un-comment the following line:
 
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # NEVER run in PRODUCTION without a certificate and with this setting active
 # A better practice is to set the INSECURE_TRANSPORT setting in an
@@ -428,18 +429,9 @@ SESSION_COOKIE_AGE = 5400
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Change these for production
-USER_ID_SALT = env('DJANGO_USER_ID_SALT', "ChangeMePleaseIReallyM3anIT")
-USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "24000"))
+USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
+USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
-# Stub for Custom Authentication Backend
-SLS_USER = env('DJANGO_SLS_USER')
-# enclose value for DJANGO_SLS_PASSWORD in single quotes to preserve
-# special characters eg. $
-# eg. export DJANGO_SLS_PASSWORD='$pecial_CharacterPre$erved'
-SLS_PASSWORD = env('DJANGO_SLS_PASSWORD')
-SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
-SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
-SLS_EMAIL = env('DJANGO_SLS_EMAIL')
 
 # Failed Login Attempt Module: AXES
 # Either integer or timedelta.
@@ -500,17 +492,22 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.mail.mail_validation',
     'social_core.pipeline.user.create_user',
     'apps.accounts.auth_backends.pipeline.create_user_profile',
+    'apps.fhir.bluebutton.auth_backends.pso_pipeline.set_sample_patient_id',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.debug.debug',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
     'social_core.pipeline.debug.debug'
 )
+
+# Get your own Google Client OAuth2 client and secret.
+# https://console.developers.google.com/apis/credentials
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ''
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
 # The name of an external oauth2 provider.
-EXTERNAL_AUTH_NAME = "MyMedicare.gov"
-ALLOW_END_USER_EXTERNAL_AUTH = ""
+ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
-SOCIAL_AUTH_BACKEND_NAME = "oauth2io"
+SOCIAL_AUTH_BACKEND_NAME = "google_oauth2"
 
 # python-social-auth settings
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
@@ -520,10 +517,11 @@ SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
+
 )
 
-USERID_ENCRYPT_SALT = "CHANGE_THIS_SALT"
-USERID_ENCRYPT_NUM_ITERS = 26000
+USERID_ENCRYPT_SALT = "nottherealpepper"
+USERID_ENCRYPT_NUM_ITERS = 2
 
 USER_ID_TYPE_CHOICES = (('H', 'HICN'),
                         ('M', 'MBI'),
@@ -531,3 +529,4 @@ USER_ID_TYPE_CHOICES = (('H', 'HICN'),
 
 USER_ID_TYPE_DEFAULT = "H"
 DEFAULT_SAMPLE_FHIR_ID = "3979"
+OFFLINE = False
