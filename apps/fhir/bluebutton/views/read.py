@@ -7,10 +7,6 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
-                               write_session,
-                               find_ikey,
-                               get_target_url,
-                               SESSION_KEY,
                                ERROR_CODE_LIST,
                                strip_format_for_back_end,
                                request_format,
@@ -330,30 +326,6 @@ def generic_read(request,
                            interaction_type,
                            requested_format,
                            text_out)
-
-    # write session variables if _getpages was found
-    ikey = ''
-    try:
-        ikey = find_ikey(r.text)
-    except Exception:
-        ikey = ''
-
-    if ikey is not '':
-        save_url = get_target_url(fhir_url, resource_type)
-        content = {
-            'fhir_to': save_url,
-            'rwrt_list': rewrite_url_list,
-            'res_type': resource_type,
-            'intn_type': interaction_type,
-            'key': key,
-            'vid': vid,
-            'resource_router': rr.id
-        }
-
-        sesn_var = write_session(request, ikey, content, skey=SESSION_KEY)
-        if sesn_var:
-            logger.debug("Problem writing session variables."
-                         " Returned %s" % sesn_var)
 
     if requested_format == 'xml':
         return HttpResponse(r.text,
