@@ -40,8 +40,12 @@ if DEBUG:
 IMPL_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
     'storages',
+    # A test client - moved to aws-test / dev /impl settings
+    'apps.testclient',
 ]
 INSTALLED_APPS += IMPL_SPECIFIC_APPS
+
+OPTIONAL_INSTALLED_APPS += ["testclient", ]
 
 # AWS Credentials need to support SES, SQS and SNS
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
