@@ -100,6 +100,10 @@ INSTALLED_APPS = [
 
 ]
 
+# Used for testing for optional apps in templates without causing a crash
+# used in SETTINGS_EXPORT below.
+OPTIONAL_INSTALLED_APPS = ["", ]
+
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
 
@@ -414,6 +418,7 @@ SETTINGS_EXPORT = [
     'EXTERNAL_AUTH_NAME',
     'ALLOW_END_USER_EXTERNAL_AUTH',
     'SOCIAL_AUTH_BACKEND_NAME',
+    'OPTIONAL_INSTALLED_APPS',
 ]
 
 
