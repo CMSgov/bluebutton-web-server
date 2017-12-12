@@ -2,20 +2,14 @@ import json
 import logging
 
 from collections import OrderedDict
-from datetime import datetime, timedelta
 from django.conf import settings
 from django.http import HttpResponse
-from apps.fhir.server.models import SupportedResourceType, ResourceRouter
-
-from urllib.parse import parse_qs
+from apps.fhir.server.models import SupportedResourceType
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-# ERROR_CODE_LIST = [301, 302, 400, 401, 402, 403, 404, 500, 501, 502, 503, 504]
 ERROR_CODE_LIST = [301, 302, 401, 402, 403, 404, 500, 501, 502, 503, 504]
-
-SESSION_KEY = 'BBF_search_session'
 
 
 def kickout_301(reason, status_code=301):
@@ -23,7 +17,7 @@ def kickout_301(reason, status_code=301):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason]
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -33,7 +27,7 @@ def kickout_302(reason, status_code=302):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason]
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -48,7 +42,7 @@ def kickout_400(reason, status_code=400):
     issue['severity'] = 'fatal'
     issue['code'] = 'exception'
     issue['details'] = reason
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -64,7 +58,7 @@ def kickout_401(reason, status_code=401):
     issue['code'] = 'security'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -80,7 +74,7 @@ def kickout_402(reason, status_code=402):
     issue['code'] = 'security'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -96,7 +90,7 @@ def kickout_403(reason, status_code=403):
     issue['code'] = 'security'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -112,7 +106,7 @@ def kickout_404(reason, status_code=404):
     issue['code'] = 'not-found'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -128,7 +122,7 @@ def kickout_500(reason, status_code=500):
     issue['code'] = 'exception'
     issue['details'] = reason
     oo['issue'].append(issue)
-    return HttpResponse(json.dumps(oo, indent=4),
+    return HttpResponse(json.dumps(oo),
                         status=status_code,
                         content_type='application/json')
 
@@ -138,7 +132,7 @@ def kickout_501(reason, status_code=501):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Not Implemented']
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -148,7 +142,7 @@ def kickout_502(reason, status_code=502):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Bad Gateway']
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -158,7 +152,7 @@ def kickout_503(reason, status_code=503):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Gateway Timeout']
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -168,7 +162,7 @@ def kickout_504(reason, status_code=504):
     response = OrderedDict()
     response['code'] = status_code
     response['errors'] = [reason, 'Gateway Timeout']
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
 
@@ -242,167 +236,9 @@ def error_status(r, status_code=404, reason='undefined error occurred'):
 
     logger.debug("Errors: %s" % response)
 
-    return HttpResponse(json.dumps(response, indent=4),
+    return HttpResponse(json.dumps(response),
                         status=status_code,
                         content_type='application/json')
-
-
-def write_session(request, ikey, content, skey=SESSION_KEY):
-    """ Write Session Variables for use in checking follow on search calls
-
-    content = {
-        'cache_id': ikey,
-        'fhir_to': host_path,
-        'rwrt_list': rewrite_url_list,
-        'res_type': resource_type,
-        'intn_type': interaction_type,
-        'key': key,
-        'vid': vid,
-        'resource_router': rr.id
-    }
-
-    """
-    now = datetime.now()
-    # get search expiry from the ResourceRouter record
-    rr_id = content['resource_router']
-    try:
-        rr = ResourceRouter.objects.get(id=rr_id)
-        mins = (rr.server_search_expiry / 60)
-    except ResourceRouter.DoesNotExist:
-        mins = 30
-    then = now + timedelta(minutes=mins)
-    expiry = str(then)
-
-    if skey not in request.session:
-        search_keys = {}
-        request.session[skey] = search_keys
-    else:
-        search_keys = request.session[skey]
-
-    # Now we have the total search dict with an expires setting
-    if ikey not in search_keys:
-        content['cache_id'] = ikey
-        content['expires'] = expiry
-
-        search_keys[ikey] = content
-    else:
-        old_content = search_keys[ikey]
-        if isinstance(content, dict):
-            # update content with whatever is submitted
-            for k, v in content.items():
-                old_content[k] = v
-
-        # don't update the expires setting
-        # don't update the cache_id
-
-        search_keys[ikey] = old_content
-
-    # write session variables back
-    request.session[skey] = search_keys
-
-    return True
-
-
-def read_session(request, ikey, skey=SESSION_KEY):
-    """ Read Session Variables when checking follow on search call
-
-    content = {
-        'cache_id': ikey,
-        'fhir_to': host_path,
-        'rwrt_list': rewrite_url_list,
-        'res_type': resource_type,
-        'intn_type': interaction_type,
-        'key': key,
-        'vid': vid,
-        'resource_router': rr
-    }
-
-    """
-
-    result = {}
-    # action = "GET"
-    now = str(datetime.now())
-
-    if skey in request.session:
-        if ikey in request.session[skey]:
-            session_keys = request.session[skey]
-            if 'expires' in session_keys[ikey]:
-                if session_keys[ikey]['expires'] < now:
-                    # action = "DEL"
-                    request.session[skey].pop(ikey, None)
-                else:
-                    # action = "PULL"
-                    result = session_keys[ikey]
-            else:
-                # action = "UNEXPIRED"
-                result = session_keys[ikey]
-
-    return result
-
-
-def find_ikey(text_block):
-    """ Get the _getpages value """
-
-    ikey_pre = text_block.split('_getpages=')
-
-    if len(ikey_pre) == 1:
-        # no split
-        return ''
-
-    ikey = ikey_pre[1].split('_getpagesoffset=')
-
-    if len(ikey) == 1:
-        # We didn't get a cache_id
-        # couldn't crop the text
-        return ''
-
-    if ikey[0].endswith('&amp;'):
-        result = ikey[0][:-5]
-    elif ikey[0].endswith('&'):
-        result = ikey[0][:-1]
-    else:
-        result = ikey[0]
-
-    return result
-
-
-def get_search_param_format(search_parm):
-    """ Check for _format={valid fhir formats}
-    input should be request.META['QUERY_STRING']
-    eg. xml+fhir
-     or json+fhir
-     or xml
-     or json
-     or html/json
-     or html/xml
-    """
-
-    parameter_search = parse_qs(search_parm)
-    logger.debug("evaluating for _format:%s [%s]" % (search_parm,
-                                                     parameter_search))
-
-    # Now do a hierarchy of checks
-    # now we need check for "_format" in parameter_search
-    check_case = None
-    if "_format" in parameter_search:
-        checks = ['html', 'xml', 'json']
-        for c in checks:
-            check_case = check_lcase_list_item(parameter_search['_format'], c)
-            # logger.debug("we found a _format [%s] "
-            #              "while checking for %s" % (check_case, c))
-            if check_case:
-                return check_case
-
-    if "format" in parameter_search:
-        checks = ['html', 'xml', 'json']
-        for c in checks:
-            check_case = check_lcase_list_item(parameter_search['format'], c)
-            # logger.debug("we found format [%s] "
-            #              "while checking for %s" % (check_case, c))
-            if check_case:
-                return check_case
-
-    return ''
 
 
 def check_for_element(search_dict, check_key, check_list):
@@ -415,13 +251,8 @@ def check_for_element(search_dict, check_key, check_list):
     """
 
     if check_key in search_dict:
-        # logger.debug("Checking %s in %s" % (check_key, search_dict))
         for c in check_list:
             check_case = check_lcase_list_item(search_dict[check_key], c)
-            # logger.debug("we found format:[%s] "
-            #              "while checking for %s on key:%s" % (c,
-            #                                                   check_case,
-            #                                                   check_key))
             if check_case:
                 return True
 
@@ -433,7 +264,6 @@ def check_lcase_list_item(list_value, check_for):
         go through list to check for value. comparing as lowercase
      """
 
-    # logger.debug("checking %s in %s" % (check_for, list_value))
     if type(check_for) is list:
         checking = check_for[0]
     else:
@@ -444,11 +274,7 @@ def check_lcase_list_item(list_value, check_for):
         listing = list_value
     for l in listing:
         if checking.lower() in l.lower():
-            # logger.debug("Found %s in %s" % (checking, l))
             return check_for
-        else:
-            # logger.debug("no luck with %s v  %s" % (checking, l))
-            pass
 
     return None
 
@@ -458,13 +284,11 @@ def strip_format_for_back_end(pass_params):
     check for _format in URL Parameters
     We need to force json or xml
     if html is included in _format we need to strip it out
-
     """
 
     # pass_params should arrive as an OrderedDict.
     # no need to parse
     parameter_search = pass_params
-    # parameter_search = parse_qs(pass_params)
     logger.debug("evaluating [%s] for _format" % parameter_search)
 
     updated_parameters = OrderedDict()
@@ -512,21 +336,6 @@ def strip_format_for_back_end(pass_params):
     return pass_params
 
 
-def get_target_url(fhir_url, resource_type):
-    """ Strip down the target fhir_url for saving to session variable """
-
-    if resource_type in fhir_url:
-        # save without resource_type and ending slash
-        save_url = fhir_url.split(resource_type)[0][:-1]
-    else:
-        if fhir_url.endswith('/'):
-            save_url = fhir_url[:-1]
-        else:
-            save_url = fhir_url
-
-    return save_url
-
-
 def check_access_interaction_and_resource_type(resource_type, interaction_type):
     # We need to filter by FHIRServer or deal with multiple items
     try:
@@ -555,22 +364,6 @@ def get_content_type(response):
         result = OrderedDict()
         result['Content-Type'] = response.headers.get("Content-Type")
         return result
-
-
-def content_is_json_or_xml(response):
-    """ Evaluate response.headers for Content-Type
-
-        :return "json | xml """
-
-    ct = get_content_type(response)
-    if 'errors' in ct:
-        ct_format = 'json'
-    else:
-        ct_format = "xml"
-        if "json" in ct['Content-Type'].lower():
-            ct_format = "json"
-
-    return ct_format
 
 
 def valid_interaction(resource, rr):
@@ -622,41 +415,14 @@ def request_format(query_params):
     :return:
     """
 
-    # Let's store the inbound requested format
-    # We need to simplify the format call to the backend
-    # so that we get data we can manipulate
-    if "_format" in query_params:
-        req_format = query_params["_format"]
-    elif "format" in query_params:
-        req_format = query_params["format"]
-    else:
-        req_format = "json"
-    #
-    # logger.debug("Saving requested format:%s" % req_format)
+    # ensure requested format is "xml" or "json"
+    # TODO: This should use the accept header instead of a query parameter
 
-    return req_format
+    if ("xml" in query_params.get("_format", "") or
+            "xml" in query_params.get("format", "")):
+        return "xml"
 
-
-def build_querystring(query_dict):
-    """
-    Manipulate the Query String to a decoded format
-
-    :param query_dict:
-    :return: query_out
-    """
-
-    # logger.debug("Query DICT:%s" % query_dict)
-
-    query_out = "?"
-    for k, v in query_dict.items():
-        query_add = ("%s=%s&" % (k, v))
-        query_out = query_out + query_add
-
-    # logger.debug("Result:%s" % query_out)
-    if query_out == "?":
-        return None
-    else:
-        return query_out[:-1]
+    return "json"
 
 
 def add_key_to_fhir_url(fhir_url, resource_type, key=""):
@@ -674,9 +440,7 @@ def add_key_to_fhir_url(fhir_url, resource_type, key=""):
 
     if key + '/' in fhir_url:
         pass
-        # logger.debug("%s/ already in %s" % (key, fhir_url))
     else:
-        # logger.debug("adding %s/ to fhir_url: %s" % (key, fhir_url))
         fhir_url += key + '/'
 
     return fhir_url
@@ -700,20 +464,3 @@ def fhir_call_type(interaction_type, fhir_url, vid=None):
         pass_to = fhir_url
 
     return pass_to
-
-
-def get_div_from_json(raw_json):
-    """
-    Get the div from a json resource
-    :param raw_json:
-    :return: div_text
-    """
-
-    div_text = []
-    if raw_json:
-        for k, v in raw_json.items():
-            if k == "text":
-                if 'div' in v:
-                    div_text.append(v['div'])
-
-    return div_text

@@ -1,66 +1,42 @@
 import json
 import logging
-
 from collections import OrderedDict
-
-# from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
-                               write_session,
-                               find_ikey,
-                               # get_search_param_format,
-                               get_target_url,
-                               # content_is_json_or_xml,
-                               # get_content_type,
-                               SESSION_KEY,
-                               # error_status,
                                ERROR_CODE_LIST,
-                               build_querystring,
                                strip_format_for_back_end,
                                request_format,
                                add_key_to_fhir_url,
-                               fhir_call_type,
-                               get_div_from_json
+                               fhir_call_type
                                )
 
 from apps.fhir.bluebutton.utils import (request_call,
                                         check_rt_controls,
                                         check_access_interaction_and_resource_type,
                                         get_fhir_id,
-                                        get_fhir_source_name,
                                         masked_id,
                                         build_params,
                                         FhirServerUrl,
                                         get_host_url,
                                         build_output_dict,
                                         post_process_request,
-                                        pretty_json,
                                         get_default_path,
                                         get_crosswalk,
                                         get_resourcerouter,
                                         build_rewrite_list,
                                         get_response_text)
 
-# from apps.fhir.bluebutton.views.search import read_search
-
-from apps.fhir.bluebutton.xml_handler import get_div_from_xml
-
-# moved Crosswalk access to bluebutton.utils.get_crosswalk
-# from apps.fhir.bluebutton.models import Crosswalk
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
-# logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
-# logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
-# logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 # Attempting to set a timeout for connection and request for longer requests
 # eg. Search.
 
 
+@csrf_exempt
 @login_required()
 def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     """
@@ -69,6 +45,9 @@ def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     # Example client use in curl:
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
     """
+
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
 
     interaction_type = 'read'
 
@@ -260,8 +239,6 @@ def generic_read(request,
     # if format is not defined and we come in via_oauth
     # then default to json for format
     requested_format = request_format(pass_params)
-    if requested_format == "html" and via_oauth:
-        requested_format = "json"
 
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
@@ -303,10 +280,7 @@ def generic_read(request,
         pass_to += pass_params
 
     logger.debug("\nMaking request:%s" % pass_to)
-    query_string = build_querystring(request.GET.copy())
 
-    ###############################################
-    ###############################################
     # Now make the call to the backend API
 
     if interaction_type == "search":
@@ -319,35 +293,15 @@ def generic_read(request,
         r = request_call(request, pass_to, cx, reverse_lazy('home'))
 
     # BACK FROM THE CALL TO BACKEND
-    ###############################################
-    ###############################################
-
-    # logger.debug("r returned: %s" % r)
 
     # Check for Error here
-    # logger.debug("what is in r:\n#######\n%s\n##########\n" % dir(r))
     logger.debug("status: %s/%s" % (r.status_code, r._status_code))
-    # logger.debug("text: %s\n#############\n" % (r.text))
 
     if r.status_code in ERROR_CODE_LIST:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
-        if 'html' in requested_format.lower():
-            return render(
-                request,
-                'default.html',
-                {'output': pretty_json(r._content, indent=4),
-                 'fhir_id': get_fhir_id(cx),
-                 'content': {'parameters': query_string,
-                             'resource_type': resource_type,
-                             'id': id,
-                             'request_method': "GET",
-                             'interaction_type': interaction_type,
-                             'div_texts': "",
-                             'source': get_fhir_source_name(cx)}})
-        else:
-            return HttpResponse(json.dumps(r._content, indent=4),
-                                status=r.status_code,
-                                content_type='application/json')
+        return HttpResponse(json.dumps(r._content, indent=4),
+                            status=r.status_code,
+                            content_type='application/json')
 
     text_out = ''
     host_path = get_host_url(request, resource_type)[:-1]
@@ -373,73 +327,8 @@ def generic_read(request,
                            requested_format,
                            text_out)
 
-    # write session variables if _getpages was found
-    ikey = ''
-    try:
-        ikey = find_ikey(r.text)
-    except Exception:
-        ikey = ''
-
-    if ikey is not '':
-
-        save_url = get_target_url(fhir_url, resource_type)
-        content = {
-            'fhir_to': save_url,
-            'rwrt_list': rewrite_url_list,
-            'res_type': resource_type,
-            'intn_type': interaction_type,
-            'key': key,
-            'vid': vid,
-            'resource_router': rr.id
-        }
-        sesn_var = write_session(request, ikey, content, skey=SESSION_KEY)
-        if sesn_var:
-            logger.debug("Problem writing session variables."
-                         " Returned %s" % sesn_var)
     if requested_format == 'xml':
-        # logger.debug('We got xml back in od')
         return HttpResponse(r.text,
-                            content_type='application/%s' % requested_format)
-        # return HttpResponse(tostring(dict_to_xml('content', od)),
-        #                     content_type='application/%s' % requested_format)
+                            content_type='application/xml')
 
-    elif requested_format == 'json':
-        # logger.debug('We got json back in od')
-        return HttpResponse(pretty_json(od['bundle']),
-                            content_type='application/%s' % requested_format)
-
-    # define query string further up before request_call
-    if "xml" in requested_format:
-        div_text = get_div_from_xml(text_out)
-        return render(
-            request,
-            'default_xml.html',
-            {'output': text_out,
-             'fhir_id': get_fhir_id(cx),
-             'content': {'parameters': query_string,
-                         'resource_type': resource_type,
-                         'id': id,
-                         'request_method': "GET",
-                         'interaction_type': interaction_type,
-                         'div_texts': [div_text, ],
-                         'source': get_fhir_source_name(cx)}})
-
-    else:
-        text_out = pretty_json(od['bundle'])
-        div_text = get_div_from_json(od['bundle'])
-
-    # logger.debug('We got a different format:%s' % requested_format)
-    logger.debug('id or key: %s/%s' % (id, key))
-
-    return render(
-        request,
-        'default.html',
-        {'output': text_out,
-         'fhir_id': cx.fhir_id,
-         'content': {'parameters': query_string,
-                     'resource_type': resource_type,
-                     'id': id,
-                     'request_method': "GET",
-                     'interaction_type': interaction_type,
-                     'div_texts': div_text,
-                     'source': get_fhir_source_name(cx)}})
+    return JsonResponse(od['bundle'])

@@ -22,11 +22,7 @@ from oauth2_provider.models import AccessToken
 from apps.wellknown.views import (base_issuer, build_endpoint_info)
 from .models import Crosswalk, Fhir_Response
 
-PRETTY_JSON_INDENT = 4
-
 FORMAT_OPTIONS_CHOICES = ['json', 'xml']
-
-DF_EXTRA_INFO = False
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
@@ -394,17 +390,6 @@ def request_get_with_parms(request,
                                             cx,
                                             r=None,
                                             e=e)
-
-        # for attr in dir(e):
-        #     if attr == "characters_written":
-        #         pass
-        #     else:
-        #         logger.debug("e.%s = %s" % (attr, getattr(e, attr)))
-        # e.status_code = 504
-        # e.text = '{\"errors\": [\"Connection Problem to FHIR Server\", \"status_code: 504\"], \"code\": 504}'
-        # logger.debug("what is in amended e:\n#######\n%s\n##########\n" % dir(e))
-        #
-        # return error_status(e, 504, reason=e.text)
 
         return fhir_response
 
@@ -865,7 +850,6 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
     """ Replace a series of URLs with the host_name """
 
     if in_text == '':
-        # No text to evaluate
         return in_text
 
     if len(urls_be_gone) == 0:
@@ -884,8 +868,6 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         # work through the list making replacements
         if kill_url.endswith('/'):
             kill_url = kill_url[:-1]
-
-        # logger_debug.debug("Replacing:%s" % kill_url)
 
         in_text = mask_with_this_url(request, host_path, in_text, kill_url)
 
@@ -965,54 +947,31 @@ def build_output_dict(request,
     if vid is not None:
         od['vid'] = vid
 
-    # logger_debug.debug('Query List:%s' % request.META['QUERY_STRING'])
-
-    if DF_EXTRA_INFO:
-        od['request_method'] = request.method
-        od['interaction_type'] = interaction_type
-        od['parameters'] = request.GET.urlencode()
-
-        logger_debug.debug('or:%s' % od['parameters'])
-
-        od['format'] = fmt
-        od['note'] = 'This is the %s Pass Thru ' \
-                     '(%s) ' % (resource_type, key)
-
     od['bundle'] = text_out
 
     return od
 
 
-def post_process_request(request,
-                         ct_fmt,
-                         host_path,
-                         r_text,
-                         rewrite_url_list):
+def post_process_request(request, ct_fmt, host_path, r_text, rewrite_url_list):
     """ Process request based on xml or json fmt """
 
     if r_text == "":
-        # Return nothing
         return r_text
 
     if ct_fmt.lower() == 'xml' or ct_fmt.lower() == 'html':
         # We will add xml support later
 
-        text_out = mask_list_with_host(request,
-                                       host_path,
-                                       r_text,
-                                       rewrite_url_list)
-        # text_out= minidom.parseString(text_out).toprettyxml()
+        return mask_list_with_host(request,
+                                   host_path,
+                                   r_text,
+                                   rewrite_url_list)
     else:
-        # dealing with json
-        # text_out = r.json()
         pre_text = mask_list_with_host(request,
                                        host_path,
                                        r_text,
                                        rewrite_url_list)
-        # logger_debug.debug("\n\nPRE_TEXT:%s\n\n" % pre_text)
-        text_out = json.loads(pre_text, object_pairs_hook=OrderedDict)
 
-    return text_out
+        return json.loads(pre_text, object_pairs_hook=OrderedDict)
 
 
 def prepend_q(pass_params):
@@ -1022,27 +981,18 @@ def prepend_q(pass_params):
             pass
         else:
             pass_params = '?' + pass_params
-        # logger_debug.debug("Parameters:", pass_params)
     return pass_params
-
-
-def pretty_json(od, indent=PRETTY_JSON_INDENT):
-    """ Print OrderedDict as pretty indented JSON """
-
-    return json.dumps(od, indent=indent)
 
 
 def get_default_path(resource_name, cx=None):
     """ Get default Path for resource """
 
-    # logger_debug.debug("\nGET_DEFAULT_URL:%s" % resource_name)
     if cx:
         default_path = cx.fhir_source.fhir_url
     else:
         try:
             rr = get_resourcerouter()
             default_path = rr.fhir_url
-            # logger_debug.debug("\nDEFAULT_URL=%s" % default_path)
 
         except ResourceRouter.DoesNotExist:
             # use the default FHIR Server URL
@@ -1101,23 +1051,6 @@ def get_crosswalk(user):
         pass
 
     return None
-
-
-def conformance_or_capability(fhir_url):
-    """ Check FHIR Url for FHIR Version.
-    :return resource type (STU3 switches from ConformanceStatement
-            to CapabilityStatement
-
-    :param fhir_url:
-    :return:
-    """
-
-    if "stu3" in fhir_url.lower():
-        resource_type = "CapabilityStatement"
-    else:
-        resource_type = "Conformance"
-
-    return resource_type
 
 
 def get_resource_names(rr=None):
@@ -1316,18 +1249,10 @@ def get_response_text(fhir_response=None):
     :return:
     """
 
-    # logger.debug("\nfhir_response:%s" % dir(fhir_response))
-    # logger.debug("\nChecking .text:%s\n"
-    #              "_response.text:%s\n"
-    #              "and _text:%s\n" % (fhir_response.text[:40],
-    #                                  fhir_response._response.text[:40],
-    #                                  fhir_response._text[:40]))
-
     text_in = ""
 
     if not fhir_response:
-        text_in = ""
-        return text_in
+        return ""
 
     try:
         text_in = fhir_response.text
@@ -1346,8 +1271,6 @@ def get_response_text(fhir_response=None):
     try:
         text_in = fhir_response._text
         if len(text_in) > 0:
-            # logger.debug("returning "
-            #              "_text:%s" % fhir_response._text[:40])
             return text_in
 
     except Exception:
