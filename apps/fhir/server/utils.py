@@ -104,20 +104,10 @@ def set_fhir_format(fmt_type):
 
     fhir_json = 'application/json+fhir'
     fhir_xml = 'application/xml+fhir'
-    fhir_atom = 'application/atom+xml'
-    fhir_html = 'application/json+fhir'
 
-    if fmt_type.lower() is 'json':
-        return fhir_json
-    elif fmt_type.lower() is 'xml':
+    if fmt_type.lower() == 'xml':
         return fhir_xml
-    elif fmt_type.lower() is 'html':
-        return fhir_html
-    elif fmt_type.lower() is 'atom':
-        return fhir_atom
-    else:
-        # not sure what was requested so we will report it and default to json
-        logger.error('fmt_type is unknown:%s' % fmt_type)
+
     return fhir_json
 
 

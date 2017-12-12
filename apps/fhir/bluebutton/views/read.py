@@ -1,15 +1,12 @@
 import json
 import logging
 from collections import OrderedDict
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
-                               write_session,
-                               find_ikey,
-                               get_target_url,
-                               SESSION_KEY,
                                ERROR_CODE_LIST,
                                strip_format_for_back_end,
                                request_format,
@@ -39,6 +36,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 # eg. Search.
 
 
+@csrf_exempt
 @login_required()
 def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     """
@@ -47,6 +45,9 @@ def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
     # Example client use in curl:
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
     """
+
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
 
     interaction_type = 'read'
 
@@ -325,30 +326,6 @@ def generic_read(request,
                            interaction_type,
                            requested_format,
                            text_out)
-
-    # write session variables if _getpages was found
-    ikey = ''
-    try:
-        ikey = find_ikey(r.text)
-    except Exception:
-        ikey = ''
-
-    if ikey is not '':
-        save_url = get_target_url(fhir_url, resource_type)
-        content = {
-            'fhir_to': save_url,
-            'rwrt_list': rewrite_url_list,
-            'res_type': resource_type,
-            'intn_type': interaction_type,
-            'key': key,
-            'vid': vid,
-            'resource_router': rr.id
-        }
-
-        sesn_var = write_session(request, ikey, content, skey=SESSION_KEY)
-        if sesn_var:
-            logger.debug("Problem writing session variables."
-                         " Returned %s" % sesn_var)
 
     if requested_format == 'xml':
         return HttpResponse(r.text,
