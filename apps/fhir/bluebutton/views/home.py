@@ -11,7 +11,6 @@ Created: 6/27/16 3:24 PM
 import json
 import logging
 
-from collections import OrderedDict
 from urllib.parse import urlencode
 from django.core.urlresolvers import reverse_lazy
 from django.http import JsonResponse
@@ -19,10 +18,8 @@ from django.shortcuts import HttpResponse
 from apps.fhir.bluebutton.utils import (request_call,
                                         FhirServerUrl,
                                         get_host_url,
-                                        build_output_dict,
                                         prepend_q,
                                         post_process_request,
-                                        get_crosswalk,
                                         get_resource_names,
                                         get_resourcerouter,
                                         build_rewrite_list,
@@ -33,15 +30,10 @@ from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               dom_conformance_filter,
                                               append_security)
 
-from ..opoutcome_utils import (read_session,
-                               get_search_param_format,
-                               strip_format_for_back_end,
-                               SESSION_KEY,
+from ..opoutcome_utils import (strip_format_for_back_end,
                                ERROR_CODE_LIST,
                                valid_interaction,
                                request_format)
-
-from apps.home.views import authenticated_home
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -49,102 +41,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = 'Mark Scrimshire:@ekivemark'
 
 
-def fhir_search_home(request, via_oauth=False):
-    """ Check if search parameters are in the GET
-
-     if not pass through to authenticated_home
-
-     """
-
-    if request.user.is_authenticated():
-
-        if request.method == 'GET':
-            if '_getpages' in request.GET:
-                return rebuild_fhir_search(request, via_oauth)
-
-    return authenticated_home(request)
-
-
-def rebuild_fhir_search(request, via_oauth=False):
-    """ Rebuild the Search String
-
-    We will start to use a session variable
-
-    We received:
-    http://localhost:8000/cmsblue/fhir/v1
-    ?_getpages=61c6e2d1-2b7c-49c3-a083-3d5b3874d4ff&_getpagesoffset=10
-    &_count=10&_format=json&_pretty=true&_bundletype=searchset
-
-    Session Variables will be storing:
-    - FHIR Target URL/Resource
-    - _getpages value
-    - expires datetime
-
-    Construct FHIR_Target_URL + search parameters
-
-    """
-
-    # now = str(datetime.now())
-    ikey = ''
-    if '_getpages' in request.GET:
-        ikey = request.GET['_getpages']
-        sn_vr = read_session(request, ikey, skey=SESSION_KEY)
-        # logger.debug("Session info:%s" % sn_vr)
-
-        if sn_vr == {}:
-            # Nothing returned from Session Variables
-            # Key could be expired or not matched
-            return authenticated_home(request)
-
-        url_call = sn_vr['fhir_to']
-        url_call += '/?' + request.META['QUERY_STRING']
-
-        rewrite_url_list = sn_vr['rwrt_list']
-        resource_type = sn_vr['res_type']
-        interaction_type = sn_vr['intn_type']
-        key = sn_vr['key']
-        vid = sn_vr['vid']
-
-        if via_oauth:
-            # get to user via resource_owner
-            cx = get_crosswalk(request.resource_owner)
-        else:
-            # get user via logged in user
-            cx = get_crosswalk(request.user)
-
-        r = request_call(request,
-                         url_call,
-                         cx,
-                         reverse_lazy('authenticated_home'))
-
-        host_path = get_host_url(request, '?')
-
-        # get 'xml' 'json' or ''
-        fmt = get_search_param_format(request.META['QUERY_STRING'])
-
-        text_out = post_process_request(request,
-                                        fmt,
-                                        host_path,
-                                        r.text,
-                                        rewrite_url_list)
-        od = build_output_dict(request,
-                               OrderedDict(),
-                               resource_type,
-                               key,
-                               vid,
-                               interaction_type,
-                               fmt,
-                               text_out)
-
-        if fmt == 'xml':
-            return HttpResponse(r.text, content_type='application/xml')
-
-        return JsonResponse(od)
-
-    return authenticated_home(request)
-
-
-# @capability_protected_resource()
 def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
