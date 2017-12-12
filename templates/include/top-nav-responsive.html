@@ -49,7 +49,7 @@
                     <li><a href="{% url 'test_links' %}"> <i class="fa fa-check"></i> Sample Test Client</a></li>
                 {% endif %}
                 <li><a href="{% url 'bb_fhir_conformance' %}"> <i class="fa fa-fire"></i> FHIR<sup>&reg;</sup> Capability Statement</a></li>
-                <li>{% if fhir_id == None %}<a href="{% url 'bb_fhir_read_or_update_or_delete' resource_type="Patient" id="0" %}{% else %}<a href="{% url 'bb_fhir_read_or_update_or_delete' resource_type="Patient" id=fhir_id %}{% endif %}/"> <i class="fa fa-user-circle"></i> My Patient record</a></li>
+                <li>{% if fhir_id == None %}<a href="{% url 'bb_fhir_read' resource_type="Patient" id="0" %}{% else %}<a href="{% url 'bb_fhir_read' resource_type="Patient" id=fhir_id %}{% endif %}/"> <i class="fa fa-user-circle"></i> My Patient record</a></li>
                 <li><a href="{% url 'bb_fhir_search' resource_type="Coverage" %}/"> <i class="fa fa-umbrella"></i> My Coverage</a></li>
                <li><a href="{% url 'bb_fhir_search' resource_type="ExplanationOfBenefit" %}/"> <i class="fa fa-file-text-o"></i> My FHIR<sup>&reg;</sup> ExplanationOfBenefit records</a></li>
              {% if "apps.sandbox" in active_apps %}
