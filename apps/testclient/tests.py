@@ -8,8 +8,6 @@ from django.core.urlresolvers import reverse
 from unittest import skipIf
 from django.conf import settings
 
-from django.conf.global_settings import settings
-
 __author__ = "Alan Viars"
 
 
