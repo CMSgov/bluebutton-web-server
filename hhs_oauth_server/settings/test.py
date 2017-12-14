@@ -11,5 +11,4 @@ FHIR_SERVER_DEFAULT = 1
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-# INSTALLED_APPS.append('apps.testclient')
 OFFLINE = True
