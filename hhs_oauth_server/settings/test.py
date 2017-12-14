@@ -11,7 +11,4 @@ FHIR_SERVER_DEFAULT = 1
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
-# fix duplicate load. Already loaded in dev.py per style used for aws-*.py
-# INSTALLED_APPS.append('apps.testclient')
-
 OFFLINE = True
