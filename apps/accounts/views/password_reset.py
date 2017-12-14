@@ -98,7 +98,6 @@ def forgot_password(request):
 @login_required
 def change_secret_questions(request):
     up = get_object_or_404(UserProfile, user=request.user)
-    u = get_object_or_404(User, username=request.user)
 
     name = _('Change Secret Questions')
     if request.method == 'POST':
