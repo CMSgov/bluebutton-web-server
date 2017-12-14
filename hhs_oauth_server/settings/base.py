@@ -79,7 +79,6 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.capabilities',
     'apps.wellknown',
-    'apps.testclient',
 
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
