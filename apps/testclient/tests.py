@@ -8,6 +8,8 @@ from django.core.urlresolvers import reverse
 from unittest import skipIf
 from django.conf import settings
 
+from django.conf.global_settings import settings
+
 __author__ = "Alan Viars"
 
 
@@ -24,7 +26,8 @@ class BlueButtonClientApiUSerInfoTest(TestCase):
         self.testclient_setup = test_setup()
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))
-        self.patient = "3979"
+        # self.patient = "3979"
+        self.patient = settings.DEFAULT_SAMPLE_FHIR_ID
         self.username = "fred"
 
     def test_get_userinfo(self):
@@ -53,7 +56,7 @@ class BlueButtonClientApiFHIRTest(TestCase):
         self.testclient_setup = test_setup()
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))
-        self.patient = "3979"
+        self.patient = settings.DEFAULT_SAMPLE_FHIR_ID
 
     def test_get_patient(self):
         """
