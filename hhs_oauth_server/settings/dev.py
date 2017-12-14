@@ -8,6 +8,15 @@ HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env(
     'DJANGO_INVITE_REQUEST_ADMIN', 'change-me@example.com')
 
+DEV_SPECIFIC_APPS = [
+    # Installation/Site Specific apps based on  -----------------
+    # 'storages',
+    # A test client - moved to aws-test / dev /impl settings
+    'apps.testclient',
+
+]
+INSTALLED_APPS += DEV_SPECIFIC_APPS
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
