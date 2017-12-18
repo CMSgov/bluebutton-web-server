@@ -436,12 +436,10 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
 USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
+AXES_COOLOFF_TIME = datetime.timedelta(seconds=60)
+AXES_FAILURE_LIMIT = 100
+LOGIN_RATE = '100/m'
 
-# Failed Login Attempt Module: AXES
-# Either integer or timedelta.
-# If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(hours=1)
-LOGIN_RATE = '3/h'
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
 # We will need to add REWRITE_FROM and REWRITE_TO to models
 # to enable search and replace in content returned from backend server.
