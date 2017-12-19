@@ -1,0 +1,48 @@
+{% extends "design_system/base.html" %}
+{% load static %}
+
+
+{% load i18n %}
+{% load bootstrap %}
+
+{% block Content %}
+  <div class="container">
+
+
+<section id="theform">
+<article class="ds-u-border--1 ds-u-radius ds-u-padding--2 ds-u-md-padding--4">
+        <h1 class="text-center">Approve {{ application.name }}?</h1>
+        {% if not error %}
+            <form id="authorizationForm" method="post">
+                <h3 class="block-center-heading">{% trans "Do you approve the application" %} <strong>{{ application.name }}</strong> to access your personal health information
+                maintained by  <strong>{{settings.ORGANIZATION_TITLE }}</strong>?
+                </h3>
+                {% csrf_token %}
+
+                {% for field in form %}
+                    {% if field.is_hidden %}
+                        {{ field }}
+                    {% endif %}
+                {% endfor %}
+
+                {{ form.non_field_errors }}
+
+                <div class="control-group">
+                    <div class="controls">
+                        
+                        
+                        <input href="javascript:history.go(-1)" type="submit" class="btn btn-large" value="Cancel"/>
+                        <input id="approve" type="submit" class="ds-c-button ds-c-button--outline ds-u-margin-top--1 ds-u-display--block ds-u-md-display--inline-block"  name="allow" value="Approve"/>
+                    </div>
+                </div>
+            </form>
+
+        {% else %}
+            <h2>Error: {{ error.error }}</h2>
+            <p>{{ error.description }}</p>
+        {% endif %}
+</section>
+</div>
+{% endblock %}
+
+ 

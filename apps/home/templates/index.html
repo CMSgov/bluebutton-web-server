@@ -18,15 +18,16 @@
   <hr class="my-4">
   <p>{{settings.EXPLAINATION_LINE}}</p>
   <p class="lead">
-    <a class="btn btn-primary btn-lg" href="{% url 'request_invite' %}"role="button">Request an Invite to {{ settings.APPLICATION_TITLE }}</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'request_invite' %}" role="button"><i class="fa fa-code"></i>  Request an Invite to the {{ settings.APPLICATION_TITLE }}</a></p>
+  
+   <a class="btn btn-primary btn-lg"  href="{% url 'request_invite_enduser' %}" role="button"><i class="fa fa-heart"></i> Request an Invite as a Medicare Beneficiary</a></li>
+  
   </p>
 
  <p>If you are a developer who already has an account, then <a href="{% url 'mfa_login' %}">login here</a>.
  {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
-      If you are a Medicare beneficiary,  then 
+      If you are a Medicare beneficiary with an account,  then 
        <a href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}"> login with {{settings.EXTERNAL_AUTH_NAME}}</a>
-    {% else %}
-       <a href="{% url 'mfa_login' %}">here</a>.
  {% endif %}
 
 
