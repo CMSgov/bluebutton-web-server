@@ -1,15 +1,8 @@
 from .base import *
 import os
 import socket
-import datetime
 from getenv import env
 from ..utils import bool_env
-
-# Add testac to Dev/Test environments only
-# if 'apps.fhir.testac' not in INSTALLED_APPS:
-#     INSTALLED_APPS = INSTALLED_APPS + [
-#         'apps.fhir.testac',
-#     ]
 
 # Set ADMINS and MANAGERS
 ADMINS = (
@@ -97,7 +90,6 @@ MFA = True
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
-    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [IMPL]')
@@ -111,11 +103,6 @@ SLS_PASSWORD = env('DJANGO_SLS_PASSWORD')
 SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL')
-
-# Failed Login Attempt Module: AXES
-# Either integer or timedelta.
-# If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(seconds=60)
 
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Medicare Blue Button[IMPL]')
 

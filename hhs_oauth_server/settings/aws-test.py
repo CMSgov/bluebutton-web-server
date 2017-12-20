@@ -1,15 +1,8 @@
 from .base import *
 import os
 import socket
-import datetime
 from getenv import env
 from ..utils import bool_env
-
-# # Add testac to Dev/Test environments only
-# if 'apps.fhir.testac' not in INSTALLED_APPS:
-#     INSTALLED_APPS = INSTALLED_APPS + [
-#         'apps.fhir.testac',
-#     ]
 
 # Set ADMINS and MANAGERS
 ADMINS = (
@@ -17,17 +10,10 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*',
-                                             socket.gethostname()])
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-# if ALLOWED_HOSTS == ['*', socket.gethostname()]:
-#     print("WARNING: Set DJANGO_ALLOWED_HOSTS to the hostname "
-#           "for Production operation.\n"
-#           "         Currently defaulting to %s " % ALLOWED_HOSTS)
-# Warning: on macOS hostname is case sensitive
 
 # removing security enforcement in development mode
-# DEBUG = True
 DEBUG = bool_env(env('DJANGO_DEBUG', True))
 
 if DEBUG:
@@ -85,20 +71,12 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
 # SMS
 SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
 
-# MFA - Active or Not or False
-# If using MFA enabled login this value is used to determin if
-# reverse with mfa_login or reverse with login is called
-#     if settings.MFA:
-#         return HttpResponseRedirect(reverse('mfa_login'))
-#     else:
-#         return HttpResponseRedirect(reverse('login'))
 MFA = True
 
 # Add in apps.accounts backends for DEV environment
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
-    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [TEST]')
@@ -112,11 +90,6 @@ SLS_PASSWORD = env('DJANGO_SLS_PASSWORD')
 SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
 SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
 SLS_EMAIL = env('DJANGO_SLS_EMAIL')
-
-# Failed Login Attempt Module: AXES
-# Either integer or timedelta.
-# If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(seconds=60)
 
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API Server[TEST]')
 
