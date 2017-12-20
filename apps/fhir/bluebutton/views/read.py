@@ -4,7 +4,7 @@ from collections import OrderedDict
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
                                ERROR_CODE_LIST,
@@ -328,7 +328,6 @@ def generic_read(request,
                            text_out)
 
     if requested_format == 'xml':
-        return HttpResponse(r.text,
-                            content_type='application/xml')
+        return HttpResponse(r.text, content_type='application/xml')
 
-    return JsonResponse(od['bundle'])
+    return HttpResponse(od['bundle'], content_type='application/json')
