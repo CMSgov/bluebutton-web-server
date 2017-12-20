@@ -58,7 +58,7 @@ class TestAuthorizationView(BaseApiTest):
             'response_type': 'code',
             'redirect_uri': 'http://example.it',
         }
-        response = self.client.get(reverse('oauth2_provider:authorize'), payload)
+        response = self.client.get(reverse('oauth2_provider:scope_authorize'), payload)
         self.assertEqual(response.status_code, 200)
         # check form is in context and form initial values are correct
         self.assertIn("form", response.context)
