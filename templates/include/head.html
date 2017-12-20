@@ -34,9 +34,8 @@
 
     <!-- End of Design-System CSS additions -->
 
-    {% with settings.THEME.PATH|add:'bootstrap.min.css' as theme_css_static %}
-   <link href="{% static theme_css_static %}" rel="stylesheet">
-    {% endwith %}
+   <link rel="stylesheet" href="{% static 'design-system/packages/core/dist/index.css' %}" />
+   <link rel="stylesheet" href="{% static 'design-system/style.css' %}">
 
 
-    <!-- Add custom CSS here -->
+    <!-- Add more custom CSS here -->
