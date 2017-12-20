@@ -19,6 +19,8 @@ from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
 
+__author__ = "Alan Viars"
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
@@ -80,8 +82,7 @@ def request_invite_enduser(request):
 
 def mylogout(request):
     logout(request)
-    messages.success(request, _('You have been logged out.'))
-    return pick_reverse_login()
+    return HttpResponseRedirect(reverse('home'))
 
 
 @never_cache

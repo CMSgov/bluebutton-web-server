@@ -1,5 +1,7 @@
 from ..models import UserProfile
 
+__author__ = "Alan Viars"
+
 
 def create_user_profile(strategy, details, backend, user=None, *args, **kwargs):
     up, created = UserProfile.objects.get_or_create(user=user)

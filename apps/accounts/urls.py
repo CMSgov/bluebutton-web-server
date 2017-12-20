@@ -25,6 +25,7 @@ from .views.invites import bulk_user_codes
 from .views.email_bounce_webhook import record_email_bounce
 from .views.api_profile import my_profile
 from .views.end_user_account_create import create_end_user_account
+from .views.upstream_login import upstream_oauth_login
 
 urlpatterns = [
     # login and Logout ------------------------------------
@@ -60,6 +61,11 @@ urlpatterns = [
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
         mfa_code_confirm, name='mfa_code_confirm'),
+
+    # Upstream login  (such as Google )---------------------------
+    url(r'^oauth2-login$',
+        upstream_oauth_login,
+        name='accounts_upstream_oauth2_login'),
 
 
     url(r'^bulk-user-codes$', bulk_user_codes, name='bulk_user_codes'),
