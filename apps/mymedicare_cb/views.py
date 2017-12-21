@@ -140,6 +140,8 @@ def mymedicare_login(request):
     mymedicare_login_url = "%s&state=%s&redirect_uri=%s" % (
         mymedicare_login_url, state, redirect)
     next_uri = request.GET.get('next')
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(next_uri)
     AnonUserState.objects.create(state=state, next_uri=next_uri)
 
     if request.GET.get('type') == 'developer':
