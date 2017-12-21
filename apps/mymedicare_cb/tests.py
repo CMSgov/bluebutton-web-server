@@ -21,11 +21,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         Test well-formed login_url has expected content
         """
         response = self.client.get(self.login_url)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "state")
-        self.assertContains(response, "client_id")
-        self.assertContains(response, "scope")
-        self.assertContains(response, "redirect_uri")
+        self.assertEqual(response.status_code, 302)
 
     def test_login_url_sad(self):
         """
