@@ -4,6 +4,7 @@ import urllib.request as req
 
 __author__ = "Alan Viars"
 
+
 def upstream_oauth_login(request):
     mymedicare_login_url = 'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton&state=54321'
     query = 'http://localhost:8000/mymedicare/sls-callback'

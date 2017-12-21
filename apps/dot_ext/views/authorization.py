@@ -16,7 +16,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = "Alan Viars"
 
 
-@method_decorator(ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '100/m'), method=['GET', 'POST'], block=True), name='dispatch')
+@method_decorator(ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '100/m'),
+                            method=['GET', 'POST'], block=True), name='dispatch')
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
