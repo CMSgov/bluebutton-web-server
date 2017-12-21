@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from django.shortcuts import render
 from django.conf import settings
 from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import login
 import requests
@@ -139,11 +139,10 @@ def mymedicare_login(request):
     state = req.pathname2url(state)
     mymedicare_login_url = "%s&state=%s&redirect_uri=%s" % (
         mymedicare_login_url, state, redirect)
-    # print(mymedicare_login_url)
     next_uri = request.GET.get('next')
-    # print("Next URI", next_uri)
     AnonUserState.objects.create(state=state, next_uri=next_uri)
-    template_name = getattr(
-        settings, 'MEDICARE_LOGIN_TEMPLATE_NAME', "accounts/login.html")
-    return render(request, template_name, {'next': next_uri,
-                                           'mymedicare_login_url': mymedicare_login_url})
+
+    if request.GET.get('type') == 'developer':
+        return HttpResponseRedirect(reverse('mfa_login') + "?" + next_uri)
+
+    return HttpResponseRedirect(mymedicare_login_url)
