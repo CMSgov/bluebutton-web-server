@@ -25,7 +25,7 @@ class Crosswalk(models.Model):
                                     null=True)
     # default=settings.FHIR_SERVER_DEFAULT)
     fhir_id = models.CharField(max_length=80,
-                               blank=True, default="")
+                               blank=True, default="", db_index=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
     user_id_type = models.CharField(max_length=1,
@@ -34,24 +34,18 @@ class Crosswalk(models.Model):
     user_id_hash = models.CharField(max_length=64,
                                     blank=True,
                                     default="",
-                                    verbose_name="PBKDF2 of User ID")
+                                    verbose_name="PBKDF2 of User ID",
+                                    db_index=True)
 
-    # def save(self, commit=True, **kwargs):
-    #     if commit:
-    #         if not self.fhir_source:
-    #             self.fhir_source = ResourceRouter.objects.get(
-    #                 pk=settings.FHIR_SERVER_DEFAULT)
-    #         super(Crosswalk, self).save(**kwargs)
+    def save(self, commit=True, **kwargs):
+        if commit:
+            self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
+                                                        settings.USER_ID_SALT,
+                                                        settings.USER_ID_ITERATIONS)).decode("ascii")
+            super(Crosswalk, self).save(**kwargs)
 
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
-
-    def encrypt_and_set_user_id_hash(self, plaintext_user_id):
-
-        self.user_id_hash = binascii.hexlify(pbkdf2(plaintext_user_id,
-                                                    settings.USERID_ENCRYPT_SALT,
-                                                    settings.USERID_ENCRYPT_NUM_ITERS)).decode("ascii")
-        return self.user_id_hash
 
     def get_fhir_patient_url(self):
         # Return the fhir server url and {Resource_name}/{id}
