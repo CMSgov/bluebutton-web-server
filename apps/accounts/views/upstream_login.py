@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.conf import settings
 import urllib.request as req
 
+__author__ = "Alan Viars"
 
 def upstream_oauth_login(request):
     mymedicare_login_url = 'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton&state=54321'
@@ -10,7 +11,6 @@ def upstream_oauth_login(request):
     mymedicare_login_url = "%s&redirect_uri=%s&next=%s" % (
         mymedicare_login_url, query, request.GET.get('next'))
     my_next = request.GET.get('next')
-    print("Mynext", my_next)
     template_name = getattr(
         settings, 'SOCIALAUTH_LOGIN_TEMPLATE_NAME', "design_system/login.html")
     if my_next:

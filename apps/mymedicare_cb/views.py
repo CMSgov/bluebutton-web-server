@@ -38,12 +38,10 @@ def callback(request):
     # a POST
     r = requests.post(token_endpoint, json=token_dict, verify=verify_ssl)
     token_response = {}
-    # print(r.status_code)
     if r.status_code != 200:
         return HttpResponse("An unknown error has occurred.", status=500)
 
     token_response = r.json()
-    # print("Token is ", token_response['access_token'])
     # Create the Bearer
     bt = "Bearer %s" % (token_response['access_token'])
     # build a headers dict with Authorization
@@ -88,9 +86,6 @@ def callback(request):
     hicn = user_info.get('hicn', "999999999A")
     cx.user_id_hash = hicn
     cx.save()
-
-    # print("HICN:", hicn)
-    # print("HASH", cx.user_id_hash)
     # URL for patient ID.
     url = fhir_source.fhir_url + \
         "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
