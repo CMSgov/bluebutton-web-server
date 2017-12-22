@@ -30,5 +30,8 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
             fhir_body["patient"] = cw.fhir_id
             body = json.dumps(fhir_body)
         uri = headers.get("Location", None)
-        send_access_token_notifcation(token)
+        if token.user.email:
+            # If email is not blank, then send an email notifications.
+            send_access_token_notifcation(token)
+
         return uri, headers, body, status
