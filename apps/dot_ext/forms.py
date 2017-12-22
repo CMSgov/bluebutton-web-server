@@ -45,6 +45,7 @@ class EndorsementForm(forms.ModelForm):
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
+
     def __init__(self, user, *args, **kwargs):
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
         choices = []
@@ -59,9 +60,14 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     class Meta:
         model = get_application_model()
-        fields = ('scope', 'name', 'client_type', 'authorization_grant_type', 'redirect_uris')
+        fields = ('scope', 'name', 'client_type',
+                  'authorization_grant_type', 'redirect_uris')
 
     required_css_class = 'required'
+
+
+class SimpleAllowForm(DotAllowForm):
+    pass
 
 
 class AllowForm(DotAllowForm):
@@ -77,7 +83,8 @@ class AllowForm(DotAllowForm):
             super(AllowForm, self).__init__(*args, **kwargs)
         else:
             # we use the application instance to get the list of available scopes
-            # because it is needed to create the choices list for the `scope` field.
+            # because it is needed to create the choices list for the `scope`
+            # field.
             available_scopes = get_scopes_backend().get_available_scopes(application)
 
             # set the available_scopes as the initial value so that
@@ -90,5 +97,6 @@ class AllowForm(DotAllowForm):
             # get the list of all the scopes available in the system
             # to get the description of each available scope.
             all_scopes = get_scopes_backend().get_all_scopes()
-            choices = [(scope, all_scopes[scope]) for scope in available_scopes]
+            choices = [(scope, all_scopes[scope])
+                       for scope in available_scopes]
             self.fields['scope'].choices = choices

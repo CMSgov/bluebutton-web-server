@@ -7,19 +7,36 @@ from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.http import HttpResponseUriRedirect
 from ratelimit.decorators import ratelimit
-from ..forms import AllowForm
+from ..forms import AllowForm, SimpleAllowForm
 from ..models import ExpiresIn
-
+from django.conf import settings
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+__author__ = "Alan Viars"
 
-@method_decorator(ratelimit(key='user_or_ip', rate='5/m', method=['GET', 'POST'], block=True), name='dispatch')
+
+@method_decorator(ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '100/m'),
+                            method=['GET', 'POST'], block=True), name='dispatch')
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+    form_class = SimpleAllowForm
+    login_url = getattr(
+        settings, 'AUTHORIZATION_LOGIN_URL', "/mymedicare/login")
+    template_name = getattr(
+        settings, 'AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
+
+
+@method_decorator(ratelimit(key='user_or_ip', rate='5/m', method=['GET', 'POST'], block=True), name='dispatch')
+class ScopeAuthorizationView(DotAuthorizationView):
+    """
+    Override the base authorization view from dot to
+    use the custom AllowForm.
+    """
+
     form_class = AllowForm
 
     def form_valid(self, form):
@@ -45,14 +62,15 @@ class AuthorizationView(DotAuthorizationView):
             user_id = self.request.user.pk
             ExpiresIn.objects.set_expires_in(client_id, user_id, expires_in)
 
-            logger.debug("Success url for the request: {0}".format(self.success_url))
+            logger.debug(
+                "Success url for the request: {0}".format(self.success_url))
             return HttpResponseUriRedirect(self.success_url)
 
         except OAuthToolkitError as error:
             return self.error_response(error)
 
     def get_form_kwargs(self):
-        kwargs = super(AuthorizationView, self).get_form_kwargs()
+        kwargs = super(ScopeAuthorizationView, self).get_form_kwargs()
 
         # the application instance is needed by our custom AllowForm
         # to properly initialize choices for the scope field
@@ -69,7 +87,8 @@ class AuthorizationView(DotAuthorizationView):
                 application = Application.objects.get(client_id=client_id)
                 kwargs['application'] = application
             except Application.DoesNotExist:
-                logger.warning("no application found with client_id '%s'", client_id)
+                logger.warning(
+                    "no application found with client_id '%s'", client_id)
 
         return kwargs
 

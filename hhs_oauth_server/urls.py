@@ -48,8 +48,6 @@ urlpatterns = [
         name='warnings'),
 
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
-    # Admin
-    url(r'^admin/', include(admin.site.urls)),
 
     decorated_url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls),
                   wrap=staff_member_required(login_url=settings.LOGIN_URL)),
@@ -63,6 +61,11 @@ if IsAppInstalled("apps.extapi"):
 if IsAppInstalled("apps.testclient"):
     urlpatterns += [
         url(r'^testclient/', include('apps.testclient.urls')),
+    ]
+
+if IsAppInstalled("apps.mymedicare_cb"):
+    urlpatterns += [
+        url(r'^mymedicare/', include('apps.mymedicare_cb.urls')),
     ]
 
 urlpatterns += [

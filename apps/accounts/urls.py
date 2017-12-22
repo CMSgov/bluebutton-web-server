@@ -1,5 +1,5 @@
 from django.conf.urls import url
-# from axes.decorators import watch_login
+from axes.decorators import watch_login
 from .views.core import (create_account,
                          account_settings,
                          reissue_api_keys,
@@ -26,6 +26,10 @@ from .views.email_bounce_webhook import record_email_bounce
 from .views.api_profile import my_profile
 from .views.end_user_account_create import create_end_user_account
 
+
+__author__ = "Alan Viars"
+
+
 urlpatterns = [
     # login and Logout ------------------------------------
     url(r'^api/profile$', my_profile, name='my_profile'),
@@ -51,8 +55,7 @@ urlpatterns = [
     url(r'^settings$', account_settings, name='account_settings'),
 
     # MFA URLs ------------------------------------------
-    # url(r'^mfa/login$', watch_login(mfa_login), name='mfa_login'),
-    url(r'^mfa/login$', mfa_login, name='mfa_login'),
+    url(r'^mfa/login$', watch_login(mfa_login), name='mfa_login'),
 
     url(r'^user-code/register$', user_code_register, name='user_code_register'),
 
@@ -60,7 +63,6 @@ urlpatterns = [
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
         mfa_code_confirm, name='mfa_code_confirm'),
-
 
     url(r'^bulk-user-codes$', bulk_user_codes, name='bulk_user_codes'),
 

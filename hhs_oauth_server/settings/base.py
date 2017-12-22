@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     'apps.fhir.server',
     'apps.fhir.bluebutton',
     'apps.fhir.fhir_consent',
+    'apps.mymedicare_cb',
 
     # 3rd Party ---------------------
     'corsheaders',
@@ -419,6 +420,7 @@ SETTINGS_EXPORT = [
     'ALLOW_END_USER_EXTERNAL_AUTH',
     'SOCIAL_AUTH_BACKEND_NAME',
     'OPTIONAL_INSTALLED_APPS',
+    'INSTALLED_APPS'
 ]
 
 
@@ -432,14 +434,13 @@ SESSION_COOKIE_AGE = 5400
 # Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# Change these for production
-USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
-USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
+# Failed Login Attempt Module: AXES
+# Either integer or timedelta.
+# If integer interpreted, as hours
 AXES_COOLOFF_TIME = datetime.timedelta(minutes=60)
 AXES_FAILURE_LIMIT = 6
 LOGIN_RATE = '6/h'
-
 # Default FHIR Server if none defined in Crosswalk or FHIR Server model
 # We will need to add REWRITE_FROM and REWRITE_TO to models
 # to enable search and replace in content returned from backend server.
@@ -517,13 +518,31 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social'
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ['next']
 SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 
+
+MEDICARE_LOGON = True
+MEDICARE_LOGIN_TEMPLATE_NAME = env(
+    'DJANGO_MEDICARE_LOGIN_TEMPLATE_NAME', "design_system/login.html")
+AUTHORIZATION_LOGIN_URL = env(
+    'DJANGO_AUTHORIZATION_LOGIN_URL', '/mymedicare/login')
+AUTHORIZATION_TEMPLATE_NAME = env(
+    'DJANGO_AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
+
+MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI ',
+                         'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
+MEDICARE_REDIRECT_URI = env(
+    'DJANGO_MEDICARE_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
+
+# Since this is internal False may be acceptable.
+SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
+
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 
 )
 
-USERID_ENCRYPT_SALT = "nottherealpepper"
-USERID_ENCRYPT_NUM_ITERS = 2
+# Change these for production
+USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
+USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
 USER_ID_TYPE_CHOICES = (('H', 'HICN'),
                         ('M', 'MBI'),
@@ -532,6 +551,7 @@ USER_ID_TYPE_CHOICES = (('H', 'HICN'),
 USER_ID_TYPE_DEFAULT = "H"
 DEFAULT_SAMPLE_FHIR_ID = "20140000008325"
 OFFLINE = False
+EXTERNAL_LOGIN_TEMPLATE_NAME = '/accounts/upstream-login'
 
 #
 # MyMedicare Authentication Integration
