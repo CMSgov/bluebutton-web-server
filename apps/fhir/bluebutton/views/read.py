@@ -1,9 +1,7 @@
-import json
 import logging
-from collections import OrderedDict
+from urllib.parse import urlencode
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
@@ -18,7 +16,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         check_access_interaction_and_resource_type,
                                         get_fhir_id,
                                         masked_id,
-                                        build_params,
                                         FhirServerUrl,
                                         get_host_url,
                                         post_process_request,
@@ -250,8 +247,8 @@ def generic_read(request,
 
     key = get_fhir_id(cx) if resource_type.lower() == "patient" else id
 
-#    pass_params = build_params(pass_params, srtc, key, patient_id=get_fhir_id(cx))
-    pass_params = '?_format=json'
+    pass_params = urlencode(pass_params)
+
     # Add the call type ( READ = nothing, VREAD, _HISTORY)
     # Before we add an identifier key
     pass_to = fhir_call_type(interaction_type, fhir_url, vid)
@@ -259,8 +256,8 @@ def generic_read(request,
     logger.debug('\nHere is the URL to send, %s now add '
                  'GET parameters %s' % (pass_to, pass_params))
 
-    if pass_params is not '':
-        pass_to += pass_params
+    if pass_params:
+        pass_to += '?' + pass_params
 
     timeout = rr.wait_time if interaction_type == "search" else None
 

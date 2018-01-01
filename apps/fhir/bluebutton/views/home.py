@@ -1,18 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
-"""
-hhs_oauth_server
-FILE: home.py
-Created: 6/27/16 3:24 PM
-
-"""
 import json
 import logging
 
 from urllib.parse import urlencode
-from django.core.urlresolvers import reverse_lazy
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from apps.fhir.bluebutton.utils import (request_call,

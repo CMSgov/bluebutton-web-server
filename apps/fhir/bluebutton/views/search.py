@@ -3,7 +3,6 @@ import json
 import logging
 
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, JsonResponse
 
 from apps.dot_ext.decorators import capability_protected_resource

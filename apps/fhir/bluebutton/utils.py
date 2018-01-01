@@ -5,7 +5,6 @@ import pytz
 import requests
 import uuid
 
-from urllib.parse import urlencode
 from collections import OrderedDict
 from datetime import datetime
 from pytz import timezone
@@ -383,188 +382,13 @@ def block_params(get, srtc):
         # set search_params to what is received as a default
         search_params = get
     else:
-        # No get parameters to process so return
-        search_params = ''
-        return search_params
+        return ''
 
     # Now we need to see if there are any get parameters to remove
-    if srtc:
-        if srtc.override_search:
-            search_params = get_url_query_string(get, srtc.get_search_block())
+    if srtc and srtc.override_search:
+        search_params = get_url_query_string(get, srtc.get_search_block())
 
-    # do we need to convert result to json. source could be
-    # OrderedDict or string
-    # search_params_result = json.dumps(search_params)
-
-    # return search_params_result
     return search_params
-
-
-def add_params(srtc, patient_id=None, key=None):
-    """ Add filtering parameters to search string """
-
-    # srtc.get_search_add will return a list
-    # this will be in form 'Patient={Value}'
-    # Replaceable parameters can be included
-    # Currently Supported Replaceable Parameters are:
-    # %PATIENT% = key
-    # key = FHIR_ID for search parameter. eg. patient= Patient profile Id
-    # modify this function to add more Replaceable Parameters
-    # Need to suppress addition of patient={id} in Patient resource read
-
-    # Returns List
-
-    # add_params = ''
-    add_params = []
-
-    if srtc:
-        if srtc.override_search:
-            params_list = srtc.get_search_add()
-            if isinstance(params_list, list):
-                pass
-            else:
-                if params_list == "[]":
-                    params_list = []
-                else:
-                    params_list = [params_list, ]
-
-            logger_debug.debug('Parameters to add:%s' % params_list)
-            logger_debug.debug('key to replace: %s' % key)
-
-            add_params = []
-            for item in params_list:
-                # Run through list and do variable replacement
-                if srtc.resourceType.lower() not in item.lower():
-                    # only replace 'patient=%PATIENT%' if resource not Patient
-                    if '%PATIENT%' in item:
-                        if key is None:
-                            patient_str = str(patient_id)
-                            if patient_id is None:
-                                patient_str = ''
-                        else:
-                            # force key to string
-                            patient_str = str(key)
-                        if patient_str is 'None':
-                            patient_str = ''
-                        if patient_str is None:
-                            patient_str = ''
-                        item = item.replace('%PATIENT%', patient_str)
-                        if '%PATIENT%' in item:
-                            # Still there we need to remove
-                            item = item.replace('%PATIENT%', '')
-
-                    add_params.append(item)
-            logger_debug.debug(
-                'Resulting additional parameters:%s' % add_params)
-
-    return add_params
-
-
-def concat_parms(front_part={}, back_part={}):
-    """ Concatenate the Query Parameters Strings
-        The strings should be urlencoded.
-
-    """
-
-    joined_parms = OrderedDict()
-
-    logger_debug.debug('Joining %s with: %s' % (front_part, back_part))
-    if len(front_part) > 0:
-        if isinstance(front_part, dict):
-            for k, v in front_part.items():
-                # append back items
-                joined_parms[k] = v
-        elif isinstance(front_part, list):
-            for item in front_part:
-                # split item  on '=' eg. patient=4995802
-                item_split = item.split('=')
-                if len(item_split) > 1:
-                    joined_parms[item_split[0]] = item_split[1]
-                else:
-                    joined_parms[item_split[0]] = ''
-
-    if len(back_part) > 0:
-        if isinstance(back_part, dict):
-            for k, v in back_part.items():
-                # append back items
-                joined_parms[k] = v
-        elif isinstance(back_part, list):
-            for item in back_part:
-                # split item  on '=' eg. patient=4995802
-                item_split = item.split('=')
-                if len(item_split) > 1:
-                    joined_parms[item_split[0]] = item_split[1]
-                else:
-                    joined_parms[item_split[0]] = ''
-
-    concat_parm = '?' + urlencode(joined_parms)
-    logger_debug.debug("Concat_parm:%s" % concat_parm)
-    if concat_parm.startswith('?='):
-        concat_parms = '?' + concat_parm[3:]
-    else:
-        concat_parms = concat_parm
-    logger_debug.debug('resulting string:%s' % concat_parms)
-    return concat_parms
-
-
-def build_params(get, srtc, key, patient_id=None):
-    """
-    Build the URL Parameters.
-    We have to skip any in the skip list.
-
-    :param get:
-    :param srtc:
-    :param key:
-    :return: all_param
-    """
-
-    # First we strip the parameters that need to be blocked
-    url_param = block_params(get, srtc)
-
-    # Now we need to construct the parameters we need to add
-
-    add_param = add_params(srtc, patient_id=patient_id, key=key)
-
-    # Put the parameters together in urlencoded string
-    # leading ? and parameters joined by &
-    all_param = concat_parms(url_param, add_param)
-
-    logger.debug('Parameter (post block/add):%s' % all_param)
-
-    # now we check for _format being specified. Otherwise we get back html
-    # by default we will process json unless _format is already set.
-
-    all_param = add_format(all_param)
-
-    logger.debug('add_Format returned:%s' % all_param)
-
-    return all_param
-
-
-def add_format(all_param=''):
-    """
-    Check for _format in parameters and add if missing
-    """
-
-    # logger.debug("Checking _FORMAT:%s" % all_param)
-    if '_format' in all_param:
-        # We have a _format setting.
-        # Let's check for xml or json.
-        if '_format=json' in all_param.lower():
-            return all_param
-        elif '_format=xml' in all_param.lower():
-            return all_param
-
-    # no _format set.
-    # Let's set _format=json.
-    if all_param != '':
-        all_param += '&'
-    else:
-        all_param = '?'
-
-    all_param += '_format=json'
-
-    return all_param
 
 
 def get_url_query_string(get, skip_parm=[]):
