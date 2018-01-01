@@ -48,23 +48,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*',
-                                             socket.gethostname()])
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-# if ALLOWED_HOSTS == ['*', socket.gethostname()]:
-#     print("WARNING: Set DJANGO_ALLOWED_HOSTS to the hostname "
-#           "for Production operation.\n"
-#           "         Currently defaulting to %s " % ALLOWED_HOSTS)
-# Warning: on macOS hostname is case sensitive
-
-# DEBUG = env('DJANGO_DEBUG', False)
 DEBUG = bool_env(env('DJANGO_DEBUG', True))
-
-# if DEBUG:
-#     print("WARNING: Set DJANGO_DEBUG environment variable to False "
-#           "to run in production mode \n"
-#           "         and set DJANGO_ALLOWED_HOSTS to "
-#           "valid host names")
 
 # apps and middlewares
 INSTALLED_APPS = [

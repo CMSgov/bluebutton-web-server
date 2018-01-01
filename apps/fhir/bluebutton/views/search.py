@@ -288,9 +288,7 @@ def read_search(request,
                                target_url,
                                json.loads(json.dumps(payload)),
                                cx,
-                               reverse_lazy('home'),
-                               timeout=rr.wait_time
-                               )
+                               timeout=rr.wait_time)
 
     ###############################################
     ###############################################

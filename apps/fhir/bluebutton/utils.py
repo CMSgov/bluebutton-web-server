@@ -29,9 +29,6 @@ logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
-# consider removing fail_redirect and set a timeout for all calls that can
-# be managed by settings.
-
 
 def is_oauth2(request):
     """Is the request OAuth2 or not.  Return True or False."""
@@ -168,12 +165,11 @@ def generate_info_headers(request):
     return result
 
 
-def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
+def request_call(request, call_url, cx=None, timeout=None):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
     cx = Crosswalk record. The crosswalk is keyed off Request.user
-    fail_redirect allows routing to a page on failure
-    timoeout allows a timeout in seconds to be set.
+    timeout allows a timeout in seconds to be set.
 
     FhirServer is joined to Crosswalk.
     FhirServerAuth and FhirServerVerify receive cx and lookup
@@ -204,11 +200,6 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
     logger.info(header_info)
 
     try:
-
-        ####################################################################
-        ####################################################################
-        ####################################################################
-
         if timeout:
             r = requests.get(call_url,
                              cert=cert,
@@ -221,12 +212,7 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
                              headers=header_info,
                              verify=verify_state)
 
-        ####################################################################
-        ####################################################################
-        ####################################################################
-
         logger.debug("Request.get:%s" % call_url)
-
         logger.debug("Status of Request:%s" % r.status_code)
 
         fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
@@ -236,45 +222,28 @@ def request_call(request, call_url, cx=None, fail_redirect="/", timeout=None):
 
         return fhir_response
 
-        # if r.status_code in ERROR_CODE_LIST:
-        #     r.raise_for_status()
-        # # except requests.exceptions.HTTPError as r_err:
-
     except requests.exceptions.Timeout as e:
 
         logger.debug("Gateway timeout talking to back-end server")
-        fhir_response = build_fhir_response(request,
-                                            call_url,
-                                            cx,
-                                            r=None,
-                                            e=e)
+        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
 
         return fhir_response
 
     except requests.ConnectionError as e:
         logger.debug("Request.GET:%s" % request.GET)
 
-        fhir_response = build_fhir_response(request,
-                                            call_url,
-                                            cx,
-                                            r=None,
-                                            e=e)
+        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
 
         return fhir_response
 
     except requests.exceptions.HTTPError as e:
-        # except requests.exceptions.RequestException as r_err:
         r_err = requests.exceptions.RequestException
         logger.debug('Problem connecting to FHIR Server: %s' % call_url)
         logger.debug('Exception: %s' % r_err)
         handle_e = handle_http_error(e)
         handle_e = handle_e
 
-        fhir_response = build_fhir_response(request,
-                                            call_url,
-                                            cx,
-                                            r=None,
-                                            e=e)
+        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
 
         messages.error(request, 'Problem connecting to FHIR Server.')
 
@@ -290,12 +259,10 @@ def request_get_with_parms(request,
                            call_url,
                            search_params={},
                            cx=None,
-                           fail_redirect="/",
                            timeout=None):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
     cx = Crosswalk record. The crosswalk is keyed off Request.user
-    fail_redirect allows routing to a page on failure
     timoeout allows a timeout in seconds to be set.
 
     FhirServer is joined to Crosswalk.
@@ -337,10 +304,6 @@ def request_get_with_parms(request,
     for k, v in search_params.items():
         logger.debug("\nkey:%s - value:%s" % (k, v))
 
-        ####################################################################
-        ####################################################################
-        ####################################################################
-
     try:
         if timeout:
             r = requests.get(call_url,
@@ -353,10 +316,6 @@ def request_get_with_parms(request,
                              params=search_params,
                              cert=cert,
                              verify=verify_state)
-
-        ####################################################################
-        ####################################################################
-        ####################################################################
 
         logger.debug("Request.get:%s" % call_url)
         logger.debug("Status of Request:%s" % r.status_code)
@@ -371,46 +330,29 @@ def request_get_with_parms(request,
     except requests.exceptions.Timeout as e:
 
         logger.debug("Gateway timeout talking to back-end server")
-        fhir_response = build_fhir_response(request,
-                                            call_url,
-                                            cx,
-                                            r=None,
-                                            e=e)
+        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
 
         return fhir_response
 
     except requests.ConnectionError as e:
-        # logger.debug('Connection Problem to FHIR '
-        #              'Server: %s : %s' % (call_url, e))
         logger.debug("Request.GET:%s" % request.GET)
-        # logger.debug("what is in e:\n#######\n%s\n##########\n" % dir(e))
 
-        fhir_response = build_fhir_response(request,
-                                            call_url,
-                                            cx,
-                                            r=None,
-                                            e=e)
+        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
 
         return fhir_response
 
     except requests.exceptions.HTTPError as e:
-        # except requests.exceptions.RequestException as r_err:
         r_err = requests.exceptions.RequestException
         logger.debug('Problem connecting to FHIR Server: %s' % call_url)
         logger.debug('Exception: %s' % r_err)
         handle_e = handle_http_error(e)
         handle_e = handle_e
 
-        fhir_response = build_fhir_response(request,
-                                            call_url,
-                                            cx,
-                                            r=None,
-                                            e=e)
+        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
 
         messages.error(request, 'Problem connecting to FHIR Server.')
 
         e = requests.Response
-        # e.text = r_err
         logger.debug("HTTPError Status_code:%s" %
                      requests.exceptions.HTTPError)
 
@@ -932,26 +874,6 @@ def build_conformance_url():
     return call_to
 
 
-def build_output_dict(request,
-                      od,
-                      resource_type,
-                      key,
-                      vid,
-                      interaction_type,
-                      fmt,
-                      text_out):
-    """ Create the output as an OrderedDict """
-
-    od['resource_type'] = resource_type
-    od['id'] = key
-    if vid is not None:
-        od['vid'] = vid
-
-    od['bundle'] = text_out
-
-    return od
-
-
 def post_process_request(request, ct_fmt, host_path, r_text, rewrite_url_list):
     """ Process request based on xml or json fmt """
 
@@ -1144,18 +1066,10 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
     else:
         r_dir = dir(r)
 
-    # logger.debug("r to work with:\n%s\n#####################\n" % r_dir)
-
     if e is None:
         e_dir = []
     else:
         e_dir = dir(e)
-    # logger.debug("e to deal with:\n%s\n#####################\n" % e_dir)
-
-    # if 'status_code' in r_dir:
-    #     logger.debug("r status:%s\n" % r.status_code)
-    # else:
-    #     logger.debug("r status: not returned\n")
 
     fhir_response = Fhir_Response(r)
 
@@ -1163,9 +1077,6 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
     fhir_response.cx = cx
 
     if len(r_dir) > 0:
-
-        # logger.debug("r._content:%s" % r._content)
-
         if 'status_code' in r_dir:
             fhir_response._status_code = r.status_code
         else:
@@ -1197,7 +1108,6 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
             fhir_response._owner += ""
 
     elif len(e_dir) > 0:
-        # logger.debug("e._content:%s" % e._content)
         fhir_response.status_code = 504
         fhir_response._status_code = fhir_response.status_code
         fhir_response._json = {"errors": ["The gateway has timed out",

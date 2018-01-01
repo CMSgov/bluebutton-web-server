@@ -4,15 +4,14 @@ from collections import OrderedDict
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
-                               ERROR_CODE_LIST,
+                               kickout_502,
                                strip_format_for_back_end,
                                request_format,
                                add_key_to_fhir_url,
-                               fhir_call_type
-                               )
+                               fhir_call_type)
 
 from apps.fhir.bluebutton.utils import (request_call,
                                         check_rt_controls,
@@ -22,7 +21,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         build_params,
                                         FhirServerUrl,
                                         get_host_url,
-                                        build_output_dict,
                                         post_process_request,
                                         get_default_path,
                                         get_crosswalk,
@@ -167,7 +165,6 @@ def generic_read(request,
                                ' Login is required:'
                                '%s' % (resource_type,
                                        request.user.is_anonymous()))
-        # logger.debug('srtc: %s' % srtc)
 
     if cx is None:
         logger.debug('Crosswalk for %s does not exist' % request.user)
@@ -192,14 +189,10 @@ def generic_read(request,
     # You need to add resource_type + "/" for full url
 
     if srtc:
-        # logger.debug('SRTC:%s' % srtc)
-
         fhir_url = default_path + resource_type + '/'
 
         if srtc.override_url_id:
             fhir_url += get_fhir_id(cx) + "/"
-
-        # logger.debug('fhir_url:%s' % fhir_url)
         else:
             fhir_url += id + "/"
 
@@ -208,7 +201,6 @@ def generic_read(request,
         if cx:
             fhir_url = cx.get_fhir_resource_url(resource_type)
         else:
-            # logger.debug('FHIRServer:%s' % FhirServerUrl())
             fhir_url = FhirServerUrl() + resource_type + '/'
 
     # #### SEARCH
@@ -251,24 +243,15 @@ def generic_read(request,
 
     if interaction_type == 'search':
         if cx is not None:
-            # logger.debug("cx.fhir_id=%s" % cx.fhir_id)
             if cx.fhir_id.__contains__('/'):
                 id = get_fhir_id(cx).split('/')[1]
             else:
                 id = get_fhir_id(cx)
-            # logger.debug("Patient Id:%s" % r_id)
 
-    if resource_type.lower() == "patient":
-        key = get_fhir_id(cx)
-    else:
-        key = id
+    key = get_fhir_id(cx) if resource_type.lower() == "patient" else id
 
-    pass_params = build_params(pass_params,
-                               srtc,
-                               key,
-                               patient_id=get_fhir_id(cx)
-                               )
-
+#    pass_params = build_params(pass_params, srtc, key, patient_id=get_fhir_id(cx))
+    pass_params = '?_format=json'
     # Add the call type ( READ = nothing, VREAD, _HISTORY)
     # Before we add an identifier key
     pass_to = fhir_call_type(interaction_type, fhir_url, vid)
@@ -279,33 +262,23 @@ def generic_read(request,
     if pass_params is not '':
         pass_to += pass_params
 
+    timeout = rr.wait_time if interaction_type == "search" else None
+
     logger.debug("\nMaking request:%s" % pass_to)
 
     # Now make the call to the backend API
 
-    if interaction_type == "search":
-        r = request_call(request,
-                         pass_to,
-                         cx,
-                         reverse_lazy('home'),
-                         timeout=rr.wait_time)
-    else:
-        r = request_call(request, pass_to, cx, reverse_lazy('home'))
+    r = request_call(request, pass_to, cx, timeout=timeout)
 
     # BACK FROM THE CALL TO BACKEND
 
     # Check for Error here
     logger.debug("status: %s/%s" % (r.status_code, r._status_code))
 
-    if r.status_code in ERROR_CODE_LIST:
-        logger.debug("We have an error code to deal with: %s" % r.status_code)
-        return HttpResponse(json.dumps(r._content, indent=4),
-                            status=r.status_code,
-                            content_type='application/json')
+    if r.status_code >= 300:
+        return kickout_502('An error occurred contacting the upstream server')
 
-    text_out = ''
     host_path = get_host_url(request, resource_type)[:-1]
-    # logger.debug('host path:%s' % host_path)
 
     # Add default FHIR Server URL to re-write
     rewrite_url_list = build_rewrite_list(cx)
@@ -318,16 +291,7 @@ def generic_read(request,
                                     text_in,
                                     rewrite_url_list)
 
-    od = build_output_dict(request,
-                           OrderedDict(),
-                           resource_type,
-                           key,
-                           vid,
-                           interaction_type,
-                           requested_format,
-                           text_out)
-
     if requested_format == 'xml':
         return HttpResponse(r.text, content_type='application/xml')
 
-    return HttpResponse(od['bundle'], content_type='application/json')
+    return JsonResponse(text_out)
