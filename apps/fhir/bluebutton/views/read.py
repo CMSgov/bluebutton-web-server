@@ -248,7 +248,7 @@ def generic_read(request,
         back_end_format = "json"
 
     # #### SEARCH
-
+    
     if interaction_type == 'search':
         if cx is not None:
             # logger.debug("cx.fhir_id=%s" % cx.fhir_id)
