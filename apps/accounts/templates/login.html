@@ -10,9 +10,11 @@
     </div>
 </div>
 
-
-<div class="alert alert-info" role="alert">
-    NOTICE: {{settings.DISCLOSURE_TEXT }}
+<div class="ds-c-alert">
+  <div class="ds-c-alert__body">
+    <h3 class="ds-c-alert__heading">Notice</h3>
+    <p class="ds-c-alert__text"> {{settings.DISCLOSURE_TEXT }}</p>
+  </div>
 </div>
 
 {% endblock %}
@@ -20,7 +22,7 @@
 {% block Content %}
 
         <div class="hero-unit">
-            <h1>{% trans "Or login with your username and password" %} </h1>
+            <h1>{% trans "Login" %} </h1>
             <form class="well" method="post" action="">
                 {% csrf_token %}
                 <table>
