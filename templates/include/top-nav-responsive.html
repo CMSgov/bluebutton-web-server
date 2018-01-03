@@ -15,7 +15,7 @@
       <a href="{% url 'home' %}" contenteditable="false"
             class="navbar-brand"
             style="vertical-align:top;max-height:100%;max-width:100%">
-            <img src="{% static 'img/layout/bluebuttonapiv1.png' %}"
+            <img src="{% static 'img/favicon/RevisedBlueButtonlogowithmark.jpg' %}"
                  style="vertical-align:text-top;max-height:100%;max-width:100%"></a>
         <a href="{% url 'home' %}" contenteditable="false"
            class="navbar-brand"
@@ -35,12 +35,9 @@
 						<li><a href="{% url 'account_settings' %}"> <i class="fa fa-user"></i> Profile</a></li>
             <li><a href="{% url 'mylogout' %}">Logout <i class="fa fa-sign-out"></i></a></li>
     
-        {% else %}
+    {% else %}
             <li><a href="{% url 'mfa_login' %}"> <i class="fa fa-sign-in"></i>  Login</a></li>
-            
-
-
-        {% endif %}
+    {% endif %}
       </ul>
     </div><!--/.nav-collapse -->
   </div>
