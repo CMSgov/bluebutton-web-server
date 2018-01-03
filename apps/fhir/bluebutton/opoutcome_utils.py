@@ -9,8 +9,6 @@ from apps.fhir.server.models import SupportedResourceType
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-ERROR_CODE_LIST = [301, 302, 401, 402, 403, 404, 500, 501, 502, 503, 504]
-
 
 def kickout_301(reason, status_code=301):
     """ 301 Moved Permanently """
@@ -358,7 +356,7 @@ def get_content_type(response):
         application/xml+fhir;charset=UTF-8
 
     """
-    if response.status_code in ERROR_CODE_LIST:
+    if response.status_code >= 300:
         return error_status(response, response.status_code)
     else:
         result = OrderedDict()

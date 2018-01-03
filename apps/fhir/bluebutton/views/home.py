@@ -1,18 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
-"""
-hhs_oauth_server
-FILE: home.py
-Created: 6/27/16 3:24 PM
-
-"""
 import json
 import logging
 
 from urllib.parse import urlencode
-from django.core.urlresolvers import reverse_lazy
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from apps.fhir.bluebutton.utils import (request_call,
@@ -31,7 +20,6 @@ from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
                                               append_security)
 
 from ..opoutcome_utils import (strip_format_for_back_end,
-                               ERROR_CODE_LIST,
                                valid_interaction,
                                request_format)
 
@@ -103,13 +91,12 @@ def metadata(request, via_oauth=False, *args, **kwargs):
 
     r = request_call(request,
                      call_to + pass_params,
-                     cx,
-                     reverse_lazy('authenticated_home'))
+                     cx)
 
     text_out = ''
     host_path = get_host_url(request, '?')
 
-    if r.status_code in ERROR_CODE_LIST:
+    if r.status_code >= 300:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
         return HttpResponse(json.dumps(r._content),
                             status=r.status_code,

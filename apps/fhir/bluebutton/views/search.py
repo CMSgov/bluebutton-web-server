@@ -3,7 +3,6 @@ import json
 import logging
 
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, JsonResponse
 
 from apps.dot_ext.decorators import capability_protected_resource
@@ -288,9 +287,7 @@ def read_search(request,
                                target_url,
                                json.loads(json.dumps(payload)),
                                cx,
-                               reverse_lazy('home'),
-                               timeout=rr.wait_time
-                               )
+                               timeout=rr.wait_time)
 
     ###############################################
     ###############################################
