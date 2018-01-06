@@ -539,6 +539,8 @@ DEFAULT_SAMPLE_FHIR_ID = "20140000008325"
 OFFLINE = False
 EXTERNAL_LOGIN_TEMPLATE_NAME = '/accounts/upstream-login'
 
+# Should be set to True in production and False in all other dev and test environments
+REQUIRE_HTTPS_REDIRECT_URIS = True
 #
 # MyMedicare Authentication Integration
 #
