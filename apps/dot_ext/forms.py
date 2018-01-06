@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import jwt as jwtl
-
+from django.utils.safestring import mark_safe
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -12,6 +12,8 @@ from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
 from apps.capabilities.models import ProtectedCapability
 from .models import Endorsement
+
+__author__ = "Alan Viars"
 
 
 class EndorsementForm(forms.ModelForm):
@@ -47,6 +49,8 @@ class EndorsementForm(forms.ModelForm):
 class CustomRegisterApplicationForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
+        agree_label = u'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>' % (
+            settings.TOS_URI)
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
         choices = []
         groups = user.groups.values_list('id', flat=True)
@@ -57,13 +61,21 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields['scope'].choices = choices
         self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
         self.fields['client_type'].initial = 'confidential'
+        self.fields['agree'].label = mark_safe(agree_label)
 
     class Meta:
         model = get_application_model()
         fields = ('scope', 'name', 'client_type',
-                  'authorization_grant_type', 'redirect_uris')
+                  'authorization_grant_type', 'redirect_uris', 'agree')
 
     required_css_class = 'required'
+
+    def clean_agree(self):
+        agree = self.cleaned_data.get('agree')
+        if not agree:
+            msg = _('You must agree to the API Terms of Service Agreement"')
+            raise forms.ValidationError(msg)
+        return agree
 
 
 class SimpleAllowForm(DotAllowForm):
