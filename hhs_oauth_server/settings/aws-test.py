@@ -12,16 +12,6 @@ MANAGERS = ADMINS
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-
-# removing security enforcement in development mode
-DEBUG = bool_env(env('DJANGO_DEBUG', True))
-
-if DEBUG:
-    print("WARNING: Set DJANGO_DEBUG environment variable to False "
-          "to run in production mode \n"
-          "         and set DJANGO_ALLOWED_HOSTS to "
-          "valid host names")
-
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
 
