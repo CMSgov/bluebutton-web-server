@@ -37,7 +37,6 @@ urlpatterns = [
     url(r'^capabilities/', include('apps.capabilities.urls')),
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^o/', include('apps.dot_ext.urls')),
-    # Adding Medicare Notices and Warning pages
 
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
 
