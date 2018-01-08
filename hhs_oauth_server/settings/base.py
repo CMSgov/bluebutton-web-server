@@ -50,7 +50,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-DEBUG = bool_env(env('DJANGO_DEBUG', True))
+DEBUG = False
 
 # apps and middlewares
 INSTALLED_APPS = [
