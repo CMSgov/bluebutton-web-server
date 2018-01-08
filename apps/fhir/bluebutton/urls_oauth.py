@@ -5,7 +5,6 @@ from apps.fhir.bluebutton.views.history import oauth_history
 from apps.fhir.bluebutton.views.read import oauth_read
 from apps.fhir.bluebutton.views.vread import oauth_vread
 from apps.fhir.bluebutton.views.search import oauth_search
-from apps.fhir.bluebutton.views.home import oauth_fhir_conformance
 
 admin.autodiscover()
 
@@ -33,14 +32,4 @@ urlpatterns = [
     url(r'(?P<resource_type>[^/]+)?',
         oauth_search,
         name='bb_oauth_fhir_search'),
-
-    # Conformance statement
-    url(r'(metadata[^/]+)?',
-        oauth_fhir_conformance,
-        name='bb_oauth_fhir_conformance'),
-
-    # Capability statement
-    url(r'(meta[^/]+)?',
-        oauth_fhir_conformance,
-        name='bb_oauth_fhir_conformance'),
 ]
