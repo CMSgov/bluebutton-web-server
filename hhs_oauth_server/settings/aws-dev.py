@@ -96,20 +96,12 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
 # SMS
 SEND_SMS = bool_env(env('DJANGO_SEND_SMS', True))
 
-# MFA - Active or Not or False
-# If using MFA enabled login this value is used to determin if
-# reverse with mfa_login or reverse with login is called
-#     if settings.MFA:
-#         return HttpResponseRedirect(reverse('mfa_login'))
-#     else:
-#         return HttpResponseRedirect(reverse('login'))
 MFA = True
 
 # Add in apps.accounts backends for DEV environment
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
-    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [DEV]')

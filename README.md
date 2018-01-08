@@ -12,7 +12,7 @@ Chronic Conditions Warehouse (https://www.ccwdata.org)
 
 For more information on how to connect to the API implemented here, check out our
 developer documentation at https://cmsgov.github.io/bluebutton-developer-help/. Our most
-recent deployment is at https://dev.bluebutton.cms.fhirservice.net, and you can also
+recent deployment is at https://sandbox.bluebutton.cms.gov, and you can also
 check out our Google Group at https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api
 for more details.
 

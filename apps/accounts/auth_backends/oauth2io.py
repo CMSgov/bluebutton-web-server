@@ -8,7 +8,7 @@ __author__ = "Alan Viars"
 class OAuth2ioOAuth2(BaseOAuth2):
     name = getattr(settings, 'PROPRIETARY_BACKEND_NAME', "oauth2io")
     OAUTH2IO_HOST = getattr(settings, 'OAUTH2IO_HOST',
-                            "https://dev.bluebutton.cms.fhirservice.net")
+                            "https://sandbox.bluebutton.cms.gov")
 
     ID_KEY = 'email'
     AUTHORIZATION_URL = OAUTH2IO_HOST + '/o/authorize/'
@@ -22,7 +22,7 @@ class OAuth2ioOAuth2(BaseOAuth2):
         user_profile_url = getattr(
             settings,
             'OAUTH2IO_HOST',
-            "https://dev.bluebutton.cms.fhirservice.net") + '/connect/userinfo'
+            "https://sandbox.bluebutton.cms.gov") + '/connect/userinfo'
         return user_profile_url
 
     def get_user_id(self, details, response):
