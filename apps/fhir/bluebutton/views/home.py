@@ -122,7 +122,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
 
         return HttpResponse(text_out, content_type='application/xml')
     else:
-        od = conformance_filter(text_out, back_end_format, rr)
+        od = conformance_filter(text_out, rr)
 
         # Append Security to ConformanceStatement
         security_endpoint = build_oauth_resource(request, format_type="json")
@@ -131,7 +131,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         return JsonResponse(od)
 
 
-def conformance_filter(text_block, fmt, rr=None):
+def conformance_filter(text_block, rr):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
