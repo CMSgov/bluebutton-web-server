@@ -1,8 +1,6 @@
 import logging
 from urllib.parse import urlencode
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, JsonResponse
 
 from ..opoutcome_utils import (kickout_403,
                                kickout_502,
@@ -29,32 +27,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 # Attempting to set a timeout for connection and request for longer requests
 # eg. Search.
-
-
-@csrf_exempt
-@login_required()
-def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
-    """
-    Read from Remote FHIR Server
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
-    """
-
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
-
-    interaction_type = 'read'
-
-    read_fhir = generic_read(request,
-                             interaction_type,
-                             resource_type,
-                             id,
-                             via_oauth,
-                             *args,
-                             **kwargs)
-
-    return read_fhir
 
 
 def oauth_read(request, resource_type, id, via_oauth, *args, **kwargs):

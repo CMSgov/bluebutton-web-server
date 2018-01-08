@@ -2,7 +2,6 @@ import json
 
 import logging
 
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 
 from apps.dot_ext.decorators import capability_protected_resource
@@ -35,54 +34,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
-
-
-@login_required()
-def search(request, resource_type, *args, **kwargs):
-    """
-    Search from Remote FHIR Server
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
-    """
-
-    interaction_type = 'search'
-
-    logger.debug("Received:%s" % resource_type)
-    logger_debug.debug("Received:%s" % resource_type)
-
-    conformance = False
-
-    if resource_type is None:
-        conformance = True
-    elif resource_type.lower() == 'metadata':
-        # metadata is a valid resourceType to request the
-        # Conformance/Capability Statement
-        conformance = True
-    elif resource_type.lower == 'conformance':
-        # Conformance is the Dstu2 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capability":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-
-    if conformance:
-        return fhir_conformance(request, resource_type, *args, **kwargs)
-
-    logger.debug("Interaction:%s. "
-                 "Calling generic_read for %s" % (interaction_type,
-                                                  resource_type))
-
-    logger_debug.debug("Interaction:%s. "
-                       "Calling generic_read for %s" % (interaction_type,
-                                                        resource_type))
-
-    return read_search(request,
-                       interaction_type,
-                       resource_type,
-                       via_oauth=False,
-                       *args,
-                       **kwargs)
 
 
 @capability_protected_resource()

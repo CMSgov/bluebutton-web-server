@@ -35,7 +35,6 @@ urlpatterns = [
         fhir_conformance, name='fhir_conformance_meta'),
     url(r'^protected/bluebutton/fhir/v1/',
         include('apps.fhir.bluebutton.urls_oauth')),
-    url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
     url(r'^capabilities/', include('apps.capabilities.urls')),
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^o/', include('apps.dot_ext.urls')),
