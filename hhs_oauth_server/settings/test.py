@@ -13,3 +13,5 @@ FHIR_SERVER_DEFAULT = 1
 REQUEST_CALL_TIMEOUT = (5, 120)
 
 OFFLINE = True
+# Should be set to True in production and False in all other dev and test environments
+REQUIRE_HTTPS_REDIRECT_URIS = False
