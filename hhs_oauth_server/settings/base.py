@@ -74,7 +74,6 @@ INSTALLED_APPS = [
     'apps.home',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
-    'apps.fhir.fhir_consent',
     'apps.mymedicare_cb',
 
     # 3rd Party ---------------------
@@ -427,22 +426,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 AXES_COOLOFF_TIME = datetime.timedelta(minutes=60)
 AXES_FAILURE_LIMIT = 6
 LOGIN_RATE = '6/h'
-# Default FHIR Server if none defined in Crosswalk or FHIR Server model
-# We will need to add REWRITE_FROM and REWRITE_TO to models
-# to enable search and replace in content returned from backend server.
-# Otherwise source server address is exposed to external users.
 
-BB_CONSENT = {
-    'AGREEMENT_URL': "/consent/agreement/1/",
-    'URL_TITLE': "CMS Blue Button Beneficiary-Application Consent Agreement",
-    'POLICY_URL': "/consent/policy/1/"
-}
-
-# DONE: To support multiple resourceType records in SupportedResourceType
-# We need to have a default FHIR Server as a fallback if the Request.user
-# Does not have a Crosswalk with a default FHIRServer defined.
-# This variable will contain the ID of the Default FHIRServer
-# in the apps.fhir.bluebutton.server.models.FHIRServer table
 FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
 
 FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),

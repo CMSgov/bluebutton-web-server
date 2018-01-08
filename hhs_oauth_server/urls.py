@@ -25,7 +25,6 @@ urlpatterns = [
         name='openid_connect_user_w_login'),
     url(r'^register', register, name='dcrp_register'),
     url(r'.well-known/', include('apps.wellknown.urls')),
-    url(r'^consent/', include('apps.fhir.fhir_consent.urls')),
     url(r'^protected/bluebutton/fhir/v1/$',
         fhir_conformance, name='fhir_conformance'),
     url(r'^protected/bluebutton/fhir/v1/metadata',
