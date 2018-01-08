@@ -9,26 +9,7 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*',
-                                             socket.gethostname()])
-
-# if ALLOWED_HOSTS == ['*', socket.gethostname()]:
-#     print("WARNING: Set DJANGO_ALLOWED_HOSTS to the hostname "
-#           "for Production operation.\n"
-#           "         Currently defaulting to %s " % ALLOWED_HOSTS)
-# Warning: on macOS hostname is case sensitive
-
-# removing security enforcement in development mode
-# DEBUG = bool_env(env('DJANGO_DEBUG', True))
-# DEBUG = True
-# Set to False while using as Developer Preview
-DEBUG = False
-
-if DEBUG:
-    print("WARNING: Set DJANGO_DEBUG environment variable to False "
-          "to run in production mode \n"
-          "         and set DJANGO_ALLOWED_HOSTS to "
-          "valid host names")
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context

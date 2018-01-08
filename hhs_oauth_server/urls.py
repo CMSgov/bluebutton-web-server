@@ -4,7 +4,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.views.generic import TemplateView
 from apps.accounts.views.oauth2_profile import (openidconnect_userinfo,
                                                 userinfo_w_login)
 from apps.dot_ext.views.dcrp import register
@@ -39,12 +38,6 @@ urlpatterns = [
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^o/', include('apps.dot_ext.urls')),
     # Adding Medicare Notices and Warning pages
-    url(r'notices',
-        TemplateView.as_view(template_name='authorize/notices.html'),
-        name='notices'),
-    url(r'warnings',
-        TemplateView.as_view(template_name='authorize/warnings.html'),
-        name='warnings'),
 
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
 
