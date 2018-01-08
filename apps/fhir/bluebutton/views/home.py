@@ -84,7 +84,6 @@ def metadata(request, via_oauth=False, *args, **kwargs):
 
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
-    back_end_format = pass_params['_format']
 
     encoded_params = urlencode(pass_params)
     pass_params = prepend_q(encoded_params)
@@ -106,7 +105,6 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
-                                    back_end_format,
                                     host_path,
                                     text_in,
                                     rewrite_url_list)

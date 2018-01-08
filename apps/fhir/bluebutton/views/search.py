@@ -308,7 +308,6 @@ def read_search(request,
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
-                                    back_end_format,
                                     host_path,
                                     text_in,
                                     rewrite_list)

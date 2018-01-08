@@ -698,26 +698,16 @@ def build_conformance_url():
     return call_to
 
 
-def post_process_request(request, ct_fmt, host_path, r_text, rewrite_url_list):
-    """ Process request based on xml or json fmt """
-
+def post_process_request(request, host_path, r_text, rewrite_url_list):
     if r_text == "":
         return r_text
 
-    if ct_fmt.lower() == 'xml' or ct_fmt.lower() == 'html':
-        # We will add xml support later
-
-        return mask_list_with_host(request,
+    pre_text = mask_list_with_host(request,
                                    host_path,
                                    r_text,
                                    rewrite_url_list)
-    else:
-        pre_text = mask_list_with_host(request,
-                                       host_path,
-                                       r_text,
-                                       rewrite_url_list)
 
-        return json.loads(pre_text, object_pairs_hook=OrderedDict)
+    return json.loads(pre_text, object_pairs_hook=OrderedDict)
 
 
 def prepend_q(pass_params):

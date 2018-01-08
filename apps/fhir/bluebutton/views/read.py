@@ -231,10 +231,6 @@ def generic_read(request,
 
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
-    if "_format" in pass_params:
-        back_end_format = pass_params['_format']
-    else:
-        back_end_format = "json"
 
     # #### SEARCH
 
@@ -283,7 +279,6 @@ def generic_read(request,
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
-                                    back_end_format,
                                     host_path,
                                     text_in,
                                     rewrite_url_list)
