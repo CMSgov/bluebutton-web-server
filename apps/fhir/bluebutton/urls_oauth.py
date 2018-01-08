@@ -2,7 +2,7 @@ from django.conf.urls import url
 from django.contrib import admin
 
 from apps.fhir.bluebutton.views.history import oauth_history
-from apps.fhir.bluebutton.views.oauth import oauth_read_or_update_or_delete
+from apps.fhir.bluebutton.views.read import oauth_read
 from apps.fhir.bluebutton.views.vread import oauth_vread
 from apps.fhir.bluebutton.views.search import oauth_search
 from apps.fhir.bluebutton.views.home import oauth_fhir_conformance
@@ -24,13 +24,9 @@ urlpatterns = [
         oauth_history,
         name='bb_oauth_fhir_history'),
 
-    # ---------------------------------------
     # Read GET
-    # Update PUT
-    # Delete DELETE
-    # ---------------------------------------
     url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)',
-        oauth_read_or_update_or_delete,
+        oauth_read,
         name='bb_oauth_fhir_read_or_update_or_delete'),
 
     # Search  GET ------------------------------

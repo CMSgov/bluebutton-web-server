@@ -1,6 +1,6 @@
 import logging
 from urllib.parse import urlencode
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
                                kickout_502,
@@ -23,32 +23,34 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         build_rewrite_list,
                                         get_response_text)
 
+from apps.dot_ext.decorators import capability_protected_resource
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 # Attempting to set a timeout for connection and request for longer requests
 # eg. Search.
 
 
-def oauth_read(request, resource_type, id, via_oauth, *args, **kwargs):
+@capability_protected_resource()
+def oauth_read(request, resource_type, id, via_oauth=True, *args, **kwargs):
     """
     Read from Remote FHIR Server
-    Called from oauth.py
-
     # Example client use in curl:
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
     """
 
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+
     interaction_type = 'read'
 
-    read_fhir = generic_read(request,
-                             interaction_type,
-                             resource_type,
-                             id,
-                             via_oauth=via_oauth,
-                             *args,
-                             **kwargs)
-
-    return read_fhir
+    return generic_read(request,
+                        interaction_type,
+                        resource_type,
+                        id,
+                        via_oauth,
+                        *args,
+                        **kwargs)
 
 
 def generic_read(request,
