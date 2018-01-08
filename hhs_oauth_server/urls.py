@@ -4,7 +4,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.views.generic import TemplateView
 from apps.accounts.views.oauth2_profile import (openidconnect_userinfo,
                                                 userinfo_w_login)
 from apps.dot_ext.views.dcrp import register
@@ -26,13 +25,10 @@ urlpatterns = [
         name='openid_connect_user_w_login'),
     url(r'^register', register, name='dcrp_register'),
     url(r'.well-known/', include('apps.wellknown.urls')),
-    url(r'^consent/', include('apps.fhir.fhir_consent.urls')),
     url(r'^protected/bluebutton/fhir/v1/$',
         fhir_conformance, name='fhir_conformance'),
-    url(r'^protected/bluebutton/fhir/v1/metadata',
+    url(r'^protected/bluebutton/fhir/v1/metadata$',
         fhir_conformance, name='fhir_conformance_metadata'),
-    url(r'^protected/bluebutton/fhir/v1/meta',
-        fhir_conformance, name='fhir_conformance_meta'),
     url(r'^protected/bluebutton/fhir/v1/',
         include('apps.fhir.bluebutton.urls_oauth')),
     url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
@@ -40,12 +36,6 @@ urlpatterns = [
     url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^o/', include('apps.dot_ext.urls')),
     # Adding Medicare Notices and Warning pages
-    url(r'notices',
-        TemplateView.as_view(template_name='authorize/notices.html'),
-        name='notices'),
-    url(r'warnings',
-        TemplateView.as_view(template_name='authorize/warnings.html'),
-        name='warnings'),
 
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
 

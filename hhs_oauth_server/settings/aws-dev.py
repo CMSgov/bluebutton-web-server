@@ -9,26 +9,7 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*',
-                                             socket.gethostname()])
-
-# if ALLOWED_HOSTS == ['*', socket.gethostname()]:
-#     print("WARNING: Set DJANGO_ALLOWED_HOSTS to the hostname "
-#           "for Production operation.\n"
-#           "         Currently defaulting to %s " % ALLOWED_HOSTS)
-# Warning: on macOS hostname is case sensitive
-
-# removing security enforcement in development mode
-# DEBUG = bool_env(env('DJANGO_DEBUG', True))
-# DEBUG = True
-# Set to False while using as Developer Preview
-DEBUG = False
-
-if DEBUG:
-    print("WARNING: Set DJANGO_DEBUG environment variable to False "
-          "to run in production mode \n"
-          "         and set DJANGO_ALLOWED_HOSTS to "
-          "valid host names")
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
@@ -115,33 +96,18 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', EMAIL_BACKEND_DEFAULT)
 # SMS
 SEND_SMS = bool_env(env('DJANGO_SEND_SMS', True))
 
-# MFA - Active or Not or False
-# If using MFA enabled login this value is used to determin if
-# reverse with mfa_login or reverse with login is called
-#     if settings.MFA:
-#         return HttpResponseRedirect(reverse('mfa_login'))
-#     else:
-#         return HttpResponseRedirect(reverse('login'))
 MFA = True
 
 # Add in apps.accounts backends for DEV environment
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.accounts.auth.SettingsBackend',
-    # 'apps.accounts.mymedicare_auth.MyMedicareBackend',
 )
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [DEV]')
 
-# Stub for Custom Authentication Backend
-SLS_USER = env('DJANGO_SLS_USER')
-# enclose value for DJANGO_SLS_PASSWORD in single quotes to preserve
-# special characters eg. $
-# eg. export DJANGO_SLS_PASSWORD='$pecial_CharacterPre$erved'
-SLS_PASSWORD = env('DJANGO_SLS_PASSWORD')
-SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
-SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
-SLS_EMAIL = env('DJANGO_SLS_EMAIL')
+# Should be set to True in production and False in all other dev and test environments
+REQUIRE_HTTPS_REDIRECT_URIS = False
 
 #
 # MyMedicare Authentication Integration

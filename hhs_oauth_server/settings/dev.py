@@ -13,7 +13,6 @@ DEV_SPECIFIC_APPS = [
     # 'storages',
     # A test client - moved to aws-test / dev /impl settings
     'apps.testclient',
-
 ]
 INSTALLED_APPS += DEV_SPECIFIC_APPS
 
@@ -49,3 +48,6 @@ FHIR_SERVER_CONF = {
     'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM', ['http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2', ]),
     'REWRITE_TO': env('THS_FHIR_REWRITE_TO', 'http://localhost:8000/bluebutton/fhir/v1'),
 }
+
+# Should be set to True in production and False in all other dev and test environments
+REQUIRE_HTTPS_REDIRECT_URIS = False

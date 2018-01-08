@@ -12,16 +12,6 @@ MANAGERS = ADMINS
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-
-# removing security enforcement in development mode
-DEBUG = bool_env(env('DJANGO_DEBUG', True))
-
-if DEBUG:
-    print("WARNING: Set DJANGO_DEBUG environment variable to False "
-          "to run in production mode \n"
-          "         and set DJANGO_ALLOWED_HOSTS to "
-          "valid host names")
-
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
 
@@ -81,15 +71,8 @@ AUTHENTICATION_BACKENDS = (
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE', 'CMS Blue Button API [TEST]')
 
-# Stub for Custom Authentication Backend
-SLS_USER = env('DJANGO_SLS_USER')
-# enclose value for DJANGO_SLS_PASSWORD in single quotes to preserve
-# special characters eg. $
-# eg. export DJANGO_SLS_PASSWORD='$pecial_CharacterPre$erved'
-SLS_PASSWORD = env('DJANGO_SLS_PASSWORD')
-SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
-SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
-SLS_EMAIL = env('DJANGO_SLS_EMAIL')
+# Should be set to True in production and False in all other dev and test environments
+REQUIRE_HTTPS_REDIRECT_URIS = False
 
 #
 # MyMedicare Authentication Integration
