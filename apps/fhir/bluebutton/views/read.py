@@ -2,12 +2,11 @@ import logging
 from urllib.parse import urlencode
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
+from django.http import JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
                                kickout_502,
                                strip_format_for_back_end,
-                               request_format,
                                add_key_to_fhir_url,
                                fhir_call_type)
 
@@ -221,14 +220,6 @@ def generic_read(request,
 
     pass_params = request.GET
 
-    # Let's store the inbound requested format
-    # We need to simplify the format call to the backend
-    # so that we get data we can manipulate
-
-    # if format is not defined and we come in via_oauth
-    # then default to json for format
-    requested_format = request_format(pass_params)
-
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
 
@@ -282,8 +273,5 @@ def generic_read(request,
                                     host_path,
                                     text_in,
                                     rewrite_url_list)
-
-    if requested_format == 'xml':
-        return HttpResponse(r.text, content_type='application/xml')
 
     return JsonResponse(text_out)

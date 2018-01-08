@@ -344,24 +344,6 @@ def valid_interaction(resource, rr):
     return interaction_list
 
 
-def request_format(query_params):
-    """
-    Save the _format or format received
-    change default to json if nothing supplied.
-    :param query_params:
-    :return:
-    """
-
-    # ensure requested format is "xml" or "json"
-    # TODO: This should use the accept header instead of a query parameter
-
-    if ("xml" in query_params.get("_format", "") or
-            "xml" in query_params.get("format", "")):
-        return "xml"
-
-    return "json"
-
-
 def add_key_to_fhir_url(fhir_url, resource_type, key=""):
     """
     Append the key + / to fhir_url, unless it is already there

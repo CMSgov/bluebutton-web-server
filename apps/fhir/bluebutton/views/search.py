@@ -8,8 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from apps.dot_ext.decorators import capability_protected_resource
 
 from ..opoutcome_utils import (kickout_403,
-                               kickout_404,
-                               request_format)
+                               kickout_404)
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         block_params,
@@ -25,8 +24,7 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
 
 from apps.fhir.bluebutton.views.home import fhir_conformance
 
-from apps.fhir.server.utils import (set_fhir_format,
-                                    set_resource_id,
+from apps.fhir.server.utils import (set_resource_id,
                                     search_add_to_list,
                                     payload_additions,
                                     payload_var_replace)
@@ -228,18 +226,12 @@ def read_search(request,
     # Analyze the _format parameter
     # Sve the display _format
 
-    input_parameters = request.GET
-    requested_format = request_format(input_parameters)
-
-    # prepare the back-end _format setting
-    back_end_format = set_fhir_format(requested_format)
-
     # request.GET is immutable so take a copy to allow the values to be edited.
     payload = {}
 
     # Get payload with oauth parameters removed
     # Add the format for back-end
-    payload['_format'] = back_end_format
+    payload['_format'] = 'application/json+fhir'
 
     # remove the srtc.search_block parameters
     payload = block_params(payload, srtc)
@@ -278,7 +270,7 @@ def read_search(request,
                                           old_value='%PATIENT%')
 
     # add the _format setting
-    payload['_format'] = back_end_format
+    payload['_format'] = 'application/json+fhir'
 
     ###############################################
     ###############################################
@@ -311,8 +303,5 @@ def read_search(request,
                                     host_path,
                                     text_in,
                                     rewrite_list)
-
-    if requested_format == 'xml':
-        return HttpResponse(r.text, content_type='application/xml')
 
     return JsonResponse(text_out)
