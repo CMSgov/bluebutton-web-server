@@ -23,8 +23,6 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         post_process_request,
                                         get_response_text)
 
-from apps.fhir.bluebutton.views.home import fhir_conformance
-
 from apps.fhir.server.utils import (set_fhir_format,
                                     set_resource_id,
                                     search_add_to_list,
@@ -41,33 +39,12 @@ logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 def search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
     """
 
     interaction_type = 'search'
 
     logger.debug("Received:%s" % resource_type)
     logger_debug.debug("Received:%s" % resource_type)
-
-    conformance = False
-
-    if resource_type is None:
-        conformance = True
-    elif resource_type.lower() == 'metadata':
-        # metadata is a valid resourceType to request the
-        # Conformance/Capability Statement
-        conformance = True
-    elif resource_type.lower == 'conformance':
-        # Conformance is the Dstu2 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capability":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-
-    if conformance:
-        return fhir_conformance(request, resource_type, *args, **kwargs)
 
     logger.debug("Interaction:%s. "
                  "Calling generic_read for %s" % (interaction_type,
@@ -91,34 +68,12 @@ def oauth_search(request, resource_type, *args, **kwargs):
     Search from Remote FHIR Server
 
     # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
     """
 
     interaction_type = 'search'
 
     logger.debug("Received:%s" % resource_type)
     logger_debug.debug("Received:%s" % resource_type)
-
-    conformance = False
-
-    if resource_type is None:
-        conformance = True
-    elif resource_type.lower() == 'metadata':
-        # metadata is a valid resourceType to request the
-        # Conformance/Capability Statement
-        conformance = True
-    elif resource_type.lower == 'conformance':
-        # Conformance is the Dstu2 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capability":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capabilitystatement":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-
-    if conformance:
-        return fhir_conformance(request, resource_type, *args, **kwargs)
 
     logger.debug("Interaction:%s. "
                  "Calling generic_read for %s" % (interaction_type,
@@ -155,11 +110,6 @@ def read_search(request,
     :param args:
     :param kwargs:
     :return:
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234?_format=json
-
-
     """
 
     logger.debug('\n========================\n'
