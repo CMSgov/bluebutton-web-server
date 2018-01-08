@@ -74,7 +74,6 @@ INSTALLED_APPS = [
     'apps.home',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
-    'apps.fhir.fhir_consent',
     'apps.mymedicare_cb',
 
     # 3rd Party ---------------------
