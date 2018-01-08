@@ -21,8 +21,6 @@ from oauth2_provider.models import AccessToken
 from apps.wellknown.views import (base_issuer, build_endpoint_info)
 from .models import Crosswalk, Fhir_Response
 
-FORMAT_OPTIONS_CHOICES = ['json', 'xml']
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
