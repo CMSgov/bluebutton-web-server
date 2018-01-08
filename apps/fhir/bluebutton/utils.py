@@ -896,11 +896,6 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
 
         if 'text' in r_dir:
             fhir_response._text = r.text
-
-            if r.text[0] == "<":
-                logger.debug("\nLooks like XML....[%s]" % r.text[:10])
-                fhir_response._xml = r.text
-
         else:
             fhir_response._text = "No Text returned"
 
