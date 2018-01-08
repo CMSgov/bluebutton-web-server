@@ -13,7 +13,6 @@ DEV_SPECIFIC_APPS = [
     # 'storages',
     # A test client - moved to aws-test / dev /impl settings
     'apps.testclient',
-
 ]
 INSTALLED_APPS += DEV_SPECIFIC_APPS
 
