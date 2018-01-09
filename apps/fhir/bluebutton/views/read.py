@@ -1,13 +1,10 @@
 import logging
 from urllib.parse import urlencode
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
+from django.http import JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
                                kickout_502,
                                strip_format_for_back_end,
-                               request_format,
                                add_key_to_fhir_url,
                                fhir_call_type)
 
@@ -25,18 +22,18 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         build_rewrite_list,
                                         get_response_text)
 
+from apps.dot_ext.decorators import capability_protected_resource
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 # Attempting to set a timeout for connection and request for longer requests
 # eg. Search.
 
 
-@csrf_exempt
-@login_required()
-def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
+@capability_protected_resource()
+def oauth_read(request, resource_type, id, via_oauth=True, *args, **kwargs):
     """
     Read from Remote FHIR Server
-
     # Example client use in curl:
     # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
     """
@@ -46,37 +43,13 @@ def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
 
     interaction_type = 'read'
 
-    read_fhir = generic_read(request,
-                             interaction_type,
-                             resource_type,
-                             id,
-                             via_oauth,
-                             *args,
-                             **kwargs)
-
-    return read_fhir
-
-
-def oauth_read(request, resource_type, id, via_oauth, *args, **kwargs):
-    """
-    Read from Remote FHIR Server
-    Called from oauth.py
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
-    """
-
-    interaction_type = 'read'
-
-    read_fhir = generic_read(request,
-                             interaction_type,
-                             resource_type,
-                             id,
-                             via_oauth=via_oauth,
-                             *args,
-                             **kwargs)
-
-    return read_fhir
+    return generic_read(request,
+                        interaction_type,
+                        resource_type,
+                        id,
+                        via_oauth,
+                        *args,
+                        **kwargs)
 
 
 def generic_read(request,
@@ -221,20 +194,8 @@ def generic_read(request,
 
     pass_params = request.GET
 
-    # Let's store the inbound requested format
-    # We need to simplify the format call to the backend
-    # so that we get data we can manipulate
-
-    # if format is not defined and we come in via_oauth
-    # then default to json for format
-    requested_format = request_format(pass_params)
-
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
-    if "_format" in pass_params:
-        back_end_format = pass_params['_format']
-    else:
-        back_end_format = "json"
 
     # #### SEARCH
 
@@ -283,12 +244,8 @@ def generic_read(request,
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
-                                    back_end_format,
                                     host_path,
                                     text_in,
                                     rewrite_url_list)
-
-    if requested_format == 'xml':
-        return HttpResponse(r.text, content_type='application/xml')
 
     return JsonResponse(text_out)
