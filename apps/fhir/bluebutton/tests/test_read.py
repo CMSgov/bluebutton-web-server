@@ -48,16 +48,12 @@ class ConformanceReadRequestTest(TestCase):
     def test_fhir_conformance_filter(self, mock_get_resource_names):
         """ Check filtering of Conformance Statement """
 
-        # call_to = '/bluebutton/fhir/v1/metadata'
-        # request = self.factory.get(call_to)
-
         # Now we can setup the responses we want to the call
         mock_get_resource_names.return_value = ['ExplanationOfBenefit',
                                                 'Patient']
 
         conform_out = json.loads(CONFORMANCE)
-        result = conformance_filter(conform_out,
-                                    "json")
+        result = conformance_filter(conform_out, None)
 
         if "vision" in result['rest'][0]['resource']:
             filter_works = False
