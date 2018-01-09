@@ -11,12 +11,32 @@
 
 <section id="theform">
 <article class="ds-u-border--1 ds-u-radius ds-u-padding--2 ds-u-md-padding--4">
-        <h1 class="text-center">Approve {{ application.name }}?</h1>
+
+ <section class="ds-l-container preview__grid">
+  <div class="ds-l-row ds-u-fill--white">
+    <div class="ds-l-col--3">
+                 <a href="https://mymedicare.gov"> <img src="{% static 'img/medicaregov.png' %}"></a>
+                 
+
+    </div>
+  </div>
+  
+  <div class="ds-l-row ds-u-justify-content--center ds-u-fill--white">
+    <div class="ds-l-col--3">
         {% if not error %}
             <form id="authorizationForm" method="post">
-                <h3 class="block-center-heading">{% trans "Do you approve the application" %} <strong>{{ application.name }}</strong> to access your personal health information
-                maintained by  <strong>{{settings.ORGANIZATION_TITLE }}</strong>?
-                </h3>
+                <h2 class="block-center-heading">{% trans "Do you approve the application" %} <strong>{{ application.name }}</strong> {% trans "to access your Medicare information?" %}
+                </h2>
+                
+                <h1>{{ application.name }} WILL BE ABLE TO:</h1>
+                
+                <ul class="ds-c-list" aria-labelledby="unordered-list-id">
+                  <li>Access at least 3 years worth of Medicare claims information.</li>
+                  <li>Access your profile and demographic information.</li>
+                  <li>Create copies of your Medicare data.</li>
+                  <li>Get updates to your Medicare data so long as you do not revoke access.</li>
+                </ul>
+                
                 {% csrf_token %}
 
                 {% for field in form %}
@@ -29,10 +49,9 @@
 
                 <div class="control-group">
                     <div class="controls">
-                        
-                        
-                        <input href="javascript:history.go(-1)" type="submit" class="btn btn-large" value="Cancel"/>
-                        <input id="approve" type="submit" class="ds-c-button ds-c-button--outline ds-u-margin-top--1 ds-u-display--block ds-u-md-display--inline-block"  name="allow" value="Approve"/>
+                        <input id="approve" type="submit" class="ds-c-button  ds-c-button--big ds-c-button--primary"  name="allow"
+                               value="Yes, approve access."/>
+                        <input href="javascript:history.go(-1)" type="submit" class="ds-c-button  ds-c-button ds-c-button--outline ds-u-margin-top--1 ds-u-display--block ds-u-md-display--inline-block" value="No, do not approve access."/>
                     </div>
                 </div>
             </form>
@@ -41,6 +60,13 @@
             <h2>Error: {{ error.error }}</h2>
             <p>{{ error.description }}</p>
         {% endif %}
+    </div>
+</section>
+ 
+
+ 
+ 
+       
 </section>
 </div>
 {% endblock %}
