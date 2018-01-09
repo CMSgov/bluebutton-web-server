@@ -1,7 +1,5 @@
 import logging
 from urllib.parse import urlencode
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseNotAllowed
 
 from ..opoutcome_utils import (kickout_403,
