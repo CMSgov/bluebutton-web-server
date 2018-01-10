@@ -21,8 +21,6 @@ from oauth2_provider.models import AccessToken
 from apps.wellknown.views import (base_issuer, build_endpoint_info)
 from .models import Crosswalk, Fhir_Response
 
-FORMAT_OPTIONS_CHOICES = ['json', 'xml']
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
@@ -698,26 +696,16 @@ def build_conformance_url():
     return call_to
 
 
-def post_process_request(request, ct_fmt, host_path, r_text, rewrite_url_list):
-    """ Process request based on xml or json fmt """
-
+def post_process_request(request, host_path, r_text, rewrite_url_list):
     if r_text == "":
         return r_text
 
-    if ct_fmt.lower() == 'xml' or ct_fmt.lower() == 'html':
-        # We will add xml support later
-
-        return mask_list_with_host(request,
+    pre_text = mask_list_with_host(request,
                                    host_path,
                                    r_text,
                                    rewrite_url_list)
-    else:
-        pre_text = mask_list_with_host(request,
-                                       host_path,
-                                       r_text,
-                                       rewrite_url_list)
 
-        return json.loads(pre_text, object_pairs_hook=OrderedDict)
+    return json.loads(pre_text, object_pairs_hook=OrderedDict)
 
 
 def prepend_q(pass_params):
@@ -908,11 +896,6 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
 
         if 'text' in r_dir:
             fhir_response._text = r.text
-
-            if r.text[0] == "<":
-                logger.debug("\nLooks like XML....[%s]" % r.text[:10])
-                fhir_response._xml = r.text
-
         else:
             fhir_response._text = "No Text returned"
 
