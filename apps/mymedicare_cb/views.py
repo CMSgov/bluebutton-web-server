@@ -19,6 +19,7 @@ __author__ = "Alan Viars"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+
 def callback(request):
     token_endpoint = getattr(
         settings, 'SLS_TOKEN_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/token')
@@ -35,14 +36,14 @@ def callback(request):
         "grant_type": "authorization_code",
         "code": code,
         "redirect_uri": redirect_uri}
-    logger.debug("token_endpoint %s" %  (token_endpoint))
-    logger.debug("redirect_uri %s" %  (redirect_uri))
+    logger.debug("token_endpoint %s" % (token_endpoint))
+    logger.debug("redirect_uri %s" % (redirect_uri))
     # Call SLS token api: ", "https://dev.accounts.cms.gov/v1/oauth/token"  as
     # a POST
     r = requests.post(token_endpoint, json=token_dict, verify=verify_ssl)
     token_response = {}
     if r.status_code != 200:
-        logger.error("Token request response error %s" %  (r.status_code))
+        logger.error("Token request response error %s" % (r.status_code))
         return HttpResponse("An unknown %s error has occurred." % (r.status_code), status=r.status_code)
 
     token_response = r.json()
@@ -56,7 +57,7 @@ def callback(request):
     r = requests.get(userinfo_endpoint, headers=headers, verify=verify_ssl)
     # print("Status", r.status_code)
     if r.status_code != 200:
-        logger.error("User info request response error %s" %  (r.status_code))
+        logger.error("User info request response error %s" % (r.status_code))
         return HttpResponse("An unknown %s error has occurred." % (r.status_code), status=r.status_code)
     # Get the userinfo response object
     user_info = r.json()
