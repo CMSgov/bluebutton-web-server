@@ -13,17 +13,19 @@ from apps.fhir.bluebutton.utils import get_resourcerouter
 import urllib.request as req
 import random
 from .models import AnonUserState
+import logging
 
 __author__ = "Alan Viars"
 
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 def callback(request):
     token_endpoint = getattr(
-        settings, 'SLS_TOKEN_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/token')
+        settings, 'SLS_TOKEN_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/token')
     redirect_uri = getattr(settings, 'SLS_REDIRECT_URI',
                            'http://localhost:8000/mymedicare/sls-callback')
     userinfo_endpoint = getattr(
-        settings, 'SLS_USERINFO_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/userinfo')
+        settings, 'SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
     verify_ssl = getattr(settings, 'SLS_VERIFY_SSL', False)
     code = request.GET.get('code')
     state = request.GET.get('state')
@@ -33,13 +35,15 @@ def callback(request):
         "grant_type": "authorization_code",
         "code": code,
         "redirect_uri": redirect_uri}
-
+    logger.debug("token_endpoint %s" %  (token_endpoint))
+    logger.debug("redirect_uri %s" %  (redirect_uri))
     # Call SLS token api: ", "https://dev.accounts.cms.gov/v1/oauth/token"  as
     # a POST
     r = requests.post(token_endpoint, json=token_dict, verify=verify_ssl)
     token_response = {}
     if r.status_code != 200:
-        return HttpResponse("An unknown error has occurred.", status=500)
+        logger.error("Token request response error %s" %  (r.status_code))
+        return HttpResponse("An unknown %s error has occurred." % (r.status_code), status=r.status_code)
 
     token_response = r.json()
     # Create the Bearer
@@ -52,7 +56,8 @@ def callback(request):
     r = requests.get(userinfo_endpoint, headers=headers, verify=verify_ssl)
     # print("Status", r.status_code)
     if r.status_code != 200:
-        return HttpResponse("An unknown error has occurred.", status=500)
+        logger.error("User info request response error %s" %  (r.status_code))
+        return HttpResponse("An unknown %s error has occurred." % (r.status_code), status=r.status_code)
     # Get the userinfo response object
     user_info = r.json()
     try:
@@ -131,7 +136,7 @@ def generate_nonce(length=26):
 
 def mymedicare_login(request):
     mymedicare_login_url = getattr(settings, 'MEDICARE_LOGIN_URI',
-                                   'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
+                                   'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
     redirect = getattr(settings, 'MEDICARE_REDIRECT_URI',
                        'http://localhost:8000/mymedicare/sls-callback')
     redirect = req.pathname2url(redirect)
