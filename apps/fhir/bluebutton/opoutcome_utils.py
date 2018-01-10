@@ -239,24 +239,6 @@ def error_status(r, status_code=404, reason='undefined error occurred'):
                         content_type='application/json')
 
 
-def check_for_element(search_dict, check_key, check_list):
-    """
-
-    :param search_dict:
-    :param check_key:
-    :param check_list:
-    :return: ret_val
-    """
-
-    if check_key in search_dict:
-        for c in check_list:
-            check_case = check_lcase_list_item(search_dict[check_key], c)
-            if check_case:
-                return True
-
-    return False
-
-
 def check_lcase_list_item(list_value, check_for):
     """ search_param is a dict with each value as a list
         go through list to check for value. comparing as lowercase
@@ -278,60 +260,17 @@ def check_lcase_list_item(list_value, check_for):
 
 
 def strip_format_for_back_end(pass_params):
-    """
-    check for _format in URL Parameters
-    We need to force json or xml
-    if html is included in _format we need to strip it out
-    """
-
-    # pass_params should arrive as an OrderedDict.
-    # no need to parse
-    parameter_search = pass_params
-    logger.debug("evaluating [%s] for _format" % parameter_search)
-
     updated_parameters = OrderedDict()
-    for k in parameter_search:
+    for k in pass_params:
         if k.lower() == "_format":
             pass
         elif k.lower() == "format":
             pass
         else:
-            updated_parameters[k] = parameter_search[k]
+            updated_parameters[k] = pass_params[k]
 
-    # We have removed format setting now we need to add the
-    # correct version to call the back end
-    if check_for_element(parameter_search, "_format", ["html/xml",
-                                                       "xml",
-                                                       "xml+fhir",
-                                                       "xml fhir"]):
-        updated_parameters["_format"] = "xml"
-
-    elif check_for_element(parameter_search, "format", ["html/xml",
-                                                        "xml",
-                                                        "xml+fhir",
-                                                        "xml fhir"]):
-        updated_parameters["_format"] = "xml"
-    elif check_for_element(parameter_search, "_format", ["html/json",
-                                                         "json",
-                                                         "json+fhir",
-                                                         "json fhir"]):
-        updated_parameters["_format"] = "json"
-    elif check_for_element(parameter_search, "format", ["html/json"","
-                                                        "json",
-                                                        "json+fhir",
-                                                        "json fhir"]):
-        updated_parameters["_format"] = "json"
-    else:
-        # We found nothing so we should set to default format of json
-        updated_parameters["_format"] = "json"
-
-    # rebuild the parameters
-    logger.debug("Updated parameters:%s" % updated_parameters)
-    # pass_params = urlencode(updated_parameters)
-    pass_params = updated_parameters
-    logger.debug("Returning updated parameters:%s" % pass_params)
-
-    return pass_params
+    updated_parameters["_format"] = "json"
+    return updated_parameters
 
 
 def check_access_interaction_and_resource_type(resource_type, interaction_type):
@@ -403,24 +342,6 @@ def valid_interaction(resource, rr):
         interaction_list.append("history-type")
 
     return interaction_list
-
-
-def request_format(query_params):
-    """
-    Save the _format or format received
-    change default to json if nothing supplied.
-    :param query_params:
-    :return:
-    """
-
-    # ensure requested format is "xml" or "json"
-    # TODO: This should use the accept header instead of a query parameter
-
-    if ("xml" in query_params.get("_format", "") or
-            "xml" in query_params.get("format", "")):
-        return "xml"
-
-    return "json"
 
 
 def add_key_to_fhir_url(fhir_url, resource_type, key=""):

@@ -15,13 +15,8 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_response_text,
                                         build_oauth_resource)
 
-from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
-                                              dom_conformance_filter,
-                                              append_security)
-
 from ..opoutcome_utils import (strip_format_for_back_end,
-                               valid_interaction,
-                               request_format)
+                               valid_interaction)
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -78,13 +73,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         call_to += '/metadata'
 
     pass_params = request.GET
-    # pass_params should be an OrderedDict after strip_auth
-
-    requested_format = request_format(pass_params)
-
-    # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
-    back_end_format = pass_params['_format']
 
     encoded_params = urlencode(pass_params)
     pass_params = prepend_q(encoded_params)
@@ -106,32 +95,20 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
-                                    back_end_format,
                                     host_path,
                                     text_in,
                                     rewrite_url_list)
 
-    if requested_format == "xml":
-        xml_dom = xml_to_dom(text_out)
+    od = conformance_filter(text_out, rr)
 
-        text_out = dom_conformance_filter(xml_dom, rr)
+    # Append Security to ConformanceStatement
+    security_endpoint = build_oauth_resource(request, format_type="json")
+    od['rest'][0]['security'] = security_endpoint
 
-        # Append Security to ConformanceStatement
-        security_endpoint = build_oauth_resource(request, format_type="xml")
-        text_out = append_security(text_out, security_endpoint)
-
-        return HttpResponse(text_out, content_type='application/xml')
-    else:
-        od = conformance_filter(text_out, back_end_format, rr)
-
-        # Append Security to ConformanceStatement
-        security_endpoint = build_oauth_resource(request, format_type="json")
-        od['rest'][0]['security'] = security_endpoint
-
-        return JsonResponse(od)
+    return JsonResponse(od)
 
 
-def conformance_filter(text_block, fmt, rr=None):
+def conformance_filter(text_block, rr):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
