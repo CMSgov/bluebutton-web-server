@@ -62,7 +62,7 @@ def callback(request):
     # Get the userinfo response object
     user_info = r.json()
     try:
-        user = User.objects.get(username=user_info['sub'])
+        user = User.objects.get(username=user_info['sub'][9:36])
         if not user.first_name:
             user.first_name = user_info['given_name']
         if not user.last_name:
@@ -73,7 +73,7 @@ def callback(request):
     except User.DoesNotExist:
         # Create a new user. Note that we can set password
         # to anything, because it won't be checked.
-        user = User(username=user_info['sub'], password='',
+        user = User(username=user_info['sub'][9:36], password='',
                     first_name=user_info['given_name'],
                     last_name=user_info['family_name'],
                     email=user_info['email'])
