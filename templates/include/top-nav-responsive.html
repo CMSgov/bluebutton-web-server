@@ -29,6 +29,9 @@
 
       <ul class="nav navbar-nav navbar-right">
 <li><a href="https://cmsgov.github.io/bluebutton-developer-help/"> <i class="fa fa-gears"></i> Developer Docs</a></li>
+{% if 'apps.testclient' in settings.INSTALLED_APPS %}
+    <li><a href="{% url 'test_links' %}"> <i class="fa fa-check"></i> Test Client</a></li>
+{%  endif %}
 
 
 		{% if user.is_authenticated %}
