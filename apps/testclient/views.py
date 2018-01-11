@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from requests_oauthlib import OAuth2Session
 from collections import OrderedDict
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from .utils import test_setup
@@ -36,7 +36,7 @@ def callback(request):
             response['token_response'][k] = ' '.join(v)
 
     userinfo = oas.get(request.session['userinfo_uri']).json()
-    response[request.session['userinfo_uri']] = userinfo
+    response['userinfo'] = userinfo
     request.session['patient'] = userinfo['patient']
 
     response['oidc_discovery_uri'] = host + \
@@ -47,10 +47,18 @@ def callback(request):
 
     response['test_page'] = host + reverse('test_links')
 
-    return JsonResponse(response)
+    print("RESPONSE", response)
+    return success(request, response)
+    # return JsonResponse(response)
+
+
+def success(request, response):
+    return render(request, "success.html", response)
 
 
 def test_userinfo(request):
+    if 'token' not in request.session:
+        return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     userinfo_uri = "%s/connect/userinfo" % (request.session['resource_uri'])
@@ -59,6 +67,8 @@ def test_userinfo(request):
 
 
 def test_coverage(request):
+    if 'token' not in request.session:
+        return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     coverage_uri = "%s/protected/bluebutton/fhir/v1/Coverage/?_format=json" % (
@@ -69,6 +79,8 @@ def test_coverage(request):
 
 
 def test_patient(request):
+    if 'token' not in request.session:
+        return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     patient_uri = "%s/protected/bluebutton/fhir/v1/Patient/%s?_format=json" % (
@@ -78,6 +90,8 @@ def test_patient(request):
 
 
 def test_eob(request):
+    if 'token' not in request.session:
+        return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     eob_uri = "%s/protected/bluebutton/fhir/v1/ExplanationOfBenefit/?patient=%s&_format=json" % (
