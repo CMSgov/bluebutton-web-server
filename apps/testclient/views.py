@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from .utils import test_setup
+from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 
 __author__ = "Alan Viars"
 
@@ -14,18 +15,19 @@ __author__ = "Alan Viars"
 def callback(request):
 
     response = OrderedDict()
-
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
-
     host = settings.HOSTNAME_URL
 
     if not(host.startswith("http://") or host.startswith("https://")):
         host = "https://%s" % (host)
     auth_uri = host + request.get_full_path()
-    token = oas.fetch_token(request.session['token_uri'],
-                            client_secret=request.session['client_secret'],
-                            authorization_response=auth_uri)
+    try:
+        token = oas.fetch_token(request.session['token_uri'],
+                                client_secret=request.session['client_secret'],
+                                authorization_response=auth_uri)
+    except MissingTokenError:
+        return HttpResponseRedirect(reverse('test_links'))
     request.session['token'] = token
     response['token_response'] = OrderedDict()
 
@@ -49,7 +51,6 @@ def callback(request):
 
     print("RESPONSE", response)
     return success(request, response)
-    # return JsonResponse(response)
 
 
 def success(request, response):
