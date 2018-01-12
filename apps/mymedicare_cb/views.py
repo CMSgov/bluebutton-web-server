@@ -152,7 +152,7 @@ def mymedicare_login(request):
     state = req.pathname2url(state)
     mymedicare_login_url = "%s&state=%s&redirect_uri=%s" % (
         mymedicare_login_url, state, redirect)
-    next_uri = urllib.parse.quote_plus(request.GET.get('next'))
+    next_uri = urllib.parse.quote_plus(request.GET.get('next').encode('utf-8'))
     if request.user.is_authenticated():
         return HttpResponseRedirect(next_uri)
     AnonUserState.objects.create(state=state, next_uri=next_uri)
