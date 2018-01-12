@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from .models import AnonUserState
-from django.db.utils import IntegrityError
 
 __author__ = "Alan Viars"
 
