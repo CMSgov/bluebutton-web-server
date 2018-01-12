@@ -2,11 +2,13 @@
 {% load i18n %}
 
 {% block Content %}
-      
+      <h1>Choose a Login Option</h1>
      <p>
-       <a href="{{mymedicare_login_url}}"  role="button">{% trans "Login with" %} {{settings.EXTERNAL_AUTH_NAME}}</a>
-     </p>
+       <a  class="ds-c-button  ds-c-button--big" href="{{mymedicare_login_url}}"  role="button">{% trans "Login to the " %} {{settings.EXTERNAL_AUTH_NAME}} sandbox</a>
+       </p>
+     <h2>or</h2>
 
-     <p>If you are a developer then <a href ="{% url 'mfa_login' %}?next={{ request.GET.next | urlencode }}" > login here instead</a>.</p>
+     <p> <a class="ds-c-button  ds-c-button--big" href ="{% url 'mfa_login' %}?next={{ request.GET.next | urlencode }}" > Login to the Developer Portal</a></p>
      
+     <h2>NOTE: This page displays only in the sandbox and is not displayed in production. In production, beneficiaries are sent directly to MyMedicare.gov for login.</h2>
 {% endblock %}

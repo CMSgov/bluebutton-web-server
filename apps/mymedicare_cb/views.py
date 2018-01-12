@@ -14,6 +14,8 @@ import urllib.request as req
 import random
 from .models import AnonUserState
 import logging
+from django.shortcuts import render
+import urllib.parse
 
 __author__ = "Alan Viars"
 
@@ -41,10 +43,13 @@ def callback(request):
     # Call SLS token api: ", "https://dev.accounts.cms.gov/v1/oauth/token"  as
     # a POST
     r = requests.post(token_endpoint, json=token_dict, verify=verify_ssl)
+    # print(token_dict)
+    # print(token_endpoint)
+    # print(r.text)
     token_response = {}
     if r.status_code != 200:
         logger.error("Token request response error %s" % (r.status_code))
-        return HttpResponse("An unknown %s error has occurred." % (r.status_code), status=r.status_code)
+        return HttpResponse("Error: HTTP %s from the token response." % (r.status_code), status=r.status_code)
 
     token_response = r.json()
     # Create the Bearer
@@ -58,7 +63,7 @@ def callback(request):
     # print("Status", r.status_code)
     if r.status_code != 200:
         logger.error("User info request response error %s" % (r.status_code))
-        return HttpResponse("An unknown %s error has occurred." % (r.status_code), status=r.status_code)
+        return HttpResponse("Error: HTTP %s response from userinfo request." % (r.status_code), status=r.status_code)
     # Get the userinfo response object
     user_info = r.json()
     try:
@@ -147,12 +152,18 @@ def mymedicare_login(request):
     state = req.pathname2url(state)
     mymedicare_login_url = "%s&state=%s&redirect_uri=%s" % (
         mymedicare_login_url, state, redirect)
-    next_uri = request.GET.get('next')
+    next_uri = urllib.parse.quote_plus(request.GET.get('next'))
     if request.user.is_authenticated():
         return HttpResponseRedirect(next_uri)
     AnonUserState.objects.create(state=state, next_uri=next_uri)
-
-    if request.GET.get('type') == 'developer':
-        return HttpResponseRedirect(reverse('mfa_login') + "?" + next_uri)
-
+    if 'apps.testclient' in settings.INSTALLED_APPS:
+        return HttpResponseRedirect(reverse('mymedicare-choose-login') + "?next=" + next_uri)
     return HttpResponseRedirect(mymedicare_login_url)
+
+
+def mymedicare_choose_login(request):
+    medicare_login_uri = getattr(settings, 'MEDICARE_LOGIN_URI',
+                                 'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
+    context = {'next': request.GET.get('next'),
+               'mymedicare_login_url': medicare_login_uri}
+    return render(request, 'design_system/login.html', context)
