@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>
+        Success
+    </title>
+</head>
+<body>
+ <h1>Success! The OAuth2 access token was granted.</h1>
+ 
+
+    <h2>Here are some details....</h2>
+     <ul>
+     <li>access_token: {{token_response.access_token}}  </li>
+     <li>token_type:  {{token_response.token_type}}   </li>
+     <li>expires_at: {{token_response.expires_at}}  </li>
+     <li>expires_in: {{token_response.expires_in}}  </li>
+     <li>scope: {{token_response.scope}}  </li>
+     <li>patient_id: {{userinfo.patient}} </li>
+     <li>given_name: {{request.user.first_name}}  </li>
+     <li>family_name: {{request.u}}   </li>
+     </ul>
+    
+<p>The access_token and some other values have been saved to the session and will expire in a few minutes.
+After they expire you will need to go through Authorization process again.
+    
+    
+     <h2>What are you waiting for? Try some API calls!!!!</h1>
+     <ul>
+     <li> <a href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
+     <li> <a href="{% url 'test_patient' %}">Patient</a> </li>
+     <li> <a href="{% url 'test_coverage' %}">Coverage</a> </li>
+     <li> <a href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata (No Token Needed)</a> </li>
+     <li> <a href="{% url 'openid-configuration' %}">OIDC Discovery (No Token Needed)</a> </li>
+     </ul>
+     
+    
+    
+</body>
+
+</html>

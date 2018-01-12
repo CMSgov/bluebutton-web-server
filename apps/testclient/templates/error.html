@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>
+        Test Client Error
+    </title>
+</head>
+<body>
+ <h1>Missing Token</h1>
+ 
+ <p>You need to authenticate to get a new token and make these API calls.
+ Use this <a href="{% url 'authorize_link' %}">sample Authorization flow</a> to set the token.
+ </p>
+      
+    
+     <h1>API Calls</h1>
+     <ul>
+     <li> <a href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
+     <li> <a href="{% url 'test_patient' %}">Patient</a> </li>
+     <li> <a href="{% url 'test_coverage' %}">Coverage</a> </li>
+     <li> <a href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata (No Token Needed)</a> </li>
+     <li> <a href="{% url 'openid-configuration' %}">OIDC Discovery (No Token Needed)</a> </li>
+     </ul>
+     
+    
+    
+</body>
+
+</html>
