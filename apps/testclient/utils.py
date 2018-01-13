@@ -24,4 +24,5 @@ def test_setup():
     response['patient_uri'] = '%s/protected/bluebutton/fhir/v1/Patient/' % host
     response['eob_uri'] = '%s/protected/bluebutton/fhir/v1/ExplanationOfBenefit/' % host
     response['coverage_uri'] = '%s/protected/bluebutton/fhir/v1/Coverage/' % host
+    print("RESPONSE SETUP:", response)
     return(response)

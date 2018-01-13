@@ -22,8 +22,10 @@
      <li> <a href="{% url 'openid-configuration' %}">OIDC Discovery (No Token Needed)</a> </li>
      </ul>
      
-    
-    
+     {% if not request.user.is_authenticated %}
+      <h2><a href="{% url 'mfa_login' %}">Login to the developer portal</a> </h1>
+     {% endif %}
+     
 </body>
 
 </html>
