@@ -44,7 +44,7 @@ tags:
 schemes:
   - https
 paths:
-  /bluebutton/fhir/v1/metadata:
+  /v1/fhir/metadata:
     get:
       tags:
         - CapabilityStatement

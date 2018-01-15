@@ -24,38 +24,11 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = 'Mark Scrimshire:@ekivemark'
 
 
-def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
-    """ Pull and filter fhir Conformance statement
-
-    BaseDstu2 = "Conformance"
-    BaseStu3 = "CapabilityStatement"
-
-    metadata call
-
-    """
-    return metadata(request, via_oauth=True, *args, **kwargs)
-
-
 def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
     BaseDstu2 = "Conformance"
     BaseStu3 = "CapabilityStatement"
-
-    metadata call
-
-    """
-
-    return metadata(request, via_oauth=False, *args, **kwargs)
-
-
-def metadata(request, via_oauth=False, *args, **kwargs):
-    """
-    Arrive here to do capabilityStatement or Conformance
-    aka metadata
-
-    oauth_fhir_conformance sets via_oauth=True
-    fhir_conformance sets via_oauth=False
 
     :param request:
     :param via_oauth:
@@ -104,6 +77,7 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     # Append Security to ConformanceStatement
     security_endpoint = build_oauth_resource(request, format_type="json")
     od['rest'][0]['security'] = security_endpoint
+    od['format'] = ['appliction/json']
 
     return JsonResponse(od)
 

@@ -1,5 +1,4 @@
 from django.conf.urls import include, url
-# from django.views.generic import TemplateView
 from . import views
 
 oauth2_provider_urls = ([
