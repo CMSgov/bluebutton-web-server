@@ -443,7 +443,7 @@ SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
 ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
 
 LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/accounts/mfa/login'
+LOGIN_URL = '/v1/accounts/mfa/login'
 
 REQUIRE_AUTHORIZE_APP_FLAG = False
 
@@ -516,7 +516,7 @@ USER_ID_TYPE_CHOICES = (('H', 'HICN'),
 USER_ID_TYPE_DEFAULT = "H"
 DEFAULT_SAMPLE_FHIR_ID = "20140000008325"
 OFFLINE = False
-EXTERNAL_LOGIN_TEMPLATE_NAME = '/accounts/upstream-login'
+EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'
 
 # Should be set to True in production and False in all other dev and test environments
 REQUIRE_HTTPS_REDIRECT_URIS = True

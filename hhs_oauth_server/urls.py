@@ -16,18 +16,13 @@ admin.autodiscover()
 ADMIN_REDIRECTOR = getattr(settings, 'ADMIN_PREPEND_URL', '')
 
 urlpatterns = [
-    url(r'^accounts/', include('apps.accounts.urls')),
-    url(r'^connect/userinfo', openidconnect_userinfo,
-        name='openid_connect_userinfo'),
-    url(r'^userinfo', userinfo_w_login,
-        name='openid_connect_user_w_login'),
     url(r'.well-known/', include('apps.wellknown.urls')),
-    url(r'^v1/fhir/metadata$',
-        fhir_conformance, name='fhir_conformance_metadata'),
-    url(r'^v1/fhir/',
-        include('apps.fhir.bluebutton.urls_oauth')),
-    url(r'^o/', include('apps.dot_ext.urls')),
-
+    url(r'^v1/accounts/', include('apps.accounts.urls')),
+    url(r'^v1/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo'),
+    url(r'^v1/userinfo', userinfo_w_login, name='openid_connect_user_w_login'),
+    url(r'^v1/fhir/metadata$', fhir_conformance, name='fhir_conformance_metadata'),
+    url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls_oauth')),
+    url(r'^v1/o/', include('apps.dot_ext.urls')),
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
 
     decorated_url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls),
