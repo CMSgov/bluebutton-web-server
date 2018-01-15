@@ -52,13 +52,6 @@ STATICFILES_DIRS = [
 
 OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
 
-# TEMPLATES.context_processor:
-# 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
-# enables custom code to be branched in templates eg.
-#                 {% if "apps.extapi" in active_apps %}
-#
-#                     {%  include "extapi/get_started.html" %}
-#                 {% endif %}
 # Place all environment/installation specific code in a separate app
 # hhs_oauth_server.hhs_oauth_server_context.py also
 # includes IsAppInstalled to check for target_app in INSTALLED_APPS

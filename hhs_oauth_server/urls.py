@@ -36,11 +36,6 @@ urlpatterns = [
                   wrap=staff_member_required(login_url=settings.LOGIN_URL)),
 ]
 
-if IsAppInstalled("apps.extapi"):
-    urlpatterns += [
-        url(r'^extapi/', include('apps.extapi.urls')),
-    ]
-
 if IsAppInstalled("apps.testclient"):
     urlpatterns += [
         url(r'^testclient/', include('apps.testclient.urls')),
