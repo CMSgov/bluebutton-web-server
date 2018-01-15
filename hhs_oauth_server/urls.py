@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from decorate_url import decorated_url
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
@@ -27,7 +26,6 @@ urlpatterns = [
         fhir_conformance, name='fhir_conformance_metadata'),
     url(r'^v1/fhir/',
         include('apps.fhir.bluebutton.urls_oauth')),
-    url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
     url(r'^o/', include('apps.dot_ext.urls')),
 
     url(r'^social-auth/', include('social_django.urls', namespace='social')),

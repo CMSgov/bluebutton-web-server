@@ -13,7 +13,7 @@
             </ol>
         </div>
     </div>
-    
+
     <div class="row container-fluid">
         <div class="alert alert-info">
             <button type="button" class="close" data-dismiss="alert">×</button>
@@ -31,8 +31,6 @@
             <ul>
                 {% for application in applications %}
                     <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a> |
-                    <a href="{% url 'endorsement_list' application.id %}"">Endorsements</a>
-                    </li>
                 {% endfor %}
             </ul>
 
