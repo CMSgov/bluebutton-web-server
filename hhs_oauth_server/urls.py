@@ -6,7 +6,6 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import (openidconnect_userinfo,
                                                 userinfo_w_login)
-from apps.dot_ext.views.dcrp import register
 from apps.fhir.bluebutton.views.home import fhir_conformance
 from apps.home.views import home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
@@ -23,7 +22,6 @@ urlpatterns = [
         name='openid_connect_userinfo'),
     url(r'^userinfo', userinfo_w_login,
         name='openid_connect_user_w_login'),
-    url(r'^register', register, name='dcrp_register'),
     url(r'.well-known/', include('apps.wellknown.urls')),
     url(r'^v1/fhir/metadata$',
         fhir_conformance, name='fhir_conformance_metadata'),

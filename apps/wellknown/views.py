@@ -71,7 +71,4 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     data["grant_types_supported"].append("refresh_token")
     data["response_types_supported"] = ["code", "token"]
 
-    if settings.DCRP:
-        data["registration_endpoint"] = issuer + reverse('dcrp_register')
-
     return data

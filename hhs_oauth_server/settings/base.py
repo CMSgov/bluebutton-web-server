@@ -408,11 +408,6 @@ SETTINGS_EXPORT = [
     'INSTALLED_APPS'
 ]
 
-
-# Dynamic client registration Protocol
-# "O" = Open to everyone
-# "" = Disabled.
-DCRP = env('DJANGO_DCRP', '')
 # Make sessions die out fast for more security ------------------
 # Logout after 90 minutes of inactivity = moderate requirementnt
 SESSION_COOKIE_AGE = 5400
