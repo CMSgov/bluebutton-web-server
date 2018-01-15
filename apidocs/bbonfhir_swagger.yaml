@@ -67,7 +67,7 @@ paths:
             items:
               $ref: '#/definitions/CapabilityStatement'
       security: []
-  /protected/bluebutton/fhir/v1/Coverage/:
+  /v1/fhir/Coverage/:
     get:
       tags:
         - Coverage
@@ -102,7 +102,7 @@ paths:
               $ref: '#/definitions/Coverage'
       security:
         - Bearer: []
-  '/protected/bluebutton/fhir/v1/Coverage/{id}':
+  '/v1/fhir/Coverage/{id}':
     get:
       tags:
         - Coverage
@@ -118,7 +118,7 @@ paths:
             $ref: '#/definitions/Coverage'
       security:
         - Bearer: []
-  /protected/bluebutton/fhir/v1/ExplanationOfBenefit/:
+  /v1/fhir/ExplanationOfBenefit/:
     get:
       tags:
         - ExplanationOfBenefit
@@ -221,7 +221,7 @@ paths:
               $ref: '#/definitions/ExplanationOfBenefit'
       security:
         - Bearer: []
-  '/protected/bluebutton/fhir/v1/ExplanationOfBenefit/{id}':
+  '/v1/fhir/ExplanationOfBenefit/{id}':
     get:
       tags:
         - ExplanationOfBenefit
@@ -237,7 +237,7 @@ paths:
             $ref: '#/definitions/ExplanationOfBenefit'
       security:
         - Bearer: []
-  /protected/bluebutton/fhir/v1/Patient/:
+  /v1/fhir/Patient/:
     get:
       tags:
         - Patient
@@ -413,7 +413,7 @@ paths:
               $ref: '#/definitions/Patient'
       security:
         - Bearer: []
-  '/protected/bluebutton/fhir/v1/Patient/{id}':
+  '/v1/fhir/Patient/{id}':
     get:
       tags:
         - Patient

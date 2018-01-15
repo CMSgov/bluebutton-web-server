@@ -11,7 +11,7 @@ urlpatterns = [
         oauth_read,
         name='bb_oauth_fhir_read_or_update_or_delete'),
 
-    url(r'(?P<resource_type>[^/]+)?',
+    url(r'(?P<resource_type>[^/]+)',
         oauth_search,
         name='bb_oauth_fhir_search'),
 ]

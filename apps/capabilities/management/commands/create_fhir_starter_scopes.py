@@ -10,7 +10,7 @@ __author__ = "Alan Viars"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-fhir_prefix = "/protected/bluebutton/fhir/v1/"
+fhir_prefix = "/v1/fhir/"
 
 supported_resources = [
     'Condition',

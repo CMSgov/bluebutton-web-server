@@ -9,7 +9,7 @@ from ...models import ProtectedCapability
 import logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-fhir_prefix = "/protected/bluebutton/fhir/v1/"
+fhir_prefix = "/v1/fhir/"
 
 
 def create_group(name="BlueButton"):
