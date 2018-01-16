@@ -2,101 +2,21 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import sys
-import jwt
 import hashlib
 import logging
-import requests
-import datetime
-import json
 
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.utils import timezone
-
-from requests.exceptions import ConnectionError, TooManyRedirects, Timeout
-from oauth2_provider.models import AbstractApplication
-from poetri.verify_jws_with_jwk import verify_poet
 
 from apps.capabilities.models import ProtectedCapability
 
+from oauth2_provider.models import AbstractApplication
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-class Endorsement(models.Model):
-    title = models.CharField(max_length=255,
-                             default='')
-    jwt = models.TextField(max_length=10240,
-                           default='')
-    iss = models.CharField(max_length=512,
-                           default='',
-                           verbose_name='Issuer',
-                           help_text='Must contain a FQDN',
-                           editable=False)
-    iat = models.DateTimeField(verbose_name='Issued At',
-                               editable=False)
-    exp = models.DateTimeField(verbose_name='Expires',
-                               editable=False)
-
-    def __str__(self):
-        return self.title
-
-    def url(self):
-        url = 'http://%s/.well-known/poet.jwk' % (self.iss)
-        return url
-
-    def signature_verified(self):
-
-        try:
-            url = 'https://%s/.well-known/poet.jwk' % (self.iss)
-            r = requests.get(url, timeout=3)
-
-            if r.status_code == 200:
-                k = json.loads(r.text)
-                payload = verify_poet(self.jwt, k)
-                if 'iss' in payload:
-                    if payload['iss'] == k['kid']:
-                        return True
-        except ConnectionError:
-            pass
-        except TooManyRedirects:
-            pass
-        except Timeout:
-            pass
-        return False
-
-    def payload(self):
-        payload = jwt.decode(self.jwt, verify=False)
-        return payload
-
-    def is_expired(self):
-        now = timezone.now()
-        if self.iat > now:
-            return True
-        return False
-
-    def good_to_go(self):
-        is_expired = self.is_expired()
-        signature_verified = self.signature_verified()
-
-        if signature_verified and is_expired is False:
-            return True
-        return False
-
-    def save(self, commit=True, **kwargs):
-        if commit:
-            payload = jwt.decode(self.jwt, verify=False)
-            self.iss = payload['iss']
-            self.iat = datetime.datetime.fromtimestamp(
-                int(payload['iat'])).strftime('%Y-%m-%d %H:%M:%S')
-            self.exp = datetime.datetime.fromtimestamp(
-                int(payload['exp'])).strftime('%Y-%m-%d %H:%M:%S')
-            super(Endorsement, self).save(**kwargs)
-
-
 class Application(AbstractApplication):
     scope = models.ManyToManyField(ProtectedCapability)
-    endorsements = models.ManyToManyField(Endorsement, blank=True)
     agree = models.BooleanField(default=False)
 
     def get_absolute_url(self):

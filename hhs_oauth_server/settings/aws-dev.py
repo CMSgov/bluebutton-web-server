@@ -35,13 +35,10 @@ AWS_S3_CUSTOM_DOMAIN = 's3.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 STATICFILES_LOCATION = '/static/'
 STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
 STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
-# STATIC_URL = '/static/'
-# print("Static URL:%s" % STATIC_URL)
 
 MEDIAFILES_LOCATION = '/media/'
 DEAFULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
 MEDIA_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
-# MEDIA_URL = '/media/'
 
 STATIC_ROOT = os.path.join(ASSETS_ROOT, 'collectedstatic')
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
@@ -50,15 +47,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
-OAUTH2_AUTHORIZATION_FORM = 'authorize/default.html'
-
-# TEMPLATES.context_processor:
-# 'hhs_oauth_server.hhs_oauth_server_context.active_apps'
-# enables custom code to be branched in templates eg.
-#                 {% if "apps.extapi" in active_apps %}
-#
-#                     {%  include "extapi/get_started.html" %}
-#                 {% endif %}
 # Place all environment/installation specific code in a separate app
 # hhs_oauth_server.hhs_oauth_server_context.py also
 # includes IsAppInstalled to check for target_app in INSTALLED_APPS

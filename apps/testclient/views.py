@@ -72,7 +72,7 @@ def test_coverage(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    coverage_uri = "%s/protected/bluebutton/fhir/v1/Coverage/?_format=json" % (
+    coverage_uri = "%s/v1/fhir/Coverage/?_format=json" % (
         request.session['resource_uri'])
 
     coverage = oas.get(coverage_uri).json()
@@ -84,7 +84,7 @@ def test_patient(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    patient_uri = "%s/protected/bluebutton/fhir/v1/Patient/%s?_format=json" % (
+    patient_uri = "%s/v1/fhir/Patient/%s?_format=json" % (
         request.session['resource_uri'], request.session['patient'])
     patient = oas.get(patient_uri).json()
     return JsonResponse(patient)
@@ -95,7 +95,7 @@ def test_eob(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    eob_uri = "%s/protected/bluebutton/fhir/v1/ExplanationOfBenefit/?patient=%s&_format=json" % (
+    eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?patient=%s&_format=json" % (
         request.session['resource_uri'], request.session['patient'])
     eob = oas.get(eob_uri).json()
     return JsonResponse(eob)
