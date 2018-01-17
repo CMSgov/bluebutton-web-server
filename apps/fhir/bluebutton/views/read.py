@@ -128,6 +128,9 @@ def generic_read(request,
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
 
+    if srtc is None:
+        return kickout_404('Error 404: %s Resource Not Found.'
+                           '%s' % (resource_type))
     if not via_oauth:
         # we don't need to check if user is anonymous if coming via_oauth
         if srtc.secure_access and request.user.is_anonymous():
