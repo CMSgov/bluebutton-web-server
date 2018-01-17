@@ -9,11 +9,13 @@ import requests
 from django.http import HttpResponse
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import get_resourcerouter
+from apps.fhir.bluebutton.utils import get_resourcerouter, FhirServerAuth
 import urllib.request as req
 import random
 from .models import AnonUserState
 import logging
+from django.shortcuts import render
+import urllib.parse
 
 __author__ = "Alan Viars"
 
@@ -41,10 +43,13 @@ def callback(request):
     # Call SLS token api: ", "https://dev.accounts.cms.gov/v1/oauth/token"  as
     # a POST
     r = requests.post(token_endpoint, json=token_dict, verify=verify_ssl)
+    # print(token_dict)
+    # print(token_endpoint)
+    # print(r.text)
     token_response = {}
     if r.status_code != 200:
         logger.error("Token request response error %s" % (r.status_code))
-        return HttpResponse("An unknown %s error has occurred." % (r.status_code), status=r.status_code)
+        return HttpResponse("Error: HTTP %s from the token response." % (r.status_code), status=r.status_code)
 
     token_response = r.json()
     # Create the Bearer
@@ -58,7 +63,7 @@ def callback(request):
     # print("Status", r.status_code)
     if r.status_code != 200:
         logger.error("User info request response error %s" % (r.status_code))
-        return HttpResponse("An unknown %s error has occurred." % (r.status_code), status=r.status_code)
+        return HttpResponse("Error: HTTP %s response from userinfo request." % (r.status_code), status=r.status_code)
     # Get the userinfo response object
     user_info = r.json()
     try:
@@ -89,16 +94,18 @@ def callback(request):
     fhir_source = get_resourcerouter()
     cx, g_o_c = Crosswalk.objects.get_or_create(
         user=user, fhir_source=fhir_source)
-    hicn = user_info.get('hicn', "999999999A")
+    hicn = user_info.get('hicn', "")
     cx.user_id_hash = hicn
     cx.save()
+    auth_state = FhirServerAuth(None)
+    certs = (auth_state['cert_file'], auth_state['key_file'])
+
     # URL for patient ID.
     url = fhir_source.fhir_url + \
         "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
         cx.user_id_hash + \
         "&_format=json"
-    response = requests.get(url, cert=("../certstore/ca.cert.pem", "../certstore/ca.key.nocrypt.pem"),
-                            verify=False)
+    response = requests.get(url, cert=certs, verify=False)
 
     if 'entry' in response.json():
         identifiers = response.json()['entry'][0]['resource']['identifier']
@@ -145,12 +152,18 @@ def mymedicare_login(request):
     state = req.pathname2url(state)
     mymedicare_login_url = "%s&state=%s&redirect_uri=%s" % (
         mymedicare_login_url, state, redirect)
-    next_uri = request.GET.get('next')
+    next_uri = urllib.parse.quote_plus(request.GET.get('next', ""))
     if request.user.is_authenticated():
         return HttpResponseRedirect(next_uri)
     AnonUserState.objects.create(state=state, next_uri=next_uri)
-
-    if request.GET.get('type') == 'developer':
-        return HttpResponseRedirect(reverse('mfa_login') + "?" + next_uri)
-
+    if 'apps.testclient' in settings.INSTALLED_APPS:
+        return HttpResponseRedirect(reverse('mymedicare-choose-login') + "?next=" + next_uri)
     return HttpResponseRedirect(mymedicare_login_url)
+
+
+def mymedicare_choose_login(request):
+    medicare_login_uri = getattr(settings, 'MEDICARE_LOGIN_URI',
+                                 'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
+    context = {'next': request.GET.get('next'),
+               'mymedicare_login_url': medicare_login_uri}
+    return render(request, 'design_system/login.html', context)

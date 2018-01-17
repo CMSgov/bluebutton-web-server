@@ -23,8 +23,6 @@ def openidconnect_userinfo(request):
     data['email'] = user.email
     data['iat'] = user.date_joined
     data['ial'] = up.ial  # experimental
-    # data['ial'] = up.ial # experimental
-    # data['vot'] = up.vot() # experimental
 
     # Get the FHIR ID if its there
     fhir_id = get_fhir_id(user)
@@ -52,8 +50,6 @@ def userinfo_w_login(request):
     data['iat'] = user.date_joined
     data['iat'] = user.date_joined
     data['ial'] = up.ial     # experimental
-    # data['ial'] = up.ial   # experimental
-    # data['vot'] = up.vot() # experimental
 
     # Get the FHIR ID if its there
     fhir_id = get_fhir_id(request.user)

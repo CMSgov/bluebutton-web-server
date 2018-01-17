@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from .models import AnonUserState
-from django.db.utils import IntegrityError
 
 __author__ = "Alan Viars"
 
@@ -22,13 +21,6 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         """
         response = self.client.get(self.login_url)
         self.assertEqual(response.status_code, 302)
-
-    def test_login_url_sad(self):
-        """
-        Test login_url requires next
-        """
-        with self.assertRaises(IntegrityError):
-            self.client.get(reverse('mymedicare-login'))
 
     def test_callback_url(self):
         """

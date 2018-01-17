@@ -1,49 +1,16 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import jwt as jwtl
 from django.utils.safestring import mark_safe
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from collections import OrderedDict
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
 from apps.capabilities.models import ProtectedCapability
-from .models import Endorsement
 
 __author__ = "Alan Viars"
-
-
-class EndorsementForm(forms.ModelForm):
-    required_css_class = 'required'
-
-    class Meta:
-        model = Endorsement
-        fields = ('title', 'jwt',)
-
-    def clean_jwt(self):
-        # TODO: this part may be removed or updated
-        # req = ('iss', 'iat', 'exp', 'client_name', 'redirect_uris', 'client_uri')
-        jwtc = self.cleaned_data.get('jwt')
-
-        try:
-            decoded_payload = jwtl.decode(jwtc, verify=False)
-        except Exception:
-            msg = _('Invalid JWT.')
-            raise forms.ValidationError(msg)
-
-        if isinstance(decoded_payload, OrderedDict):
-            msg = _('Invalid Payload.')
-            raise forms.ValidationError(msg)
-        # TODO: this part may be removed or updated
-        # for r in req:
-        #     if r not in decoded_payload:
-        #         msg=_('Required value %s missing from payload' % (r))
-        #         raise forms.ValidationError(msg)
-
-        return jwtc
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):

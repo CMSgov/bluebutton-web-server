@@ -18,10 +18,11 @@ def test_setup():
         host = "https://" + host
     response['resource_uri'] = host
     response['redirect_uri'] = '%s/testclient/callback' % host
-    response['authorization_uri'] = '%s/o/authorize/' % host
-    response['token_uri'] = '%s/o/token/' % host
-    response['userinfo_uri'] = '%s/connect/userinfo' % host
-    response['patient_uri'] = '%s/protected/bluebutton/fhir/v1/Patient/' % host
-    response['eob_uri'] = '%s/protected/bluebutton/fhir/v1/ExplanationOfBenefit/' % host
-    response['coverage_uri'] = '%s/protected/bluebutton/fhir/v1/Coverage/' % host
+    response['authorization_uri'] = '%s/v1/o/authorize/' % host
+    response['token_uri'] = '%s/v1/o/token/' % host
+    response['userinfo_uri'] = '%s/v1/connect/userinfo' % host
+    response['patient_uri'] = '%s/v1/fhir/Patient/' % host
+    response['eob_uri'] = '%s/v1/fhir/ExplanationOfBenefit/' % host
+    response['coverage_uri'] = '%s/v1/fhir/Coverage/' % host
+    print("RESPONSE SETUP:", response)
     return(response)
