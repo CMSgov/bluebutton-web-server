@@ -40,6 +40,5 @@ if IsAppInstalled("apps.mymedicare_cb"):
     ]
 
 urlpatterns += [
-    # Catch all
     url(r'^$', home, name='home'),
 ]
