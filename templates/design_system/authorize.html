@@ -21,7 +21,7 @@
     </div>
   </div>
   
-  <div class="ds-l-row ds-u-justify-content--center ds-u-fill--white">
+   <div class="ds-l-row ds-u-justify-content--center ds-u-fill--white">
     <div class="ds-l-col--3">
         {% if not error %}
             <form id="authorizationForm" method="post">
@@ -46,13 +46,23 @@
                 {% endfor %}
 
                 {{ form.non_field_errors }}
+       </div>
+    </div>
 
                 <div class="control-group">
                     <div class="controls">
-                        <input id="approve" type="submit" class="ds-c-button  ds-c-button--big ds-c-button--primary"  name="allow"
-                               value="Yes, approve access."/>
-                        <input href="javascript:history.go(-1)" type="submit" class="ds-c-button  ds-c-button ds-c-button--outline ds-u-margin-top--1 ds-u-display--block ds-u-md-display--inline-block" value="No, do not approve access."/>
-                    </div>
+                        <div class="ds-l-row ds-u-justify-content--center ds-u-fill--white">
+                             <div class="ds-l-col--3">
+                                 <input id="approve" type="submit" class="ds-c-button  ds-c-button--big ds-c-button--primary"  name="allow"
+                                   value="Yes, approve access"/>
+                             </div>
+                        </div>
+                        <div class="ds-l-row ds-u-justify-content--center ds-u-fill--white">
+                             <div class="ds-l-col--3">
+                               <a class="ds-c-button  ds-c-button ds-c-button--outline ds-u-margin-top--1 ds-u-display--block ds-u-md-display--inline-block" href ="{% url 'do_not_approve' %}" >No, do not approve access</a>
+                             </div>
+                        </div>           
+                      </div>
                 </div>
             </form>
 
