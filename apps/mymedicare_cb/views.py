@@ -15,7 +15,6 @@ import random
 from .models import AnonUserState
 import logging
 from django.shortcuts import render
-import urllib.parse
 
 __author__ = "Alan Viars"
 
@@ -40,24 +39,18 @@ def callback(request):
         "redirect_uri": redirect_uri}
     logger.debug("token_endpoint %s" % (token_endpoint))
     logger.debug("redirect_uri %s" % (redirect_uri))
-    # Call SLS token api: ", "https://dev.accounts.cms.gov/v1/oauth/token"  as
-    # a POST
+    # Call SLS token API
     r = requests.post(token_endpoint, json=token_dict, verify=verify_ssl)
-    # print(token_dict)
-    # print(token_endpoint)
-    # print(r.text)
     token_response = {}
     if r.status_code != 200:
         logger.error("Token request response error %s" % (r.status_code))
         return HttpResponse("Error: HTTP %s from the token response." % (r.status_code), status=r.status_code)
-
     token_response = r.json()
     # Create the Bearer
     bt = "Bearer %s" % (token_response['access_token'])
     # build a headers dict with Authorization
     headers = {"Authorization": bt}
     # Call SLS userinfo: ",
-    # "https://dev.api.bluebutton.cms.gov/v1/oauth/userinfo  as a GET with
     # Authorization Bearer token in header.
     r = requests.get(userinfo_endpoint, headers=headers, verify=verify_ssl)
     # print("Status", r.status_code)
@@ -143,27 +136,35 @@ def generate_nonce(length=26):
 
 
 def mymedicare_login(request):
-    mymedicare_login_url = getattr(settings, 'MEDICARE_LOGIN_URI',
-                                   'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
     redirect = getattr(settings, 'MEDICARE_REDIRECT_URI',
                        'http://localhost:8000/mymedicare/sls-callback')
+    mymedicare_login_url = getattr(settings, 'MEDICARE_LOGIN_URI',
+                                   'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
     redirect = req.pathname2url(redirect)
     state = generate_nonce()
     state = req.pathname2url(state)
+    request.session['state'] = state
     mymedicare_login_url = "%s&state=%s&redirect_uri=%s" % (
         mymedicare_login_url, state, redirect)
-    next_uri = urllib.parse.quote_plus(request.GET.get('next', ""))
+    next_uri = request.GET.get('next', "")
     if request.user.is_authenticated():
         return HttpResponseRedirect(next_uri)
     AnonUserState.objects.create(state=state, next_uri=next_uri)
+
     if 'apps.testclient' in settings.INSTALLED_APPS:
-        return HttpResponseRedirect(reverse('mymedicare-choose-login') + "?next=" + next_uri)
+        return HttpResponseRedirect(reverse('mymedicare-choose-login'))
     return HttpResponseRedirect(mymedicare_login_url)
 
 
 def mymedicare_choose_login(request):
-    medicare_login_uri = getattr(settings, 'MEDICARE_LOGIN_URI',
-                                 'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
-    context = {'next': request.GET.get('next'),
-               'mymedicare_login_url': medicare_login_uri}
+    mymedicare_login_uri = getattr(settings, 'MEDICARE_LOGIN_URI',
+                                   'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
+    redirect = getattr(settings, 'MEDICARE_REDIRECT_URI',
+                       'http://localhost:8000/mymedicare/sls-callback')
+    redirect = req.pathname2url(redirect)
+    aus = AnonUserState.objects.get(state=request.session['state'])
+    mymedicare_login_uri = "%s&state=%s&redirect_uri=%s" % (
+        mymedicare_login_uri, aus.state, redirect)
+    context = {'next': aus.next_uri,
+               'mymedicare_login_uri': mymedicare_login_uri}
     return render(request, 'design_system/login.html', context)
