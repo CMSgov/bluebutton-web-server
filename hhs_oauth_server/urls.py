@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^v1/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo'),
     url(r'^v1/userinfo', userinfo_w_login, name='openid_connect_user_w_login'),
     url(r'^v1/fhir/metadata$', fhir_conformance, name='fhir_conformance_metadata'),
-    url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls_oauth')),
+    url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
     url(r'^v1/o/', include('apps.dot_ext.urls')),
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
 
@@ -40,6 +40,5 @@ if IsAppInstalled("apps.mymedicare_cb"):
     ]
 
 urlpatterns += [
-    # Catch all
     url(r'^$', home, name='home'),
 ]
