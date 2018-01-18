@@ -26,22 +26,16 @@ strong {
     </style>
 </head>
 <body>
-<h1 class="Extra404Large"><strong>4..oh..4</strong></h1>
+<h1 class="Extra404Large"><strong>Page not found</strong></h1>
 <h1><a href="{% url 'home' %}"
            alt="{{ settings.APPLICATION_TITLE }}">
                 <strong>{{ settings.APPLICATION_TITLE }}</strong>
     </a>
 </h1>
-<p class="Normal404Text">whoops! You asked for something we couldn't find.
+<p class="Normal404Text">Whoops! You asked for something we couldn't find.
 
 </p>
 <h3><a href="{% url 'home' %}" >Back to Home Page</a></h3>
-
-<p><a href="{% url 'home' %}"
-            style="max-height:100%;max-width:100%">
-            <img src="{% static 'img/layout/bluebuttonapiv1.png' %}"
-                 style="vertical-align:text-top;max-height:50%;max-width:50%"></a>
-</p>
 
 </body>
 </html>
