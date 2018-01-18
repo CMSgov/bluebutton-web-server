@@ -428,7 +428,6 @@ class AccountSettingsForm(forms.Form):
         self.request = kwargs.pop("request")
         super(AccountSettingsForm, self).__init__(*args, **kwargs)
 
-    username = forms.CharField(max_length=30, label=_('User Name'))
     email = forms.EmailField(max_length=255, label=_('Email'))
     first_name = forms.CharField(max_length=100, label=_('First Name'))
     last_name = forms.CharField(max_length=100, label=_('Last Name'))
@@ -472,11 +471,3 @@ class AccountSettingsForm(forms.Form):
                 _('A mobile phone number is required to use SMS-based '
                   'multi-factor authentication'))
         return mobile_phone_number
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        username = username.rstrip().lstrip().lower()
-        if username and User.objects.filter(
-                username=username).exclude(username=username).count():
-            raise forms.ValidationError(_('This username is already taken.'))
-        return username
