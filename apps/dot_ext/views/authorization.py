@@ -13,6 +13,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 __author__ = "Alan Viars"
 
+
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
@@ -23,6 +24,7 @@ class AuthorizationView(DotAuthorizationView):
         settings, 'AUTHORIZATION_LOGIN_URL', "/mymedicare/login")
     template_name = getattr(
         settings, 'AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
+
 
 class ScopeAuthorizationView(DotAuthorizationView):
     """
