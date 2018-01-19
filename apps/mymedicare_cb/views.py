@@ -21,6 +21,7 @@ __author__ = "Alan Viars"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+
 @never_cache
 def callback(request):
     token_endpoint = getattr(
@@ -135,6 +136,7 @@ def generate_nonce(length=26):
     """Generate pseudo-random number."""
     return ''.join([str(random.randint(0, 9)) for i in range(length)])
 
+
 @never_cache
 def mymedicare_login(request):
     redirect = getattr(settings, 'MEDICARE_REDIRECT_URI',
@@ -154,6 +156,7 @@ def mymedicare_login(request):
     if 'apps.testclient' in settings.INSTALLED_APPS:
         return HttpResponseRedirect(reverse('mymedicare-choose-login'))
     return HttpResponseRedirect(mymedicare_login_url)
+
 
 @never_cache
 def mymedicare_choose_login(request):

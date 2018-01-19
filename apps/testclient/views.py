@@ -12,6 +12,7 @@ from django.views.decorators.cache import never_cache
 
 __author__ = "Alan Viars"
 
+
 @never_cache
 def callback(request):
 
@@ -53,9 +54,11 @@ def callback(request):
     print("RESPONSE", response)
     return success(request, response)
 
+
 @never_cache
 def success(request, response):
     return render(request, "success.html", response)
+
 
 @never_cache
 def test_userinfo(request):
@@ -66,6 +69,7 @@ def test_userinfo(request):
     userinfo_uri = "%s/connect/userinfo" % (request.session['resource_uri'])
     userinfo = oas.get(userinfo_uri).json()
     return JsonResponse(userinfo)
+
 
 @never_cache
 def test_coverage(request):
@@ -79,6 +83,7 @@ def test_coverage(request):
     coverage = oas.get(coverage_uri).json()
     return JsonResponse(coverage, safe=False)
 
+
 @never_cache
 def test_patient(request):
     if 'token' not in request.session:
@@ -89,6 +94,7 @@ def test_patient(request):
         request.session['resource_uri'], request.session['patient'])
     patient = oas.get(patient_uri).json()
     return JsonResponse(patient)
+
 
 @never_cache
 def test_eob(request):
@@ -101,6 +107,7 @@ def test_eob(request):
     eob = oas.get(eob_uri).json()
     return JsonResponse(eob)
 
+
 @never_cache
 def authorize_link(request):
 
@@ -110,6 +117,7 @@ def authorize_link(request):
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'])[0]
     return render(request, 'testclient.html', {"authorization_url": authorization_url})
+
 
 @never_cache
 def test_links(request):
