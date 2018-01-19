@@ -8,10 +8,12 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from .utils import test_setup
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
+from django.views.decorators.cache import never_cache
 
 __author__ = "Alan Viars"
 
 
+@never_cache
 def callback(request):
 
     response = OrderedDict()
@@ -53,10 +55,12 @@ def callback(request):
     return success(request, response)
 
 
+@never_cache
 def success(request, response):
     return render(request, "success.html", response)
 
 
+@never_cache
 def test_userinfo(request):
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
@@ -67,6 +71,7 @@ def test_userinfo(request):
     return JsonResponse(userinfo)
 
 
+@never_cache
 def test_coverage(request):
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
@@ -79,6 +84,7 @@ def test_coverage(request):
     return JsonResponse(coverage, safe=False)
 
 
+@never_cache
 def test_patient(request):
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
@@ -90,6 +96,7 @@ def test_patient(request):
     return JsonResponse(patient)
 
 
+@never_cache
 def test_eob(request):
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
@@ -101,6 +108,7 @@ def test_eob(request):
     return JsonResponse(eob)
 
 
+@never_cache
 def authorize_link(request):
 
     request.session.update(test_setup())
@@ -111,5 +119,6 @@ def authorize_link(request):
     return render(request, 'testclient.html', {"authorization_url": authorization_url})
 
 
+@never_cache
 def test_links(request):
     return render(request, 'testlinks.html')
