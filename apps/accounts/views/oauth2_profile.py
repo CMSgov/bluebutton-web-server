@@ -8,13 +8,10 @@ from django.contrib.auth.decorators import login_required
 __author__ = "Alan Viars"
 
 
-
 def get_userinfo(user):
     """
     OIDC-style userinfo
     """
-   
-    up = UserProfile.objects.get(user=user)
     data = OrderedDict()
     data['sub'] = user.username
     data['name'] = "%s %s" % (user.first_name, user.last_name)
@@ -28,8 +25,8 @@ def get_userinfo(user):
     if fhir_id:
         data['patient'] = fhir_id
         data['sub'] = fhir_id
-    return  data
-    
+    return data
+
 
 @require_GET
 @protected_resource()
