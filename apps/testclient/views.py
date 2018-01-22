@@ -15,6 +15,7 @@ __author__ = "Alan Viars"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+
 def callback(request):
 
     response = OrderedDict()
@@ -30,7 +31,7 @@ def callback(request):
                                 client_secret=get_client_secret(),
                                 authorization_response=auth_uri)
     except MissingTokenError:
-        logmsg ="Failed to get token from %s" % (request.session['token_uri'])
+        logmsg = "Failed to get token from %s" % (request.session['token_uri'])
         logger.error(logmsg)
         return JsonResponse({'error': 'Failed to get token from',
                              'code': 'MissingTokenError',
@@ -95,7 +96,7 @@ def test_patient(request):
         request.session['client_id'], token=request.session['token'])
     patient_uri = "%s/v1/fhir/Patient/%s?_format=json" % (
         request.session['resource_uri'], request.session['patient'])
-    patient = oas.get(patient_uri).json()    
+    patient = oas.get(patient_uri).json()
     return JsonResponse(patient)
 
 
