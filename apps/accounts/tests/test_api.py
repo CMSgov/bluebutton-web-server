@@ -42,7 +42,6 @@ class TestUserSelfEndpoint(BaseApiTest):
                                  first_name='John',
                                  last_name='Smith',
                                  email='john@smith.net')
-        up = UserProfile.objects.create(user=user)
 
         # Get an access token for the user 'john'
         access_token = self._get_access_token('john', '123456')
