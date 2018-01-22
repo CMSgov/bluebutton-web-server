@@ -15,14 +15,13 @@
 
         <div class="ds-col-lg-12">
 
-          <a href="{% url 'reset_password' %}">
-			    <button type="button" class="usa-button usa-button-primary"> <i class="fa fa-key"></i>  Change Your Password
-                </button>
+          <a class="ds-c-button  ds-c-button--default" href="{% url 'reset_password' %}">
+			  Change Your Password
           </a>
 										
-          <a href="{% url 'change_secret_questions' %}">
-                <button type="button" class="usa-button usa-button-primary"> <i class="fa fa-key"></i>  Change You Secret Questions and Answers
-				</button></a>
+          <a class="ds-c-button  ds-c-button--default" href="{% url 'change_secret_questions' %}">
+              Change You Secret Questions and Answers
+				</a>
         </div>
 
       </div>
@@ -60,7 +59,7 @@
                     {% load bootstrap %}
                     {{ form|bootstrap }}
 
-                    <input type="submit" class="usa-button usa-button usa-button-success btn-xlarge"  value="{% trans 'Continue' %}" /><br>
+                    <input type="submit" class="ds-c-button  ds-c-button--primary" value="{% trans 'Continue' %}" /><br>
                     <a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
 
                   </form>

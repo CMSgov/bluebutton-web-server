@@ -9,18 +9,44 @@ from django.core.urlresolvers import reverse
 from django.db import models
 
 from apps.capabilities.models import ProtectedCapability
-
 from oauth2_provider.models import AbstractApplication
+from django.conf import settings
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class Application(AbstractApplication):
-    scope = models.ManyToManyField(ProtectedCapability)
+    scope = models.ManyToManyField(ProtectedCapability, verbose_name="Scope *")
     agree = models.BooleanField(default=False)
-
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    op_tos_uri =  models.CharField(default="", blank=True, max_length=512)
+    op_policy_uri =  models.CharField(default="", blank=True, max_length=512)
+    client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name= "Client URI",
+                                  help_text= "This is typically a homepage for the application.")
+    logo_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Logo URI")
+    tos_uri =  models.CharField(default="", blank=True, max_length=512, verbose_name="Client's Terms of Service URI")
+    policy_uri =  models.CharField(default="", blank=True, max_length=512, verbose_name="Client's Policy URI",
+                                   help_text="This can be a model privacy notice or other policy document.")
+    software_id =  models.CharField(default="", blank=True, max_length=128,
+                                    help_text="A unique identifier for an application defined by its creator.")
+    contacts = models.TextField(default="", blank=True, max_length=512,
+                                verbose_name="Client's Contacts",
+                                help_text = "This is typically an email")
+    active = models.BooleanField(default=True)
+    
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
+
+    def save(self, commit=True, **kwargs):
+        if commit:
+            # Write the TOS that the app developer agreed to.
+            self.op_tos_uri = settings.TOS_URI
+            super(Application, self).save(**kwargs)
+            logmsg = "%s agreed to %s for the application %s on %s" % (self.user, self.op_tos_uri,
+                                                                       self.name, self.updated)
+            logger.info(logmsg)
+
 
 
 class ExpiresInManager(models.Manager):
