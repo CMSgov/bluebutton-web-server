@@ -59,7 +59,6 @@ class TestUserSelfEndpoint(BaseApiTest):
             'family_name': user.last_name,
             'email': user.email,
             'iat': DjangoJSONEncoder().default(user.date_joined),
-            'ial': up.ial,
         }
         self.assertJSONEqual(response.content.decode(ENCODED), expected_json)
 
