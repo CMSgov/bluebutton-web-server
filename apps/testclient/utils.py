@@ -7,12 +7,13 @@ from ..dot_ext.models import Application
 __author__ = "Alan Viars"
 
 
-def test_setup():
+def test_setup(include_client_secret=True):
 
     response = OrderedDict()
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id
-    response['client_secret'] = oa2client.client_secret
+    if include_client_secret:
+        response['client_secret'] = oa2client.client_secret
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
     if not (host.startswith("http://") or host.startswith("https://")):
         host = "https://" + host
@@ -25,3 +26,14 @@ def test_setup():
     response['eob_uri'] = '%s/v1/fhir/ExplanationOfBenefit/' % host
     response['coverage_uri'] = '%s/v1/fhir/Coverage/' % host
     return(response)
+
+
+
+def get_client_id_and_secret():
+    oa2client = Application.objects.get(name="TestApp")
+    return ({'client_id': oa2client.client_id,
+              'client_secret': oa2client.client_secret })
+
+def get_client_secret():
+    oa2client = Application.objects.get(name="TestApp")
+    return oa2client.client_secret
