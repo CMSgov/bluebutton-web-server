@@ -20,21 +20,23 @@ class Application(AbstractApplication):
     agree = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    op_tos_uri =  models.CharField(default="", blank=True, max_length=512)
-    op_policy_uri =  models.CharField(default="", blank=True, max_length=512)
-    client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name= "Client URI",
-                                  help_text= "This is typically a homepage for the application.")
-    logo_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Logo URI")
-    tos_uri =  models.CharField(default="", blank=True, max_length=512, verbose_name="Client's Terms of Service URI")
-    policy_uri =  models.CharField(default="", blank=True, max_length=512, verbose_name="Client's Policy URI",
-                                   help_text="This can be a model privacy notice or other policy document.")
-    software_id =  models.CharField(default="", blank=True, max_length=128,
-                                    help_text="A unique identifier for an application defined by its creator.")
+    op_tos_uri = models.CharField(default="", blank=True, max_length=512)
+    op_policy_uri = models.CharField(default="", blank=True, max_length=512)
+    client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client URI",
+                                  help_text="This is typically a homepage for the application.")
+    logo_uri = models.CharField(
+        default="", blank=True, max_length=512, verbose_name="Logo URI")
+    tos_uri = models.CharField(
+        default="", blank=True, max_length=512, verbose_name="Client's Terms of Service URI")
+    policy_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client's Policy URI",
+                                  help_text="This can be a model privacy notice or other policy document.")
+    software_id = models.CharField(default="", blank=True, max_length=128,
+                                   help_text="A unique identifier for an application defined by its creator.")
     contacts = models.TextField(default="", blank=True, max_length=512,
                                 verbose_name="Client's Contacts",
-                                help_text = "This is typically an email")
+                                help_text="This is typically an email")
     active = models.BooleanField(default=True)
-    
+
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
 
@@ -46,7 +48,6 @@ class Application(AbstractApplication):
             logmsg = "%s agreed to %s for the application %s on %s" % (self.user, self.op_tos_uri,
                                                                        self.name, self.updated)
             logger.info(logmsg)
-
 
 
 class ExpiresInManager(models.Manager):
