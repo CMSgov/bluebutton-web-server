@@ -285,7 +285,7 @@ class SignupForm(forms.Form):
                                                       "<br/>You "
                                                       "probably received one by "
                                                       "email.")
-                                      )
+                                          )
     username = forms.CharField(max_length=30,
                                label=_("User"),
                                help_text=_("Choose the username you will "
@@ -368,20 +368,22 @@ class SignupForm(forms.Form):
         if User.objects.filter(username=username).count() > 0:
             raise forms.ValidationError(_('This username is already taken.'))
         return username
-    
+
     if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
         def clean_invitation_code(self):
             invitation_code = self.cleaned_data['invitation_code']
             if Invitation.objects.filter(valid=True,
                                          code=invitation_code).count() != 1:
-                raise forms.ValidationError(_('The invitation code is not valid.'))
+                raise forms.ValidationError(
+                    _('The invitation code is not valid.'))
             return invitation_code
 
     def save(self):
         if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
             invitation_code = self.cleaned_data['invitation_code']
             # make the invitation a invalid/spent.
-            invite = Invitation.objects.get(code=str(invitation_code), valid=True)
+            invite = Invitation.objects.get(
+                code=str(invitation_code), valid=True)
             invite.valid = False
             invite.save()
 
