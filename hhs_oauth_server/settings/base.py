@@ -361,7 +361,7 @@ DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
-
+REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
 #############################################################################
 # /testclient errors when no SSL present
 #############################################################################
@@ -405,7 +405,8 @@ SETTINGS_EXPORT = [
     'ALLOW_END_USER_EXTERNAL_AUTH',
     'SOCIAL_AUTH_BACKEND_NAME',
     'OPTIONAL_INSTALLED_APPS',
-    'INSTALLED_APPS'
+    'INSTALLED_APPS',
+    'REQUIRE_INVITE_TO_REGISTER'
 ]
 
 # Make sessions die out fast for more security ------------------
