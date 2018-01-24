@@ -16,7 +16,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class Application(AbstractApplication):
-    scope = models.ManyToManyField(ProtectedCapability, verbose_name="Scope *")
+    scope = models.ManyToManyField(ProtectedCapability)
     agree = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
