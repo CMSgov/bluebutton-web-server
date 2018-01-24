@@ -30,6 +30,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields['client_type'].initial = 'confidential'
         self.fields['agree'].label = mark_safe(agree_label)
         self.fields['name'].label = "Name*"
+        self.fields['name'].required = True
         self.fields['client_type'].label = "Client Type*"
         self.fields['authorization_grant_type'].label = "Authorization Grant Type*"
         self.fields['redirect_uris'].label = "Redirect URIs*"
