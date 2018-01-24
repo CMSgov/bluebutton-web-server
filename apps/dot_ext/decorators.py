@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from functools import wraps
 
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 
 from oauthlib.oauth2 import Server
 
@@ -35,10 +35,23 @@ def capability_protected_resource(scopes=None, validator_cls=OAuth2Validator, se
             if valid:
                 # here we check if the access to resource is allowed by the token's scope.
                 if not allow_resource(oauthlib_req.access_token, request.method, request.path):
-                    return HttpResponseForbidden('The token has no capability to access the resource.')
+                    # Return a 404 on error in order to avoid notifying user of object's existence
+                    return JsonResponse({
+                                             "error": {
+                                                 "code": 404,
+                                                 "message": "The resource you requested could not be found.",
+                                             }
+                                         },
+                                         status=404)
 
                 request.resource_owner = oauthlib_req.user
                 return view_func(request, *args, **kwargs)
-            return HttpResponseForbidden('The token authentication failed.')
+            return JsonResponse({
+                                     "error": {
+                                         "code": 401,
+                                         "message": "The token authentication failed.",
+                                     }
+                                 },
+                                 status=401)
         return _validate
     return decorator

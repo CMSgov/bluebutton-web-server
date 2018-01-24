@@ -22,12 +22,8 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # security
-# SECRET_KEY = env('DJANGO_SECRET_KEY')
 SECRET_KEY = env('DJANGO_SECRET_KEY',
                  'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR')
-if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
-    print("WARNING: Generate your secret key and set in environment "
-          "variable: DJANGO_SECRET_KEY")
 
 AUTH_PASSWORD_VALIDATORS = [
     {
