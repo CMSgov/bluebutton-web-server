@@ -13,14 +13,6 @@ from .themes import THEMES, THEME_SELECTED
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, '..')
 
-# Set ADMINS and MANAGERS
-# Override ADMINS and MANAGERS Settings in environment specific settings file
-# or in custom-envvars.py
-ADMINS = (
-    ('Mark Scrimshire', 'mark@ekivemark.com'),
-)
-MANAGERS = ADMINS
-
 # security
 # SECRET_KEY = env('DJANGO_SECRET_KEY')
 SECRET_KEY = env('DJANGO_SECRET_KEY',
