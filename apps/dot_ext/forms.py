@@ -26,10 +26,12 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             for i in pcs:
                 choices.append([i.pk, i.title])
         self.fields['scope'].choices = choices
+        self.fields['scope'].label = "Scope*"
         self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
         self.fields['client_type'].initial = 'confidential'
         self.fields['agree'].label = mark_safe(agree_label)
         self.fields['name'].label = "Name*"
+        self.fields['name'].required = True
         self.fields['client_type'].label = "Client Type*"
         self.fields['authorization_grant_type'].label = "Authorization Grant Type*"
         self.fields['redirect_uris'].label = "Redirect URIs*"

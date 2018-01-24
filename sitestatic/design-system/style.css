@@ -1,0 +1,16 @@
+body {
+  margin: 0;
+  padding: 30px;
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 700px;
+}
+
+
+/* Add an astrik after required fields*/
+label.required:after {
+    content: '*';
+}
