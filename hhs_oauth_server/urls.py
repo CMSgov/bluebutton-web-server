@@ -25,8 +25,7 @@ urlpatterns = [
     url(r'^v1/o/', include('apps.dot_ext.urls')),
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
 
-    decorated_url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls),
-                  wrap=staff_member_required(login_url=settings.LOGIN_URL)),
+    url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls)),
 ]
 
 if IsAppInstalled("apps.testclient"):
