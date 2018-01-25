@@ -1,5 +1,3 @@
-from decorate_url import decorated_url
-from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
