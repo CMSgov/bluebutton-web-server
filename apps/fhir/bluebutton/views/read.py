@@ -1,8 +1,10 @@
-from django.http import JsonResponse, HttpResponseNotAllowed
+from django.http import JsonResponse
 import logging
 from urllib.parse import urlencode
 
-from apps.dot_ext.decorators import require_valid_token
+from ..constants import ALLOWED_RESOURCE_TYPES
+from ..decorators import require_valid_token
+from ..errors import build_error_response, method_not_allowed
 
 from apps.fhir.bluebutton.utils import (request_call,
                                         check_rt_controls,
@@ -32,17 +34,26 @@ def read(request, resource_type, id, *args, **kwargs):
     """
     Read from Remote FHIR Server
     # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
+    # curl -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
     """
-
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
 
     logger.debug("resource_type: %s" % resource_type)
     logger.debug("Interaction: read. ")
     logger.debug("Request.path: %s" % request.path)
 
+    if request.method != 'GET':
+        return method_not_allowed(['GET'])
+
+    if resource_type not in ALLOWED_RESOURCE_TYPES:
+        logger.info('User requested read access to the %s resource type' % resource_type)
+        return build_error_response(404, 'The requested resource type, %s, is not supported'
+                                         % resource_type)
+
     crosswalk = get_crosswalk(request.resource_owner)
+
+    # If the user isn't matched to a backend ID, they have no permissions
+    if crosswalk is None:
+        logger.debug('Crosswalk for %s does not exist' % request.user)
 
     resource_router = get_resourcerouter(crosswalk)
 
@@ -53,9 +64,6 @@ def read(request, resource_type, id, *args, **kwargs):
         return deny
 
     supported_resource_type_control = check_rt_controls(resource_type, resource_router)
-
-    if crosswalk is None:
-        logger.debug('Crosswalk for %s does not exist' % request.user)
 
     if (crosswalk is None and supported_resource_type_control is not None):
         if supported_resource_type_control.override_search:
@@ -138,12 +146,7 @@ def read(request, resource_type, id, *args, **kwargs):
 
     # Add default FHIR Server URL to re-write
     rewrite_url_list = build_rewrite_list(crosswalk)
-
     text_in = get_response_text(fhir_response=r)
-
-    text_out = post_process_request(request,
-                                    host_path,
-                                    text_in,
-                                    rewrite_url_list)
+    text_out = post_process_request(request, host_path, text_in, rewrite_url_list)
 
     return JsonResponse(text_out)
