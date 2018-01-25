@@ -27,13 +27,6 @@ logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
-def is_oauth2(request):
-    """Is the request OAuth2 or not.  Return True or False."""
-    if hasattr(request, 'resource_owner'):
-        return True
-    return False
-
-
 def get_user_from_request(request):
     """Returns a user or None with login or OAuth2 API"""
     user = None

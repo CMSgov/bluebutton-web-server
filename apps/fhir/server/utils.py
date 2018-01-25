@@ -88,36 +88,6 @@ def init_text_list(replace_with=''):
     return (list_to_text(new_text_list))
 
 
-def set_resource_id(srtc, resource_id, patient_id):
-    """
-    if resourceType is Patient we need to replace resource_id with patient_id
-    from crosswalk
-    if otherwise we need to remove the resource_id from url and
-    add _id = resource_id
-
-    setup dict to return this information
-
-    :return: id_dict
-    """
-
-    id_dict = {}
-
-    if srtc.resourceType.lower() is 'patient':
-        id_dict['query_mode'] = 'read'
-        id_dict['url_id'] = patient_id
-        id_dict['_id'] = resource_id
-        id_dict['patient'] = ''
-
-    else:
-
-        id_dict['query_mode'] = 'search'
-        id_dict['url_id'] = ''
-        id_dict['_id'] = resource_id
-        id_dict['patient'] = patient_id
-
-    return id_dict
-
-
 def payload_additions(payload=None, list_to_add=None):
     """
     add list_to_add to payload dict

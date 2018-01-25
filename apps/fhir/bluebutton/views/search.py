@@ -21,85 +21,31 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         post_process_request,
                                         get_response_text)
 
-from apps.fhir.server.utils import (set_resource_id,
-                                    search_add_to_list,
+from apps.fhir.server.utils import (search_add_to_list,
                                     payload_additions,
                                     payload_var_replace)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
-logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
-logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
 @require_valid_token()
 def oauth_search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server
-
-    # Example client use in curl:
     """
 
-    interaction_type = 'search'
+    logger.debug("resource_type: %s" % resource_type)
+    logger.debug("Interaction: search. ")
+    logger.debug("Request.path: %s" % request.path)
 
-    logger.debug("Received:%s" % resource_type)
-    logger_debug.debug("Received:%s" % resource_type)
-
-    logger.debug("Interaction:%s. "
-                 "Calling generic_read for %s" % (interaction_type,
-                                                  resource_type))
-
-    logger_debug.debug("Interaction:%s. "
-                       "Calling generic_read for %s" % (interaction_type,
-                                                        resource_type))
-
-    return read_search(request,
-                       interaction_type,
-                       resource_type,
-                       via_oauth=True,
-                       *args,
-                       **kwargs)
-
-
-def read_search(request,
-                interaction_type,
-                resource_type,
-                via_oauth=False,
-                id=None,
-                vid=None,
-                *args,
-                **kwargs):
-    """
-    Read from remote FHIR Server
-
-    :param request:
-    :param interaction_type:
-    :param resource_type:
-    :param id:
-    :param vid:
-    :param args:
-    :param kwargs:
-    :return:
-    """
-
-    logger.debug('\n========================\n'
-                 'INTERACTION_TYPE: %s - via OAuth:%s' % (interaction_type,
-                                                          via_oauth))
-    logger.debug("Request.path:%s" % request.path)
-
-    # Get the users crosswalk
-    if via_oauth:
-        cx = get_crosswalk(request.resource_owner)
-    else:
-        cx = get_crosswalk(request.user)
+    cx = get_crosswalk(request.resource_owner)
 
     # cx will be the crosswalk record or None
     rr = get_resourcerouter(cx)
 
     # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type,
-                                                      interaction_type,
-                                                      rr)
+    deny = check_access_interaction_and_resource_type(resource_type, 'search', rr)
+
     if deny:
         # if not allowed, return a 4xx error.
         return deny
@@ -110,12 +56,6 @@ def read_search(request,
 
     if srtc is None:
         return kickout_404('Unsupported ResourceType')
-
-    if not via_oauth:
-        if srtc.secure_access and request.user.is_anonymous():
-            return kickout_403('Error 403: %s Resource access is controlled.'
-                               ' Login is required:'
-                               '%s' % (resource_type, request.user.is_anonymous()))
 
     if (cx is None and srtc is not None):
         # There is a srtc record so we need to check override_search
@@ -158,25 +98,18 @@ def read_search(request,
     # remove the srtc.search_block parameters
     payload = block_params(payload, srtc)
 
-    # move resource_id to _id=resource_id
-    id_dict = set_resource_id(srtc, id, get_fhir_id(cx))
+    patient_id = '' if resource_type.lower() == 'patient' else get_fhir_id(cx)
 
     # Add the srtc.search_add parameters
     params_list = search_add_to_list(srtc.search_add)
 
     payload = payload_additions(payload, params_list)
 
-    if id_dict['_id']:
-        # add rt_id into the search parameters
-        if id_dict['_id'] is not None:
-            payload['_id'] = id_dict['_id']
-
     if resource_type.lower() == 'patient':
         logger.debug("Working resource:%s" % resource_type)
         logger.debug("Working payload:%s" % payload)
-        logger.debug("id_dict:%s" % id_dict)
 
-        payload['_id'] = id_dict['patient']
+        payload['_id'] = patient_id
         if 'patient' in payload:
             del payload['patient']
 
@@ -188,7 +121,7 @@ def read_search(request,
 
             payload = payload_var_replace(payload,
                                           pyld_k,
-                                          new_value=id_dict['patient'],
+                                          new_value=patient_id,
                                           old_value='%PATIENT%')
 
     # add the _format setting
