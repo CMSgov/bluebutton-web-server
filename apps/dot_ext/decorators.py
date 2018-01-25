@@ -11,7 +11,7 @@ from oauth2_provider.oauth2_validators import OAuth2Validator
 from oauth2_provider.oauth2_backends import OAuthLibCore
 
 
-def capability_protected_resource():
+def require_valid_token():
     def decorator(view_func):
         @wraps(view_func)
         def _validate(request, *args, **kwargs):

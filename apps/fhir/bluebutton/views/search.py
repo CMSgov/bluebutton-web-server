@@ -4,7 +4,7 @@ import logging
 
 from django.http import HttpResponse, JsonResponse
 
-from apps.dot_ext.decorators import capability_protected_resource
+from apps.dot_ext.decorators import require_valid_token
 
 from ..opoutcome_utils import (kickout_403,
                                kickout_404)
@@ -32,7 +32,7 @@ logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
-@capability_protected_resource()
+@require_valid_token()
 def oauth_search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server

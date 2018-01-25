@@ -22,12 +22,12 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         build_rewrite_list,
                                         get_response_text)
 
-from apps.dot_ext.decorators import capability_protected_resource
+from apps.dot_ext.decorators import require_valid_token
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-@capability_protected_resource()
+@require_valid_token()
 def oauth_read(request, resource_type, id, via_oauth=True, *args, **kwargs):
     """
     Read from Remote FHIR Server
