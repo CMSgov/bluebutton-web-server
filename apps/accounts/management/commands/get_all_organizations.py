@@ -7,12 +7,12 @@ __author__ = "Alan Viars"
 
 
 def list_organization_names():
-    l = []
+    orgs = []
     user_profiles = UserProfile.objects.all()
     for up in user_profiles:
         if up.organization_name:
-            l.append(up.organization_name)
-    return l
+            orgs.append(up.organization_name)
+    return orgs
 
 
 class Command(BaseCommand):
