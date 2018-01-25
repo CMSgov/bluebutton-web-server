@@ -28,7 +28,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @require_valid_token()
-def oauth_read(request, resource_type, id, via_oauth=True, *args, **kwargs):
+def read(request, resource_type, id, *args, **kwargs):
     """
     Read from Remote FHIR Server
     # Example client use in curl:
@@ -38,85 +38,18 @@ def oauth_read(request, resource_type, id, via_oauth=True, *args, **kwargs):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    interaction_type = 'read'
+    logger.debug("resource_type: %s" % resource_type)
+    logger.debug("Interaction: read. ")
+    logger.debug("Request.path: %s" % request.path)
 
-    return generic_read(request,
-                        interaction_type,
-                        resource_type,
-                        id,
-                        via_oauth,
-                        *args,
-                        **kwargs)
-
-
-def generic_read(request,
-                 interaction_type,
-                 resource_type,
-                 id=None,
-                 via_oauth=False,
-                 vid=None,
-                 *args,
-                 **kwargs):
-    """
-    Read from remote FHIR Server
-
-    :param request:
-    :param interaction_type:
-    :param resource_type:
-    :param id:
-    :param vid:
-    :param args:
-    :param kwargs:
-    :return:
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
-
-    Process flow:
-
-    Is it a valid request?
-
-    Get the target server info
-
-    Get the request modifiers
-    - change url_id
-    - remove unwanted search parameters
-    - add search parameters
-
-    Construct the call
-
-    Make the call
-
-    Check result for errors
-
-    Deliver the formatted result
-
-
-    """
-    # DONE: Fix to allow url_id in url for non-key resources.
-    # eg. Patient is key resource so replace url if override_url_id is True
-    # if override_url_id is not set allow id to be applied and check
-    # if search_override is True.
-    # interaction_type = 'read' or '_history' or 'vread' or 'search'
-    logger.debug('\n========================\n'
-                 'INTERACTION_TYPE: %s - Via Oauth:%s' % (interaction_type,
-                                                          via_oauth))
-
-    # if via_oauth we need to call crosswalk with
-    if via_oauth:
-        # get crosswalk from the resource_owner
-        cx = get_crosswalk(request.resource_owner)
-    else:
-        # Get the users crosswalk
-        cx = get_crosswalk(request.user)
+    cx = get_crosswalk(request.resource_owner)
 
     # cx will be the crosswalk record or None
     rr = get_resourcerouter(cx)
 
     # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type,
-                                                      interaction_type,
-                                                      rr)
+    deny = check_access_interaction_and_resource_type(resource_type, 'read', rr)
+
     if deny:
         # if not allowed, return a 4xx error.
         return deny
@@ -124,14 +57,6 @@ def generic_read(request,
     srtc = check_rt_controls(resource_type, rr)
     # We get back a Supported ResourceType Control record or None
     # with earlier if deny step we should have a valid srtc.
-
-    if not via_oauth:
-        # we don't need to check if user is anonymous if coming via_oauth
-        if srtc.secure_access and request.user.is_anonymous():
-            return kickout_403('Error 403: %s Resource access is controlled.'
-                               ' Login is required:'
-                               '%s' % (resource_type,
-                                       request.user.is_anonymous()))
 
     if cx is None:
         logger.debug('Crosswalk for %s does not exist' % request.user)
@@ -170,15 +95,10 @@ def generic_read(request,
         else:
             fhir_url = FhirServerUrl() + resource_type + '/'
 
-    # #### SEARCH
+    key = masked_id(resource_type, cx, srtc, id, slash=False)
 
-    if interaction_type == 'search':
-        key = None
-    else:
-        key = masked_id(resource_type, cx, srtc, id, slash=False)
-
-        # add key to fhir_url unless already in place.
-        fhir_url = add_key_to_fhir_url(fhir_url, key)
+    # add key to fhir_url unless already in place.
+    fhir_url = add_key_to_fhir_url(fhir_url, key)
 
     logger.debug('FHIR URL with key:%s' % fhir_url)
 
@@ -194,22 +114,13 @@ def generic_read(request,
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
 
-    # #### SEARCH
-
-    if interaction_type == 'search':
-        if cx is not None:
-            if cx.fhir_id.__contains__('/'):
-                id = get_fhir_id(cx).split('/')[1]
-            else:
-                id = get_fhir_id(cx)
-
     key = get_fhir_id(cx) if resource_type.lower() == "patient" else id
 
     pass_params = urlencode(pass_params)
 
     # Add the call type ( READ = nothing, VREAD, _HISTORY)
     # Before we add an identifier key
-    pass_to = fhir_call_type(interaction_type, fhir_url, vid)
+    pass_to = fhir_call_type('read', fhir_url)
 
     logger.debug('\nHere is the URL to send, %s now add '
                  'GET parameters %s' % (pass_to, pass_params))
@@ -217,7 +128,7 @@ def generic_read(request,
     if pass_params:
         pass_to += '?' + pass_params
 
-    timeout = rr.wait_time if interaction_type == "search" else None
+    timeout = None
 
     logger.debug("\nMaking request:%s" % pass_to)
 

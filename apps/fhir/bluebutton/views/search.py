@@ -29,7 +29,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @require_valid_token()
-def oauth_search(request, resource_type, *args, **kwargs):
+def search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server
     """
