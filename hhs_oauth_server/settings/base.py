@@ -13,14 +13,6 @@ from .themes import THEMES, THEME_SELECTED
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, '..')
 
-# Set ADMINS and MANAGERS
-# Override ADMINS and MANAGERS Settings in environment specific settings file
-# or in custom-envvars.py
-ADMINS = (
-    ('Mark Scrimshire', 'mark@ekivemark.com'),
-)
-MANAGERS = ADMINS
-
 # security
 # SECRET_KEY = env('DJANGO_SECRET_KEY')
 SECRET_KEY = env('DJANGO_SECRET_KEY',
@@ -359,7 +351,7 @@ DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
-
+REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
 #############################################################################
 # /testclient errors when no SSL present
 #############################################################################
@@ -401,7 +393,8 @@ SETTINGS_EXPORT = [
     'ALLOW_END_USER_EXTERNAL_AUTH',
     'SOCIAL_AUTH_BACKEND_NAME',
     'OPTIONAL_INSTALLED_APPS',
-    'INSTALLED_APPS'
+    'INSTALLED_APPS',
+    'REQUIRE_INVITE_TO_REGISTER'
 ]
 
 # Make sessions die out fast for more security ------------------
