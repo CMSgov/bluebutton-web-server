@@ -272,11 +272,9 @@ def request_get_with_parms(request,
     call_url = target server URL and search parameters to be sent
     cx = Crosswalk record. The crosswalk is keyed off Request.user
     timoeout allows a timeout in seconds to be set.
-
     FhirServer is joined to Crosswalk.
     FhirServerAuth and FhirServerVerify receive cx and lookup
        values in the linked fhir_server model.
-
     """
 
     # Updated to receive cx (Crosswalk entry for user)
@@ -379,25 +377,6 @@ def notNone(value=None, default=None):
         return value
 
 # Mark for removal ...remove related settings from base.
-
-
-def block_params(get, srtc):
-    """ strip parameters from search string - get is a dict """
-
-    # Get parameters
-    # split on &
-    # get srtc.search_block as list
-    if get:
-        # set search_params to what is received as a default
-        search_params = get
-    else:
-        return ''
-
-    # Now we need to see if there are any get parameters to remove
-    if srtc and srtc.override_search:
-        search_params = get_url_query_string(get, srtc.get_search_block())
-
-    return search_params
 
 
 def get_url_query_string(get, skip_parm=[]):
@@ -542,30 +521,6 @@ def masked(srtc=None):
     return mask
 
 
-def masked_id(res_type,
-              crosswalk=None,
-              srtc=None,
-              orig_id=None,
-              slash=True):
-    """ Get the correct id
-     if crosswalk.fhir_source.shard_by == resource_type
-
-     """
-    id = str(orig_id)
-    if srtc:
-        if srtc.override_url_id:
-            if crosswalk:
-                if res_type.lower() == crosswalk.fhir_source.shard_by.lower():
-                    # logger.debug('Replacing %s
-                    # with %s' % (id, crosswalk.fhir_id))
-                    id = crosswalk.fhir_id
-
-    if slash:
-        id += '/'
-
-    return id
-
-
 def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     """ find_url in in_text and replace with url for this server """
 
@@ -700,26 +655,6 @@ def prepend_q(pass_params):
         else:
             pass_params = '?' + pass_params
     return pass_params
-
-
-def get_default_path(resource_name, cx=None):
-    """ Get default Path for resource """
-
-    if cx:
-        default_path = cx.fhir_source.fhir_url
-    else:
-        try:
-            rr = get_resourcerouter()
-            default_path = rr.fhir_url
-
-        except ResourceRouter.DoesNotExist:
-            # use the default FHIR Server URL
-            default_path = FhirServerUrl()
-            logger_debug.debug("\nNO MATCH for %s. "
-                               "Setting to:%s" % (resource_name,
-                                                  default_path))
-
-    return default_path
 
 
 def dt_patient_reference(user):

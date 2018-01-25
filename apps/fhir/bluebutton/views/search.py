@@ -7,22 +7,13 @@ from ..decorators import require_valid_token
 from ..errors import build_error_response, method_not_allowed
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
-                                        block_params,
                                         build_rewrite_list,
-                                        check_rt_controls,
                                         get_crosswalk,
                                         get_fhir_id,
                                         get_host_url,
                                         get_resourcerouter,
                                         post_process_request,
                                         get_response_text)
-
-from apps.fhir.server.utils import (search_add_to_list,
-                                    payload_additions,
-                                    payload_var_replace)
-
-from ..opoutcome_utils import (kickout_403,
-                               kickout_404)
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -54,62 +45,25 @@ def search(request, resource_type, *args, **kwargs):
         return build_error_response(403, 'No access information was found for the authenticated user')
 
     resource_router = get_resourcerouter(crosswalk)
+    target_url = resource_router.fhir_url + resource_type + "/"
 
-    supported_resource_type_control = check_rt_controls(resource_type, resource_router)
+    get_parameters = {
+        '_format': 'application/json+fhir'
+    }
 
-    if supported_resource_type_control is None:
-        return kickout_404('Unsupported ResourceType')
+    patient_id = '' if resource_type == 'Patient' else get_fhir_id(crosswalk)
 
-    if (crosswalk is None and supported_resource_type_control is not None):
-        if supported_resource_type_control.override_search:
-            return kickout_403('Error 403: %s Resource is access controlled.'
-                               ' No records are linked to user:'
-                               '%s' % (resource_type, request.user))
-
-    target_url = resource_router.fhir_url + supported_resource_type_control.resourceType + "/"
-
-    # Analyze the _format parameter
-    # Sve the display _format
-
-    # request.GET is immutable so take a copy to allow the values to be edited.
-    payload = {}
-
-    # Get payload with oauth parameters removed
-    # Add the format for back-end
-    payload['_format'] = 'application/json+fhir'
-
-    payload = block_params(payload, supported_resource_type_control)
-
-    patient_id = '' if resource_type.lower() == 'patient' else get_fhir_id(crosswalk)
-
-    params_list = search_add_to_list(supported_resource_type_control.search_add)
-
-    payload = payload_additions(payload, params_list)
-
-    if resource_type.lower() == 'patient':
-        logger.debug("Working resource:%s" % resource_type)
-        logger.debug("Working payload:%s" % payload)
-
-        payload['_id'] = patient_id
-        if 'patient' in payload:
-            del payload['patient']
-
-    for pyld_k, pyld_v in payload.items():
-        if pyld_v is None:
-            pass
-        elif '%PATIENT%' in pyld_v:
-            payload = payload_var_replace(payload,
-                                          pyld_k,
-                                          new_value=patient_id,
-                                          old_value='%PATIENT%')
-
-    # add the _format setting
-    payload['_format'] = 'application/json+fhir'
+    if resource_type == 'ExplanationOfBenefit':
+        get_parameters['patient'] = patient_id
+    elif resource_type == 'Coverage':
+        get_parameters['beneficiary'] = 'Patient/' + patient_id
+    elif resource_type == 'Patient':
+        get_parameters['_id'] = ''
 
     # Make the request_call
     r = request_get_with_parms(request,
                                target_url,
-                               json.loads(json.dumps(payload)),
+                               get_parameters,
                                crosswalk,
                                timeout=resource_router.wait_time)
 

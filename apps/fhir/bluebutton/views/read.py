@@ -7,22 +7,16 @@ from ..decorators import require_valid_token
 from ..errors import build_error_response, method_not_allowed
 
 from apps.fhir.bluebutton.utils import (request_call,
-                                        check_rt_controls,
                                         get_fhir_id,
-                                        masked_id,
-                                        FhirServerUrl,
                                         get_host_url,
                                         post_process_request,
-                                        get_default_path,
                                         get_crosswalk,
                                         get_resourcerouter,
                                         build_rewrite_list,
                                         get_response_text)
 
-from ..opoutcome_utils import (kickout_403,
-                               kickout_502,
+from ..opoutcome_utils import (kickout_502,
                                strip_format_for_back_end,
-                               add_key_to_fhir_url,
                                fhir_call_type)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -57,44 +51,12 @@ def read(request, resource_type, id, *args, **kwargs):
 
     resource_router = get_resourcerouter(crosswalk)
 
-    supported_resource_type_control = check_rt_controls(resource_type, resource_router)
+    if resource_type == 'Patient':
+        id = get_fhir_id(crosswalk)
 
-    if (crosswalk is None and supported_resource_type_control is not None):
-        if supported_resource_type_control.override_search:
-            # If user is not in Crosswalk and supported_resource_type_control has search_override = True
-            # We need to prevent search to avoid data leakage.
-            return kickout_403('Error 403: %s Resource is access controlled.'
-                               ' No records are linked to user:'
-                               '%s' % (resource_type, request.user))
+    target_url = resource_router.fhir_url + resource_type + "/" + id + "/"
 
-    fhir_url = ''
-    # change source of default_url to ResourceRouter
-
-    default_path = get_default_path(supported_resource_type_control.resource_name, cx=crosswalk)
-    # get the default path for resource with ending "/"
-    # You need to add resource_type + "/" for full url
-
-    if supported_resource_type_control:
-        fhir_url = default_path + resource_type + '/'
-
-        if supported_resource_type_control.override_url_id:
-            fhir_url += get_fhir_id(crosswalk) + "/"
-        else:
-            fhir_url += id + "/"
-
-    else:
-        logger.debug('Crosswalk: %s' % crosswalk)
-        if crosswalk:
-            fhir_url = crosswalk.get_fhir_resource_url(resource_type)
-        else:
-            fhir_url = FhirServerUrl() + resource_type + '/'
-
-    key = masked_id(resource_type, crosswalk, supported_resource_type_control, id, slash=False)
-
-    # add key to fhir_url unless already in place.
-    fhir_url = add_key_to_fhir_url(fhir_url, key)
-
-    logger.debug('FHIR URL with key:%s' % fhir_url)
+    logger.debug('FHIR URL with key:%s' % target_url)
 
     ###########################
 
@@ -108,13 +70,11 @@ def read(request, resource_type, id, *args, **kwargs):
     # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
 
-    key = get_fhir_id(crosswalk) if resource_type.lower() == "patient" else id
-
     pass_params = urlencode(pass_params)
 
     # Add the call type ( READ = nothing, VREAD, _HISTORY)
     # Before we add an identifier key
-    pass_to = fhir_call_type('read', fhir_url)
+    pass_to = fhir_call_type('read', target_url)
 
     logger.debug('Here is the URL to send, %s now add '
                  'GET parameters %s' % (pass_to, pass_params))
@@ -132,6 +92,9 @@ def read(request, resource_type, id, *args, **kwargs):
 
     # Check for Error here
     logger.debug("status: %s/%s" % (r.status_code, r._status_code))
+
+    if r.status_code == 404:
+        return build_error_response(404, 'The requested resource does not exist')
 
     if r.status_code >= 300:
         return kickout_502('An error occurred contacting the upstream server')

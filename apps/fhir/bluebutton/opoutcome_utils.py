@@ -329,27 +329,6 @@ def valid_interaction(resource, rr):
     return interaction_list
 
 
-def add_key_to_fhir_url(fhir_url, resource_type, key=""):
-    """
-    Append the key + / to fhir_url, unless it is already there
-    :param fhir_url:
-    :param resource_type:
-    :param key:
-    :return: fhir_url
-    """
-    if fhir_url.endswith(resource_type + '/'):
-        # we need to make sure we don't specify resource_type twice in URL
-        if key.startswith(resource_type + '/'):
-            key = key.replace(resource_type + '/', '')
-
-    if key + '/' in fhir_url:
-        pass
-    else:
-        fhir_url += key + '/'
-
-    return fhir_url
-
-
 def fhir_call_type(interaction_type, fhir_url, vid=None):
     """
     Append a call type to the fhir_url.
