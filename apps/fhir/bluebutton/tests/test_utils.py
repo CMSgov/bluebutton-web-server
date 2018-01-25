@@ -15,7 +15,6 @@ from apps.fhir.bluebutton.utils import (
     get_url_query_string,
     FhirServerAuth,
     FhirServerUrl,
-    check_access_interaction_and_resource_type,
     check_rt_controls,
     masked,
     masked_id,
@@ -216,14 +215,6 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         """ Test 2: Pass no parameters """
         response = FhirServerUrl()
 
-        # Should pull from _start.settings.base.py
-        # FHIR_SERVER_CONF = {"SERVER":"http://fhir.bbonfhir.com/",
-        #            "PATH":"fhir-p/",
-        #            "RELEASE":"baseDstu2/",
-        #            "REWRITE_FROM":"http://ec2-52-4-198-86.compute-1.
-        #                            amazonaws.com:8080/baseDstu2",
-        #            "REWRITE_TO":"http://localhost:8000/bluebutton/fhir/v1"}
-
         rr = get_resourcerouter()
         rr_server_address = rr.server_address
 
@@ -237,46 +228,6 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         # expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
 
         self.assertEquals(response, expected)
-
-    def test_check_access_interaction_and_resource_type(self):
-        """ test resource_type and interaction_type from
-        SupportedResourceType """
-
-        """ Test 1: Patient GET = True """
-        resource_type = 'Patient'
-        interaction_type = 'get'  # True
-        rr = get_resourcerouter()
-        response = check_access_interaction_and_resource_type(resource_type,
-                                                              interaction_type,
-                                                              rr)
-        self.assertEquals(response, False)
-
-        """ Test 2: Patient get = True """
-        resource_type = 'Patient'
-        interaction_type = 'GET'  # True
-        rr = get_resourcerouter()
-        response = check_access_interaction_and_resource_type(resource_type,
-                                                              interaction_type,
-                                                              rr)
-        self.assertEquals(response, False)
-
-        """ Test 3: Patient UPdate = False """
-        resource_type = 'Patient'
-        interaction_type = 'UPdate'  # False
-        rr = get_resourcerouter()
-        response = check_access_interaction_and_resource_type(resource_type,
-                                                              interaction_type,
-                                                              rr)
-        self.assertEquals(response.status_code, 403)
-
-        """ Test 4: Patient UPdate = False """
-        resource_type = 'BadResourceName'
-        interaction_type = 'get'  # False
-        rr = get_resourcerouter()
-        response = check_access_interaction_and_resource_type(resource_type,
-                                                              interaction_type,
-                                                              rr)
-        self.assertEquals(response.status_code, 404)
 
     def test_prepend_q_yes(self):
         """ Check that ? is added to front of parameters if required """

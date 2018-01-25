@@ -11,8 +11,6 @@ from pytz import timezone
 
 from django.conf import settings
 from django.contrib import messages
-from .opoutcome_utils import (kickout_403,
-                              kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
 
@@ -513,33 +511,6 @@ def FhirServerUrl(server=None, path=None, release=None):
         result = ""
 
     return result
-
-
-def check_access_interaction_and_resource_type(resource_type, intn_type, rr):
-    """ usage is deny = check_access_interaction_and_resource_type()
-    :param
-    resource_type: resource
-    intn_type: interaction type
-    rr: ResourceRouter
-    """
-
-    try:
-        rt = SupportedResourceType.objects.get(resourceType=resource_type,
-                                               fhir_source=rr)
-        # force comparison to lower case to make case insensitive check
-        if str(intn_type).lower() not in rt.get_supported_interaction_types():
-            msg = 'The interaction: %s is not permitted on %s FHIR ' \
-                  'resources on this FHIR sever.' % (intn_type,
-                                                     resource_type)
-            logger_debug.debug(msg="%s:%s" % ("403", msg))
-            return kickout_403(msg)
-    except SupportedResourceType.DoesNotExist:
-        msg = '%s is not a supported resource ' \
-              'type on this FHIR server.' % resource_type
-        logger_debug.debug(msg="%s:%s" % ("404", msg))
-        return kickout_404(msg)
-
-    return False
 
 
 def check_rt_controls(resource_type, rr=None):

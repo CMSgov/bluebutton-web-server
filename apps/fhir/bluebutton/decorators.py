@@ -18,6 +18,7 @@ def require_valid_token():
             core = OAuthLibCore(Server(OAuth2Validator()))
             valid, oauthlib_req = core.verify_request(request, scopes=[])
             if valid:
+                # Note, resource_owner is not a very good name for this
                 request.resource_owner = oauthlib_req.user
                 return view_func(request, *args, **kwargs)
 

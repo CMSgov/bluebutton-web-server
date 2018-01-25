@@ -9,7 +9,6 @@ from ..errors import build_error_response, method_not_allowed
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         block_params,
                                         build_rewrite_list,
-                                        check_access_interaction_and_resource_type,
                                         check_rt_controls,
                                         get_crosswalk,
                                         get_fhir_id,
@@ -49,13 +48,12 @@ def search(request, resource_type, *args, **kwargs):
 
     crosswalk = get_crosswalk(request.resource_owner)
 
+    # If the user isn't matched to a backend ID, they have no permissions
+    if crosswalk is None:
+        logger.info('Crosswalk for %s does not exist' % request.user)
+        return build_error_response(403, 'No access information was found for the authenticated user')
+
     resource_router = get_resourcerouter(crosswalk)
-
-    # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type, 'search', resource_router)
-
-    if deny:
-        return deny
 
     supported_resource_type_control = check_rt_controls(resource_type, resource_router)
 
