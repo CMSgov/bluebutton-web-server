@@ -24,8 +24,6 @@ from .views.user_code_login import user_code_register
 from .views.invites import bulk_user_codes
 from .views.email_bounce_webhook import record_email_bounce
 from .views.api_profile import my_profile
-# from .views.end_user_account_create import create_end_user_account
-
 
 __author__ = "Alan Viars"
 
@@ -41,13 +39,6 @@ urlpatterns = [
     # Simple login is deprecated. mfa_login will work like
     # simple_login when settings.MFA = False or user has
     # MFA disabled.
-    # url(r'^login$', watch_login(simple_login), name='login'),
-    # create and update account info -----------------------
-    # login and Logout ------------------------------------
-    # Disabled for now.
-    # url(r'^register$', create_end_user_account, name='create_end_user_account'),
-
-
     url(r'^create$',
         create_account,
         name='accounts_create_account'),
