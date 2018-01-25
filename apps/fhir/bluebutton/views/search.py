@@ -1,14 +1,8 @@
+from django.http import HttpResponse, JsonResponse
 import json
-
 import logging
 
-from django.http import HttpResponse, JsonResponse
-
 from apps.dot_ext.decorators import require_valid_token
-
-from ..opoutcome_utils import (kickout_403,
-                               kickout_404)
-
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         block_params,
                                         build_rewrite_list,
@@ -25,6 +19,10 @@ from apps.fhir.server.utils import (search_add_to_list,
                                     payload_additions,
                                     payload_var_replace)
 
+from ..opoutcome_utils import (kickout_403,
+                               kickout_404)
+
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
@@ -38,52 +36,28 @@ def search(request, resource_type, *args, **kwargs):
     logger.debug("Interaction: search. ")
     logger.debug("Request.path: %s" % request.path)
 
-    cx = get_crosswalk(request.resource_owner)
+    crosswalk = get_crosswalk(request.resource_owner)
 
-    # cx will be the crosswalk record or None
-    rr = get_resourcerouter(cx)
+    resource_router = get_resourcerouter(crosswalk)
 
     # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type, 'search', rr)
+    deny = check_access_interaction_and_resource_type(resource_type, 'search', resource_router)
 
     if deny:
-        # if not allowed, return a 4xx error.
         return deny
 
-    srtc = check_rt_controls(resource_type, rr)
-    # We get back a Supported ResourceType Control record or None
-    # with earlier if deny step we should have a valid srtc.
+    supported_resource_type_control = check_rt_controls(resource_type, resource_router)
 
-    if srtc is None:
+    if supported_resource_type_control is None:
         return kickout_404('Unsupported ResourceType')
 
-    if (cx is None and srtc is not None):
-        # There is a srtc record so we need to check override_search
-        if srtc.override_search:
-            # If user is not in Crosswalk and srtc has search_override = True
-            # We need to prevent search to avoid data leakage.
+    if (crosswalk is None and supported_resource_type_control is not None):
+        if supported_resource_type_control.override_search:
             return kickout_403('Error 403: %s Resource is access controlled.'
                                ' No records are linked to user:'
                                '%s' % (resource_type, request.user))
 
-    ################################################
-    #
-    # Now we should have sorted out all the bounces
-    # Now to structure the call to the back-end
-    #
-    ################################################
-
-    # construct the server address, path and release
-    # Get the crosswalk.fhir_source = ResourceRouter
-
-    # Build url from rr.server_address + rr.server_path + rr.server_release
-
-    target_url = rr.fhir_url
-
-    # add resource_type + '/'
-    target_url += srtc.resourceType
-
-    target_url += "/"
+    target_url = resource_router.fhir_url + supported_resource_type_control.resourceType + "/"
 
     # Analyze the _format parameter
     # Sve the display _format
@@ -95,13 +69,11 @@ def search(request, resource_type, *args, **kwargs):
     # Add the format for back-end
     payload['_format'] = 'application/json+fhir'
 
-    # remove the srtc.search_block parameters
-    payload = block_params(payload, srtc)
+    payload = block_params(payload, supported_resource_type_control)
 
-    patient_id = '' if resource_type.lower() == 'patient' else get_fhir_id(cx)
+    patient_id = '' if resource_type.lower() == 'patient' else get_fhir_id(crosswalk)
 
-    # Add the srtc.search_add parameters
-    params_list = search_add_to_list(srtc.search_add)
+    params_list = search_add_to_list(supported_resource_type_control.search_add)
 
     payload = payload_additions(payload, params_list)
 
@@ -117,8 +89,6 @@ def search(request, resource_type, *args, **kwargs):
         if pyld_v is None:
             pass
         elif '%PATIENT%' in pyld_v:
-            # replace %PATIENT% with cx.fhir_id
-
             payload = payload_var_replace(payload,
                                           pyld_k,
                                           new_value=patient_id,
@@ -127,21 +97,12 @@ def search(request, resource_type, *args, **kwargs):
     # add the _format setting
     payload['_format'] = 'application/json+fhir'
 
-    ###############################################
-    ###############################################
     # Make the request_call
     r = request_get_with_parms(request,
                                target_url,
                                json.loads(json.dumps(payload)),
-                               cx,
-                               timeout=rr.wait_time)
-
-    ###############################################
-    ###############################################
-    #
-    # Now we process the response from the back-end
-    #
-    ################################################
+                               crosswalk,
+                               timeout=resource_router.wait_time)
 
     if r.status_code >= 300:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
@@ -149,7 +110,7 @@ def search(request, resource_type, *args, **kwargs):
                             status=r.status_code,
                             content_type='application/json')
 
-    rewrite_list = build_rewrite_list(cx)
+    rewrite_list = build_rewrite_list(crosswalk)
     host_path = get_host_url(request, resource_type)[:-1]
 
     text_in = get_response_text(fhir_response=r)

@@ -781,19 +781,13 @@ def get_crosswalk(user):
     """ Receive Request.user and use as lookup in Crosswalk
         Return Crosswalk or None
     """
-    # Don't do a lookup if user is not defined
-    if user is None:
+
+    if user is None or user.is_anonymous():
         return None
 
-    if user.is_anonymous():
-        return None
-
-    # Don't do a lookup on a user who is not logged in
     try:
         patient = Crosswalk.objects.get(user=user)
-
         return patient
-
     except Crosswalk.DoesNotExist:
         pass
 
