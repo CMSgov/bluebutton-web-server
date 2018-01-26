@@ -30,19 +30,14 @@
         {% if applications %}
             <ul>
                 {% for application in applications %}
-                    <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a> |
+                    <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a> | Updated {{application.updated}}
                 {% endfor %}
             </ul>
 
-            <a class="usa-button usa-button  usa-button-success" href="{% url "oauth2_provider:register" %}">Register New Application</a>
+            <a class="ds-c-button  ds-c-button--default"  href="{% url "oauth2_provider:register" %}"> Register New Application</a>
         {% else %}
-            <p>{% trans "No applications defined. Register a New Application:" %}
-                <a href="{% url 'oauth2_provider:register' %}">
-                    <button type="button" class="usa-button usa-button usa-button-primary">
-                        <i class="fa fa-plus-square"></i>  Register a New Application
-                    </button>
-                </a>
-            </p>
+            <p>{% trans "No applications defined. Register a New Application:" %}</p>
         {% endif %}
     </div>
+    <br><br>
 {% endblock content %}

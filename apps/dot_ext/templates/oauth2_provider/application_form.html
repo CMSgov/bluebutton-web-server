@@ -33,6 +33,7 @@
                         {% for error in field.errors %}
                             <span class="help-inline">{{ error }}</span>
                         {% endfor %}
+                        {{ field.help_text }}
                     </div>
                 </div>
             {% endfor %}
