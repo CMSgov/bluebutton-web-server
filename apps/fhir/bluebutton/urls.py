@@ -7,7 +7,7 @@ from apps.fhir.bluebutton.views.search import search
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'(?P<resource_type>[^/]+)/(?P<id>[^/]+)',
+    url(r'(?P<resource_type>[^/]+)/(?P<resource_id>[^/]+)',
         read,
         name='bb_oauth_fhir_read_or_update_or_delete'),
 

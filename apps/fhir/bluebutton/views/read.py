@@ -1,13 +1,11 @@
 from django.http import JsonResponse
 import logging
-from urllib.parse import urlencode
 
 from ..constants import ALLOWED_RESOURCE_TYPES
 from ..decorators import require_valid_token
 from ..errors import build_error_response, method_not_allowed
 
 from apps.fhir.bluebutton.utils import (request_call,
-                                        get_fhir_id,
                                         get_host_url,
                                         post_process_request,
                                         get_crosswalk,
@@ -15,15 +13,11 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         build_rewrite_list,
                                         get_response_text)
 
-from ..opoutcome_utils import (kickout_502,
-                               strip_format_for_back_end,
-                               fhir_call_type)
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @require_valid_token()
-def read(request, resource_type, id, *args, **kwargs):
+def read(request, resource_type, resource_id, *args, **kwargs):
     """
     Read from Remote FHIR Server
     # Example client use in curl:
@@ -31,7 +25,7 @@ def read(request, resource_type, id, *args, **kwargs):
     """
 
     logger.debug("resource_type: %s" % resource_type)
-    logger.debug("Interaction: read. ")
+    logger.debug("Interaction: read")
     logger.debug("Request.path: %s" % request.path)
 
     if request.method != 'GET':
@@ -52,43 +46,27 @@ def read(request, resource_type, id, *args, **kwargs):
     resource_router = get_resourcerouter(crosswalk)
 
     if resource_type == 'Patient':
-        id = get_fhir_id(crosswalk)
+        # Error out in advance for non-matching Patient records.
+        # Other records must hit backend to check permissions.
+        if resource_id != crosswalk.fhir_id:
+            return build_error_response(403, 'You do not have permission to access data on the requested patient')
 
-    target_url = resource_router.fhir_url + resource_type + "/" + id + "/"
+        resource_id = crosswalk.fhir_id
+
+    target_url = resource_router.fhir_url + resource_type + "/" + resource_id + "/"
 
     logger.debug('FHIR URL with key:%s' % target_url)
 
-    ###########################
-
-    # Now we get to process the API Call.
-
-    # Internal handling format is json
-    # Remove the oauth elements from the GET
-
-    pass_params = request.GET
-
-    # now we simplify the format/_format request for the back-end
-    pass_params = strip_format_for_back_end(pass_params)
-
-    pass_params = urlencode(pass_params)
-
-    # Add the call type ( READ = nothing, VREAD, _HISTORY)
-    # Before we add an identifier key
-    pass_to = fhir_call_type('read', target_url)
+    get_parameters = {
+        "_format": "json"
+    }
 
     logger.debug('Here is the URL to send, %s now add '
-                 'GET parameters %s' % (pass_to, pass_params))
-
-    if pass_params:
-        pass_to += '?' + pass_params
-
-    timeout = None
-
-    logger.debug("Making request:%s" % pass_to)
+                 'GET parameters %s' % (target_url, get_parameters))
 
     # Now make the call to the backend API
 
-    r = request_call(request, pass_to, crosswalk, timeout=timeout)
+    r = request_call(request, target_url, crosswalk, timeout=None, get_parameters=get_parameters)
 
     # Check for Error here
     logger.debug("status: %s/%s" % (r.status_code, r._status_code))
@@ -96,8 +74,9 @@ def read(request, resource_type, id, *args, **kwargs):
     if r.status_code == 404:
         return build_error_response(404, 'The requested resource does not exist')
 
+    # TODO: This should be more specific
     if r.status_code >= 300:
-        return kickout_502('An error occurred contacting the upstream server')
+        return build_error_response(502, 'An error occurred contacting the upstream server')
 
     host_path = get_host_url(request, resource_type)[:-1]
 

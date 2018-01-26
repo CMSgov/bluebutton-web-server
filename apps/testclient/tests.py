@@ -74,9 +74,7 @@ class BlueButtonClientApiFHIRTest(TestCase):
             self.testclient_setup['patient_uri'], self.another_patient)
         response = self.client.get(uri)
         print(response.content)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.patient)
-        self.assertNotContains(response, self.another_patient)
+        self.assertEqual(response.status_code, 403)
 
     def test_get_eob(self):
         """

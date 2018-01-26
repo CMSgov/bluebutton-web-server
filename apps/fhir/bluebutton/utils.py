@@ -173,7 +173,7 @@ def generate_info_headers(request):
     return result
 
 
-def request_call(request, call_url, cx=None, timeout=None):
+def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
     cx = Crosswalk record. The crosswalk is keyed off Request.user
@@ -211,12 +211,14 @@ def request_call(request, call_url, cx=None, timeout=None):
         if timeout:
             r = requests.get(call_url,
                              cert=cert,
+                             params=get_parameters,
                              timeout=timeout,
                              headers=header_info,
                              verify=verify_state)
         else:
             r = requests.get(call_url,
                              cert=cert,
+                             params=get_parameters,
                              headers=header_info,
                              verify=verify_state)
 
@@ -575,19 +577,6 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         in_text = mask_with_this_url(request, host_path, in_text, kill_url)
 
     return in_text
-
-
-def get_fhir_id(cx=None):
-    """
-    Get the fhir_id from crosswalk
-    :param cx:
-    :return: fhir_id or None
-    """
-
-    if cx is None:
-        return None
-    else:
-        return cx.fhir_id
 
 
 def get_host_url(request, resource_type=''):

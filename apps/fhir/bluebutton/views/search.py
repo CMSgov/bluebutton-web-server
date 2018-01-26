@@ -9,7 +9,6 @@ from ..errors import build_error_response, method_not_allowed
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         build_rewrite_list,
                                         get_crosswalk,
-                                        get_fhir_id,
                                         get_host_url,
                                         get_resourcerouter,
                                         post_process_request,
@@ -51,7 +50,7 @@ def search(request, resource_type, *args, **kwargs):
         '_format': 'application/json+fhir'
     }
 
-    patient_id = '' if resource_type == 'Patient' else get_fhir_id(crosswalk)
+    patient_id = '' if resource_type == 'Patient' else crosswalk.fhir_id
 
     if resource_type == 'ExplanationOfBenefit':
         get_parameters['patient'] = patient_id
@@ -60,7 +59,6 @@ def search(request, resource_type, *args, **kwargs):
     elif resource_type == 'Patient':
         get_parameters['_id'] = ''
 
-    # Make the request_call
     r = request_get_with_parms(request,
                                target_url,
                                get_parameters,
