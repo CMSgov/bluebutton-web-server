@@ -336,8 +336,6 @@ EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their
 EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 
 # LINKS TO DOCS
-USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
-USER_DOCS_TITLE = "User Documentation"
 DEVELOPER_DOCS_URI = "https://cmsgov.github.io/bluebutton-developer-help"
 DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
@@ -380,8 +378,6 @@ SETTINGS_EXPORT = [
     'STATIC_URL',
     'STATIC_ROOT',
     'MFA',
-    'USER_DOCS_URI',
-    'USER_DOCS_TITLE',
     'DEVELOPER_DOCS_URI',
     'DEVELOPER_DOCS_TITLE',
     'ORGANIZATION_TITLE',
