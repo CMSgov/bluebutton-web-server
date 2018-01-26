@@ -21,7 +21,7 @@ def read(request, resource_type, resource_id, *args, **kwargs):
     """
     Read from Remote FHIR Server
     # Example client use in curl:
-    # curl -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
+    # curl -X GET http://127.0.0.1:8000/fhir/Patient/1234
     """
 
     logger.debug("resource_type: %s" % resource_type)
@@ -66,23 +66,36 @@ def read(request, resource_type, resource_id, *args, **kwargs):
 
     # Now make the call to the backend API
 
-    r = request_call(request, target_url, crosswalk, timeout=None, get_parameters=get_parameters)
+    response = request_call(request, target_url, crosswalk, timeout=None, get_parameters=get_parameters)
 
-    # Check for Error here
-    logger.debug("status: %s/%s" % (r.status_code, r._status_code))
-
-    if r.status_code == 404:
+    if response.status_code == 404:
         return build_error_response(404, 'The requested resource does not exist')
 
     # TODO: This should be more specific
-    if r.status_code >= 300:
+    if response.status_code >= 300:
         return build_error_response(502, 'An error occurred contacting the upstream server')
+
+    # Now check that the user has permission to access the data
+    # Patient resources were taken care of above
+    # Return 404 on error to avoid notifying unauthorized user the object exists
+    try:
+        if resource_type == 'Coverage':
+            reference = response._json()['beneficiary']['reference']
+            reference_id = reference.split('|')[1]
+            if reference_id != crosswalk.fhir_id:
+                return build_error_response(404, 'The requested resource does not exist')
+        elif resource_type == 'ExplanationOfBenefit':
+            # TODO
+            pass
+    except Exception:
+        logger.warning('An error occurred fetching beneficiary id')
+        return build_error_response(404, 'The requested resource does not exist')
 
     host_path = get_host_url(request, resource_type)[:-1]
 
     # Add default FHIR Server URL to re-write
     rewrite_url_list = build_rewrite_list(crosswalk)
-    text_in = get_response_text(fhir_response=r)
+    text_in = get_response_text(fhir_response=response)
     text_out = post_process_request(request, host_path, text_in, rewrite_url_list)
 
     return JsonResponse(text_out)
