@@ -85,8 +85,10 @@ def read(request, resource_type, resource_id, *args, **kwargs):
             if reference_id != crosswalk.fhir_id:
                 return build_error_response(404, 'The requested resource does not exist')
         elif resource_type == 'ExplanationOfBenefit':
-            # TODO
-            pass
+            reference = response._json()['patient']['reference']
+            reference_id = reference.split('|')[1]
+            if reference_id != crosswalk.fhir_id:
+                return build_error_response(404, 'The requested resource does not exist')
     except Exception:
         logger.warning('An error occurred fetching beneficiary id')
         return build_error_response(404, 'The requested resource does not exist')
