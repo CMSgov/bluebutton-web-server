@@ -52,10 +52,15 @@ def search(request, resource_type, *args, **kwargs):
 
     patient_id = '' if resource_type == 'Patient' else crosswalk.fhir_id
 
+    if 'patient' in request.GET and request.GET['patient'] != patient_id:
+        return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
+
     if resource_type == 'ExplanationOfBenefit':
         get_parameters['patient'] = patient_id
     elif resource_type == 'Coverage':
         get_parameters['beneficiary'] = 'Patient/' + patient_id
+        if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
+            return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
     elif resource_type == 'Patient':
         get_parameters['_id'] = ''
 

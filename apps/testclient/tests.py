@@ -60,7 +60,7 @@ class BlueButtonClientApiFHIRTest(TestCase):
         """
         Test get patient
         """
-        uri = "%s%s?format=json" % (
+        uri = "%s%s" % (
             self.testclient_setup['patient_uri'], self.patient)
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
@@ -70,7 +70,7 @@ class BlueButtonClientApiFHIRTest(TestCase):
         """
         Ensure other patient ID is inaccessible.
         """
-        uri = "%s%s?format=json" % (
+        uri = "%s%s" % (
             self.testclient_setup['patient_uri'], self.another_patient)
         response = self.client.get(uri)
         print(response.content)
@@ -80,7 +80,8 @@ class BlueButtonClientApiFHIRTest(TestCase):
         """
         Test get eob
         """
-        uri = "%s?patient=%sformat=json" % (
+
+        uri = "%s?patient=%s" % (
             self.testclient_setup['eob_uri'], self.patient)
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
@@ -90,21 +91,17 @@ class BlueButtonClientApiFHIRTest(TestCase):
         """
         Ensure other patient info is not returned
         """
-        uri = "%s?patient=%sformat=json" % (
+        uri = "%s?patient=%s" % (
             self.testclient_setup['eob_uri'], self.another_patient)
         response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "ExplanationOfBenefit")
-        self.assertContains(response, self.patient)
-        self.assertNotContains(response, self.another_patient)
+        self.assertEqual(response.status_code, 403)
 
     def test_get_coverage(self):
         """
         Test get coverage
         """
-        uri = "%s?beneficiary=%sformat=json" % (
+        uri = "%s?beneficiary=%s" % (
             self.testclient_setup['coverage_uri'], self.patient)
-        # uri = "%s/?format=json" % (self.testclient_setup['coverage_uri'])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Coverage")
@@ -114,13 +111,10 @@ class BlueButtonClientApiFHIRTest(TestCase):
         """
         Test get coverage
         """
-        uri = "%s?beneficiary=%sformat=json" % (
+        uri = "%s?beneficiary=%s" % (
             self.testclient_setup['coverage_uri'], self.another_patient)
         response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Coverage")
-        self.assertContains(response, self.patient)
-        self.assertNotContains(response, self.another_patient)
+        self.assertEqual(response.status_code, 403)
 
 
 @skipIf(settings.OFFLINE, "Can't reach external sites.")

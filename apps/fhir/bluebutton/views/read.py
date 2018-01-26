@@ -83,15 +83,15 @@ def read(request, resource_type, resource_id, *args, **kwargs):
             reference = response._json()['beneficiary']['reference']
             reference_id = reference.split('|')[1]
             if reference_id != crosswalk.fhir_id:
-                return build_error_response(404, 'The requested resource does not exist')
+                return standard_404()
         elif resource_type == 'ExplanationOfBenefit':
             reference = response._json()['patient']['reference']
             reference_id = reference.split('|')[1]
             if reference_id != crosswalk.fhir_id:
-                return build_error_response(404, 'The requested resource does not exist')
+                return standard_404()
     except Exception:
         logger.warning('An error occurred fetching beneficiary id')
-        return build_error_response(404, 'The requested resource does not exist')
+        return standard_404()
 
     host_path = get_host_url(request, resource_type)[:-1]
 
@@ -101,3 +101,7 @@ def read(request, resource_type, resource_id, *args, **kwargs):
     text_out = post_process_request(request, host_path, text_in, rewrite_url_list)
 
     return JsonResponse(text_out)
+
+
+def standard_404():
+    return build_error_response(404, 'The requested resource does not exist')
