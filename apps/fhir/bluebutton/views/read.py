@@ -26,9 +26,6 @@ from apps.dot_ext.decorators import capability_protected_resource
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-# Attempting to set a timeout for connection and request for longer requests
-# eg. Search.
-
 
 @capability_protected_resource()
 def oauth_read(request, resource_type, id, via_oauth=True, *args, **kwargs):

@@ -8,6 +8,8 @@ from django.core.urlresolvers import reverse
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+__author__ = "Alan Viars"
+
 
 @require_GET
 def openid_configuration(request):
@@ -16,9 +18,7 @@ def openid_configuration(request):
     """
     data = OrderedDict()
     issuer = base_issuer(request)
-
     data = build_endpoint_info(data, issuer=issuer)
-
     return JsonResponse(data)
 
 
@@ -63,8 +63,10 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     data["token_endpoint"] = issuer + reverse('oauth2_provider:token')
     data["userinfo_endpoint"] = issuer + reverse('openid_connect_userinfo')
     data["ui_locales_supported"] = ["en-US", ]
-    # data["service_documentation"] = getattr(settings, 'DEVELOPER_DOCS', "")
-
+    data["service_documentation"] = getattr(settings,
+                                            'DEVELOPER_DOCS_URI',
+                                            "https://cmsgov.github.io/bluebutton-developer-help/")
+    data["op_tos_uri"] = settings.TOS_URI
     data["grant_types_supported"] = []
     for i in settings.GRANT_TYPES:
         data["grant_types_supported"].append(i[0])
