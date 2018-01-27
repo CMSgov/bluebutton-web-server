@@ -1,18 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
-"""
-hhs_oauth_server
-FILE: home.py
-Created: 6/27/16 3:24 PM
-
-"""
 import json
 import logging
 
 from urllib.parse import urlencode
-from django.core.urlresolvers import reverse_lazy
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from apps.fhir.bluebutton.utils import (request_call,
@@ -26,14 +15,8 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_response_text,
                                         build_oauth_resource)
 
-from apps.fhir.bluebutton.xml_handler import (xml_to_dom,
-                                              dom_conformance_filter,
-                                              append_security)
-
 from ..opoutcome_utils import (strip_format_for_back_end,
-                               ERROR_CODE_LIST,
-                               valid_interaction,
-                               request_format)
+                               valid_interaction)
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -41,38 +24,11 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = 'Mark Scrimshire:@ekivemark'
 
 
-def oauth_fhir_conformance(request, via_oauth=True, *args, **kwargs):
-    """ Pull and filter fhir Conformance statement
-
-    BaseDstu2 = "Conformance"
-    BaseStu3 = "CapabilityStatement"
-
-    metadata call
-
-    """
-    return metadata(request, via_oauth=True, *args, **kwargs)
-
-
 def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
     BaseDstu2 = "Conformance"
     BaseStu3 = "CapabilityStatement"
-
-    metadata call
-
-    """
-
-    return metadata(request, via_oauth=False, *args, **kwargs)
-
-
-def metadata(request, via_oauth=False, *args, **kwargs):
-    """
-    Arrive here to do capabilityStatement or Conformance
-    aka metadata
-
-    oauth_fhir_conformance sets via_oauth=True
-    fhir_conformance sets via_oauth=False
 
     :param request:
     :param via_oauth:
@@ -90,26 +46,19 @@ def metadata(request, via_oauth=False, *args, **kwargs):
         call_to += '/metadata'
 
     pass_params = request.GET
-    # pass_params should be an OrderedDict after strip_auth
-
-    requested_format = request_format(pass_params)
-
-    # now we simplify the format/_format request for the back-end
     pass_params = strip_format_for_back_end(pass_params)
-    back_end_format = pass_params['_format']
 
     encoded_params = urlencode(pass_params)
     pass_params = prepend_q(encoded_params)
 
     r = request_call(request,
                      call_to + pass_params,
-                     cx,
-                     reverse_lazy('authenticated_home'))
+                     cx)
 
     text_out = ''
     host_path = get_host_url(request, '?')
 
-    if r.status_code in ERROR_CODE_LIST:
+    if r.status_code >= 300:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
         return HttpResponse(json.dumps(r._content),
                             status=r.status_code,
@@ -119,32 +68,21 @@ def metadata(request, via_oauth=False, *args, **kwargs):
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
-                                    back_end_format,
                                     host_path,
                                     text_in,
                                     rewrite_url_list)
 
-    if requested_format == "xml":
-        xml_dom = xml_to_dom(text_out)
+    od = conformance_filter(text_out, rr)
 
-        text_out = dom_conformance_filter(xml_dom, rr)
+    # Append Security to ConformanceStatement
+    security_endpoint = build_oauth_resource(request, format_type="json")
+    od['rest'][0]['security'] = security_endpoint
+    od['format'] = ['appliction/json']
 
-        # Append Security to ConformanceStatement
-        security_endpoint = build_oauth_resource(request, format_type="xml")
-        text_out = append_security(text_out, security_endpoint)
-
-        return HttpResponse(text_out, content_type='application/xml')
-    else:
-        od = conformance_filter(text_out, back_end_format, rr)
-
-        # Append Security to ConformanceStatement
-        security_endpoint = build_oauth_resource(request, format_type="json")
-        od['rest'][0]['security'] = security_endpoint
-
-        return JsonResponse(od)
+    return JsonResponse(od)
 
 
-def conformance_filter(text_block, fmt, rr=None):
+def conformance_filter(text_block, rr):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """

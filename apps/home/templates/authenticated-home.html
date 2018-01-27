@@ -27,13 +27,15 @@
         <div class="col-lg-12">
 
 				<div class="btn-group-justified">
-					<a href="{% url 'oauth2_provider:authorized-token-list' %}" >
-					  <button type="button" class="btn btn-primary"> <i class="fa fa-legal"></i>  Application Tokens</button></a>
+					
+     
+     
+     <a class="ds-c-button  ds-c-button--default"  href="{% url 'oauth2_provider:authorized-token-list' %}" >
+					  Application Tokens</a>
     {% if profile.user_type == "DEV" or profile == None or profile.create_applications %} 
-					<a href="{% url 'oauth2_provider:list' %}">
+					<a class="ds-c-button  ds-c-button--default"  href="{% url 'oauth2_provider:list' %}">
 						 <!-- test_developer_can_register_apps -->
-       <button type="button" class="btn btn-primary"> <i class="fa fa-key"></i>  Application Registration
-					</button></a>
+  Application Registration</a>
 					{% endif %}
 
 				</div>

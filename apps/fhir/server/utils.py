@@ -88,29 +88,6 @@ def init_text_list(replace_with=''):
     return (list_to_text(new_text_list))
 
 
-def set_fhir_format(fmt_type):
-    """
-    Get the fmt_type: json|xml|html
-    convert to propoer fhir _format
-    :param fmt_type:
-    :return:
-
-                    xml	                    json
-    Resource	application/xml+fhir	application/json+fhir
-    Bundle	    application/atom+xml	application/json+fhir
-    TagList	    application/xml+fhir	application/json+fhir
-
-    """
-
-    fhir_json = 'application/json+fhir'
-    fhir_xml = 'application/xml+fhir'
-
-    if fmt_type.lower() == 'xml':
-        return fhir_xml
-
-    return fhir_json
-
-
 def set_resource_id(srtc, resource_id, patient_id):
     """
     if resourceType is Patient we need to replace resource_id with patient_id

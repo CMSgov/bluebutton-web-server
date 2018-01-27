@@ -6,10 +6,10 @@ info:
     T**
 
 
-    The Centers for Medicare & Medicaid Services (CMS) Blue Button API is a 
-    developer-friendly, standards-based, data API that enables Medicare 
-    beneficiaries to connect their Medicare claims data to the applications, 
-    services, and research programs they trust. 
+    The Centers for Medicare & Medicaid Services (CMS) Blue Button API is a
+    developer-friendly, standards-based, data API that enables Medicare
+    beneficiaries to connect their Medicare claims data to the applications,
+    services, and research programs they trust.
 
 
     Up to three years of claims information can be accessed using the  HL7 Fast
@@ -22,10 +22,10 @@ info:
     Technically, FHIR is designed for the web; the resources are based on simple
     XML or JSON structures, with an http-based RESTful protocol where each
     resource has predictable URL. Where possible, open internet standards are
-    used for data representation. 
+    used for data representation.
 
 
-    The **CMS Blue Button API** is keyed by a unique Patient id. This id is 
+    The **CMS Blue Button API** is keyed by a unique Patient id. This id is
     used to apply filter parameters in requests and searches to limit the
     information returned to that of the logged in user.
 
@@ -35,7 +35,7 @@ info:
     throughout this documentation to refer to the Medicare Beneficiary.
   version: 0.0.27
   title: CMS Blue Button API v0.8 (DRAFT)
-host: dev.bluebutton.cms.fhirservice.net
+host: sandbox.bluebutton.cms.gov
 tags:
   - name: CapabilityStatement
   - name: Coverage
@@ -44,7 +44,7 @@ tags:
 schemes:
   - https
 paths:
-  /bluebutton/fhir/v1/metadata:
+  /v1/fhir/metadata:
     get:
       tags:
         - CapabilityStatement
@@ -67,7 +67,7 @@ paths:
             items:
               $ref: '#/definitions/CapabilityStatement'
       security: []
-  /protected/bluebutton/fhir/v1/Coverage/:
+  /v1/fhir/Coverage/:
     get:
       tags:
         - Coverage
@@ -102,7 +102,7 @@ paths:
               $ref: '#/definitions/Coverage'
       security:
         - Bearer: []
-  '/protected/bluebutton/fhir/v1/Coverage/{id}':
+  '/v1/fhir/Coverage/{id}':
     get:
       tags:
         - Coverage
@@ -118,7 +118,7 @@ paths:
             $ref: '#/definitions/Coverage'
       security:
         - Bearer: []
-  /protected/bluebutton/fhir/v1/ExplanationOfBenefit/:
+  /v1/fhir/ExplanationOfBenefit/:
     get:
       tags:
         - ExplanationOfBenefit
@@ -221,7 +221,7 @@ paths:
               $ref: '#/definitions/ExplanationOfBenefit'
       security:
         - Bearer: []
-  '/protected/bluebutton/fhir/v1/ExplanationOfBenefit/{id}':
+  '/v1/fhir/ExplanationOfBenefit/{id}':
     get:
       tags:
         - ExplanationOfBenefit
@@ -237,7 +237,7 @@ paths:
             $ref: '#/definitions/ExplanationOfBenefit'
       security:
         - Bearer: []
-  /protected/bluebutton/fhir/v1/Patient/:
+  /v1/fhir/Patient/:
     get:
       tags:
         - Patient
@@ -382,7 +382,7 @@ paths:
         - name: _id
           in: query
           description: >-
-            The ID of the resource. 
+            The ID of the resource.
 
             The CMS Blue Button API will override any id entered with the logged
             in user's fhir_id. This prevents one user making a request for
@@ -413,7 +413,7 @@ paths:
               $ref: '#/definitions/Patient'
       security:
         - Bearer: []
-  '/protected/bluebutton/fhir/v1/Patient/{id}':
+  '/v1/fhir/Patient/{id}':
     get:
       tags:
         - Patient
@@ -545,7 +545,7 @@ definitions:
       result of Medicare  coverage. An ExplanationOfBenefit resource will
       typically contain multiple claim line details. For example a doctor's
       office visit may identify tests conducted, procedures performed and
-      medications issued. 
+      medications issued.
   Patient:
     type: object
     required:
@@ -613,7 +613,7 @@ definitions:
       range of health-related activities, including Curative activities,
       Psychiatric care,  Social services, Nursing and assisted living, Personal
       health tracking and  exercise data.
-        
+
 
       The data in the resource covers the "__who__" information about the
       patient. Its attributes are focused on the demographic information

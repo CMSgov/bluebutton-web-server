@@ -19,6 +19,8 @@ from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
 
+__author__ = "Alan Viars"
+
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
@@ -80,8 +82,7 @@ def request_invite_enduser(request):
 
 def mylogout(request):
     logout(request)
-    messages.success(request, _('You have been logged out.'))
-    return pick_reverse_login()
+    return HttpResponseRedirect(reverse('home'))
 
 
 @never_cache
@@ -173,16 +174,17 @@ def account_settings(request):
     name = _('Account Settings')
     up, created = UserProfile.objects.get_or_create(user=request.user)
 
-    groups = request.user.groups.values_list('name', flat=True)
-    for g in groups:
-        messages.info(request, _('You are in the group: %s' % (g)))
+    if settings.DEBUG:
+        # Display all the groups the user is in.
+        groups = request.user.groups.values_list('name', flat=True)
+        for g in groups:
+            messages.info(request, _('You are in the group: %s' % (g)))
 
     if request.method == 'POST':
         form = AccountSettingsForm(request.POST, request=request)
         if form.is_valid():
             data = form.cleaned_data
             # update the user info
-            request.user.username = data['username'].lower()
             request.user.email = data['email']
             request.user.first_name = data['first_name']
             request.user.last_name = data['last_name']

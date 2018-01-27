@@ -1,18 +1,18 @@
 Blue Button Web Server
 =====================================================
 
-[![Build Status](https://travis-ci.org/TransparentHealth/hhs_oauth_server.svg?branch=develop)](https://travis-ci.org/TransparentHealth/hhs_oauth_server)
-[![Coverage Status](https://coveralls.io/repos/github/TransparentHealth/hhs_oauth_server/badge.svg?branch=develop)](https://coveralls.io/github/TransparentHealth/hhs_oauth_server?branch=develop)
+[![Build Status](https://travis-ci.org/CMSgov/bluebutton-web-server.svg?branch=develop)](https://travis-ci.org/CMSGov/hhs_oauth_server)
+[![Coverage Status](https://coveralls.io/repos/github/CMSgov/bluebutton-web-server/badge.svg?branch=develop)](https://coveralls.io/github/CMSgov/bluebutton-web-server?branch=develop)
 
 This server serves as a data provider for sharing Medicare claims data with third parties.
-The server connects to MyMedicare.gov for authentication, and uses OAuth to confirm permission
+The server connects to MyMedicare.gov for authentication, and uses OAuth2 to confirm permission
 grants to external app developers. The data itself comes from a back end FHIR server
 (https://github.com/CMSgov/bluebutton-data-server), which in turn pulls data from the CMS
 Chronic Conditions Warehouse (https://www.ccwdata.org)
 
 For more information on how to connect to the API implemented here, check out our
 developer documentation at https://cmsgov.github.io/bluebutton-developer-help/. Our most
-recent deployment is at https://dev.bluebutton.cms.fhirservice.net, and you can also
+recent deployment is at https://sandbox.bluebutton.cms.gov, and you can also
 check out our Google Group at https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api
 for more details.
 

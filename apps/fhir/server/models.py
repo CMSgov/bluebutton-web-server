@@ -48,11 +48,11 @@ class ResourceRouter(models.Model):
     cert_file = models.TextField(max_length=250,
                                  blank=True,
                                  null=True,
-                                 help_text="Name of Client Certificate file")
+                                 help_text="Client Certificate filename.")
     key_file = models.TextField(max_length=250,
                                 blank=True,
                                 null=True,
-                                help_text="Name of Client Key file")
+                                help_text="Name of Client Key filename")
     server_verify = models.BooleanField(default=False,
                                         help_text="Server Verify "
                                                   "(Default=False)")

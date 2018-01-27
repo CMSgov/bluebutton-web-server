@@ -1,11 +1,10 @@
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from ..models import UserProfile
 
 
-@override_settings(LOGIN_RATE='50/m')
 class ResetPasswordWhileAuthenticatedTestCase(TestCase):
     """
     Test Changing the password reset questions

@@ -15,7 +15,7 @@ decorate-url==1.1
 defusedxml==0.5.0         # via python3-openid, social-auth-core
 dj-database-url==0.4.1
 django-axes==2.2.0
-django-bootstrap-form==3.2.1
+django-bootstrap-form==3.3
 django-braces==1.9.0      # via django-oauth-toolkit-scopes-backend
 django-cors-headers==1.1.0
 django-debug-toolbar==1.4
@@ -26,22 +26,18 @@ django-ratelimit==1.0.1
 django-ses==0.7.1
 django-settings-export==1.1.0
 django-storages==1.5.1
-django==1.9.7
+django==1.11.9
 docutils==0.14            # via botocore
 flake8==2.6.0
-future==0.16.0            # via pyjwkest
 idna==2.6                 # via requests
 jmespath==0.9.3           # via boto3, botocore
 jsonschema==2.5.1
 mccabe==0.5.0             # via flake8
 oauthlib==1.0.3
 pluggy==0.3.1             # via tox
-poetri==0.0.5
 py==1.4.31                # via tox
 pycodestyle==2.0.0        # via flake8
-pycryptodomex==3.4.7      # via pyjwkest
 pyflakes==1.2.3           # via flake8
-pyjwkest==1.4.0           # via poetri
 pyjwt==1.5.3
 python-coveralls==2.9.1
 python-dateutil==2.6.1    # via botocore
@@ -52,7 +48,7 @@ pyyaml==3.12              # via python-coveralls
 requests-oauthlib==0.8.0  # via social-auth-core
 requests==2.18.4
 s3transfer==0.1.11        # via boto3
-six==1.10.0               # via django-oauth-toolkit-scopes-backend, pyjwkest, python-coveralls, python-dateutil, social-auth-app-django, social-auth-core
+six==1.10.0               # via django-oauth-toolkit-scopes-backend, python-coveralls, python-dateutil, social-auth-app-django, social-auth-core
 social-auth-app-django==1.2.0
 social-auth-core==1.4.0   # via social-auth-app-django
 sqlparse==0.1.19          # via django-debug-toolbar

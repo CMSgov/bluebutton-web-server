@@ -104,8 +104,16 @@ def change_secret_questions(request):
         form = ChangeSecretQuestionsForm(request.POST)
 
         if form.is_valid():
-            form.save()
-
+            data = form.cleaned_data
+            up.password_reset_question_1 = data['password_reset_question_1']
+            up.password_reset_answer_1 = data['password_reset_answer_1']
+            up.password_reset_question_2 = data['password_reset_question_2']
+            up.password_reset_answer_2 = data['password_reset_answer_2']
+            up.password_reset_question_3 = data['password_reset_question_3']
+            up.password_reset_answer_3 = data['password_reset_answer_3']
+            up.save()
+            messages.success(request,
+                             _("Your secret questions and answers were updated."))
             return HttpResponseRedirect(reverse('account_settings'))
         else:
             return render(request,

@@ -148,7 +148,7 @@ class PasswordResetForm(forms.Form):
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=30, label=_('User'))
+    username = forms.CharField(max_length=30, label=_('Username'))
     password = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                label=_('Password'))
     required_css_class = 'required'
@@ -276,15 +276,16 @@ class EndUserRegisterForm(forms.Form):
 
 
 class SignupForm(forms.Form):
-    invitation_code = forms.CharField(max_length=30,
-                                      label=_("Invitation Code"),
-                                      help_text=_("An Invitation Code is "
-                                                  "needed in order to "
-                                                  "create your account. "
-                                                  "<br/>You "
-                                                  "probably received one by "
-                                                  "email.")
-                                      )
+    if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+        invitation_code = forms.CharField(max_length=30,
+                                          label=_("Invitation Code"),
+                                          help_text=_("An Invitation Code is "
+                                                      "needed in order to "
+                                                      "create your account. "
+                                                      "<br/>You "
+                                                      "probably received one by "
+                                                      "email.")
+                                          )
     username = forms.CharField(max_length=30,
                                label=_("User"),
                                help_text=_("Choose the username you will "
@@ -368,20 +369,23 @@ class SignupForm(forms.Form):
             raise forms.ValidationError(_('This username is already taken.'))
         return username
 
-    def clean_invitation_code(self):
-        invitation_code = self.cleaned_data['invitation_code']
-        if Invitation.objects.filter(valid=True,
-                                     code=invitation_code).count() != 1:
-            raise forms.ValidationError(_('The invitation code is not valid.'))
-        return invitation_code
+    if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+        def clean_invitation_code(self):
+            invitation_code = self.cleaned_data['invitation_code']
+            if Invitation.objects.filter(valid=True,
+                                         code=invitation_code).count() != 1:
+                raise forms.ValidationError(
+                    _('The invitation code is not valid.'))
+            return invitation_code
 
     def save(self):
-
-        invitation_code = self.cleaned_data['invitation_code']
-        # make the invitation a invalid/spent.
-        invite = Invitation.objects.get(code=str(invitation_code), valid=True)
-        invite.valid = False
-        invite.save()
+        if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+            invitation_code = self.cleaned_data['invitation_code']
+            # make the invitation a invalid/spent.
+            invite = Invitation.objects.get(
+                code=str(invitation_code), valid=True)
+            invite.valid = False
+            invite.save()
 
         new_user = User.objects.create_user(
             username=self.cleaned_data['username'],
@@ -428,7 +432,6 @@ class AccountSettingsForm(forms.Form):
         self.request = kwargs.pop("request")
         super(AccountSettingsForm, self).__init__(*args, **kwargs)
 
-    username = forms.CharField(max_length=30, label=_('User Name'))
     email = forms.EmailField(max_length=255, label=_('Email'))
     first_name = forms.CharField(max_length=100, label=_('First Name'))
     last_name = forms.CharField(max_length=100, label=_('Last Name'))
@@ -472,11 +475,3 @@ class AccountSettingsForm(forms.Form):
                 _('A mobile phone number is required to use SMS-based '
                   'multi-factor authentication'))
         return mobile_phone_number
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        username = username.rstrip().lstrip().lower()
-        if username and User.objects.filter(
-                username=username).exclude(username=username).count():
-            raise forms.ValidationError(_('This username is already taken.'))
-        return username

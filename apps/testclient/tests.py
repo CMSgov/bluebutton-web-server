@@ -11,7 +11,7 @@ from django.conf import settings
 __author__ = "Alan Viars"
 
 
-class BlueButtonClientApiUSerInfoTest(TestCase):
+class BlueButtonClientApiUserInfoTest(TestCase):
     """
     Test the BlueButton API UserInfo Endpoint
     """
@@ -24,8 +24,9 @@ class BlueButtonClientApiUSerInfoTest(TestCase):
         self.testclient_setup = test_setup()
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))
-        self.patient = "3979"
-        self.username = "fred"
+        self.patient = settings.DEFAULT_SAMPLE_FHIR_ID
+        self.username = settings.DEFAULT_SAMPLE_FHIR_ID
+        self.another_patient = '20140000000001'
 
     def test_get_userinfo(self):
         """
@@ -47,13 +48,13 @@ class BlueButtonClientApiFHIRTest(TestCase):
     fixtures = ['testfixture']
 
     def setUp(self):
-
         call_command('create_blue_button_scopes')
         call_command('create_test_user_and_application')
         self.testclient_setup = test_setup()
         self.token = "sample-token-string"
         self.client = Client(Authorization="Bearer %s" % (self.token))
-        self.patient = "3979"
+        self.patient = settings.DEFAULT_SAMPLE_FHIR_ID
+        self.another_patient = '20140000000001'
 
     def test_get_patient(self):
         """
@@ -65,6 +66,18 @@ class BlueButtonClientApiFHIRTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.patient)
 
+    def test_get_patient_negative(self):
+        """
+        Ensure other patient ID is inaccessible.
+        """
+        uri = "%s%s?format=json" % (
+            self.testclient_setup['patient_uri'], self.another_patient)
+        response = self.client.get(uri)
+        print(response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.patient)
+        self.assertNotContains(response, self.another_patient)
+
     def test_get_eob(self):
         """
         Test get eob
@@ -75,13 +88,41 @@ class BlueButtonClientApiFHIRTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "ExplanationOfBenefit")
 
+    def test_get_eob_negative(self):
+        """
+        Ensure other patient info is not returned
+        """
+        uri = "%s?patient=%sformat=json" % (
+            self.testclient_setup['eob_uri'], self.another_patient)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "ExplanationOfBenefit")
+        self.assertContains(response, self.patient)
+        self.assertNotContains(response, self.another_patient)
+
     def test_get_coverage(self):
         """
         Test get coverage
         """
-        uri = "%s/?format=json" % (self.testclient_setup['coverage_uri'])
+        uri = "%s?beneficiary=%sformat=json" % (
+            self.testclient_setup['coverage_uri'], self.patient)
+        # uri = "%s/?format=json" % (self.testclient_setup['coverage_uri'])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Coverage")
+        self.assertContains(response, self.patient)
+
+    def test_get_coverage_negative(self):
+        """
+        Test get coverage
+        """
+        uri = "%s?beneficiary=%sformat=json" % (
+            self.testclient_setup['coverage_uri'], self.another_patient)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Coverage")
+        self.assertContains(response, self.patient)
+        self.assertNotContains(response, self.another_patient)
 
 
 @skipIf(settings.OFFLINE, "Can't reach external sites.")

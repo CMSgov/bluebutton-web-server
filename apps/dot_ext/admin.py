@@ -1,11 +1,21 @@
-from django.contrib import admin
-
-from .models import Endorsement
-
-
-class EndorsementAdmin(admin.ModelAdmin):
-    list_display = ('title', 'iss', 'iat', 'exp', 'signature_verified', 'is_expired')
-    search_fields = ('title', 'iss')
-
-
-admin.site.register(Endorsement, EndorsementAdmin)
+# from django.contrib import admin
+# from oauth2_provider.models import get_application_model
+#
+#
+# Application = get_application_model()
+#
+#
+# class ApplicationAdmin(admin.ModelAdmin):
+#
+#     list_display = ("name", "user", "client_type",
+#                     "authorization_grant_type", "created", "updated")
+#     list_filter = ("client_type", "authorization_grant_type",
+#                    "skip_authorization")
+#     radio_fields = {
+#         "client_type": admin.HORIZONTAL,
+#         "authorization_grant_type": admin.VERTICAL,
+#     }
+#     raw_id_fields = ("user", )
+#
+#
+# admin.site.register(Application, ApplicationAdmin)

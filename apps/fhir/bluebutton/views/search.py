@@ -2,15 +2,12 @@ import json
 
 import logging
 
-from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponse, JsonResponse
 
 from apps.dot_ext.decorators import capability_protected_resource
 
 from ..opoutcome_utils import (kickout_403,
-                               kickout_404,
-                               request_format)
+                               kickout_404)
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         block_params,
@@ -24,10 +21,7 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         post_process_request,
                                         get_response_text)
 
-from apps.fhir.bluebutton.views.home import fhir_conformance
-
-from apps.fhir.server.utils import (set_fhir_format,
-                                    set_resource_id,
+from apps.fhir.server.utils import (set_resource_id,
                                     search_add_to_list,
                                     payload_additions,
                                     payload_var_replace)
@@ -38,88 +32,18 @@ logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
-@login_required()
-def search(request, resource_type, *args, **kwargs):
-    """
-    Search from Remote FHIR Server
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
-    """
-
-    interaction_type = 'search'
-
-    logger.debug("Received:%s" % resource_type)
-    logger_debug.debug("Received:%s" % resource_type)
-
-    conformance = False
-
-    if resource_type is None:
-        conformance = True
-    elif resource_type.lower() == 'metadata':
-        # metadata is a valid resourceType to request the
-        # Conformance/Capability Statement
-        conformance = True
-    elif resource_type.lower == 'conformance':
-        # Conformance is the Dstu2 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capability":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-
-    if conformance:
-        return fhir_conformance(request, resource_type, *args, **kwargs)
-
-    logger.debug("Interaction:%s. "
-                 "Calling generic_read for %s" % (interaction_type,
-                                                  resource_type))
-
-    logger_debug.debug("Interaction:%s. "
-                       "Calling generic_read for %s" % (interaction_type,
-                                                        resource_type))
-
-    return read_search(request,
-                       interaction_type,
-                       resource_type,
-                       via_oauth=False,
-                       *args,
-                       **kwargs)
-
-
 @capability_protected_resource()
 def oauth_search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server
 
     # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
     """
 
     interaction_type = 'search'
 
     logger.debug("Received:%s" % resource_type)
     logger_debug.debug("Received:%s" % resource_type)
-
-    conformance = False
-
-    if resource_type is None:
-        conformance = True
-    elif resource_type.lower() == 'metadata':
-        # metadata is a valid resourceType to request the
-        # Conformance/Capability Statement
-        conformance = True
-    elif resource_type.lower == 'conformance':
-        # Conformance is the Dstu2 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capability":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capabilitystatement":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-
-    if conformance:
-        return fhir_conformance(request, resource_type, *args, **kwargs)
 
     logger.debug("Interaction:%s. "
                  "Calling generic_read for %s" % (interaction_type,
@@ -156,11 +80,6 @@ def read_search(request,
     :param args:
     :param kwargs:
     :return:
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234?_format=json
-
-
     """
 
     logger.debug('\n========================\n'
@@ -229,18 +148,12 @@ def read_search(request,
     # Analyze the _format parameter
     # Sve the display _format
 
-    input_parameters = request.GET
-    requested_format = request_format(input_parameters)
-
-    # prepare the back-end _format setting
-    back_end_format = set_fhir_format(requested_format)
-
     # request.GET is immutable so take a copy to allow the values to be edited.
     payload = {}
 
     # Get payload with oauth parameters removed
     # Add the format for back-end
-    payload['_format'] = back_end_format
+    payload['_format'] = 'application/json+fhir'
 
     # remove the srtc.search_block parameters
     payload = block_params(payload, srtc)
@@ -279,7 +192,7 @@ def read_search(request,
                                           old_value='%PATIENT%')
 
     # add the _format setting
-    payload['_format'] = back_end_format
+    payload['_format'] = 'application/json+fhir'
 
     ###############################################
     ###############################################
@@ -288,9 +201,7 @@ def read_search(request,
                                target_url,
                                json.loads(json.dumps(payload)),
                                cx,
-                               reverse_lazy('home'),
-                               timeout=rr.wait_time
-                               )
+                               timeout=rr.wait_time)
 
     ###############################################
     ###############################################
@@ -311,12 +222,8 @@ def read_search(request,
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
-                                    back_end_format,
                                     host_path,
                                     text_in,
                                     rewrite_list)
-
-    if requested_format == 'xml':
-        return HttpResponse(r.text, content_type='application/xml')
 
     return JsonResponse(text_out)
