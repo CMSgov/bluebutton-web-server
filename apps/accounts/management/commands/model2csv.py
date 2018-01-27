@@ -19,7 +19,6 @@ from apps.fhir.bluebutton.utils import get_fhir_now
 
 import csv
 import sys
-from getenv import env
 
 import logging
 
@@ -49,8 +48,6 @@ def exportcsv(app_name, model_name, add_name):
 
     writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
     writer.writerow(model_field_names)
-
-    model_object = model.objects.all()
 
     for instance in model.objects.all():
         output = [str(getattr(instance, f)) for f in field_names]
