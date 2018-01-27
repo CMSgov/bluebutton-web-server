@@ -50,6 +50,8 @@ def exportcsv(app_name, model_name, add_name):
     writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
     writer.writerow(model_field_names)
 
+    model_object = model.objects.all()
+
     for instance in model.objects.all():
         output = [str(getattr(instance, f)) for f in field_names]
         if add_name:
@@ -67,23 +69,44 @@ class Command(BaseCommand):
             "to output")
     args = '[appname.ModelName]'
 
+    def add_arguments(self, parser):
+        parser.add_argument('--application', help="application name")
+
+        parser.add_argument('--model', help="model name")
+
+        parser.add_argument('--add_table_name', help="include table name"
+                                                     " and export time as "
+                                                     "columns: True | False")
+
     def handle(self, *app_labels, **options):
-        if app_labels:
 
-            app_name, model_name = app_labels[0].split('.')
+        if options['application']:
+            app_name = options['application']
+        else:
+            logger.info('model2csv: No application defined')
+            return False
 
-            add_table_name = env("DJANGO_MODEL2CSV", "")
-            add_table_name = add_table_name.lower()
-            if add_table_name == "add_table_name":
+        if options['model']:
+            model_name = options['model']
+        else:
+            logger.info('model2csv: No model defined')
+            return False
+
+        if options['add_table_name']:
+            if options['add_table_name'].lower() == "true":
                 add_name = True
             else:
                 add_name = False
-            e = exportcsv(app_name, model_name, add_name)
-
-            if e:
-                logger.info('Model Content exported: %s.%s' % (app_name,
-                                                               model_name))
         else:
-            logger.info('Model Content: Problem with export')
+            add_name = False
 
-            return False
+        e = exportcsv(app_name, model_name, add_name)
+
+        if e:
+            logger.info('model2csv: Content exported: %s.%s' % (app_name,
+                                                                model_name))
+            return
+        else:
+            logger.info('model2csv: Problem with export')
+
+        return False
