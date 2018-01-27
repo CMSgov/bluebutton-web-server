@@ -2,7 +2,8 @@ import logging
 from urllib.parse import urlencode
 from django.http import JsonResponse, HttpResponseNotAllowed
 
-from ..opoutcome_utils import (kickout_403,
+from ..opoutcome_utils import (kickout_404,
+                               kickout_403,
                                kickout_502,
                                strip_format_for_back_end,
                                add_key_to_fhir_url,
