@@ -45,6 +45,20 @@ def get_user_from_request(request):
     return user
 
 
+def get_ip_from_request(request):
+
+    """Returns the IP of the request, accounting for the possibility of being
+    behind a proxy.
+    """
+    ip = request.META.get("HTTP_X_FORWARDED_FOR", None)
+    if ip:
+        # X_FORWARDED_FOR returns client1, proxy1, proxy2,...
+        ip = ip.split(", ")[0]
+    else:
+        ip = request.META.get("REMOTE_ADDR", "")
+    return ip
+
+
 def get_access_token_from_request(request):
     """Returns a user or None with login or OAuth2 API"""
     token = ""
@@ -131,6 +145,7 @@ def generate_info_headers(request):
 
     # Return resource_owner or user
     user = get_user_from_request(request)
+    originating_ip = get_ip_from_request(request)
     cx = get_crosswalk(user)
     if cx:
         # we need to send the HicnHash or the fhir_id
@@ -158,6 +173,11 @@ def generate_info_headers(request):
             result['BlueButton-ApplicationId'] = ""
             result['BlueButton-DeveloperId'] = ""
             result['BlueButton-Developer'] = ""
+
+    if originating_ip:
+        result['BlueButton-OriginatingIpAddress'] = originating_ip
+    else:
+        result['BlueButton-OriginatingIpAddress'] = ""
 
     return result
 

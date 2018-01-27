@@ -16,7 +16,7 @@ __author__ = "Alan Viars"
 class CustomRegisterApplicationForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
-        agree_label = u'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>' % (
+        agree_label = u'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*' % (
             settings.TOS_URI)
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
         choices = []
@@ -26,14 +26,22 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             for i in pcs:
                 choices.append([i.pk, i.title])
         self.fields['scope'].choices = choices
+        self.fields['scope'].label = "Scope*"
         self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
         self.fields['client_type'].initial = 'confidential'
         self.fields['agree'].label = mark_safe(agree_label)
+        self.fields['name'].label = "Name*"
+        self.fields['name'].required = True
+        self.fields['client_type'].label = "Client Type*"
+        self.fields['authorization_grant_type'].label = "Authorization Grant Type*"
+        self.fields['redirect_uris'].label = "Redirect URIs*"
 
     class Meta:
         model = get_application_model()
-        fields = ('scope', 'name', 'client_type',
-                  'authorization_grant_type', 'redirect_uris', 'agree')
+        fields = ('name', 'scope', 'client_type',
+                  'authorization_grant_type', 'redirect_uris',
+                  'logo_uri', 'policy_uri', 'tos_uri', 'contacts',
+                  'agree')
 
     required_css_class = 'required'
 

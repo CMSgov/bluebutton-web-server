@@ -27,11 +27,14 @@ After they expire you will need to go through Authorization process again.
     
      <h2>What are you waiting for? Try some API calls!!!!</h1>
      <ul>
-     <li> <a href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
-     <li> <a href="{% url 'test_patient' %}">Patient</a> </li>
-     <li> <a href="{% url 'test_coverage' %}">Coverage</a> </li>
-     <li> <a href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata (No Token Needed)</a> </li>
-     <li> <a href="{% url 'openid-configuration' %}">OIDC Discovery (No Token Needed)</a> </li>
+
+     <li> <a target="_blank" href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
+     <li> <a target="_blank" href="{% url 'test_patient' %}">Patient</a> </li>
+     <li> <a target="_blank" href="{% url 'test_coverage' %}">Coverage</a> </li>
+     <li> <a target="_blank" href="{% url 'test_userinfo' %}">Profile</a> (OIDC UserInfo) </li>
+     <li> <a target="_blank" href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata </a> (No Token Needed) </li>
+     <li> <a target="_blank"  href="{% url 'openid-configuration' %}">OIDC Discovery</a> (No Token Needed) </li>
+
      </ul>
      
      <h2><a href="{% url 'mylogout' %}">Logout</a></h1>

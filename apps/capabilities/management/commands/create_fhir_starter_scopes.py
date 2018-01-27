@@ -49,10 +49,6 @@ def create_fhir_readonly_capability(group,
     pr = []
     pr.append(["GET", "%s%s/" % (fhir_prefix, fhir_resource_type)])
     pr.append(["GET", "%s%s/[id]" % (fhir_prefix, fhir_resource_type)])
-    pr.append(["GET", "%s%s/[id]/_history" %
-               (fhir_prefix, fhir_resource_type)])
-    pr.append(["GET", "%s%s/[id]/_history/[vid]" %
-               (fhir_prefix, fhir_resource_type)])
 
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,

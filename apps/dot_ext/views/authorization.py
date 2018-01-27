@@ -1,12 +1,10 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import logging
-from django.utils.decorators import method_decorator
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.http import HttpResponseUriRedirect
-from ratelimit.decorators import ratelimit
 from ..forms import AllowForm, SimpleAllowForm
 from ..models import ExpiresIn
 from django.conf import settings
@@ -16,8 +14,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = "Alan Viars"
 
 
-@method_decorator(ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '100/m'),
-                            method=['GET', 'POST'], block=True), name='dispatch')
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
@@ -30,7 +26,6 @@ class AuthorizationView(DotAuthorizationView):
         settings, 'AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
 
 
-@method_decorator(ratelimit(key='user_or_ip', rate='5/m', method=['GET', 'POST'], block=True), name='dispatch')
 class ScopeAuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to

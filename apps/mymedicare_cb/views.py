@@ -15,12 +15,14 @@ import random
 from .models import AnonUserState
 import logging
 from django.shortcuts import render
+from django.views.decorators.cache import never_cache
 
 __author__ = "Alan Viars"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@never_cache
 def callback(request):
     token_endpoint = getattr(
         settings, 'SLS_TOKEN_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/token')
@@ -135,6 +137,7 @@ def generate_nonce(length=26):
     return ''.join([str(random.randint(0, 9)) for i in range(length)])
 
 
+@never_cache
 def mymedicare_login(request):
     redirect = getattr(settings, 'MEDICARE_REDIRECT_URI',
                        'http://localhost:8000/mymedicare/sls-callback')
@@ -155,6 +158,7 @@ def mymedicare_login(request):
     return HttpResponseRedirect(mymedicare_login_url)
 
 
+@never_cache
 def mymedicare_choose_login(request):
     mymedicare_login_uri = getattr(settings, 'MEDICARE_LOGIN_URI',
                                    'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')

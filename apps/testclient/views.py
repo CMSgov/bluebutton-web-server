@@ -6,10 +6,14 @@ from collections import OrderedDict
 from django.http import JsonResponse, HttpResponseRedirect
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from .utils import test_setup
+from .utils import test_setup, get_client_secret
+import logging
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
+from django.views.decorators.cache import never_cache
 
 __author__ = "Alan Viars"
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def callback(request):
@@ -18,16 +22,20 @@ def callback(request):
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
     host = settings.HOSTNAME_URL
-
     if not(host.startswith("http://") or host.startswith("https://")):
         host = "https://%s" % (host)
     auth_uri = host + request.get_full_path()
+    token_uri = host + reverse('oauth2_provider:token')
     try:
-        token = oas.fetch_token(request.session['token_uri'],
-                                client_secret=request.session['client_secret'],
+        token = oas.fetch_token(token_uri,
+                                client_secret=get_client_secret(),
                                 authorization_response=auth_uri)
     except MissingTokenError:
-        return HttpResponseRedirect(reverse('test_links'))
+        logmsg = "Failed to get token from %s" % (request.session['token_uri'])
+        logger.error(logmsg)
+        return JsonResponse({'error': 'Failed to get token from',
+                             'code': 'MissingTokenError',
+                             'help': 'Try authorizing again.'}, status=500)
     request.session['token'] = token
     response['token_response'] = OrderedDict()
 
@@ -48,25 +56,26 @@ def callback(request):
         reverse('fhir_conformance_metadata')
 
     response['test_page'] = host + reverse('test_links')
-
-    print("RESPONSE", response)
     return success(request, response)
 
 
+@never_cache
 def success(request, response):
     return render(request, "success.html", response)
 
 
+@never_cache
 def test_userinfo(request):
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    userinfo_uri = "%s/connect/userinfo" % (request.session['resource_uri'])
+    userinfo_uri = "%s/v1/connect/userinfo" % (request.session['resource_uri'])
     userinfo = oas.get(userinfo_uri).json()
     return JsonResponse(userinfo)
 
 
+@never_cache
 def test_coverage(request):
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
@@ -79,6 +88,7 @@ def test_coverage(request):
     return JsonResponse(coverage, safe=False)
 
 
+@never_cache
 def test_patient(request):
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
@@ -90,6 +100,7 @@ def test_patient(request):
     return JsonResponse(patient)
 
 
+@never_cache
 def test_eob(request):
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
