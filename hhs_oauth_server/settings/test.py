@@ -17,3 +17,13 @@ OFFLINE = True
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
 # REQUIRE_HTTPS_REDIRECT_URIS = True
 BLOCK_HTTP_REDIRECT_URIS = False
+
+OAUTH2_PROVIDER = {
+    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.'
+                              'SingleAccessTokenValidator',
+    'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
+    'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
+    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
+}
+# http required in ALLOWED_REDIRECT_URI_SCHEMES for tests to function correctly
