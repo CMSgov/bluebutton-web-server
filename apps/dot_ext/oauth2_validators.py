@@ -99,14 +99,11 @@ class RedirectURIValidator(URIValidator):
 
         # Fix the mobile endpoint validation
         # Allow 2 character alpha plus 8 numerics
-        regex = getattr(settings,
-                        'OAUTH2_MOBILE_REDIRECT_REGEX',
-                        r'\b[a-zA-Z]{2}[0-9]{8}\b')
-        if re.findall(regex, scheme.lower()):
+        if scheme.lower() in self.allowed_schemes:
             pass
+
         elif scheme.lower() not in self.allowed_schemes:
-            raise ValidationError('Redirect URI scheme '
-                                  'is not allowed. %s' % scheme.lower())
+            raise ValidationError('Invalid Redirect URI:[%s]' % scheme.lower())
 
 
 def validate_uris(value):
@@ -115,4 +112,33 @@ def validate_uris(value):
     """
     v = RedirectURIValidator(oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES)
     for uri in value.split():
-        v(uri)
+        regex = set_regex()
+        if compare_to_regex(regex, uri):
+            pass
+        else:
+            v(uri)
+
+
+def set_regex():
+    """
+    Set the regex value
+    :return:
+    """
+    regex = getattr(settings,
+                    'OAUTH2_MOBILE_REDIRECT_REGEX',
+                    r'\b[a-zA-Z]{2}[0-9]{8}\b')
+
+    return regex
+
+
+def compare_to_regex(regex, uri):
+    """
+
+    :param regex:
+    :param uri:
+    :return:
+    """
+    if re.findall(regex, uri):
+        return True
+    else:
+        return False
