@@ -62,6 +62,7 @@ def exportcsv(app_name, model_name, add_name):
 
 
 class Command(BaseCommand):
+
     help = ("Output the specified application.model as CSV")
 
     def add_arguments(self, parser):
