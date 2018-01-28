@@ -32,6 +32,7 @@ def exportcsv(app_name, model_name, add_name):
 
     :param app_name:
     :param model_name:
+    :param add_name:
     :return:
 
     export the CSV for a model, with header line
@@ -61,7 +62,7 @@ def exportcsv(app_name, model_name, add_name):
 
 
 class Command(BaseCommand):
-    help = ("Output the specified model as CSV")
+    help = ("Output the specified application.model as CSV")
 
     def add_arguments(self, parser):
         parser.add_argument('--application', help="application name")
