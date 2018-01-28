@@ -1,12 +1,15 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import re
+
 from django.utils import timezone
 from django.utils.timezone import timedelta
 
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
+from oauth2_provider.validators import URIValidator
 
 class SingleAccessTokenValidator(OAuth2Validator):
     """
@@ -75,3 +78,34 @@ class SingleAccessTokenValidator(OAuth2Validator):
                 access_token=access_token
             )
             refresh_token.save()
+
+
+class RedirectURIValidator(URIValidator):
+    def __init__(self, allowed_schemes):
+        self.allowed_schemes = allowed_schemes
+
+    def __call__(self, value):
+        super(RedirectURIValidator, self).__call__(value)
+        value = force_text(value)
+        if len(value.split('#')) > 1:
+            raise ValidationError('Redirect URIs must not contain fragments')
+        scheme, netloc, path, query, fragment = urlsplit(value)
+
+        # Fix the mobile endpoint validation
+        # Allow 2 character alpha plue 8 numerics
+        regex = getattr(settings,
+                        'OAUTH2_MOBILE_REDIRECT_REGEX',
+                        r'\b[a-zA-Z]{2}[0-9]{8}\b')
+        if not re.findall(regex, scheme.lower()):
+            raise ValidationError('mobile redirect does not match ??nnnnnnnn.')
+        elif scheme.lower() not in self.allowed_schemes:
+            raise ValidationError('Redirect URI scheme is not allowed.')
+
+
+def validate_uris(value):
+    """
+    This validator ensures that `value` contains valid blank-separated URIs"
+    """
+    v = RedirectURIValidator(oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES)
+    for uri in value.split():
+        v(uri)
