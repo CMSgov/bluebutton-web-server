@@ -102,10 +102,11 @@ class RedirectURIValidator(URIValidator):
         regex = getattr(settings,
                         'OAUTH2_MOBILE_REDIRECT_REGEX',
                         r'\b[a-zA-Z]{2}[0-9]{8}\b')
-        if not re.findall(regex, scheme.lower()):
-            raise ValidationError('mobile redirect does not match ??nnnnnnnn.')
+        if re.findall(regex, scheme.lower()):
+            pass
         elif scheme.lower() not in self.allowed_schemes:
-            raise ValidationError('Redirect URI scheme is not allowed.')
+            raise ValidationError('Redirect URI scheme '
+                                  'is not allowed. %s' % scheme.lower())
 
 
 def validate_uris(value):
