@@ -6,7 +6,6 @@ import re
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
-from django.utils.six.moves.urllib.parse import urlsplit
 from django.utils import timezone
 from django.utils.timezone import timedelta
 
@@ -15,6 +14,7 @@ from oauth2_provider.oauth2_validators import OAuth2Validator
 
 from oauth2_provider.validators import URIValidator
 from oauth2_provider.settings import oauth2_settings
+from oauth2_provider.validators import urlsplit
 
 
 class SingleAccessTokenValidator(OAuth2Validator):
@@ -98,7 +98,7 @@ class RedirectURIValidator(URIValidator):
         scheme, netloc, path, query, fragment = urlsplit(value)
 
         # Fix the mobile endpoint validation
-        # Allow 2 character alpha plue 8 numerics
+        # Allow 2 character alpha plus 8 numerics
         regex = getattr(settings,
                         'OAUTH2_MOBILE_REDIRECT_REGEX',
                         r'\b[a-zA-Z]{2}[0-9]{8}\b')
