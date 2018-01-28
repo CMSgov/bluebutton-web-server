@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.utils.encoding import force_text
+from django.utils.six.moves.urllib.parse import urlsplit
 from django.utils import timezone
 from django.utils.timezone import timedelta
 
@@ -10,6 +14,8 @@ from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
 from oauth2_provider.validators import URIValidator
+from oauth2_provider.settings import oauth2_settings
+
 
 class SingleAccessTokenValidator(OAuth2Validator):
     """
