@@ -19,7 +19,6 @@ from apps.fhir.bluebutton.utils import get_fhir_now
 
 import csv
 import sys
-from getenv import env
 
 import logging
 
@@ -33,6 +32,7 @@ def exportcsv(app_name, model_name, add_name):
 
     :param app_name:
     :param model_name:
+    :param add_name:
     :return:
 
     export the CSV for a model, with header line
@@ -64,11 +64,17 @@ def exportcsv(app_name, model_name, add_name):
 
 
 class Command(BaseCommand):
-    help = ("Output the specified model as CSV. model2csv {app}.{modelname}. "
-            "\n    export DJANGO_MODEL2CSV=add_table_name "
-            "to add app.table name "
-            "to output")
-    args = '[appname.ModelName]'
+
+    help = ("Output the specified application.model as CSV")
+
+    def add_arguments(self, parser):
+        parser.add_argument('--application', help="application name")
+
+        parser.add_argument('--model', help="model name")
+
+        parser.add_argument('--add_table_name', help="include table name"
+                                                     " and export time as "
+                                                     "columns: True | False")
 
     def add_arguments(self, parser):
         parser.add_argument('--application', help="application name")
