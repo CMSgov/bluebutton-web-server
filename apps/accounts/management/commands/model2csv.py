@@ -61,10 +61,7 @@ def exportcsv(app_name, model_name, add_name):
 
 
 class Command(BaseCommand):
-    help = ("Output the specified model as CSV. model2csv {app}.{modelname}. "
-            "\n    export DJANGO_MODEL2CSV=add_table_name to add app.table name "
-            "to output")
-    args = '[appname.ModelName]'
+    help = ("Output the specified model as CSV")
 
     def add_arguments(self, parser):
         parser.add_argument('--application', help="application name")
