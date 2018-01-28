@@ -50,6 +50,8 @@ def exportcsv(app_name, model_name, add_name):
     writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
     writer.writerow(model_field_names)
 
+    model_object = model.objects.all()
+
     for instance in model.objects.all():
         output = [str(getattr(instance, f)) for f in field_names]
         if add_name:
@@ -64,6 +66,15 @@ def exportcsv(app_name, model_name, add_name):
 class Command(BaseCommand):
 
     help = ("Output the specified application.model as CSV")
+
+    def add_arguments(self, parser):
+        parser.add_argument('--application', help="application name")
+
+        parser.add_argument('--model', help="model name")
+
+        parser.add_argument('--add_table_name', help="include table name"
+                                                     " and export time as "
+                                                     "columns: True | False")
 
     def add_arguments(self, parser):
         parser.add_argument('--application', help="application name")
