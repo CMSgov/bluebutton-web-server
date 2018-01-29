@@ -290,8 +290,11 @@ OAUTH2_PROVIDER = {
                               'SingleAccessTokenValidator',
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
-    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR'
+    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', ]
 }
+
+OAUTH2_MOBILE_REDIRECT_REGEX = r'\b[a-zA-Z]{2}[0-9]{8}\b'
 
 # These choices will be available in the expires_in field
 # of the oauth2 authorization page.
@@ -336,8 +339,6 @@ EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their
 EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 
 # LINKS TO DOCS
-USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
-USER_DOCS_TITLE = "User Documentation"
 DEVELOPER_DOCS_URI = "https://cmsgov.github.io/bluebutton-developer-help"
 DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
@@ -380,8 +381,6 @@ SETTINGS_EXPORT = [
     'STATIC_URL',
     'STATIC_ROOT',
     'MFA',
-    'USER_DOCS_URI',
-    'USER_DOCS_TITLE',
     'DEVELOPER_DOCS_URI',
     'DEVELOPER_DOCS_TITLE',
     'ORGANIZATION_TITLE',
@@ -512,7 +511,10 @@ OFFLINE = False
 EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'
 
 # Should be set to True in production and False in all other dev and test environments
-REQUIRE_HTTPS_REDIRECT_URIS = True
+# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
+# REQUIRE_HTTPS_REDIRECT_URIS = True
+BLOCK_HTTP_REDIRECT_URIS = False
+
 #
 # MyMedicare Authentication Integration
 #

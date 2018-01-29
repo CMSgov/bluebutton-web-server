@@ -54,11 +54,11 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def clean_redirect_uris(self):
         redirect_uris = self.cleaned_data.get('redirect_uris')
-        if getattr(settings, 'REQUIRE_HTTPS_REDIRECT_URIS', False):
+        if getattr(settings, 'BLOCK_HTTP_REDIRECT_URIS', True):
             if redirect_uris:
                 for u in redirect_uris.split():
-                    if not u.startswith("https://"):
-                        msg = _('Redirect URIs are required to use https.')
+                    if u.startswith("http://"):
+                        msg = _('Redirect URIs must not use http.')
                         raise forms.ValidationError(msg)
         return redirect_uris
 
