@@ -4,6 +4,9 @@ import apps.fhir.bluebutton.utils
 import apps.fhir.bluebutton.views.home
 from apps.fhir.bluebutton.views.home import (conformance_filter)
 from django.test import TestCase, RequestFactory
+from apps.test import BaseApiTest
+from django.test.client import Client
+from django.core.urlresolvers import reverse
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
@@ -18,6 +21,7 @@ class ConformanceReadRequestTest(TestCase):
     def setUp(self):
         # Setup the RequestFactory
         self.factory = RequestFactory()
+        self.client = Client()
 
     @patch('apps.fhir.bluebutton.utils.requests')
     def test_fhir_bluebutton_read_conformance_testcase(self, mock_requests):
@@ -61,3 +65,101 @@ class ConformanceReadRequestTest(TestCase):
             filter_works = True
 
         self.assertEqual(filter_works, True)
+
+
+class ThrottleReadRequestTest(BaseApiTest):
+
+    def setUp(self):
+        # create read and write capabilities
+        self.read_capability = self._create_capability('Read', [])
+        self.write_capability = self._create_capability('Write', [])
+        # Setup the RequestFactory
+        self.client = Client()
+
+    def create_token(self, first_name, last_name):
+        passwd = '123456'
+        user = self._create_user(first_name,
+                                 passwd,
+                                 first_name=first_name,
+                                 last_name=last_name,
+                                 email="%s@%s.net" % (first_name, last_name))
+        # create a oauth2 application and add capabilities
+        application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)
+        application.scope.add(self.read_capability, self.write_capability)
+        # get the first access token for the user 'john'
+        return self._get_access_token(first_name,
+                                      passwd,
+                                      application,
+                                      scope='read')
+
+    # See test settings for test throttle values
+    def test_read_throttle(self):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        response = self.client.get(
+            reverse(
+                'bb_oauth_fhir_read_or_update_or_delete',
+                kwargs={
+                    'resource_type': 'Patient',
+                    'resource_id': 12}),
+            Authorization="Bearer %s" % (first_access_token))
+
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(response.has_header("X-RateLimit-Limit"))
+        self.assertEqual(response.get("X-RateLimit-Limit"), "1")
+
+        self.assertTrue(response.has_header("X-RateLimit-Remaining"))
+        self.assertEqual(response.get("X-RateLimit-Remaining"), "0")
+
+        self.assertTrue(response.has_header("X-RateLimit-Reset"))
+        # 86400.0 is 24 hours
+        self.assertEqual(response.get("X-RateLimit-Reset"), '86400.0')
+
+        response = self.client.get(
+            reverse(
+                'bb_oauth_fhir_read_or_update_or_delete',
+                kwargs={
+                    'resource_type': 'Patient',
+                    'resource_id': 12}),
+            Authorization="Bearer %s" % (first_access_token))
+
+        self.assertEqual(response.status_code, 429)
+        # Assert that the proper headers are in place
+        self.assertTrue(response.has_header("X-RateLimit-Limit"))
+        self.assertEqual(response.get("X-RateLimit-Limit"), "1")
+
+        self.assertTrue(response.has_header("X-RateLimit-Remaining"))
+        self.assertEqual(response.get("X-RateLimit-Remaining"), "0")
+
+        self.assertTrue(response.has_header("X-RateLimit-Reset"))
+        # 86400.0 is 24 hours
+        self.assertTrue(float(response.get("X-RateLimit-Reset")) < 86400.0)
+
+        self.assertTrue(response.has_header("Retry-After"))
+        self.assertEqual(response.get("Retry-After"), "86400")
+
+        # Assert that the search endpoint is also ratelimited
+        response = self.client.get(
+            reverse(
+                'bb_oauth_fhir_search',
+                kwargs={
+                    'resource_type': 'Patient'}),
+            Authorization="Bearer %s" % (first_access_token))
+
+        self.assertEqual(response.status_code, 429)
+
+        # Assert that another token is not rate limited
+        second_access_token = self.create_token('Bob', 'Bobbington')
+        self.assertFalse(second_access_token == first_access_token)
+
+        response = self.client.get(
+            reverse(
+                'bb_oauth_fhir_read_or_update_or_delete',
+                kwargs={
+                    'resource_type': 'Patient',
+                    'resource_id': 12}),
+            Authorization="Bearer %s" % (second_access_token))
+
+        self.assertEqual(response.status_code, 403)

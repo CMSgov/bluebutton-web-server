@@ -14,11 +14,16 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         post_process_request,
                                         get_response_text)
 
+from rest_framework.decorators import throttle_classes, api_view
+from apps.dot_ext.throttling import TokenRateThrottle
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @require_valid_token()
+@api_view(['GET'])
+@throttle_classes([TokenRateThrottle])
 def search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server

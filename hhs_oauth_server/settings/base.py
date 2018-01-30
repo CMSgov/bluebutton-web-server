@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
+
     # 1st Party (in-house) ----------
     'apps.accounts',
     'apps.capabilities',
@@ -77,6 +79,12 @@ INSTALLED_APPS = [
     'oauth2_provider',
 
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_RATES': {
+        'token': None,
+    },
+}
 
 # Used for testing for optional apps in templates without causing a crash
 # used in SETTINGS_EXPORT below.
@@ -103,6 +111,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'apps.dot_ext.throttling.ThrottleMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
@@ -134,6 +143,13 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
+
+CACHES = {
+    'default': {
+        'BACKEND': os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
+        'LOCATION': os.environ.get('CACHE_LOCATION', 'unique-snowflake'),
+    },
+}
 
 # database configuration
 if os.environ.get('DATABASES_CUSTOM'):
