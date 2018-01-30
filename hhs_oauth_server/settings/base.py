@@ -488,7 +488,8 @@ MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI ',
                          'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
 MEDICARE_REDIRECT_URI = env(
     'DJANGO_MEDICARE_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
-
+SLS_USERINFO_ENDPOINT  = env(
+    'DJANGO_SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 
