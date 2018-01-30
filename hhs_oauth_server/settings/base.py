@@ -290,8 +290,11 @@ OAUTH2_PROVIDER = {
                               'SingleAccessTokenValidator',
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
-    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR'
+    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', ]
 }
+
+OAUTH2_MOBILE_REDIRECT_REGEX = r'\b[a-zA-Z]{2}[0-9]{8}\b'
 
 # These choices will be available in the expires_in field
 # of the oauth2 authorization page.
@@ -485,7 +488,8 @@ MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI ',
                          'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
 MEDICARE_REDIRECT_URI = env(
     'DJANGO_MEDICARE_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
-
+SLS_USERINFO_ENDPOINT = env(
+    'DJANGO_SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 
@@ -508,7 +512,10 @@ OFFLINE = False
 EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'
 
 # Should be set to True in production and False in all other dev and test environments
-REQUIRE_HTTPS_REDIRECT_URIS = True
+# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
+# REQUIRE_HTTPS_REDIRECT_URIS = True
+BLOCK_HTTP_REDIRECT_URIS = False
+
 #
 # MyMedicare Authentication Integration
 #

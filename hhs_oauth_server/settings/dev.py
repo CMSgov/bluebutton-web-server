@@ -50,4 +50,6 @@ FHIR_SERVER_CONF = {
 }
 
 # Should be set to True in production and False in all other dev and test environments
-REQUIRE_HTTPS_REDIRECT_URIS = False
+# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
+# REQUIRE_HTTPS_REDIRECT_URIS = True
+BLOCK_HTTP_REDIRECT_URIS = False
