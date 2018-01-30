@@ -11,8 +11,6 @@ from pytz import timezone
 
 from django.conf import settings
 from django.contrib import messages
-from .opoutcome_utils import (kickout_403,
-                              kickout_404)
 from apps.fhir.server.models import (SupportedResourceType,
                                      ResourceRouter)
 
@@ -25,13 +23,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
-
-
-def is_oauth2(request):
-    """Is the request OAuth2 or not.  Return True or False."""
-    if hasattr(request, 'resource_owner'):
-        return True
-    return False
 
 
 def get_user_from_request(request):
@@ -182,7 +173,7 @@ def generate_info_headers(request):
     return result
 
 
-def request_call(request, call_url, cx=None, timeout=None):
+def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
     cx = Crosswalk record. The crosswalk is keyed off Request.user
@@ -220,12 +211,14 @@ def request_call(request, call_url, cx=None, timeout=None):
         if timeout:
             r = requests.get(call_url,
                              cert=cert,
+                             params=get_parameters,
                              timeout=timeout,
                              headers=header_info,
                              verify=verify_state)
         else:
             r = requests.get(call_url,
                              cert=cert,
+                             params=get_parameters,
                              headers=header_info,
                              verify=verify_state)
 
@@ -281,11 +274,9 @@ def request_get_with_parms(request,
     call_url = target server URL and search parameters to be sent
     cx = Crosswalk record. The crosswalk is keyed off Request.user
     timoeout allows a timeout in seconds to be set.
-
     FhirServer is joined to Crosswalk.
     FhirServerAuth and FhirServerVerify receive cx and lookup
        values in the linked fhir_server model.
-
     """
 
     # Updated to receive cx (Crosswalk entry for user)
@@ -388,25 +379,6 @@ def notNone(value=None, default=None):
         return value
 
 # Mark for removal ...remove related settings from base.
-
-
-def block_params(get, srtc):
-    """ strip parameters from search string - get is a dict """
-
-    # Get parameters
-    # split on &
-    # get srtc.search_block as list
-    if get:
-        # set search_params to what is received as a default
-        search_params = get
-    else:
-        return ''
-
-    # Now we need to see if there are any get parameters to remove
-    if srtc and srtc.override_search:
-        search_params = get_url_query_string(get, srtc.get_search_block())
-
-    return search_params
 
 
 def get_url_query_string(get, skip_parm=[]):
@@ -522,33 +494,6 @@ def FhirServerUrl(server=None, path=None, release=None):
     return result
 
 
-def check_access_interaction_and_resource_type(resource_type, intn_type, rr):
-    """ usage is deny = check_access_interaction_and_resource_type()
-    :param
-    resource_type: resource
-    intn_type: interaction type
-    rr: ResourceRouter
-    """
-
-    try:
-        rt = SupportedResourceType.objects.get(resourceType=resource_type,
-                                               fhir_source=rr)
-        # force comparison to lower case to make case insensitive check
-        if str(intn_type).lower() not in rt.get_supported_interaction_types():
-            msg = 'The interaction: %s is not permitted on %s FHIR ' \
-                  'resources on this FHIR sever.' % (intn_type,
-                                                     resource_type)
-            logger_debug.debug(msg="%s:%s" % ("403", msg))
-            return kickout_403(msg)
-    except SupportedResourceType.DoesNotExist:
-        msg = '%s is not a supported resource ' \
-              'type on this FHIR server.' % resource_type
-        logger_debug.debug(msg="%s:%s" % ("404", msg))
-        return kickout_404(msg)
-
-    return False
-
-
 def check_rt_controls(resource_type, rr=None):
     # Check for controls to apply to this resource_type
     # logger.debug('Resource_Type =%s' % resource_type)
@@ -576,30 +521,6 @@ def masked(srtc=None):
             mask = True
 
     return mask
-
-
-def masked_id(res_type,
-              crosswalk=None,
-              srtc=None,
-              orig_id=None,
-              slash=True):
-    """ Get the correct id
-     if crosswalk.fhir_source.shard_by == resource_type
-
-     """
-    id = str(orig_id)
-    if srtc:
-        if srtc.override_url_id:
-            if crosswalk:
-                if res_type.lower() == crosswalk.fhir_source.shard_by.lower():
-                    # logger.debug('Replacing %s
-                    # with %s' % (id, crosswalk.fhir_id))
-                    id = crosswalk.fhir_id
-
-    if slash:
-        id += '/'
-
-    return id
 
 
 def mask_with_this_url(request, host_path='', in_text='', find_url=''):
@@ -656,19 +577,6 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         in_text = mask_with_this_url(request, host_path, in_text, kill_url)
 
     return in_text
-
-
-def get_fhir_id(cx=None):
-    """
-    Get the fhir_id from crosswalk
-    :param cx:
-    :return: fhir_id or None
-    """
-
-    if cx is None:
-        return None
-    else:
-        return cx.fhir_id
 
 
 def get_host_url(request, resource_type=''):
@@ -738,26 +646,6 @@ def prepend_q(pass_params):
     return pass_params
 
 
-def get_default_path(resource_name, cx=None):
-    """ Get default Path for resource """
-
-    if cx:
-        default_path = cx.fhir_source.fhir_url
-    else:
-        try:
-            rr = get_resourcerouter()
-            default_path = rr.fhir_url
-
-        except ResourceRouter.DoesNotExist:
-            # use the default FHIR Server URL
-            default_path = FhirServerUrl()
-            logger_debug.debug("\nNO MATCH for %s. "
-                               "Setting to:%s" % (resource_name,
-                                                  default_path))
-
-    return default_path
-
-
 def dt_patient_reference(user):
     """ Get Patient Reference from Crosswalk for user """
 
@@ -788,19 +676,13 @@ def get_crosswalk(user):
     """ Receive Request.user and use as lookup in Crosswalk
         Return Crosswalk or None
     """
-    # Don't do a lookup if user is not defined
-    if user is None:
+
+    if user is None or user.is_anonymous():
         return None
 
-    if user.is_anonymous():
-        return None
-
-    # Don't do a lookup on a user who is not logged in
     try:
         patient = Crosswalk.objects.get(user=user)
-
         return patient
-
     except Crosswalk.DoesNotExist:
         pass
 
