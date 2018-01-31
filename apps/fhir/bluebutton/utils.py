@@ -210,7 +210,7 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
     header_detail['BlueButton-BackendCall'] = call_url
 
     # TODO: send header info to performance log
-    logger_perf(header_detail)
+    logger_perf.info(header_detail)
 
     try:
         if timeout:
@@ -232,7 +232,7 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
 
         header_detail['BlueButton-BackendResponse'] = r.status_code
 
-        logger_perf(header_detail)
+        logger_perf.info(header_detail)
 
         fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
 
