@@ -9,7 +9,9 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
 from apps.capabilities.models import ProtectedCapability
+from oauth2_provider.settings import oauth2_settings
 from .oauth2_validators import set_regex, compare_to_regex
+from oauth2_provider.validators import urlsplit
 
 __author__ = "Alan Viars"
 
@@ -56,30 +58,53 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'authorization_grant_type')
         redirect_uris = self.cleaned_data.get('redirect_uris')
 
-        # Public clients dont use authorization-cod flow
+        msg = ""
+        validate_error = False
+        # Public clients don't use authorization-code flow
         if client_type == 'public' and authorization_grant_type == 'authorization-code':
-            msg = _(
-                'A public client may not request an authorization-code grant type.')
-            raise forms.ValidationError(msg)
+            validate_error = True
+            msg += 'A public client may not request ' \
+                   'an authorization-code grant type.'
 
         # Confidential clients cannot use implicit authorization_grant_type
         if client_type == 'confidential' and authorization_grant_type == 'implicit':
-            msg = _('A confidential client may not request an implicit grant type.')
-            raise forms.ValidationError(msg)
+            validate_error = True
+            msg += 'A confidential client may not ' \
+                   'request an implicit grant type.'
 
         # Confidential clients cannot use implicit authorization_grant_type
         if client_type == 'confidential' and authorization_grant_type == 'implicit':
-            msg = _('A confidential client may not request an implicit grant type.')
-            raise forms.ValidationError(msg)
+            validate_error = True
+            msg += 'A confidential client may not ' \
+                   'request an implicit grant type.'
 
         # Native mobile applications using RCF 8252 must supply https or
         # LL00000000
         for uri in redirect_uris.split():
+            scheme, netloc, path, query, fragment = urlsplit(uri)
+
+            valid_schemes = get_allowed_schemes()
+
             regex = set_regex()
-            if compare_to_regex(regex, uri) or not uri.startswith("https://"):
-                msg = _(
-                    'Redirect URIs for native mobile applications must use https:// or ??00000000:://.')
-                raise forms.ValidationError(msg)
+            if compare_to_regex(regex, scheme):
+                validate_error = False
+            elif scheme in valid_schemes:
+                validate_error = False
+            else:
+                validate_error = True
+
+            if validate_error:
+                msg += '%s is an invalid scheme. ' \
+                       'Redirect URIs for native mobile ' \
+                       ' applications must use %s or ' \
+                       '??00000000:://.' % (scheme, ', '.join(valid_schemes))
+
+        if validate_error:
+            msg_output = _(msg)
+            raise forms.ValidationError(msg_output)
+        else:
+            pass
+
         return self.cleaned_data
 
     def clean_client_type(self):
@@ -88,7 +113,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'authorization_grant_type')
         if client_type == 'public' and authorization_grant_type == 'authorization-code':
             msg = _(
-                'A public client may not request an authorization-code grant type.')
+                'A public client may not request an '
+                'authorization-code grant type.')
             raise forms.ValidationError(msg)
         return client_type
 
@@ -144,3 +170,16 @@ class AllowForm(DotAllowForm):
             choices = [(scope, all_scopes[scope])
                        for scope in available_scopes]
             self.fields['scope'].choices = choices
+
+
+def get_allowed_schemes():
+    """
+    get allowed_schemes set in OAUTH2_PROVIDER.ALLOWED_REDIRECT_URI_SCHEMES
+    :return: list
+    """
+    if oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES:
+        valid_list = oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES
+    else:
+        valid_list = ['https', ]
+
+    return valid_list
