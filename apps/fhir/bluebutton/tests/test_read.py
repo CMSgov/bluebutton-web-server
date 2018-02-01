@@ -92,7 +92,6 @@ class ThrottleReadRequestTest(BaseApiTest):
                                       application,
                                       scope='read')
 
-    # See test settings for test throttle values
     @patch('apps.dot_ext.throttling.TokenRateThrottle.get_rate')
     def test_read_throttle(self,
                            mock_rates):

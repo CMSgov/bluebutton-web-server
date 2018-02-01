@@ -82,7 +82,7 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
-        'token': env('TOKEN_THROTTLE_RATE', None),
+        'token': env('TOKEN_THROTTLE_RATE', '100000/s'),
     },
 }
 
