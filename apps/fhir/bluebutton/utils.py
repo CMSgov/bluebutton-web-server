@@ -387,53 +387,6 @@ def notNone(value=None, default=None):
     else:
         return value
 
-# Mark for removal ...remove related settings from base.
-
-
-def get_url_query_string(get, skip_parm=[]):
-    """
-    Receive the request.GET Query Dict
-    Evaluate against skip_parm by skipping any entries in skip_parm
-    Return a query string ready to pass to a REST API.
-    http://hl7-fhir.github.io/search.html#all
-
-    # We need to force the key to lower case and skip params should be
-    # lower case too
-
-    eg. _lastUpdated=>2010-10-01&_tag=http://acme.org/codes|needs-review
-
-    :param get: {}
-    :param skip_parm: []
-    :return: Query_String (QS)
-    """
-    # logger.debug('Evaluating: %s to remove:%s' % (get, skip_parm))
-
-    filtered_dict = OrderedDict()
-
-    # Check we got a get dict
-    if not get:
-        return filtered_dict
-    if not isinstance(get, dict):
-        return filtered_dict
-
-    # Now we work through the parameters
-
-    for k, v in get.items():
-
-        logger_debug.debug('K/V: [%s/%s]' % (k, v))
-
-        if k in skip_parm:
-            pass
-        else:
-            # Build the query_string
-            filtered_dict[k] = v
-
-    # qs = urlencode(filtered_dict)
-    qs = filtered_dict
-
-    # logger.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
-    return qs
-
 
 def FhirServerAuth(cx=None):
     # Get default clientauth settings from base.py
