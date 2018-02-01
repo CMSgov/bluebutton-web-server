@@ -1,12 +1,11 @@
-from django.http import HttpResponse, JsonResponse
-import json
+from django.http import JsonResponse
 import logging
 
 from ..constants import ALLOWED_RESOURCE_TYPES
 from ..decorators import require_valid_token
 from ..errors import build_error_response, method_not_allowed
 
-from apps.fhir.bluebutton.utils import (request_get_with_parms,
+from apps.fhir.bluebutton.utils import (request_get_with_params,
                                         build_rewrite_list,
                                         get_crosswalk,
                                         get_host_url,
@@ -64,26 +63,26 @@ def search(request, resource_type, *args, **kwargs):
     elif resource_type == 'Patient':
         get_parameters['_id'] = ''
 
-    r = request_get_with_parms(request,
-                               target_url,
-                               get_parameters,
-                               crosswalk,
-                               timeout=resource_router.wait_time)
+    response = request_get_with_params(request,
+                                       target_url,
+                                       get_parameters,
+                                       crosswalk,
+                                       timeout=resource_router.wait_time)
 
-    if r.status_code >= 300:
-        logger.debug("We have an error code to deal with: %s" % r.status_code)
-        return HttpResponse(json.dumps(r._content),
-                            status=r.status_code,
-                            content_type='application/json')
+    if response.status_code >= 300:
+        logger.debug("We have an error code to deal with: %s" % response.status_code)
+        return build_error_response(response.status_code,
+                                    'An error occurred while contacting our data server',
+                                    details=response._content)
 
     rewrite_list = build_rewrite_list(crosswalk)
     host_path = get_host_url(request, resource_type)[:-1]
 
-    text_in = get_response_text(fhir_response=r)
+    text_in = get_response_text(fhir_response=response)
 
-    text_out = post_process_request(request,
+    out_data = post_process_request(request,
                                     host_path,
                                     text_in,
                                     rewrite_list)
 
-    return JsonResponse(text_out)
+    return JsonResponse(out_data)
