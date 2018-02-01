@@ -93,7 +93,10 @@ class ThrottleReadRequestTest(BaseApiTest):
                                       scope='read')
 
     # See test settings for test throttle values
-    def test_read_throttle(self):
+    @patch('apps.dot_ext.throttling.TokenRateThrottle.get_rate')
+    def test_read_throttle(self,
+                           mock_rates):
+        mock_rates.return_value = '1/day'
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 

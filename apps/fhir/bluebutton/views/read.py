@@ -3,7 +3,7 @@ import logging
 
 from ..constants import ALLOWED_RESOURCE_TYPES
 from ..decorators import require_valid_token
-from ..errors import build_error_response, method_not_allowed
+from ..errors import build_error_response
 
 from apps.fhir.bluebutton.utils import (request_call,
                                         get_host_url,
@@ -31,9 +31,6 @@ def read(request, resource_type, resource_id, *args, **kwargs):
     logger.debug("resource_type: %s" % resource_type)
     logger.debug("Interaction: read")
     logger.debug("Request.path: %s" % request.path)
-
-    if request.method != 'GET':
-        return method_not_allowed(['GET'])
 
     if resource_type not in ALLOWED_RESOURCE_TYPES:
         logger.info('User requested read access to the %s resource type' % resource_type)

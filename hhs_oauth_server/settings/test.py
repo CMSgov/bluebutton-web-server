@@ -27,9 +27,4 @@ OAUTH2_PROVIDER = {
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
 }
 
-REST_FRAMEWORK = {
-    'DEFAULT_THROTTLE_RATES': {
-        'token': '1/day',
-    },
-}
 # http required in ALLOWED_REDIRECT_URI_SCHEMES for tests to function correctly
