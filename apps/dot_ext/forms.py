@@ -9,6 +9,7 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
 from apps.capabilities.models import ProtectedCapability
+from .oauth2_validators import set_regex, compare_to_regex
 
 __author__ = "Alan Viars"
 
@@ -21,19 +22,23 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
         choices = []
         groups = user.groups.values_list('id', flat=True)
+        pcs = None
         for g in groups:
             pcs = ProtectedCapability.objects.filter(group=g)
             for i in pcs:
                 choices.append([i.pk, i.title])
         self.fields['scope'].choices = choices
         self.fields['scope'].label = "Scope*"
+        if pcs:
+            self.fields['scope'].initial = pcs
         self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
         self.fields['client_type'].initial = 'confidential'
         self.fields['agree'].label = mark_safe(agree_label)
         self.fields['name'].label = "Name*"
         self.fields['name'].required = True
         self.fields['client_type'].label = "Client Type*"
-        self.fields['authorization_grant_type'].label = "Authorization Grant Type*"
+        self.fields[
+            'authorization_grant_type'].label = "Authorization Grant Type*"
         self.fields['redirect_uris'].label = "Redirect URIs*"
 
     class Meta:
@@ -45,10 +50,52 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     required_css_class = 'required'
 
+    def clean(self):
+        client_type = self.cleaned_data.get('client_type')
+        authorization_grant_type = self.cleaned_data.get(
+            'authorization_grant_type')
+        redirect_uris = self.cleaned_data.get('redirect_uris')
+
+        # Public clients dont use authorization-cod flow
+        if client_type == 'public' and authorization_grant_type == 'authorization-code':
+            msg = _(
+                'A public client may not request an authorization-code grant type.')
+            raise forms.ValidationError(msg)
+
+        # Confidential clients cannot use implicit authorization_grant_type
+        if client_type == 'confidential' and authorization_grant_type == 'implicit':
+            msg = _('A confidential client may not request an implicit grant type.')
+            raise forms.ValidationError(msg)
+
+        # Confidential clients cannot use implicit authorization_grant_type
+        if client_type == 'confidential' and authorization_grant_type == 'implicit':
+            msg = _('A confidential client may not request an implicit grant type.')
+            raise forms.ValidationError(msg)
+
+        # Native mobile applications using RCF 8252 must supply https or
+        # LL00000000
+        for uri in redirect_uris.split():
+            regex = set_regex()
+            if compare_to_regex(regex, uri) or not uri.startswith("https://"):
+                msg = _(
+                    'Redirect URIs for native mobile applications must use https:// or ??00000000:://.')
+                raise forms.ValidationError(msg)
+        return self.cleaned_data
+
+    def clean_client_type(self):
+        client_type = self.cleaned_data.get('client_type')
+        authorization_grant_type = self.cleaned_data.get(
+            'authorization_grant_type')
+        if client_type == 'public' and authorization_grant_type == 'authorization-code':
+            msg = _(
+                'A public client may not request an authorization-code grant type.')
+            raise forms.ValidationError(msg)
+        return client_type
+
     def clean_agree(self):
         agree = self.cleaned_data.get('agree')
         if not agree:
-            msg = _('You must agree to the API Terms of Service Agreement"')
+            msg = _('You must agree to the API Terms of Service Agreement')
             raise forms.ValidationError(msg)
         return agree
 
