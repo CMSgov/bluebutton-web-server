@@ -23,7 +23,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
 logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
 logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
-logger_perf = logging.getLogger('performance.%s' % __name__)
+logger_perf = logging.getLogger('performance')
 
 
 def get_user_from_request(request):
@@ -209,7 +209,6 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
     header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
     header_detail['BlueButton-BackendCall'] = call_url
 
-    # TODO: send header info to performance log
     logger_perf.info(header_detail)
 
     try:
