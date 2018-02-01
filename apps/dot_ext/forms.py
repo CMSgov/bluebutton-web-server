@@ -86,8 +86,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         client_type = self.cleaned_data.get('client_type')
         authorization_grant_type = self.cleaned_data.get(
             'authorization_grant_type')
-
-        print(client_type, authorization_grant_type)
         if client_type == 'public' and authorization_grant_type == 'authorization-code':
             msg = _(
                 'A public client may not request an authorization-code grant type.')
