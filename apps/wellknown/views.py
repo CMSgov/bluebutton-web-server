@@ -4,18 +4,10 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from collections import OrderedDict
 from django.conf import settings
-from django.core.urlresolvers import reverse
-
+from .itils import reverse_wo_trailing_slash
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 __author__ = "Alan Viars"
-
-
-def reverse_sin_trailing_slash(s):
-    url = reverse(s)
-    if url.endswith('/'):
-        url = url[:-1]
-    return url
 
 
 @require_GET
@@ -66,11 +58,11 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     """
     data["issuer"] = issuer
     data["authorization_endpoint"] = issuer + \
-        reverse_sin_trailing_slash('oauth2_provider:authorize')
+        reverse_wo_trailing_slash('oauth2_provider:authorize')
     data["token_endpoint"] = issuer + \
-        reverse_sin_trailing_slash('oauth2_provider:token')
+        reverse_wo_trailing_slash('oauth2_provider:token')
     data["userinfo_endpoint"] = issuer + \
-        reverse_sin_trailing_slash('openid_connect_userinfo')
+        reverse_wo_trailing_slash('openid_connect_userinfo')
     data["ui_locales_supported"] = ["en-US", ]
     data["service_documentation"] = getattr(settings,
                                             'DEVELOPER_DOCS_URI',
@@ -82,5 +74,5 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     data["grant_types_supported"].append("refresh_token")
     data["response_types_supported"] = ["code", "token"]
     data["fhir_metadata_uri"] = issuer + \
-        reverse_sin_trailing_slash('fhir_conformance_metadata')
+        reverse_wo_trailing_slash('fhir_conformance_metadata')
     return data
