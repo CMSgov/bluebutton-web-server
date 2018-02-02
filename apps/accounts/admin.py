@@ -61,7 +61,7 @@ admin.site.register(RequestInvite, RequestInviteAdmin)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'name', 'user_type', 'organization_name')
     search_fields = ('user__username', 'user__email', 'user__first_name',
-                     'user_last_name', 'user_type', 'organization_name')
+                     'user__last_name', 'user_type', 'organization_name')
     raw_id_fields = ("user", )
 
 
