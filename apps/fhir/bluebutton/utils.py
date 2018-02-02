@@ -320,6 +320,14 @@ def request_get_with_parms(request,
     for k, v in search_params.items():
         logger.debug("\nkey:%s - value:%s" % (k, v))
 
+    header_info = generate_info_headers(request)
+    header_detail = header_info
+    header_detail['BlueButton-OriginalUrl'] = request.path
+    header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
+    header_detail['BlueButton-BackendCall'] = call_url
+
+    logger_perf.info(header_detail)
+
     try:
         if timeout:
             r = requests.get(call_url,
@@ -335,6 +343,10 @@ def request_get_with_parms(request,
 
         logger.debug("Request.get:%s" % call_url)
         logger.debug("Status of Request:%s" % r.status_code)
+
+        header_detail['BlueButton-BackendResponse'] = r.status_code
+
+        logger_perf.info(header_detail)
 
         fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
 
