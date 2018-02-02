@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from collections import OrderedDict
 from django.conf import settings
-from .itils import reverse_wo_trailing_slash
+from .utils import reverse_wo_trailing_slash
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 __author__ = "Alan Viars"
