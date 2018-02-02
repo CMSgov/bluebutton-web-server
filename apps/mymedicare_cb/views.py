@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import login
 import requests
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter, FhirServerAuth
@@ -33,7 +33,11 @@ def callback(request):
     verify_ssl = getattr(settings, 'SLS_VERIFY_SSL', False)
     code = request.GET.get('code')
     state = request.GET.get('state')
-    aus = AnonUserState.objects.get(state=state)
+    try:
+        aus = AnonUserState.objects.get(state=state)
+    except AnonUserState.DoesNotExist:
+        return JsonResponse({"error": "your OAuth2 client application must supply a state code."},
+                            status=400)
     next_uri = aus.next_uri
     token_dict = {
         "grant_type": "authorization_code",

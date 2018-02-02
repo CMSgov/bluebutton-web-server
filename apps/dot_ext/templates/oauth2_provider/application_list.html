@@ -33,11 +33,10 @@
                     <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a> | Updated {{application.updated}}
                 {% endfor %}
             </ul>
-
-            <a class="ds-c-button  ds-c-button--default"  href="{% url "oauth2_provider:register" %}"> Register New Application</a>
         {% else %}
-            <p>{% trans "No applications defined. Register a New Application:" %}</p>
+            <p>{% trans "No applications defined." %}</p>
         {% endif %}
+           <a class="ds-c-button  ds-c-button--default"  href="{% url "oauth2_provider:register" %}"> Register New Application</a>    
     </div>
     <br><br>
 {% endblock content %}

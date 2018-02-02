@@ -24,11 +24,14 @@
                 <p><pre>{{ application.client_id }}</pre></p>
             </li>
 
-            <li>
-                <p><b>{% trans "Client Secret" %}</b></p>
-                <p><pre>{{ application.client_secret }}</pre></p>
-            </li>
-
+                <li>
+                    <p><b>{% trans "Client Secret" %}</b></p>
+                    {% if application.client_type == "confidential" %}
+                        <p><pre>{{ application.client_secret }}</pre></p>
+                    {% else %}
+                        <p><pre>This value is not used when using a public client.</pre></p>
+                    {% endif%}
+                </li>
             <li>
                 <p><b>{% trans "Client Type" %}</b></p>
                 <p><pre>{{ application.client_type }}</pre></p>
