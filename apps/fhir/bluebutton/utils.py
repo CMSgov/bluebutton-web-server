@@ -333,12 +333,14 @@ def request_get_with_parms(request,
             r = requests.get(call_url,
                              params=search_params,
                              cert=cert,
+                             headers=header_info,
                              timeout=timeout,
                              verify=verify_state)
         else:
             r = requests.get(call_url,
                              params=search_params,
                              cert=cert,
+                             headers=header_info,
                              verify=verify_state)
 
         logger.debug("Request.get:%s" % call_url)
