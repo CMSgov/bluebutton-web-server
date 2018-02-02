@@ -103,11 +103,11 @@ class ThrottleReadRequestTest(BaseApiTest):
             reverse(
                 'bb_oauth_fhir_read_or_update_or_delete',
                 kwargs={
-                    'resource_type': 'Patient',
+                    'resource_type': 'Nothing',
                     'resource_id': 12}),
             Authorization="Bearer %s" % (first_access_token))
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
 
         self.assertTrue(response.has_header("X-RateLimit-Limit"))
         self.assertEqual(response.get("X-RateLimit-Limit"), "1")
@@ -123,7 +123,7 @@ class ThrottleReadRequestTest(BaseApiTest):
             reverse(
                 'bb_oauth_fhir_read_or_update_or_delete',
                 kwargs={
-                    'resource_type': 'Patient',
+                    'resource_type': 'Nothing',
                     'resource_id': 12}),
             Authorization="Bearer %s" % (first_access_token))
 
@@ -147,7 +147,7 @@ class ThrottleReadRequestTest(BaseApiTest):
             reverse(
                 'bb_oauth_fhir_search',
                 kwargs={
-                    'resource_type': 'Patient'}),
+                    'resource_type': 'Nothing'}),
             Authorization="Bearer %s" % (first_access_token))
 
         self.assertEqual(response.status_code, 429)
@@ -160,8 +160,8 @@ class ThrottleReadRequestTest(BaseApiTest):
             reverse(
                 'bb_oauth_fhir_read_or_update_or_delete',
                 kwargs={
-                    'resource_type': 'Patient',
+                    'resource_type': 'Nothing',
                     'resource_id': 12}),
             Authorization="Bearer %s" % (second_access_token))
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
