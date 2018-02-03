@@ -52,7 +52,7 @@ def search(request, resource_type, *args, **kwargs):
         '_format': 'application/json+fhir'
     }
 
-    patient_id = '' if resource_type == 'Patient' else crosswalk.fhir_id
+    patient_id = crosswalk.fhir_id
 
     if 'patient' in request.GET and request.GET['patient'] != patient_id:
         return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
@@ -64,7 +64,7 @@ def search(request, resource_type, *args, **kwargs):
         if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
             return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
     elif resource_type == 'Patient':
-        get_parameters['_id'] = ''
+        get_parameters['_id'] = patient_id
 
     r = request_get_with_parms(request,
                                target_url,
