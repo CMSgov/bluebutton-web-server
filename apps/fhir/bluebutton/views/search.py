@@ -4,7 +4,7 @@ import logging
 
 from ..constants import ALLOWED_RESOURCE_TYPES
 from ..decorators import require_valid_token
-from ..errors import build_error_response, method_not_allowed
+from ..errors import build_error_response
 
 from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         build_rewrite_list,
@@ -14,11 +14,16 @@ from apps.fhir.bluebutton.utils import (request_get_with_parms,
                                         post_process_request,
                                         get_response_text)
 
+from rest_framework.decorators import throttle_classes, api_view
+from apps.dot_ext.throttling import TokenRateThrottle
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @require_valid_token()
+@api_view(['GET'])
+@throttle_classes([TokenRateThrottle])
 def search(request, resource_type, *args, **kwargs):
     """
     Search from Remote FHIR Server
@@ -27,9 +32,6 @@ def search(request, resource_type, *args, **kwargs):
     logger.debug("resource_type: %s" % resource_type)
     logger.debug("Interaction: search. ")
     logger.debug("Request.path: %s" % request.path)
-
-    if request.method != 'GET':
-        return method_not_allowed(['GET'])
 
     if resource_type not in ALLOWED_RESOURCE_TYPES:
         logger.info('User requested search access to the %s resource type' % resource_type)
