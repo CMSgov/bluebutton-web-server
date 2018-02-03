@@ -27,6 +27,7 @@ django-ses==0.7.1
 django-settings-export==1.1.0
 django-storages==1.5.1
 django==1.11.9
+djangorestframework==3.7.7
 docutils==0.14            # via botocore
 flake8==2.6.0
 idna==2.6                 # via requests
