@@ -5,6 +5,7 @@ django-bootstrap-form
 django-cors-headers
 django-localflavor
 django-settings-export
+djangorestframework
 
 # support
 boto
