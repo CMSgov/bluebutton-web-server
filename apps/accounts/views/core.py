@@ -161,8 +161,9 @@ def create_account(request):
         # via GET paramters
         form_data = {'invitation_code': request.GET.get('invitation_code', ''),
                      'email': request.GET.get('email', '')}
-        messages.info(request,
-                      _("An invitation code is required to register."))
+        if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+            messages.info(request,
+                          _("An invitation code is required to register."))
         return render(request,
                       'generic/bootstrapform.html',
                       {'name': name, 'form': SignupForm(initial=form_data)})
