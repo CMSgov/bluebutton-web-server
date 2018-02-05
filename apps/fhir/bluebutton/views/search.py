@@ -25,6 +25,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 @api_view(['GET'])
 @throttle_classes([TokenRateThrottle])
 def search(request, resource_type, *args, **kwargs):
+    # reset request back to django.HttpRequest
+    request = request._request
     """
     Search from Remote FHIR Server
     """
