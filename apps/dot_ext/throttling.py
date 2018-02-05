@@ -31,7 +31,7 @@ class TokenRateThrottle(SimpleRateThrottle):
         # run this first to populate/update self.history, self.now, self.duration, self.num_requests
         result = super(TokenRateThrottle, self).allow_request(request, view)
         try:
-            request.META[HEADERS['Remaining']] = len(self.history) - self.num_requests
+            request.META[HEADERS['Remaining']] = self.num_requests - len(self.history)
             request.META[HEADERS['Limit']] = self.num_requests
             if self.history:
                 remaining_duration = self.duration - (self.now - self.history[-1])
