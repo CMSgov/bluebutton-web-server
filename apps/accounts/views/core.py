@@ -27,6 +27,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 @never_cache
 @ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
 def request_invite(request):
+    if not settings.REQUIRE_INVITE_TO_REGISTER:
+        return HttpResponseRedirect(reverse('accounts_create_account'))
     if request.method == 'POST':
         form = RequestInviteForm(request.POST)
         if form.is_valid():
