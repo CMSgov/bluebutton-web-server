@@ -34,7 +34,11 @@
                      TODO: need to move to css file with other button settings-->
                 <br/>
                 <a href="{% url 'forgot_password' %}">Forgot Password?</a> |
-                <a href="{% url 'request_invite' %}">{% trans "Request Invite" %}</a>
+                 {% if settings.REQUIRE_INVITE_TO_REGISTER %}
+                    <a href="{% url 'request_invite' %}">{% trans "Request Invite" %}</a>
+                 {% else %}
+                    <a href="{% url 'accounts_create_account' %}"> {% trans "Create an Account "%}</a>
+                 {% endif %}
             </form>
 
 {% endblock %}
