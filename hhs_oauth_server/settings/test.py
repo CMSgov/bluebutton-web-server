@@ -7,6 +7,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 REQUIRE_AUTHOIRZE_APP_FLAG = False
 AXES_COOLOFF_TIME = datetime.timedelta(seconds=60)
 AXES_FAILURE_LIMIT = 100
+# Travis tests will not be running behind a Load Balancer so set this to False
+AXES_BEHIND_REVERSE_PROXY = False
+
 LOGIN_RATE = '100/m'
 FHIR_SERVER_DEFAULT = 1
 
