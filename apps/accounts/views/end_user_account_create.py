@@ -1,4 +1,5 @@
 import logging
+from django.conf import settings
 from django.shortcuts import render
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
@@ -35,8 +36,9 @@ def create_end_user_account(request):
         # via GET parameters
         form_data = {'invitation_code': request.GET.get('invitation_code', ''),
                      'email': request.GET.get('email', '')}
-        messages.info(request,
-                      _("An invitation code is required to register."))
+        if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+            messages.info(request,
+                          _("An invitation code is required to register."))
         return render(request,
                       'generic/bootstrapform.html',
                       {'name': name, 'form': SimpleUserSignupForm(initial=form_data)})
