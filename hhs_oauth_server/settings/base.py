@@ -1,7 +1,6 @@
 import os
 import dj_database_url
 import socket
-import datetime
 from getenv import env
 from ..utils import bool_env, int_env
 
