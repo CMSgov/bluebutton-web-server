@@ -307,7 +307,7 @@ OAUTH2_PROVIDER = {
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
     'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
-    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', ]
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
 }
 
 OAUTH2_MOBILE_REDIRECT_REGEX = r'\b[a-zA-Z]{2}[0-9]{8}\b'
@@ -429,6 +429,8 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 AXES_COOLOFF_TIME = datetime.timedelta(minutes=60)
 AXES_FAILURE_LIMIT = 6
 LOGIN_RATE = '6/h'
+# We will be running behind a Load Balancer so set this to True
+AXES_BEHIND_REVERSE_PROXY = True
 
 FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
 
