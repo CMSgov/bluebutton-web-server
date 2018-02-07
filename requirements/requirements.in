@@ -38,8 +38,6 @@ social-auth-app-django
 oauthlib
 python-openid
 django-oauth-toolkit-scopes-backend
-django-axes
-django-ratelimit
 
 # Decorate admin urls to force MFA login
 decorate_url
