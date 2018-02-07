@@ -73,7 +73,6 @@ INSTALLED_APPS = [
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
-    'axes',
     'social_django',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
@@ -421,16 +420,6 @@ SETTINGS_EXPORT = [
 SESSION_COOKIE_AGE = 5400
 # Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-
-# Failed Login Attempt Module: AXES
-# Either integer or timedelta.
-# If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(minutes=60)
-AXES_FAILURE_LIMIT = 6
-LOGIN_RATE = '6/h'
-# We will be running behind a Load Balancer so set this to True
-AXES_BEHIND_REVERSE_PROXY = True
 
 FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
 
