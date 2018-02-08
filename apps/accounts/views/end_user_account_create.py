@@ -1,17 +1,15 @@
 import logging
+from django.conf import settings
 from django.shortcuts import render
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..end_user_signup_forms import (SimpleUserSignupForm)
 from .core import pick_reverse_login
-from ratelimit.decorators import ratelimit
 from django.views.decorators.cache import never_cache
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @never_cache
-@ratelimit(key='user_or_ip', rate='5/m', method=['POST'], block=True)
-@ratelimit(key='post:username', rate='5/m', method=['POST'], block=True)
 def create_end_user_account(request):
 
     name = "Let's get Started!"
@@ -35,8 +33,9 @@ def create_end_user_account(request):
         # via GET parameters
         form_data = {'invitation_code': request.GET.get('invitation_code', ''),
                      'email': request.GET.get('email', '')}
-        messages.info(request,
-                      _("An invitation code is required to register."))
+        if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+            messages.info(request,
+                          _("An invitation code is required to register."))
         return render(request,
                       'generic/bootstrapform.html',
                       {'name': name, 'form': SimpleUserSignupForm(initial=form_data)})

@@ -1,7 +1,6 @@
 import os
 import dj_database_url
 import socket
-import datetime
 from getenv import env
 from ..utils import bool_env, int_env
 
@@ -53,6 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
+
     # 1st Party (in-house) ----------
     'apps.accounts',
     'apps.capabilities',
@@ -71,12 +72,17 @@ INSTALLED_APPS = [
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
-    'axes',
     'social_django',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_RATES': {
+        'token': env('TOKEN_THROTTLE_RATE', '100000/s'),
+    },
+}
 
 # Used for testing for optional apps in templates without causing a crash
 # used in SETTINGS_EXPORT below.
@@ -103,6 +109,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'apps.dot_ext.throttling.ThrottleMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
@@ -134,6 +141,13 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
+
+CACHES = {
+    'default': {
+        'BACKEND': os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
+        'LOCATION': os.environ.get('CACHE_LOCATION', 'unique-snowflake'),
+    },
+}
 
 # database configuration
 if os.environ.get('DATABASES_CUSTOM'):
@@ -291,7 +305,7 @@ OAUTH2_PROVIDER = {
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
     'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
-    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', ]
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
 }
 
 OAUTH2_MOBILE_REDIRECT_REGEX = r'\b[a-zA-Z]{2}[0-9]{8}\b'
@@ -405,14 +419,6 @@ SETTINGS_EXPORT = [
 SESSION_COOKIE_AGE = 5400
 # Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-
-# Failed Login Attempt Module: AXES
-# Either integer or timedelta.
-# If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(minutes=60)
-AXES_FAILURE_LIMIT = 6
-LOGIN_RATE = '6/h'
 
 FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
 

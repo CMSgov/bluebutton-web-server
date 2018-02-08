@@ -3,7 +3,7 @@ import logging
 
 from ..constants import ALLOWED_RESOURCE_TYPES
 from ..decorators import require_valid_token
-from ..errors import build_error_response, method_not_allowed
+from ..errors import build_error_response
 
 from apps.fhir.bluebutton.utils import (request_get_with_params,
                                         build_rewrite_list,
@@ -13,12 +13,19 @@ from apps.fhir.bluebutton.utils import (request_get_with_params,
                                         post_process_request,
                                         get_response_text)
 
+from rest_framework.decorators import throttle_classes, api_view
+from apps.dot_ext.throttling import TokenRateThrottle
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @require_valid_token()
+@api_view(['GET'])
+@throttle_classes([TokenRateThrottle])
 def search(request, resource_type, *args, **kwargs):
+    # reset request back to django.HttpRequest
+    request = request._request
     """
     Search from Remote FHIR Server
     """
@@ -26,9 +33,6 @@ def search(request, resource_type, *args, **kwargs):
     logger.debug("resource_type: %s" % resource_type)
     logger.debug("Interaction: search. ")
     logger.debug("Request.path: %s" % request.path)
-
-    if request.method != 'GET':
-        return method_not_allowed(['GET'])
 
     if resource_type not in ALLOWED_RESOURCE_TYPES:
         logger.info('User requested search access to the %s resource type' % resource_type)
@@ -49,7 +53,7 @@ def search(request, resource_type, *args, **kwargs):
         '_format': 'application/json+fhir'
     }
 
-    patient_id = '' if resource_type == 'Patient' else crosswalk.fhir_id
+    patient_id = crosswalk.fhir_id
 
     if 'patient' in request.GET and request.GET['patient'] != patient_id:
         return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
@@ -61,7 +65,7 @@ def search(request, resource_type, *args, **kwargs):
         if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
             return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
     elif resource_type == 'Patient':
-        get_parameters['_id'] = ''
+        get_parameters['_id'] = patient_id
 
     response = request_get_with_params(request,
                                        target_url,
