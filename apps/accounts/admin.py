@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
 
 from .models import (
     ValidPasswordResetKey,
@@ -16,19 +17,13 @@ admin.site.register(ActivationKey)
 admin.site.register(ValidPasswordResetKey)
 
 
-class UserAdmin(admin.ModelAdmin):
-
-    list_display = ('username',
-                    'first_name',
-                    'last_name',
-                    'email',
-                    'date_joined',
-                    'is_staff',
-                    'is_active',)
+ua = UserAdmin
+ua.list_display = ('username', 'email', 'first_name',
+                   'last_name', 'is_staff', 'is_active')
 
 
 admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
+admin.site.register(User, ua)
 
 
 class EmailWebhookAdmin(admin.ModelAdmin):
@@ -68,7 +63,8 @@ class RequestInviteAdmin(admin.ModelAdmin):
         'issue_invite',
         'invite_sent',
         'added')
-    search_fields = ('first_name', 'last_name', 'user_type', 'organization', 'email')
+    search_fields = ('first_name', 'last_name',
+                     'user_type', 'organization', 'email')
 
 
 admin.site.register(RequestInvite, RequestInviteAdmin)
