@@ -110,6 +110,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'apps.dot_ext.throttling.ThrottleMiddleware',
+    'hhs_oauth_server.middleware.HandleAPIExceptionMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))

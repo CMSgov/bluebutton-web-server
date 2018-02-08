@@ -5,6 +5,7 @@ import json
 from ..fhir.bluebutton.models import Crosswalk
 from oauth2_provider.models import AccessToken
 from .emails import send_access_token_notifcation
+from rest_framework.exceptions import APIException
 __author__ = "Alan Viars"
 
 
@@ -21,7 +22,11 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
 
         headers, body, status = self.server.create_token_response(uri, http_method, body,
                                                                   headers, extra_credentials)
+        if (status >= 300):
+            raise APIException(detail=body, code=status)
+
         fhir_body = json.loads(body)
+
         token = AccessToken.objects.get(token=fhir_body["access_token"])
 
         if Crosswalk.objects.filter(user=token.user).exists():
