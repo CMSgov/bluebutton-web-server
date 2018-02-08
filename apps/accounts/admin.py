@@ -26,6 +26,7 @@ class UserAdmin(admin.ModelAdmin):
                     'is_staff',
                     'is_active',)
 
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
