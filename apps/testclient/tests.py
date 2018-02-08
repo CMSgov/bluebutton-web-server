@@ -40,7 +40,7 @@ class BlueButtonClientApiUserInfoTest(TestCase):
 
 
 @skipIf(settings.OFFLINE, "Can't reach external sites.")
-class BlueButtonClientApiFHIRTest(TestCase):
+class BlueButtonClientApiFhirTest(TestCase):
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
     """
@@ -81,10 +81,42 @@ class BlueButtonClientApiFHIRTest(TestCase):
         Test get eob
         """
 
-        uri = "%s?patient=%s" % (
+        uri = "%s?patient=%s&count=12" % (
             self.testclient_setup['eob_uri'], self.patient)
         response = self.client.get(uri)
+        response_data = response.json()
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response_data['entry']), 12)
+        self.assertContains(response, "ExplanationOfBenefit")
+
+    def test_bad_count(self):
+        uri = "%s?patient=%s&count=10000000" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 400)
+
+    def test_bad_offset(self):
+        uri = "%s?patient=%s&startIndex=asdf" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 400)
+
+    def test_offset_math(self):
+        uri = "%s?patient=%s&count=12&startIndex=133" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        response_data = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response_data['entry']), 7)
+        self.assertEqual(response_data['total'], 140)
+        previous_links = [data['url'] for data in response_data['link'] if data['relation'] == 'previous']
+        next_links = [data['url'] for data in response_data['link'] if data['relation'] == 'next']
+        first_links = [data['url'] for data in response_data['link'] if data['relation'] == 'first']
+        self.assertEqual(len(previous_links), 1)
+        self.assertEqual(len(next_links), 0)
+        self.assertEqual(len(first_links), 1)
+        self.assertIn('startIndex=121', previous_links[0])
+        self.assertIn('startIndex=0', first_links[0])
         self.assertContains(response, "ExplanationOfBenefit")
 
     def test_get_eob_negative(self):
@@ -118,7 +150,7 @@ class BlueButtonClientApiFHIRTest(TestCase):
 
 
 @skipIf(settings.OFFLINE, "Can't reach external sites.")
-class BlueButtonClientApiFHIRMEetadataDiscoveryTest(TestCase):
+class BlueButtonClientApiFhirMetadataDiscoveryTest(TestCase):
     """
     Test the BlueButton Discovery Endpoints
     These are public URIs
@@ -142,7 +174,7 @@ class BlueButtonClientApiFHIRMEetadataDiscoveryTest(TestCase):
             response, "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris")
 
 
-class BlueButtonClientApiOIDCDiscoveryTest(TestCase):
+class BlueButtonClientApiOidcDiscoveryTest(TestCase):
     """
     Test the BlueButton OIDC Discovery Endpoint
     Public URIs
