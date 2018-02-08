@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
 
 from .models import (
     ValidPasswordResetKey,
@@ -13,6 +14,21 @@ from .models import (
 
 admin.site.register(ActivationKey)
 admin.site.register(ValidPasswordResetKey)
+
+
+class UserAdmin(admin.ModelAdmin):
+
+    list_display = ('username',
+                    'first_name',
+                    'last_name',
+                    'email',
+                    'date_joined',
+                    'is_staff',
+                    'is_active',)
+
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 
 
 class EmailWebhookAdmin(admin.ModelAdmin):
