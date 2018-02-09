@@ -4,7 +4,6 @@ from oauth2_provider.oauth2_backends import OAuthLibCore
 import json
 from ..fhir.bluebutton.models import Crosswalk
 from oauth2_provider.models import AccessToken
-from .emails import send_access_token_notifcation
 __author__ = "Alan Viars"
 
 
@@ -30,8 +29,5 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
                 cw = Crosswalk.objects.get(user=token.user)
                 fhir_body["patient"] = cw.fhir_id
                 body = json.dumps(fhir_body)
-            if token.user.email:
-                # If email is not blank, then send an email notifications.
-                send_access_token_notifcation(token)
 
         return uri, headers, body, status
