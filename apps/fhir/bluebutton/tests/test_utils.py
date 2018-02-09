@@ -1,5 +1,4 @@
 import os
-from collections import OrderedDict
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
@@ -10,7 +9,6 @@ from apps.fhir.server.models import SupportedResourceType
 
 from apps.fhir.bluebutton.utils import (
     notNone,
-    get_url_query_string,
     FhirServerAuth,
     FhirServerUrl,
     masked,
@@ -79,50 +77,6 @@ class BlueButtonUtilSrtcTestCase(TestCase):
 
     fixtures = ['fhir_bluebutton_new_testdata.json',
                 'fhir_server_new_testdata.json']
-
-    def test_get_url_query_string(self):
-        """ Test get_url_query_String """
-
-        """ Test 1: """
-        get_ish_1 = {
-            '_format': ['json'],  # TODO: will be removed
-            'access_token': ['some_Token'],
-            'state': ['some_State'],
-            'resource_type': ['some_Resource_Type'],  # TODO: will be removed
-            'client_id': ['Some_Client_id'],
-            'keep': ['keep_this'],
-        }
-
-        srtc = SupportedResourceType.objects.get(pk=14)
-
-        response = get_url_query_string(get_ish_1, srtc.search_block)
-
-        response_sorted = OrderedDict()
-        for key, value in sorted(response.items()):
-            response_sorted[key] = value
-
-        # "[\"patient\",\"_format\",\"resource_type\"]"
-        expected = OrderedDict()
-        expected['access_token'] = ['some_Token']
-        expected['client_id'] = ['Some_Client_id']
-        expected['keep'] = ['keep_this']
-        expected['state'] = ['some_State']
-        self.assertEquals(response_sorted, expected)
-
-        """ Test 2 empty call """
-        response = get_url_query_string({})
-        expected = OrderedDict()
-        self.assertEquals(response, expected)
-
-        """ Test 3 call with empty list """
-        response = get_url_query_string([])
-        expected = OrderedDict()
-        self.assertEquals(response, expected)
-
-        """ Test 4 call with list """
-        response = get_url_query_string(['a=a', 'b=b', 'c=3'])
-        expected = OrderedDict()
-        self.assertEquals(response, expected)
 
     def test_FhirServerAuth(self):
         """  Check FHIR Server ClientAuth settings """

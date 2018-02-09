@@ -6,11 +6,12 @@ from django.http import JsonResponse
 #
 # Also used by QPP as documented at:
 # https://confluence.cms.gov/display/QPPGUIDE/RESTful+API+style+guide#RESTfulAPIstyleguide-JSON
-def build_error_response(code, message):
+def build_error_response(code, message, details=None):
     return JsonResponse({
                         "error": {
                             "code": code,
                             "message": message,
+                            "details": details
                         }},
                         status=code)
 

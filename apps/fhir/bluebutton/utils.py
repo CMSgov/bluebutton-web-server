@@ -273,11 +273,11 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
     return fhir_response
 
 
-def request_get_with_parms(request,
-                           call_url,
-                           search_params={},
-                           cx=None,
-                           timeout=None):
+def request_get_with_params(request,
+                            call_url,
+                            search_params={},
+                            cx=None,
+                            timeout=None):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
     cx = Crosswalk record. The crosswalk is keyed off Request.user
@@ -352,7 +352,7 @@ def request_get_with_parms(request,
 
         fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
 
-        logger.debug("Leaving request_call_with_parms with "
+        logger.debug("Leaving request_get_with_params with "
                      "fhir_Response: %s" % fhir_response)
 
         return fhir_response
@@ -399,53 +399,6 @@ def notNone(value=None, default=None):
         return default
     else:
         return value
-
-# Mark for removal ...remove related settings from base.
-
-
-def get_url_query_string(get, skip_parm=[]):
-    """
-    Receive the request.GET Query Dict
-    Evaluate against skip_parm by skipping any entries in skip_parm
-    Return a query string ready to pass to a REST API.
-    http://hl7-fhir.github.io/search.html#all
-
-    # We need to force the key to lower case and skip params should be
-    # lower case too
-
-    eg. _lastUpdated=>2010-10-01&_tag=http://acme.org/codes|needs-review
-
-    :param get: {}
-    :param skip_parm: []
-    :return: Query_String (QS)
-    """
-    # logger.debug('Evaluating: %s to remove:%s' % (get, skip_parm))
-
-    filtered_dict = OrderedDict()
-
-    # Check we got a get dict
-    if not get:
-        return filtered_dict
-    if not isinstance(get, dict):
-        return filtered_dict
-
-    # Now we work through the parameters
-
-    for k, v in get.items():
-
-        logger_debug.debug('K/V: [%s/%s]' % (k, v))
-
-        if k in skip_parm:
-            pass
-        else:
-            # Build the query_string
-            filtered_dict[k] = v
-
-    # qs = urlencode(filtered_dict)
-    qs = filtered_dict
-
-    # logger.debug('Filtered parameters:%s from:%s' % (qs, filtered_dict))
-    return qs
 
 
 def FhirServerAuth(cx=None):
@@ -615,35 +568,7 @@ def get_host_url(request, resource_type=''):
     else:
         full_url_list = full_url.split(resource_type)
 
-    # logger_debug.debug('Full_url as list:%s' % full_url_list)
-
     return full_url_list[0]
-
-
-def get_fhir_source_name(cx=None):
-    """
-    Get cx.source.name from Crosswalk or return empty string
-    :param cx:
-    :return:
-    """
-    if cx is None:
-        return ""
-    else:
-        return cx.fhir_source.name
-
-
-def build_conformance_url():
-    """ Build the Conformance URL call string """
-
-    rr_def = get_resourcerouter()
-    rr_def_server_address = rr_def.server_address
-
-    call_to = rr_def_server_address
-    call_to += rr_def.server_path
-    call_to += rr_def.server_release
-    call_to += '/metadata'
-
-    return call_to
 
 
 def post_process_request(request, host_path, r_text, rewrite_url_list):
