@@ -51,9 +51,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     encoded_params = urlencode(pass_params)
     pass_params = prepend_q(encoded_params)
 
-    r = request_call(request,
-                     call_to + pass_params,
-                     cx)
+    r = request_call(request, call_to + pass_params, cx)
 
     text_out = ''
     host_path = get_host_url(request, '?')
