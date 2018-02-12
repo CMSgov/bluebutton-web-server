@@ -63,14 +63,6 @@ class RequestInviteForm(forms.ModelForm):
         return human
 
 
-class RequestInviteEndUserForm(RequestInviteForm):
-
-    class Meta:
-        model = RequestInvite
-        fields = ('first_name', 'last_name', 'email', 'user_type')
-    required_css_class = 'required'
-
-
 class SecretQuestionForm(forms.Form):
     answer = forms.CharField(max_length=50)
     required_css_class = 'required'

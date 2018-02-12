@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>
+        Test Client Error - Missing Token
+    </title>
+</head>
+<body>
+ <h1>Missing Token</h1>
+ 
+ <p>You need to authenticate to get a new token and make these API calls.
+ Use this <a href="{% url 'authorize_link' %}">sample Authorization flow</a> to set the token.
+ </p>
+      
+   
+     
+     {% if not request.user.is_authenticated %}
+      <h2><a href="{% url 'mfa_login' %}">Login to the developer portal</a> </h1>
+     {% endif %}
+     
+</body>
+
+</html>

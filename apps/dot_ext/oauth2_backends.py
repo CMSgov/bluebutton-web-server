@@ -4,7 +4,6 @@ from oauth2_provider.oauth2_backends import OAuthLibCore
 import json
 from ..fhir.bluebutton.models import Crosswalk
 from oauth2_provider.models import AccessToken
-from .emails import send_access_token_notifcation
 __author__ = "Alan Viars"
 
 
@@ -16,19 +15,19 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         SMART on FHIR Authorization
         http://docs.smarthealthit.org/authorization/
         """
-        uri, http_method, body, headers = self._extract_params(request)
-        extra_credentials = self._get_extra_credentials(request)
 
-        headers, body, status = self.server.create_token_response(uri, http_method, body,
-                                                                  headers, extra_credentials)
-        fhir_body = json.loads(body)
-        token = AccessToken.objects.get(token=fhir_body["access_token"])
+        uri, headers, body, status = super(OAuthLibSMARTonFHIR, self).create_token_response(request)
 
-        if Crosswalk.objects.filter(user=token.user).exists():
+        # cribed from
+        # https://github.com/evonove/django-oauth-toolkit/blob/2cd1f0dccadb8e74919a059d9b4985f9ecb1d59f/oauth2_provider/views/base.py#L192
+        if status == 200:
             fhir_body = json.loads(body)
-            cw = Crosswalk.objects.get(user=token.user)
-            fhir_body["patient"] = cw.fhir_id
-            body = json.dumps(fhir_body)
-        uri = headers.get("Location", None)
-        send_access_token_notifcation(token)
+            token = AccessToken.objects.get(token=fhir_body.get("access_token"))
+
+            if Crosswalk.objects.filter(user=token.user).exists():
+                fhir_body = json.loads(body)
+                cw = Crosswalk.objects.get(user=token.user)
+                fhir_body["patient"] = cw.fhir_id
+                body = json.dumps(fhir_body)
+
         return uri, headers, body, status

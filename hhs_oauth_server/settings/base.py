@@ -1,7 +1,6 @@
 import os
 import dj_database_url
 import socket
-import datetime
 from getenv import env
 from ..utils import bool_env, int_env
 
@@ -12,14 +11,6 @@ from .themes import THEMES, THEME_SELECTED
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, '..')
-
-# Set ADMINS and MANAGERS
-# Override ADMINS and MANAGERS Settings in environment specific settings file
-# or in custom-envvars.py
-ADMINS = (
-    ('Mark Scrimshire', 'mark@ekivemark.com'),
-)
-MANAGERS = ADMINS
 
 # security
 # SECRET_KEY = env('DJANGO_SECRET_KEY')
@@ -48,23 +39,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*',
-                                             socket.gethostname()])
+ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-# if ALLOWED_HOSTS == ['*', socket.gethostname()]:
-#     print("WARNING: Set DJANGO_ALLOWED_HOSTS to the hostname "
-#           "for Production operation.\n"
-#           "         Currently defaulting to %s " % ALLOWED_HOSTS)
-# Warning: on macOS hostname is case sensitive
-
-# DEBUG = env('DJANGO_DEBUG', False)
-DEBUG = bool_env(env('DJANGO_DEBUG', True))
-
-# if DEBUG:
-#     print("WARNING: Set DJANGO_DEBUG environment variable to False "
-#           "to run in production mode \n"
-#           "         and set DJANGO_ALLOWED_HOSTS to "
-#           "valid host names")
+DEBUG = False
+APPEND_SLASH = False
 
 # apps and middlewares
 INSTALLED_APPS = [
@@ -74,6 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
 
     # 1st Party (in-house) ----------
     'apps.accounts',
@@ -88,17 +68,26 @@ INSTALLED_APPS = [
     'apps.home',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
-    'apps.fhir.fhir_consent',
+    'apps.mymedicare_cb',
 
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
-    'axes',
     'social_django',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
 
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_RATES': {
+        'token': env('TOKEN_THROTTLE_RATE', '100000/s'),
+    },
+}
+
+# Used for testing for optional apps in templates without causing a crash
+# used in SETTINGS_EXPORT below.
+OPTIONAL_INSTALLED_APPS = ["", ]
 
 # Add apps for Site/Installation specific implementation here:
 # The hhs_oauth_server.hhs_oauth_server_context
@@ -121,6 +110,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'apps.dot_ext.throttling.ThrottleMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
@@ -152,6 +142,13 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
+
+CACHES = {
+    'default': {
+        'BACKEND': os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
+        'LOCATION': os.environ.get('CACHE_LOCATION', 'unique-snowflake'),
+    },
+}
 
 # database configuration
 if os.environ.get('DATABASES_CUSTOM'):
@@ -308,7 +305,8 @@ OAUTH2_PROVIDER = {
                               'SingleAccessTokenValidator',
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
-    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR'
+    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
 }
 
 # These choices will be available in the expires_in field
@@ -345,7 +343,7 @@ POLICY_URI = env(
     'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
 POLICY_TITLE = env('DJANGO_POLICY_TITLE', 'Privacy Policy')
 TOS_URI = env('DJANGO_TOS_URI',
-              'https://www.medicare.gov/find-a-plan/staticpages/UserAgreement.aspx')
+              'https://cmsgov.github.io/bluebutton-developer-help/api-terms-of-use.html')
 TOS_TITLE = env('DJANGO_TOS_TITLE', 'Terms of Service')
 TAG_LINE_1 = env('DJANGO_TAG_LINE_1', 'Share your Medicare data')
 TAG_LINE_2 = env('DJANGO_TAG_LINE_2',
@@ -354,31 +352,28 @@ EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their
 EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 
 # LINKS TO DOCS
-USER_DOCS_URI = "https://hhsidealab.github.io/bluebutton-user-help"
-USER_DOCS_TITLE = "User Documentation"
 DEVELOPER_DOCS_URI = "https://cmsgov.github.io/bluebutton-developer-help"
 DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
-USER_TITLE = "Medicare beneficiaries, health providers, caregivers, and 3rd party application developers"
-
 DEFAULT_DISCLOSURE_TEXT = """
-This system is provided for use by %s. See the documentation for more information on proper use.
+This system is provided for use by Medicare beneficiaries, health providers, caregivers, and 3rd party
+application developers. See the documentation for more information on proper use.
 Unauthorized or improper use of this system or its data may result in disciplinary action, as well as
 civil and criminal penalties. This system may be monitored, recorded, and subject to audit.
-""" % (USER_TITLE)
+"""
 
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
-
+REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
 #############################################################################
 # /testclient errors when no SSL present
 #############################################################################
 # IF /testclient fails because the server is running without a certificate
 # eg. on your local machine. You need to un-comment the following line:
 
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # NEVER run in PRODUCTION without a certificate and with this setting active
 # A better practice is to set the INSECURE_TRANSPORT setting in an
@@ -398,8 +393,6 @@ SETTINGS_EXPORT = [
     'STATIC_URL',
     'STATIC_ROOT',
     'MFA',
-    'USER_DOCS_URI',
-    'USER_DOCS_TITLE',
     'DEVELOPER_DOCS_URI',
     'DEVELOPER_DOCS_TITLE',
     'ORGANIZATION_TITLE',
@@ -414,54 +407,17 @@ SETTINGS_EXPORT = [
     'EXTERNAL_AUTH_NAME',
     'ALLOW_END_USER_EXTERNAL_AUTH',
     'SOCIAL_AUTH_BACKEND_NAME',
+    'OPTIONAL_INSTALLED_APPS',
+    'INSTALLED_APPS',
+    'REQUIRE_INVITE_TO_REGISTER'
 ]
 
-
-# Dynamic client registration Protocol
-# "O" = Open to everyone
-# "" = Disabled.
-DCRP = env('DJANGO_DCRP', '')
 # Make sessions die out fast for more security ------------------
 # Logout after 90 minutes of inactivity = moderate requirementnt
 SESSION_COOKIE_AGE = 5400
 # Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# Change these for production
-USER_ID_SALT = env('DJANGO_USER_ID_SALT', "ChangeMePleaseIReallyM3anIT")
-USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "24000"))
-
-# Stub for Custom Authentication Backend
-SLS_USER = env('DJANGO_SLS_USER')
-# enclose value for DJANGO_SLS_PASSWORD in single quotes to preserve
-# special characters eg. $
-# eg. export DJANGO_SLS_PASSWORD='$pecial_CharacterPre$erved'
-SLS_PASSWORD = env('DJANGO_SLS_PASSWORD')
-SLS_FIRST_NAME = env('DJANGO_SLS_FIRST_NAME')
-SLS_LAST_NAME = env('DJANGO_SLS_LAST_NAME')
-SLS_EMAIL = env('DJANGO_SLS_EMAIL')
-
-# Failed Login Attempt Module: AXES
-# Either integer or timedelta.
-# If integer interpreted, as hours
-AXES_COOLOFF_TIME = datetime.timedelta(hours=1)
-LOGIN_RATE = '3/h'
-# Default FHIR Server if none defined in Crosswalk or FHIR Server model
-# We will need to add REWRITE_FROM and REWRITE_TO to models
-# to enable search and replace in content returned from backend server.
-# Otherwise source server address is exposed to external users.
-
-BB_CONSENT = {
-    'AGREEMENT_URL': "/consent/agreement/1/",
-    'URL_TITLE': "CMS Blue Button Beneficiary-Application Consent Agreement",
-    'POLICY_URL': "/consent/policy/1/"
-}
-
-# DONE: To support multiple resourceType records in SupportedResourceType
-# We need to have a default FHIR Server as a fallback if the Request.user
-# Does not have a Crosswalk with a default FHIRServer defined.
-# This variable will contain the ID of the Default FHIRServer
-# in the apps.fhir.bluebutton.server.models.FHIRServer table
 FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
 
 FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
@@ -480,10 +436,10 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 REQUEST_CALL_TIMEOUT = (30, 120)
 
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
-ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
+ORGANIZATION_NAME = 'CMS Medicare Blue Button'
 
 LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/accounts/mfa/login'
+LOGIN_URL = '/v1/accounts/mfa/login'
 
 REQUIRE_AUTHORIZE_APP_FLAG = False
 
@@ -500,17 +456,22 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.mail.mail_validation',
     'social_core.pipeline.user.create_user',
     'apps.accounts.auth_backends.pipeline.create_user_profile',
+    'apps.fhir.bluebutton.auth_backends.pso_pipeline.set_sample_patient_id',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.debug.debug',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
     'social_core.pipeline.debug.debug'
 )
+
+# Get your own Google Client OAuth2 client and secret.
+# https://console.developers.google.com/apis/credentials
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ''
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
 # The name of an external oauth2 provider.
-EXTERNAL_AUTH_NAME = "MyMedicare.gov"
-ALLOW_END_USER_EXTERNAL_AUTH = ""
+ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
-SOCIAL_AUTH_BACKEND_NAME = "oauth2io"
+SOCIAL_AUTH_BACKEND_NAME = "google_oauth2"
 
 # python-social-auth settings
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
@@ -518,16 +479,56 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social'
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ['next']
 SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-)
 
-USERID_ENCRYPT_SALT = "CHANGE_THIS_SALT"
-USERID_ENCRYPT_NUM_ITERS = 26000
+MEDICARE_LOGON = True
+MEDICARE_LOGIN_TEMPLATE_NAME = env(
+    'DJANGO_MEDICARE_LOGIN_TEMPLATE_NAME', "design_system/login.html")
+AUTHORIZATION_LOGIN_URL = env(
+    'DJANGO_AUTHORIZATION_LOGIN_URL', '/mymedicare/login')
+AUTHORIZATION_TEMPLATE_NAME = env(
+    'DJANGO_AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
+
+MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI ',
+                         'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
+MEDICARE_REDIRECT_URI = env(
+    'DJANGO_MEDICARE_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
+SLS_USERINFO_ENDPOINT = env(
+    'DJANGO_SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
+# Since this is internal False may be acceptable.
+SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
+
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+
+# Change these for production
+USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
+USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
 USER_ID_TYPE_CHOICES = (('H', 'HICN'),
                         ('M', 'MBI'),
                         ('S', 'SSN'))
 
 USER_ID_TYPE_DEFAULT = "H"
-DEFAULT_SAMPLE_FHIR_ID = "3979"
+DEFAULT_SAMPLE_FHIR_ID = "20140000008325"
+OFFLINE = False
+EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'
+
+# Should be set to True in production and False in all other dev and test environments
+# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
+# REQUIRE_HTTPS_REDIRECT_URIS = True
+BLOCK_HTTP_REDIRECT_URIS = False
+
+#
+# MyMedicare Authentication Integration
+#
+# These values are set in the respective environment settings file
+# e.g. aws-test.py
+
+# SLS_TOKEN_ENDPOINT = env('DJANGO_SLS_TOKEN_ENDPOINT')
+# MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI')
+# MEDICARE_REDIRECT_URI = env('DJANGO_MEDICARE_REDIRECT_URI')
+# MEDICARE_LOGIN_TEMPLATE_NAME = env('DJANGO_MEDICARE_LOGIN_TEMPLATE_NAME')
+# AUTHORIZATION_TEMPLATE_NAME = env('DJANGO_AUTHORIZATION_TEMPLATE_NAME')
+# if env('DJANGO_SLS_VERIFY_SSL').lower() == "true":
+#     SLS_VERIFY_SSL = True
+# else:
+#     SLS_VERIFY_SSL = False

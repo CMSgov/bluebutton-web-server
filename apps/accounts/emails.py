@@ -190,7 +190,7 @@ def send_invite_request_notices(invite_request):
     </p>
     %s
     <p>
-    We will email you  when your invitation code is ready.
+    We will email you when your invitation code is ready.
     Please be patient.
     </p>
     <p>

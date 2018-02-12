@@ -9,7 +9,7 @@ from ...models import ProtectedCapability
 import logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-fhir_prefix = "/protected/bluebutton/fhir/v1/"
+fhir_prefix = "/v1/fhir/"
 
 
 def create_group(name="BlueButton"):
@@ -51,8 +51,6 @@ def create_patient_capability(group,
     pr = []
     pr.append(["GET", "%sPatient/" % fhir_prefix])
     pr.append(["GET", "%sPatient/[id]" % fhir_prefix])
-    pr.append(["GET", "%sPatient/[id]/_history" % fhir_prefix])
-    pr.append(["GET", "%sPatient/[id]/_history/[vid]" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -71,8 +69,6 @@ def create_eob_capability(group,
     pr = []
     pr.append(["GET", "%sExplanationOfBenefit/" % fhir_prefix])
     pr.append(["GET", "%sExplanationOfBenefit/[id]" % fhir_prefix])
-    pr.append(["GET", "%sExplanationOfBenefit/[id]/_history" % fhir_prefix])
-    pr.append(["GET", "%sExplanationOfBenefit/[id]/_history/[vid]" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,
@@ -91,8 +87,6 @@ def create_coverage_capability(group,
     pr = []
     pr.append(["GET", "%sCoverage/" % fhir_prefix])
     pr.append(["GET", "%sCoverage/[id]" % fhir_prefix])
-    pr.append(["GET", "%sCoverage/[id]/_history" % fhir_prefix])
-    pr.append(["GET", "%sCoverage/[id]/_history/[vid]" % fhir_prefix])
     if not ProtectedCapability.objects.filter(slug=smart_scope_string).exists():
         c = ProtectedCapability.objects.create(group=group,
                                                title=title,

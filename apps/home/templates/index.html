@@ -18,18 +18,17 @@
   <hr class="my-4">
   <p>{{settings.EXPLAINATION_LINE}}</p>
   <p class="lead">
-    <a class="btn btn-primary btn-lg" href="{% url 'request_invite' %}"role="button">Request an Invite to {{ settings.APPLICATION_TITLE }}</a>
+
+   {% if settings.REQUIRE_INVITE_TO_REGISTER %}
+    <a class="ds-c-button  ds-c-button--default ds-c-button--big" href="{% url 'request_invite' %}" role="button"><i class="fa fa-code"></i>  Request an Invite to the {{ settings.APPLICATION_TITLE }}</a></p>
+  {% else %}
+     <a class="ds-c-button  ds-c-button--default ds-c-button--big" href="{% url 'accounts_create_account' %}" role="button"><i class="fa fa-code"></i>  Signup for the {{ settings.APPLICATION_TITLE }}</a></p>
+  {% endif %}
   </p>
 
- <p>If you are a developer who already has an account, then <a href="{% url 'mfa_login' %}">login here</a>.
- {% if settings.ALLOW_END_USER_EXTERNAL_AUTH %}
-      If you are a Medicare beneficiary,  then 
-       <a href="{% url 'social:begin' settings.SOCIAL_AUTH_BACKEND_NAME %}"> login with {{settings.EXTERNAL_AUTH_NAME}}</a>
-    {% else %}
-       <a href="{% url 'mfa_login' %}">here</a>.
- {% endif %}
-
-
+ <p>If you are a developer who already has an account, then <a href="{% url 'mfa_login' %}">login here</a>.</p>
+ <p>If you are a Medicare beneficiary with a {{settings.EXTERNAL_AUTH_NAME}} account,  then
+       <a href="{% url 'mymedicare-login' %}?next=/"> login here.</a></p>
 </div>
 
 

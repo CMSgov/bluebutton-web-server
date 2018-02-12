@@ -39,12 +39,6 @@ DEBUG = True
 
 SECRET_KEY = "BBOAUTH2-LOCAL-_CHANGE_THIS_FAKE_KEY_TO_YOUR_OWN_SECRET_KEY"
 
-# define app managers
-ADMINS = (
-    ('Mark Scrimshire', 'mark@ekivemark.com'),
-)
-MANAGERS = ADMINS
-
 ALLOWED_HOSTS = ['*']
 
 # Suppress printing for dumpdata to avoid polluting dump files

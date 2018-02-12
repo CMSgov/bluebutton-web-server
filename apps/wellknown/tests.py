@@ -6,10 +6,12 @@ from django.utils import six
 from django.conf import settings
 import json
 
+__author__ = "Alan Viars"
+
 
 class OpenIDConnectConfigurationTestCase(TestCase):
     """
-    Test NOpenIDConnectConfiguration URL
+    Test OpenIDConnectConfiguration URI
     """
 
     def setUp(self):
@@ -22,7 +24,8 @@ class OpenIDConnectConfigurationTestCase(TestCase):
         """
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, reverse('oauth2_provider:token'))
+        self.assertContains(
+            response, reverse('oauth2_provider:token'))
         self.assertContains(response, reverse('openid_connect_userinfo'))
         self.assertContains(response, "response_types_supported")
         self.assertContains(response, getattr(settings, 'HOSTNAME_URL'))

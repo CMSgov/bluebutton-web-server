@@ -13,18 +13,19 @@ test redirect_uri callback function {% url 'testclient-callback' %} will do this
  Use this <a href="{% url 'authorize_link' %}">sample Authorization flow</a> to set the token, then come back here to make the calls.
  Calls requiring an access token will fail unless the above step is completed.
  </p>
-      
-    
      <h1>API Calls</h1>
      <ul>
-     <li> <a href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
-     <li> <a href="{% url 'test_patient' %}">Patient</a> </li>
-     <li> <a href="{% url 'test_coverage' %}">Coverage</a> </li>
-     <li> <a href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata (No Token Needed)</a> </li>
-     <li> <a href="{% url 'openid-configuration' %}">OIDC Discovery (No Token Needed)</a> </li>
+
+     <li> <a target="_blank" href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
+     <li> <a target="_blank" href="{% url 'test_patient' %}">Patient</a> </li>
+     <li> <a target="_blank" href="{% url 'test_coverage' %}">Coverage</a> </li>
+     <li> <a target="_blank" href="{% url 'test_userinfo' %}">Profile </a> (OIDC Userinfo)</li>
+     <li> <a target="_blank" href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata </a>(No Token Needed) </li>
+     <li> <a target="_blank" href="{% url 'openid-configuration' %}">OIDC Discovery </a>(No Token Needed) </li>
      </ul>
-     
-    
+    {% if not request.user.is_authenticated %}
+      <h2><a href="{% url 'mfa_login' %}">Login to the developer portal</a> </h1>
+     {% endif %}
     
 </body>
 

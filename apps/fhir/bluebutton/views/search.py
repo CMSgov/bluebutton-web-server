@@ -1,322 +1,166 @@
-import json
-
+from django.http import JsonResponse
 import logging
 
-from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse, JsonResponse
+from ..constants import ALLOWED_RESOURCE_TYPES, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from ..decorators import require_valid_token
+from ..errors import build_error_response
 
-from apps.dot_ext.decorators import capability_protected_resource
-
-from ..opoutcome_utils import (kickout_403,
-                               kickout_404,
-                               request_format)
-
-from apps.fhir.bluebutton.utils import (request_get_with_parms,
-                                        block_params,
+from apps.fhir.bluebutton.utils import (request_get_with_params,
                                         build_rewrite_list,
-                                        check_access_interaction_and_resource_type,
-                                        check_rt_controls,
                                         get_crosswalk,
-                                        get_fhir_id,
                                         get_host_url,
                                         get_resourcerouter,
                                         post_process_request,
                                         get_response_text)
 
-from apps.fhir.bluebutton.views.home import fhir_conformance
-
-from apps.fhir.server.utils import (set_fhir_format,
-                                    set_resource_id,
-                                    search_add_to_list,
-                                    payload_additions,
-                                    payload_var_replace)
+from rest_framework.decorators import throttle_classes, api_view
+from apps.dot_ext.throttling import TokenRateThrottle
+from urllib.parse import urlencode
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
-logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
-logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
+
+START_PARAMETER = 'startIndex'
+SIZE_PARAMETER = 'count'
 
 
-@login_required()
+@require_valid_token()
+@api_view(['GET'])
+@throttle_classes([TokenRateThrottle])
 def search(request, resource_type, *args, **kwargs):
+    # reset request back to django.HttpRequest
+    request = request._request
     """
     Search from Remote FHIR Server
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
     """
 
-    interaction_type = 'search'
+    logger.debug("resource_type: %s" % resource_type)
+    logger.debug("Interaction: search. ")
+    logger.debug("Request.path: %s" % request.path)
 
-    logger.debug("Received:%s" % resource_type)
-    logger_debug.debug("Received:%s" % resource_type)
+    if resource_type not in ALLOWED_RESOURCE_TYPES:
+        logger.info('User requested search access to the %s resource type' % resource_type)
+        return build_error_response(404, 'The requested resource type, %s, is not supported'
+                                         % resource_type)
 
-    conformance = False
+    crosswalk = get_crosswalk(request.resource_owner)
 
-    if resource_type is None:
-        conformance = True
-    elif resource_type.lower() == 'metadata':
-        # metadata is a valid resourceType to request the
-        # Conformance/Capability Statement
-        conformance = True
-    elif resource_type.lower == 'conformance':
-        # Conformance is the Dstu2 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capability":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
+    # Get parameters required to replay request for relative links
+    replay_parameters = {}
 
-    if conformance:
-        return fhir_conformance(request, resource_type, *args, **kwargs)
+    # If the user isn't matched to a backend ID, they have no permissions
+    if crosswalk is None:
+        logger.info('Crosswalk for %s does not exist' % request.user)
+        return build_error_response(403, 'No access information was found for the authenticated user')
 
-    logger.debug("Interaction:%s. "
-                 "Calling generic_read for %s" % (interaction_type,
-                                                  resource_type))
+    # Verify paging inputs. Casting an invalid int will throw a ValueError
+    try:
+        start_index = int(request.GET.get(START_PARAMETER, 0))
+        if start_index < 0:
+            raise ValueError
+    except ValueError:
+        return build_error_response(400, '%s must be an integer between zero and the number of results' % START_PARAMETER)
 
-    logger_debug.debug("Interaction:%s. "
-                       "Calling generic_read for %s" % (interaction_type,
-                                                        resource_type))
+    try:
+        page_size = int(request.GET.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
+        if page_size <= 0 or page_size > MAX_PAGE_SIZE:
+            raise ValueError
+    except ValueError:
+        return build_error_response(400, '%s must be an integer between 1 and %s' % (SIZE_PARAMETER, MAX_PAGE_SIZE))
 
-    return read_search(request,
-                       interaction_type,
-                       resource_type,
-                       via_oauth=False,
-                       *args,
-                       **kwargs)
+    resource_router = get_resourcerouter(crosswalk)
+    target_url = resource_router.fhir_url + resource_type + "/"
 
+    get_parameters = {
+        '_format': 'application/json+fhir'
+    }
 
-@capability_protected_resource()
-def oauth_search(request, resource_type, *args, **kwargs):
-    """
-    Search from Remote FHIR Server
+    patient_id = crosswalk.fhir_id
 
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/
-    """
+    if 'patient' in request.GET and request.GET['patient'] != patient_id:
+        return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
 
-    interaction_type = 'search'
+    if resource_type == 'ExplanationOfBenefit':
+        replay_parameters['patient'] = patient_id
+        get_parameters['patient'] = patient_id
+    elif resource_type == 'Coverage':
+        get_parameters['beneficiary'] = 'Patient/' + patient_id
+        replay_parameters['beneficiary'] = 'Patient/' + patient_id
+        if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
+            return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
+    elif resource_type == 'Patient':
+        get_parameters['_id'] = patient_id
 
-    logger.debug("Received:%s" % resource_type)
-    logger_debug.debug("Received:%s" % resource_type)
+    response = request_get_with_params(request,
+                                       target_url,
+                                       get_parameters,
+                                       crosswalk,
+                                       timeout=resource_router.wait_time)
 
-    conformance = False
+    if response.status_code >= 300:
+        logger.debug("We have an error code to deal with: %s" % response.status_code)
+        return build_error_response(response.status_code,
+                                    'An error occurred while contacting our data server',
+                                    details=response._content)
 
-    if resource_type is None:
-        conformance = True
-    elif resource_type.lower() == 'metadata':
-        # metadata is a valid resourceType to request the
-        # Conformance/Capability Statement
-        conformance = True
-    elif resource_type.lower == 'conformance':
-        # Conformance is the Dstu2 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capability":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-    elif resource_type.lower == "capabilitystatement":
-        # Capability is the Stu3 name for the list of resources supported
-        conformance = True
-
-    if conformance:
-        return fhir_conformance(request, resource_type, *args, **kwargs)
-
-    logger.debug("Interaction:%s. "
-                 "Calling generic_read for %s" % (interaction_type,
-                                                  resource_type))
-
-    logger_debug.debug("Interaction:%s. "
-                       "Calling generic_read for %s" % (interaction_type,
-                                                        resource_type))
-
-    return read_search(request,
-                       interaction_type,
-                       resource_type,
-                       via_oauth=True,
-                       *args,
-                       **kwargs)
-
-
-def read_search(request,
-                interaction_type,
-                resource_type,
-                via_oauth=False,
-                id=None,
-                vid=None,
-                *args,
-                **kwargs):
-    """
-    Read from remote FHIR Server
-
-    :param request:
-    :param interaction_type:
-    :param resource_type:
-    :param id:
-    :param vid:
-    :param args:
-    :param kwargs:
-    :return:
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234?_format=json
-
-
-    """
-
-    logger.debug('\n========================\n'
-                 'INTERACTION_TYPE: %s - via OAuth:%s' % (interaction_type,
-                                                          via_oauth))
-    logger.debug("Request.path:%s" % request.path)
-
-    # Get the users crosswalk
-    if via_oauth:
-        cx = get_crosswalk(request.resource_owner)
-    else:
-        cx = get_crosswalk(request.user)
-
-    # cx will be the crosswalk record or None
-    rr = get_resourcerouter(cx)
-
-    # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type,
-                                                      interaction_type,
-                                                      rr)
-    if deny:
-        # if not allowed, return a 4xx error.
-        return deny
-
-    srtc = check_rt_controls(resource_type, rr)
-    # We get back a Supported ResourceType Control record or None
-    # with earlier if deny step we should have a valid srtc.
-
-    if srtc is None:
-        return kickout_404('Unsupported ResourceType')
-
-    if not via_oauth:
-        if srtc.secure_access and request.user.is_anonymous():
-            return kickout_403('Error 403: %s Resource access is controlled.'
-                               ' Login is required:'
-                               '%s' % (resource_type, request.user.is_anonymous()))
-
-    if (cx is None and srtc is not None):
-        # There is a srtc record so we need to check override_search
-        if srtc.override_search:
-            # If user is not in Crosswalk and srtc has search_override = True
-            # We need to prevent search to avoid data leakage.
-            return kickout_403('Error 403: %s Resource is access controlled.'
-                               ' No records are linked to user:'
-                               '%s' % (resource_type, request.user))
-
-    ################################################
-    #
-    # Now we should have sorted out all the bounces
-    # Now to structure the call to the back-end
-    #
-    ################################################
-
-    # construct the server address, path and release
-    # Get the crosswalk.fhir_source = ResourceRouter
-
-    # Build url from rr.server_address + rr.server_path + rr.server_release
-
-    target_url = rr.fhir_url
-
-    # add resource_type + '/'
-    target_url += srtc.resourceType
-
-    target_url += "/"
-
-    # Analyze the _format parameter
-    # Sve the display _format
-
-    input_parameters = request.GET
-    requested_format = request_format(input_parameters)
-
-    # prepare the back-end _format setting
-    back_end_format = set_fhir_format(requested_format)
-
-    # request.GET is immutable so take a copy to allow the values to be edited.
-    payload = {}
-
-    # Get payload with oauth parameters removed
-    # Add the format for back-end
-    payload['_format'] = back_end_format
-
-    # remove the srtc.search_block parameters
-    payload = block_params(payload, srtc)
-
-    # move resource_id to _id=resource_id
-    id_dict = set_resource_id(srtc, id, get_fhir_id(cx))
-
-    # Add the srtc.search_add parameters
-    params_list = search_add_to_list(srtc.search_add)
-
-    payload = payload_additions(payload, params_list)
-
-    if id_dict['_id']:
-        # add rt_id into the search parameters
-        if id_dict['_id'] is not None:
-            payload['_id'] = id_dict['_id']
-
-    if resource_type.lower() == 'patient':
-        logger.debug("Working resource:%s" % resource_type)
-        logger.debug("Working payload:%s" % payload)
-        logger.debug("id_dict:%s" % id_dict)
-
-        payload['_id'] = id_dict['patient']
-        if 'patient' in payload:
-            del payload['patient']
-
-    for pyld_k, pyld_v in payload.items():
-        if pyld_v is None:
-            pass
-        elif '%PATIENT%' in pyld_v:
-            # replace %PATIENT% with cx.fhir_id
-
-            payload = payload_var_replace(payload,
-                                          pyld_k,
-                                          new_value=id_dict['patient'],
-                                          old_value='%PATIENT%')
-
-    # add the _format setting
-    payload['_format'] = back_end_format
-
-    ###############################################
-    ###############################################
-    # Make the request_call
-    r = request_get_with_parms(request,
-                               target_url,
-                               json.loads(json.dumps(payload)),
-                               cx,
-                               reverse_lazy('home'),
-                               timeout=rr.wait_time
-                               )
-
-    ###############################################
-    ###############################################
-    #
-    # Now we process the response from the back-end
-    #
-    ################################################
-
-    if r.status_code >= 300:
-        logger.debug("We have an error code to deal with: %s" % r.status_code)
-        return HttpResponse(json.dumps(r._content),
-                            status=r.status_code,
-                            content_type='application/json')
-
-    rewrite_list = build_rewrite_list(cx)
+    rewrite_list = build_rewrite_list(crosswalk)
     host_path = get_host_url(request, resource_type)[:-1]
 
-    text_in = get_response_text(fhir_response=r)
+    text_in = get_response_text(fhir_response=response)
 
-    text_out = post_process_request(request,
-                                    back_end_format,
+    out_data = post_process_request(request,
                                     host_path,
                                     text_in,
                                     rewrite_list)
 
-    if requested_format == 'xml':
-        return HttpResponse(r.text, content_type='application/xml')
+    out_data['entry'] = out_data['entry'][start_index:start_index + page_size]
+    out_data['link'] = get_paging_links(request.build_absolute_uri('?'),
+                                        start_index,
+                                        page_size,
+                                        out_data['total'],
+                                        replay_parameters)
 
-    return JsonResponse(text_out)
+    return JsonResponse(out_data)
+
+
+def get_paging_links(base_url, start_index, page_size, count, replay_parameters):
+    out = []
+    replay_parameters[SIZE_PARAMETER] = page_size
+
+    replay_parameters[START_PARAMETER] = start_index
+    out.append({
+        'relation': 'self',
+        'url': base_url + '?' + urlencode(replay_parameters)
+    })
+
+    if start_index + page_size < count:
+        replay_parameters[START_PARAMETER] = start_index + page_size
+        out.append({
+            'relation': 'next',
+            'url': base_url + '?' + urlencode(replay_parameters)
+        })
+
+    if start_index - page_size > 0:
+        replay_parameters[START_PARAMETER] = start_index - page_size
+        out.append({
+            'relation': 'previous',
+            'url': base_url + '?' + urlencode(replay_parameters)
+        })
+
+    if start_index > 0:
+        replay_parameters[START_PARAMETER] = 0
+        out.append({
+            'relation': 'first',
+            'url': base_url + '?' + urlencode(replay_parameters)
+        })
+
+    # This formula rounds count down to the nearest multiple of page_size
+    # that's less than and not equal to count
+    last_index = (count - 1) // page_size * page_size
+    if start_index < last_index:
+        replay_parameters[START_PARAMETER] = last_index
+        out.append({
+            'relation': 'last',
+            'url': base_url + '?' + urlencode(replay_parameters)
+        })
+
+    return out

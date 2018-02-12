@@ -8,6 +8,14 @@ HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env(
     'DJANGO_INVITE_REQUEST_ADMIN', 'change-me@example.com')
 
+DEV_SPECIFIC_APPS = [
+    # Installation/Site Specific apps based on  -----------------
+    # 'storages',
+    # A test client - moved to aws-test / dev /impl settings
+    'apps.testclient',
+]
+INSTALLED_APPS += DEV_SPECIFIC_APPS
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -40,3 +48,8 @@ FHIR_SERVER_CONF = {
     'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM', ['http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2', ]),
     'REWRITE_TO': env('THS_FHIR_REWRITE_TO', 'http://localhost:8000/bluebutton/fhir/v1'),
 }
+
+# Should be set to True in production and False in all other dev and test environments
+# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
+# REQUIRE_HTTPS_REDIRECT_URIS = True
+BLOCK_HTTP_REDIRECT_URIS = False

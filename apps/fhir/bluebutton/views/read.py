@@ -1,334 +1,110 @@
-import json
+from django.http import JsonResponse
 import logging
-from collections import OrderedDict
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse_lazy
-from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 
-from ..opoutcome_utils import (kickout_403,
-                               ERROR_CODE_LIST,
-                               strip_format_for_back_end,
-                               request_format,
-                               add_key_to_fhir_url,
-                               fhir_call_type
-                               )
+from ..constants import ALLOWED_RESOURCE_TYPES
+from ..decorators import require_valid_token
+from ..errors import build_error_response
 
 from apps.fhir.bluebutton.utils import (request_call,
-                                        check_rt_controls,
-                                        check_access_interaction_and_resource_type,
-                                        get_fhir_id,
-                                        masked_id,
-                                        build_params,
-                                        FhirServerUrl,
                                         get_host_url,
-                                        build_output_dict,
                                         post_process_request,
-                                        get_default_path,
                                         get_crosswalk,
                                         get_resourcerouter,
                                         build_rewrite_list,
                                         get_response_text)
+from rest_framework.decorators import throttle_classes, api_view
+from apps.dot_ext.throttling import TokenRateThrottle
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-# Attempting to set a timeout for connection and request for longer requests
-# eg. Search.
 
-
-@csrf_exempt
-@login_required()
-def read(request, resource_type, id, via_oauth=False, *args, **kwargs):
+@require_valid_token()
+@api_view(['GET'])
+@throttle_classes([TokenRateThrottle])
+def read(request, resource_type, resource_id, *args, **kwargs):
+    # reset request back to django.HttpRequest
+    request = request._request
     """
     Read from Remote FHIR Server
-
     # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
+    # curl -X GET http://127.0.0.1:8000/fhir/Patient/1234
     """
 
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
+    logger.debug("resource_type: %s" % resource_type)
+    logger.debug("Interaction: read")
+    logger.debug("Request.path: %s" % request.path)
 
-    interaction_type = 'read'
+    if resource_type not in ALLOWED_RESOURCE_TYPES:
+        logger.info('User requested read access to the %s resource type' % resource_type)
+        return build_error_response(404, 'The requested resource type, %s, is not supported'
+                                         % resource_type)
 
-    read_fhir = generic_read(request,
-                             interaction_type,
-                             resource_type,
-                             id,
-                             via_oauth,
-                             *args,
-                             **kwargs)
+    crosswalk = get_crosswalk(request.resource_owner)
 
-    return read_fhir
+    # If the user isn't matched to a backend ID, they have no permissions
+    if crosswalk is None:
+        logger.info('Crosswalk for %s does not exist' % request.user)
+        return build_error_response(403, 'No access information was found for the authenticated user')
 
+    resource_router = get_resourcerouter(crosswalk)
 
-def oauth_read(request, resource_type, id, via_oauth, *args, **kwargs):
-    """
-    Read from Remote FHIR Server
-    Called from oauth.py
+    if resource_type == 'Patient':
+        # Error out in advance for non-matching Patient records.
+        # Other records must hit backend to check permissions.
+        if resource_id != crosswalk.fhir_id:
+            return build_error_response(403, 'You do not have permission to access data on the requested patient')
 
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
-    """
+        resource_id = crosswalk.fhir_id
 
-    interaction_type = 'read'
+    target_url = resource_router.fhir_url + resource_type + "/" + resource_id + "/"
 
-    read_fhir = generic_read(request,
-                             interaction_type,
-                             resource_type,
-                             id,
-                             via_oauth=via_oauth,
-                             *args,
-                             **kwargs)
+    logger.debug('FHIR URL with key:%s' % target_url)
 
-    return read_fhir
+    get_parameters = {
+        "_format": "json"
+    }
 
-
-def generic_read(request,
-                 interaction_type,
-                 resource_type,
-                 id=None,
-                 via_oauth=False,
-                 vid=None,
-                 *args,
-                 **kwargs):
-    """
-    Read from remote FHIR Server
-
-    :param request:
-    :param interaction_type:
-    :param resource_type:
-    :param id:
-    :param vid:
-    :param args:
-    :param kwargs:
-    :return:
-
-    # Example client use in curl:
-    # curl  -X GET http://127.0.0.1:8000/fhir/Practitioner/1234
-
-    Process flow:
-
-    Is it a valid request?
-
-    Get the target server info
-
-    Get the request modifiers
-    - change url_id
-    - remove unwanted search parameters
-    - add search parameters
-
-    Construct the call
-
-    Make the call
-
-    Check result for errors
-
-    Deliver the formatted result
-
-
-    """
-    # DONE: Fix to allow url_id in url for non-key resources.
-    # eg. Patient is key resource so replace url if override_url_id is True
-    # if override_url_id is not set allow id to be applied and check
-    # if search_override is True.
-    # interaction_type = 'read' or '_history' or 'vread' or 'search'
-    logger.debug('\n========================\n'
-                 'INTERACTION_TYPE: %s - Via Oauth:%s' % (interaction_type,
-                                                          via_oauth))
-
-    # if via_oauth we need to call crosswalk with
-    if via_oauth:
-        # get crosswalk from the resource_owner
-        cx = get_crosswalk(request.resource_owner)
-    else:
-        # Get the users crosswalk
-        cx = get_crosswalk(request.user)
-
-    # cx will be the crosswalk record or None
-    rr = get_resourcerouter(cx)
-
-    # Check if this interaction type and resource type combo is allowed.
-    deny = check_access_interaction_and_resource_type(resource_type,
-                                                      interaction_type,
-                                                      rr)
-    if deny:
-        # if not allowed, return a 4xx error.
-        return deny
-
-    srtc = check_rt_controls(resource_type, rr)
-    # We get back a Supported ResourceType Control record or None
-    # with earlier if deny step we should have a valid srtc.
-
-    if not via_oauth:
-        # we don't need to check if user is anonymous if coming via_oauth
-        if srtc.secure_access and request.user.is_anonymous():
-            return kickout_403('Error 403: %s Resource access is controlled.'
-                               ' Login is required:'
-                               '%s' % (resource_type,
-                                       request.user.is_anonymous()))
-        # logger.debug('srtc: %s' % srtc)
-
-    if cx is None:
-        logger.debug('Crosswalk for %s does not exist' % request.user)
-
-    if (cx is None and srtc is not None):
-        # There is a srtc record so we need to check override_search
-        if srtc.override_search:
-            # If user is not in Crosswalk and srtc has search_override = True
-            # We need to prevent search to avoid data leakage.
-            return kickout_403('Error 403: %s Resource is access controlled.'
-                               ' No records are linked to user:'
-                               '%s' % (resource_type, request.user))
-
-    # TODO: Compare id to cx.fhir_id and return 403 if they don't match for
-    # Resource Type - Patient
-    fhir_url = ''
-    # change source of default_url to ResourceRouter
-
-    default_path = get_default_path(srtc.resource_name,
-                                    cx=cx)
-    # get the default path for resource with ending "/"
-    # You need to add resource_type + "/" for full url
-
-    if srtc:
-        # logger.debug('SRTC:%s' % srtc)
-
-        fhir_url = default_path + resource_type + '/'
-
-        if srtc.override_url_id:
-            fhir_url += get_fhir_id(cx) + "/"
-
-        # logger.debug('fhir_url:%s' % fhir_url)
-        else:
-            fhir_url += id + "/"
-
-    else:
-        logger.debug('CX:%s' % cx)
-        if cx:
-            fhir_url = cx.get_fhir_resource_url(resource_type)
-        else:
-            # logger.debug('FHIRServer:%s' % FhirServerUrl())
-            fhir_url = FhirServerUrl() + resource_type + '/'
-
-    # #### SEARCH
-
-    if interaction_type == 'search':
-        key = None
-    else:
-        key = masked_id(resource_type, cx, srtc, id, slash=False)
-
-        # add key to fhir_url unless already in place.
-        fhir_url = add_key_to_fhir_url(fhir_url, key)
-
-    logger.debug('FHIR URL with key:%s' % fhir_url)
-
-    ###########################
-
-    # Now we get to process the API Call.
-
-    # Internal handling format is json
-    # Remove the oauth elements from the GET
-
-    pass_params = request.GET
-
-    # Let's store the inbound requested format
-    # We need to simplify the format call to the backend
-    # so that we get data we can manipulate
-
-    # if format is not defined and we come in via_oauth
-    # then default to json for format
-    requested_format = request_format(pass_params)
-
-    # now we simplify the format/_format request for the back-end
-    pass_params = strip_format_for_back_end(pass_params)
-    if "_format" in pass_params:
-        back_end_format = pass_params['_format']
-    else:
-        back_end_format = "json"
-
-    # #### SEARCH
-
-    if interaction_type == 'search':
-        if cx is not None:
-            # logger.debug("cx.fhir_id=%s" % cx.fhir_id)
-            if cx.fhir_id.__contains__('/'):
-                id = get_fhir_id(cx).split('/')[1]
-            else:
-                id = get_fhir_id(cx)
-            # logger.debug("Patient Id:%s" % r_id)
-
-    if resource_type.lower() == "patient":
-        key = get_fhir_id(cx)
-    else:
-        key = id
-
-    pass_params = build_params(pass_params,
-                               srtc,
-                               key,
-                               patient_id=get_fhir_id(cx)
-                               )
-
-    # Add the call type ( READ = nothing, VREAD, _HISTORY)
-    # Before we add an identifier key
-    pass_to = fhir_call_type(interaction_type, fhir_url, vid)
-
-    logger.debug('\nHere is the URL to send, %s now add '
-                 'GET parameters %s' % (pass_to, pass_params))
-
-    if pass_params is not '':
-        pass_to += pass_params
-
-    logger.debug("\nMaking request:%s" % pass_to)
+    logger.debug('Here is the URL to send, %s now add '
+                 'GET parameters %s' % (target_url, get_parameters))
 
     # Now make the call to the backend API
 
-    if interaction_type == "search":
-        r = request_call(request,
-                         pass_to,
-                         cx,
-                         reverse_lazy('home'),
-                         timeout=rr.wait_time)
-    else:
-        r = request_call(request, pass_to, cx, reverse_lazy('home'))
+    response = request_call(request, target_url, crosswalk, timeout=None, get_parameters=get_parameters)
 
-    # BACK FROM THE CALL TO BACKEND
+    if response.status_code == 404:
+        return build_error_response(404, 'The requested resource does not exist')
 
-    # Check for Error here
-    logger.debug("status: %s/%s" % (r.status_code, r._status_code))
+    # TODO: This should be more specific
+    if response.status_code >= 300:
+        return build_error_response(502, 'An error occurred contacting the upstream server')
 
-    if r.status_code in ERROR_CODE_LIST:
-        logger.debug("We have an error code to deal with: %s" % r.status_code)
-        return HttpResponse(json.dumps(r._content, indent=4),
-                            status=r.status_code,
-                            content_type='application/json')
+    # Now check that the user has permission to access the data
+    # Patient resources were taken care of above
+    # Return 404 on error to avoid notifying unauthorized user the object exists
+    try:
+        if resource_type == 'Coverage':
+            reference = response._json()['beneficiary']['reference']
+            reference_id = reference.split('|')[1]
+            if reference_id != crosswalk.fhir_id:
+                return standard_404()
+        elif resource_type == 'ExplanationOfBenefit':
+            reference = response._json()['patient']['reference']
+            reference_id = reference.split('|')[1]
+            if reference_id != crosswalk.fhir_id:
+                return standard_404()
+    except Exception:
+        logger.warning('An error occurred fetching beneficiary id')
+        return standard_404()
 
-    text_out = ''
     host_path = get_host_url(request, resource_type)[:-1]
-    # logger.debug('host path:%s' % host_path)
 
     # Add default FHIR Server URL to re-write
-    rewrite_url_list = build_rewrite_list(cx)
+    rewrite_url_list = build_rewrite_list(crosswalk)
+    text_in = get_response_text(fhir_response=response)
+    text_out = post_process_request(request, host_path, text_in, rewrite_url_list)
 
-    text_in = get_response_text(fhir_response=r)
+    return JsonResponse(text_out)
 
-    text_out = post_process_request(request,
-                                    back_end_format,
-                                    host_path,
-                                    text_in,
-                                    rewrite_url_list)
 
-    od = build_output_dict(request,
-                           OrderedDict(),
-                           resource_type,
-                           key,
-                           vid,
-                           interaction_type,
-                           requested_format,
-                           text_out)
-
-    if requested_format == 'xml':
-        return HttpResponse(r.text,
-                            content_type='application/xml')
-
-    return JsonResponse(od['bundle'])
+def standard_404():
+    return build_error_response(404, 'The requested resource does not exist')

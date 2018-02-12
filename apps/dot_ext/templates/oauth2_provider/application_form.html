@@ -31,8 +31,15 @@
                     <div class="controls">
                         {{ field }}
                         {% for error in field.errors %}
-                            <span class="help-inline">{{ error }}</span>
+                            <div>
+                                <span class="ds-c-badge ds-c-badge--alert">{{ error }}</span>
+                            </div>
                         {% endfor %}
+                        {% if field.help_text %}
+                            <div class="ds-c-alert ds-c-alert--hide-icon">
+                                <div class="ds-c-alert__body">{{ field.help_text }}</div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

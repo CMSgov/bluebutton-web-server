@@ -1,5 +1,4 @@
-from django.test import TestCase, override_settings
-from django.conf import settings
+from django.test import TestCase
 from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.urlresolvers import reverse
@@ -21,7 +20,6 @@ class LoginTestCase(TestCase):
                                         **extra_fields)
         return user
 
-    @override_settings(LOGIN_RATE='500/m')
     def setUp(self):
         self._create_user('fred', 'bedrocks', first_name='Fred',
                           last_name='Flinstone', email='fred@example.com')
@@ -31,7 +29,6 @@ class LoginTestCase(TestCase):
         self.url = reverse('mfa_login')
         Group.objects.create(name='BlueButton')
 
-    @override_settings(LOGIN_RATE='500/m')
     def test_valid_login(self):
         """
         Valid User can login
@@ -41,7 +38,6 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logout')
 
-    @override_settings(LOGIN_RATE='500/m')
     def test_valid_login_case_insensitive_username(self):
         """
         Valid User can login and username is case insensitive
@@ -51,7 +47,6 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logout')
 
-    @override_settings(LOGIN_RATE='500/m')
     def test_invalid_login(self):
         """
         Invalid user cannot login
@@ -69,34 +64,3 @@ class LoginTestCase(TestCase):
         response = self.client.get(reverse('mylogout'), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
-
-    def test_settings_auth_results_in_usertype_benny(self):
-        """
-        When user is authenticated by external source then presumed a benny
-        password =
-        pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aa
-        TohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys=
-
-        set with
-        export DJANGO_SLS_PASSWORD='pbkdf2_sha256$24000$V6XjGqYYNGY7$13tFC13aa
-        TohxBgP2W3glTBz6PSbQN4l6HmUtxQrUys='
-        """
-        form_data = {'username': 'ben',
-                     'password': 'bluebutton'}
-        response = self.client.post(self.url,
-                                    form_data,
-                                    follow=True)
-
-        if 'apps.accounts.auth.SettingsBackend' in settings.AUTHENTICATION_BACKENDS:
-
-            up = UserProfile.objects.get(user__username='ben')
-            # User is a beneficiary ()
-            self.assertEqual(up.user_type, 'BEN')
-            # User is not yet active. Pending activation.
-            self.assertContains(response, 'Please check your email')
-            self.assertEqual(up.user.is_active, False)
-
-        else:
-            # No SLS Auth in backend
-            SLS_Auth_disabled = True
-            self.assertEqual(SLS_Auth_disabled, True)
