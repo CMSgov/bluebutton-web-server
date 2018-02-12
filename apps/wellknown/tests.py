@@ -5,14 +5,13 @@ from django.core.urlresolvers import reverse
 from django.utils import six
 from django.conf import settings
 import json
-from .utils import reverse_wo_trailing_slash
 
 __author__ = "Alan Viars"
 
 
 class OpenIDConnectConfigurationTestCase(TestCase):
     """
-    Test NOpenIDConnectConfiguration URL
+    Test OpenIDConnectConfiguration URI
     """
 
     def setUp(self):
@@ -26,9 +25,8 @@ class OpenIDConnectConfigurationTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(
-            response, reverse_wo_trailing_slash('oauth2_provider:token'))
-        self.assertContains(response, reverse_wo_trailing_slash(
-            'openid_connect_userinfo'))
+            response, reverse('oauth2_provider:token'))
+        self.assertContains(response, reverse('openid_connect_userinfo'))
         self.assertContains(response, "response_types_supported")
         self.assertContains(response, getattr(settings, 'HOSTNAME_URL'))
         response_content = response.content
