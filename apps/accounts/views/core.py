@@ -11,8 +11,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..forms import (RequestInviteForm, AccountSettingsForm,
                      LoginForm,
-                     SignupForm,
-                     RequestInviteEndUserForm,)
+                     SignupForm)
 from ..models import UserProfile
 from ..utils import validate_activation_key
 from django.conf import settings
@@ -53,30 +52,6 @@ def request_invite(request):
                       'developer-invite-request.html',
                       {'form': RequestInviteForm(),
                        'additional_info': additional_info})
-
-
-@never_cache
-def request_invite_enduser(request):
-    if request.method == 'POST':
-        form = RequestInviteEndUserForm(request.POST)
-        if form.is_valid():
-            invite_request = form.save()
-            messages.success(
-                request,
-                _('You will be contacted by email when your '
-                  'invitation is ready.'),
-            )
-            logger.debug("email to invite:%s" % invite_request.email)
-            return pick_reverse_login()
-        else:
-            return render(request, 'enduser-invite-request.html', {
-                'form': form,
-            })
-    else:
-        # this is an HTTP  GET
-        return render(request,
-                      'enduser-invite-request.html',
-                      {'form': RequestInviteEndUserForm(initial={'user_type': 'BEN'})})
 
 
 def mylogout(request):
