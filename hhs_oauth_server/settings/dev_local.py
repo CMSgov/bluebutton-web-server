@@ -62,8 +62,6 @@ OAUTH2_PROVIDER = {
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
 }
 
-OAUTH2_MOBILE_REDIRECT_REGEX = r'\b[a-zA-Z]{2}[0-9]{8}\b'
-
 # IF a new file is added for logging go to hhs_ansible and update configuration
 # script to touch log files:
 # hhs_ansible/playbook/appserver/roles/app_update/tasks/main.yml

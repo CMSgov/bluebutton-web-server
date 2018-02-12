@@ -309,8 +309,6 @@ OAUTH2_PROVIDER = {
     'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
 }
 
-OAUTH2_MOBILE_REDIRECT_REGEX = r'\b[a-zA-Z]{2}[0-9]{8}\b'
-
 # These choices will be available in the expires_in field
 # of the oauth2 authorization page.
 DOT_EXPIRES_IN = (
