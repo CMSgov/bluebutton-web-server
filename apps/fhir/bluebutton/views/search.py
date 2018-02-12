@@ -126,6 +126,12 @@ def get_paging_links(base_url, start_index, page_size, count, replay_parameters)
     out = []
     replay_parameters[SIZE_PARAMETER] = page_size
 
+    replay_parameters[START_PARAMETER] = start_index
+    out.append({
+        'relation': 'self',
+        'url': base_url + '?' + urlencode(replay_parameters)
+    })
+
     if start_index + page_size < count:
         replay_parameters[START_PARAMETER] = start_index + page_size
         out.append({
