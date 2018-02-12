@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import re
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 from django.utils import timezone
@@ -120,15 +119,7 @@ def validate_uris(value):
 
 
 def set_regex():
-    """
-    Set the regex value
-    :return:
-    """
-    regex = getattr(settings,
-                    'OAUTH2_MOBILE_REDIRECT_REGEX',
-                    r'\b[a-zA-Z]{2}[0-9]{8}\b')
-
-    return regex
+    return r'\b[a-zA-Z]{2}[0-9]{8}\b'
 
 
 def compare_to_regex(regex, uri):
