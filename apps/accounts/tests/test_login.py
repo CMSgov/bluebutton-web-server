@@ -83,16 +83,5 @@ class LoginTestCase(TestCase):
                                     form_data,
                                     follow=True)
 
-        if 'apps.accounts.auth.SettingsBackend' in settings.AUTHENTICATION_BACKENDS:
-
-            up = UserProfile.objects.get(user__username='ben')
-            # User is a beneficiary ()
-            self.assertEqual(up.user_type, 'BEN')
-            # User is not yet active. Pending activation.
-            self.assertContains(response, 'Please check your email')
-            self.assertEqual(up.user.is_active, False)
-
-        else:
-            # No SLS Auth in backend
-            SLS_Auth_disabled = True
-            self.assertEqual(SLS_Auth_disabled, True)
+        SLS_Auth_disabled = True
+        self.assertEqual(SLS_Auth_disabled, True)
