@@ -8,8 +8,6 @@ django-settings-export
 djangorestframework
 
 # support
-boto
-boto3
 django-storages
 jsonschema
 requests
