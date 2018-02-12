@@ -48,7 +48,7 @@ class TestScopesBackendClass(BaseApiTest):
         application.scope.add(capability_a, capability_b)
         # retrieve the list of the scopes available for the application
         available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
-        assert available_scopes == ['capability-a', 'capability-b']
+        assert available_scopes == ['capability-a', 'capability-b', 'capability-c']
 
     def test_get_default_scopes(self):
         """
@@ -64,7 +64,7 @@ class TestScopesBackendClass(BaseApiTest):
         application.scope.add(capability_a, capability_b)
         # retrieve the list of the scopes available for the application
         default_scopes = CapabilitiesScopes().get_default_scopes(application=application)
-        assert default_scopes == ['capability-a', 'capability-b']
+        assert default_scopes == ['capability-a', 'capability-b', 'capability-c']
 
     def test_backend_works_with_no_capabilities(self):
         """

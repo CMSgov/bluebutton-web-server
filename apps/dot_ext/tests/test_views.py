@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import json
 
+from unittest import skip
+
 from django.core.urlresolvers import reverse
 
 from oauth2_provider.compat import parse_qs, urlparse
@@ -12,6 +14,7 @@ from ..models import Application
 
 
 class TestApplicationUpdateView(BaseApiTest):
+    @skip("Skipping until restricted scopes are reenabled. They were disabled for https://issues.hhsdevcloud.us/browse/CBBP-881")
     def test_update_form_show_allowed_scopes(self):
         """
         """

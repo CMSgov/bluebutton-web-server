@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
-from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.settings import oauth2_settings
 from .oauth2_validators import set_regex, compare_to_regex
 from oauth2_provider.validators import urlsplit
@@ -22,17 +21,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         agree_label = u'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*' % (
             settings.TOS_URI)
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
-        choices = []
-        groups = user.groups.values_list('id', flat=True)
-        pcs = None
-        for g in groups:
-            pcs = ProtectedCapability.objects.filter(group=g)
-            for i in pcs:
-                choices.append([i.pk, i.title])
-        self.fields['scope'].choices = choices
-        self.fields['scope'].label = "Scope*"
-        if pcs:
-            self.fields['scope'].initial = pcs
         self.fields['authorization_grant_type'].choices = settings.GRANT_TYPES
         self.fields['client_type'].initial = 'confidential'
         self.fields['agree'].label = mark_safe(agree_label)
@@ -45,7 +33,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     class Meta:
         model = get_application_model()
-        fields = ('name', 'scope', 'client_type',
+        fields = ('name',
+                  'client_type',
                   'authorization_grant_type', 'redirect_uris',
                   'logo_uri', 'policy_uri', 'tos_uri', 'contacts',
                   'agree')
