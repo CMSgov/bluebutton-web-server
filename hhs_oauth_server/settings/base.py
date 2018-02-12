@@ -41,7 +41,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-DEBUG = False
+DEBUG = True
 APPEND_SLASH = False
 
 # apps and middlewares
@@ -357,13 +357,12 @@ EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 DEVELOPER_DOCS_URI = "https://cmsgov.github.io/bluebutton-developer-help"
 DEVELOPER_DOCS_TITLE = "Developer Documentation"
 
-USER_TITLE = "Medicare beneficiaries, health providers, caregivers, and 3rd party application developers"
-
 DEFAULT_DISCLOSURE_TEXT = """
-This system is provided for use by %s. See the documentation for more information on proper use.
+This system is provided for use by Medicare beneficiaries, health providers, caregivers, and 3rd party
+application developers. See the documentation for more information on proper use.
 Unauthorized or improper use of this system or its data may result in disciplinary action, as well as
 civil and criminal penalties. This system may be monitored, recorded, and subject to audit.
-""" % (USER_TITLE)
+"""
 
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
@@ -439,7 +438,7 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 REQUEST_CALL_TIMEOUT = (30, 120)
 
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
-ORGANIZATION_NAME = env('DJANGO_ORGANIZATION_NAME', 'CMS Blue Button API')
+ORGANIZATION_NAME = 'CMS Medicare Blue Button'
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/v1/accounts/mfa/login'
@@ -500,10 +499,7 @@ SLS_USERINFO_ENDPOINT = env(
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-
-)
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend')
 
 # Change these for production
 USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")

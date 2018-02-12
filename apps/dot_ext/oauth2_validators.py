@@ -120,15 +120,7 @@ def validate_uris(value):
 
 
 def set_regex():
-    """
-    Set the regex value
-    :return:
-    """
-    regex = getattr(settings,
-                    'OAUTH2_MOBILE_REDIRECT_REGEX',
-                    r'\b[a-zA-Z]{2}[0-9]{8}\b')
-
-    return regex
+    return r'\b[a-zA-Z]{2}[0-9]{8}\b'
 
 
 def compare_to_regex(regex, uri):
