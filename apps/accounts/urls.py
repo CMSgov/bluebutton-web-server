@@ -6,7 +6,6 @@ from .views.core import (create_account,
                          mylogout,
                          display_api_keys,
                          activation_verify,
-                         request_invite_enduser,
                          )
 
 from .views.password_reset import (change_secret_questions,
@@ -60,11 +59,6 @@ urlpatterns = [
     url(r'^request-invite$',
         request_invite,
         name='request_invite'),
-
-    # Request a  End USer invite to signup ---------------------------
-    url(r'^request-invite-enduser$',
-        request_invite_enduser,
-        name='request_invite_enduser'),
 
     # Reset password? ---------------------------------------
     url(r'^reset-password$', reset_password, name='reset_password'),
