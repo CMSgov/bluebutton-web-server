@@ -26,7 +26,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 def callback(request):
     token_endpoint = getattr(
         settings, 'SLS_TOKEN_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/token')
-    redirect_uri = getattr(settings, 'SLS_REDIRECT_URI',
+    redirect_uri = getattr(settings, 'MEDICARE_REDIRECT_URI',
                            'http://localhost:8000/mymedicare/sls-callback')
     userinfo_endpoint = getattr(
         settings, 'SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
