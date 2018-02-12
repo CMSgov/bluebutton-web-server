@@ -117,15 +117,10 @@ CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
-# Place all environment/installation specific code in a separate app
-# hhs_oauth_server.hhs_oauth_server_context.py also
-# includes IsAppInstalled to check for target_app in INSTALLED_APPS
-# This enables implementation specific code to be branched inside views and
-# functions.
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, ('templates/'))],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -136,10 +131,11 @@ TEMPLATES = [
                 'django_settings_export.settings_export',
                 'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
+            'builtins': [
+            ],
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
@@ -193,17 +189,8 @@ STATICFILES_DIRS = [
 
 
 # emails
-SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
-# If using AWS SES, the email below must first be verified.
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
 DEFAULT_ADMIN_EMAIL = env('DJANGO_ADMIN_EMAIL', 'change-me@example.com')
-
-# email backend options are:
-# 'django.core.mail.backends.smtp.EmailBackend'
-# 'django.core.mail.backends.filebased.EmailBackend'
-# 'django.core.mail.backends.locmem.EmailBackend'
-# 'django.core.mail.backends.dummy.EmailBackend'
-# 'django_ses.SESBackend'
 
 # The console.EmailBackend backend prints to the console.
 # Redefine this for SES or other email delivery mechanism
@@ -223,7 +210,6 @@ EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', None)
 EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', None)
 EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 
-SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
 MFA = True
 
 # AWS Credentials need to support SES, SQS and SNS
