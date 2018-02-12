@@ -5,7 +5,7 @@ from django.contrib.auth.models import User, Group
 from .models import UserProfile, create_activation_key
 
 
-######## DEPRECATED ###########
+# -------------- DEPRECATED ------------- #
 
 # This file is marked for removal as of https://github.com/CMSgov/bluebutton-web-server/pull/496
 # It is being left in place due to issues syncing the change with a reference in our deployment
