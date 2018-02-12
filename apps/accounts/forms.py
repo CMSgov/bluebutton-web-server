@@ -308,7 +308,7 @@ class SignupForm(forms.Form):
                                                          "US numbers only."))
     organization_name = forms.CharField(max_length=100,
                                         label=_("Organization Name"),
-                                        required=True
+                                        required=False
                                         )
     password1 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
@@ -447,7 +447,7 @@ class AccountSettingsForm(forms.Form):
                                                          "authentication."))
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
-                                        required=True)
+                                        required=False)
     create_applications = forms.BooleanField(initial=False,
                                              required=False)
     required_css_class = 'required'
