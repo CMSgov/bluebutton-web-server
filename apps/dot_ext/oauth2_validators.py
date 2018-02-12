@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import re
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 from django.utils import timezone

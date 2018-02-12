@@ -41,7 +41,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-DEBUG = True
+DEBUG = False
 APPEND_SLASH = False
 
 # apps and middlewares
@@ -499,7 +499,7 @@ SLS_USERINFO_ENDPOINT = env(
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 
-AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend')
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
 
 # Change these for production
 USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
