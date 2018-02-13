@@ -7,7 +7,6 @@ from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.http import HttpResponseUriRedirect
 from ..forms import AllowForm, SimpleAllowForm
 from ..models import ExpiresIn
-from django.conf import settings
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -20,10 +19,8 @@ class AuthorizationView(DotAuthorizationView):
     use the custom AllowForm.
     """
     form_class = SimpleAllowForm
-    login_url = getattr(
-        settings, 'AUTHORIZATION_LOGIN_URL', "/mymedicare/login")
-    template_name = getattr(
-        settings, 'AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
+    login_url = "/mymedicare/login"
+    template_name = "design_system/authorize.html"
 
 
 class ScopeAuthorizationView(DotAuthorizationView):
