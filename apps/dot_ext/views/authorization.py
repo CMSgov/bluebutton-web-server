@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 import logging
+from django.core.urlresolvers import reverse
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
@@ -19,7 +20,7 @@ class AuthorizationView(DotAuthorizationView):
     use the custom AllowForm.
     """
     form_class = SimpleAllowForm
-    login_url = "/mymedicare/login"
+    login_url = reverse('mymedicare-login')
     template_name = "design_system/authorize.html"
 
 
