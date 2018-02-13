@@ -20,10 +20,8 @@ class AuthorizationView(DotAuthorizationView):
     use the custom AllowForm.
     """
     form_class = SimpleAllowForm
-    login_url = getattr(
-        settings, 'AUTHORIZATION_LOGIN_URL', "/mymedicare/login")
-    template_name = getattr(
-        settings, 'AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
+    login_url = "/mymedicare/login"
+    template_name = "design_system/authorize.html"
 
 
 class ScopeAuthorizationView(DotAuthorizationView):

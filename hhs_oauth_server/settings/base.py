@@ -352,18 +352,6 @@ DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
-#############################################################################
-# /testclient errors when no SSL present
-#############################################################################
-# IF /testclient fails because the server is running without a certificate
-# eg. on your local machine. You need to un-comment the following line:
-
-# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-
-# NEVER run in PRODUCTION without a certificate and with this setting active
-# A better practice is to set the INSECURE_TRANSPORT setting in an
-# alternate settings file. eg. local.py
-#############################################################################
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
@@ -466,19 +454,16 @@ SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 
 
 MEDICARE_LOGON = True
-MEDICARE_LOGIN_TEMPLATE_NAME = env(
-    'DJANGO_MEDICARE_LOGIN_TEMPLATE_NAME', "design_system/login.html")
-AUTHORIZATION_LOGIN_URL = env(
-    'DJANGO_AUTHORIZATION_LOGIN_URL', '/mymedicare/login')
-AUTHORIZATION_TEMPLATE_NAME = env(
-    'DJANGO_AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
-
 MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI ',
                          'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
 MEDICARE_REDIRECT_URI = env(
     'DJANGO_MEDICARE_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
 SLS_USERINFO_ENDPOINT = env(
-    'DJANGO_SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
+    'DJANGO_SLS_USERINFO_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/userinfo')
+SLS_TOKEN_ENDPOINT = env(
+    'DJANGO_SLS_TOKEN_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/token')
+
+
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 
@@ -497,7 +482,4 @@ DEFAULT_SAMPLE_FHIR_ID = "20140000008325"
 OFFLINE = False
 EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'
 
-# Should be set to True in production and False in all other dev and test environments
-# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
-# REQUIRE_HTTPS_REDIRECT_URIS = True
 BLOCK_HTTP_REDIRECT_URIS = False

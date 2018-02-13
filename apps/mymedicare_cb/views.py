@@ -24,8 +24,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 @never_cache
 def callback(request):
-    token_endpoint = getattr(
-        settings, 'SLS_TOKEN_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/token')
+    token_endpoint = settings.SLS_TOKEN_ENDPOINT
     redirect_uri = settings.MEDICARE_REDIRECT_URI
     userinfo_endpoint = getattr(
         settings, 'SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
@@ -143,8 +142,7 @@ def generate_nonce(length=26):
 @never_cache
 def mymedicare_login(request):
     redirect = settings.MEDICARE_REDIRECT_URI
-    mymedicare_login_url = getattr(settings, 'MEDICARE_LOGIN_URI',
-                                   'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
+    mymedicare_login_url = settings.MEDICARE_LOGIN_URI
     redirect = req.pathname2url(redirect)
     state = generate_nonce()
     state = req.pathname2url(state)
@@ -162,8 +160,7 @@ def mymedicare_login(request):
 
 @never_cache
 def mymedicare_choose_login(request):
-    mymedicare_login_uri = getattr(settings, 'MEDICARE_LOGIN_URI',
-                                   'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
+    mymedicare_login_uri = settings.MEDICARE_LOGIN_URI
     redirect = settings.MEDICARE_REDIRECT_URI
     redirect = req.pathname2url(redirect)
     aus = AnonUserState.objects.get(state=request.session['state'])
