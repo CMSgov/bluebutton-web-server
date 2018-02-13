@@ -13,7 +13,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, '..')
 
 # security
-# SECRET_KEY = env('DJANGO_SECRET_KEY')
 SECRET_KEY = env('DJANGO_SECRET_KEY',
                  'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR')
 if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
@@ -502,19 +501,3 @@ EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
 # REQUIRE_HTTPS_REDIRECT_URIS = True
 BLOCK_HTTP_REDIRECT_URIS = False
-
-#
-# MyMedicare Authentication Integration
-#
-# These values are set in the respective environment settings file
-# e.g. aws-test.py
-
-# SLS_TOKEN_ENDPOINT = env('DJANGO_SLS_TOKEN_ENDPOINT')
-# MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI')
-# MEDICARE_REDIRECT_URI = env('DJANGO_MEDICARE_REDIRECT_URI')
-# MEDICARE_LOGIN_TEMPLATE_NAME = env('DJANGO_MEDICARE_LOGIN_TEMPLATE_NAME')
-# AUTHORIZATION_TEMPLATE_NAME = env('DJANGO_AUTHORIZATION_TEMPLATE_NAME')
-# if env('DJANGO_SLS_VERIFY_SSL').lower() == "true":
-#     SLS_VERIFY_SSL = True
-# else:
-#     SLS_VERIFY_SSL = False
