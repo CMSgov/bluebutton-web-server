@@ -7,7 +7,6 @@ from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.http import HttpResponseUriRedirect
 from ..forms import AllowForm, SimpleAllowForm
 from ..models import ExpiresIn
-from django.conf import settings
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
