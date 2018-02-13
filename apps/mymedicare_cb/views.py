@@ -26,8 +26,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 def callback(request):
     token_endpoint = getattr(
         settings, 'SLS_TOKEN_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/token')
-    redirect_uri = getattr(settings, 'MEDICARE_REDIRECT_URI',
-                           'http://localhost:8000/mymedicare/sls-callback')
+    redirect_uri = settings.MEDICARE_REDIRECT_URI
     userinfo_endpoint = getattr(
         settings, 'SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
     verify_ssl = getattr(settings, 'SLS_VERIFY_SSL', False)
@@ -59,7 +58,7 @@ def callback(request):
     # Call SLS userinfo: ",
     # Authorization Bearer token in header.
     r = requests.get(userinfo_endpoint, headers=headers, verify=verify_ssl)
-    # print("Status", r.status_code)
+
     if r.status_code != 200:
         logger.error("User info request response error %s" % (r.status_code))
         return HttpResponse("Error: HTTP %s response from userinfo request." % (r.status_code), status=r.status_code)
@@ -143,8 +142,7 @@ def generate_nonce(length=26):
 
 @never_cache
 def mymedicare_login(request):
-    redirect = getattr(settings, 'MEDICARE_REDIRECT_URI',
-                       'http://localhost:8000/mymedicare/sls-callback')
+    redirect = settings.MEDICARE_REDIRECT_URI
     mymedicare_login_url = getattr(settings, 'MEDICARE_LOGIN_URI',
                                    'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
     redirect = req.pathname2url(redirect)
@@ -166,8 +164,7 @@ def mymedicare_login(request):
 def mymedicare_choose_login(request):
     mymedicare_login_uri = getattr(settings, 'MEDICARE_LOGIN_URI',
                                    'https://impl1.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
-    redirect = getattr(settings, 'MEDICARE_REDIRECT_URI',
-                       'http://localhost:8000/mymedicare/sls-callback')
+    redirect = settings.MEDICARE_REDIRECT_URI
     redirect = req.pathname2url(redirect)
     aus = AnonUserState.objects.get(state=request.session['state'])
     mymedicare_login_uri = "%s&state=%s&redirect_uri=%s" % (
