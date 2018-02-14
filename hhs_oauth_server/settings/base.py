@@ -13,7 +13,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, '..')
 
 # security
-# SECRET_KEY = env('DJANGO_SECRET_KEY')
 SECRET_KEY = env('DJANGO_SECRET_KEY',
                  'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR')
 if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
@@ -117,15 +116,10 @@ CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
 
 ROOT_URLCONF = 'hhs_oauth_server.urls'
 
-# Place all environment/installation specific code in a separate app
-# hhs_oauth_server.hhs_oauth_server_context.py also
-# includes IsAppInstalled to check for target_app in INSTALLED_APPS
-# This enables implementation specific code to be branched inside views and
-# functions.
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, ('templates/'))],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -136,10 +130,11 @@ TEMPLATES = [
                 'django_settings_export.settings_export',
                 'hhs_oauth_server.hhs_oauth_server_context.active_apps',
             ],
+            'builtins': [
+            ],
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
@@ -193,17 +188,8 @@ STATICFILES_DIRS = [
 
 
 # emails
-SEND_EMAIL = bool_env(env('DJANGO_SEND_EMAIL', True))
-# If using AWS SES, the email below must first be verified.
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
 DEFAULT_ADMIN_EMAIL = env('DJANGO_ADMIN_EMAIL', 'change-me@example.com')
-
-# email backend options are:
-# 'django.core.mail.backends.smtp.EmailBackend'
-# 'django.core.mail.backends.filebased.EmailBackend'
-# 'django.core.mail.backends.locmem.EmailBackend'
-# 'django.core.mail.backends.dummy.EmailBackend'
-# 'django_ses.SESBackend'
 
 # The console.EmailBackend backend prints to the console.
 # Redefine this for SES or other email delivery mechanism
@@ -223,7 +209,6 @@ EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', None)
 EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', None)
 EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 
-SEND_SMS = bool_env(env('DJANGO_SEND_SMS', False))
 MFA = True
 
 # AWS Credentials need to support SES, SQS and SNS
@@ -367,18 +352,6 @@ DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
-#############################################################################
-# /testclient errors when no SSL present
-#############################################################################
-# IF /testclient fails because the server is running without a certificate
-# eg. on your local machine. You need to un-comment the following line:
-
-# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-
-# NEVER run in PRODUCTION without a certificate and with this setting active
-# A better practice is to set the INSECURE_TRANSPORT setting in an
-# alternate settings file. eg. local.py
-#############################################################################
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
@@ -481,19 +454,16 @@ SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
 
 
 MEDICARE_LOGON = True
-MEDICARE_LOGIN_TEMPLATE_NAME = env(
-    'DJANGO_MEDICARE_LOGIN_TEMPLATE_NAME', "design_system/login.html")
-AUTHORIZATION_LOGIN_URL = env(
-    'DJANGO_AUTHORIZATION_LOGIN_URL', '/mymedicare/login')
-AUTHORIZATION_TEMPLATE_NAME = env(
-    'DJANGO_AUTHORIZATION_TEMPLATE_NAME', "design_system/authorize.html")
-
 MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI ',
                          'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
 MEDICARE_REDIRECT_URI = env(
     'DJANGO_MEDICARE_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
 SLS_USERINFO_ENDPOINT = env(
-    'DJANGO_SLS_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/oauth/userinfo')
+    'DJANGO_SLS_USERINFO_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/userinfo')
+SLS_TOKEN_ENDPOINT = env(
+    'DJANGO_SLS_TOKEN_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/token')
+
+
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 
@@ -512,23 +482,4 @@ DEFAULT_SAMPLE_FHIR_ID = "20140000008325"
 OFFLINE = False
 EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'
 
-# Should be set to True in production and False in all other dev and test environments
-# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
-# REQUIRE_HTTPS_REDIRECT_URIS = True
 BLOCK_HTTP_REDIRECT_URIS = False
-
-#
-# MyMedicare Authentication Integration
-#
-# These values are set in the respective environment settings file
-# e.g. aws-test.py
-
-# SLS_TOKEN_ENDPOINT = env('DJANGO_SLS_TOKEN_ENDPOINT')
-# MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI')
-# MEDICARE_REDIRECT_URI = env('DJANGO_MEDICARE_REDIRECT_URI')
-# MEDICARE_LOGIN_TEMPLATE_NAME = env('DJANGO_MEDICARE_LOGIN_TEMPLATE_NAME')
-# AUTHORIZATION_TEMPLATE_NAME = env('DJANGO_AUTHORIZATION_TEMPLATE_NAME')
-# if env('DJANGO_SLS_VERIFY_SSL').lower() == "true":
-#     SLS_VERIFY_SSL = True
-# else:
-#     SLS_VERIFY_SSL = False

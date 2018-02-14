@@ -28,18 +28,20 @@
     <div class="navbar-collapse collapse">
 
       <ul class="nav navbar-nav navbar-right">
-<li><a href="https://cmsgov.github.io/bluebutton-developer-help/"> <i class="fa fa-gears"></i> Developer Docs</a></li>
+<li><a href="https://cmsgov.github.io/bluebutton-developer-help/">  Documentation</a></li>
+<li><a href="https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api"> Support</a></li>
 {% if 'apps.testclient' in settings.INSTALLED_APPS %}
     <li><a href="{% url 'test_links' %}"> <i class="fa fa-check"></i> Test Client</a></li>
 {%  endif %}
-
 
 		{% if user.is_authenticated %}
 						<li><a href="{% url 'account_settings' %}"> <i class="fa fa-user"></i> Profile</a></li>
             <li><a href="{% url 'mylogout' %}">Logout <i class="fa fa-sign-out"></i></a></li>
 
     {% else %}
-            <li><a href="{% url 'mfa_login' %}"> <i class="fa fa-sign-in"></i>  Login</a></li>
+             
+            <li><a href="{% url 'mfa_login' %}"> <i class="fa fa-user"></i>  Login</a></li>
+            <li><a href="{% url 'accounts_create_account' %}"> <i class="fa fa-plus"></i>  Signup</a></li>
     {% endif %}
       </ul>
     </div><!--/.nav-collapse -->

@@ -4,9 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-boto3==1.4.0
-boto==2.40.0
-botocore==1.4.93          # via boto3, s3transfer
+boto==2.40.0              # via django-ses
 certifi==2017.7.27.1      # via requests
 chardet==3.0.4            # via requests
 configparser==3.5.0
@@ -26,10 +24,8 @@ django-settings-export==1.1.0
 django-storages==1.5.1
 django==1.11.9
 djangorestframework==3.7.7
-docutils==0.14            # via botocore
 flake8==2.6.0
 idna==2.6                 # via requests
-jmespath==0.9.3           # via boto3, botocore
 jsonschema==2.5.1
 mccabe==0.5.0             # via flake8
 oauthlib==1.0.3
@@ -39,15 +35,13 @@ pycodestyle==2.0.0        # via flake8
 pyflakes==1.2.3           # via flake8
 pyjwt==1.5.3
 python-coveralls==2.9.1
-python-dateutil==2.6.1    # via botocore
 python-openid==2.2.5
 python3-openid==3.1.0     # via social-auth-core
 pytz==2016.4
 pyyaml==3.12              # via python-coveralls
 requests-oauthlib==0.8.0  # via social-auth-core
 requests==2.18.4
-s3transfer==0.1.11        # via boto3
-six==1.10.0               # via django-oauth-toolkit-scopes-backend, python-coveralls, python-dateutil, social-auth-app-django, social-auth-core
+six==1.10.0               # via django-oauth-toolkit-scopes-backend, python-coveralls, social-auth-app-django, social-auth-core
 social-auth-app-django==1.2.0
 social-auth-core==1.4.0   # via social-auth-app-django
 sqlparse==0.1.19          # via django-debug-toolbar

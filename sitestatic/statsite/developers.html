@@ -1,5 +1,641 @@
-{% load static %}
-<footer class="ds-base ds-u-fill--white ds-u-margin-top--7 ds-u-padding-y--6" role="contentinfo">
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Blue Button API Developer Documentation</title>
+  <meta name="description" content="Developer tools from Centers for Medicare and Medicaid Services. Build with a collection of APIs, datasets, frameworks, and styleguides for developing applic...">
+
+  <link rel="shortcut icon" type="image/x-icon"  href="assets/img/favicon.ico" />
+  <link rel="stylesheet" href="assets/main.css">
+  <link rel="canonical" href="http://localhost:4000/developers.html">
+  <link rel="alternate" type="application/rss+xml" title="CMS Developer Tools" href="feed.xml">
+
+  <script>
+  window.tealiumEnvironment = "";
+  </script>
+  <script src="http://tags.tiqcdn.com/utag/cmsgov/cms-developer/prod/utag.sync.js"></script>
+</head>
+
+
+  <body class="ds-u-fill--gray-lightest">
+    <a class="ds-c-skip-nav" href="developers.html#main">Skip to main content</a>
+
+    
+<header class="ds-base ds-u-fill--gray-lightest ds-u-padding-y--2" id="site-top">
+  <div class="ds-l-container ds-u-display--flex ds-u-justify-content--between ds-u-align-items--center">
+    <div class="ds-u-justify-content--start ds-u-display--flex">
+      <nav class="other-main-nav ds-u-font-weight--bold">
+        <h5 class="sr-only" id="desktop-nav">Main site navigation</h5>
+        <ul aria-labelledby="desktop-nav">
+          <li>
+            <svg width="225px" height="31px" viewBox="0 0 225 31" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 48.2 (47327) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 6</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="nav-when-not-logged-in" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(-30.000000, -16.000000)">
+        <g id="Group-6" transform="translate(30.000000, 16.000000)" fill="#404040">
+            <text id="CMS-Blue-Button-API" font-family="Roboto-Bold, Roboto" font-size="20" font-weight="bold">
+                <tspan x="36" y="23">CMS Blue Button API </tspan>
+            </text>
+            <g id="bb-logo-depth-small" fill-rule="nonzero">
+                <g id="Group" transform="translate(15.000000, 15.555633) scale(-1, 1) rotate(-180.000000) translate(-15.000000, -15.555633) translate(0.000000, 0.555633)">
+                    <path d="M10.5396611,29.5407402 C9.73805305,29.3032267 8.96613421,29.1250916 8.87706665,29.0954024 C7.98639107,29.036024 2.37513489,24.3451326 2.37513489,23.6622813 C2.37513489,23.5138354 2.10793221,23.0388084 1.81104035,22.5934706 C1.48445931,22.1481328 0.950053956,20.9308762 0.593783722,19.8917547 C0.0296891861,18.1994711 -0.0593783722,17.4869306 0.0593783722,14.2508093 C0.178135117,10.7474854 0.237513489,10.4209043 1.18756744,8.49110723 C3.08767536,4.63151304 6.62068851,1.66259442 10.6584178,0.475026978 C12.7366608,-0.148445931 16.9228361,-0.148445931 18.9417007,0.445337792 C28.2047268,3.2064321 32.4205912,14.042985 27.6406323,22.7122274 C26.0671054,25.5327001 23.7216597,27.5515647 20.1886466,29.0954024 C18.1400927,29.986078 12.914796,30.2235915 10.5396611,29.5407402 Z M19.0901467,28.7688214 C29.0954024,25.4139433 32.3612129,13.0335527 25.2358082,5.25498594 C22.3856463,2.1376214 18.9713899,0.593783722 14.9336606,0.593783722 C10.5693503,0.623472909 7.74887758,1.75166198 4.72058059,4.75026978 C0.979743142,8.43172886 -0.475026978,13.4492013 0.742229653,18.2588495 C2.04855384,23.3060111 5.37374269,27.0468486 10.0646341,28.6797538 C12.7069717,29.6298078 16.4478091,29.6594969 19.0901467,28.7688214 Z" id="Shape"></path>
+                    <path d="M11.8162961,27.5812539 C10.3318368,27.2546729 7.51136409,25.7702136 6.35348583,24.731092 C4.75026978,23.3060111 3.35487803,21.1980789 2.67202675,19.149525 C1.69228361,16.2102956 1.90010791,12.4694582 3.17674292,9.70836386 C7.00664792,1.57352686 17.0119036,-0.326581047 23.4841462,5.81908048 C31.7971183,13.7757824 26.007727,28.0265917 14.5477012,27.8781458 C13.6570256,27.8484566 12.4100798,27.7296998 11.8162961,27.5812539 Z M17.219728,20.5152276 L17.219728,16.9525253 L18.5260521,16.8634577 L19.8323763,16.7743902 L17.4572414,14.6961471 C16.1509173,13.5679581 14.9633498,12.6179041 14.8149039,12.6179041 C14.6664579,12.6179041 13.4492013,13.5679581 12.1131879,14.6961471 L9.64898549,16.7743902 L10.9849989,16.9228361 C12.0538096,17.0415928 12.3210122,17.1900388 12.3507014,17.6650657 C12.3507014,17.9916468 12.3803906,19.5651737 12.4100798,21.1683897 L12.4694582,24.0482408 L14.8445931,24.0482408 L17.219728,24.0482408 L17.219728,20.5152276 Z M9.50053956,11.8756744 L9.50053956,10.3912151 L14.6961471,10.3912151 L19.8917547,10.3912151 L19.8917547,11.9053636 L19.8917547,13.3898229 L21.1683897,13.3007554 L22.4153355,13.2116878 L22.4153355,10.5396611 L22.4153355,7.86763432 L14.7852147,7.77856676 L7.12540467,7.71918839 L7.12540467,10.5396611 L7.12540467,13.3601338 L8.31297211,13.3601338 L9.50053956,13.3601338 L9.50053956,11.8756744 Z" id="Shape"></path>
+                    <path d="M25.2951866,3.50332396 C24.4638894,2.67202675 25.2358082,0.890675584 26.4233756,0.890675584 C27.1359161,0.890675584 27.907835,1.66259442 27.907835,2.37513489 C27.907835,3.56270233 26.1264838,4.33462117 25.2951866,3.50332396 Z M25.8295919,2.31575652 C25.8295919,1.63290524 25.7405244,1.45477012 25.5030109,1.69228361 C25.3248758,1.87041873 25.2654974,2.28606733 25.3842541,2.64233756 C25.6514568,3.53301315 25.8295919,3.4142564 25.8295919,2.31575652 Z M26.9280918,2.49389163 C26.8390243,2.40482408 26.5718216,2.37513489 26.3639973,2.46420245 C26.1264838,2.55327001 26.2155513,2.64233756 26.5421324,2.64233756 C26.8687134,2.67202675 27.0468486,2.58295919 26.9280918,2.49389163 Z M27.5218755,2.01886466 C27.432808,1.78135117 27.3437404,1.87041873 27.3437404,2.19699977 C27.3140512,2.52358082 27.4031188,2.70171594 27.4921863,2.58295919 C27.5812539,2.49389163 27.6109431,2.22668896 27.5218755,2.01886466 Z M26.8687134,1.48445931 C26.7796459,1.33601338 26.5718216,1.18756744 26.3936865,1.18756744 C26.2452405,1.18756744 26.1264838,1.33601338 26.1264838,1.48445931 C26.1264838,1.66259442 26.3343081,1.78135117 26.6015108,1.78135117 C26.8390243,1.78135117 26.957781,1.66259442 26.8687134,1.48445931 Z" id="Shape"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
+
+            <a href="index.html" > </a>
+          </li>
+    </ul>
+    </div>
+    <div class="ds-u-justify-content--end ds-u-display--flex">
+      <nav class="main-nav ds-u-font-weight--bold">
+        <h5 class="sr-only" id="desktop-nav">Main site navigation</h5>
+        <ul aria-labelledby="desktop-nav">
+          <li>
+            <a href="developers.html" >Documentation</a>
+          </li>
+          <li>
+            <a href="https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api" >Support</a>
+          </li>
+
+          <li>
+            
+<svg width="15px" height="15px" viewBox="0 0 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 48.2 (47327) - http://www.bohemiancoding.com/sketch -->
+    <title>Shape</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="nav-when-not-logged-in" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(-841.000000, -24.000000)">
+        <g id="Group-3" transform="translate(841.333333, 24.000000)" fill="#404040">
+            <path d="M9.8716241,10.2930568 C11.9073039,10.5770965 13.2691036,11.8079351 13.5358478,12.2542831 C14.041258,13.0793508 13.9991405,15 13.9991405,15 L0.00208667825,15 C0.00208667825,15 -0.0681091782,12.9576195 0.605771044,12.1325518 C0.984828669,11.7808837 2.17815823,10.5770965 4.21383807,10.2795311 C6.23547873,9.99549143 5.6177552,7.83137962 5.68795105,7.85843102 C5.75814691,7.89900812 5.67391188,7.39855726 5.67391188,7.39855726 C5.67391188,7.39855726 4.1997989,6.03246168 4.21383807,4.80162308 C4.24191641,3.55725879 4.21383807,2.92155095 4.21383807,2.92155095 C4.21383807,2.92155095 4.45250398,0 6.53030133,0 L7.69555255,0.541027953 C9.56276233,0.541027953 9.8716241,2.92155095 9.8716241,2.92155095 L9.8716241,4.97745717 C9.8716241,4.97745717 9.63295819,6.72227232 8.46770697,7.35798016 C8.46770697,7.35798016 8.38347194,7.85843102 8.4536678,7.81785392 C8.52386365,7.79080252 7.84998343,9.99549143 9.8716241,10.2930568 L9.8716241,10.2930568 Z" id="Shape"></path>
+        </g>
+    </g>
+</svg>
+
+            <a href="https://sandbox.bluebutton.cms.gov/v1/accounts/mfa/login" >Login</a>
+          </li>
+
+          <li>
+            <svg width="15px" height="14px" viewBox="0 0 15 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 48.2 (47327) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 2</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="nav-when-not-logged-in" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(-926.000000, -26.000000)">
+        <g id="Group-4" transform="translate(926.666667, 24.000000)" fill="#404040">
+            <g id="Group-2" transform="translate(0.000000, 2.000000)">
+                <rect id="Rectangle" x="5.6" y="0" width="2.8" height="14"></rect>
+                <rect id="Rectangle" x="0" y="5.6" width="14" height="2.8"></rect>
+            </g>
+        </g>
+    </g>
+</svg>
+
+            <a href="https://sandbox.bluebutton.cms.gov/v1/accounts/request-invite" >Sign up</a>
+          </li>
+
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+
+    <div class="ds-base">
+  <header class="main-header ds-u-margin-bottom--2 ds-u-lg-margin-bottom--5">
+    <div class="solid-container ds-u-padding-y--2 ds-u-lg-padding-y--5">
+      <div class="ds-l-container">
+        <div class="ds-l-row">
+          <div class="ds-u-color--white ds-l-sm-cold--12 ds-l-xl-col--10 ds-u-margin-left--auto ds-u-padding-x--4">
+
+              
+              <span class="ds-c-badge ds-u-text-transform--uppercase">api</span>
+              
+
+
+              <h1 class="ds-display">Blue Button API Developer Documentation</h1>
+              <p class="ds-text--lead">
+                
+              </p>
+
+              <div class="ctas">
+              
+              <a class="ds-c-button button--white" href="https://sandbox.bluebutton.cms.gov/v1/accounts/request-invite" aria-label="Sign up for the Developer Preview" target="_self">Sign up for the Developer Preview &rarr;</a>
+              
+              <a class="ds-c-button button--white" href="https://sandbox.bluebutton.cms.gov/v1/accounts/mfa/login" aria-label="Register an application" target="_self">Register an application &rarr;</a>
+              
+              </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      <div class="gradient-container ds-u-padding-y--2 ds-u-lg-padding-y--5 ds-u-display--none ds-u-md-display--block">
+        </div>
+    </div>
+  </header>
+
+<section class="ds-l-container ds-base">
+  <div class="ds-l-row">
+
+    <aside class="ds-l-col--4 ds-u-margin-left--right ds-u-display--none ds-u-sm-display--block" role="complementary">
+      <nav class="subnav">
+        <h5 class="sr-only" id="page-sub-nav">Page navigation links</h5>
+        <ul class="ds-c-list ds-c-list--bare" id="mainNav" aria-labelledby="page-sub-nav">
+          
+            <li><a href="developers.html#overview" aria-label="Overview section, current page" class="ds-u-display--block blueberry-lime-link" aria-label="Overview section, current page">Overview</a></li>
+          
+            <li><a href="developers.html#authorization" aria-label="Authorization section, current page" class="ds-u-display--block blueberry-lime-link" aria-label="Authorization section, current page">Authorization</a></li>
+          
+            <li><a href="developers.html#core-resources" aria-label="Core Resources section, current page" class="ds-u-display--block blueberry-lime-link" aria-label="Core Resources section, current page">Core Resources</a></li>
+          
+            <li><a href="developers.html#try-the-api" aria-label="Try the API section, current page" class="ds-u-display--block blueberry-lime-link" aria-label="Try the API section, current page">Try the API</a></li>
+          
+            <li><a href="developers.html#meet-jack" aria-label="Meet "Jack" section, current page" class="ds-u-display--block blueberry-lime-link" aria-label="Meet "Jack" section, current page">Meet "Jack"</a></li>
+          
+        </ul>
+        <h5 class="sr-only" id="page-cta-nav">External navigation links</h5>
+        <ul class="ds-c-list ds-c-list--bare ds-u-margin-top--2" aria-labelledby="page-cta-nav">
+        </ul>
+      </nav>
+    </aside>
+
+
+    <article class="ds-l-col--12 ds-l-sm-col--7 api" id="main" role="main">
+      <h2 id="overview">Overview</h2>
+
+<p>The Centers for Medicare and Medicaid Services (CMS) Blue Button API enables Medicare beneficiaries to connect their Medicare claims data to the applications, services, and research programs they trust.</p>
+
+<p>The CMS Blue Button API:</p>
+
+<ul>
+  <li>Enables a developer to register a Beneficiary-facing application</li>
+  <li>Enables a beneficiary to grant an application access to four years of their Part A, B, and D claims data</li>
+  <li>Uses the HL7 FHIR standard for Beneficiary data and the OAuth 2.0 standard for beneficiary authorization</li>
+</ul>
+
+<hr />
+
+<h2 id="authorization">Authorization</h2>
+
+<p>To use the Blue Button OAuth, you need to go through two separate processes. First, you must create a Developer Preview account and register your application to gain the credentials necessary to request access.</p>
+
+<p>Next, you must develop your application to correctly make requests and handle the responses from both the user’s browser and the Blue Button servers.</p>
+
+<p>Below you will find a sample account you can use to test your Blue Button OAuth implementation. This account mimics a valid MyMedicare.gov account but has reduced functionality. For example, you cannot test “Forgot Password” flow.</p>
+
+<p><em>Jane Doe Username: User29999 Password: PW29999!</em></p>
+
+<p><strong>Please note: Blue Button OAuth will be available in production on February 1st.</strong></p>
+
+<pre>HTTP  GET /o/authorize</pre>
+
+<pre>HTTP  POST /o/token  </pre>
+
+<hr />
+
+<h2 id="core-resources">Core Resources</h2>
+
+<p>Base Request URL:</p>
+
+<pre>HTTP GET /connect/userinfo </pre>
+
+<p>Resources:</p>
+
+<ul>
+  <li>Get User Profile from an Authorization Token</li>
+  <li>Get all Explanation of Benefit Records for an Individual Beneficiary</li>
+  <li>Get all Patient Records for an Individual Beneficiary</li>
+  <li>Get all Coverage Information for an Individual Beneficiary</li>
+</ul>
+
+<p>If the _format option is omitted, then JSON is returned by default.</p>
+
+<p>As a security measure the date of birth, SSN, and HICN will not be provided by the CMS Blue Button API.</p>
+
+<p>We use <a href="https://www.hl7.org/fhir/extensibility.html#Extension">FHIR Extensions</a> in our API responses.</p>
+
+<p><strong>Get User Profile for an Authorization Token</strong></p>
+
+<pre>HTTP GET /connect/userinfo </pre>
+
+<p>The UserInfo Endpoint is an OAuth 2.0 Protected Resource.The above URL fetches the fictitious beneficiary’s basic account information given an Authorization Token. This is most often used when creating an account within your application. An HTTP GET is called and the response is returned as JSON.</p>
+
+<pre>curl --header "Authorization: Bearer AUTHORIZATION TOKEN" "https://sandbox.bluebutton.cms.gov/v1/connect/userinfo"</pre>
+
+<pre>
+{
+  "sub": "fflinstone",
+  "prefered_username": "fflinstone",
+  "given_name": "Fred",
+  "family_name:, "Flinstone,
+  "name": "Fred Flinstone",
+  "email": "pebbles-daddy@example.com",
+  "created": "2017-11-28",
+  "patient": "123456789",
+}
+</pre>
+
+<p><strong>Get all Explanation of Benefit Records for an individual Beneficiary</strong></p>
+
+<pre>/v1/protected/bluebutton/fhir/v1/ExplanationOfBenefit/?patient=[fhir_id]</pre>
+
+<p>The above URL returns all of the synthetic Beneficiary’s Explanation of Benefit (sometimes referred to as an episode of care) records as an ExplanationOfBenefit FHIR Resource. The bulk of a Beneficiary’s data is contained within these ExplanationOfBenefit FHIR resources.</p>
+
+<pre>curl --header "Authorization: Bearer AUTHORIZATION TOKEN"  "https://sandbox.bluebutton.cms.gov/v1/fhir/ExplanationOfBenefit/?patient=20140000008325"</pre>
+
+<pre>
+{
+  "resourceType": "ExplanationOfBenefit",
+  "id": "EB3500",
+  "text": {
+    "status": "generated",
+    "div": "
+A human-readable rendering of the ExplanationOfBenefit
+"
+  },
+  "identifier": [
+    {
+      "system": "http://www.BenefitsInc.com/fhir/explanationofbenefit",
+      "value": "987654321"
+    }
+  ],
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/ex-claimtype",
+        "code": "oral"
+      }
+    ]
+  },
+  "patient": {
+    "reference": "Patient/pat1"
+  },
+  "created": "2014-08-16",
+  "organization": {
+    "reference": "Organization/2"
+  },
+  "claim": {
+    "reference": "Claim/100150"
+  },
+  "claimResponse": {
+    "reference": "ClaimResponse/R3500"
+  },
+  "outcome": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/remittance-outcome",
+        "code": "complete"
+      }
+    ]
+  },
+  "disposition": "Claim settled as per contract.",
+  "careTeam": [
+    {
+      "sequence": 1,
+      "provider": {
+        "reference": "Practitioner/example"
+      }
+    }
+  ],
+  "insurance": {
+    "coverage": {
+      "reference": "Coverage/9876B1"
+    }
+  },
+  "item": [
+    {
+      "sequence": 1,
+      "careTeamLinkId": [
+        1
+      ],
+      "service": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/service-uscls",
+            "code": "1200"
+          }
+        ]
+      },
+      "servicedDate": "2014-08-16",
+      "unitPrice": {
+        "value": 135.57,
+        "system": "urn:iso:std:iso:4217",
+        "code": "USD"
+      },
+      "net": {
+        "value": 135.57,
+        "system": "urn:iso:std:iso:4217",
+        "code": "USD"
+      },
+      "adjudication": [
+        {
+          "category": {
+            "coding": [
+              {
+                "code": "eligible"
+              }
+            ]
+          },
+          "amount": {
+            "value": 120.00,
+            "system": "urn:iso:std:iso:4217",
+            "code": "USD"
+          }
+        },
+        {
+          "category": {
+            "coding": [
+              {
+                "code": "eligpercent"
+              }
+            ]
+          },
+          "value": 0.80
+        },
+        {
+          "category": {
+            "coding": [
+              {
+                "code": "benefit"
+              }
+            ]
+          },
+          "amount": {
+            "value": 96.00,
+            "system": "urn:iso:std:iso:4217",
+            "code": "USD"
+          }
+        }
+      ]
+    }
+  ],
+  "totalCost": {
+    "value": 135.57,
+    "system": "urn:iso:std:iso:4217",
+    "code": "USD"
+  },
+  "totalBenefit": {
+    "value": 96.00,
+    "system": "urn:iso:std:iso:4217",
+    "code": "USD"
+  }
+}
+</pre>
+
+<p><strong>Get all Coverage Information for an Individual Beneficiary</strong></p>
+
+<pre>HTTP GET /v1/fhir/Patient/[fhir_id]</pre>
+
+<p>The above URL returns the synthetic Beneficiary’s coverage information as an <a href="http://hl7.org/fhir/explanationofbenefit.html">ExplanationOfBenefit FHIR Resource.</a></p>
+
+<pre>curl --header "Authorization: Bearer AUTHORIZATION TOKEN"  "https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage/?patient=20140000008325"
+</pre>
+
+<pre>
+{
+  "resourceType": "Bundle",
+  "id": "28d26ab6-2043-4afd-8c9a-835c0ff3e179",
+  "meta": {
+    "lastUpdated": "2017-12-20T10:21:08.565-05:00"
+  },
+  "type": "searchset",
+  "total": 3,
+  "link": [
+    {
+      "relation": "self",
+      "url": "https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage/?_format=application%2Fjson%2Bfhir&amp;beneficiary=Patient%2F20140000008325"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage/part-a-20140000008325", "resource": {
+        "resourceType": "Coverage",
+        "id": "part-a-20140000008325",
+        "extension": [
+          {
+            "url": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/ms_cd.txt", "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/ms_cd.txt",
+                  "code": "10"
+                }
+              ]
+            }
+          },
+          {
+            "url": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/orec.txt",
+            "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/orec.txt",
+                  "code": "0"
+                }
+              ]
+            }
+          },
+          {
+            "url": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/crec.txt",
+            "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/crec.txt",
+                  "code": "0"
+                }
+              ]
+            }
+          },
+          {
+            "url": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/esrd_ind.txt",
+            "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/esrd_ind.txt",
+                  "code": "0"
+                }
+              ]
+            }
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "Medicare",
+              "code": "Part A"
+            }
+          ]
+        },
+        "beneficiary": {
+          "reference": "Patient?identifier=CCW.BENE_ID|20140000008325"
+        },
+        "grouping": {
+          "subGroup": "Medicare",
+          "subPlan": "Part A"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage
+        /part-b-20140000008325", "resource": {
+        "resourceType": "Coverage",
+        "id": "part-b-20140000008325",
+        "extension": [
+          {
+            "url": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/ms_cd.txt", "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/ms_cd.txt",
+                  "code": "10"
+                }
+              ]
+            }
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "Medicare",
+              "code": "Part B"
+            }
+          ]
+        },
+        "beneficiary": {
+          "reference": "Patient?identifier=CCW.BENE_ID|20140000008325"
+        },
+        "grouping": {
+          "subGroup": "Medicare",
+          "subPlan": "Part B"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Coverage/part-d-20140000008325",
+      "resource": {
+        "resourceType": "Coverage",
+        "id": "part-d-20140000008325",
+        "extension": [
+          {
+            "url": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/ms_cd.txt",
+            "valueCodeableConcept": {
+              "coding": [
+                {
+                  "system": "https://www.ccwdata.org/cs/groups/public/documents/datadictionary/ms_cd.txt",
+                  "code": "10"
+                }
+              ]
+            }
+          }
+        ],
+        "type": {
+          "coding": [
+            {
+              "system": "Medicare",
+              "code": "Part D"
+            }
+          ]
+        },
+        "beneficiary": {
+          "reference": "Patient?identifier=CCW.BENE_ID|20140000008325"
+        },
+        "grouping": {
+          "subGroup": "Medicare",
+          "subPlan": "Part D"
+        }
+      }
+    }
+  ]
+}
+</pre>
+
+<h2 id="try-the-api">Try the API</h2>
+
+<p>To join the Developer Preview, register a sample application and retrieve synthetic data for a sample Patient ID by calling the API, follow these four steps:</p>
+
+<p><strong>Step 1:</strong> <a href="https://sandbox.bluebutton.cms.gov/v1/accounts/request-invite">Join the Developer Preview</a> and register a sample application</p>
+
+<ul>
+  <li><a href="https://sandbox.bluebutton.cms.gov/v1/accounts/request-invite">Join the Developer Preview</a> to access the Developer Dashboard</li>
+  <li>Click “Application Registration” to register a new sample application and get a Client ID and Secret</li>
+</ul>
+
+<p><strong>Step 2:</strong> Generate a sample token</p>
+
+<p>To test out the Blue Button API, you must first generate a sample token that represents a Beneficiary granting consent.</p>
+
+<p>You can generate an access token for synthetic Patient 20140000008325 and sample Application TestApp by following these steps:</p>
+
+<ol>
+  <li>Login to the developer portal</li>
+  <li>Click on Test Client to begin</li>
+  <li>Click “sample Authorization flow”</li>
+  <li>Click the link to authorize. This will start the authorization flow to TestApp</li>
+  <li>Login to your Blue Button Developer Preview Account (click here if you need to Join the Developer Preview)</li>
+  <li>Agree to the Personal Health Information Sharing disclaimer (sample)</li>
+  <li>Review the App Endorsements and click to accept risks (sample)</li>
+  <li>Review the permissions TestApp is asking for and approve (sample)</li>
+  <li>You will see a JSON document containing your access token and other information</li>
+</ol>
+
+<p>You can now use your access token wherever “YOUR TOKEN HERE” is referenced below.</p>
+
+<p><strong>Step 3:</strong> Call the API</p>
+
+<pre>
+curl --header "Authorization: Bearer YOUR TOKEN HERE" https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/20140000008325
+</pre>
+
+<p>Or, try this out in Postman:</p>
+
+<ol>
+  <li>From Postman, open a new tab</li>
+  <li>Paste the Request URL: https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/20140000008325</li>
+  <li>Click “Authorization”, select type “Bearer Token” and paste your token in the Token field</li>
+  <li>Click “Preview Request” and see a success message “Request headers were successfully updated with authorization data for preview.”</li>
+  <li>Click “Send” and see the synthetic Beneficiary’s personal health information as a Patient FHIR Resource display under “Body” in Postman.</li>
+</ol>
+
+<p><strong>Step 4:</strong> View the API Response</p>
+
+<p>In the API response for Patient 20140000008325 you will find:</p>
+<ul>
+  <li>32 total claims (140 total claim lines)</li>
+  <li>25 carrier claims (110 carrier claim lines)</li>
+  <li>2 inpatient claims (25 inpatient claim lines)</li>
+  <li>5 Part D events</li>
+</ul>
+
+<hr />
+
+<h2 id="meet-jack">Meet Jack</h2>
+
+<p>“Jack” is a hypothetical 70 year-old male with Type 2 Diabetes and high blood pressure. Jack takes daily medication and his Doctor told him he needs to lose weight. He takes Glimepiride to help control his blood sugar and previously was on Metformin.</p>
+
+<p><a href="https://cmsgov.github.io/bluebutton-developer-help/Jack-Persona.pdf">Learn more about “Jack” (PDF)</a></p>
+
+<hr />
+
+      <a href="developers.html#site-top" class="ds-c-button ds-u-margin-top--4">Back to top</a>
+    </article>
+
+
+  </div>
+</section>
+
+
+    <footer class="ds-base ds-u-fill--white ds-u-margin-top--7 ds-u-padding-y--6" role="contentinfo">
   <div class="ds-l-container">
     <div class="ds-l-row">
       <div class="ds-u-font-size--small ds-l-col--12 ds-l-sm-col--6 ds-l-md-col--6 ds-u-margin-bottom--2">
@@ -85,7 +721,7 @@
 </footer>
 
 
-    <a href="index.html#" class="mobile-nav-trigger ds-base ds-u-color--base-inverse ds-u-fill--background-inverse ds-u-sm-display--none ds-u-text-align--center ds-u-padding--2">
+    <a href="developers.html#" class="mobile-nav-trigger ds-base ds-u-color--base-inverse ds-u-fill--background-inverse ds-u-sm-display--none ds-u-text-align--center ds-u-padding--2">
   Menu
 </a>
 
@@ -117,32 +753,93 @@
       </a>
     </div>
   </div>
-             
-               <script
+
+
+  <div class="ds-l-container">
+    <nav class="mobile-nav">
+      <ul class="ds-c-list--bare">
+        <li class="ds-u-padding--2">
+          <a href="https://cmsgov.github.io/bluebutton-developer-help/" >Documentation</a>
+        </li>
+        <li class="ds-u-padding--2">
+          <a href="https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api" >Support</a>
+        </li>
+
+        <li class="ds-u-padding--2">
+          
+<svg width="15px" height="15px" viewBox="0 0 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 48.2 (47327) - http://www.bohemiancoding.com/sketch -->
+    <title>Shape</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="nav-when-not-logged-in" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(-841.000000, -24.000000)">
+        <g id="Group-3" transform="translate(841.333333, 24.000000)" fill="#404040">
+            <path d="M9.8716241,10.2930568 C11.9073039,10.5770965 13.2691036,11.8079351 13.5358478,12.2542831 C14.041258,13.0793508 13.9991405,15 13.9991405,15 L0.00208667825,15 C0.00208667825,15 -0.0681091782,12.9576195 0.605771044,12.1325518 C0.984828669,11.7808837 2.17815823,10.5770965 4.21383807,10.2795311 C6.23547873,9.99549143 5.6177552,7.83137962 5.68795105,7.85843102 C5.75814691,7.89900812 5.67391188,7.39855726 5.67391188,7.39855726 C5.67391188,7.39855726 4.1997989,6.03246168 4.21383807,4.80162308 C4.24191641,3.55725879 4.21383807,2.92155095 4.21383807,2.92155095 C4.21383807,2.92155095 4.45250398,0 6.53030133,0 L7.69555255,0.541027953 C9.56276233,0.541027953 9.8716241,2.92155095 9.8716241,2.92155095 L9.8716241,4.97745717 C9.8716241,4.97745717 9.63295819,6.72227232 8.46770697,7.35798016 C8.46770697,7.35798016 8.38347194,7.85843102 8.4536678,7.81785392 C8.52386365,7.79080252 7.84998343,9.99549143 9.8716241,10.2930568 L9.8716241,10.2930568 Z" id="Shape"></path>
+        </g>
+    </g>
+</svg>
+
+          <a href="https://sandbox.bluebutton.cms.gov/v1/accounts/mfa/login" >Login</a>
+        </li>
+
+        <li class="ds-u-padding--2">
+          <svg width="15px" height="14px" viewBox="0 0 15 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 48.2 (47327) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 2</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="nav-when-not-logged-in" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(-926.000000, -26.000000)">
+        <g id="Group-4" transform="translate(926.666667, 24.000000)" fill="#404040">
+            <g id="Group-2" transform="translate(0.000000, 2.000000)">
+                <rect id="Rectangle" x="5.6" y="0" width="2.8" height="14"></rect>
+                <rect id="Rectangle" x="0" y="5.6" width="14" height="2.8"></rect>
+            </g>
+        </g>
+    </g>
+</svg>
+
+          <a href="https://sandbox.bluebutton.cms.gov/v1/accounts/request-invite" >Sign up</a>
+        </li>
+      </ul>
+    </nav>
+    
+    <hr>
+    <nav class="mobile-nav">
+      <h5 class="sr-only" id="main-mobile-nav">Main mobile navigation</h5>
+      <ul class="ds-c-list--bare" aria-labelledby="main-mobile-nav">
+        
+        <li class="ds-u-padding--2">
+          <a href="developers.html#overview" class="mobile-nav-trigger-2">Overview</a>
+        </li>
+        
+        <li class="ds-u-padding--2">
+          <a href="developers.html#authorization" class="mobile-nav-trigger-2">Authorization</a>
+        </li>
+        
+        <li class="ds-u-padding--2">
+          <a href="developers.html#core-resources" class="mobile-nav-trigger-2">Core Resources</a>
+        </li>
+        
+        <li class="ds-u-padding--2">
+          <a href="developers.html#try-the-api" class="mobile-nav-trigger-2">Try the API</a>
+        </li>
+        
+        <li class="ds-u-padding--2">
+          <a href="developers.html#meet-jack" class="mobile-nav-trigger-2">Meet "Jack"</a>
+        </li>
+        
+      </ul>
+    </nav>
+    
+  </div>
+</div>
+
+
+    <script
     src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
     integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
     crossorigin="anonymous"></script>
-    <script src="{% static 'statsite/assets/js/main.js"></script>  
+    <script src="assets/js/main.js"></script>
+  </body>
 
-        </div>
-    </div> <!-- /.footer-wrapper -->
- <div class="row container-fluid">
-    <div class="row footer-wrapper panel-footer">
-         
-         {% if user.is_authenticated %}
-         <div class="row-container-fluid" >
-            <p class="row-container-fluid footer-small well">
-            {{ settings.APPLICATION_TITLE }} is operated by {{settings.ORGANIZATION_TITLE }}. {{settings.DISCLOSURE_TEXT}}
-            </p>
-         </div>
-         {% endif %}
-             {% if user.is_superuser %}
-                    {% if settings.ALLOWED_HOSTS %}<div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
-                    {% endif %}
-             {% else %}
-                    {% if settings.DEBUG %}
-                       <div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-style--italic ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
-                    {% endif %}
-             {% endif %}       
-
-</div><!-- /.container-fluid -->
+</html>
