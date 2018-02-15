@@ -11,6 +11,7 @@ from oauth2_provider.scopes import get_scopes_backend
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.settings import oauth2_settings
 from .oauth2_validators import set_regex, compare_to_regex
+from .models import Application
 from oauth2_provider.validators import urlsplit
 
 __author__ = "Alan Viars"
@@ -134,6 +135,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                         msg = _('Redirect URIs must not use http.')
                         raise forms.ValidationError(msg)
         return redirect_uris
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if Application.objects.filter(name=name).count() > 0:
+            raise forms.ValidationError(
+                _('This application name is already taken.'))
+        return name
 
 
 class SimpleAllowForm(DotAllowForm):
