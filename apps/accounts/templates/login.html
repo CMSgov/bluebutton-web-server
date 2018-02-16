@@ -21,9 +21,16 @@
 
 {% block Content %}
 
-        <div class="hero-unit">
+<section class="ds-l-container preview__grid">
+  <div class="ds-l-row">
+    <div class="ds-l-col--3"></div>
+  </div>
+  <div class="ds-l-row ds-u-justify-content--center">
+    <div class="ds-l-col--6">
+              <div class="hero-unit">
             <h1>{% trans "Login" %} </h1>
-            <form class="well" method="post" action="">
+      
+      <form class="well" method="post" action="">
                 {% csrf_token %}
                 <table>
                     {% load bootstrap %}
@@ -40,6 +47,14 @@
                     <a href="{% url 'accounts_create_account' %}"> {% trans "Create an Account "%}</a>
                  {% endif %}
             </form>
+      
+      </div>
+    </div>
+  </div>
+  <div class="ds-l-row ds-u-justify-content--end">
+    <div class="ds-l-col--3"></div>
+  </div>
+  </section>
 
 {% endblock %}
 
