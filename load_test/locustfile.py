@@ -92,7 +92,7 @@ class UserBehavior(TaskSet):
         # This is the login page, because you need to log in to grant access...
         # The next page would be the authorization page, which would then
         # redirect you back to the callback.
-        print response.content
+        print(response.content)
 
     @task
     def get_resource(self):
@@ -102,7 +102,7 @@ class UserBehavior(TaskSet):
         """
         self.client.headers['Authorization'] = 'Bearer ' + access_token
         response = self.client.get(resource_url)
-        print response.content
+        print(response.content)
 
 
 class WebsiteUser(HttpLocust):
