@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import re
+import math
 
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
@@ -47,7 +48,7 @@ class SingleAccessTokenValidator(OAuth2Validator):
                 if access_token.allow_scopes(token['scope'].split()):
                     token['access_token'] = access_token.token
                     expires_in = access_token.expires - timezone.now()
-                    token['expires_in'] = expires_in.total_seconds()
+                    token['expires_in'] = math.floor(expires_in.total_seconds())
 
                     if hasattr(access_token, 'refresh_token'):
                         token['refresh_token'] = access_token.refresh_token.token
