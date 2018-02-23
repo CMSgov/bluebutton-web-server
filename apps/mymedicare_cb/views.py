@@ -149,7 +149,7 @@ def mymedicare_login(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect(next_uri)
     AnonUserState.objects.create(state=state, next_uri=next_uri)
-    if 'apps.testclient' in settings.INSTALLED_APPS:
+    if getattr(settings, 'ALLOW_CHOOSE_LOGIN', False):
         return HttpResponseRedirect(reverse('mymedicare-choose-login'))
     return HttpResponseRedirect(mymedicare_login_url)
 
