@@ -104,16 +104,12 @@ def callback(request):
         "&_format=json"
     response = requests.get(url, cert=certs, verify=False)
 
-    if 'entry' in response.json():
-        identifiers = response.json()['entry'][0]['resource']['identifier']
-        fhir_id = ""
-        for i in identifiers:
-            if i['system'] == 'http://bluebutton.cms.hhs.gov/identifier#bene_id':
-                fhir_id = i['value']
-            if fhir_id:
-                cx.fhir_id = fhir_id
-                cx.save()
-    # Get first and last naem from FHIR if not in OIDC Userinfo response.
+    if 'entry' in response.json() and response.json()['total'] == 1:
+        fhir_id = response.json()['entry'][0]['resource']['id']
+        cx.fhir_id = fhir_id
+        cx.save()
+
+    # Get first and last name from FHIR if not in OIDC Userinfo response.
     if user_info['given_name'] == "" or user_info['family_name'] == "":
         if 'entry' in response.json():
             if 'name' in response.json()['entry'][0]['resource']:
