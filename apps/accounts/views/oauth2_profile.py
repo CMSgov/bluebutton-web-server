@@ -36,17 +36,6 @@ def openidconnect_userinfo(request):
     return JsonResponse(data)
 
 
-@require_GET
-@login_required()
-def userinfo_w_login(request):
-    """
-    OIDC Style userinfo
-    """
-    user = request.user
-    data = get_userinfo(user)
-    return JsonResponse(data)
-
-
 def get_fhir_id(user):
 
     r = None
