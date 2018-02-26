@@ -3,7 +3,6 @@ from django.views.decorators.http import require_GET
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.decorators import protected_resource
 from collections import OrderedDict
-from django.contrib.auth.decorators import login_required
 
 __author__ = "Alan Viars"
 
