@@ -10,13 +10,6 @@
     </div>
 </div>
 
-<div class="ds-c-alert">
-  <div class="ds-c-alert__body">
-    <h3 class="ds-c-alert__heading">Notice</h3>
-    <p class="ds-c-alert__text"> {{settings.DISCLOSURE_TEXT }}</p>
-  </div>
-</div>
-
 {% endblock %}
 
 {% block Content %}
@@ -37,8 +30,6 @@
                     {{ form|bootstrap }}
                 </table>
                 <input type="submit" class="btn-xlarge btn-primary btn-block" value="{% trans 'Login' %}" />
-                <!-- btn-xlarge currently defined in base.html.
-                     TODO: need to move to css file with other button settings-->
                 <br/>
                 <a href="{% url 'forgot_password' %}">Forgot Password?</a> |
                  {% if settings.REQUIRE_INVITE_TO_REGISTER %}
@@ -54,10 +45,19 @@
   <div class="ds-l-row ds-u-justify-content--end">
     <div class="ds-l-col--3"></div>
   </div>
+  
+  
+  <div class="ds-c-alert">
+  <div class="ds-c-alert__body">
+    <h3 class="ds-c-alert__heading">Notice</h3>
+    <p class="ds-c-alert__text"> {{settings.DISCLOSURE_TEXT }}</p>
+  </div>
+</div>
+  
   </section>
 
 {% endblock %}
 
 {% block ExtraJSFoot %}
-    <script type="application/javascript">$("#id_username").focus();</script>
+    <script type="application/javascript">$("#id_email").focus();</script>
 {% endblock %}
