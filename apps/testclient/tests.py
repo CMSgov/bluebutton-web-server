@@ -63,6 +63,25 @@ class BlueButtonClientApiFhirTest(TestCase):
         uri = "%s%s" % (
             self.testclient_setup['patient_uri'], self.patient)
         response = self.client.get(uri)
+        self.assertEqual(response['Content-Type'], "application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.patient)
+
+    def test_get_patient_fhir(self):
+        """
+        Test get patient
+        """
+        uri = "%s%s" % (
+            self.testclient_setup['patient_uri'], self.patient)
+        response = self.client.get(uri, HTTP_ACCEPT='application/fhir+json')
+        self.assertEqual(response['Content-Type'], "application/fhir+json")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.patient)
+
+        # Test for search endpoint
+        uri = self.testclient_setup['patient_uri']
+        response = self.client.get(uri, HTTP_ACCEPT='application/fhir+json')
+        self.assertEqual(response['Content-Type'], "application/fhir+json")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.patient)
 
@@ -86,6 +105,7 @@ class BlueButtonClientApiFhirTest(TestCase):
         response = self.client.get(uri)
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
         self.assertEqual(len(response_data['entry']), 12)
         self.assertContains(response, "ExplanationOfBenefit")
 
