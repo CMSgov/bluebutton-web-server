@@ -17,4 +17,4 @@ class LoginForm(forms.Form):
 
     def clean_username(self):
         username = self.cleaned_data.get('username', '')
-        return username.rstrip().lstrip().lower()
+        return username.strip().lower()
