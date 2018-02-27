@@ -141,7 +141,7 @@ def mfa_login(request):
                     return render(request, 'login.html', {'form': form})
             else:
                 logger.info("Invalid login attempt.")
-                messages.error(request, _('Invalid username or password.'))
+                messages.error(request, _('Invalid email or password.'))
                 return render(request, 'login.html', {'form': form})
         else:
             return render(request, 'login.html', {'form': form})
