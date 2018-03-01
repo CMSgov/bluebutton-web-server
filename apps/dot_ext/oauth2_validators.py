@@ -23,6 +23,18 @@ class SingleAccessTokenValidator(OAuth2Validator):
     exists for the current user/application and return
     it instead of creating a new one.
     """
+    def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
+        if redirect_uri is None:
+            # Set to default
+            redirect_uri = client.default_redirect_uri
+
+        return super(SingleAccessTokenValidator, self).confirm_redirect_uri(
+            client_id,
+            code,
+            redirect_uri,
+            client,
+            *args,
+            **kwargs)
 
     def save_bearer_token(self, token, request, *args, **kwargs):
         """
