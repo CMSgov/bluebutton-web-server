@@ -21,6 +21,7 @@ def require_valid_token():
                 # Note, resource_owner is not a very good name for this
                 request.resource_owner = oauthlib_req.user
                 request.oauth = oauthlib_req
+                import pdb; pdb.set_trace()
                 return view_func(request, *args, **kwargs)
 
             return build_error_response(401, 'The token authentication failed.')
