@@ -2,8 +2,8 @@
 set -euo pipefail
 
 PROJECT_NAME="Blue Button API"
-BUILD_MESSAGE=""
 GITHUB_REPO="CMSgov/bluebutton-web-server"
+ORIGIN="${BB_GIT_ORIGIN:-"origin"}"
 
 usage() {
     cat <<EOF >&2
@@ -15,7 +15,7 @@ Options:
   -c    wait for confirmation before committing and pushing to GitHub
   -h    print this help text and exit
   -t    manually specify tags
-  -p    automatically push new tags to origin.
+  -p    automatically push new tags to $ORIGIN.
 EOF
 }
 
@@ -80,13 +80,11 @@ git tag -a -m"$PROJECT_NAME release $NEWTAG" -s "$NEWTAG"
 if [ -n "$AUTO_PUSH" ]; then
     git push --tags
 
-    git push origin "release-$NEWRELEASENUM"
+    git push "$ORIGIN" "release-$NEWRELEASENUM"
 fi
 
 echo "Release $NEWTAG created."
 echo
 echo "Hotfixes should be made against release-$NEWRELEASENUM"
 echo "Create PR at https://github.cms.gov/$GITHUB_REPO/compare/release-$NEWRELEASENUM?expand=1"
-echo
-echo $BUILD_MESSAGE
 echo
