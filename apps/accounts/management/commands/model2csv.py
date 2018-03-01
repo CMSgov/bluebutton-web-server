@@ -42,8 +42,8 @@ def exportcsv(app_name, model_name, add_name, field_export):
     if field_export:
         field_names = []
         for fe in field_export:
-            if int(fe) <= len(field_list):
-                field_names.append(field_list[int(fe) - 1])
+            if fe in field_list:
+                field_names.append(fe)
     else:
         field_names = field_list
 
@@ -83,7 +83,8 @@ class Command(BaseCommand):
                                                      "columns: True | False")
 
         parser.add_argument('--filter_fields', help="filter fields by column "
-                                                    "number: eg. 1,2,4,6 ")
+                                                    "name, comma separated: "
+                                                    "eg. id,name,description ")
 
     def handle(self, *app_labels, **options):
 
