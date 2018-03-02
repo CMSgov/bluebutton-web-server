@@ -12856,12 +12856,3 @@ footer:before {
   height: 3px;
   width: 100%; }
 
-header.ds-base:before {
-      background: linear-gradient(30deg, #2A5CC9 10%, #5EF1E1 90%);
-      content: '';
-      position: relative;
-      top:68px;
-      display: block;
-      height: 7px;
-      width: 100%;
-      }
