@@ -3,59 +3,6 @@
 {% load has_group %}
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-
-  <div class="container">
-   
-   <nav class="main-nav ds-u-font-weight--bold">
-   
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a href="{% url 'home' %}" contenteditable="false"
-            class="navbar-brand"
-            style="vertical-align:top;max-height:100%;max-width:100%">
-            <img src="{% static 'img/favicon/RevisedBlueButtonlogowithmark.jpg' %}"
-                 style="vertical-align:text-top;max-height:100%;max-width:100%"></a>
-        <a href="{% url 'home' %}" contenteditable="false"
-           class="navbar-brand"
-           alt="{{ settings.APPLICATION_TITLE }}">
-                <strong>{{ settings.APPLICATION_TITLE }}</strong>
-        </a>
-    </div>
-
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="navbar-collapse collapse">
-
-      <ul class="nav navbar-nav navbar-right" aria-labelledby="desktop-nav">
- 
- 
-          <li><a href="https://bluebutton.cms.gov/developers/"> <text id="CMS-Blue-Button-API" font-family="Roboto" font-size="16px" font-weight="bold" color="black" > Documentation </text></a></li>
-          <li><a href="https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api"> Support</a></li>
-          {% if 'apps.testclient' in settings.INSTALLED_APPS %}
-              <li><a href="{% url 'test_links' %}"> <i class="fa fa-check"></i> Test Client</a></li>
-          {%  endif %}
-
-		{% if user.is_authenticated %}
-						<li><a href="{% url 'account_settings' %}"> <i class="fa fa-user"></i> Profile</a></li>
-            <li><a href="{% url 'mylogout' %}">Logout <i class="fa fa-sign-out"></i></a></li>
-
-    {% else %}
-             
-            <li><a href="{% url 'mfa_login' %}"> <i class="fa fa-user"></i>  Login</a></li>
-            <li><a href="{% url 'accounts_create_account' %}"> <i class="fa fa-plus"></i>  Signup</a></li>
-    {% endif %}
-      </ul>
-    </div><!--/.nav-collapse -->
-  </div>
- </nav>
-</nav>
-
-
-<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
 <header class="ds-base ds-u-fill--gray-lightest ds-u-padding-y--2" id="site-top">
   <div class="ds-l-container ds-u-display--flex ds-u-justify-content--between ds-u-align-items--center">
     <div class="ds-u-justify-content--start ds-u-display--flex">
