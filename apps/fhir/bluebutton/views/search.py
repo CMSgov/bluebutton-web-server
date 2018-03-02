@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from rest_framework.response import Response
 import logging
 
 from ..constants import ALLOWED_RESOURCE_TYPES, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
@@ -12,8 +12,13 @@ from apps.fhir.bluebutton.utils import (request_get_with_params,
                                         get_resourcerouter,
                                         post_process_request,
                                         get_response_text)
+from apps.fhir.parsers import FHIRParser
+from apps.fhir.renderers import FHIRRenderer
 
-from rest_framework.decorators import throttle_classes, api_view
+from rest_framework.decorators import throttle_classes, api_view, parser_classes, renderer_classes
+from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer
+
 from apps.dot_ext.throttling import TokenRateThrottle
 from urllib.parse import urlencode
 
@@ -25,6 +30,8 @@ SIZE_PARAMETER = 'count'
 
 @require_valid_token()
 @api_view(['GET'])
+@parser_classes([JSONParser, FHIRParser])
+@renderer_classes([JSONRenderer, FHIRRenderer])
 @throttle_classes([TokenRateThrottle])
 def search(request, resource_type, *args, **kwargs):
     # reset request back to django.HttpRequest
@@ -119,7 +126,7 @@ def search(request, resource_type, *args, **kwargs):
                                         out_data['total'],
                                         replay_parameters)
 
-    return JsonResponse(out_data)
+    return Response(out_data)
 
 
 def get_paging_links(base_url, start_index, page_size, count, replay_parameters):
