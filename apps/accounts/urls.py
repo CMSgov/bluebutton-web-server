@@ -19,7 +19,6 @@ from .views.password_reset import (change_secret_questions,
 
 from .views.mfa import mfa_code_confirm, mfa_login
 from .views.user_code_login import user_code_register
-from .views.invites import bulk_user_codes
 from .views.email_bounce_webhook import record_email_bounce
 from .views.api_profile import my_profile
 
@@ -52,8 +51,6 @@ urlpatterns = [
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
         mfa_code_confirm, name='mfa_code_confirm'),
-
-    url(r'^bulk-user-codes$', bulk_user_codes, name='bulk_user_codes'),
 
     # Request a Developer invite to signup ---------------------------
     url(r'^request-invite$',
