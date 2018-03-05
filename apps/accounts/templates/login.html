@@ -4,24 +4,37 @@
 
 {% block messages %}
 
+
+
 <div class="row">
     <div class="col-lg-8">
        {% include "include/messages.html" %}
     </div>
 </div>
 
-<div class="ds-c-alert">
-  <div class="ds-c-alert__body">
-    <h3 class="ds-c-alert__heading">Notice</h3>
-    <p class="ds-c-alert__text"> {{settings.DISCLOSURE_TEXT }}</p>
-  </div>
-</div>
 
 {% endblock %}
 
 {% block Content %}
 
 <section class="ds-l-container preview__grid">
+    <div class="ds-l-row">
+    <div class="ds-l-col--3"></div>
+  </div>
+    <br>
+      <div class="ds-l-row ds-u-justify-content--center">
+    <div class="ds-l-col--12">
+    <div class="ds-c-alert">
+  <div class="ds-c-alert__body">
+    <h4 class="ds-c-alert__heading"style="font-size:16px;">Notice</h4>
+    <p class="ds-c-alert__text" style="font-size:12px;" > {{settings.DISCLOSURE_TEXT }}</p>
+  </div>
+</div>
+  </div>
+</div>
+    <div class="ds-l-row">
+    <div class="ds-l-col--3"></div>
+  </div>
   <div class="ds-l-row">
     <div class="ds-l-col--3"></div>
   </div>
@@ -36,9 +49,7 @@
                     {% load bootstrap %}
                     {{ form|bootstrap }}
                 </table>
-                <input type="submit" class="btn-xlarge btn-primary btn-block" value="{% trans 'Login' %}" />
-                <!-- btn-xlarge currently defined in base.html.
-                     TODO: need to move to css file with other button settings-->
+                <input type="submit" class="ds-c-button  ds-c-button--primary" value="{% trans 'Login' %}" />
                 <br/>
                 <a href="{% url 'forgot_password' %}">Forgot Password?</a> |
                  {% if settings.REQUIRE_INVITE_TO_REGISTER %}
@@ -54,10 +65,12 @@
   <div class="ds-l-row ds-u-justify-content--end">
     <div class="ds-l-col--3"></div>
   </div>
+  
+  
   </section>
 
 {% endblock %}
 
 {% block ExtraJSFoot %}
-    <script type="application/javascript">$("#id_username").focus();</script>
+    <script type="application/javascript">$("#id_email").focus();</script>
 {% endblock %}
