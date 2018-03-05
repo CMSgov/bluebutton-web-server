@@ -318,7 +318,7 @@ THEME = THEMES[THEME_SELECTED]
 
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE',
-                        'CMS Blue Button API Developer Preview')
+                        'CMS Blue Button API')
 ORGANIZATION_TITLE = env(
     'DJANGO_ORGANIZATION_TITLE',
     'The U.S. Centers for Medicare & Medicaid Services (CMS)')
