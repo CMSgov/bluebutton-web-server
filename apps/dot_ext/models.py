@@ -44,10 +44,26 @@ class Application(AbstractApplication):
     active = models.BooleanField(default=True)
 
     def scopes(self):
-        mylist = []
+        scope_list = []
         for s in self.scope.all():
-            mylist.append(s.slug)
-        return " ".join(mylist).strip()
+            scope_list.append(s.slug)
+        return " ".join(scope_list).strip()
+
+    def is_valid(self, scopes=None):
+        return self.active and self.allow_scopes(scopes)
+
+    def allow_scopes(self, scopes):
+        """
+        Check if the token allows the provided scopes
+        :param scopes: An iterable containing the scopes to check
+        """
+        if not scopes:
+            return True
+
+        provided_scopes = set(self.scopes().split())
+        resource_scopes = set(scopes)
+
+        return resource_scopes.issubset(provided_scopes)
 
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
