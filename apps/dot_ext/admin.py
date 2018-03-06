@@ -1,6 +1,6 @@
 from django.contrib import admin
 from oauth2_provider.models import AccessToken
-from oauth2_provider.admin import RawIDAdmin
+# from oauth2_provider.admin import RawIDAdmin
 
 # from oauth2_provider.models import get_application_model
 #
