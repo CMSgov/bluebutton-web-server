@@ -27,7 +27,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = "Mark Scrimshire @ekivemark"
 
 
-def exportcsv(app_name, model_name, add_name):
+def exportcsv(app_name, model_name, add_name, field_export):
     """
 
     :param app_name:
@@ -38,7 +38,15 @@ def exportcsv(app_name, model_name, add_name):
     export the CSV for a model, with header line
     """
     model = apps.get_model(app_name, model_name)
-    field_names = [f.name for f in model._meta.fields]
+    field_list = [f.name for f in model._meta.fields]
+    if field_export:
+        field_names = []
+        for fe in field_export:
+            if int(fe) <= len(field_list):
+                field_names.append(field_list[int(fe) - 1])
+    else:
+        field_names = field_list
+
     if add_name:
         model_field_names = field_names + [app_name + '.' + model_name,
                                            "model2csv_time"]
@@ -74,6 +82,9 @@ class Command(BaseCommand):
                                                      " and export time as "
                                                      "columns: True | False")
 
+        parser.add_argument('--filter_fields', help="filter fields by column "
+                                                    "number: eg. 1,2,4,6 ")
+
     def handle(self, *app_labels, **options):
 
         if options['application']:
@@ -96,7 +107,12 @@ class Command(BaseCommand):
         else:
             add_name = False
 
-        e = exportcsv(app_name, model_name, add_name)
+        if options['filter_fields']:
+            field_export = options['filter_fields'].split(',')
+        else:
+            field_export = []
+
+        e = exportcsv(app_name, model_name, add_name, field_export)
 
         if e:
             logger.info('model2csv: Content exported: %s.%s' % (app_name,
