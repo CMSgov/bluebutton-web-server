@@ -318,7 +318,7 @@ THEME = THEMES[THEME_SELECTED]
 
 
 APPLICATION_TITLE = env('DJANGO_APPLICATION_TITLE',
-                        'CMS Blue Button API Developer Preview')
+                        'CMS Blue Button API')
 ORGANIZATION_TITLE = env(
     'DJANGO_ORGANIZATION_TITLE',
     'The U.S. Centers for Medicare & Medicaid Services (CMS)')
@@ -327,8 +327,7 @@ POLICY_URI = env(
     'DJANGO_POLICY_URI',
     'https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html')
 POLICY_TITLE = env('DJANGO_POLICY_TITLE', 'Privacy Policy')
-TOS_URI = env('DJANGO_TOS_URI',
-              'https://cmsgov.github.io/bluebutton-developer-help/api-terms-of-use.html')
+TOS_URI = env('DJANGO_TOS_URI', 'https://bluebutton.cms.gov/terms')
 TOS_TITLE = env('DJANGO_TOS_TITLE', 'Terms of Service')
 TAG_LINE_1 = env('DJANGO_TAG_LINE_1', 'Share your Medicare data')
 TAG_LINE_2 = env('DJANGO_TAG_LINE_2',
@@ -337,8 +336,8 @@ EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their
 EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 
 # LINKS TO DOCS
-DEVELOPER_DOCS_URI = "https://cmsgov.github.io/bluebutton-developer-help"
-DEVELOPER_DOCS_TITLE = "Developer Documentation"
+DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
+DEVELOPER_DOCS_TITLE = "Documentation"
 
 DEFAULT_DISCLOSURE_TEXT = """
 This system is provided for use by Medicare beneficiaries, health providers, caregivers, and 3rd party
@@ -467,7 +466,8 @@ SLS_TOKEN_ENDPOINT = env(
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 
-AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',)
+AUTHENTICATION_BACKENDS = ('apps.accounts.email_auth_backend.EmailBackend',
+                           'django.contrib.auth.backends.ModelBackend')
 
 # Change these for production
 USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")

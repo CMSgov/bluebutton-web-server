@@ -15,8 +15,7 @@ pytz
 configparser
 dj-database-url
 pyjwt
-
-
+newrelic
 
 # test coverage
 coverage

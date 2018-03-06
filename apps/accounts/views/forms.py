@@ -10,29 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key, UserRegisterCode
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 from localflavor.us.forms import USPhoneNumberField
-import csv
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-
-class BulkUserCodeForm(forms.Form):
-    csv_text = forms.CharField(widget=forms.Textarea, max_length=10240, label=_(
-        'CSV including header row'), help_text=_('id,first_name,last_name,email,username,code'))
-    required_css_class = 'required'
-
-    def clean_csv_text(self):
-        csv_text = self.cleaned_data.get('csv_text', '')
-        dreader = csv.DictReader(str.splitlines(str(csv_text)))
-        headers = dreader.fieldnames
-        for row in dreader:
-            if len(row) != 6:
-                raise forms.ValidationError(_('Each row must have 6 values'))
-        header = ['id', 'first_name', 'last_name', 'email', 'username', 'code']
-        (header > headers) - (header < headers)
-        if (header > headers) - (header < headers) != 0:
-            raise forms.ValidationError(
-                _('check the values or your header row'))
-        return csv_text
 
 
 class RequestInviteForm(forms.ModelForm):
