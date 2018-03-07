@@ -44,6 +44,12 @@ class Application(AbstractApplication):
                                 help_text="This is typically an email")
     active = models.BooleanField(default=True)
 
+    def scopes(self):
+        mylist = []
+        for s in self.scope.all():
+            mylist.append(s.slug)
+        return " ".join(mylist).strip()
+
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
 
@@ -108,3 +114,4 @@ class ExpiresIn(models.Model):
     expires_in = models.IntegerField()
 
     objects = ExpiresInManager()
+
