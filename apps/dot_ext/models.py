@@ -114,4 +114,3 @@ class ExpiresIn(models.Model):
     expires_in = models.IntegerField()
 
     objects = ExpiresInManager()
-
