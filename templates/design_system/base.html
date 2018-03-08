@@ -27,5 +27,9 @@
 		{% if template %}{% include template %}{% endif %}
 		{{ content|safe }}
 	{% endblock %}
+
+
+    <script>window.tealiumEnvironment = "{{ settings.GOOGLE_AN_ENV }}";</script>
+    <script src="//tags.tiqcdn.com/utag/cmsgov/cms-bluebutton/{{ settings.GOOGLE_AN_ENV }}/utag.sync.js"></script>
 </body>
 </html>
