@@ -340,11 +340,13 @@ DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
 DEVELOPER_DOCS_TITLE = "Documentation"
 
 DEFAULT_DISCLOSURE_TEXT = """
-This system is provided for use by Medicare beneficiaries, health providers, caregivers, and 3rd party
-application developers. See the documentation for more information on proper use.
-Unauthorized or improper use of this system or its data may result in disciplinary action, as well as
-civil and criminal penalties. This system may be monitored, recorded, and subject to audit.
-"""
+    This system is provided for use by 3rd party application developers
+    to register a beneficiary-facing application.  See the documentation
+    for more information on proper use. Unauthorized or improper use of this
+    system or its data may result in disciplinary action, as well as civil
+    and criminal penalties. This system may be monitored, recorded and
+    subject to audit.
+    """
 
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
@@ -354,6 +356,8 @@ REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
+
+TEALIUM_ENV = env('DJANGO_TEALIUM_ENV', 'prod')
 
 # include settings values in SETTING_EXPORT to use values in Templates.
 # eg. {{ settings.APPLICATION_TITLE }}
@@ -381,7 +385,8 @@ SETTINGS_EXPORT = [
     'SOCIAL_AUTH_BACKEND_NAME',
     'OPTIONAL_INSTALLED_APPS',
     'INSTALLED_APPS',
-    'REQUIRE_INVITE_TO_REGISTER'
+    'REQUIRE_INVITE_TO_REGISTER',
+    'TEALIUM_ENV',
 ]
 
 # Make sessions die out fast for more security ------------------
