@@ -16,7 +16,7 @@ urlpatterns = [
     url(r'.well-known/', include('apps.wellknown.urls')),
     url(r'^v1/accounts/', include('apps.accounts.urls')),
     url(r'^v1/connect/userinfo', openidconnect_userinfo,
-        name='legacy_openid_connect_userinfo'),
+        name='deprecated_openid_connect_userinfo'),
     url(r'^v1/fhir/metadata$', fhir_conformance,
         name='fhir_conformance_metadata'),
     url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
