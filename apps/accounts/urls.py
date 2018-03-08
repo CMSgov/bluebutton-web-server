@@ -5,8 +5,7 @@ from .views.core import (create_account,
                          request_invite,
                          mylogout,
                          display_api_keys,
-                         activation_verify,
-                         )
+                         activation_verify)
 
 from .views.password_reset import (change_secret_questions,
                                    forgot_password,
@@ -21,14 +20,17 @@ from .views.mfa import mfa_code_confirm, mfa_login
 from .views.user_code_login import user_code_register
 from .views.email_bounce_webhook import record_email_bounce
 from .views.api_profile import my_profile
+from .views.oauth2_profile import openidconnect_userinfo
+
 
 __author__ = "Alan Viars"
 
 
 urlpatterns = [
-    # login and Logout ------------------------------------
     url(r'^api/profile$', my_profile, name='my_profile'),
 
+    url(r'^connect/userinfo$', openidconnect_userinfo,
+        name='openid_connect_userinfo'),
 
     # login and Logout ------------------------------------
     url(r'^logout$', mylogout, name='mylogout'),
