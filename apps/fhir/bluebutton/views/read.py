@@ -92,12 +92,12 @@ def read(request, resource_type, resource_id, *args, **kwargs):
     try:
         if resource_type == 'Coverage':
             reference = response._json()['beneficiary']['reference']
-            reference_id = reference.split('|')[1]
+            reference_id = reference.split('/')[1]
             if reference_id != crosswalk.fhir_id:
                 return standard_404()
         elif resource_type == 'ExplanationOfBenefit':
             reference = response._json()['patient']['reference']
-            reference_id = reference.split('|')[1]
+            reference_id = reference.split('/')[1]
             if reference_id != crosswalk.fhir_id:
                 return standard_404()
     except Exception:
