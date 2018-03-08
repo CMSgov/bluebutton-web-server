@@ -34,6 +34,7 @@ if IsAppInstalled("apps.mymedicare_cb"):
         url(r'^mymedicare/', include('apps.mymedicare_cb.urls')),
     ]
 
-urlpatterns += [
-    url(r'^$', home, name='home'),
-]
+if not getattr(settings, 'NO_UI', False):
+    urlpatterns += [
+        url(r'^$', home, name='home'),
+    ]

@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from rest_framework.response import Response
 import logging
 
 from ..constants import ALLOWED_RESOURCE_TYPES
@@ -12,7 +12,13 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         build_rewrite_list,
                                         get_response_text)
-from rest_framework.decorators import throttle_classes, api_view
+from apps.fhir.parsers import FHIRParser
+from apps.fhir.renderers import FHIRRenderer
+
+from rest_framework.decorators import throttle_classes, api_view, parser_classes, renderer_classes
+from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer
+
 from apps.dot_ext.throttling import TokenRateThrottle
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -20,6 +26,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 @require_valid_token()
 @api_view(['GET'])
+@parser_classes([JSONParser, FHIRParser])
+@renderer_classes([JSONRenderer, FHIRRenderer])
 @throttle_classes([TokenRateThrottle])
 def read(request, resource_type, resource_id, *args, **kwargs):
     # reset request back to django.HttpRequest
@@ -84,12 +92,12 @@ def read(request, resource_type, resource_id, *args, **kwargs):
     try:
         if resource_type == 'Coverage':
             reference = response._json()['beneficiary']['reference']
-            reference_id = reference.split('|')[1]
+            reference_id = reference.split('/')[1]
             if reference_id != crosswalk.fhir_id:
                 return standard_404()
         elif resource_type == 'ExplanationOfBenefit':
             reference = response._json()['patient']['reference']
-            reference_id = reference.split('|')[1]
+            reference_id = reference.split('/')[1]
             if reference_id != crosswalk.fhir_id:
                 return standard_404()
     except Exception:
@@ -103,7 +111,7 @@ def read(request, resource_type, resource_id, *args, **kwargs):
     text_in = get_response_text(fhir_response=response)
     text_out = post_process_request(request, host_path, text_in, rewrite_url_list)
 
-    return JsonResponse(text_out)
+    return Response(text_out)
 
 
 def standard_404():

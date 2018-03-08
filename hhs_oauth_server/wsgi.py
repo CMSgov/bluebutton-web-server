@@ -1,4 +1,5 @@
 import os
+import newrelic.agent
 # from getenv import env
 from django.core.wsgi import get_wsgi_application
 
@@ -23,6 +24,11 @@ if os.path.isfile(EXEC_FILE):
 
 else:
     print("no custom variables set:[%s] - Not Found" % EXEC_FILE)
+
+# If the New Relic config file is present, load and configure the agent
+if os.path.isfile(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, 'newrelic.ini')):
+    newrelic.agent.initialize(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, 'newrelic.ini'))
+
 # If custom-envvars or web server didn't pre-set DJANGO_SETTINGS_MODULE
 # then we set it to the default
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hhs_oauth_server.settings.base")
