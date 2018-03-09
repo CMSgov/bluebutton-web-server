@@ -29,6 +29,8 @@ class ProtectedCapability(models.Model):
         default="""[["GET", "/some-url"]]"""
     )
 
+    default = models.BooleanField(default=True)
+
     def __str__(self):
         return self.title
 
