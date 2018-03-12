@@ -40,7 +40,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-DEBUG = False
+DEBUG = True
 APPEND_SLASH = False
 
 # apps and middlewares
@@ -357,7 +357,7 @@ REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
 
-TEALIUM_ENV = env('DJANGO_TEALIUM_ENV', 'prod')
+TEALIUM_ENV = env('DJANGO_TEALIUM_ENV', 'dev')
 
 # include settings values in SETTING_EXPORT to use values in Templates.
 # eg. {{ settings.APPLICATION_TITLE }}
