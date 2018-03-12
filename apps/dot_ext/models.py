@@ -27,8 +27,7 @@ class Application(AbstractApplication):
     op_policy_uri = models.CharField(default="", blank=True, max_length=512)
     client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client URI",
                                   help_text="This is typically a homepage for the application.")
-    help_text = _('Allowed URIs listed, space or new line separated. '
-                  'Including ??00000000:// for mobile native applications')
+    help_text = _('Allowed redirect URIs. Space or new line separated.')
     redirect_uris = models.TextField(help_text=help_text,
                                      validators=[validate_uris], blank=True)
     logo_uri = models.CharField(
