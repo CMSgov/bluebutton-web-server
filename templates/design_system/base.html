@@ -19,7 +19,7 @@
    <meta name="msapplication-config" content="{% static 'img/favicon/browserconfig.xml' %}">
    <link rel="stylesheet" href="{% static 'design-system/packages/core/dist/index.css' %}" />
   <link rel="stylesheet" href="{% static 'design-system/style.css' %}">
-   
+
 </head>
 <body class="ds-base">
 
@@ -29,7 +29,7 @@
 	{% endblock %}
 
 
-    <script>window.tealiumEnvironment = "{{ settings.DJANGO_TEALIUM_ENV }}";</script>
-    <script src="//tags.tiqcdn.com/utag/cmsgov/cms-bluebutton/{{ settings.DJANGO_TEALIUM_ENV }}/utag.sync.js"></script>
+    <script>window.tealiumEnvironment = "{{ settings.TEALIUM_ENV }}";</script>
+    <script src="//tags.tiqcdn.com/utag/cmsgov/cms-bluebutton/{{ settings.TEALIUM_ENV }}/utag.sync.js"></script>
 </body>
 </html>
