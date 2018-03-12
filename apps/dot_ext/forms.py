@@ -9,7 +9,6 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.scopes import get_scopes_backend
 from oauth2_provider.settings import oauth2_settings
-from .oauth2_validators import set_regex, compare_to_regex
 from oauth2_provider.validators import urlsplit
 
 __author__ = "Alan Viars"
@@ -74,19 +73,14 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
             valid_schemes = get_allowed_schemes()
 
-            regex = set_regex()
-            if compare_to_regex(regex, scheme):
-                validate_error = False
-            elif scheme in valid_schemes:
+            if scheme in valid_schemes:
                 validate_error = False
             else:
                 validate_error = True
 
             if validate_error:
-                msg += '%s is an invalid scheme. ' \
-                       'Redirect URIs for native mobile ' \
-                       ' applications must use %s or ' \
-                       '??00000000:://.' % (scheme, ', '.join(valid_schemes))
+                msg += '%s is an invalid scheme. Redirect URIs must use %s ' \
+                    % (scheme, ' or '.join(valid_schemes))
 
         if validate_error:
             msg_output = _(msg)
