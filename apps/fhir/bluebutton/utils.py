@@ -151,7 +151,7 @@ def generate_info_headers(request):
 
     if user:
         result['BlueButton-UserId'] = str(user.id)
-        result['BlueButton-User'] = str(user)
+        # result['BlueButton-User'] = str(user)
         result['BlueButton-Application'] = ""
         result['BlueButton-ApplicationId'] = ""
         if AccessToken.objects.filter(token=get_access_token_from_request(request)).exists():
@@ -159,7 +159,7 @@ def generate_info_headers(request):
             result['BlueButton-Application'] = str(at.application.name)
             result['BlueButton-ApplicationId'] = str(at.application.id)
             result['BlueButton-DeveloperId'] = str(at.application.user.id)
-            result['BlueButton-Developer'] = str(at.application.user)
+            # result['BlueButton-Developer'] = str(at.application.user)
         else:
             result['BlueButton-Application'] = ""
             result['BlueButton-ApplicationId'] = ""
