@@ -19,6 +19,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 def callback(request):
 
     response = OrderedDict()
+    if 'error' in request.GET:
+        return render(request, "access-denied.html", {"error": request.GET.get("error")})
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
     host = settings.HOSTNAME_URL
