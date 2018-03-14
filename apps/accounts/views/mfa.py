@@ -13,6 +13,7 @@ from django.dispatch import receiver
 from ...utils import get_client_ip
 import sys
 from django.views.decorators.cache import never_cache
+from axes.decorators import axes_dispatch
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
 failed_login_log = logging.getLogger('unsuccessful_logins')
@@ -80,13 +81,14 @@ def mfa_code_confirm(request, uid):
 
 
 @never_cache
+@axes_dispatch
 def mfa_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user = authenticate(username=username.lower(), password=password)
+            user = authenticate(request=request, username=username.lower(), password=password)
 
             if user is not None:
 
