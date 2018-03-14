@@ -21,7 +21,7 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
     list_display = ("user", "authorization_grant_type", "scopes",
                     "skip_authorization", "created", "updated")
-    list_filter = ("client_type", "authorization_grant_type",
+    list_filter = ("user", "client_type", "authorization_grant_type",
                    "skip_authorization")
     radio_fields = {
         "client_type": admin.HORIZONTAL,
@@ -37,8 +37,9 @@ class MyAccessTokenAdmin(admin.ModelAdmin):
 
     list_display = ('user', 'application', 'expires', 'scope')
     search_fields = ('user__username', 'application__name',)
-    list_filter = ("user__username", "application__name")
+    list_filter = ("user", "application")
     raw_id_fields = ("user", 'application')
 
 
 admin.site.register(MyAccessToken, MyAccessTokenAdmin)
+
