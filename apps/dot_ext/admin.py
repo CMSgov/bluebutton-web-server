@@ -19,9 +19,9 @@ class MyApplication(Application):
 
 class MyApplicationAdmin(admin.ModelAdmin):
 
-    list_display = ("user", "authorization_grant_type", "scopes",
+    list_display = ("name", "user", "authorization_grant_type", "scopes",
                     "skip_authorization", "created", "updated")
-    list_filter = ("user", "client_type", "authorization_grant_type",
+    list_filter = ("name", "user", "client_type", "authorization_grant_type",
                    "skip_authorization")
     radio_fields = {
         "client_type": admin.HORIZONTAL,
