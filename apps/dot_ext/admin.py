@@ -2,6 +2,7 @@ from django.contrib import admin
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 
+
 Application = get_application_model()
 
 
@@ -9,12 +10,14 @@ class MyAccessToken(AccessToken):
 
     class Meta:
         proxy = True
+        app_label = "bluebutton"
 
 
 class MyApplication(Application):
 
     class Meta:
         proxy = True
+        app_label = "bluebutton"
 
 
 class MyApplicationAdmin(admin.ModelAdmin):
