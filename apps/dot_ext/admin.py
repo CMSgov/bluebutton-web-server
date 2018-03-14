@@ -42,4 +42,3 @@ class MyAccessTokenAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MyAccessToken, MyAccessTokenAdmin)
-
