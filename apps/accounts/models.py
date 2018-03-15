@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-import boto3
 from django.core.urlresolvers import reverse
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
@@ -258,36 +257,14 @@ class MFACode(models.Model):
             self.expires = expires
             self.code = str(random.randint(1000, 9999))
             up = UserProfile.objects.get(user=self.user)
-            if self.mode == "SMS" and \
-               up.mobile_phone_number and \
-               settings.SEND_SMS:
-                # Send SMS to up.mobile_phone_number
-                sns = boto3.client(
-                    'sns',
-                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                    region_name='us-east-1')
-                number = "+1%s" % (up.mobile_phone_number)
-                sns.publish(
-                    PhoneNumber=number,
-                    Message="Your code is : %s" % (self.code),
-                    MessageAttributes={
-                        'AWS.SNS.SMS.SenderID': {
-                            'DataType': 'String',
-                            'StringValue': 'MySenderID'
-                        }
-                    }
-                )
-            elif self.mode == "SMS" and not up.mobile_phone_number:
+            if self.mode == "SMS" and not up.mobile_phone_number:
                 logger.info("Cannot send SMS. No phone number on file.")
             elif self.mode == "EMAIL" and self.user.email:
                 # "Send SMS to self.user.email
                 mfa_via_email(self.user, self.code)
             elif self.mode == "EMAIL" and not self.user.email:
                 logger.info("Cannot send email. No email_on_file.")
-            else:
-                # No MFA code sent
-                pass
+
         super(MFACode, self).save(**kwargs)
 
 

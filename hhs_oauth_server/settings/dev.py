@@ -8,6 +8,8 @@ HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
 INVITE_REQUEST_ADMIN = env(
     'DJANGO_INVITE_REQUEST_ADMIN', 'change-me@example.com')
 
+ALLOW_CHOOSE_LOGIN = True
+
 DEV_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
     # 'storages',
@@ -50,4 +52,6 @@ FHIR_SERVER_CONF = {
 }
 
 # Should be set to True in production and False in all other dev and test environments
-REQUIRE_HTTPS_REDIRECT_URIS = False
+# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
+# REQUIRE_HTTPS_REDIRECT_URIS = True
+BLOCK_HTTP_REDIRECT_URIS = False

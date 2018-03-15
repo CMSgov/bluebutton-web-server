@@ -19,7 +19,6 @@ from apps.fhir.bluebutton.utils import get_fhir_now
 
 import csv
 import sys
-from getenv import env
 
 import logging
 
@@ -28,17 +27,26 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 __author__ = "Mark Scrimshire @ekivemark"
 
 
-def exportcsv(app_name, model_name, add_name):
+def exportcsv(app_name, model_name, add_name, field_export):
     """
 
     :param app_name:
     :param model_name:
+    :param add_name:
     :return:
 
     export the CSV for a model, with header line
     """
     model = apps.get_model(app_name, model_name)
-    field_names = [f.name for f in model._meta.fields]
+    field_list = [f.name for f in model._meta.fields]
+    if field_export:
+        field_names = []
+        for fe in field_export:
+            if fe in field_list:
+                field_names.append(fe)
+    else:
+        field_names = field_list
+
     if add_name:
         model_field_names = field_names + [app_name + '.' + model_name,
                                            "model2csv_time"]
@@ -62,28 +70,56 @@ def exportcsv(app_name, model_name, add_name):
 
 
 class Command(BaseCommand):
-    help = ("Output the specified model as CSV. model2csv {app}.{modelname}. "
-            "\n    export DJANGO_MODEL2CSV=add_table_name to add app.table name "
-            "to output")
-    args = '[appname.ModelName]'
+
+    help = ("Output the specified application.model as CSV")
+
+    def add_arguments(self, parser):
+        parser.add_argument('--application', help="application name")
+
+        parser.add_argument('--model', help="model name")
+
+        parser.add_argument('--add_table_name', help="include table name"
+                                                     " and export time as "
+                                                     "columns: True | False")
+
+        parser.add_argument('--filter_fields', help="filter fields by column "
+                                                    "name, comma separated: "
+                                                    "eg. id,name,description ")
 
     def handle(self, *app_labels, **options):
-        if app_labels:
 
-            app_name, model_name = app_labels[0].split('.')
+        if options['application']:
+            app_name = options['application']
+        else:
+            logger.info('model2csv: No application defined')
+            return False
 
-            add_table_name = env("DJANGO_MODEL2CSV", "")
-            add_table_name = add_table_name.lower()
-            if add_table_name == "add_table_name":
+        if options['model']:
+            model_name = options['model']
+        else:
+            logger.info('model2csv: No model defined')
+            return False
+
+        if options['add_table_name']:
+            if options['add_table_name'].lower() == "true":
                 add_name = True
             else:
                 add_name = False
-            e = exportcsv(app_name, model_name, add_name)
-
-            if e:
-                logger.info('Model Content exported: %s.%s' % (app_name,
-                                                               model_name))
         else:
-            logger.info('Model Content: Problem with export')
+            add_name = False
 
-            return False
+        if options['filter_fields']:
+            field_export = options['filter_fields'].split(',')
+        else:
+            field_export = []
+
+        e = exportcsv(app_name, model_name, add_name, field_export)
+
+        if e:
+            logger.info('model2csv: Content exported: %s.%s' % (app_name,
+                                                                model_name))
+            return
+        else:
+            logger.info('model2csv: Problem with export')
+
+        return False

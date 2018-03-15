@@ -13,32 +13,11 @@ from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key, UserRegisterCode
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 from localflavor.us.forms import USPhoneNumberField
-import csv
 
 __author__ = "Alan Viars"
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-
-class BulkUserCodeForm(forms.Form):
-    csv_text = forms.CharField(widget=forms.Textarea, max_length=10240, label=_(
-        'CSV including header row'), help_text=_('id,first_name,last_name,email,username,code'))
-    required_css_class = 'required'
-
-    def clean_csv_text(self):
-        csv_text = self.cleaned_data.get('csv_text', '')
-        dreader = csv.DictReader(str.splitlines(str(csv_text)))
-        headers = dreader.fieldnames
-        for row in dreader:
-            if len(row) != 6:
-                raise forms.ValidationError(_('Each row must have 6 values'))
-        header = ['id', 'first_name', 'last_name', 'email', 'username', 'code']
-        (header > headers) - (header < headers)
-        if (header > headers) - (header < headers) != 0:
-            raise forms.ValidationError(
-                _('check the values or your header row'))
-        return csv_text
 
 
 class RequestInviteForm(forms.ModelForm):
@@ -66,14 +45,6 @@ class RequestInviteForm(forms.ModelForm):
             raise forms.ValidationError(_('You are either not human or '
                                           'just just really bad at math.'))
         return human
-
-
-class RequestInviteEndUserForm(RequestInviteForm):
-
-    class Meta:
-        model = RequestInvite
-        fields = ('first_name', 'last_name', 'email', 'user_type')
-    required_css_class = 'required'
 
 
 class SecretQuestionForm(forms.Form):
@@ -308,7 +279,7 @@ class SignupForm(forms.Form):
                                                          "US numbers only."))
     organization_name = forms.CharField(max_length=100,
                                         label=_("Organization Name"),
-                                        required=False
+                                        required=True
                                         )
     password1 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
@@ -447,7 +418,7 @@ class AccountSettingsForm(forms.Form):
                                                          "authentication."))
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
-                                        required=False)
+                                        required=True)
     create_applications = forms.BooleanField(initial=False,
                                              required=False)
     required_css_class = 'required'

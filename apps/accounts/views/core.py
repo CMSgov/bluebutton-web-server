@@ -9,11 +9,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-from ratelimit.decorators import ratelimit
 from ..forms import (RequestInviteForm, AccountSettingsForm,
                      LoginForm,
-                     SignupForm,
-                     RequestInviteEndUserForm,)
+                     SignupForm)
 from ..models import UserProfile
 from ..utils import validate_activation_key
 from django.conf import settings
@@ -25,8 +23,9 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 @never_cache
-@ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
 def request_invite(request):
+    if not settings.REQUIRE_INVITE_TO_REGISTER:
+        return HttpResponseRedirect(reverse('accounts_create_account'))
     if request.method == 'POST':
         form = RequestInviteForm(request.POST)
         if form.is_valid():
@@ -53,31 +52,6 @@ def request_invite(request):
                       'developer-invite-request.html',
                       {'form': RequestInviteForm(),
                        'additional_info': additional_info})
-
-
-@never_cache
-@ratelimit(key='ip', rate='5/h', method=['POST'], block=True)
-def request_invite_enduser(request):
-    if request.method == 'POST':
-        form = RequestInviteEndUserForm(request.POST)
-        if form.is_valid():
-            invite_request = form.save()
-            messages.success(
-                request,
-                _('You will be contacted by email when your '
-                  'invitation is ready.'),
-            )
-            logger.debug("email to invite:%s" % invite_request.email)
-            return pick_reverse_login()
-        else:
-            return render(request, 'enduser-invite-request.html', {
-                'form': form,
-            })
-    else:
-        # this is an HTTP  GET
-        return render(request,
-                      'enduser-invite-request.html',
-                      {'form': RequestInviteEndUserForm(initial={'user_type': 'BEN'})})
 
 
 def mylogout(request):
@@ -136,7 +110,6 @@ def reissue_api_keys(request):
     return HttpResponseRedirect(reverse('display_api_keys'))
 
 
-@ratelimit(key='ip', rate='10/h', method=['POST'], block=True)
 def create_account(request):
 
     name = "Create your %s Account" % settings.APPLICATION_TITLE
@@ -161,8 +134,9 @@ def create_account(request):
         # via GET paramters
         form_data = {'invitation_code': request.GET.get('invitation_code', ''),
                      'email': request.GET.get('email', '')}
-        messages.info(request,
-                      _("An invitation code is required to register."))
+        if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+            messages.info(request,
+                          _("An invitation code is required to register."))
         return render(request,
                       'generic/bootstrapform.html',
                       {'name': name, 'form': SignupForm(initial=form_data)})
@@ -225,7 +199,6 @@ def account_settings(request):
                   {'name': name, 'form': form})
 
 
-@ratelimit(key='ip', rate='5/h', method=['GET'], block=True)
 def activation_verify(request, activation_key):
     if validate_activation_key(activation_key):
         messages.success(request,

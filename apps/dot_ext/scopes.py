@@ -22,10 +22,7 @@ class CapabilitiesScopes(BaseScopes):
         Returns a list that contains all the capabilities related
         to the current application.
         """
-        if application:
-            return list(application.scope.values_list('slug', flat=True))
-        else:
-            return []
+        return list(ProtectedCapability.objects.values_list('slug', flat=True))
 
     def get_default_scopes(self, application=None, request=None, *args, **kwargs):
         """

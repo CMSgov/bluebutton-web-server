@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-from .models import AnonUserState
 
 __author__ = "Alan Viars"
 
@@ -24,8 +23,8 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
 
     def test_callback_url(self):
         """
-        Test callback_url raises an error when
+        Test callback_url returns HTTP 400 when
         necessary GET parameter state is missing.
         """
-        with self.assertRaises(AnonUserState.DoesNotExist):
-            self.client.get(self.callback_url)
+        response = self.client.get(self.callback_url)
+        self.assertEqual(response.status_code, 400)

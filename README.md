@@ -76,6 +76,10 @@ variables before running tests or the server itself.
 
 Note you can find the path to your Python3 binary by typing `which python3`.
 
+### docker-compose setup
+
+Instructions for running the development environment via `docker-compose` can be found [here](./docker-compose/readme.md)
+
 Running Tests
 -------------
 
@@ -123,10 +127,9 @@ An example of a `custom-envvars.py` file is shown below:
 Using this Project
 ------------------
 
-This project is free and open source software under the GPL v2 license.  Adding additional
-applications, authentication backends, and styles/themes are not subject to the GPL.
-Your local settings and root urls.py are no subject to the GPL v2. The contents of site-static
-are not GPL v2.
+This project is free and open source software under the Apache2 license. 
+You may add additional applications, authentication backends, and styles/themes 
+are not subject to the Apache2 license.
 
 In other words, you or your organization are not in any way prevented from build closed source applications
 on top of this tool. Applications that you create can be licensed in any way that suits you business or organizational needs.
@@ -137,4 +140,4 @@ by their respective authors.
 License
 -------
 
-This project is free and open source software under the GPL v2 license. See LICENSE.txt for more information.
+This project is free and open source software under the Apache 2 license. See LICENSE for more information.
