@@ -151,8 +151,8 @@ WSGI_APPLICATION = 'hhs_oauth_server.wsgi.application'
 
 CACHES = {
     'default': {
-        'BACKEND': os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
-        'LOCATION': os.environ.get('CACHE_LOCATION', 'unique-snowflake'),
+        'BACKEND': os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.db.DatabaseCache'),
+        'LOCATION': os.environ.get('CACHE_LOCATION', 'django_cache'),
     },
 }
 
