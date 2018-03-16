@@ -1,6 +1,7 @@
 import os
 import dj_database_url
 import socket
+import datetime
 from getenv import env
 from ..utils import bool_env, int_env
 
@@ -40,7 +41,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-DEBUG = False
+DEBUG = True
 APPEND_SLASH = False
 
 # apps and middlewares
@@ -75,6 +76,7 @@ INSTALLED_APPS = [
     'social_django',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
+    'axes',
 
 ]
 
@@ -84,6 +86,15 @@ REST_FRAMEWORK = {
     },
 }
 
+# Failed Login Attempt Module: AXES
+# Either integer or timedelta.
+# If integer interpreted, as hours
+AXES_COOLOFF_TIME = datetime.timedelta(minutes=30)
+AXES_FAILURE_LIMIT = 5
+AXES_LOGIN_FAILURE_LIMIT = 5
+AXES_LOCK_OUT_AT_FAILURE = True
+AXES_ONLY_USER_FAILURES = True
+AXES_USERNAME_FORM_FIELD = "username"
 # Used for testing for optional apps in templates without causing a crash
 # used in SETTINGS_EXPORT below.
 OPTIONAL_INSTALLED_APPS = ["", ]
@@ -357,7 +368,7 @@ REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
 
-TEALIUM_ENV = env('DJANGO_TEALIUM_ENV', 'prod')
+TEALIUM_ENV = env('DJANGO_TEALIUM_ENV', 'dev')
 
 # include settings values in SETTING_EXPORT to use values in Templates.
 # eg. {{ settings.APPLICATION_TITLE }}

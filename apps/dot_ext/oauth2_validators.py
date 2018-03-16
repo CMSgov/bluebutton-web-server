@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import re
 import math
 
 from django.core.exceptions import ValidationError
@@ -109,13 +108,8 @@ class RedirectURIValidator(URIValidator):
             raise ValidationError('Redirect URIs must not contain fragments')
         scheme, netloc, path, query, fragment = urlsplit(value)
 
-        # Fix the mobile endpoint validation
-        # Allow 2 character alpha plus 8 numerics
-        if scheme.lower() in self.allowed_schemes:
-            pass
-
-        elif scheme.lower() not in self.allowed_schemes:
-            raise ValidationError('Invalid Redirect URI:[%s]' % scheme.lower())
+        if scheme.lower() not in self.allowed_schemes:
+            raise ValidationError('Invalid Redirect URI scheme: %s' % scheme.lower())
 
 
 def validate_uris(value):
@@ -124,25 +118,4 @@ def validate_uris(value):
     """
     v = RedirectURIValidator(oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES)
     for uri in value.split():
-        regex = set_regex()
-        if compare_to_regex(regex, uri):
-            pass
-        else:
-            v(uri)
-
-
-def set_regex():
-    return r'\b[a-zA-Z]{2}[0-9]{8}\b'
-
-
-def compare_to_regex(regex, uri):
-    """
-
-    :param regex:
-    :param uri:
-    :return:
-    """
-    if re.findall(regex, uri):
-        return True
-    else:
-        return False
+        v(uri)
