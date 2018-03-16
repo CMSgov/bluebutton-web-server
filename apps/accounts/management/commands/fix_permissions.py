@@ -20,7 +20,7 @@ from django.apps import apps
 
 
 class Command(BaseCommand):
-    help = "Fix permissions for proxy models."
+    help = "Fix permissions for all models, including proxy models."
 
     def handle(self, *args, **options):
         for model in apps.get_models():
