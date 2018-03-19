@@ -102,5 +102,4 @@ class Fhir_Response(Response):
 
         # Add extra fields to Response Object
         for k, v in extend_response.items():
-            # logger.debug("Key:%s with Value:%s" % (k, v))
             self.__dict__[k] = v

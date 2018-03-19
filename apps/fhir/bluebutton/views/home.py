@@ -116,14 +116,13 @@ def get_supported_resources(resources, resource_names, resource_router=None):
         resource_router = get_resourcerouter()
 
     resource_list = []
+
     # if resource 'type in resource_names add resource to resource_list
     for item in resources:
         for k, v in item.items():
             if k == 'type':
                 if v in resource_names:
                     filtered_item = get_interactions(v, item, resource_router)
-                    # logger.debug("Filtered Item:%s" % filtered_item)
-
                     resource_list.append(filtered_item)
 
     return resource_list
