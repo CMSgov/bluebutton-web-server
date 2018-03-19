@@ -43,7 +43,7 @@ class ConformanceReadRequestTest(TestCase):
         # return the pre-defined values
         result = apps.fhir.bluebutton.utils.request_call(request,
                                                          call_to,
-                                                         cx=None)
+                                                         crosswalk=None)
 
         # Test for a match
         self.assertEqual(result._response.content, CONFORMANCE)
