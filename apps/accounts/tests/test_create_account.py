@@ -28,7 +28,6 @@ class CreateDeveloperAccountTestCase(TestCase):
         form_data = {
             'invitation_code': '1234',
             'email': 'BamBam@Example.com',
-            'username': 'BamBam',
             'organization_name': 'transhealth',
             'password1': 'bedrocks',
             'password2': 'bedrocks',
@@ -48,8 +47,8 @@ class CreateDeveloperAccountTestCase(TestCase):
 
         # verify username is lowercase
         User = get_user_model()
-        u = User.objects.get(username="bambam")
-        self.assertEqual(u.username, "bambam")
+        u = User.objects.get(email="bambam@example.com")
+        self.assertEqual(u.username, "bambam@example.com")
         self.assertEqual(u.email, "bambam@example.com")
 
         # Ensure developer account has a sample FHIR id crosswalk entry.
@@ -109,7 +108,6 @@ class CreateDeveloperAccountTestCase(TestCase):
         form_data = {
             'invitation_code': '1234',
             'email': 'hank@example.com',
-            'username': 'hank',
             'organization_name': 'transhealth',
             'password1': 'bedrocks',
             'password2': 'bedrocks',
@@ -123,5 +121,5 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password_reset_answer_3': 'Jeep'
         }
         self.client.post(self.url, form_data, follow=True)
-        up = UserProfile.objects.get(user__username='hank')
+        up = UserProfile.objects.get(user__email='hank@example.com')
         self.assertEqual(up.user_type, 'DEV')
