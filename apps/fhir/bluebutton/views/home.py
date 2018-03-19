@@ -36,8 +36,8 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     :param kwargs:
     :return:
     """
-    cx = None
-    rr = get_resourcerouter()
+    crosswalk = None
+    resource_router = get_resourcerouter()
     call_to = FhirServerUrl()
 
     if call_to.endswith('/'):
@@ -51,7 +51,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     encoded_params = urlencode(pass_params)
     pass_params = prepend_q(encoded_params)
 
-    r = request_call(request, call_to + pass_params, cx)
+    r = request_call(request, call_to + pass_params, crosswalk)
 
     text_out = ''
     host_path = get_host_url(request, '?')
@@ -62,7 +62,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
                             status=r.status_code,
                             content_type='application/json')
 
-    rewrite_url_list = build_rewrite_list(cx)
+    rewrite_url_list = build_rewrite_list(crosswalk)
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
@@ -70,7 +70,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
                                     text_in,
                                     rewrite_url_list)
 
-    od = conformance_filter(text_out, rr)
+    od = conformance_filter(text_out, resource_router)
 
     # Append Security to ConformanceStatement
     security_endpoint = build_oauth_resource(request, format_type="json")
@@ -80,16 +80,16 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     return JsonResponse(od)
 
 
-def conformance_filter(text_block, rr):
+def conformance_filter(text_block, resource_router):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
 
     # Get a list of resource names
-    if rr is None:
-        rr = get_resourcerouter()
+    if resource_router is None:
+        resource_router = get_resourcerouter()
 
-    resource_names = get_resource_names(rr)
+    resource_names = get_resource_names(resource_router)
     ct = 0
     if text_block:
         if 'rest' in text_block:
@@ -98,7 +98,7 @@ def conformance_filter(text_block, rr):
                     if i == 'resource':
                         supp_resources = get_supported_resources(v,
                                                                  resource_names,
-                                                                 rr)
+                                                                 resource_router)
                         text_block['rest'][ct]['resource'] = supp_resources
                 ct += 1
         else:
@@ -109,11 +109,11 @@ def conformance_filter(text_block, rr):
     return text_block
 
 
-def get_supported_resources(resources, resource_names, rr=None):
+def get_supported_resources(resources, resource_names, resource_router=None):
     """ Filter resources for resource type matches """
 
-    if rr is None:
-        rr = get_resourcerouter()
+    if resource_router is None:
+        resource_router = get_resourcerouter()
 
     resource_list = []
     # if resource 'type in resource_names add resource to resource_list
@@ -121,7 +121,7 @@ def get_supported_resources(resources, resource_names, rr=None):
         for k, v in item.items():
             if k == 'type':
                 if v in resource_names:
-                    filtered_item = get_interactions(v, item, rr)
+                    filtered_item = get_interactions(v, item, resource_router)
                     # logger.debug("Filtered Item:%s" % filtered_item)
 
                     resource_list.append(filtered_item)
@@ -129,7 +129,7 @@ def get_supported_resources(resources, resource_names, rr=None):
     return resource_list
 
 
-def get_interactions(resource, item, rr=None):
+def get_interactions(resource, item, resource_router=None):
     """ filter interactions within an approved resource
 
     interaction":[{"code":"read"},
@@ -142,11 +142,11 @@ def get_interactions(resource, item, rr=None):
                   {"code":"search-type"}
     """
 
-    # DONE: Add rr to call
-    if rr is None:
-        rr = get_resourcerouter()
+    # DONE: Add resource_router to call
+    if resource_router is None:
+        resource_router = get_resourcerouter()
 
-    valid_interactions = valid_interaction(resource, rr)
+    valid_interactions = valid_interaction(resource, resource_router)
     permitted_interactions = []
 
     # Now we have a resource let's filter the interactions
