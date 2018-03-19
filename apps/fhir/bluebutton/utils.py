@@ -469,7 +469,7 @@ def FhirServerUrl(server=None, path=None, release=None):
     return result
 
 
-def check_rt_controls(resource_type, resource_router=None):
+def check_resource_type_controls(resource_type, resource_router=None):
     # Check for controls to apply to this resource_type
     # logger.debug('Resource_Type =%s' % resource_type)
     # We may get more than one resourceType returned.
@@ -480,8 +480,10 @@ def check_rt_controls(resource_type, resource_router=None):
         resource_router = get_resourcerouter()
 
     try:
-        supported_resource_type_control = SupportedResourceType.objects.get(resourceType=resource_type,
-                                                 fhir_source=resource_router)
+        supported_resource_type_control =
+            SupportedResourceType.objects.get(resourceType=resource_type,
+                                              fhir_source=resource_router)
+
     except SupportedResourceType.DoesNotExist:
         supported_resource_type_control = None
 
