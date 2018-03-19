@@ -911,7 +911,6 @@ def build_oauth_resource(request, format_type="json"):
     return security
 
 
-
 def strip_format_for_back_end(pass_params):
     updated_parameters = OrderedDict()
     for k in pass_params:
