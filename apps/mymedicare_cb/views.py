@@ -89,25 +89,25 @@ def callback(request):
     login(request, user)
     # Determine patient_id
     fhir_source = get_resourcerouter()
-    cx, g_o_c = Crosswalk.objects.get_or_create(
+    crosswalk, g_o_c = Crosswalk.objects.get_or_create(
         user=user, fhir_source=fhir_source)
     hicn = user_info.get('hicn', "")
-    cx.user_id_hash = hicn
-    cx.save()
+    crosswalk.user_id_hash = hicn
+    crosswalk.save()
     auth_state = FhirServerAuth(None)
     certs = (auth_state['cert_file'], auth_state['key_file'])
 
     # URL for patient ID.
     url = fhir_source.fhir_url + \
         "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
-        cx.user_id_hash + \
+        crosswalk.user_id_hash + \
         "&_format=json"
     response = requests.get(url, cert=certs, verify=False)
 
     if 'entry' in response.json() and response.json()['total'] == 1:
         fhir_id = response.json()['entry'][0]['resource']['id']
-        cx.fhir_id = fhir_id
-        cx.save()
+        crosswalk.fhir_id = fhir_id
+        crosswalk.save()
 
     # Get first and last name from FHIR if not in OIDC Userinfo response.
     if user_info['given_name'] == "" or user_info['family_name'] == "":

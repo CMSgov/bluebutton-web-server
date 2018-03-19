@@ -83,28 +83,28 @@ class BlueButtonUtilSrtcTestCase(TestCase):
 
         """ Test 1: pass nothing"""
 
-        rr = get_resourcerouter()
+        resource_router = get_resourcerouter()
         expected = {}
-        expected['client_auth'] = rr.client_auth
+        expected['client_auth'] = resource_router.client_auth
         expected['cert_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             rr.cert_file)
+                                             resource_router.cert_file)
         expected['key_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                            rr.key_file)
+                                            resource_router.key_file)
 
         response = FhirServerAuth()
 
         self.assertDictEqual(response, expected)
 
-        """ Test 2: pass cx """
-        cx = Crosswalk.objects.get(pk=1)
+        """ Test 2: pass crosswalk """
+        crosswalk = Crosswalk.objects.get(pk=1)
 
-        response = FhirServerAuth(cx)
+        response = FhirServerAuth(crosswalk)
 
-        expected = {'client_auth': cx.fhir_source.client_auth,
+        expected = {'client_auth': crosswalk.fhir_source.client_auth,
                     'cert_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                              cx.fhir_source.cert_file),
+                                              crosswalk.fhir_source.cert_file),
                     'key_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             cx.fhir_source.key_file)}
+                                             crosswalk.fhir_source.key_file)}
 
         self.assertDictEqual(response, expected)
 
@@ -121,12 +121,12 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         """ Test 2: Pass no parameters """
         response = FhirServerUrl()
 
-        rr = get_resourcerouter()
-        rr_server_address = rr.server_address
+        resource_router = get_resourcerouter()
+        resource_router_server_address = resource_router.server_address
 
-        expected = rr_server_address
-        expected += rr.server_path
-        expected += rr.server_release
+        expected = resource_router_server_address
+        expected += resource_router.server_path
+        expected += resource_router.server_release
         if expected.endswith('/'):
             pass
         else:

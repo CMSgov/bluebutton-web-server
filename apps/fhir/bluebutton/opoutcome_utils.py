@@ -20,7 +20,7 @@ def strip_format_for_back_end(pass_params):
     return updated_parameters
 
 
-def valid_interaction(resource, rr):
+def valid_interaction(resource, resource_router):
     """ Create a list of Interactions for the resource
         We need to deal with multiple objects returned or filter by FHIRServer
     """
@@ -29,7 +29,7 @@ def valid_interaction(resource, rr):
     try:
         resource_interaction = \
             SupportedResourceType.objects.get(resourceType=resource,
-                                              fhir_source=rr)
+                                              fhir_source=resource_router)
     except SupportedResourceType.DoesNotExist:
         # this is a strange error
         # earlier gets should have found a record
