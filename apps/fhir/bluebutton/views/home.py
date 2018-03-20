@@ -24,7 +24,6 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
-    BaseDstu2 = "Conformance"
     BaseStu3 = "CapabilityStatement"
 
     :param request:
