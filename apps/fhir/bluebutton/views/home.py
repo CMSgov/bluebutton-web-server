@@ -13,10 +13,9 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         build_rewrite_list,
                                         get_response_text,
-                                        build_oauth_resource)
-
-from ..opoutcome_utils import (strip_format_for_back_end,
-                               valid_interaction)
+                                        build_oauth_resource,
+                                        strip_format_for_back_end,
+                                        valid_interaction)
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
