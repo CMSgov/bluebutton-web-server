@@ -91,9 +91,7 @@ def conformance_filter(text_block, resource_router):
             for k in text_block['rest']:
                 for i, v in k.items():
                     if i == 'resource':
-                        supp_resources = get_supported_resources(v,
-                                                                 resource_names,
-                                                                 resource_router)
+                        supp_resources = get_supported_resources(v, resource_names)
                         text_block['rest'][ct]['resource'] = supp_resources
                 ct += 1
         else:
@@ -104,11 +102,8 @@ def conformance_filter(text_block, resource_router):
     return text_block
 
 
-def get_supported_resources(resources, resource_names, resource_router=None):
+def get_supported_resources(resources, resource_names):
     """ Filter resources for resource type matches """
-
-    if resource_router is None:
-        resource_router = get_resourcerouter()
 
     resource_list = []
     # if resource 'type in resource_names add resource to resource_list
