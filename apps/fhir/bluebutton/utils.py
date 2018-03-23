@@ -469,7 +469,7 @@ def FhirServerUrl(server=None, path=None, release=None):
     return result
 
 
-def check_rt_controls(resource_type, resource_router=None):
+def check_resource_type_controls(resource_type, resource_router=None):
     # Check for controls to apply to this resource_type
 
     # We may get more than one resourceType returned.
@@ -480,19 +480,20 @@ def check_rt_controls(resource_type, resource_router=None):
         resource_router = get_resourcerouter()
 
     try:
-        srtc = SupportedResourceType.objects.get(resourceType=resource_type,
-                                                 fhir_source=resource_router)
+        supported_resource_type_control = SupportedResourceType.objects.get(resourceType=resource_type,
+                                                                            fhir_source=resource_router)
+
     except SupportedResourceType.DoesNotExist:
-        srtc = None
+        supported_resource_type_control = None
 
-    return srtc
+    return supported_resource_type_control
 
 
-def masked(srtc=None):
+def masked(supported_resource_type_control=None):
     """ check if force_url_override is set in SupportedResourceType """
     mask = False
-    if srtc:
-        if srtc.override_url_id:
+    if supported_resource_type_control:
+        if supported_resource_type_control.override_url_id:
             mask = True
 
     return mask

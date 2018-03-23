@@ -15,9 +15,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_response_text,
                                         build_oauth_resource)
 
-from ..opoutcome_utils import (strip_format_for_back_end,
-                               valid_interaction)
-
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -27,7 +24,6 @@ __author__ = 'Mark Scrimshire:@ekivemark'
 def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """ Pull and filter fhir Conformance statement
 
-    BaseDstu2 = "Conformance"
     BaseStu3 = "CapabilityStatement"
 
     :param request:
@@ -45,8 +41,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     else:
         call_to += '/metadata'
 
-    pass_params = request.GET
-    pass_params = strip_format_for_back_end(pass_params)
+    pass_params = {'_format': 'json'}
 
     encoded_params = urlencode(pass_params)
     pass_params = prepend_q(encoded_params)
@@ -96,9 +91,7 @@ def conformance_filter(text_block, resource_router):
             for k in text_block['rest']:
                 for i, v in k.items():
                     if i == 'resource':
-                        supp_resources = get_supported_resources(v,
-                                                                 resource_names,
-                                                                 resource_router)
+                        supp_resources = get_supported_resources(v, resource_names)
                         text_block['rest'][ct]['resource'] = supp_resources
                 ct += 1
         else:
@@ -109,11 +102,8 @@ def conformance_filter(text_block, resource_router):
     return text_block
 
 
-def get_supported_resources(resources, resource_names, resource_router=None):
+def get_supported_resources(resources, resource_names):
     """ Filter resources for resource type matches """
-
-    if resource_router is None:
-        resource_router = get_resourcerouter()
 
     resource_list = []
 
@@ -122,43 +112,7 @@ def get_supported_resources(resources, resource_names, resource_router=None):
         for k, v in item.items():
             if k == 'type':
                 if v in resource_names:
-                    filtered_item = get_interactions(v, item, resource_router)
-                    resource_list.append(filtered_item)
+                    item['interaction'] = [{"code": "read"}, {"code": "search-type"}]
+                    resource_list.append(item)
 
     return resource_list
-
-
-def get_interactions(resource, item, resource_router=None):
-    """ filter interactions within an approved resource
-
-    interaction":[{"code":"read"},
-                  {"code":"vread"},
-                  {"code":"update"},
-                  {"code":"delete"},
-                  {"code":"history-instance"},
-                  {"code":"history-type"},
-                  {"code":"create"},
-                  {"code":"search-type"}
-    """
-
-    # DONE: Add resource_router to call
-    if resource_router is None:
-        resource_router = get_resourcerouter()
-
-    valid_interactions = valid_interaction(resource, resource_router)
-    permitted_interactions = []
-
-    # Now we have a resource let's filter the interactions
-    for k, v in item.items():
-        if k == 'interaction':
-            # We have a list of codes for interactions.
-            # We have to filter them
-            for action in v:
-                # OrderedDict item with ('code', 'interaction')
-                if action['code'] in valid_interactions:
-                    permitted_interactions.append(action)
-
-    # Now we can replace item['interaction']
-    item['interaction'] = permitted_interactions
-
-    return item

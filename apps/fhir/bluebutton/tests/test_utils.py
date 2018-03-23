@@ -73,7 +73,7 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         self.assertEqual(response, listing)
 
 
-class BlueButtonUtilSrtcTestCase(TestCase):
+class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
     fixtures = ['fhir_bluebutton_new_testdata.json',
                 'fhir_server_new_testdata.json']
@@ -161,38 +161,38 @@ class BlueButtonUtilsRtTestCase(TestCase):
     fixtures = ['fhir_bluebutton_test_rt.json']
 
     def test_masked(self):
-        """ Checking for srtc.override_url_id """
+        """ Checking for supported_resource_type_control.override_url_id """
 
-        """ Test:1 srtc with valid override_url_id=True """
+        """ Test:1 supported_resource_type_control with valid override_url_id=True """
 
-        srtc = SupportedResourceType.objects.get(pk=1)
+        supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
 
-        response = masked(srtc)
+        response = masked(supported_resource_type_control)
         expected = True
 
         self.assertEqual(response, expected)
 
-        """ Test:2 srtc with valid override_url_id=False """
+        """ Test:2 supported_resource_type_control with valid override_url_id=False """
 
-        srtc = SupportedResourceType.objects.get(pk=4)
+        supported_resource_type_control = SupportedResourceType.objects.get(pk=4)
 
-        response = masked(srtc)
+        response = masked(supported_resource_type_control)
         expected = False
 
         self.assertEqual(response, expected)
 
-        """ Test:3 srtc =None """
+        """ Test:3 supported_resource_type_control =None """
 
-        srtc = SupportedResourceType.objects.get(pk=1)
+        supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
 
         response = masked(None)
         expected = False
 
         self.assertEqual(response, expected)
 
-        """ Test:4 No SRTC """
+        """ Test:4 No supported_resource_type_control """
 
-        # srtc = SupportedResourceType.objects.get(pk=1)
+        # supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
 
         response = masked()
         expected = False
