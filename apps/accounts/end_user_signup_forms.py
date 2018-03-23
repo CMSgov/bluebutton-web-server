@@ -165,9 +165,11 @@ class SimpleUserSignupForm(forms.Form):
                                    )
 
         # TODO: Add Crosswalk Create.
+        # unhex the salt before use
+        unsalt = binascii.unhexlify(settings.USER_ID_SALT)
         Crosswalk.objects.create(user=new_user,
                                  user_id_hash=binascii.hexlify(pbkdf2(self.cleaned_data['id_number'],
-                                                                      settings.USER_ID_SALT,
+                                                                      unsalt,
                                                                       settings.USER_ID_ITERATIONS)).decode("ascii"))
         #
         group = Group.objects.get(name='BlueButton')

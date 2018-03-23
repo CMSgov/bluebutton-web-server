@@ -174,6 +174,25 @@ def generate_info_headers(request):
     return result
 
 
+def set_header_content_type(headers={}, ct_format=None):
+    """
+    Set the Content-Type to json or xml
+    if not specified we will default to json
+    :param request:
+    :param header:
+    :return: header
+    """
+
+    if 'xml' in ct_format.lower():
+        content_type = 'application/xml+fhir'
+    else:
+        content_type = 'application/json+fhir'
+
+    headers.append[{"content-type": content_type}]
+
+    return headers
+
+
 def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters={}):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
@@ -208,6 +227,18 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
     header_detail['BlueButton-OriginalUrl'] = request.path
     header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
     header_detail['BlueButton-BackendCall'] = call_url
+
+    # ct_format = "application+fhir/json"
+    # if '_format' in get_parameters:
+    #     ct_format = get['_format']
+    # elif '_format' in call_url:
+    #     if 'xml' in call_url.lower():
+    #         ct_format = "application/xml+fhir"
+    #     else:
+    #         ct_format = "application/json+fhir"
+    #
+    # header_info = set_header_content_type(header_info,
+    #                                       ct_format)
 
     logger_perf.info(header_detail)
 
@@ -328,6 +359,17 @@ def request_get_with_params(request,
 
     logger_perf.info(header_detail)
 
+    # ct_format = "application+fhir/json"
+    # if '_format' in get_parameters:
+    #     ct_format = get['_format']
+    # elif '_format' in call_url:
+    #     if 'xml' in call_url.lower():
+    #         ct_format = "application/xml+fhir"
+    #     else:
+    #         ct_format = "application/json+fhir"
+    #
+    # header_info = set_header_content_type(header_info,
+    #                                       ct_format)
     try:
         if timeout:
             r = requests.get(call_url,
