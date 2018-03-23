@@ -103,10 +103,13 @@ OPTIONAL_INSTALLED_APPS = ["", ]
 # The hhs_oauth_server.hhs_oauth_server_context
 
 MIDDLEWARE_CLASSES = [
+    ### Middleware that adds headers to the resposne
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+
+    ### Middleware that can send a response must be below this line
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
