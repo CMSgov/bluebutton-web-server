@@ -116,8 +116,8 @@ def callback(request):
         crosswalk.fhir_id = fhir_id
         crosswalk.save()
         logger.INFO("Crosswalk entry created "
-                    "for Beneficiary:%s[len:%s]" %(user.username,
-                                                   len(fhir_id)))
+                    "for Beneficiary:%s[len:%s]" % (user.username,
+                                                    len(fhir_id)))
 
     else:
         logger.error("no match for "
