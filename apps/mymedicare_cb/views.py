@@ -9,7 +9,9 @@ import requests
 from django.http import HttpResponse, JsonResponse
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import get_resourcerouter, FhirServerAuth
+from apps.fhir.bluebutton.utils import (get_resourcerouter,
+                                        set_header_content_type,
+                                        FhirServerAuth)
 import urllib.request as req
 import random
 from .models import AnonUserState
@@ -92,6 +94,8 @@ def callback(request):
     crosswalk, g_o_c = Crosswalk.objects.get_or_create(
         user=user, fhir_source=fhir_source)
     hicn = user_info.get('hicn', "")
+    if hicn == "":
+        logger.error("No hicn received from UserInfo for %s" % user.username)
     crosswalk.user_id_hash = hicn
     crosswalk.save()
     auth_state = FhirServerAuth(None)
@@ -101,13 +105,21 @@ def callback(request):
     url = fhir_source.fhir_url + \
         "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
         crosswalk.user_id_hash + \
-        "&_format=json"
-    response = requests.get(url, cert=certs, verify=False)
+        "&_format=application%2Fjson%2Bfhir"
+    # We may need to grab the current headers and pass the dict
+    # to set_header_content_type()
+    response = requests.get(url,
+                            cert=certs,
+                            verify=False)
 
     if 'entry' in response.json() and response.json()['total'] == 1:
         fhir_id = response.json()['entry'][0]['resource']['id']
         crosswalk.fhir_id = fhir_id
         crosswalk.save()
+    else:
+        logger.error("no match for "
+                     "hicnHash:%s[%s]" % (user.username,
+                                          crosswalk.user_id_hash))
 
     # Get first and last name from FHIR if not in OIDC Userinfo response.
     if user_info['given_name'] == "" or user_info['family_name'] == "":
