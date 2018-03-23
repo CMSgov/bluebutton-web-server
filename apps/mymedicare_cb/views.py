@@ -10,7 +10,6 @@ from django.http import HttpResponse, JsonResponse
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import (get_resourcerouter,
-                                        set_header_content_type,
                                         FhirServerAuth)
 import urllib.request as req
 import random
@@ -116,6 +115,10 @@ def callback(request):
         fhir_id = response.json()['entry'][0]['resource']['id']
         crosswalk.fhir_id = fhir_id
         crosswalk.save()
+        logger.INFO("Crosswalk entry created "
+                    "for Beneficiary:%s[len:%s]" %(user.username,
+                                                   len(fhir_id)))
+
     else:
         logger.error("no match for "
                      "hicnHash:%s[%s]" % (user.username,

@@ -39,8 +39,10 @@ class Crosswalk(models.Model):
 
     def save(self, commit=True, **kwargs):
         if commit:
+            # USER_ID_SALT needs to be unhexed before using
+            unsalt = binascii.unhexlify(settings.USER_ID_SALT)
             self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        settings.USER_ID_SALT,
+                                                        unsalt,
                                                         settings.USER_ID_ITERATIONS)).decode("ascii")
             super(Crosswalk, self).save(**kwargs)
 

@@ -352,8 +352,9 @@ class UserRegisterCode(models.Model):
 
     def save(self, commit=True, **kwargs):
         if commit:
+            unsalt = binascii.unhexlify(settings.USER_ID_SALT)
             self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        settings.USER_ID_SALT,
+                                                        unsalt,
                                                         settings.USER_ID_ITERATIONS)).decode("ascii")
             if self.sender:
                 up = UserProfile.objects.get(user=self.sender)
