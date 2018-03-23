@@ -31,22 +31,17 @@ def callback(request):
     verify_ssl = getattr(settings, 'SLS_VERIFY_SSL', True)
     code = request.GET.get('code')
     state = request.GET.get('state')
-    validation_error = None
 
     if not code:
-        validation_error = 'The code parameter is required'
+        return JsonResponse({"error": 'The code parameter is required'}, status=400)
 
     if not state:
-        validation_error = 'The state parameter is required'
+        return JsonResponse({"error": 'The state parameter is required'}, status=400)
 
-    if not validation_error:
-        try:
-            anon_user_state = AnonUserState.objects.get(state=state)
-        except AnonUserState.DoesNotExist:
-            validation_error = 'The requested state was not found'
-
-    if validation_error:
-        return JsonResponse({"error": validation_error}, status=400)
+    try:
+        anon_user_state = AnonUserState.objects.get(state=state)
+    except AnonUserState.DoesNotExist:
+        return JsonResponse({"error": 'The requested state was not found'}, status=400)
 
     next_uri = anon_user_state.next_uri
     token_dict = {
@@ -58,25 +53,25 @@ def callback(request):
     logger.debug("redirect_uri %s" % (redirect_uri))
 
     # Call SLS token endpoint
-    response = requests.post(token_endpoint, json=token_dict, verify=verify_ssl)
+    token_response = requests.post(token_endpoint, json=token_dict, verify=verify_ssl)
 
-    token_response = {}
-    if response.status_code != 200:
-        logger.error("Token request response error %s" % (response.status_code))
+    if token_response.status_code != 200:
+        logger.error("Token request response error %s" % (token_response.status_code))
+        logger.error("Details: %s" % (token_response.text))
         return JsonResponse({"error": 'An error occurred connecting to account.mymedicare.gov'}, status=502)
 
-    token_response = response.json()
-    headers = {"Authorization": "Bearer %s" % (token_response['access_token'])}
+    headers = {"Authorization": "Bearer %s" % (token_response.json()['access_token'])}
 
     # Call SLS userinfo endpoint
-    response = requests.get(userinfo_endpoint, headers=headers, verify=verify_ssl)
+    userinfo_response = requests.get(userinfo_endpoint, headers=headers, verify=verify_ssl)
 
-    if response.status_code != 200:
-        logger.error("Userinfo request response error %s" % (response.status_code))
+    if userinfo_response.status_code != 200:
+        logger.error("Userinfo request response error %s" % (userinfo_response.status_code))
+        logger.error("Details: %s" % (userinfo_response.text))
         return JsonResponse({"error": 'An error occurred connecting to account.mymedicare.gov'}, status=502)
 
     # Get the userinfo response object
-    user_info = response.json()
+    user_info = userinfo_response.json()
     try:
         user = User.objects.get(username=user_info['sub'][9:36])
         if not user.first_name:
@@ -118,17 +113,18 @@ def callback(request):
         crosswalk.user_id_hash + \
         "&_format=json"
 
-    response = requests.get(url, cert=certs, verify=False)
+    backend_response = requests.get(url, cert=certs, verify=False)
+    backend_data = backend_response.json()
 
-    if 'entry' in response.json() and response.json()['total'] == 1:
-        fhir_id = response.json()['entry'][0]['resource']['id']
+    if 'entry' in backend_data and backend_data['total'] == 1:
+        fhir_id = backend_response.json()['entry'][0]['resource']['id']
         crosswalk.fhir_id = fhir_id
         crosswalk.save()
 
     # Get first and last name from FHIR if not in OIDC Userinfo response.
     if user_info['given_name'] == "" or user_info['family_name'] == "":
-        if 'entry' in response.json() and 'name' in response.json()['entry'][0]['resource']:
-            names = response.json()['entry'][0]['resource']['name']
+        if 'entry' in backend_data and 'name' in backend_data['entry'][0]['resource']:
+            names = backend_data['entry'][0]['resource']['name']
             first_name = ""
             last_name = ""
             for name in names:
