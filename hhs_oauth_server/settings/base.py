@@ -99,9 +99,6 @@ AXES_USERNAME_FORM_FIELD = "username"
 # used in SETTINGS_EXPORT below.
 OPTIONAL_INSTALLED_APPS = ["", ]
 
-# Add apps for Site/Installation specific implementation here:
-# The hhs_oauth_server.hhs_oauth_server_context
-
 MIDDLEWARE_CLASSES = [
     ### Middleware that adds headers to the resposne
     'django.middleware.security.SecurityMiddleware',
