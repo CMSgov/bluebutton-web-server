@@ -100,13 +100,13 @@ AXES_USERNAME_FORM_FIELD = "username"
 OPTIONAL_INSTALLED_APPS = ["", ]
 
 MIDDLEWARE_CLASSES = [
-    ### Middleware that adds headers to the resposne
+    # Middleware that adds headers to the resposne
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 
-    ### Middleware that can send a response must be below this line
+    # Middleware that can send a response must be below this line
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
