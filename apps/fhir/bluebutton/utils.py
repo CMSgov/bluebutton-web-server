@@ -473,7 +473,7 @@ def FhirServerUrl(server=None, path=None, release=None):
 
 def check_resource_type_controls(resource_type, resource_router=None):
     # Check for controls to apply to this resource_type
-    # logger.debug('Resource_Type =%s' % resource_type)
+
     # We may get more than one resourceType returned.
     # We need to deal with that.
     # Best option is to pass fhir_server from Crosswalk to this call

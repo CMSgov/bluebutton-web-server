@@ -99,20 +99,14 @@ AXES_USERNAME_FORM_FIELD = "username"
 # used in SETTINGS_EXPORT below.
 OPTIONAL_INSTALLED_APPS = ["", ]
 
-# Add apps for Site/Installation specific implementation here:
-# The hhs_oauth_server.hhs_oauth_server_context
-
-# CorsMiddleware needs to come before Django's
-# CommonMiddleware if you are using Django's
-# USE_ETAGS = True setting,
-# otherwise the CORS headers will be lost from the 304 not-modified responses,
-# causing errors in some browsers.
-# See https://github.com/ottoyiu/django-cors-headers for more information.
 MIDDLEWARE_CLASSES = [
+    # Middleware that adds headers to the resposne
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+
+    # Middleware that can send a response must be below this line
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -183,9 +177,6 @@ USE_L10N = True
 USE_TZ = True
 
 # static files and media
-# Don't use BASE_DIR because for Production Environmnts
-# Static Files may be located on an entirely different server.
-# But the default can be BASE_DIR Setting
 ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', BASE_DIR)
 
 STATIC_URL = '/static/'
@@ -226,10 +217,6 @@ MFA = True
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
 
-# IF a new file is added for logging go to hhs_ansible and update configuration
-# script to touch log files:
-# hhs_ansible/playbook/appserver/roles/app_update/tasks/main.yml
-# add the new filename as an item to the "Create the log files" action
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -293,9 +280,7 @@ LOGGING = {
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
 # Django Oauth Tookit settings and customizations
-
 OAUTH2_PROVIDER_APPLICATION_MODEL = 'dot_ext.Application'
-# removing apps. by using AppConfig for apps.dot_ext
 OAUTH2_PROVIDER = {
     'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.'
                               'SingleAccessTokenValidator',
@@ -400,10 +385,7 @@ SETTINGS_EXPORT = [
     'TEALIUM_ENV',
 ]
 
-# Make sessions die out fast for more security ------------------
-# Logout after 90 minutes of inactivity = moderate requirementnt
 SESSION_COOKIE_AGE = 5400
-# Logout if the browser is closed
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
@@ -411,8 +393,8 @@ FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
 FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
                     'PATH': env('THS_FHIR_PATH'),
                     'RELEASE': env('THS_FHIR_RELEASE'),
-                    'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM'),
                     # REWRITE_FROM should be a list
+                    'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM'),
                     'REWRITE_TO': env('THS_FHIR_REWRITE_TO'),
                     # Minutes until search expires
                     'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}

@@ -72,23 +72,6 @@ class ChangeSecretQuestionsForm(forms.ModelForm):
 
 class PasswordResetRequestForm(forms.Form):
     email = forms.EmailField(max_length=255, label=_('Email'))
-    # human_x = randint(1, 9)
-    # human_y = randint(1, 9)
-    # human_z = human_x + human_y
-    # human_q = ('What is %s + %s?' % (human_x, human_y))
-    # human = forms.CharField(
-    #     max_length=30,
-    #     label=_(human_q),
-    #     help_text='We are asking this to make sure you are human. '
-    #               'Hint: the answer is %s.' % human_z,
-    # )
-    # def clean_human(self):
-    #     human = self.cleaned_data.get('human', '')
-    #     logger.debug("Compare [%s] to [%s]" % (str(human), str(self.human_z)))
-    #     if str(human) != str(self.human_z):
-    #         raise forms.ValidationError(_('You are either not human or '
-    #                                       'just just really bad at math.'))
-    #     return human
 
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
