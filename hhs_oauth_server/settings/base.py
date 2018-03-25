@@ -487,6 +487,7 @@ AUTHENTICATION_BACKENDS = ('apps.accounts.email_auth_backend.EmailBackend',
 
 # Change these for production
 USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
+USER_ID_HEX_STATUS = False
 USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
 USER_ID_TYPE_CHOICES = (('H', 'HICN'),
