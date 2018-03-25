@@ -109,10 +109,10 @@ def callback(request):
         crosswalk.fhir_id = fhir_id
         crosswalk.save()
 
-        logger.info("Beneficiary connected to FHIR: %s" % crosswalk.fhir_id)
+        logger.info("Success:Beneficiary connected to FHIR")
     else:
         logger.error("Failed to connect Beneficiary "
-                     "to FHIR: %s" % crosswalk.user_id)
+                     "to FHIR")
 
     # Get first and last name from FHIR if not in OIDC Userinfo response.
     if user_info['given_name'] == "" or user_info['family_name'] == "":
