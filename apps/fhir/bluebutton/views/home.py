@@ -106,6 +106,7 @@ def get_supported_resources(resources, resource_names):
     """ Filter resources for resource type matches """
 
     resource_list = []
+
     # if resource 'type in resource_names add resource to resource_list
     for item in resources:
         for k, v in item.items():
