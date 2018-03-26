@@ -41,7 +41,7 @@ class Crosswalk(models.Model):
     def save(self, commit=True, **kwargs):
         if commit:
             self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        get_user_id_salt(settings.USER_ID_SALT),
+                                                        get_user_id_salt(),
                                                         settings.USER_ID_ITERATIONS)).decode("ascii")
             super(Crosswalk, self).save(**kwargs)
 
