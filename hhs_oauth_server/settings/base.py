@@ -468,7 +468,7 @@ AUTHENTICATION_BACKENDS = ('apps.accounts.email_auth_backend.EmailBackend',
                            'django.contrib.auth.backends.ModelBackend')
 
 # Change these for production
-USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
+USER_ID_SALT = env('DJANGO_USER_ID_SALT', "6E6F747468657265616C706570706572")
 USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
 USER_ID_TYPE_CHOICES = (('H', 'HICN'),
