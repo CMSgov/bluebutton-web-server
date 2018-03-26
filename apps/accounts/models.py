@@ -353,7 +353,7 @@ class UserRegisterCode(models.Model):
     def save(self, commit=True, **kwargs):
         if commit:
             self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        settings.USER_ID_SALT,
+                                                        get_user_id_salt(),
                                                         settings.USER_ID_ITERATIONS)).decode("ascii")
             if self.sender:
                 up = UserProfile.objects.get(user=self.sender)
@@ -546,3 +546,14 @@ def export_admin_log(sender, instance, **kwargs):
                 'action_time': instance.action_time}
 
         admin_logger.info(msg)
+
+
+def get_user_id_salt(salt=settings.USER_ID_SALT):
+    """
+    Assumes `USER_ID_SALT` is a hex encoded value. Decodes the salt val,
+    returning binary data represented by the hexadecimal string.
+
+    :param: salt
+    :return: bytes
+    """
+    return binascii.unhexlify(salt)
