@@ -404,6 +404,8 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 
 # Timeout for request call
 REQUEST_CALL_TIMEOUT = (30, 120)
+# Headers Keep-Alive value
+REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
 
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
 ORGANIZATION_NAME = 'CMS Medicare Blue Button'
@@ -468,7 +470,8 @@ AUTHENTICATION_BACKENDS = ('apps.accounts.email_auth_backend.EmailBackend',
                            'django.contrib.auth.backends.ModelBackend')
 
 # Change these for production
-USER_ID_SALT = env('DJANGO_USER_ID_SALT', "6E6F747468657265616C706570706572")
+USER_ID_SALT = env('DJANGO_USER_ID_SALT', "nottherealpepper")
+USER_ID_HEX_STATUS = False
 USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
 USER_ID_TYPE_CHOICES = (('H', 'HICN'),

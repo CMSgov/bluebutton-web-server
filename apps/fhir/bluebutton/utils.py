@@ -204,6 +204,7 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
         cert = ()
 
     header_info = generate_info_headers(request)
+    header_info['keep-alive'] = settings.REQUEST_EOB_KEEP_ALIVE
     header_detail = header_info
     header_detail['BlueButton-OriginalUrl'] = request.path
     header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
@@ -321,6 +322,7 @@ def request_get_with_params(request,
         logger.debug("\nkey:%s - value:%s" % (k, v))
 
     header_info = generate_info_headers(request)
+    header_info['keep-alive'] = settings.REQUEST_EOB_KEEP_ALIVE
     header_detail = header_info
     header_detail['BlueButton-OriginalUrl'] = request.path
     header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
