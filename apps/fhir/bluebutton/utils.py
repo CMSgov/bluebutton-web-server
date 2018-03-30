@@ -182,7 +182,7 @@ def set_default_header(request, header=None):
     :return: header
     """
 
-    if header == None:
+    if header is None:
         header = {}
 
     header['keep-alive'] = settings.REQUEST_EOB_KEEP_ALIVE
