@@ -174,6 +174,22 @@ def generate_info_headers(request):
     return result
 
 
+def set_default_header(request, header=None):
+    """
+    Set default values in header for call to back-end
+    :param request:
+    :param header:
+    :return: header
+    """
+
+    if header is None:
+        header = {}
+
+    header['keep-alive'] = settings.REQUEST_EOB_KEEP_ALIVE
+
+    return header
+
+
 def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters={}):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
@@ -204,6 +220,9 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
         cert = ()
 
     header_info = generate_info_headers(request)
+
+    header_info = set_default_header(request, header_info)
+
     header_detail = header_info
     header_detail['BlueButton-OriginalUrl'] = request.path
     header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
@@ -321,6 +340,9 @@ def request_get_with_params(request,
         logger.debug("\nkey:%s - value:%s" % (k, v))
 
     header_info = generate_info_headers(request)
+
+    header_info = set_default_header(request, header_info)
+
     header_detail = header_info
     header_detail['BlueButton-OriginalUrl'] = request.path
     header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
