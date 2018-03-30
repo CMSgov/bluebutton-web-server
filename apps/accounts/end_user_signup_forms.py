@@ -14,6 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.crypto import pbkdf2
 
 from .models import UserProfile, create_activation_key, UserRegisterCode, get_user_id_salt
+
 from ..fhir.bluebutton.models import Crosswalk
 
 from .models import MFA_CHOICES
