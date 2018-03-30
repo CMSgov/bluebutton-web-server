@@ -423,6 +423,7 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 # Timeout for request call
 REQUEST_CALL_TIMEOUT = (30, 120)
 # Headers Keep-Alive value
+# this can be over-ridden in aws-{env}.py file to set values per environment
 REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
 
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
