@@ -13,10 +13,7 @@ from django.utils.dates import MONTHS
 from django.utils.translation import ugettext_lazy as _
 from django.utils.crypto import pbkdf2
 
-from .models import (UserProfile,
-                     create_activation_key,
-                     UserRegisterCode,
-                     get_user_id_salt)
+from .models import UserProfile, create_activation_key, UserRegisterCode, get_user_id_salt
 from ..fhir.bluebutton.models import Crosswalk
 
 from .models import MFA_CHOICES
@@ -170,7 +167,7 @@ class SimpleUserSignupForm(forms.Form):
         # TODO: Add Crosswalk Create.
         Crosswalk.objects.create(user=new_user,
                                  user_id_hash=binascii.hexlify(pbkdf2(self.cleaned_data['id_number'],
-                                                                      get_user_id_salt(settings.USER_ID_SALT),
+                                                                      get_user_id_salt(),
                                                                       settings.USER_ID_ITERATIONS)).decode("ascii"))
         #
         group = Group.objects.get(name='BlueButton')

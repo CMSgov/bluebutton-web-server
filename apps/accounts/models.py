@@ -353,7 +353,7 @@ class UserRegisterCode(models.Model):
     def save(self, commit=True, **kwargs):
         if commit:
             self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        get_user_id_salt(settings.USER_ID_SALT),
+                                                        get_user_id_salt(),
                                                         settings.USER_ID_ITERATIONS)).decode("ascii")
             if self.sender:
                 up = UserProfile.objects.get(user=self.sender)
@@ -550,20 +550,10 @@ def export_admin_log(sender, instance, **kwargs):
 
 def get_user_id_salt(salt=settings.USER_ID_SALT):
     """
-    The settings.USER_ID_SALT value can be hexified (depends on environment).
-    We need to unhexify before using is it is hexified.
-    This function should be used to return the correct form of USER_ID_SALT
-    from the settings file based on USER_ID_HEX_STATUS
-    A value can be passed to this function, otherwise settings.USER_ID_SALT
-    is used.
+    Assumes `USER_ID_SALT` is a hex encoded value. Decodes the salt val,
+    returning binary data represented by the hexadecimal string.
 
     :param: salt
-    :return: un_hex_salt
+    :return: bytes
     """
-
-    if settings.USER_ID_HEX_STATUS:
-        un_hex_salt = binascii.unhexlify(salt)
-    else:
-        un_hex_salt = salt
-
-    return un_hex_salt
+    return binascii.unhexlify(salt)
