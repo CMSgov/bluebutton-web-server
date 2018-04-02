@@ -5,10 +5,7 @@ from django.test import TestCase
 from django.core.urlresolvers import reverse
 
 
-__author__ = "Alan Viars"
-
-
-class BlueButtonAPIMainPAgeTest(TestCase):
+class BlueButtonAPIMainPageTest(TestCase):
     """
     Test that the main page returns 200
     """

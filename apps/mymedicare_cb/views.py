@@ -17,8 +17,6 @@ import logging
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 
-__author__ = "Alan Viars"
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 

@@ -4,8 +4,6 @@ from ..accounts.models import UserProfile
 from ..fhir.bluebutton.models import Crosswalk
 from django.views.decorators.cache import never_cache
 
-__author__ = "Alan Viars"
-
 
 def home(request):
     template = "index.html"

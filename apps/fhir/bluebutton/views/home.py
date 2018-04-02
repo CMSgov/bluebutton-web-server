@@ -18,8 +18,6 @@ from apps.fhir.bluebutton.utils import (request_call,
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-__author__ = 'Mark Scrimshire:@ekivemark'
-
 
 def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """ Pull and filter fhir Conformance statement

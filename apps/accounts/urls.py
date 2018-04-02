@@ -22,8 +22,6 @@ from .views.user_code_login import user_code_register
 from .views.email_bounce_webhook import record_email_bounce
 from .views.api_profile import my_profile
 
-__author__ = "Alan Viars"
-
 
 urlpatterns = [
     # login and Logout ------------------------------------

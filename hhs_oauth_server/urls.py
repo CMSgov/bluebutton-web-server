@@ -6,8 +6,6 @@ from apps.fhir.bluebutton.views.home import fhir_conformance
 from apps.home.views import home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 
-__author__ = "Alan Viars"
-
 admin.autodiscover()
 
 ADMIN_REDIRECTOR = getattr(settings, 'ADMIN_PREPEND_URL', '')

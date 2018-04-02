@@ -20,8 +20,6 @@ import logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-__author__ = "Mark Scrimshire @ekivemark"
-
 
 def exportcsv(app_name, model_name, add_name, field_export):
     """

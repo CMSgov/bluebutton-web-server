@@ -11,8 +11,6 @@ from oauth2_provider.scopes import get_scopes_backend
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.validators import urlsplit
 
-__author__ = "Alan Viars"
-
 
 class CustomRegisterApplicationForm(forms.ModelForm):
 

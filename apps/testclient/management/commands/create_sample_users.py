@@ -8,8 +8,6 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
 import csv
 
-__author__ = "Alan Viars"
-
 
 def create_group(name="BlueButton"):
 

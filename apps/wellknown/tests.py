@@ -6,8 +6,6 @@ from django.utils import six
 from django.conf import settings
 import json
 
-__author__ = "Alan Viars"
-
 
 class OpenIDConnectConfigurationTestCase(TestCase):
     """
