@@ -7,11 +7,11 @@ from apps.fhir.authentication import extract_username
 
 class SLSAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        id = request.META.get('HTTP_X_AUTHENTICATION')
-        if not id:
+        auth = request.META.get('HTTP_X_AUTHENTICATION')
+        if not auth:
             return None
 
-        username = extract_username(id)
+        username = extract_username(auth)
 
         # raises User.DoesNotExist should result in 404
         try:

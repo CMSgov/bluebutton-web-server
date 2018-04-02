@@ -35,8 +35,6 @@ class TestApplicationUpdateView(BaseApiTest):
         uri = reverse('oauth2_provider:update', args=[app.pk])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-        # self.assertContains(response, 'Read-Scope')
-        # self.assertNotContains(response, 'Write-Scope')
 
 
 class TestAuthorizationView(BaseApiTest):

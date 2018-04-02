@@ -1,13 +1,13 @@
 import base64
 
 
-def extract_username(auth):
+def extract_username(auth, auth_prefix="SLS"):
     splitted = auth.split(" ", 1)
     if len(splitted) != 2:
         return None
     auth_type, auth_string = splitted
 
-    if auth_type != "SLS":
+    if auth_type != auth_prefix:
         return None
 
     encoding = "utf-8"
