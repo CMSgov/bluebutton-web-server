@@ -17,6 +17,8 @@ urlpatterns = [
     url(r'^v1/accounts/', include('apps.accounts.urls')),
     url(r'^v1/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo'),
     url(r'^v1/fhir/metadata$', fhir_conformance, name='fhir_conformance_metadata'),
+    # Added to match url references returned from back-end
+    url(r'^v1/fhir/baseDstu3/', include('apps.fhir.bluebutton.urls')),
     url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
     url(r'^v1/o/', include('apps.dot_ext.urls')),
     url(r'^social-auth/', include('social_django.urls', namespace='social')),
