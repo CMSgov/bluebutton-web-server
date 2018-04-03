@@ -10,6 +10,7 @@ from django.http import HttpResponse, JsonResponse
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter, FhirServerAuth
+from apps.fhir.authentication import convert_sls_uuid
 import urllib.request as req
 import random
 from .models import AnonUserState
@@ -62,7 +63,7 @@ def callback(request):
     # Get the userinfo response object
     user_info = r.json()
     try:
-        user = User.objects.get(username=user_info['sub'][9:36])
+        user = User.objects.get(username=convert_sls_uuid(user_info['sub']))
         if not user.first_name:
             user.first_name = user_info['given_name']
         if not user.last_name:

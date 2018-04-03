@@ -33,4 +33,9 @@ class ApplicationUpdate(CustomFormMixin, oauth2_views.ApplicationUpdate):
     View used to update an application owned by the request.user
     """
     fields = None
-    form_class = CustomRegisterApplicationForm
+
+    def get_form_class(self):
+        """
+        Returns the form class for the application model
+        """
+        return CustomRegisterApplicationForm

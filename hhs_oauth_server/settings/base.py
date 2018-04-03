@@ -150,14 +150,9 @@ CACHES = {
     },
 }
 
-# database configuration
-if os.environ.get('DATABASES_CUSTOM'):
-    DATABASES_DEFAULT = os.environ.get('DATABASES_CUSTOM')
-else:
-    DATABASES_DEFAULT = 'sqlite:///{}/db.sqlite3'.format(BASE_DIR)
-
 DATABASES = {
-    'default': dj_database_url.config(default=DATABASES_DEFAULT),
+    'default': dj_database_url.config(default=env('DATABASES_CUSTOM',
+                                                  'sqlite:///{}/db.sqlite3'.format(BASE_DIR))),
 }
 
 # this helps Django messages format nicely with Bootstrap3
@@ -347,6 +342,7 @@ DEFAULT_DISCLOSURE_TEXT = """
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
+
 INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
 REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
 
