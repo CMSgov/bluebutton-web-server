@@ -55,15 +55,18 @@ class BaseApiTest(TestCase):
             application.scope.add(capability)
         return application
 
-    def _create_capability(self, name, urls, group=None):
+    def _create_capability(self, name, urls, group=None, default=True):
         """
         Helper method that creates a ProtectedCapability instance
         that controls the access for the set of `urls`.
         """
         group = group or self._create_group('test')
         capability = ProtectedCapability.objects.create(
-            title=name, slug=slugify(name),
-            protected_resources=json.dumps(urls), group=group)
+            default=default,
+            title=name,
+            slug=slugify(name),
+            protected_resources=json.dumps(urls),
+            group=group)
         return capability
 
     def _get_access_token(self, username, password, application=None, **extra_fields):
