@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+from rest_framework.routers import DefaultRouter
 from . import views
 
 oauth2_provider_urls = ([
@@ -9,7 +10,10 @@ oauth2_provider_urls = ([
     url(r'', include('oauth2_provider.urls')),
 ], 'oauth2_provider', 'oauth2_provider')
 
+router = DefaultRouter()
+router.register(r'tokens', views.AuthorizedTokens, base_name='token')
 
 urlpatterns = [
     url(r'', include(oauth2_provider_urls)),
+    url(r'', include(router.urls, namespace='token_management'))
 ]
