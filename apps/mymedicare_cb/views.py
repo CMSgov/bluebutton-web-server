@@ -11,6 +11,7 @@ from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter, FhirServerAuth
 import urllib.request as urllib_request
+from apps.fhir.authentication import convert_sls_uuid
 import random
 from .models import AnonUserState
 import logging
@@ -73,7 +74,7 @@ def callback(request):
     # Get the userinfo response object
     user_info = userinfo_response.json()
     try:
-        user = User.objects.get(username=user_info['sub'][9:36])
+        user = User.objects.get(username=convert_sls_uuid(user_info['sub']))
         if not user.first_name:
             user.first_name = user_info['given_name']
         if not user.last_name:
