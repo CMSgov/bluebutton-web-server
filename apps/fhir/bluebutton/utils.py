@@ -192,7 +192,7 @@ def set_default_header(request, header=None):
     else:
         header['X-Forwarded-Proto'] = "http"
 
-    header['X-Forwarded-Host'] = settings.HOSTNAME_URL + settings.FHIR_API_PATH
+    header['X-Forwarded-Host'] = settings.HOSTNAME_URL + "/v1/fhir"
 
     return header
 
