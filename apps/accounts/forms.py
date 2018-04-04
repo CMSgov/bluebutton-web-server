@@ -14,8 +14,6 @@ from .models import Invitation, RequestInvite, UserProfile, create_activation_ke
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 from localflavor.us.forms import USPhoneNumberField
 
-__author__ = "Alan Viars"
-
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 

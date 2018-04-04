@@ -14,9 +14,6 @@ from datetime import timedelta
 from django.conf import settings
 
 
-__author__ = "Alan Viars"
-
-
 def create_group(name="BlueButton"):
 
     g, created = Group.objects.get_or_create(name=name)

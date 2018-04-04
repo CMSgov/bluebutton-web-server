@@ -7,8 +7,6 @@ from django.core.urlresolvers import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
-__author__ = "Alan Viars"
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 

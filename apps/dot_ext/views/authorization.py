@@ -10,8 +10,6 @@ from ..models import ExpiresIn
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-__author__ = "Alan Viars"
-
 
 class AuthorizationView(DotAuthorizationView):
     """
