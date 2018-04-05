@@ -460,7 +460,7 @@ SLS_TOKEN_ENDPOINT = env(
 
 
 # Since this is internal False may be acceptable.
-SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
+SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', True)
 
 AUTHENTICATION_BACKENDS = ('apps.accounts.email_auth_backend.EmailBackend',
                            'django.contrib.auth.backends.ModelBackend')
