@@ -2,8 +2,6 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from urllib.parse import urlparse, parse_qs
 
-__author__ = "Alan Viars"
-
 
 class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
     """

@@ -1,8 +1,6 @@
 from django.contrib import admin
 from .models import AnonUserState
 
-__author__ = "Alan Viars"
-
 
 class AnonUserStateAdmin(admin.ModelAdmin):
 

@@ -17,8 +17,6 @@ from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
 
-__author__ = "Alan Viars"
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 

@@ -20,9 +20,6 @@ from apps.wellknown.views import (base_issuer, build_endpoint_info)
 from .models import Crosswalk, Fhir_Response
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
-logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
-logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 logger_perf = logging.getLogger('performance')
 
 
@@ -540,11 +537,11 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
 
-        logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
+        logger.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
     else:
         out_text = in_text
 
-        logger_debug.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
+        logger.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
 
     return out_text
 
@@ -630,7 +627,7 @@ def dt_patient_reference(user):
 def crosswalk_patient_id(user):
     """ Get patient/id from Crosswalk for user """
 
-    logger_debug.debug("\ncrosswalk_patient_id User:%s" % user)
+    logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
         if patient.fhir_id:

@@ -1,7 +1,5 @@
 from django.db import models
 
-__author__ = "Alan Viars"
-
 
 class AnonUserState(models.Model):
     state = models.CharField(default='', max_length=64, db_index=True)
