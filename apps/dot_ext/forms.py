@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from django.utils.safestring import mark_safe
 from django import forms
 from django.conf import settings

@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from oauth2_provider import views as oauth2_views
 
 from ..forms import CustomRegisterApplicationForm

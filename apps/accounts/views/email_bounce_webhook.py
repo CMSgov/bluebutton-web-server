@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from ..models import EmailWebhook
