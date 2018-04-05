@@ -1,12 +1,3 @@
-"""
-hhs_oauth_server
-FILE: message
-Created: 10/21/16 9:10 PM
-
-File created by: ''
-"""
-from __future__ import unicode_literals
-
 import mimetypes
 import os
 import random
