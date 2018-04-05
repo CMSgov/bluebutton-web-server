@@ -30,6 +30,7 @@ tox
 flake8
 coverage
 django-debug-toolbar
+httmock
 
 # security and identity system
 social-auth-app-django

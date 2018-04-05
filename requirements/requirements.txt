@@ -28,6 +28,7 @@ django-storages==1.5.1
 django==1.11.9
 djangorestframework==3.7.7
 flake8==2.6.0
+httmock==1.2.6
 idna==2.6                 # via requests
 jsonschema==2.5.1
 mccabe==0.5.0             # via flake8
