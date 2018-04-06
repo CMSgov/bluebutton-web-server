@@ -1,27 +1,60 @@
 from rest_framework.response import Response
+import requests
 import logging
 
 from ..constants import ALLOWED_RESOURCE_TYPES
 from ..decorators import require_valid_token
 from ..errors import build_error_response
 
-from apps.fhir.bluebutton.utils import (request_call,
-                                        get_host_url,
-                                        post_process_request,
+from apps.fhir.bluebutton.utils import (build_fhir_response,
+                                        FhirServerVerify,
                                         get_crosswalk,
-                                        get_resourcerouter,
-                                        build_rewrite_list,
-                                        get_response_text)
+                                        get_resourcerouter)
+from apps.fhir.bluebutton.serializers import localize
+
+import apps.fhir.server.connection as backend_connection
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 
 from rest_framework.decorators import throttle_classes, api_view, parser_classes, renderer_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
+from rest_framework import exceptions
 
 from apps.dot_ext.throttling import TokenRateThrottle
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+#####################################################################
+# These functions are a stepping stone to a single class based view #
+#####################################################################
+def check_resource_permission(request, resource_type=None, resource_id=None, **kwargs):
+    crosswalk = get_crosswalk(request.resource_owner)
+
+    # If the user isn't matched to a backend ID, they have no permissions
+    if crosswalk is None:
+        logger.info('Crosswalk for %s does not exist' % request.user)
+        raise exceptions.PermissionDenied(
+            'No access information was found for the authenticated user')
+
+    if resource_type == 'Patient':
+        # Error out in advance for non-matching Patient records.
+        # Other records must hit backend to check permissions.
+        if resource_id != crosswalk.fhir_id:
+            raise exceptions.PermissionDenied(
+                'You do not have permission to access data on the requested patient')
+    return crosswalk
+
+
+def build_parameters(**kwargs):
+    return {
+        "_format": "json"
+    }
+
+
+def build_url(resource_router, resource_type=None, resource_id=None, **kwargs):
+    return resource_router.fhir_url + resource_type + "/" + resource_id + "/"
 
 
 @require_valid_token()
@@ -42,42 +75,41 @@ def read(request, resource_type, resource_id, *args, **kwargs):
     logger.debug("Interaction: read")
     logger.debug("Request.path: %s" % request.path)
 
+# VALIDATION
+
+    crosswalk = check_resource_permission(request,
+                                          resource_type=resource_type,
+                                          resource_id=resource_id)
+
+# END VALIDATION
+
+# RETRIEVE RESOURCE
+
     if resource_type not in ALLOWED_RESOURCE_TYPES:
         logger.info('User requested read access to the %s resource type' % resource_type)
         return build_error_response(404, 'The requested resource type, %s, is not supported'
                                          % resource_type)
 
-    crosswalk = get_crosswalk(request.resource_owner)
-
-    # If the user isn't matched to a backend ID, they have no permissions
-    if crosswalk is None:
-        logger.info('Crosswalk for %s does not exist' % request.user)
-        return build_error_response(403, 'No access information was found for the authenticated user')
-
     resource_router = get_resourcerouter(crosswalk)
-
-    if resource_type == 'Patient':
-        # Error out in advance for non-matching Patient records.
-        # Other records must hit backend to check permissions.
-        if resource_id != crosswalk.fhir_id:
-            return build_error_response(403, 'You do not have permission to access data on the requested patient')
-
-        resource_id = crosswalk.fhir_id
-
-    target_url = resource_router.fhir_url + resource_type + "/" + resource_id + "/"
+    target_url = build_url(resource_router,
+                           resource_type=resource_type,
+                           resource_id=resource_id)
 
     logger.debug('FHIR URL with key:%s' % target_url)
 
-    get_parameters = {
-        "_format": "json"
-    }
+    get_parameters = build_parameters()
 
     logger.debug('Here is the URL to send, %s now add '
                  'GET parameters %s' % (target_url, get_parameters))
 
     # Now make the call to the backend API
-
-    response = request_call(request, target_url, crosswalk, timeout=None, get_parameters=get_parameters)
+    r = requests.get(target_url,
+                     params=get_parameters,
+                     cert=backend_connection.certs(crosswalk=crosswalk),
+                     headers=backend_connection.headers(request, url=target_url),
+                     timeout=resource_router.wait_time,
+                     verify=FhirServerVerify(crosswalk=crosswalk))
+    response = build_fhir_response(request, target_url, crosswalk, r=r, e=None)
 
     if response.status_code == 404:
         return build_error_response(404, 'The requested resource does not exist')
@@ -104,13 +136,16 @@ def read(request, resource_type, resource_id, *args, **kwargs):
         logger.warning('An error occurred fetching beneficiary id')
         return standard_404()
 
-    host_path = get_host_url(request, resource_type)[:-1]
+# END RETRIEVE RESOURCE
 
-    # Add default FHIR Server URL to re-write
-    rewrite_url_list = build_rewrite_list(crosswalk)
-    text_in = get_response_text(fhir_response=response)
-    text_out = post_process_request(request, host_path, text_in, rewrite_url_list)
+# SERIALIZATION
 
+    text_out = localize(request=request,
+                        response=response,
+                        crosswalk=crosswalk,
+                        resource_type=resource_type)
+
+# END SERIALIZATION
     return Response(text_out)
 
 
