@@ -8,7 +8,6 @@ boto==2.40.0              # via django-ses
 certifi==2017.7.27.1      # via requests
 chardet==3.0.4            # via requests
 configparser==3.5.0
-coverage==4.0.3
 decorate-url==1.1
 defusedxml==0.5.0         # via python3-openid, social-auth-core
 dj-database-url==0.4.1
@@ -17,7 +16,6 @@ django-axes==4.1.0
 django-bootstrap-form==3.3
 django-braces==1.9.0      # via django-oauth-toolkit-scopes-backend
 django-cors-headers==1.1.0
-django-debug-toolbar==1.4
 django-getenv==1.3.1
 django-ipware==2.0.1      # via django-axes
 django-localflavor==1.3
@@ -27,29 +25,17 @@ django-settings-export==1.1.0
 django-storages==1.5.1
 django==1.11.9
 djangorestframework==3.7.7
-flake8==2.6.0
-httmock==1.2.6
 idna==2.6                 # via requests
 jsonschema==2.5.1
-mccabe==0.5.0             # via flake8
 newrelic==2.106.0.87
 oauthlib==1.0.3
-pluggy==0.3.1             # via tox
-py==1.4.31                # via tox
-pycodestyle==2.0.0        # via flake8
-pyflakes==1.2.3           # via flake8
 pyjwt==1.5.3
-python-coveralls==2.9.1
 python-openid==2.2.5
 python3-openid==3.1.0     # via social-auth-core
 pytz==2016.4
-pyyaml==3.12              # via python-coveralls
 requests-oauthlib==0.8.0  # via social-auth-core
 requests==2.18.4
-six==1.10.0               # via django-oauth-toolkit-scopes-backend, python-coveralls, social-auth-app-django, social-auth-core
+six==1.10.0               # via django-oauth-toolkit-scopes-backend, social-auth-app-django, social-auth-core
 social-auth-app-django==1.2.0
 social-auth-core==1.4.0   # via social-auth-app-django
-sqlparse==0.1.19          # via django-debug-toolbar
-tox==2.3.1
 urllib3==1.22             # via requests
-virtualenv==15.0.2        # via tox

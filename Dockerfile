@@ -4,4 +4,5 @@ RUN mkdir /code
 ADD . /code/
 WORKDIR /code
 RUN pip install -r requirements/requirements.txt
+RUN pip install -r requirements/requirements.test.txt
 RUN pip install psycopg2

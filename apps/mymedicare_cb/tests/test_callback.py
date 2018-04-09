@@ -3,13 +3,14 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.test import TestCase
 from urllib.parse import urlparse, parse_qs
-from .views import generate_nonce
-from .models import AnonUserState
-from .fixtures import patient_response
-from .authorization import OAuth2Config
+from apps.mymedicare_cb.views import generate_nonce
+from apps.mymedicare_cb.models import AnonUserState
+from apps.mymedicare_cb.authorization import OAuth2Config
 from httmock import urlmatch, all_requests, HTTMock
 from django.contrib.auth.models import Group
 from apps.fhir.server.models import ResourceRouter
+
+from .responses import patient_response
 
 
 class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):

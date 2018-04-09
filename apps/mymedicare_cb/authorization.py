@@ -34,14 +34,14 @@ class OAuth2Config():
             "redirect_uri": self.redirect_uri,
         }
 
-        r = requests.post(self.token_endpoint,
-                          auth=self.basic_auth(),
-                          json=token_dict,
-                          verify=self.verify_ssl)
+        response = requests.post(self.token_endpoint,
+                                 auth=self.basic_auth(),
+                                 json=token_dict,
+                                 verify=self.verify_ssl)
 
-        r.raise_for_status()
+        response.raise_for_status()
 
-        token_response = r.json()
+        token_response = response.json()
         self.token = token_response
         return self.token['access_token']
 

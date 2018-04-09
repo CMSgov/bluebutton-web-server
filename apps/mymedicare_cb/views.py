@@ -54,12 +54,12 @@ def callback(request):
         'SLS_USERINFO_ENDPOINT',
         'https://test.accounts.cms.gov/v1/oauth/userinfo')
 
-    r = requests.get(userinfo_endpoint,
-                     headers=sls_client.auth_header(),
-                     verify=sls_client.verify_ssl)
+    response = requests.get(userinfo_endpoint,
+                            headers=sls_client.auth_header(),
+                            verify=sls_client.verify_ssl)
 
     try:
-        r.raise_for_status()
+        response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         logger.error("User info request response error {reason}".format(reason=e))
         return JsonResponse({
@@ -67,7 +67,7 @@ def callback(request):
         }, status=502)
 
     # Get the userinfo response object
-    user_info = r.json()
+    user_info = response.json()
     user = get_and_update_user(user_info)
     login(request, user)
 
