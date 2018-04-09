@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.shortcuts import render
 from requests_oauthlib import OAuth2Session
 from collections import OrderedDict
