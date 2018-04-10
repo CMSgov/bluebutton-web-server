@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import logging
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
