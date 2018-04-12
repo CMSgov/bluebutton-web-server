@@ -66,7 +66,7 @@ class BaseApiTest(TestCase):
             title=name,
             slug=slugify(name),
             protected_resources=json.dumps(urls),
-            group=group)        
+            group=group)
         return capability
 
     def _get_access_token(self, username, password, application=None, **extra_fields):

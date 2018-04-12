@@ -1,5 +1,7 @@
 from unittest.mock import patch
 import json
+from httmock import all_requests, HTTMock
+from apps.mymedicare_cb.tests.responses import patient_response
 import apps.fhir.bluebutton.utils
 import apps.fhir.bluebutton.views.home
 from apps.fhir.bluebutton.views.home import (conformance_filter)
@@ -78,7 +80,6 @@ class ThrottleReadRequestTest(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
-
     @patch('apps.dot_ext.throttling.TokenRateThrottle.get_rate')
     def test_read_throttle(self,
                            mock_rates):
@@ -154,9 +155,6 @@ class ThrottleReadRequestTest(BaseApiTest):
         self.assertEqual(response.status_code, 404)
 
 
-from httmock import all_requests, HTTMock
-
-
 class BackendConnectionTest(BaseApiTest):
 
     fixtures = ['testfixture']
@@ -167,14 +165,15 @@ class BackendConnectionTest(BaseApiTest):
         self.write_capability = self._create_capability('Write', [])
         # Setup the RequestFactory
         self.client = Client()
-    
+
     def test_search_request(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
         expected_request = {
             'method': 'GET',
-            'url': 'https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325',
+            'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
+                    "baseDstu3/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
                 'User-Agent': 'python-requests/2.18.4',
                 'Accept-Encoding': 'gzip, deflate',
@@ -190,6 +189,58 @@ class BackendConnectionTest(BaseApiTest):
             }
         }
 
+        expected_response = {
+            "resourceType": "Bundle",
+            "id": "d0c10556-a3df-4af6-bdb3-d60908b1f16b",
+            "meta": {
+                "lastUpdated": "2018-04-05T15:44:17.721-04:00"
+            },
+            "type": "searchset",
+            "total": 1,
+            "link": [{
+                "url": ("http://testserver/v1/fhir/Patient/"
+                        "?_format=application%2Fjson%2Bfhir&_id=20140000008325&count=10&startIndex=0"),
+                "relation": "self"
+            }],
+            "entry": [{
+                "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/19990000000001",
+                "resource": {
+                    "resourceType": "Patient",
+                    "id": "19990000000001",
+                    "extension": [{
+                        "url": "https://bluebutton.cms.gov/resources/variables/race",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/race",
+                            "code": "1",
+                            "display": "White"
+                        }
+                    }],
+                    "identifier": [{
+                        "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
+                        "value": "19990000000001"
+                    }, {
+                        "system": "https://bluebutton.cms.gov/resources/identifier/hicn-hash",
+                        "value": "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
+                    }],
+                    "name": [{
+                        "use": "usual",
+                        "family": "Doe",
+                        "given": [
+                            "Jane",
+                            "X"
+                        ]
+                    }],
+                    "gender": "unknown",
+                    "birthDate": "1999-06-01",
+                    "address": [{
+                        "district": "999",
+                        "state": "30",
+                        "postalCode": "99999"
+                    }]
+                }
+            }]
+        }
+
         @all_requests
         def catchall(url, req):
             self.assertEqual(expected_request['url'], req.url)
@@ -199,56 +250,7 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 # TODO replace this with true backend response, this has been post proccessed
-                'content': {
-                    "resourceType": "Bundle",
-                    "id": "d0c10556-a3df-4af6-bdb3-d60908b1f16b",
-                    "meta": {
-                        "lastUpdated": "2018-04-05T15:44:17.721-04:00"
-                    },
-                    "type": "searchset",
-                    "total": 1,
-                    "link": [{
-                        "url": "https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/?startIndex=0&count=10",
-                        "relation": "self"
-                    }],
-                    "entry": [{
-                        "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/19990000000001",
-                        "resource": {
-                            "resourceType": "Patient",
-                            "id": "19990000000001",
-                            "extension": [{
-                                "url": "https://bluebutton.cms.gov/resources/variables/race",
-                                "valueCoding": {
-                                    "system": "https://bluebutton.cms.gov/resources/variables/race",
-                                    "code": "1",
-                                    "display": "White"
-                                }
-                            }],
-                            "identifier": [{
-                                "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
-                                "value": "19990000000001"
-                            }, {
-                                "system": "https://bluebutton.cms.gov/resources/identifier/hicn-hash",
-                                "value": "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
-                            }],
-                            "name": [{
-                                "use": "usual",
-                                "family": "Doe",
-                                "given": [
-                                    "Jane",
-                                    "X"
-                                ]
-                            }],
-                            "gender": "unknown",
-                            "birthDate": "1999-06-01",
-                            "address": [{
-                                "district": "999",
-                                "state": "30",
-                                "postalCode": "99999"
-                            }]
-                        }
-                    }]
-                },
+                'content': patient_response,
             }
 
         with HTTMock(catchall):
@@ -259,6 +261,8 @@ class BackendConnectionTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()['entry'], expected_response['entry'])
+            self.assertTrue(len(response.json()['link']) > 0)
 
     def test_read_request(self):
         # create the user
@@ -298,7 +302,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Patient', 'resource_id': '20140000008325' }),
+                    kwargs={'resource_type': 'Patient', 'resource_id': '20140000008325'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
