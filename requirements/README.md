@@ -1,20 +1,13 @@
-## Vendoring python requirements:
+## Vendoring Python requirements
 
-1. Edit the `requirements.in` file
-2. Use `pip-compile` to generate an updated `requirements.txt` file:
+This process allows us to download requirements for the application and store them in the `vendor` directory so that they may be installed during the build process without requiring access to the internet to do so.
 
-```
-pip-compile --output-file requirements.txt requirements.in
-```
+NOTE: the files in the `vendor` directory are meant to be used with `linux_x86_64` platforms.
 
-3. Download the requirements to the `vendor` directory:
+### Steps to edit/update application requirements:
 
-```
-pip download -r requirements/requirements.txt --dest vendor --platform linux_x86_64 --no-deps
-```
+1. Edit the `requirements/requirements.in` file
+2. From the project root, run `make reqs-compile`
+3. Add and commit changes to `requirements/requirements.in`, `requirements/requirements.txt` and any new or updated modules in the `vendor` directory
 
-4. At install time, tell pip not to use a package index, find packages in the `vendor` dir:
-
-```
-pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
-```
+Later, to install the requirements from the `vendor` directory, run: `make reqs-install`
