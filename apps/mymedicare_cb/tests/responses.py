@@ -6,10 +6,6 @@ patient_response = {
     },
     "type": "searchset",
     "total": 1,
-    "link": [{
-        "url": "https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/?startIndex=0&count=10",
-        "relation": "self"
-    }],
     "entry": [{
         "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/19990000000001",
         "resource": {
