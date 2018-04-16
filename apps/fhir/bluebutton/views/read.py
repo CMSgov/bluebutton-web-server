@@ -1,118 +1,57 @@
-from rest_framework.response import Response
 import logging
-
-from ..constants import ALLOWED_RESOURCE_TYPES
-from ..decorators import require_valid_token
-from ..errors import build_error_response
-
-from apps.fhir.bluebutton.utils import (request_call,
-                                        get_host_url,
-                                        post_process_request,
-                                        get_crosswalk,
-                                        get_resourcerouter,
-                                        build_rewrite_list,
-                                        get_response_text)
-from apps.fhir.parsers import FHIRParser
-from apps.fhir.renderers import FHIRRenderer
-
-from rest_framework.decorators import throttle_classes, api_view, parser_classes, renderer_classes
-from rest_framework.parsers import JSONParser
-from rest_framework.renderers import JSONRenderer
-
-from apps.dot_ext.throttling import TokenRateThrottle
+from rest_framework import exceptions
+from apps.fhir.bluebutton.utils import get_crosswalk
+from apps.fhir.bluebutton.views.generic import FhirDataView
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-@require_valid_token()
-@api_view(['GET'])
-@parser_classes([JSONParser, FHIRParser])
-@renderer_classes([JSONRenderer, FHIRRenderer])
-@throttle_classes([TokenRateThrottle])
-def read(request, resource_type, resource_id, *args, **kwargs):
-    # reset request back to django.HttpRequest
-    request = request._request
-    """
-    Read from Remote FHIR Server
-    # Example client use in curl:
-    # curl -X GET http://127.0.0.1:8000/fhir/Patient/1234
-    """
+#####################################################################
+# These functions are a stepping stone to a single class based view #
+#####################################################################
 
-    logger.debug("resource_type: %s" % resource_type)
-    logger.debug("Interaction: read")
-    logger.debug("Request.path: %s" % request.path)
+class ReadView(FhirDataView):
 
-    if resource_type not in ALLOWED_RESOURCE_TYPES:
-        logger.info('User requested read access to the %s resource type' % resource_type)
-        return build_error_response(404, 'The requested resource type, %s, is not supported'
-                                         % resource_type)
+    def validate_response(self, response):
+        # Now check that the user has permission to access the data
+        # Patient resources were taken care of above
+        # Return 404 on error to avoid notifying unauthorized user the object exists
+        try:
+            if self.resource_type == 'Coverage':
+                reference = response._json()['beneficiary']['reference']
+                reference_id = reference.split('/')[1]
+                if reference_id != self.crosswalk.fhir_id:
+                    raise exceptions.NotFound()
+            elif self.resource_type == 'ExplanationOfBenefit':
+                reference = response._json()['patient']['reference']
+                reference_id = reference.split('/')[1]
+                if reference_id != self.crosswalk.fhir_id:
+                    raise exceptions.NotFound()
+        except Exception:
+            logger.warning('An error occurred fetching beneficiary id')
+            raise exceptions.NotFound()
 
-    crosswalk = get_crosswalk(request.resource_owner)
+    def check_resource_permission(self, request, resource_type, resource_id, **kwargs):
+        crosswalk = get_crosswalk(request.resource_owner)
 
-    # If the user isn't matched to a backend ID, they have no permissions
-    if crosswalk is None:
-        logger.info('Crosswalk for %s does not exist' % request.user)
-        return build_error_response(403, 'No access information was found for the authenticated user')
+        # If the user isn't matched to a backend ID, they have no permissions
+        if crosswalk is None:
+            logger.info('Crosswalk for %s does not exist' % request.user)
+            raise exceptions.PermissionDenied(
+                'No access information was found for the authenticated user')
 
-    resource_router = get_resourcerouter(crosswalk)
+        if resource_type == 'Patient':
+            # Error out in advance for non-matching Patient records.
+            # Other records must hit backend to check permissions.
+            if resource_id != crosswalk.fhir_id:
+                raise exceptions.PermissionDenied(
+                    'You do not have permission to access data on the requested patient')
+        return crosswalk
 
-    if resource_type == 'Patient':
-        # Error out in advance for non-matching Patient records.
-        # Other records must hit backend to check permissions.
-        if resource_id != crosswalk.fhir_id:
-            return build_error_response(403, 'You do not have permission to access data on the requested patient')
+    def build_parameters(self, *args, **kwargs):
+        return {
+            "_format": "json"
+        }
 
-        resource_id = crosswalk.fhir_id
-
-    target_url = resource_router.fhir_url + resource_type + "/" + resource_id + "/"
-
-    logger.debug('FHIR URL with key:%s' % target_url)
-
-    get_parameters = {
-        "_format": "json"
-    }
-
-    logger.debug('Here is the URL to send, %s now add '
-                 'GET parameters %s' % (target_url, get_parameters))
-
-    # Now make the call to the backend API
-
-    response = request_call(request, target_url, crosswalk, timeout=None, get_parameters=get_parameters)
-
-    if response.status_code == 404:
-        return build_error_response(404, 'The requested resource does not exist')
-
-    # TODO: This should be more specific
-    if response.status_code >= 300:
-        return build_error_response(502, 'An error occurred contacting the upstream server')
-
-    # Now check that the user has permission to access the data
-    # Patient resources were taken care of above
-    # Return 404 on error to avoid notifying unauthorized user the object exists
-    try:
-        if resource_type == 'Coverage':
-            reference = response._json()['beneficiary']['reference']
-            reference_id = reference.split('/')[1]
-            if reference_id != crosswalk.fhir_id:
-                return standard_404()
-        elif resource_type == 'ExplanationOfBenefit':
-            reference = response._json()['patient']['reference']
-            reference_id = reference.split('/')[1]
-            if reference_id != crosswalk.fhir_id:
-                return standard_404()
-    except Exception:
-        logger.warning('An error occurred fetching beneficiary id')
-        return standard_404()
-
-    host_path = get_host_url(request, resource_type)[:-1]
-
-    # Add default FHIR Server URL to re-write
-    rewrite_url_list = build_rewrite_list(crosswalk)
-    text_in = get_response_text(fhir_response=response)
-    text_out = post_process_request(request, host_path, text_in, rewrite_url_list)
-
-    return Response(text_out)
-
-
-def standard_404():
-    return build_error_response(404, 'The requested resource does not exist')
+    def build_url(self, resource_router, resource_type, resource_id, **kwargs):
+        return resource_router.fhir_url + resource_type + "/" + resource_id + "/"
