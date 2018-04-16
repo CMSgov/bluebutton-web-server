@@ -17,6 +17,7 @@ configparser
 dj-database-url
 pyjwt
 newrelic
+psycopg2
 
 # notifications
 django-ses
