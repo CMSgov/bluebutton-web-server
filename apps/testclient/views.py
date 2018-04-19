@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.shortcuts import render
 from requests_oauthlib import OAuth2Session
 from collections import OrderedDict
@@ -10,8 +8,6 @@ from .utils import test_setup, get_client_secret
 import logging
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 from django.views.decorators.cache import never_cache
-
-__author__ = "Alan Viars"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 

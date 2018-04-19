@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import logging
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -16,8 +14,6 @@ from ..models import UserProfile
 from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
-
-__author__ = "Alan Viars"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 

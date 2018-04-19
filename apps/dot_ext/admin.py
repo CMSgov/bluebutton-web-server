@@ -2,6 +2,7 @@ from django.contrib import admin
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 
+
 Application = get_application_model()
 
 
@@ -9,18 +10,20 @@ class MyAccessToken(AccessToken):
 
     class Meta:
         proxy = True
+        app_label = "bluebutton"
 
 
 class MyApplication(Application):
 
     class Meta:
         proxy = True
+        app_label = "bluebutton"
 
 
 class MyApplicationAdmin(admin.ModelAdmin):
 
-    list_display = ("name", "user", "authorization_grant_type", "scopes",
-                    "skip_authorization", "created", "updated")
+    list_display = ("name", "user", "authorization_grant_type", "client_id",
+                    "skip_authorization", "scopes", "created", "updated")
     list_filter = ("name", "user", "client_type", "authorization_grant_type",
                    "skip_authorization")
     radio_fields = {

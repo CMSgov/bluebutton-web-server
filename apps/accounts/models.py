@@ -1,9 +1,6 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import pytz
 import random
 import uuid
-import json
 from datetime import datetime, timedelta
 from django.contrib.admin.models import LogEntry
 from django.utils import timezone
@@ -16,7 +13,6 @@ from .emails import (send_password_reset_url_via_email,
                      mfa_via_email, send_invite_to_create_account,
                      send_invitation_code_to_user,
                      notify_admin_of_invite_request)
-from collections import OrderedDict
 import logging
 from django.utils.crypto import pbkdf2
 import binascii
@@ -353,7 +349,7 @@ class UserRegisterCode(models.Model):
     def save(self, commit=True, **kwargs):
         if commit:
             self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        settings.USER_ID_SALT,
+                                                        get_user_id_salt(),
                                                         settings.USER_ID_ITERATIONS)).decode("ascii")
             if self.sender:
                 up = UserProfile.objects.get(user=self.sender)
@@ -485,39 +481,6 @@ def create_activation_key(user):
     return key
 
 
-class EmailWebhook(models.Model):
-    email = models.EmailField(max_length=150, default="", blank=True)
-    status = models.CharField(max_length=30, default="", blank=True)
-    details = models.TextField(max_length=2048, default="", blank=True)
-    added = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        r = '%s: %s' % (self.email, self.status)
-        return r
-
-    def save(self, commit=True, request_body="", **kwargs):
-        if commit:
-            if request_body:
-                whr = json.loads(str(request_body.decode('utf-8')),
-                                 object_pairs_hook=OrderedDict)
-                message = json.loads(whr["Message"])
-                self.status = message['notificationType']
-                if self.status == "Bounce":
-                    self.email = message['bounce'][
-                        'bouncedRecipients'][0]["emailAddress"]
-                if self.status == "Complaint":
-                    self.email = message['complainedRecipients'][
-                        0]["emailAddress"]
-                if self.status == "Delivery":
-                    self.email = message['mail']["destination"][0]
-                self.details = request_body
-                logger.info("Sent email {} status is {}.".format(
-                    self.email, self.status))
-                super(EmailWebhook, self).save(**kwargs)
-
-# method for updating
-
-
 @receiver(post_save)
 def export_admin_log(sender, instance, **kwargs):
 
@@ -546,3 +509,14 @@ def export_admin_log(sender, instance, **kwargs):
                 'action_time': instance.action_time}
 
         admin_logger.info(msg)
+
+
+def get_user_id_salt(salt=settings.USER_ID_SALT):
+    """
+    Assumes `USER_ID_SALT` is a hex encoded value. Decodes the salt val,
+    returning binary data represented by the hexadecimal string.
+
+    :param: salt
+    :return: bytes
+    """
+    return binascii.unhexlify(salt)

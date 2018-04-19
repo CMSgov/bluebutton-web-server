@@ -17,19 +17,10 @@ configparser
 dj-database-url
 pyjwt
 newrelic
-
-# test coverage
-coverage
-python-coveralls
+psycopg2
 
 # notifications
 django-ses
-
-# test and development
-tox
-flake8
-coverage
-django-debug-toolbar
 
 # security and identity system
 social-auth-app-django

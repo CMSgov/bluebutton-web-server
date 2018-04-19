@@ -9,8 +9,7 @@ from .models import (
     UserProfile,
     ActivationKey,
     MFACode,
-    UserRegisterCode,
-    EmailWebhook)
+    UserRegisterCode)
 
 
 admin.site.register(ActivationKey)
@@ -24,17 +23,6 @@ ua.list_display = ('username', 'email', 'first_name',
 
 admin.site.unregister(User)
 admin.site.register(User, ua)
-
-
-class EmailWebhookAdmin(admin.ModelAdmin):
-    list_display = (
-        'status',
-        'email',
-        'added')
-    search_fields = ('email', 'status')
-
-
-admin.site.register(EmailWebhook, EmailWebhookAdmin)
 
 
 class UserRegisterCodeAdmin(admin.ModelAdmin):

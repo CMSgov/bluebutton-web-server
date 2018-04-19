@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import logging
 from random import randint
 from django.conf import settings
@@ -13,8 +11,6 @@ from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key, UserRegisterCode
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 from localflavor.us.forms import USPhoneNumberField
-
-__author__ = "Alan Viars"
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -72,23 +68,6 @@ class ChangeSecretQuestionsForm(forms.ModelForm):
 
 class PasswordResetRequestForm(forms.Form):
     email = forms.EmailField(max_length=255, label=_('Email'))
-    # human_x = randint(1, 9)
-    # human_y = randint(1, 9)
-    # human_z = human_x + human_y
-    # human_q = ('What is %s + %s?' % (human_x, human_y))
-    # human = forms.CharField(
-    #     max_length=30,
-    #     label=_(human_q),
-    #     help_text='We are asking this to make sure you are human. '
-    #               'Hint: the answer is %s.' % human_z,
-    # )
-    # def clean_human(self):
-    #     human = self.cleaned_data.get('human', '')
-    #     logger.debug("Compare [%s] to [%s]" % (str(human), str(self.human_z)))
-    #     if str(human) != str(self.human_z):
-    #         raise forms.ValidationError(_('You are either not human or '
-    #                                       'just just really bad at math.'))
-    #     return human
 
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
@@ -257,10 +236,6 @@ class SignupForm(forms.Form):
                                                       "probably received one by "
                                                       "email.")
                                           )
-    username = forms.CharField(max_length=30,
-                               label=_("User"),
-                               help_text=_("Choose the username you will "
-                                           "use to access your account."))
     email = forms.EmailField(max_length=255,
                              label=_("Email"),
                              help_text=_("Your email address is needed for "
@@ -332,14 +307,6 @@ class SignupForm(forms.Form):
         else:
             return email.rstrip().lstrip().lower()
 
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        username = username.rstrip().lstrip().lower()
-
-        if User.objects.filter(username=username).count() > 0:
-            raise forms.ValidationError(_('This username is already taken.'))
-        return username
-
     if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
         def clean_invitation_code(self):
             invitation_code = self.cleaned_data['invitation_code']
@@ -359,7 +326,7 @@ class SignupForm(forms.Form):
             invite.save()
 
         new_user = User.objects.create_user(
-            username=self.cleaned_data['username'],
+            username=self.cleaned_data['email'],
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name'],
             password=self.cleaned_data['password1'],

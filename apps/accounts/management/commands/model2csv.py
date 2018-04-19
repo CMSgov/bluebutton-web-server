@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
 """
 Project: bluebutton-web-server
 App: hhs_oauth_server/management
@@ -23,8 +19,6 @@ import sys
 import logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-__author__ = "Mark Scrimshire @ekivemark"
 
 
 def exportcsv(app_name, model_name, add_name, field_export):

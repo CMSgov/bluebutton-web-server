@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from functools import wraps
 
 from oauthlib.oauth2 import Server

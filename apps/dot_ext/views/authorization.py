@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import logging
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
@@ -9,8 +7,6 @@ from ..forms import AllowForm, SimpleAllowForm
 from ..models import ExpiresIn
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-__author__ = "Alan Viars"
 
 
 class AuthorizationView(DotAuthorizationView):
