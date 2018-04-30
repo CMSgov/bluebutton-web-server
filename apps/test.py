@@ -1,13 +1,13 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import json
 
 from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils.text import slugify
+from django.conf import settings
 
+from apps.fhir.bluebutton.utils import get_resourcerouter
+from apps.fhir.bluebutton.models import Crosswalk
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
 
@@ -55,15 +55,18 @@ class BaseApiTest(TestCase):
             application.scope.add(capability)
         return application
 
-    def _create_capability(self, name, urls, group=None):
+    def _create_capability(self, name, urls, group=None, default=True):
         """
         Helper method that creates a ProtectedCapability instance
         that controls the access for the set of `urls`.
         """
         group = group or self._create_group('test')
         capability = ProtectedCapability.objects.create(
-            title=name, slug=slugify(name),
-            protected_resources=json.dumps(urls), group=group)
+            default=default,
+            title=name,
+            slug=slugify(name),
+            protected_resources=json.dumps(urls),
+            group=group)
         return capability
 
     def _get_access_token(self, username, password, application=None, **extra_fields):
@@ -85,3 +88,23 @@ class BaseApiTest(TestCase):
         # Unpack the response and return the token string
         content = json.loads(response.content.decode("utf-8"))
         return content['access_token']
+
+    def create_token(self, first_name, last_name):
+        passwd = '123456'
+        user = self._create_user(first_name,
+                                 passwd,
+                                 first_name=first_name,
+                                 last_name=last_name,
+                                 email="%s@%s.net" % (first_name, last_name))
+        Crosswalk.objects.get_or_create(user=user,
+                                        fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                        fhir_source=get_resourcerouter())
+
+        # create a oauth2 application and add capabilities
+        application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)
+        application.scope.add(self.read_capability, self.write_capability)
+        # get the first access token for the user 'john'
+        return self._get_access_token(first_name,
+                                      passwd,
+                                      application,
+                                      scope='read')

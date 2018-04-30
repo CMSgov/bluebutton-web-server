@@ -6,10 +6,9 @@ django-cors-headers
 django-localflavor
 django-settings-export
 djangorestframework
+django-axes
 
 # support
-boto
-boto3
 django-storages
 jsonschema
 requests
@@ -17,21 +16,11 @@ pytz
 configparser
 dj-database-url
 pyjwt
-
-
-
-# test coverage
-coverage
-python-coveralls
+newrelic
+psycopg2
 
 # notifications
 django-ses
-
-# test and development
-tox
-flake8
-coverage
-django-debug-toolbar
 
 # security and identity system
 social-auth-app-django

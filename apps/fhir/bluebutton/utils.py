@@ -20,9 +20,6 @@ from apps.wellknown.views import (base_issuer, build_endpoint_info)
 from .models import Crosswalk, Fhir_Response
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
-logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
-logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 logger_perf = logging.getLogger('performance')
 
 
@@ -138,20 +135,20 @@ def generate_info_headers(request):
     # Return resource_owner or user
     user = get_user_from_request(request)
     originating_ip = get_ip_from_request(request)
-    cx = get_crosswalk(user)
-    if cx:
+    crosswalk = get_crosswalk(user)
+    if crosswalk:
         # we need to send the HicnHash or the fhir_id
-        if len(cx.fhir_id) > 0:
-            result['BlueButton-BeneficiaryId'] = 'patientId:' + str(cx.fhir_id)
+        if len(crosswalk.fhir_id) > 0:
+            result['BlueButton-BeneficiaryId'] = 'patientId:' + str(crosswalk.fhir_id)
         else:
-            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(cx.user_id_hash)
+            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(crosswalk.user_id_hash)
     else:
         # Set to empty
         result['BlueButton-BeneficiaryId'] = ""
 
     if user:
         result['BlueButton-UserId'] = str(user.id)
-        result['BlueButton-User'] = str(user)
+        # result['BlueButton-User'] = str(user)
         result['BlueButton-Application'] = ""
         result['BlueButton-ApplicationId'] = ""
         if AccessToken.objects.filter(token=get_access_token_from_request(request)).exists():
@@ -159,7 +156,7 @@ def generate_info_headers(request):
             result['BlueButton-Application'] = str(at.application.name)
             result['BlueButton-ApplicationId'] = str(at.application.id)
             result['BlueButton-DeveloperId'] = str(at.application.user.id)
-            result['BlueButton-Developer'] = str(at.application.user)
+            # result['BlueButton-Developer'] = str(at.application.user)
         else:
             result['BlueButton-Application'] = ""
             result['BlueButton-ApplicationId'] = ""
@@ -174,23 +171,39 @@ def generate_info_headers(request):
     return result
 
 
-def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
+def set_default_header(request, header=None):
+    """
+    Set default values in header for call to back-end
+    :param request:
+    :param header:
+    :return: header
+    """
+
+    if header is None:
+        header = {}
+
+    header['keep-alive'] = settings.REQUEST_EOB_KEEP_ALIVE
+
+    return header
+
+
+def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters={}):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
-    cx = Crosswalk record. The crosswalk is keyed off Request.user
+    crosswalk = Crosswalk record. The crosswalk is keyed off Request.user
     timeout allows a timeout in seconds to be set.
 
     FhirServer is joined to Crosswalk.
-    FhirServerAuth and FhirServerVerify receive cx and lookup
+    FhirServerAuth and FhirServerVerify receive crosswalk and lookup
        values in the linked fhir_server model.
 
     """
 
-    # Updated to receive cx (Crosswalk entry for user)
-    # call FhirServer_Auth(cx) to get authentication
-    auth_state = FhirServerAuth(cx)
+    # Updated to receive crosswalk (Crosswalk entry for user)
+    # call FhirServer_Auth(crosswalk) to get authentication
+    auth_state = FhirServerAuth(crosswalk)
 
-    verify_state = FhirServerVerify(cx)
+    verify_state = FhirServerVerify(crosswalk)
     if auth_state['client_auth']:
         # cert puts cert and key file together
         # (cert_file_path, key_file_path)
@@ -204,6 +217,9 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
         cert = ()
 
     header_info = generate_info_headers(request)
+
+    header_info = set_default_header(request, header_info)
+
     header_detail = header_info
     header_detail['BlueButton-OriginalUrl'] = request.path
     header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
@@ -233,7 +249,7 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
 
         logger_perf.info(header_detail)
 
-        fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
+        fhir_response = build_fhir_response(request, call_url, crosswalk, r=r, e=None)
 
         logger.debug("Leaving request_call with "
                      "fhir_Response: %s" % fhir_response)
@@ -243,14 +259,14 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
     except requests.exceptions.Timeout as e:
 
         logger.debug("Gateway timeout talking to back-end server")
-        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
+        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
         return fhir_response
 
     except requests.ConnectionError as e:
         logger.debug("Request.GET:%s" % request.GET)
 
-        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
+        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
         return fhir_response
 
@@ -261,7 +277,7 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
         handle_e = handle_http_error(e)
         handle_e = handle_e
 
-        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
+        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
         messages.error(request, 'Problem connecting to FHIR Server.')
 
@@ -276,24 +292,24 @@ def request_call(request, call_url, cx=None, timeout=None, get_parameters={}):
 def request_get_with_params(request,
                             call_url,
                             search_params={},
-                            cx=None,
+                            crosswalk=None,
                             timeout=None):
     """  call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
-    cx = Crosswalk record. The crosswalk is keyed off Request.user
+    crosswalk = Crosswalk record. The crosswalk is keyed off Request.user
     timoeout allows a timeout in seconds to be set.
     FhirServer is joined to Crosswalk.
-    FhirServerAuth and FhirServerVerify receive cx and lookup
+    FhirServerAuth and FhirServerVerify receive crosswalk and lookup
        values in the linked fhir_server model.
     """
 
-    # Updated to receive cx (Crosswalk entry for user)
-    # call FhirServer_Auth(cx) to get authentication
-    auth_state = FhirServerAuth(cx)
+    # Updated to receive crosswalk (Crosswalk entry for user)
+    # call FhirServer_Auth(crosswalk) to get authentication
+    auth_state = FhirServerAuth(crosswalk)
 
     logger.debug("Auth_state:%s" % auth_state)
 
-    verify_state = FhirServerVerify(cx)
+    verify_state = FhirServerVerify(crosswalk)
     if auth_state['client_auth']:
         # cert puts cert and key file together
         # (cert_file_path, key_file_path)
@@ -321,6 +337,9 @@ def request_get_with_params(request,
         logger.debug("\nkey:%s - value:%s" % (k, v))
 
     header_info = generate_info_headers(request)
+
+    header_info = set_default_header(request, header_info)
+
     header_detail = header_info
     header_detail['BlueButton-OriginalUrl'] = request.path
     header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
@@ -350,7 +369,7 @@ def request_get_with_params(request,
 
         logger_perf.info(header_detail)
 
-        fhir_response = build_fhir_response(request, call_url, cx, r=r, e=None)
+        fhir_response = build_fhir_response(request, call_url, crosswalk, r=r, e=None)
 
         logger.debug("Leaving request_get_with_params with "
                      "fhir_Response: %s" % fhir_response)
@@ -360,14 +379,14 @@ def request_get_with_params(request,
     except requests.exceptions.Timeout as e:
 
         logger.debug("Gateway timeout talking to back-end server")
-        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
+        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
         return fhir_response
 
     except requests.ConnectionError as e:
         logger.debug("Request.GET:%s" % request.GET)
 
-        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
+        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
         return fhir_response
 
@@ -378,7 +397,7 @@ def request_get_with_params(request,
         handle_e = handle_http_error(e)
         handle_e = handle_e
 
-        fhir_response = build_fhir_response(request, call_url, cx, r=None, e=e)
+        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
         messages.error(request, 'Problem connecting to FHIR Server.')
 
@@ -401,22 +420,22 @@ def notNone(value=None, default=None):
         return value
 
 
-def FhirServerAuth(cx=None):
+def FhirServerAuth(crosswalk=None):
     # Get default clientauth settings from base.py
     # Receive a crosswalk.id or None
     # Return a dict
 
     auth_settings = {}
-    if cx is None:
-        rr = get_resourcerouter()
-        auth_settings['client_auth'] = rr.client_auth
-        auth_settings['cert_file'] = rr.cert_file
-        auth_settings['key_file'] = rr.key_file
+    if crosswalk is None:
+        resource_router = get_resourcerouter()
+        auth_settings['client_auth'] = resource_router.client_auth
+        auth_settings['cert_file'] = resource_router.cert_file
+        auth_settings['key_file'] = resource_router.key_file
     else:
-        # cx is passed in
-        auth_settings['client_auth'] = cx.fhir_source.client_auth
-        auth_settings['cert_file'] = cx.fhir_source.cert_file
-        auth_settings['key_file'] = cx.fhir_source.key_file
+        # crosswalk is passed in
+        auth_settings['client_auth'] = crosswalk.fhir_source.client_auth
+        auth_settings['cert_file'] = crosswalk.fhir_source.cert_file
+        auth_settings['key_file'] = crosswalk.fhir_source.key_file
 
     if auth_settings['client_auth']:
         # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
@@ -430,28 +449,28 @@ def FhirServerAuth(cx=None):
     return auth_settings
 
 
-def FhirServerVerify(cx=None):
+def FhirServerVerify(crosswalk=None):
     # Get default Server Verify Setting
     # Return True or False (Default)
 
     verify_setting = False
-    if cx:
-        verify_setting = cx.fhir_source.server_verify
+    if crosswalk:
+        verify_setting = crosswalk.fhir_source.server_verify
 
     return verify_setting
 
 
 def FhirServerUrl(server=None, path=None, release=None):
 
-    rr_def = get_resourcerouter()
+    resource_router_def = get_resourcerouter()
 
-    rr_server_address = rr_def.server_address
+    resource_router_server_address = resource_router_def.server_address
 
-    fhir_server = notNone(server, rr_server_address)
+    fhir_server = notNone(server, resource_router_server_address)
 
-    fhir_path = notNone(path, rr_def.server_path)
+    fhir_path = notNone(path, resource_router_def.server_path)
 
-    fhir_release = notNone(release, rr_def.server_release)
+    fhir_release = notNone(release, resource_router_def.server_release)
 
     if fhir_release is not None:
         if not fhir_release.endswith('/'):
@@ -469,30 +488,31 @@ def FhirServerUrl(server=None, path=None, release=None):
     return result
 
 
-def check_rt_controls(resource_type, rr=None):
+def check_resource_type_controls(resource_type, resource_router=None):
     # Check for controls to apply to this resource_type
-    # logger.debug('Resource_Type =%s' % resource_type)
+
     # We may get more than one resourceType returned.
     # We need to deal with that.
     # Best option is to pass fhir_server from Crosswalk to this call
 
-    if rr is None:
-        rr = get_resourcerouter()
+    if resource_router is None:
+        resource_router = get_resourcerouter()
 
     try:
-        srtc = SupportedResourceType.objects.get(resourceType=resource_type,
-                                                 fhir_source=rr)
+        supported_resource_type_control = SupportedResourceType.objects.get(resourceType=resource_type,
+                                                                            fhir_source=resource_router)
+
     except SupportedResourceType.DoesNotExist:
-        srtc = None
+        supported_resource_type_control = None
 
-    return srtc
+    return supported_resource_type_control
 
 
-def masked(srtc=None):
+def masked(supported_resource_type_control=None):
     """ check if force_url_override is set in SupportedResourceType """
     mask = False
-    if srtc:
-        if srtc.override_url_id:
+    if supported_resource_type_control:
+        if supported_resource_type_control.override_url_id:
             mask = True
 
     return mask
@@ -517,11 +537,11 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
 
-        logger_debug.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
+        logger.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
     else:
         out_text = in_text
 
-        logger_debug.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
+        logger.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
 
     return out_text
 
@@ -536,13 +556,13 @@ def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
         # Nothing in the list to be replaced
         return in_text
 
-    rr_def = get_resourcerouter()
-    rr_def_server_address = rr_def.server_address
+    resource_router_def = get_resourcerouter()
+    resource_router_def_server_address = resource_router_def.server_address
 
-    if isinstance(rr_def_server_address, str):
-        if rr_def_server_address not in urls_be_gone:
+    if isinstance(resource_router_def_server_address, str):
+        if resource_router_def_server_address not in urls_be_gone:
 
-            urls_be_gone.append(rr_def_server_address)
+            urls_be_gone.append(resource_router_def_server_address)
 
     for kill_url in urls_be_gone:
         # work through the list making replacements
@@ -607,7 +627,7 @@ def dt_patient_reference(user):
 def crosswalk_patient_id(user):
     """ Get patient/id from Crosswalk for user """
 
-    logger_debug.debug("\ncrosswalk_patient_id User:%s" % user)
+    logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
         patient = Crosswalk.objects.get(user=user)
         if patient.fhir_id:
@@ -636,16 +656,16 @@ def get_crosswalk(user):
     return None
 
 
-def get_resource_names(rr=None):
+def get_resource_names(resource_router=None):
     """ Get names for all approved resources
         We need to receive FHIRServer and filter list
         :return list of FHIR resourceTypes
     """
     # TODO: filter by FHIRServer
 
-    if rr is None:
-        rr = get_resourcerouter()
-    all_resources = SupportedResourceType.objects.filter(fhir_source=rr)
+    if resource_router is None:
+        resource_router = get_resourcerouter()
+    all_resources = SupportedResourceType.objects.filter(fhir_source=resource_router)
     resource_types = []
     for name in all_resources:
         # check resourceType not already loaded to list
@@ -658,26 +678,26 @@ def get_resource_names(rr=None):
     return resource_types
 
 
-def get_resourcerouter(cx=None):
+def get_resourcerouter(crosswalk=None):
     """
     get the default from settings.FHIR_SERVER_DEFAULT
 
-    :cx = Receive the crosswalk record
+    :crosswalk = Receive the crosswalk record
     :return ResourceRouter
 
     """
 
-    if cx is None:
+    if crosswalk is None:
         # use the default setting
-        rr = ResourceRouter.objects.get(pk=settings.FHIR_SERVER_DEFAULT)
+        resource_router = ResourceRouter.objects.get(pk=settings.FHIR_SERVER_DEFAULT)
     else:
-        # use the user's default ResourceRouter from cx
-        rr = cx.fhir_source
+        # use the user's default ResourceRouter from crosswalk
+        resource_router = crosswalk.fhir_source
 
-    return rr
+    return resource_router
 
 
-def build_rewrite_list(cx=None):
+def build_rewrite_list(crosswalk=None):
     """
     Build the rewrite_list of server addresses
 
@@ -685,13 +705,13 @@ def build_rewrite_list(cx=None):
     """
 
     rewrite_list = []
-    if cx:
-        rewrite_list.append(cx.fhir_source.fhir_url)
+    if crosswalk:
+        rewrite_list.append(crosswalk.fhir_source.fhir_url)
 
-    rr = get_resourcerouter()
+    resource_router = get_resourcerouter()
     # get the default ResourceRouter entry
-    if rr.fhir_url not in rewrite_list:
-        rewrite_list.append(rr.fhir_url)
+    if resource_router.fhir_url not in rewrite_list:
+        rewrite_list.append(resource_router.fhir_url)
 
     if isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], list):
         rewrite_list.extend(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
@@ -712,7 +732,7 @@ def handle_http_error(e):
     return e
 
 
-def build_fhir_response(request, call_url, cx, r=None, e=None):
+def build_fhir_response(request, call_url, crosswalk, r=None, e=None):
     """
     setup a response object to return up the chain with consistent content
     if requests hits an error fields like text or json don't get created.
@@ -735,7 +755,7 @@ def build_fhir_response(request, call_url, cx, r=None, e=None):
     fhir_response = Fhir_Response(r)
 
     fhir_response.call_url = call_url
-    fhir_response.cx = cx
+    fhir_response.crosswalk = crosswalk
 
     if len(r_dir) > 0:
         if 'status_code' in r_dir:

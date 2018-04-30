@@ -2,6 +2,7 @@ import logging
 from requests import Response
 from django.conf import settings
 from django.db import models
+from apps.accounts.models import get_user_id_salt
 from apps.fhir.server.models import ResourceRouter
 from django.utils.crypto import pbkdf2
 import binascii
@@ -40,7 +41,7 @@ class Crosswalk(models.Model):
     def save(self, commit=True, **kwargs):
         if commit:
             self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        settings.USER_ID_SALT,
+                                                        get_user_id_salt(),
                                                         settings.USER_ID_ITERATIONS)).decode("ascii")
             super(Crosswalk, self).save(**kwargs)
 
@@ -102,5 +103,4 @@ class Fhir_Response(Response):
 
         # Add extra fields to Response Object
         for k, v in extend_response.items():
-            # logger.debug("Key:%s with Value:%s" % (k, v))
             self.__dict__[k] = v

@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import sys
 import hashlib
 import logging
@@ -27,8 +24,7 @@ class Application(AbstractApplication):
     op_policy_uri = models.CharField(default="", blank=True, max_length=512)
     client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client URI",
                                   help_text="This is typically a homepage for the application.")
-    help_text = _('Allowed URIs listed, space or new line separated. '
-                  'Including ??00000000:// for mobile native applications')
+    help_text = _('Allowed redirect URIs. Space or new line separated.')
     redirect_uris = models.TextField(help_text=help_text,
                                      validators=[validate_uris], blank=True)
     logo_uri = models.CharField(
@@ -43,6 +39,28 @@ class Application(AbstractApplication):
                                 verbose_name="Client's Contacts",
                                 help_text="This is typically an email")
     active = models.BooleanField(default=True)
+
+    def scopes(self):
+        scope_list = []
+        for s in self.scope.all():
+            scope_list.append(s.slug)
+        return " ".join(scope_list).strip()
+
+    def is_valid(self, scopes=None):
+        return self.active and self.allow_scopes(scopes)
+
+    def allow_scopes(self, scopes):
+        """
+        Check if the token allows the provided scopes
+        :param scopes: An iterable containing the scopes to check
+        """
+        if not scopes:
+            return True
+
+        provided_scopes = set(self.scopes().split())
+        resource_scopes = set(scopes)
+
+        return resource_scopes.issubset(provided_scopes)
 
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
