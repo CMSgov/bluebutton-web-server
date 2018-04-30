@@ -12,9 +12,9 @@ from apps.fhir.renderers import FHIRRenderer
 from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.server import connection as backend_connection
 from ..constants import ALLOWED_RESOURCE_TYPES
+from ..exceptions import UpstreamServerException
 from ..serializers import localize
 from ..decorators import require_valid_token
-from ..errors import build_error_response
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
@@ -98,11 +98,11 @@ class FhirDataView(APIView):
         response = build_fhir_response(request._request, target_url, self.crosswalk, r=r, e=None)
 
         if response.status_code == 404:
-            return build_error_response(404, 'The requested resource does not exist')
+            raise exceptions.NotFound(detail='The requested resource does not exist')
 
         # TODO: This should be more specific
         if response.status_code >= 300:
-            return build_error_response(502, 'An error occurred contacting the upstream server')
+            raise UpstreamServerException(detail='An error occurred contacting the upstream server')
 
         self.validate_response(response)
 
