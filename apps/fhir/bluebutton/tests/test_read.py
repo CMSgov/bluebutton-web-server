@@ -243,7 +243,9 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertEqual(expected_request['url'], req.url)
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/", req.url)
+            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
+            self.assertIn("_id=20140000008325", req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
@@ -289,7 +291,9 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertEqual(expected_request['url'], req.url)
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/", req.url)
+            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
+            self.assertIn("_id=20140000008325", req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
@@ -332,7 +336,9 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertEqual(expected_request['url'], req.url)
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/", req.url)
+            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
+            self.assertIn("_id=20140000008325", req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
