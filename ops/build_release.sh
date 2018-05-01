@@ -51,6 +51,12 @@ if [ $# -lt 2 ] && [ -n "$MANUAL_TAGS" ]; then
   exit 1
 fi
 
+if [ -z "$GITHUB_ACCESS_TOKEN" ]
+then
+  echo "Please export GITHUB_ACCESS_TOKEN to continue"
+  exit 1
+fi
+
 # fetch tags before any tag lookups so we have the most up-to-date list
 # and generate the correct next release number
 git fetch --tags
@@ -85,26 +91,15 @@ echo "" >> $TMPFILE
 echo "$commits" >> $TMPFILE
 echo "" >> $TMPFILE
 
-cat $RELEASE_NOTES >> $TMPFILE
-
-git checkout -b "release-$NEWRELEASENUM"
-
-mv $TMPFILE $RELEASE_NOTES
-
-git add $RELEASE_NOTES
-
-git commit -m"Update release notes for $NEWTAG"
-
 git tag -a -m"$PROJECT_NAME release $NEWTAG" -s "$NEWTAG"
 
 if [ -n "$AUTO_PUSH" ]; then
     git push --tags
-
-    git push "$ORIGIN" "release-$NEWRELEASENUM"
 fi
 
+python ./ops/github_release.py --release $NEWTAG --release-file $TMPFILE
+
+rm $TMPFILE
+
 echo "Release $NEWTAG created."
-echo
-echo "Hotfixes should be made against release-$NEWRELEASENUM"
-echo "Create PR at https://github.cms.gov/$GITHUB_REPO/compare/release-$NEWRELEASENUM?expand=1"
 echo
