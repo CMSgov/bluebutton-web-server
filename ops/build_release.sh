@@ -73,7 +73,27 @@ else
   NEWTAG="r$NEWRELEASENUM"
 fi
 
+RELEASE_NOTES="RELEASE.txt"
+[ ! -f $RELEASE_NOTES ] && echo "Must run script in top-level project directory." >&2 && exit 1
+TMPFILE=$(mktemp /tmp/$(basename $0).XXXXXX) || exit 1
+
+commits=$(git log --pretty=format:"- %s" $PREVTAG..HEAD)
+
+echo "$NEWTAG - $(date +%Y-%m-%d)" > $TMPFILE
+echo "================" >> $TMPFILE
+echo "" >> $TMPFILE
+echo "$commits" >> $TMPFILE
+echo "" >> $TMPFILE
+
+cat $RELEASE_NOTES >> $TMPFILE
+
 git checkout -b "release-$NEWRELEASENUM"
+
+mv $TMPFILE $RELEASE_NOTES
+
+git add $RELEASE_NOTES
+
+git commit -m"Update release notes for $NEWTAG"
 
 git tag -a -m"$PROJECT_NAME release $NEWTAG" -s "$NEWTAG"
 
