@@ -1,8 +1,0 @@
-r12 - 2018-05-01
-================
-
-- [CBBP-986] Generate release notes based on commit message (#593)
-- Test for explicit URL structure (#592)
-- Raise exception for failure response from backend (#591)
-- Merge pull request #590 from CMSgov/develop
-
