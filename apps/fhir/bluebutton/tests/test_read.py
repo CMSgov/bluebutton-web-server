@@ -1,6 +1,6 @@
 from unittest.mock import patch
 import json
-from httmock import all_requests, HTTMock
+from httmock import all_requests, HTTMock, urlmatch
 from apps.mymedicare_cb.tests.responses import patient_response
 import apps.fhir.bluebutton.utils
 import apps.fhir.bluebutton.views.home
@@ -355,6 +355,77 @@ class BackendConnectionTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 502)
+
+    def test_search_request_failed_no_fhir_id(self):
+        # create the user
+        first_access_token = self.create_token_no_fhir('John', 'Smith')
+
+        expected_request = {
+            'method': 'GET',
+            'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
+                    "baseDstu3/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
+            'headers': {
+                'User-Agent': 'python-requests/2.18.4',
+                'Accept-Encoding': 'gzip, deflate',
+                'Accept': '*/*',
+                'Connection': 'keep-alive',
+                'BlueButton-OriginalQueryCounter': '1',
+                'BlueButton-BeneficiaryId': 'patientId:20140000008325',
+                'BlueButton-Application': 'John_Smith_test',
+                'BlueButton-OriginatingIpAddress': '127.0.0.1',
+                'keep-alive': 'timeout=120, max=10',
+                'BlueButton-OriginalUrl': '/v1/fhir/Patient',
+                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/',
+            }
+        }
+
+        @urlmatch(query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*')  # noqa
+        def fhir_request(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    'total': 1,
+                    'entry': [{
+                        'resource': {
+                            'id': 20140000008325,
+                        },
+                    }],
+                },
+            }
+
+        @all_requests
+        def catchall(url, req):
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/", req.url)
+            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
+            self.assertIn("_id=20140000008325", req.url)
+            self.assertEqual(expected_request['method'], req.method)
+            self.assertDictContainsSubset(expected_request['headers'], req.headers)
+
+            return {
+                'status_code': 500,
+                'content': {},
+            }
+
+        with HTTMock(fhir_request, catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_search',
+                    kwargs={'resource_type': 'Patient'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 502)
+
+    def test_read_request_failed_no_fhir_id(self):
+        # create the user
+        first_access_token = self.create_token_no_fhir('John', 'Smith')
+
+        response = self.client.get(
+            reverse(
+                'bb_oauth_fhir_read_or_update_or_delete',
+                kwargs={'resource_type': 'Patient', 'resource_id': '20140000008325'}),
+            Authorization="Bearer %s" % (first_access_token))
+
+        self.assertEqual(response.status_code, 403)
 
     def test_read_request(self):
         # create the user

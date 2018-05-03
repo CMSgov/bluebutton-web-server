@@ -17,6 +17,7 @@ from ..serializers import localize
 from ..decorators import require_valid_token
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
+                     FhirServerAuth,
                      get_resourcerouter)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -65,6 +66,28 @@ class FhirDataView(APIView):
         if self.crosswalk is None:
             raise exceptions.PermissionDenied(
                 'No access information was found for the authenticated user')
+        if self.crosswalk.fhir_id == "":
+            auth_state = FhirServerAuth(None)
+            certs = (auth_state['cert_file'], auth_state['key_file'])
+
+            # URL for patient ID.
+            url = get_resourcerouter().fhir_url + \
+                "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
+                self.crosswalk.user_id_hash + \
+                "&_format=json"
+            response = requests.get(url, cert=certs, verify=False)
+            backend_data = response.json()
+
+            if 'entry' in backend_data and backend_data['total'] == 1:
+                fhir_id = backend_data['entry'][0]['resource']['id']
+                self.crosswalk.fhir_id = fhir_id
+                self.crosswalk.save()
+
+                logger.info("Success:Beneficiary connected to FHIR")
+                # Recheck perms
+                self.crosswalk = self.check_resource_permission(request, resource_type, *args, **kwargs)
+            else:
+                raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
 
         self.resource_type = resource_type
 
