@@ -87,6 +87,10 @@ class FhirDataView(APIView):
                 # Recheck perms
                 self.crosswalk = self.check_resource_permission(request, resource_type, *args, **kwargs)
             else:
+                if backend_data.get('total', 0) > 1:
+                    # Don't return a 404 because retrying later will not fix this.
+                    raise UpstreamServerException("Duplicate beneficiaries found")
+
                 raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
 
         self.resource_type = resource_type
