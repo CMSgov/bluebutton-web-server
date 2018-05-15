@@ -36,14 +36,15 @@ class SearchView(FhirDataView):
 
         data = self.fetch_data(request, resource_type, *args, **kwargs)
 
-        # TODO update to pagination class
-        data['entry'] = data['entry'][start_index:start_index + page_size]
-        replay_parameters = self.build_parameters()
-        data['link'] = get_paging_links(request.build_absolute_uri('?'),
-                                        start_index,
-                                        page_size,
-                                        data['total'],
-                                        replay_parameters)
+        if data.get('total', 0) > 0:
+            # TODO update to pagination class
+            data['entry'] = data['entry'][start_index:start_index + page_size]
+            replay_parameters = self.build_parameters()
+            data['link'] = get_paging_links(request.build_absolute_uri('?'),
+                                            start_index,
+                                            page_size,
+                                            data['total'],
+                                            replay_parameters)
 
         return Response(data)
 
