@@ -311,6 +311,40 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 404)
 
+    def test_search_emptyset(self):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    "resourceType": "Bundle",
+                    "id": "4b74b5b0-f324-41cb-85db-f8d527f79128",
+                    "meta": {
+                        "lastUpdated": "2018-05-15T14:01:58.603+00:00"
+                    },
+                    "type": "searchset",
+                    "total": 0,
+                    "link": [
+                        {
+                            "relation": "self",
+                            "url": "http://hapi.fhir.org/baseDstu3/ExplanationOfBenefit?_pretty=true&patient=1234"
+                        },
+                    ],
+                },
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_search',
+                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 200)
+
     def test_search_request_failed(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
