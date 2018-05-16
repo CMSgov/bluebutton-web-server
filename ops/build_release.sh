@@ -53,7 +53,13 @@ fi
 
 if [ -z "$GITHUB_ACCESS_TOKEN" ]
 then
-  echo "Please export GITHUB_ACCESS_TOKEN to continue"
+  echo "Please export GITHUB_ACCESS_TOKEN to continue">&2
+  exit 1
+fi
+
+if [ ! -f "LICENSE" ]
+then
+  echo "Must run script in top-level project directory.">&2
   exit 1
 fi
 
@@ -79,8 +85,6 @@ else
   NEWTAG="r$NEWRELEASENUM"
 fi
 
-RELEASE_NOTES="RELEASE.txt"
-[ ! -f $RELEASE_NOTES ] && echo "Must run script in top-level project directory." >&2 && exit 1
 TMPFILE=$(mktemp /tmp/$(basename $0).XXXXXX) || exit 1
 
 commits=$(git log --pretty=format:"- %s" $PREVTAG..HEAD)
