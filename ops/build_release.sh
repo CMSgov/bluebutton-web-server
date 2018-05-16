@@ -53,13 +53,13 @@ fi
 
 if [ -z "$GITHUB_ACCESS_TOKEN" ]
 then
-  echo "Please export GITHUB_ACCESS_TOKEN to continue"
+  echo "Please export GITHUB_ACCESS_TOKEN to continue">&2
   exit 1
 fi
 
 if [ ! -f "LICENSE" ]
 then
-  echo "Must run script in top-level project directory."
+  echo "Must run script in top-level project directory.">&2
   exit 1
 fi
 
