@@ -57,6 +57,12 @@ then
   exit 1
 fi
 
+if [ ! -f "LICENSE" ]
+then
+  echo "Must run script in top-level project directory."
+  exit 1
+fi
+
 # fetch tags before any tag lookups so we have the most up-to-date list
 # and generate the correct next release number
 git fetch --tags
@@ -79,8 +85,6 @@ else
   NEWTAG="r$NEWRELEASENUM"
 fi
 
-RELEASE_NOTES="RELEASE.txt"
-[ ! -f $RELEASE_NOTES ] && echo "Must run script in top-level project directory." >&2 && exit 1
 TMPFILE=$(mktemp /tmp/$(basename $0).XXXXXX) || exit 1
 
 commits=$(git log --pretty=format:"- %s" $PREVTAG..HEAD)
