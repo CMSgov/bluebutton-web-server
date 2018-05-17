@@ -11,7 +11,7 @@ from django.utils.crypto import pbkdf2
 from oauth2_provider.models import AccessToken
 
 
-logger = logging.getLogger('performance.%s' % __name__)
+logger = logging.getLogger('audit.%s' % __name__)
 
 ##############################################################################
 #
@@ -35,15 +35,13 @@ class RequestTimeLoggingMiddleware(object):
     """
 
     @staticmethod
-    def log_message(request, tag, message=''):
+    def log_message(request):
         """Audit Log message to stderr/INFO.
 
-        Logs message about `request'/'response' pair with a `tag' (a string, 10
-        characters or less if possible). This is in a single-line JSON format.
+        Logs message about `request'/'response' pair.
 
 
         The JSON log format contians the following fields:
-            - tag = The 10-char or less logging type. audittrail for request/response pairs.
             - start_time = Unix Epoch format time of the request processed.
             - end_time = Unix Epoch format time of the response processed.
             - request_uuid = The UUID identifying the request.
@@ -85,12 +83,12 @@ class RequestTimeLoggingMiddleware(object):
                 dev_name = ""
                 access_token_hash = ""
 
-            log_fmt = '{ \"tag\" : \"%-10s\", \"start_time\" : \"%s\", \"end_time\" : \"%s\", \"request_uuid\" : \"%s\", ' + \
+            log_fmt = '{ \"start_time\" : \"%s\", \"end_time\" : \"%s\", \"request_uuid\" : \"%s\", ' + \
                       '\"path" : \"%s\", \"response_code\" : \"%s\", \"size\" : \"%s\", \"location\" : \"%s\", ' + \
                       '\"user\" : \"%s\",\"ip_addr\" : \"%s\", \"access_token_hash\" : \"%s\", ' + \
                       '\"app_name\" : \"%s\", \"app_id\" : \"%s\", \"dev_name\" : \"%s\", \"dev_id\" : \"%s\" }'
 
-            logger.info(log_fmt % (tag, request._logging_start_dt.timestamp(), dt.timestamp(), request._logging_uuid,
+            logger.info(log_fmt % ( request._logging_start_dt.timestamp(), dt.timestamp(), request._logging_uuid,
                                    request.path, str(request._logging_response_code),
                                    str(request._logging_response_size) if hasattr(request,
                                                                                   '_logging_response_size') else "",
@@ -102,7 +100,7 @@ class RequestTimeLoggingMiddleware(object):
         request._logging_pass += 1
 
     def process_request(self, request):
-        self.log_message(request, 'request ')
+        self.log_message(request)
 
     def process_response(self, request, response):
         s = getattr(response, 'status_code', 0)
@@ -114,5 +112,5 @@ class RequestTimeLoggingMiddleware(object):
         elif response.content:
             request._logging_response_size = len(response.content)
 
-        self.log_message(request, 'audittrail', "")
+        self.log_message(request)
         return response

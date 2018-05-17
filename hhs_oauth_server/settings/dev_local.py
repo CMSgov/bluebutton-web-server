@@ -94,7 +94,14 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'formatter': 'verbose',
             'filename': '/var/log/pyapps/perf_mon.log',
+        },
+        'audit_trail': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'jsonout',
+            'filename': '/var/log/pyapps/audit_trail.log',
         }
+
     },
     'loggers': {
         'hhs_server': {
@@ -127,6 +134,10 @@ LOGGING = {
         },
         'performance': {
             'handlers': ['console'],   # 'perf_mon'],
+            'level': 'INFO',
+        },
+        'audit': {
+            'handlers': ['console'],   # 'audit_trail'],
             'level': 'INFO',
         }
     },

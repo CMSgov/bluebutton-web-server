@@ -268,6 +268,10 @@ LOGGING = {
         'performance': {
             'handlers': ['console'],
             'level': 'INFO',
+        },
+        'audit': {
+            'handlers': ['console'],
+            'level': 'INFO',
         }
     },
 }
