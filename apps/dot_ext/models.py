@@ -1,10 +1,14 @@
 import sys
 import hashlib
 import logging
+import uuid
+from datetime import datetime
 
+from django.utils.dateparse import parse_duration
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth import get_user_model
 
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AbstractApplication
@@ -114,6 +118,28 @@ class ExpiresInManager(models.Manager):
             return self.get(key=key).expires_in
         except self.model.DoesNotExist:
             return None
+
+
+class Approval(models.Model):
+    uuid = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False)
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE)
+    application = models.ForeignKey(
+        Application,
+        null=True,
+        on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def expired(self):
+        return (
+            self.created_at + parse_duration(
+                # Default to 600 seconds, 10 min
+                getattr(settings, 'AUTHORIZATION_EXPIRATION', "600"))).timestamp() < datetime.now().timestamp()
 
 
 class ExpiresIn(models.Model):

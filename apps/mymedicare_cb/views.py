@@ -1,43 +1,33 @@
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from django.contrib.auth import login
 import requests
 from django.http import JsonResponse
 import urllib.request as urllib_request
+from urllib.parse import (
+    urlsplit,
+    urlunsplit,
+)
 import random
 from .models import (
     AnonUserState,
     get_and_update_user,
 )
 import logging
+from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from .authorization import OAuth2Config
+from apps.dot_ext.models import Approval
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-@never_cache
-def callback(request):
-
-    state = request.GET.get('state')
-    if not state:
-        return JsonResponse({
-            "error": 'The state parameter is required'
-        }, status=400)
-
-    try:
-        anon_user_state = AnonUserState.objects.get(state=state)
-    except AnonUserState.DoesNotExist:
-        return JsonResponse({"error": 'The requested state was not found'}, status=400)
-    next_uri = anon_user_state.next_uri
-
+def authenticate(request):
     code = request.GET.get('code')
     if not code:
-        return JsonResponse({
-            "error": 'The code parameter is required'
-        }, status=400)
+        raise ValidationError('The code parameter is required')
 
     sls_client = OAuth2Config()
 
@@ -45,9 +35,7 @@ def callback(request):
         sls_client.exchange(code)
     except requests.exceptions.HTTPError as e:
         logger.error("Token request response error {reason}".format(reason=e))
-        return JsonResponse({
-            "error": 'An error occurred connecting to account.mymedicare.gov'
-        }, status=502)
+        raise UpstreamServerException('An error occurred connecting to account.mymedicare.gov')
 
     userinfo_endpoint = getattr(
         settings,
@@ -62,16 +50,50 @@ def callback(request):
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         logger.error("User info request response error {reason}".format(reason=e))
-        return JsonResponse({
-            "error": 'An error occurred connecting to account.mymedicare.gov'
-        }, status=502)
+        raise UpstreamServerException(
+            'An error occurred connecting to account.mymedicare.gov')
 
     # Get the userinfo response object
     user_info = response.json()
     user = get_and_update_user(user_info)
-    login(request, user)
+    request.user = user
 
-    return HttpResponseRedirect(next_uri)
+
+@never_cache
+def callback(request):
+    try:
+        authenticate(request)
+    except ValidationError as e:
+        return JsonResponse({
+            "error": e.message,
+        }, status=400)
+    except UpstreamServerException as e:
+        return JsonResponse({
+            "error": e.detail,
+        }, status=502)
+
+    state = request.GET.get('state')
+    if not state:
+        return JsonResponse({
+            "error": 'The state parameter is required'
+        }, status=400)
+
+    try:
+        anon_user_state = AnonUserState.objects.get(state=state)
+    except AnonUserState.DoesNotExist:
+        return JsonResponse({"error": 'The requested state was not found'}, status=400)
+    next_uri = anon_user_state.next_uri
+
+    scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
+
+    approval = Approval.objects.create(
+        user=request.user)
+
+    # Only go back to app authorization
+    auth_uri = reverse('oauth2_provider:authorize-instance', args=[approval.uuid])
+    _, _, auth_path, _, _ = urlsplit(auth_uri)
+
+    return HttpResponseRedirect(urlunsplit((scheme, netloc, auth_path, query_string, fragment)))
 
 
 def generate_nonce(length=26):
