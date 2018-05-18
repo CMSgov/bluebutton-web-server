@@ -126,7 +126,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         response = self.client.post(auth_uri, data=payload)
         self.assertEqual(302, response.status_code)
         self.assertIn("code=", response.url)
-        approval.created_at = datetime.now() - parse_duration("1")
+        approval.created_at = datetime.now() - parse_duration("601")
         approval.save()
         response = self.client.post(auth_uri, data={
             "client_id": application.client_id,

@@ -138,7 +138,8 @@ class Approval(models.Model):
     def expired(self):
         return (
             self.created_at + parse_duration(
-                getattr(settings, 'AUTHORIZATION_EXPIRATION', "1"))).timestamp() < datetime.now().timestamp()
+                # Default to 600 seconds, 10 min
+                getattr(settings, 'AUTHORIZATION_EXPIRATION', "600"))).timestamp() < datetime.now().timestamp()
 
 
 class ExpiresIn(models.Model):
