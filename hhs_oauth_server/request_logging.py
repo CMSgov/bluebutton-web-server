@@ -2,6 +2,7 @@ import logging
 import datetime
 import uuid
 import binascii
+import json
 from django.conf import settings
 from apps.fhir.bluebutton.utils import (get_ip_from_request,
                                         get_user_from_request,
@@ -11,7 +12,69 @@ from django.utils.crypto import pbkdf2
 from oauth2_provider.models import AccessToken
 
 
-logger = logging.getLogger('audit.%s' % __name__)
+logger = logging.getLogger('performance.%s' % __name__)
+
+
+class RequestResponseLog(object):
+    """Audit Log message to JSON string
+
+    The JSON log format contians the following fields:
+        - start_time = Unix Epoch format time of the request processed.
+        - end_time = Unix Epoch format time of the response processed.
+        - request_uuid = The UUID identifying the request.
+        - path = The request.path.
+        - response_code = The response status code.
+        - size = Size in bytes of the response.content
+        - location = Location (redirect) for 300,301,302,307 response codes.
+        - user = Login user (or None) or OAuth2 API.
+        - ip_addr = IP address of the request, account for the possibility of being behind a proxy.
+        - access_token_hash = A hash of the access token.
+        - app_name = Application name.
+        - app_id = Application id.
+        - dev_name = Developer user name.
+        - dev_id = Developer user id.
+    """
+
+    request = None
+    response = None
+
+    def __init__(self, req, resp):
+        self.request = req
+        self.response = resp
+
+    def __str__(self):
+        # Create log message dict
+        log_msg = {}
+        log_msg['start_time'] = self.request._logging_start_dt.timestamp()
+        log_msg['end_time'] = datetime.datetime.utcnow().timestamp()
+        log_msg['request_uuid'] = str(self.request._logging_uuid)
+        log_msg['path'] = self.request.path
+        log_msg['response_code'] = getattr(self.response, 'status_code', 0)
+        log_msg['size'] = str(self.request._logging_response_size) if hasattr(self.request,
+                                                                              '_logging_response_size') else ""
+        log_msg['location'] = str(self.request._logging_response_location) if hasattr(self.request,
+                                                                                      '_logging_response_location') else ""
+        log_msg['user'] = str(get_user_from_request(self.request))
+        log_msg['ip_addr'] = get_ip_from_request(self.request)
+        access_token = get_access_token_from_request(self.request)
+
+        if AccessToken.objects.filter(token=access_token).exists():
+            at = AccessToken.objects.get(token=access_token)
+            log_msg['app_name'] = str(at.application.name)
+            log_msg['app_id'] = str(at.application.id)
+            log_msg['dev_id'] = str(at.application.user.id)
+            log_msg['dev_name'] = str(at.application.user)
+            log_msg['access_token_hash'] = binascii.hexlify(pbkdf2(access_token, get_user_id_salt(),
+                                                            settings.USER_ID_ITERATIONS)).decode("ascii")
+        else:
+            log_msg['app_name'] = ""
+            log_msg['app_id'] = ""
+            log_msg['dev_id'] = ""
+            log_msg['dev_name'] = ""
+            log_msg['access_token_hash'] = ""
+
+        return(json.dumps(log_msg))
+
 
 ##############################################################################
 #
@@ -35,82 +98,15 @@ class RequestTimeLoggingMiddleware(object):
     """
 
     @staticmethod
-    def log_message(request):
-        """Audit Log message to stderr/INFO.
-
-        Logs message about `request'/'response' pair.
-
-
-        The JSON log format contians the following fields:
-            - start_time = Unix Epoch format time of the request processed.
-            - end_time = Unix Epoch format time of the response processed.
-            - request_uuid = The UUID identifying the request.
-            - path = The request.path.
-            - response_code = The response status code.
-            - size = Size in bytes of the response.content
-            - location = Location (redirect) for 300,301,302,307 response codes.
-            - user = Login user (or None) or OAuth2 API.
-            - ip_addr = IP address of the request, account for the possibility of being behind a proxy.
-            - access_token_hash = A hash of the access token.
-            - app_name = Application name.
-            - app_id = Application id.
-            - dev_name = Developer user name.
-            - dev_id = Developer user id.
-        """
-
-        # Save request data else log request/response pair info.
-        dt = datetime.datetime.utcnow()
-        if not hasattr(request, '_logging_uuid'):
-            request._logging_uuid = uuid.uuid1()
-            request._logging_start_dt = dt
-            request._logging_pass = 0
-        else:
-            # Gather logging details.
-            access_token = get_access_token_from_request(request)
-
-            if AccessToken.objects.filter(token=access_token).exists():
-                at = AccessToken.objects.get(token=access_token)
-                app_name = str(at.application.name)
-                app_id = str(at.application.id)
-                dev_id = str(at.application.user.id)
-                dev_name = str(at.application.user)
-                access_token_hash = binascii.hexlify(pbkdf2(access_token, get_user_id_salt(),
-                                                            settings.USER_ID_ITERATIONS)).decode("ascii")
-            else:
-                app_name = ""
-                app_id = ""
-                dev_id = ""
-                dev_name = ""
-                access_token_hash = ""
-
-            log_fmt = '{ \"start_time\" : \"%s\", \"end_time\" : \"%s\", \"request_uuid\" : \"%s\", ' + \
-                      '\"path" : \"%s\", \"response_code\" : \"%s\", \"size\" : \"%s\", \"location\" : \"%s\", ' + \
-                      '\"user\" : \"%s\",\"ip_addr\" : \"%s\", \"access_token_hash\" : \"%s\", ' + \
-                      '\"app_name\" : \"%s\", \"app_id\" : \"%s\", \"dev_name\" : \"%s\", \"dev_id\" : \"%s\" }'
-
-            logger.info(log_fmt % ( request._logging_start_dt.timestamp(), dt.timestamp(), request._logging_uuid,
-                                   request.path, str(request._logging_response_code),
-                                   str(request._logging_response_size) if hasattr(request,
-                                                                                  '_logging_response_size') else "",
-                                   str(request._logging_response_location) if hasattr(request,
-                                                                                      '_logging_response_location') else "",
-                                   get_user_from_request(request), get_ip_from_request(request), access_token_hash,
-                                   app_name, app_id, dev_name, dev_id))
-
+    def log_message(request, response):
+        logger.info(RequestResponseLog(request, response))
         request._logging_pass += 1
 
     def process_request(self, request):
-        self.log_message(request)
+        request._logging_uuid = uuid.uuid1()
+        request._logging_start_dt = datetime.datetime.utcnow()
+        request._logging_pass = 1
 
     def process_response(self, request, response):
-        s = getattr(response, 'status_code', 0)
-        request._logging_response_code = s
-        request._logging_response_location = ""
-
-        if s in (300, 301, 302, 307):
-            request._logging_response_location = response.get('Location', '?')
-        elif response.content:
-            request._logging_response_size = len(response.content)
-
-        self.log_message(request)
+        self.log_message(request, response)
         return response
