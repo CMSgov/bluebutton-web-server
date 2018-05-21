@@ -50,10 +50,14 @@ class RequestResponseLog(object):
         log_msg['request_uuid'] = str(self.request._logging_uuid)
         log_msg['path'] = self.request.path
         log_msg['response_code'] = getattr(self.response, 'status_code', 0)
-        log_msg['size'] = str(self.request._logging_response_size) if hasattr(self.request,
-                                                                              '_logging_response_size') else ""
-        log_msg['location'] = str(self.request._logging_response_location) if hasattr(self.request,
-                                                                                      '_logging_response_location') else ""
+        log_msg['size'] = ""
+        log_msg['location'] = ""
+
+        if log_msg['response_code'] in (300, 301, 302, 307):
+            log_msg['location'] = self.response.get('Location', '?')
+        elif self.response.content:
+            log_msg['size'] = len(self.response.content)
+
         log_msg['user'] = str(get_user_from_request(self.request))
         log_msg['ip_addr'] = get_ip_from_request(self.request)
         access_token = get_access_token_from_request(self.request)
