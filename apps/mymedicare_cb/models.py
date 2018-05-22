@@ -1,11 +1,13 @@
-import requests
 import logging
 from django.db import models
 from django.contrib.auth.models import User, Group
+from rest_framework import exceptions
 from apps.accounts.models import UserProfile
 from apps.fhir.authentication import convert_sls_uuid
+from apps.fhir.server.authentication import authenticate_crosswalk
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import get_resourcerouter, FhirServerAuth
+from apps.fhir.bluebutton.utils import get_resourcerouter
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -45,42 +47,26 @@ def get_and_update_user(user_info):
     crosswalk.user_id_hash = hicn
     crosswalk.save()
 
-    auth_state = FhirServerAuth(None)
-    certs = (auth_state['cert_file'], auth_state['key_file'])
-
-    # URL for patient ID.
-    url = fhir_source.fhir_url + \
-        "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
-        crosswalk.user_id_hash + \
-        "&_format=json"
-    response = requests.get(url, cert=certs, verify=False)
-    backend_data = response.json()
-
-    if 'entry' in backend_data and backend_data['total'] == 1:
-        fhir_id = backend_data['entry'][0]['resource']['id']
-        crosswalk.fhir_id = fhir_id
-        crosswalk.save()
-
-        logger.info("Success:Beneficiary connected to FHIR")
-    else:
+    try:
+        backend_data = authenticate_crosswalk(crosswalk)
+        # Get first and last name from FHIR if not in OIDC Userinfo response.
+        if user_info['given_name'] == "" or user_info['family_name'] == "":
+            if 'entry' in backend_data:
+                if 'name' in backend_data['entry'][0]['resource']:
+                    names = backend_data['entry'][0]['resource']['name']
+                    first_name = ""
+                    last_name = ""
+                    for n in names:
+                        if n['use'] == 'usual':
+                            last_name = n['family']
+                            first_name = n['given'][0]
+                        if last_name or first_name:
+                            user.first_name = first_name
+                            user.last_name = last_name
+                            user.save()
+    except (UpstreamServerException, exceptions.NotFound):
         logger.error("Failed to connect Beneficiary "
                      "to FHIR")
-
-    # Get first and last name from FHIR if not in OIDC Userinfo response.
-    if user_info['given_name'] == "" or user_info['family_name'] == "":
-        if 'entry' in backend_data:
-            if 'name' in backend_data['entry'][0]['resource']:
-                names = backend_data['entry'][0]['resource']['name']
-                first_name = ""
-                last_name = ""
-                for n in names:
-                    if n['use'] == 'usual':
-                        last_name = n['family']
-                        first_name = n['given'][0]
-                    if last_name or first_name:
-                        user.first_name = first_name
-                        user.last_name = last_name
-                        user.save()
 
     return user
 

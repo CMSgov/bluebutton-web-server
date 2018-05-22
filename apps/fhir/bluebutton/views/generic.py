@@ -1,7 +1,6 @@
 import requests
 import logging
-from django.utils.decorators import method_decorator
-from rest_framework import exceptions
+from rest_framework import (exceptions, permissions)
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -11,13 +10,12 @@ from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.server import connection as backend_connection
-from ..constants import ALLOWED_RESOURCE_TYPES
+from ..authentication import OAuth2ResourceOwner
+from ..permissions import (HasCrosswalk, ResourcePermission)
 from ..exceptions import UpstreamServerException
 from ..serializers import localize
-from ..decorators import require_valid_token
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
-                     FhirServerAuth,
                      get_resourcerouter)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -28,22 +26,18 @@ class FhirDataView(APIView):
     parser_classes = [JSONParser, FHIRParser]
     renderer_classes = [JSONRenderer, FHIRRenderer]
     throttle_classes = [TokenRateThrottle]
-
-    resource_type = None
+    authentication_classes = [OAuth2ResourceOwner]
+    permission_classes = [permissions.IsAuthenticated, HasCrosswalk, ResourcePermission]
 
     # Must return a Crosswalk
     def check_resource_permission(self, request, **kwargs):
         raise NotImplementedError()
 
-    def build_parameters(self):
+    def build_parameters(self, request):
         raise NotImplementedError()
 
     def validate_response(self, response):
         pass
-
-    @method_decorator(require_valid_token())
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
 
     def initial(self, request, resource_type, *args, **kwargs):
         """
@@ -56,44 +50,9 @@ class FhirDataView(APIView):
         logger.debug("Interaction: read")
         logger.debug("Request.path: %s" % request.path)
 
-        super().initial(request, *args, **kwargs)
+        request.resource_type = resource_type
 
-        if resource_type not in ALLOWED_RESOURCE_TYPES:
-            logger.info('User requested read access to the %s resource type' % resource_type)
-            raise exceptions.NotFound('The requested resource type, %s, is not supported' % resource_type)
-
-        self.crosswalk = self.check_resource_permission(request, resource_type, *args, **kwargs)
-        if self.crosswalk is None:
-            raise exceptions.PermissionDenied(
-                'No access information was found for the authenticated user')
-        if self.crosswalk.fhir_id == "":
-            auth_state = FhirServerAuth(None)
-            certs = (auth_state['cert_file'], auth_state['key_file'])
-
-            # URL for patient ID.
-            url = get_resourcerouter().fhir_url + \
-                "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
-                self.crosswalk.user_id_hash + \
-                "&_format=json"
-            response = requests.get(url, cert=certs, verify=False)
-            backend_data = response.json()
-
-            if 'entry' in backend_data and backend_data['total'] == 1:
-                fhir_id = backend_data['entry'][0]['resource']['id']
-                self.crosswalk.fhir_id = fhir_id
-                self.crosswalk.save()
-
-                logger.info("Success:Beneficiary connected to FHIR")
-                # Recheck perms
-                self.crosswalk = self.check_resource_permission(request, resource_type, *args, **kwargs)
-            else:
-                if backend_data.get('total', 0) > 1:
-                    # Don't return a 404 because retrying later will not fix this.
-                    raise UpstreamServerException("Duplicate beneficiaries found")
-
-                raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
-
-        self.resource_type = resource_type
+        super(FhirDataView, self).initial(request, *args, **kwargs)
 
     def get(self, request, resource_type, *args, **kwargs):
 
@@ -102,7 +61,7 @@ class FhirDataView(APIView):
         return Response(out_data)
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
-        resource_router = get_resourcerouter(self.crosswalk)
+        resource_router = get_resourcerouter(request.crosswalk)
         target_url = self.build_url(resource_router,
                                     resource_type,
                                     *args,
@@ -110,7 +69,7 @@ class FhirDataView(APIView):
 
         logger.debug('FHIR URL with key:%s' % target_url)
 
-        get_parameters = self.build_parameters()
+        get_parameters = self.build_parameters(request)
 
         logger.debug('Here is the URL to send, %s now add '
                      'GET parameters %s' % (target_url, get_parameters))
@@ -118,11 +77,11 @@ class FhirDataView(APIView):
         # Now make the call to the backend API
         r = requests.get(target_url,
                          params=get_parameters,
-                         cert=backend_connection.certs(crosswalk=self.crosswalk),
+                         cert=backend_connection.certs(crosswalk=request.crosswalk),
                          headers=backend_connection.headers(request, url=target_url),
                          timeout=resource_router.wait_time,
-                         verify=FhirServerVerify(crosswalk=self.crosswalk))
-        response = build_fhir_response(request._request, target_url, self.crosswalk, r=r, e=None)
+                         verify=FhirServerVerify(crosswalk=request.crosswalk))
+        response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         if response.status_code == 404:
             raise exceptions.NotFound(detail='The requested resource does not exist')
@@ -135,6 +94,9 @@ class FhirDataView(APIView):
 
         out_data = localize(request=request,
                             response=response,
-                            crosswalk=self.crosswalk,
+                            crosswalk=request.crosswalk,
                             resource_type=resource_type)
+
+        self.check_object_permissions(request, out_data)
+
         return out_data

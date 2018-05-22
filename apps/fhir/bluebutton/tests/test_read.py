@@ -87,72 +87,81 @@ class ThrottleReadRequestTest(BaseApiTest):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
-        response = self.client.get(
-            reverse(
-                'bb_oauth_fhir_read_or_update_or_delete',
-                kwargs={
-                    'resource_type': 'Nothing',
-                    'resource_id': 12}),
-            Authorization="Bearer %s" % (first_access_token))
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content':{"resourceType":"Patient","id":"20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+            }
 
-        self.assertEqual(response.status_code, 404)
+        with HTTMock(catchall):
 
-        self.assertTrue(response.has_header("X-RateLimit-Limit"))
-        self.assertEqual(response.get("X-RateLimit-Limit"), "1")
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={
+                        'resource_type': 'Patient',
+                        'resource_id': 20140000008325}),
+                Authorization="Bearer %s" % (first_access_token))
 
-        self.assertTrue(response.has_header("X-RateLimit-Remaining"))
-        self.assertEqual(response.get("X-RateLimit-Remaining"), "0")
+            self.assertEqual(response.status_code, 200)
 
-        self.assertTrue(response.has_header("X-RateLimit-Reset"))
-        # 86400.0 is 24 hours
-        self.assertEqual(response.get("X-RateLimit-Reset"), '86400.0')
+            self.assertTrue(response.has_header("X-RateLimit-Limit"))
+            self.assertEqual(response.get("X-RateLimit-Limit"), "1")
 
-        response = self.client.get(
-            reverse(
-                'bb_oauth_fhir_read_or_update_or_delete',
-                kwargs={
-                    'resource_type': 'Nothing',
-                    'resource_id': 12}),
-            Authorization="Bearer %s" % (first_access_token))
+            self.assertTrue(response.has_header("X-RateLimit-Remaining"))
+            self.assertEqual(response.get("X-RateLimit-Remaining"), "0")
 
-        self.assertEqual(response.status_code, 429)
-        # Assert that the proper headers are in place
-        self.assertTrue(response.has_header("X-RateLimit-Limit"))
-        self.assertEqual(response.get("X-RateLimit-Limit"), "1")
+            self.assertTrue(response.has_header("X-RateLimit-Reset"))
+            # 86400.0 is 24 hours
+            self.assertEqual(response.get("X-RateLimit-Reset"), '86400.0')
 
-        self.assertTrue(response.has_header("X-RateLimit-Remaining"))
-        self.assertEqual(response.get("X-RateLimit-Remaining"), "0")
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={
+                        'resource_type': 'Patient',
+                        'resource_id': 20140000008325}),
+                Authorization="Bearer %s" % (first_access_token))
 
-        self.assertTrue(response.has_header("X-RateLimit-Reset"))
-        # 86400.0 is 24 hours
-        self.assertTrue(float(response.get("X-RateLimit-Reset")) < 86400.0)
+            self.assertEqual(response.status_code, 429)
+            # Assert that the proper headers are in place
+            self.assertTrue(response.has_header("X-RateLimit-Limit"))
+            self.assertEqual(response.get("X-RateLimit-Limit"), "1")
 
-        self.assertTrue(response.has_header("Retry-After"))
-        self.assertEqual(response.get("Retry-After"), "86400")
+            self.assertTrue(response.has_header("X-RateLimit-Remaining"))
+            self.assertEqual(response.get("X-RateLimit-Remaining"), "0")
 
-        # Assert that the search endpoint is also ratelimited
-        response = self.client.get(
-            reverse(
-                'bb_oauth_fhir_search',
-                kwargs={
-                    'resource_type': 'Nothing'}),
-            Authorization="Bearer %s" % (first_access_token))
+            self.assertTrue(response.has_header("X-RateLimit-Reset"))
+            # 86400.0 is 24 hours
+            self.assertTrue(float(response.get("X-RateLimit-Reset")) < 86400.0)
 
-        self.assertEqual(response.status_code, 429)
+            self.assertTrue(response.has_header("Retry-After"))
+            self.assertEqual(response.get("Retry-After"), "86400")
 
-        # Assert that another token is not rate limited
-        second_access_token = self.create_token('Bob', 'Bobbington')
-        self.assertFalse(second_access_token == first_access_token)
+            # Assert that the search endpoint is also ratelimited
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_search',
+                    kwargs={
+                        'resource_type': 'Patient'}),
+                Authorization="Bearer %s" % (first_access_token))
 
-        response = self.client.get(
-            reverse(
-                'bb_oauth_fhir_read_or_update_or_delete',
-                kwargs={
-                    'resource_type': 'Nothing',
-                    'resource_id': 12}),
-            Authorization="Bearer %s" % (second_access_token))
+            self.assertEqual(response.status_code, 429)
 
-        self.assertEqual(response.status_code, 404)
+            # Assert that another token is not rate limited
+            second_access_token = self.create_token('Bob', 'Bobbington')
+            self.assertFalse(second_access_token == first_access_token)
+
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={
+                        'resource_type': 'Patient',
+                        'resource_id': 20140000008325}),
+                Authorization="Bearer %s" % (second_access_token))
+
+            self.assertEqual(response.status_code, 200)
 
 
 class BackendConnectionTest(BaseApiTest):
@@ -265,6 +274,15 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['entry'], expected_response['entry'])
             self.assertTrue(len(response.json()['link']) > 0)
+
+    def test_search_request_unauthorized(self):
+        response = self.client.get(
+            reverse(
+                'bb_oauth_fhir_search',
+                kwargs={'resource_type': 'Patient'}),
+            Authorization="Bearer bogus")
+
+        self.assertEqual(response.status_code, 401)
 
     def test_search_request_not_found(self):
         # create the user
@@ -453,13 +471,35 @@ class BackendConnectionTest(BaseApiTest):
         # create the user
         first_access_token = self.create_token_no_fhir('John', 'Smith')
 
-        response = self.client.get(
-            reverse(
-                'bb_oauth_fhir_read_or_update_or_delete',
-                kwargs={'resource_type': 'Patient', 'resource_id': '20140000008325'}),
-            Authorization="Bearer %s" % (first_access_token))
+        @urlmatch(query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*')  # noqa
+        def fhir_request(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    'total': 1,
+                    'entry': [{
+                        'resource': {
+                            'id': 20140000008324,
+                        },
+                    }],
+                },
+            }
 
-        self.assertEqual(response.status_code, 403)
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': {},
+            }
+
+        with HTTMock(fhir_request, catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={'resource_type': 'Patient', 'resource_id': '20140000008325'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 403)
 
     def test_read_request(self):
         # create the user
@@ -491,8 +531,7 @@ class BackendConnectionTest(BaseApiTest):
 
             return {
                 'status_code': 200,
-                # TODO replace this with true backend response, this has been post proccessed
-                'content': {},
+                'content':{"resourceType":"Patient","id":"20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
             }
 
         with HTTMock(catchall):
@@ -500,6 +539,54 @@ class BackendConnectionTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
                     kwargs={'resource_type': 'Patient', 'resource_id': '20140000008325'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 200)
+
+    def test_read_eob_request(self):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    'patient': {
+                        'reference': 'stuff/20140000008325',
+                    },
+                },
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={'resource_type': 'ExplanationOfBenefit', 'resource_id': 'eob_id'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 200)
+
+    def test_read_coverage_request(self):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    'beneficiary': {
+                        'reference': 'stuff/20140000008325',
+                    },
+                },
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)

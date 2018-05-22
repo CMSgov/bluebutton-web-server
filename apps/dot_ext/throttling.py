@@ -18,7 +18,7 @@ class TokenRateThrottle(SimpleRateThrottle):
 
     def get_cache_key(self, request, view):
         try:
-            ident = request.oauth.access_token
+            ident = request.auth
         except AttributeError:
             ident = self.get_ident(request)
 

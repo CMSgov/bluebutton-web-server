@@ -1,12 +1,12 @@
 import logging
 
 from urllib.parse import urlencode
-from rest_framework import exceptions
+from rest_framework import (exceptions, permissions)
 from rest_framework.response import Response
 
 from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-from apps.fhir.bluebutton.utils import get_crosswalk
 from apps.fhir.bluebutton.views.generic import FhirDataView
+from ..permissions import (SearchCrosswalkPermission, ResourcePermission)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -15,6 +15,11 @@ SIZE_PARAMETER = 'count'
 
 
 class SearchView(FhirDataView):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        ResourcePermission,
+        SearchCrosswalkPermission,
+    ]
 
     def get(self, request, resource_type, *args, **kwargs):
         # Verify paging inputs. Casting an invalid int will throw a ValueError
@@ -39,7 +44,7 @@ class SearchView(FhirDataView):
         if data.get('total', 0) > 0:
             # TODO update to pagination class
             data['entry'] = data['entry'][start_index:start_index + page_size]
-            replay_parameters = self.build_parameters()
+            replay_parameters = self.build_parameters(request)
             data['link'] = get_paging_links(request.build_absolute_uri('?'),
                                             start_index,
                                             page_size,
@@ -48,29 +53,9 @@ class SearchView(FhirDataView):
 
         return Response(data)
 
-    def check_resource_permission(self, request, *args, **kwargs):
-        crosswalk = get_crosswalk(request.resource_owner)
-
-        # If the user isn't matched to a backend ID, they have no permissions
-        if crosswalk is None:
-            logger.info('Crosswalk for %s does not exist' % request.user)
-            raise exceptions.PermissionDenied(
-                'No access information was found for the authenticated user')
-
-        patient_id = crosswalk.fhir_id
-
-        if 'patient' in request.GET and request.GET['patient'] != patient_id:
-            raise exceptions.PermissionDenied(
-                'You do not have permission to access the requested patient\'s data')
-
-        if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
-            raise exceptions.PermissionDenied(
-                'You do not have permission to access the requested patient\'s data')
-        return crosswalk
-
-    def build_parameters(self, *args, **kwargs):
-        patient_id = self.crosswalk.fhir_id
-        resource_type = self.resource_type
+    def build_parameters(self, request, *args, **kwargs):
+        patient_id = request.crosswalk.fhir_id
+        resource_type = request.resource_type
         get_parameters = {
             '_format': 'application/json+fhir'
         }
