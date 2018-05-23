@@ -2,11 +2,11 @@ import logging
 import datetime
 import uuid
 import hashlib
-
 import json
 from django.conf import settings
 from apps.fhir.bluebutton.utils import (get_ip_from_request,
-                                        get_user_from_request)
+                                        get_user_from_request,
+                                        get_access_token_from_request)
 from apps.accounts.models import get_user_id_salt
 from django.utils.crypto import pbkdf2
 from oauth2_provider.models import AccessToken
@@ -65,7 +65,11 @@ class RequestResponseLog(object):
 
         log_msg['user'] = str(get_user_from_request(self.request))
         log_msg['ip_addr'] = get_ip_from_request(self.request)
-        access_token = self.request.auth
+
+        if hasattr(self.request,'auth'):
+            access_token = self.request.auth
+        else:
+            access_token = get_access_token_from_request(self.request)
 
         if AccessToken.objects.filter(token=access_token).exists():
             at = AccessToken.objects.get(token=access_token)
