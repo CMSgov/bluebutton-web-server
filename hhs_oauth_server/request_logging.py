@@ -52,6 +52,11 @@ class RequestResponseLog(object):
         log_msg['response_code'] = getattr(self.response, 'status_code', 0)
         log_msg['size'] = ""
         log_msg['location'] = ""
+        log_msg['app_name'] = ""
+        log_msg['app_id'] = ""
+        log_msg['dev_id'] = ""
+        log_msg['dev_name'] = ""
+        log_msg['access_token_hash'] = ""
 
         if log_msg['response_code'] in (300, 301, 302, 307):
             log_msg['location'] = self.response.get('Location', '?')
@@ -70,12 +75,6 @@ class RequestResponseLog(object):
             log_msg['dev_name'] = str(at.application.user)
             log_msg['access_token_hash'] = binascii.hexlify(pbkdf2(access_token, get_user_id_salt(),
                                                             settings.USER_ID_ITERATIONS)).decode("ascii")
-        else:
-            log_msg['app_name'] = ""
-            log_msg['app_id'] = ""
-            log_msg['dev_id'] = ""
-            log_msg['dev_name'] = ""
-            log_msg['access_token_hash'] = ""
 
         return(json.dumps(log_msg))
 
