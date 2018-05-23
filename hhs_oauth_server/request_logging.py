@@ -67,9 +67,9 @@ class RequestResponseLog(object):
 
         if AccessToken.objects.filter(token=access_token).exists():
             at = AccessToken.objects.get(token=access_token)
-            log_msg['app_name'] = str(at.application.name)
-            log_msg['app_id'] = str(at.application.id)
-            log_msg['dev_id'] = str(at.application.user.id)
+            log_msg['app_name'] = at.application.name
+            log_msg['app_id'] = at.application.id
+            log_msg['dev_id'] = at.application.user.id
             log_msg['dev_name'] = str(at.application.user)
             log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
 
