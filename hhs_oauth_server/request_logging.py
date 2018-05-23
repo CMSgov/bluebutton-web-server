@@ -1,7 +1,8 @@
 import logging
 import datetime
 import uuid
-import binascii
+import hashlib
+
 import json
 from django.conf import settings
 from apps.fhir.bluebutton.utils import (get_ip_from_request,
@@ -72,8 +73,7 @@ class RequestResponseLog(object):
             log_msg['app_id'] = str(at.application.id)
             log_msg['dev_id'] = str(at.application.user.id)
             log_msg['dev_name'] = str(at.application.user)
-            log_msg['access_token_hash'] = binascii.hexlify(pbkdf2(access_token, get_user_id_salt(),
-                                                            settings.USER_ID_ITERATIONS)).decode("ascii")
+            log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
 
         return(json.dumps(log_msg))
 
