@@ -66,10 +66,7 @@ class RequestResponseLog(object):
         log_msg['user'] = str(get_user_from_request(self.request))
         log_msg['ip_addr'] = get_ip_from_request(self.request)
 
-        if hasattr(self.request,'auth'):
-            access_token = self.request.auth
-        else:
-            access_token = get_access_token_from_request(self.request)
+        access_token = getattr(self.request, 'auth', get_access_token_from_request(self.request))
 
         if AccessToken.objects.filter(token=access_token).exists():
             at = AccessToken.objects.get(token=access_token)
