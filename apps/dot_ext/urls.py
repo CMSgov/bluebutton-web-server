@@ -7,7 +7,6 @@ oauth2_provider_urls = ([
     url(r'^applications/(?P<pk>\d+)/update/$', views.ApplicationUpdate.as_view(), name="update"),
     url(r'^authorize/$', views.AuthorizationView.as_view(), name="authorize"),
     url(r'^authorize/(?P<uuid>[\w-]+)/$', views.ApprovalView.as_view(), name="authorize-instance"),
-    url(r'^scope-authorize/$', views.ScopeAuthorizationView.as_view(), name="scope_authorize"),
     url(r'', include('oauth2_provider.urls')),
 ], 'oauth2_provider', 'oauth2_provider')
 
