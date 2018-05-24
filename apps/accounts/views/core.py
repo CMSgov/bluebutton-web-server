@@ -90,12 +90,6 @@ def simple_login(request):
     return render(request, 'login.html', {'form': LoginForm()})
 
 
-@login_required
-def display_api_keys(request):
-    up = get_object_or_404(UserProfile, user=request.user)
-    return render(request, 'display-api-keys.html', {'up': up})
-
-
 @never_cache
 @login_required
 def reissue_api_keys(request):
