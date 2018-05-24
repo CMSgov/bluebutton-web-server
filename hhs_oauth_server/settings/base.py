@@ -266,7 +266,7 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'audit': {
-            'handlers': ['console'], 
+            'handlers': ['console'],
             'level': 'INFO',
         },
         'performance': {
