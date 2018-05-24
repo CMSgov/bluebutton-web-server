@@ -9,7 +9,7 @@ from apps.fhir.bluebutton.utils import (get_ip_from_request,
 from oauth2_provider.models import AccessToken
 
 
-logger = logging.getLogger('performance.%s' % __name__)
+audit = logging.getLogger('audit.%s' % __name__)
 
 
 class RequestResponseLog(object):
@@ -99,7 +99,7 @@ class RequestTimeLoggingMiddleware(object):
 
     @staticmethod
     def log_message(request, response):
-        logger.info(RequestResponseLog(request, response))
+        audit.info(RequestResponseLog(request, response))
         request._logging_pass += 1
 
     def process_request(self, request):
