@@ -20,7 +20,6 @@ urlpatterns = [
     url(r'^v1/fhir/metadata$', fhir_conformance, name='fhir_conformance_metadata'),
     url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
     url(r'^v1/o/', include('apps.dot_ext.urls')),
-    url(r'^social-auth/', include('social_django.urls', namespace='social')),
 
     url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls)),
 ]
