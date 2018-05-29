@@ -13,12 +13,11 @@ dj-database-url==0.4.1
 django-appconf==1.0.2     # via django-axes
 django-axes==4.1.0
 django-bootstrap-form==3.3
-django-braces==1.9.0      # via django-oauth-toolkit-scopes-backend
 django-cors-headers==1.1.0
 django-getenv==1.3.1
 django-ipware==2.0.1      # via django-axes
 django-localflavor==1.3
-django-oauth-toolkit-scopes-backend==0.10.0
+django-oauth-toolkit==1.1.2
 django-ses==0.7.1
 django-settings-export==1.1.0
 django-storages==1.5.1
@@ -27,12 +26,11 @@ djangorestframework==3.7.7
 idna==2.6                 # via requests
 jsonschema==2.5.1
 newrelic==2.106.0.87
-oauthlib==1.0.3
+oauthlib==2.1.0
 psycopg2==2.7.4
 pyjwt==1.5.3
 python-openid==2.2.5
 pytz==2016.4
 requests-oauthlib==0.8.0
 requests==2.18.4
-six==1.10.0               # via django-oauth-toolkit-scopes-backend
 urllib3==1.22             # via requests

@@ -56,7 +56,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
 
     def test_authorize_uuid_dne(self):
         auth_uri = reverse(
-            'oauth2_provider:authorize-instance',
+            'dot_ext:authorize-instance',
             args=[uuid.uuid4()])
         response = self.client.get(auth_uri)
         self.assertEqual(302, response.status_code)
@@ -100,7 +100,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         approval = Approval.objects.create(
             user=user)
         auth_uri = reverse(
-            'oauth2_provider:authorize-instance',
+            'dot_ext:authorize-instance',
             args=[approval.uuid])
         response = self.client.get(auth_uri, data={
             "client_id": application.client_id,
