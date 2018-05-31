@@ -12,6 +12,7 @@ django-axes
 django-storages
 jsonschema
 requests
+requests_oauthlib
 pytz
 configparser
 dj-database-url
