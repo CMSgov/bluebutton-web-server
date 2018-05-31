@@ -35,6 +35,7 @@ mccabe==0.6.1             # via flake8
 newrelic==2.106.0.87
 oauthlib==1.0.3
 pluggy==0.6.0             # via tox
+psycopg2==2.7.4
 py==1.5.3                 # via tox
 pycodestyle==2.3.1        # via flake8
 pyflakes==1.6.0           # via flake8
