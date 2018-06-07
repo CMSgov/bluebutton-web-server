@@ -23,7 +23,7 @@ class BeneMetricsView(APIView):
 
     def get(self, request, format=None):
         content = {
-            'beneficiary_count': UserProfile.objects.filter(user_type='BEN').count()
+            'count': UserProfile.objects.filter(user_type='BEN').count()
         }
         return Response(content)
 
@@ -44,7 +44,7 @@ class AppMetricsView(APIView):
 
     def get(self, request, format=None):
         content = {
-            'application_count': Application.objects.count()
+            'count': Application.objects.count()
         }
         return Response(content)
 
@@ -65,6 +65,6 @@ class TokenMetricsView(APIView):
 
     def get(self, request, format=None):
         content = {
-            'access_token_count': AccessToken.objects.count()
+            'count': AccessToken.objects.count()
         }
         return Response(content)
