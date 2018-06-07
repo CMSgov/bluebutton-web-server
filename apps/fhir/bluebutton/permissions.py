@@ -58,8 +58,10 @@ class ReadCrosswalkPermission(HasCrosswalk):
                 if reference_id != request.crosswalk.fhir_id:
                     raise exceptions.NotFound()
 
+        except exceptions.NotFound:
+            raise
         except Exception:
-            logger.warning('An error occurred fetching beneficiary id')
+            logger.exception('An error occurred fetching beneficiary id')
             return False
         return True
 

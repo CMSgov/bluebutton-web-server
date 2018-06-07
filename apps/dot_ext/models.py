@@ -14,7 +14,7 @@ from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AbstractApplication
 from django.conf import settings
 
-from apps.dot_ext.oauth2_validators import validate_uris
+from apps.dot_ext.validators import validate_uris
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 

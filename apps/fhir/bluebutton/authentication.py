@@ -1,4 +1,4 @@
-from oauth2_provider.ext.rest_framework import authentication
+from oauth2_provider.contrib.rest_framework import authentication
 
 
 class OAuth2ResourceOwner(authentication.OAuth2Authentication):

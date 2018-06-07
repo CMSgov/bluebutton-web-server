@@ -26,7 +26,7 @@ django-ses
 # security and identity system
 oauthlib
 python-openid
-django-oauth-toolkit-scopes-backend
+django-oauth-toolkit
 
 # Decorate admin urls to force MFA login
 decorate_url

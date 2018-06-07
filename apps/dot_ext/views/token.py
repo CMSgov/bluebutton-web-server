@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework import serializers
 from oauth2_provider.models import AccessToken
-from oauth2_provider.ext.rest_framework import TokenHasScope
+from oauth2_provider.contrib.rest_framework import TokenHasScope
 from apps.dot_ext.authentication import SLSAuthentication
 from ..models import Application
 

@@ -7,13 +7,13 @@ oauth2_provider_urls = ([
     url(r'^applications/(?P<pk>\d+)/update/$', views.ApplicationUpdate.as_view(), name="update"),
     url(r'^authorize/$', views.AuthorizationView.as_view(), name="authorize"),
     url(r'^authorize/(?P<uuid>[\w-]+)/$', views.ApprovalView.as_view(), name="authorize-instance"),
-    url(r'', include('oauth2_provider.urls')),
-], 'oauth2_provider', 'oauth2_provider')
+], 'dot_ext')
 
 router = DefaultRouter()
 router.register(r'tokens', views.AuthorizedTokens, base_name='token')
 
 urlpatterns = [
     url(r'', include(oauth2_provider_urls)),
-    url(r'', include(router.urls, namespace='token_management'))
+    url(r'', include('oauth2_provider.urls')),
+    url(r'', include(router.urls, namespace='token_management')),
 ]
