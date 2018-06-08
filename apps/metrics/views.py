@@ -1,10 +1,11 @@
+from django.db.models import Count
+from oauth2_provider.models import AccessToken
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application
-from oauth2_provider.models import AccessToken
 
 
 class BeneMetricsView(APIView):
@@ -32,8 +33,8 @@ class AppMetricsView(APIView):
     """
     View to provide application metrics.
 
-    * Only admin users are able to access this view.
-    * Default returns count info
+    * Only admin users are able to access this view
+    * Default returns count info and application list data with unique bene counts
     """
     permission_classes = (
         IsAuthenticated,
@@ -44,7 +45,13 @@ class AppMetricsView(APIView):
 
     def get(self, request, format=None):
         content = {
-            'count': Application.objects.count()
+            'count': Application.objects.count(),
+            'data': AccessToken.objects.values('application__id')
+                                       .annotate(unique_bene_count=Count('user__id', distinct=True))
+                                       .order_by('application__id')
+                                       .values('application__id', 'application__name', 'application__user',
+                                               'application__user__username', 'application__user__email',
+                                               'application__active', 'unique_bene_count')
         }
         return Response(content)
 
