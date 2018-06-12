@@ -1,11 +1,41 @@
 from django.db.models import Count
+from django.contrib.auth.models import User
 from oauth2_provider.models import AccessToken
+from rest_framework.serializers import BooleanField, CharField, IntegerField, ModelSerializer
+from rest_framework.generics import ListAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.renderers import JSONRenderer
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application
+
+
+class UserSerializer(ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email')
+
+
+class AppMetricsSerializer(ModelSerializer):
+
+    app_id = IntegerField(source='id', read_only=True)
+    app_name = CharField(source='name', read_only=True)
+    app_active = BooleanField(source='active', read_only=True)
+    dev_user = UserSerializer(source='user', read_only=True)
+    uniq_bene_count = IntegerField(read_only=True)
+
+    class Meta:
+        model = Application
+        fields = ('app_id', 'app_name', 'app_active', 'dev_user', 'uniq_bene_count')
+
+
+class AppMetricsPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
 
 
 class BeneMetricsView(APIView):
@@ -29,31 +59,31 @@ class BeneMetricsView(APIView):
         return Response(content)
 
 
-class AppMetricsView(APIView):
+class AppMetricsView(ListAPIView):
     """
     View to provide application metrics.
+
 
     * Only admin users are able to access this view
     * Default returns count info and application list data with unique bene counts
     """
-    permission_classes = (
+
+    permission_classes = [
         IsAuthenticated,
         IsAdminUser,
-    )
+    ]
 
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
 
-    def get(self, request, format=None):
-        content = {
-            'count': Application.objects.count(),
-            'data': AccessToken.objects.values('application__id')
-                                       .annotate(unique_bene_count=Count('user__id', distinct=True))
-                                       .order_by('application__id')
-                                       .values('application__id', 'application__name', 'application__user',
-                                               'application__user__username', 'application__user__email',
-                                               'application__active', 'unique_bene_count')
-        }
-        return Response(content)
+    serializer_class = AppMetricsSerializer
+
+    pagination_class = AppMetricsPagination
+
+    def get_queryset(self):
+
+        queryset = Application.objects.all().annotate(uniq_bene_count=Count('accesstoken__user', distinct=True)).order_by('name')
+
+        return queryset
 
 
 class TokenMetricsView(APIView):
