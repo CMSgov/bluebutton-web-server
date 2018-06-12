@@ -13,7 +13,7 @@
             </ol>
         </div>
     </div>
-    
+
     <div class="row container-fluid">
         <div class="alert alert-info">
             <button type="button" class="close" data-dismiss="alert">×</button>
@@ -30,21 +30,13 @@
         {% if applications %}
             <ul>
                 {% for application in applications %}
-                    <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a> |
-                    <a href="{% url 'endorsement_list' application.id %}"">Endorsements</a>
-                    </li>
+                    <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a> | Updated {{application.updated}}
                 {% endfor %}
             </ul>
-
-            <a class="usa-button usa-button  usa-button-success" href="{% url "oauth2_provider:register" %}">Register New Application</a>
         {% else %}
-            <p>{% trans "No applications defined. Register a New Application:" %}
-                <a href="{% url 'oauth2_provider:register' %}">
-                    <button type="button" class="usa-button usa-button usa-button-primary">
-                        <i class="fa fa-plus-square"></i>  Register a New Application
-                    </button>
-                </a>
-            </p>
+            <p>{% trans "No applications defined." %}</p>
         {% endif %}
+           <a class="ds-c-button  ds-c-button--default"  href="{% url "oauth2_provider:register" %}"> Register New Application</a>    
     </div>
+    <br><br>
 {% endblock content %}

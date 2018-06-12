@@ -1,106 +1,82 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import sys
-import jwt
 import hashlib
 import logging
-import requests
-import datetime
-import json
+import uuid
+from datetime import datetime
 
+from django.utils.dateparse import parse_duration
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.utils import timezone
-
-from requests.exceptions import ConnectionError, TooManyRedirects, Timeout
-from oauth2_provider.models import AbstractApplication
-from poetri.verify_jws_with_jwk import verify_poet
+from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth import get_user_model
 
 from apps.capabilities.models import ProtectedCapability
+from oauth2_provider.models import AbstractApplication
+from django.conf import settings
 
+from apps.dot_ext.validators import validate_uris
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-class Endorsement(models.Model):
-    title = models.CharField(max_length=255,
-                             default='')
-    jwt = models.TextField(max_length=10240,
-                           default='')
-    iss = models.CharField(max_length=512,
-                           default='',
-                           verbose_name='Issuer',
-                           help_text='Must contain a FQDN',
-                           editable=False)
-    iat = models.DateTimeField(verbose_name='Issued At',
-                               editable=False)
-    exp = models.DateTimeField(verbose_name='Expires',
-                               editable=False)
-
-    def __str__(self):
-        return self.title
-
-    def url(self):
-        url = 'http://%s/.well-known/poet.jwk' % (self.iss)
-        return url
-
-    def signature_verified(self):
-
-        try:
-            url = 'https://%s/.well-known/poet.jwk' % (self.iss)
-            r = requests.get(url, timeout=3)
-
-            if r.status_code == 200:
-                k = json.loads(r.text)
-                payload = verify_poet(self.jwt, k)
-                if 'iss' in payload:
-                    if payload['iss'] == k['kid']:
-                        return True
-        except ConnectionError:
-            pass
-        except TooManyRedirects:
-            pass
-        except Timeout:
-            pass
-        return False
-
-    def payload(self):
-        payload = jwt.decode(self.jwt, verify=False)
-        return payload
-
-    def is_expired(self):
-        now = timezone.now()
-        if self.iat > now:
-            return True
-        return False
-
-    def good_to_go(self):
-        is_expired = self.is_expired()
-        signature_verified = self.signature_verified()
-
-        if signature_verified and is_expired is False:
-            return True
-        return False
-
-    def save(self, commit=True, **kwargs):
-        if commit:
-            payload = jwt.decode(self.jwt, verify=False)
-            self.iss = payload['iss']
-            self.iat = datetime.datetime.fromtimestamp(
-                int(payload['iat'])).strftime('%Y-%m-%d %H:%M:%S')
-            self.exp = datetime.datetime.fromtimestamp(
-                int(payload['exp'])).strftime('%Y-%m-%d %H:%M:%S')
-            super(Endorsement, self).save(**kwargs)
-
-
 class Application(AbstractApplication):
     scope = models.ManyToManyField(ProtectedCapability)
-    endorsements = models.ManyToManyField(Endorsement, blank=True)
     agree = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    op_tos_uri = models.CharField(default="", blank=True, max_length=512)
+    op_policy_uri = models.CharField(default="", blank=True, max_length=512)
+    client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client URI",
+                                  help_text="This is typically a homepage for the application.")
+    help_text = _('Allowed redirect URIs. Space or new line separated.')
+    redirect_uris = models.TextField(help_text=help_text,
+                                     validators=[validate_uris], blank=True)
+    logo_uri = models.CharField(
+        default="", blank=True, max_length=512, verbose_name="Logo URI")
+    tos_uri = models.CharField(
+        default="", blank=True, max_length=512, verbose_name="Client's Terms of Service URI")
+    policy_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client's Policy URI",
+                                  help_text="This can be a model privacy notice or other policy document.")
+    software_id = models.CharField(default="", blank=True, max_length=128,
+                                   help_text="A unique identifier for an application defined by its creator.")
+    contacts = models.TextField(default="", blank=True, max_length=512,
+                                verbose_name="Client's Contacts",
+                                help_text="This is typically an email")
+    active = models.BooleanField(default=True)
+
+    def scopes(self):
+        scope_list = []
+        for s in self.scope.all():
+            scope_list.append(s.slug)
+        return " ".join(scope_list).strip()
+
+    def is_valid(self, scopes=None):
+        return self.active and self.allow_scopes(scopes)
+
+    def allow_scopes(self, scopes):
+        """
+        Check if the token allows the provided scopes
+        :param scopes: An iterable containing the scopes to check
+        """
+        if not scopes:
+            return True
+
+        provided_scopes = set(self.scopes().split())
+        resource_scopes = set(scopes)
+
+        return resource_scopes.issubset(provided_scopes)
 
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
+
+    def save(self, commit=True, **kwargs):
+        if commit:
+            # Write the TOS that the app developer agreed to.
+            self.op_tos_uri = settings.TOS_URI
+            super(Application, self).save(**kwargs)
+            logmsg = "%s agreed to %s for the application %s on %s" % (self.user, self.op_tos_uri,
+                                                                       self.name, self.updated)
+            logger.info(logmsg)
 
 
 class ExpiresInManager(models.Manager):
@@ -142,6 +118,28 @@ class ExpiresInManager(models.Manager):
             return self.get(key=key).expires_in
         except self.model.DoesNotExist:
             return None
+
+
+class Approval(models.Model):
+    uuid = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False)
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE)
+    application = models.ForeignKey(
+        Application,
+        null=True,
+        on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def expired(self):
+        return (
+            self.created_at + parse_duration(
+                # Default to 600 seconds, 10 min
+                getattr(settings, 'AUTHORIZATION_EXPIRATION', "600"))).timestamp() < datetime.now().timestamp()
 
 
 class ExpiresIn(models.Model):

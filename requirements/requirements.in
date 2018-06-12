@@ -5,41 +5,28 @@ django-bootstrap-form
 django-cors-headers
 django-localflavor
 django-settings-export
+djangorestframework
+django-axes
 
 # support
-boto
-boto3
 django-storages
 jsonschema
 requests
+requests_oauthlib
 pytz
 configparser
 dj-database-url
 pyjwt
-
-
-
-# test coverage
-coverage
-python-coveralls
+newrelic
+psycopg2
 
 # notifications
 django-ses
 
-# test and development
-tox
-flake8
-coverage
-django-debug-toolbar
-
 # security and identity system
-social-auth-app-django
 oauthlib
 python-openid
-django-oauth-toolkit-scopes-backend
-poetri
-django-axes
-django-ratelimit
+django-oauth-toolkit
 
 # Decorate admin urls to force MFA login
 decorate_url

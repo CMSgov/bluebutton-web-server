@@ -25,23 +25,45 @@
             </h3>
             {% csrf_token %}
 
+
+            <div class="control-group {% if form.non_field_errors %}error{% endif %}">
+                {% for error in form.non_field_errors %}
+                
+                
+                            <div class="ds-c-alert ds-c-alert--error">
+                              <div class="ds-c-alert__body">
+                                <h3 class="ds-c-alert__heading">Oops.</h3>
+                                <p class="ds-c-alert__text">{{error}}</p>
+                              </div>
+                            </div>
+                {% endfor %}
+            </div>
+
             {% for field in form %}
                 <div class="control-group {% if field.errors %}error{% endif %}">
                     <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
                     <div class="controls">
                         {{ field }}
                         {% for error in field.errors %}
-                            <span class="help-inline">{{ error }}</span>
+
+                            <div class="ds-c-alert ds-c-alert--error">
+                              <div class="ds-c-alert__body">
+                                <h3 class="ds-c-alert__heading">Oops.</h3>
+                                <p class="ds-c-alert__text">{{error}}</p>
+                              </div>
+                            </div>
+                                    
                         {% endfor %}
+                        {% if field.help_text %}
+                            <div class="ds-c-alert ds-c-alert--hide-icon">
+                                <div class="ds-c-alert__body">{{ field.help_text }}</div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
 
-            <div class="control-group {% if form.non_field_errors %}error{% endif %}">
-                {% for error in form.non_field_errors %}
-                    <span class="help-inline">{{ error }}</span>
-                {% endfor %}
-            </div>
+
 
             <div class="control-group">
                 <div class="controls">

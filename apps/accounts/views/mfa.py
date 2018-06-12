@@ -7,14 +7,13 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..models import UserProfile, MFACode
 from ..mfa_forms import LoginForm, MFACodeForm
-from ratelimit.decorators import ratelimit
 import logging
 from django.contrib.auth.signals import user_login_failed
 from django.dispatch import receiver
 from ...utils import get_client_ip
 import sys
 from django.views.decorators.cache import never_cache
-from axes.decorators import watch_login
+from axes.decorators import axes_dispatch
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
 failed_login_log = logging.getLogger('unsuccessful_logins')
@@ -81,17 +80,15 @@ def mfa_code_confirm(request, uid):
                   {'form': MFACodeForm()})
 
 
-@ratelimit(key='post:username', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
-@ratelimit(key='user_or_ip', rate=getattr(settings, 'LOGIN_RATE', '3/h'), method=['POST'], block=True)
 @never_cache
-@watch_login
+@axes_dispatch
 def mfa_login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            user = authenticate(username=username.lower(), password=password)
+            user = authenticate(request=request, username=username.lower(), password=password)
 
             if user is not None:
 
@@ -146,7 +143,7 @@ def mfa_login(request):
                     return render(request, 'login.html', {'form': form})
             else:
                 logger.info("Invalid login attempt.")
-                messages.error(request, _('Invalid username or password.'))
+                messages.error(request, _('Invalid email or password.'))
                 return render(request, 'login.html', {'form': form})
         else:
             return render(request, 'login.html', {'form': form})

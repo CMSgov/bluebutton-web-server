@@ -1,10 +1,5 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.db import models
-from apps.fhir.server.utils import (text_to_list,
-                                    init_text_list)
-
-__author__ = "Mark Scrimshire and Alan Viars"
+from apps.fhir.server.utils import text_to_list, init_text_list
 
 
 class ResourceRouter(models.Model):
@@ -48,11 +43,11 @@ class ResourceRouter(models.Model):
     cert_file = models.TextField(max_length=250,
                                  blank=True,
                                  null=True,
-                                 help_text="Name of Client Certificate file")
+                                 help_text="Client Certificate filename.")
     key_file = models.TextField(max_length=250,
                                 blank=True,
                                 null=True,
-                                help_text="Name of Client Key file")
+                                help_text="Name of Client Key filename")
     server_verify = models.BooleanField(default=False,
                                         help_text="Server Verify "
                                                   "(Default=False)")

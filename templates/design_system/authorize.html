@@ -1,0 +1,83 @@
+{% extends "design_system/base.html" %}
+{% load static %}
+
+
+{% load i18n %}
+{% load bootstrap %}
+
+{% block Content %}
+<div class="container">
+
+
+<section id="theform">
+<article class="ds-u-border--1 ds-u-radius ds-u-padding--2 ds-u-md-padding--4">
+
+ <section class="ds-l-container preview__grid">
+  <div class="ds-l-row ds-u-fill--white">
+    <div class="ds-l-col--3">
+                 <a href="https://mymedicare.gov"> <img src="{% static 'img/medicaregov.png' %}"></a>
+    </div>
+  </div>
+  
+   <div class="ds-l-row ds-u-justify-content--ledt ds-u-fill--white">
+    <div class="ds-l-col--3">
+        {% if not error %}
+            <form id="authorizationForm" method="post">
+                <h2 class="block-center-heading">{% trans "Do you approve the application" %} <strong>{{ application.name }}</strong> {% trans "to access your Medicare information?" %}
+                </h2>
+                
+                <h1>{{ application.name }} WILL BE ABLE TO:</h1>
+                
+                <ul class="ds-c-list" aria-labelledby="unordered-list-id">
+                  <li>Access at least 4 years worth of Medicare claims information.</li>
+                  <li>Access your profile and demographic information.</li>
+                  <li>Create copies of your Medicare data.</li>
+                  <li>Get updates to your Medicare data so long as you do not revoke access.</li>
+                </ul>
+                
+                {% csrf_token %}
+
+                {% for field in form %}
+                    {% if field.is_hidden %}
+                        {{ field }}
+                    {% endif %}
+                {% endfor %}
+
+                {{ form.non_field_errors }}
+       </div>
+    </div>                  
+
+                  
+                   <center>
+                    <div class="ds-l-row">
+                      <div class="ds-l-col--auto">
+                          <input id="approve" type="submit" class="ds-c-button  ds-c-button--big ds-c-button--primary"  name="allow"
+                               value="Yes, approve access"/>
+                      </div>
+                    </div>                  
+      
+                     <div class="ds-l-row">
+                      <div class="ds-l-col--auto">
+			      <input type="submit" class="ds-c-button ds-c-button--outline ds-u-margin-top--1 ds-u-display--block ds-u-md-display--inline-block" value="No, do not approve access" \>
+                      </div>     
+                     </center> 
+            </form>
+
+        {% else %}
+            <h2>Error: {{ error.error }}</h2>
+            <p>{{ error.description }}</p>
+        {% endif %}
+    </div>
+
+ </section>
+
+
+ 
+ 
+ 
+ </article>      
+</section>
+</div>
+{% endblock %}
+
+ 

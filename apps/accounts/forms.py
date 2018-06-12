@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import logging
 from random import randint
 from django.conf import settings
@@ -13,32 +11,9 @@ from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key, UserRegisterCode
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 from localflavor.us.forms import USPhoneNumberField
-import csv
-
-__author__ = "Alan Viars"
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-
-class BulkUserCodeForm(forms.Form):
-    csv_text = forms.CharField(widget=forms.Textarea, max_length=10240, label=_(
-        'CSV including header row'), help_text=_('id,first_name,last_name,email,username,code'))
-    required_css_class = 'required'
-
-    def clean_csv_text(self):
-        csv_text = self.cleaned_data.get('csv_text', '')
-        dreader = csv.DictReader(str.splitlines(str(csv_text)))
-        headers = dreader.fieldnames
-        for row in dreader:
-            if len(row) != 6:
-                raise forms.ValidationError(_('Each row must have 6 values'))
-        header = ['id', 'first_name', 'last_name', 'email', 'username', 'code']
-        (header > headers) - (header < headers)
-        if (header > headers) - (header < headers) != 0:
-            raise forms.ValidationError(
-                _('check the values or your header row'))
-        return csv_text
 
 
 class RequestInviteForm(forms.ModelForm):
@@ -68,14 +43,6 @@ class RequestInviteForm(forms.ModelForm):
         return human
 
 
-class RequestInviteEndUserForm(RequestInviteForm):
-
-    class Meta:
-        model = RequestInvite
-        fields = ('first_name', 'last_name', 'email', 'user_type')
-    required_css_class = 'required'
-
-
 class SecretQuestionForm(forms.Form):
     answer = forms.CharField(max_length=50)
     required_css_class = 'required'
@@ -101,23 +68,6 @@ class ChangeSecretQuestionsForm(forms.ModelForm):
 
 class PasswordResetRequestForm(forms.Form):
     email = forms.EmailField(max_length=255, label=_('Email'))
-    # human_x = randint(1, 9)
-    # human_y = randint(1, 9)
-    # human_z = human_x + human_y
-    # human_q = ('What is %s + %s?' % (human_x, human_y))
-    # human = forms.CharField(
-    #     max_length=30,
-    #     label=_(human_q),
-    #     help_text='We are asking this to make sure you are human. '
-    #               'Hint: the answer is %s.' % human_z,
-    # )
-    # def clean_human(self):
-    #     human = self.cleaned_data.get('human', '')
-    #     logger.debug("Compare [%s] to [%s]" % (str(human), str(self.human_z)))
-    #     if str(human) != str(self.human_z):
-    #         raise forms.ValidationError(_('You are either not human or '
-    #                                       'just just really bad at math.'))
-    #     return human
 
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
@@ -148,7 +98,7 @@ class PasswordResetForm(forms.Form):
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=30, label=_('User'))
+    username = forms.CharField(max_length=30, label=_('Username'))
     password = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                label=_('Password'))
     required_css_class = 'required'
@@ -276,19 +226,16 @@ class EndUserRegisterForm(forms.Form):
 
 
 class SignupForm(forms.Form):
-    invitation_code = forms.CharField(max_length=30,
-                                      label=_("Invitation Code"),
-                                      help_text=_("An Invitation Code is "
-                                                  "needed in order to "
-                                                  "create your account. "
-                                                  "<br/>You "
-                                                  "probably received one by "
-                                                  "email.")
-                                      )
-    username = forms.CharField(max_length=30,
-                               label=_("User"),
-                               help_text=_("Choose the username you will "
-                                           "use to access your account."))
+    if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+        invitation_code = forms.CharField(max_length=30,
+                                          label=_("Invitation Code"),
+                                          help_text=_("An Invitation Code is "
+                                                      "needed in order to "
+                                                      "create your account. "
+                                                      "<br/>You "
+                                                      "probably received one by "
+                                                      "email.")
+                                          )
     email = forms.EmailField(max_length=255,
                              label=_("Email"),
                              help_text=_("Your email address is needed for "
@@ -307,7 +254,7 @@ class SignupForm(forms.Form):
                                                          "US numbers only."))
     organization_name = forms.CharField(max_length=100,
                                         label=_("Organization Name"),
-                                        required=False
+                                        required=True
                                         )
     password1 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
@@ -360,31 +307,26 @@ class SignupForm(forms.Form):
         else:
             return email.rstrip().lstrip().lower()
 
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        username = username.rstrip().lstrip().lower()
-
-        if User.objects.filter(username=username).count() > 0:
-            raise forms.ValidationError(_('This username is already taken.'))
-        return username
-
-    def clean_invitation_code(self):
-        invitation_code = self.cleaned_data['invitation_code']
-        if Invitation.objects.filter(valid=True,
-                                     code=invitation_code).count() != 1:
-            raise forms.ValidationError(_('The invitation code is not valid.'))
-        return invitation_code
+    if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+        def clean_invitation_code(self):
+            invitation_code = self.cleaned_data['invitation_code']
+            if Invitation.objects.filter(valid=True,
+                                         code=invitation_code).count() != 1:
+                raise forms.ValidationError(
+                    _('The invitation code is not valid.'))
+            return invitation_code
 
     def save(self):
-
-        invitation_code = self.cleaned_data['invitation_code']
-        # make the invitation a invalid/spent.
-        invite = Invitation.objects.get(code=str(invitation_code), valid=True)
-        invite.valid = False
-        invite.save()
+        if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
+            invitation_code = self.cleaned_data['invitation_code']
+            # make the invitation a invalid/spent.
+            invite = Invitation.objects.get(
+                code=str(invitation_code), valid=True)
+            invite.valid = False
+            invite.save()
 
         new_user = User.objects.create_user(
-            username=self.cleaned_data['username'],
+            username=self.cleaned_data['email'],
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name'],
             password=self.cleaned_data['password1'],
@@ -428,7 +370,6 @@ class AccountSettingsForm(forms.Form):
         self.request = kwargs.pop("request")
         super(AccountSettingsForm, self).__init__(*args, **kwargs)
 
-    username = forms.CharField(max_length=30, label=_('User Name'))
     email = forms.EmailField(max_length=255, label=_('Email'))
     first_name = forms.CharField(max_length=100, label=_('First Name'))
     last_name = forms.CharField(max_length=100, label=_('Last Name'))
@@ -444,7 +385,7 @@ class AccountSettingsForm(forms.Form):
                                                          "authentication."))
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
-                                        required=False)
+                                        required=True)
     create_applications = forms.BooleanField(initial=False,
                                              required=False)
     required_css_class = 'required'
@@ -472,11 +413,3 @@ class AccountSettingsForm(forms.Form):
                 _('A mobile phone number is required to use SMS-based '
                   'multi-factor authentication'))
         return mobile_phone_number
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        username = username.rstrip().lstrip().lower()
-        if username and User.objects.filter(
-                username=username).exclude(username=username).count():
-            raise forms.ValidationError(_('This username is already taken.'))
-        return username

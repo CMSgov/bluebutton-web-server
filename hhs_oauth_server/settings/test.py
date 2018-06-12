@@ -1,30 +1,42 @@
 from .dev import *
 
 del LOGGING['loggers']
-# SMS
+
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 REQUIRE_AUTHOIRZE_APP_FLAG = False
-LOGIN_RATE = '5000/m'
 
-FHIR_CLIENT_CERTSTORE = '/Users/mark/PycharmProjects/hhs_oserver/hhs_oauth_server/hhs_oauth_server/../../certstore'
-
+LOGIN_RATE = '100/m'
 FHIR_SERVER_DEFAULT = 1
-
-FHIR_SERVER_CONF = {
-    'SERVER': 'http://localhost:8000/',
-    'PATH': 'fhir-p/',
-    'RELEASE': 'baseDstu3/',
-    # REWRITE_FROM should be defined as a list
-    'REWRITE_FROM': ['http://www.replace.com:8080/baseDstu2',
-                     'http://replace.com/baseDstu2'],
-    'REWRITE_TO': 'http://localhost:8000/bluebutton/fhir/v1',
-}
-
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
 OFFLINE = True
 
-# un-comment the line to test LDAP
-# AUTHENTICATION_BACKENDS += ('django_ldap.backends.ldap_auth.LDAPBackend',)
+# Should be set to True in production and False in all other dev and test environments
+# Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
+# REQUIRE_HTTPS_REDIRECT_URIS = True
+BLOCK_HTTP_REDIRECT_URIS = False
+
+OAUTH2_PROVIDER = {
+    'OAUTH2_VALIDATOR_CLASS': 'apps.dot_ext.oauth2_validators.'
+                              'SingleAccessTokenValidator',
+    'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
+    'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
+    'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache'),
+        'LOCATION': os.environ.get('CACHE_LOCATION', 'unique-snowflake'),
+    },
+    'axes_cache': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+}
+AXES_CACHE = 'axes_cache'
+
+# http required in ALLOWED_REDIRECT_URI_SCHEMES for tests to function correctly
+APPLICATION_TITLE = "Blue Button 2.0 TEST"

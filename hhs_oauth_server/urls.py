@@ -1,72 +1,67 @@
-#!/usr/bin/env python
-from decorate_url import decorated_url
-from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
+from django.http import JsonResponse
+from rest_framework import status
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.views.generic import TemplateView
-from apps.accounts.views.oauth2_profile import (openidconnect_userinfo,
-                                                userinfo_w_login)
-from apps.dot_ext.views.dcrp import register
+from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance
 from apps.home.views import home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
-
-__author__ = "Alan Viars"
 
 admin.autodiscover()
 
 ADMIN_REDIRECTOR = getattr(settings, 'ADMIN_PREPEND_URL', '')
 
+
 urlpatterns = [
-    url(r'^accounts/', include('apps.accounts.urls')),
-    url(r'^connect/userinfo', openidconnect_userinfo,
-        name='openid_connect_userinfo'),
-    url(r'^userinfo', userinfo_w_login,
-        name='openid_connect_user_w_login'),
-    url(r'^register', register, name='dcrp_register'),
+    url(r'health', include('apps.health.urls')),
     url(r'.well-known/', include('apps.wellknown.urls')),
-    url(r'^consent/', include('apps.fhir.fhir_consent.urls')),
-    url(r'^api/', include('apps.api.urls')),
-    url(r'^protected/bluebutton/fhir/v1/$',
-        fhir_conformance, name='fhir_conformance'),
-    url(r'^protected/bluebutton/fhir/v1/metadata',
-        fhir_conformance, name='fhir_conformance_metadata'),
-    url(r'^protected/bluebutton/fhir/v1/meta',
-        fhir_conformance, name='fhir_conformance_meta'),
-    url(r'^protected/bluebutton/fhir/v1/',
-        include('apps.fhir.bluebutton.urls_oauth')),
-    url(r'^bluebutton/fhir/v1/', include('apps.fhir.bluebutton.urls')),
-    url(r'^capabilities/', include('apps.capabilities.urls')),
-    url(r'^endorsements/', include('apps.dot_ext.endorsementurls')),
-    url(r'^o/', include('apps.dot_ext.urls')),
-    # Adding Medicare Notices and Warning pages
-    url(r'notices',
-        TemplateView.as_view(template_name='authorize/notices.html'),
-        name='notices'),
-    url(r'warnings',
-        TemplateView.as_view(template_name='authorize/warnings.html'),
-        name='warnings'),
+    url(r'^v1/accounts/', include('apps.accounts.urls')),
+    url(r'^v1/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo'),
+    url(r'^v1/fhir/metadata$', fhir_conformance, name='fhir_conformance_metadata'),
+    url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
+    url(r'^v1/o/', include('apps.dot_ext.urls')),
+    url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
 
-    url(r'^social-auth/', include('social_django.urls', namespace='social')),
-    # Admin
-    url(r'^admin/', include(admin.site.urls)),
 
-    decorated_url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls),
-                  wrap=staff_member_required(login_url=settings.LOGIN_URL)),
+    url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls)),
 ]
-
-if IsAppInstalled("apps.extapi"):
-    urlpatterns += [
-        url(r'^extapi/', include('apps.extapi.urls')),
-    ]
 
 if IsAppInstalled("apps.testclient"):
     urlpatterns += [
         url(r'^testclient/', include('apps.testclient.urls')),
     ]
 
-urlpatterns += [
-    # Catch all
-    url(r'^$', home, name='home'),
-]
+if IsAppInstalled("apps.mymedicare_cb"):
+    urlpatterns += [
+        url(r'^mymedicare/', include('apps.mymedicare_cb.urls')),
+    ]
+
+if not getattr(settings, 'NO_UI', False):
+    urlpatterns += [
+        url(r'^$', home, name='home'),
+    ]
+
+handler500 = 'hhs_oauth_server.urls.server_error'
+handler400 = 'hhs_oauth_server.urls.bad_request'
+
+
+# TODO Replace this with defaults from rest_framework once upgrated to > 3.7.7
+def server_error(request, *args, **kwargs):
+    """
+    Generic 500 error handler.
+    """
+    data = {
+        'error': 'Server Error (500)'
+    }
+    return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def bad_request(request, exception, *args, **kwargs):
+    """
+    Generic 400 error handler.
+    """
+    data = {
+        'error': 'Bad Request (400)'
+    }
+    return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)

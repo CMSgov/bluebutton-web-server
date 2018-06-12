@@ -24,11 +24,14 @@
                 <p><pre>{{ application.client_id }}</pre></p>
             </li>
 
-            <li>
-                <p><b>{% trans "Client Secret" %}</b></p>
-                <p><pre>{{ application.client_secret }}</pre></p>
-            </li>
-
+                <li>
+                    <p><b>{% trans "Client Secret" %}</b></p>
+                    {% if application.client_type == "confidential" %}
+                        <p><pre>{{ application.client_secret }}</pre></p>
+                    {% else %}
+                        <p><pre>This value is not used when using a public client.</pre></p>
+                    {% endif%}
+                </li>
             <li>
                 <p><b>{% trans "Client Type" %}</b></p>
                 <p><pre>{{ application.client_type }}</pre></p>
@@ -40,31 +43,20 @@
             </li>
 
             <li>
-                <p><b>{% trans "Scopes" %}</b></p> 
-                {% for s in application.scope.all %}
-                    <pre>{{ s.slug }}</pre>
-                {% endfor %}
-            </li>
-
-            <li>
-                <p><b>{% trans "Scope Detail By Tag" %}</b></p>
-                {% for s in application.scope.all %}
-                <p>Tag: <strong>{{ s.slug }}</strong></p>
-                <p><pre>{{ s.protected_resources }}</pre></p>
-                {% endfor %}
-            </li>
-
-
-            <li>
                 <p><b>{% trans "Redirect Uris" %}</b></p>
                 <pre>{{ application.redirect_uris }}</pre>
+            </li>
+            
+           <li>
+                <p><b>{% trans "Timestamps" %}</b></p>
+                <pre>Updated: {{ application.updated }} / Created: {{ application.created }}</pre>
             </li>
         </ul>
 
         <div class="btn-toolbar">
             <a class="btn" href="{% url "oauth2_provider:list" %}">{% trans "Go Back" %}</a>
-            <a class="usa-button usa-button usa-button-primary" href="{% url "oauth2_provider:update" application.id %}">{% trans "Edit" %}</a>
-            <a class="usa-button usa-button usa-button-danger" href="{% url "oauth2_provider:delete" application.id %}">{% trans "Delete" %}</a>
+            <a class="ds-c-button  ds-c-button--default" href="{% url "oauth2_provider:update" application.id %}">{% trans "Edit" %}</a>
+            <a class="ds-c-button  ds-c-button--danger" href="{% url "oauth2_provider:delete" application.id %}">{% trans "Delete" %}</a>
         </div>
     </div>
 {% endblock content %}

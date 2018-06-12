@@ -1,5 +1,4 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+import math
 
 from django.utils import timezone
 from django.utils.timezone import timedelta
@@ -14,6 +13,18 @@ class SingleAccessTokenValidator(OAuth2Validator):
     exists for the current user/application and return
     it instead of creating a new one.
     """
+    def confirm_redirect_uri(self, client_id, code, redirect_uri, client, *args, **kwargs):
+        if redirect_uri is None:
+            # Set to default
+            redirect_uri = client.default_redirect_uri
+
+        return super(SingleAccessTokenValidator, self).confirm_redirect_uri(
+            client_id,
+            code,
+            redirect_uri,
+            client,
+            *args,
+            **kwargs)
 
     def save_bearer_token(self, token, request, *args, **kwargs):
         """
@@ -39,7 +50,7 @@ class SingleAccessTokenValidator(OAuth2Validator):
                 if access_token.allow_scopes(token['scope'].split()):
                     token['access_token'] = access_token.token
                     expires_in = access_token.expires - timezone.now()
-                    token['expires_in'] = expires_in.total_seconds()
+                    token['expires_in'] = math.floor(expires_in.total_seconds())
 
                     if hasattr(access_token, 'refresh_token'):
                         token['refresh_token'] = access_token.refresh_token.token

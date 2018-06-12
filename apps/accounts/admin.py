@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
 
 from .models import (
     ValidPasswordResetKey,
@@ -7,23 +9,20 @@ from .models import (
     UserProfile,
     ActivationKey,
     MFACode,
-    UserRegisterCode,
-    EmailWebhook)
+    UserRegisterCode)
 
 
 admin.site.register(ActivationKey)
 admin.site.register(ValidPasswordResetKey)
 
 
-class EmailWebhookAdmin(admin.ModelAdmin):
-    list_display = (
-        'status',
-        'email',
-        'added')
-    search_fields = ('email', 'status')
+ua = UserAdmin
+ua.list_display = ('username', 'email', 'first_name',
+                   'last_name', 'is_staff', 'is_active', 'date_joined')
 
 
-admin.site.register(EmailWebhook, EmailWebhookAdmin)
+admin.site.unregister(User)
+admin.site.register(User, ua)
 
 
 class UserRegisterCodeAdmin(admin.ModelAdmin):
@@ -52,15 +51,33 @@ class RequestInviteAdmin(admin.ModelAdmin):
         'issue_invite',
         'invite_sent',
         'added')
-    search_fields = ('first_name', 'last_name', 'user_type', 'organization', 'email')
+    search_fields = ('first_name', 'last_name',
+                     'user_type', 'organization', 'email')
 
 
 admin.site.register(RequestInvite, RequestInviteAdmin)
 
 
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name', 'user_type')
-    search_fields = ('user', 'user_type')
+
+    def get_user_email(self, obj):
+        return obj.user.email
+
+    get_user_email.admin_order_field = "user__email"
+    get_user_email.short_description = "Email Address"
+
+    def get_user_joined(selfself, obj):
+        return obj.user.date_joined
+
+    get_user_joined.admin_order_field = "user__date_joined"
+    get_user_joined.short_description = "Date Joined"
+
+    list_display = ('user', 'name', 'user_type',
+                    'organization_name', 'get_user_email',
+                    'get_user_joined')
+    search_fields = ('user__username', 'user__email', 'user__first_name',
+                     'user__last_name', 'user_type', 'organization_name',
+                     'user__date_joined')
     raw_id_fields = ("user", )
 
 
