@@ -14,6 +14,7 @@ services:
     environment:
             - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
             - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton
+            - OAUTHLIB_INSECURE_TRANSPORT=true
     volumes:
       - .:/code
       - ./docker-compose/custom-envvars.py:/custom-envvars.py

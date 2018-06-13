@@ -1,10 +1,7 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from oauth2_provider.oauth2_backends import OAuthLibCore
 import json
 from ..fhir.bluebutton.models import Crosswalk
 from oauth2_provider.models import AccessToken
-__author__ = "Alan Viars"
 
 
 class OAuthLibSMARTonFHIR(OAuthLibCore):

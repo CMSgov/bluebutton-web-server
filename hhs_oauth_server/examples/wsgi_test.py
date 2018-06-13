@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4
-
 """
 hhs_oauth_server._start.settings
 FILE: wsgi_test.py
@@ -13,8 +9,6 @@ ideas based on http://blog.dscpl.com.au/2010/03/improved-wsgi-script-for-use-wit
 
 
 """
-
-__author__ = 'Mark Scrimshire:@ekivemark'
 
 import os
 import sys

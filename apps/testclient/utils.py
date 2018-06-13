@@ -1,10 +1,6 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from collections import OrderedDict
 from django.conf import settings
 from ..dot_ext.models import Application
-
-__author__ = "Alan Viars"
 
 
 def test_setup(include_client_secret=True):

@@ -1,19 +1,20 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import sys
 import hashlib
 import logging
+import uuid
+from datetime import datetime
 
+from django.utils.dateparse import parse_duration
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth import get_user_model
 
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AbstractApplication
 from django.conf import settings
 
-from apps.dot_ext.oauth2_validators import validate_uris
+from apps.dot_ext.validators import validate_uris
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -27,8 +28,7 @@ class Application(AbstractApplication):
     op_policy_uri = models.CharField(default="", blank=True, max_length=512)
     client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client URI",
                                   help_text="This is typically a homepage for the application.")
-    help_text = _('Allowed URIs listed, space or new line separated. '
-                  'Including ??00000000:// for mobile native applications')
+    help_text = _('Allowed redirect URIs. Space or new line separated.')
     redirect_uris = models.TextField(help_text=help_text,
                                      validators=[validate_uris], blank=True)
     logo_uri = models.CharField(
@@ -43,6 +43,28 @@ class Application(AbstractApplication):
                                 verbose_name="Client's Contacts",
                                 help_text="This is typically an email")
     active = models.BooleanField(default=True)
+
+    def scopes(self):
+        scope_list = []
+        for s in self.scope.all():
+            scope_list.append(s.slug)
+        return " ".join(scope_list).strip()
+
+    def is_valid(self, scopes=None):
+        return self.active and self.allow_scopes(scopes)
+
+    def allow_scopes(self, scopes):
+        """
+        Check if the token allows the provided scopes
+        :param scopes: An iterable containing the scopes to check
+        """
+        if not scopes:
+            return True
+
+        provided_scopes = set(self.scopes().split())
+        resource_scopes = set(scopes)
+
+        return resource_scopes.issubset(provided_scopes)
 
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
@@ -96,6 +118,28 @@ class ExpiresInManager(models.Manager):
             return self.get(key=key).expires_in
         except self.model.DoesNotExist:
             return None
+
+
+class Approval(models.Model):
+    uuid = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False)
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE)
+    application = models.ForeignKey(
+        Application,
+        null=True,
+        on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def expired(self):
+        return (
+            self.created_at + parse_duration(
+                # Default to 600 seconds, 10 min
+                getattr(settings, 'AUTHORIZATION_EXPIRATION', "600"))).timestamp() < datetime.now().timestamp()
 
 
 class ExpiresIn(models.Model):
