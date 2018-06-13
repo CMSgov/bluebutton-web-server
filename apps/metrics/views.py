@@ -28,8 +28,6 @@ class AppMetricsSerializer(ModelSerializer):
         model = Application
         fields = ('id', 'name', 'active', 'user', 'beneficiaries')
 
-        queryset = Application.objects.all().annotate(Count('accesstoken__user', distinct=True)).order_by('name')
-
 
 class AppMetricsPagination(PageNumberPagination):
     page_size = 10
