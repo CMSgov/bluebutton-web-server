@@ -901,6 +901,23 @@ def build_oauth_resource(request, format_type="json"):
 
         security = """
 <security>
+    <cors>true</cors>
+    <service>
+        <text>OAuth</text>
+        <coding>
+            <system url="http://hl7.org/fhir/ValueSet/restful-security-service">
+            <code>OAuth</code>
+            <display>OAuth</display>
+        </coding>
+    </service>
+    <service>
+        <text>SMART-on-FHIR</text>
+        <coding>
+            <system url="http://hl7.org/fhir/ValueSet/restful-security-service">
+            <code>SMART-on-FHIR</code>
+            <display>SMART-on-FHIR</display>
+        </coding>
+    </service>
     <extension url="http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris">
         <extension url="token">
             <valueUri>%s</valueUri>
@@ -917,6 +934,23 @@ def build_oauth_resource(request, format_type="json"):
 
         security = {}
 
+        security['cors'] = True
+        security['service'] = [
+            {
+                "text": "OAuth",
+                "coding": [{
+                    "system": "http://hl7.org/fhir/ValueSet/restful-security-service",
+                    "code": "OAuth",
+                    "display": "OAuth"
+                }]
+            }, {
+                "text": "SMART-on-FHIR",
+                "coding": [{
+                    "system": "http://hl7.org/fhir/ValueSet/restful-security-service",
+                    "code": "SMART-on-FHIR",
+                    "display": "SMART-on-FHIR"
+                }]
+            }]
         security['extension'] = [
             {"url": "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris",
              "extension": [
