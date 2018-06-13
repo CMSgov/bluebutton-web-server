@@ -1,7 +1,7 @@
 from django.db.models import Count
 from django.contrib.auth.models import User
 from oauth2_provider.models import AccessToken
-from rest_framework.serializers import BooleanField, CharField, IntegerField, ModelSerializer
+from rest_framework.serializers import IntegerField, ModelSerializer
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -29,6 +29,7 @@ class AppMetricsSerializer(ModelSerializer):
         fields = ('id', 'name', 'active', 'user', 'beneficiaries')
 
         queryset = Application.objects.all().annotate(Count('accesstoken__user', distinct=True)).order_by('name')
+
 
 class AppMetricsPagination(PageNumberPagination):
     page_size = 10
