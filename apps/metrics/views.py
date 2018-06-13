@@ -21,16 +21,14 @@ class UserSerializer(ModelSerializer):
 
 class AppMetricsSerializer(ModelSerializer):
 
-    app_id = IntegerField(source='id', read_only=True)
-    app_name = CharField(source='name', read_only=True)
-    app_active = BooleanField(source='active', read_only=True)
-    dev_user = UserSerializer(source='user', read_only=True)
-    uniq_bene_count = IntegerField(read_only=True)
+    beneficiaries = IntegerField(source='accesstoken__user__count', read_only=True)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Application
-        fields = ('app_id', 'app_name', 'app_active', 'dev_user', 'uniq_bene_count')
+        fields = ('id', 'name', 'active', 'user', 'beneficiaries')
 
+        queryset = Application.objects.all().annotate(Count('accesstoken__user', distinct=True)).order_by('name')
 
 class AppMetricsPagination(PageNumberPagination):
     page_size = 10
@@ -81,7 +79,7 @@ class AppMetricsView(ListAPIView):
 
     def get_queryset(self):
 
-        queryset = Application.objects.all().annotate(uniq_bene_count=Count('accesstoken__user', distinct=True)).order_by('name')
+        queryset = Application.objects.all().annotate(Count('accesstoken__user', distinct=True)).order_by('name')
 
         return queryset
 
