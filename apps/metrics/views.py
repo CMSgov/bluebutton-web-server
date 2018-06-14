@@ -1,7 +1,6 @@
-from django.db.models import Count
 from django.contrib.auth.models import User
 from oauth2_provider.models import AccessToken
-from rest_framework.serializers import IntegerField, ModelSerializer
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -21,12 +20,16 @@ class UserSerializer(ModelSerializer):
 
 class AppMetricsSerializer(ModelSerializer):
 
-    beneficiaries = IntegerField(source='accesstoken__user__count', read_only=True)
+    beneficiaries = SerializerMethodField()
+
     user = UserSerializer(read_only=True)
 
     class Meta:
         model = Application
         fields = ('id', 'name', 'active', 'user', 'beneficiaries')
+
+    def get_beneficiaries(self, obj):
+        return({'count': AccessToken.objects.filter(application=obj.id).distinct('user').count()})
 
 
 class AppMetricsPagination(PageNumberPagination):
@@ -78,9 +81,36 @@ class AppMetricsView(ListAPIView):
 
     def get_queryset(self):
 
-        queryset = Application.objects.all().annotate(Count('accesstoken__user', distinct=True)).order_by('name')
+        queryset = Application.objects.all().order_by('name')
+        appid = self.request.query_params.get('id', None)
+
+        if appid is not None:
+            queryset = queryset.filter(id=appid)
 
         return queryset
+
+
+class AppMetricsDetailView(APIView):
+    """
+    View to provide application metrics detail.
+
+
+    * Only admin users are able to access this view
+    * Default returns count info and application list data with unique bene count
+    """
+
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
+
+    def get(self, request, pk, format=None):
+
+        queryset = Application.objects.filter(id=pk)
+
+        return Response(AppMetricsSerializer(queryset, many=True).data)
 
 
 class TokenMetricsView(APIView):
