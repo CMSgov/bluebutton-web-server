@@ -21,7 +21,6 @@ class UserSerializer(ModelSerializer):
 class AppMetricsSerializer(ModelSerializer):
 
     beneficiaries = SerializerMethodField()
-
     user = UserSerializer(read_only=True)
 
     class Meta:
@@ -74,18 +73,16 @@ class AppMetricsView(ListAPIView):
     ]
 
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
-
     serializer_class = AppMetricsSerializer
-
     pagination_class = AppMetricsPagination
 
     def get_queryset(self):
 
         queryset = Application.objects.all().order_by('name')
-        appid = self.request.query_params.get('id', None)
+        id = self.request.query_params.get('id', None)
 
-        if appid is not None:
-            queryset = queryset.filter(id=appid)
+        if id is not None:
+            queryset = queryset.filter(id=id)
 
         return queryset
 
@@ -108,9 +105,9 @@ class AppMetricsDetailView(APIView):
 
     def get(self, request, pk, format=None):
 
-        queryset = Application.objects.filter(id=pk)
+        queryset = Application.objects.get(id=pk)
 
-        return Response(AppMetricsSerializer(queryset, many=True).data)
+        return Response(AppMetricsSerializer(queryset).data)
 
 
 class TokenMetricsView(APIView):
