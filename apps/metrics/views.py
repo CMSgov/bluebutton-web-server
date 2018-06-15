@@ -79,10 +79,6 @@ class AppMetricsView(ListAPIView):
     def get_queryset(self):
 
         queryset = Application.objects.all().order_by('name')
-        id = self.request.query_params.get('id', None)
-
-        if id is not None:
-            queryset = queryset.filter(id=id)
 
         return queryset
 
@@ -105,7 +101,7 @@ class AppMetricsDetailView(APIView):
 
     def get(self, request, pk, format=None):
 
-        queryset = Application.objects.get(id=pk)
+        queryset = Application.objects.get(pk=pk)
 
         return Response(AppMetricsSerializer(queryset).data)
 
