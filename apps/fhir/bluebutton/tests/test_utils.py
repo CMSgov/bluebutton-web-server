@@ -19,6 +19,7 @@ from apps.fhir.bluebutton.utils import (
     dt_patient_reference,
     crosswalk_patient_id,
     get_resourcerouter,
+    build_oauth_resource,
 )
 
 ENCODED = settings.ENCODING
@@ -453,3 +454,51 @@ class Patient_Resource_Test(BaseApiTest):
         result = dt_patient_reference(u)
 
         self.assertEqual(result, None)
+
+
+class Security_Metadata_test(BaseApiTest):
+    """
+    Testing for security content addition
+    """
+
+    def setUp(self):
+        # Setup the RequestFactory
+        self.factory = RequestFactory()
+
+    def test_oauth_resource_empty(self):
+        """
+        Test build_oauth_resource with no parameters
+        """
+        request = self.factory.get('/cmsblue/fhir/v1/metadata')
+
+        result = build_oauth_resource(request)
+
+        expected = True
+
+        self.assertEqual(result['cors'], expected)
+
+    def test_oauth_resource_json(self):
+        """
+        Test build_oauth_resource with json
+        """
+        request = self.factory.get('/cmsblue/fhir/v1/metadata')
+
+        result = build_oauth_resource(request, "json")
+
+        expected = True
+
+        self.assertEqual(result['cors'], expected)
+
+    def test_oauth_resource_xml(self):
+        """
+        Test build_oauth_resource with xml
+        """
+        request = self.factory.get('/cmsblue/fhir/v1/metadata')
+
+        result = build_oauth_resource(request, "xml")
+
+        expected = "<cors>true</cors>"
+
+        # print(result[16:33])
+
+        self.assertEqual(result[16:33], expected)
