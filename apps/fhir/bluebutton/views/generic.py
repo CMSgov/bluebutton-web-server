@@ -1,5 +1,6 @@
 import requests
 import logging
+import django.dispatch
 from rest_framework import (exceptions, permissions)
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
@@ -19,6 +20,8 @@ from ..utils import (build_fhir_response,
                      get_resourcerouter)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+pre_fetch = django.dispatch.Signal(providing_args=["request"])
+post_fetch = django.dispatch.Signal(providing_args=["request", "response"])
 
 
 class FhirDataView(APIView):
@@ -75,12 +78,16 @@ class FhirDataView(APIView):
                      'GET parameters %s' % (target_url, get_parameters))
 
         # Now make the call to the backend API
-        r = requests.get(target_url,
-                         params=get_parameters,
-                         cert=backend_connection.certs(crosswalk=request.crosswalk),
-                         headers=backend_connection.headers(request, url=target_url),
-                         timeout=resource_router.wait_time,
-                         verify=FhirServerVerify(crosswalk=request.crosswalk))
+        req = requests.Request('GET', 
+                               target_url,
+                               params=get_parameters,
+                               cert=backend_connection.certs(crosswalk=request.crosswalk),
+                               headers=backend_connection.headers(request, url=target_url),
+                               timeout=resource_router.wait_time,
+                               verify=FhirServerVerify(crosswalk=request.crosswalk))
+        pre_fetch.send_robust(self.__class__, request=req)
+        r = requests.send(req)
+        post_fetch.send_robust(self.__class__, request=req, response=r)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         if response.status_code == 404:
