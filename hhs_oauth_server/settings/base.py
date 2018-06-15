@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'axes',
 
+    'apps.logging',
 ]
 
 REST_FRAMEWORK = {
