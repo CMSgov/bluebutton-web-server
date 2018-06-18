@@ -26,7 +26,7 @@ def fetching_data(sender, request=None, **kwargs):
 
 
 def fetched_data(sender, request=None, response=None, **kwargs):
-    audit.info(Response(response, request=Request(request)))
+    audit.info(Response(response))
 
 
 app_authorized.connect(handle_app_authorized)
