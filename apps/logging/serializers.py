@@ -84,7 +84,7 @@ class Response:
     def __init__(self, response):
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
-        self.req = Request(response.request) if response.request else {}
+        self.req = Request(response.request).to_dict() if response.request else {}
 
     def code(self):
         return self.resp.status_code
@@ -103,5 +103,5 @@ class Response:
         }
 
     def __str__(self):
-        result = {**self.to_dict(), **self.req.to_dict()}
+        result = {**self.to_dict(), **self.req}
         return json.dumps(result)
