@@ -79,7 +79,7 @@ class FhirDataView(APIView):
                      'GET parameters %s' % (target_url, get_parameters))
 
         # Now make the call to the backend API
-        req = Request('GET', 
+        req = Request('GET',
                       target_url,
                       data=get_parameters,
                       params=get_parameters,

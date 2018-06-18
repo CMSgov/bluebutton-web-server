@@ -8,7 +8,7 @@ from apps.fhir.bluebutton.signals import (
     post_fetch
 )
 
-from .serializers import Token
+from .serializers import (Token, Request, Response)
 
 audit = logging.getLogger('audit.%s' % __name__)
 
@@ -26,7 +26,7 @@ def fetching_data(sender, request=None, **kwargs):
 
 
 def fetched_data(sender, request=None, response=None, **kwargs):
-    audit.info(Response(response, request=request))
+    audit.info(Response(response, request=Request(request)))
 
 
 app_authorized.connect(handle_app_authorized)

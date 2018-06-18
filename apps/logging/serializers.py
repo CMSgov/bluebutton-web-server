@@ -34,6 +34,7 @@ class Token:
         }
         return json.dumps(result)
 
+
 class Request:
     # requests.PrepairedRequest
     req = None
@@ -62,7 +63,7 @@ class Request:
     def path(self):
         return self.req.headers.get('BlueButton-OriginalUrl')
 
-    def __dict__(self):
+    def to_dict(self):
         result = {
             "uuid": self.uuid(),
             "user": self.user(),
@@ -73,7 +74,8 @@ class Request:
         return result
 
     def __str__(self):
-        return json.dumps(self)
+        return json.dumps(self.to_dict())
+
 
 class Response:
     resp = None
@@ -87,14 +89,18 @@ class Response:
         return self.resp.status_code
 
     def size(self):
-        return self.resp.size
+        return len(self.resp.content)
 
-    def __dict__(self):
+    def elapsed(self):
+        return self.resp.elapsed.total_seconds()
+
+    def to_dict(self):
         return {
             "code": self.code(),
             "size": self.size(),
+            "elapsed": self.elapsed(),
         }
 
     def __str__(self):
-        result = {**self.__dict__(), **self.req.__dict__()}
+        result = {**self.to_dict(), **self.req.to_dict()}
         return json.dumps(result)
