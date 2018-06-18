@@ -81,9 +81,10 @@ class Response:
     resp = None
     req = None
 
-    def __init__(self, response, request=None):
+    def __init__(self, response):
         self.resp = response
-        self.req = request
+        # http://docs.python-requests.org/en/master/api/#requests.Response.request
+        self.req = Request(response.request) if response.request else {}
 
     def code(self):
         return self.resp.status_code
