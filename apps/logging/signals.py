@@ -3,10 +3,11 @@ from oauth2_provider.signals import app_authorized
 from django.db.models.signals import (
     post_delete,
 )
-from apps.fhir.bluebutton.views.generic import (
+from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
 )
+
 from .serializers import Token
 
 audit = logging.getLogger('audit.%s' % __name__)
