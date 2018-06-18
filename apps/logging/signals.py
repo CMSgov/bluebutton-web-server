@@ -22,11 +22,11 @@ def token_removed(sender, instance=None, **kwargs):
 
 
 def fetching_data(sender, request=None, **kwargs):
-    audit.info(request)
+    audit.info(Request(request))
 
 
 def fetched_data(sender, request=None, response=None, **kwargs):
-    audit.info(request, response)
+    audit.info(Response(response, request=request))
 
 
 app_authorized.connect(handle_app_authorized)

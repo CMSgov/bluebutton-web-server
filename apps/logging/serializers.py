@@ -33,3 +33,68 @@ class Token:
             }
         }
         return json.dumps(result)
+
+class Request:
+    # requests.PrepairedRequest
+    req = None
+
+    def __init__(self, request):
+        self.req = request
+
+    def uuid(self):
+        return self.req.headers.get('BlueButton-OriginalQueryId')
+
+    def user(self):
+        return self.req.headers.get('BlueButton-BeneficiaryId')
+
+    def start_time(self):
+        return self.req.headers.get('BlueButton-OriginalQueryTimestamp')
+
+    def application(self):
+        return {
+            "name": self.req.headers.get('BlueButton-Application'),
+            "id": self.req.headers.get('BlueButton-ApplicationId'),
+            "user": {
+                "id": self.req.headers.get('BlueButton-DeveloperId'),
+            },
+        }
+
+    def path(self):
+        return self.req.headers.get('BlueButton-OriginalUrl')
+
+    def __dict__(self):
+        result = {
+            "uuid": self.uuid(),
+            "user": self.user(),
+            "start_time": self.start_time(),
+            "application": self.application(),
+            "path": self.path(),
+        }
+        return result
+
+    def __str__(self):
+        return json.dumps(self)
+
+class Response:
+    resp = None
+    req = None
+
+    def __init__(self, response, request=None):
+        self.resp = response
+        self.req = request
+
+    def code(self):
+        return self.resp.status_code
+
+    def size(self):
+        return self.resp.size
+
+    def __dict__(self):
+        return {
+            "code": self.code(),
+            "size": self.size(),
+        }
+
+    def __str__(self):
+        result = {**self.__dict__(), **self.req.__dict__()}
+        return json.dumps(result)

@@ -84,15 +84,17 @@ class FhirDataView(APIView):
                       data=get_parameters,
                       params=get_parameters,
                       headers=backend_connection.headers(request, url=target_url))
-        pre_fetch.send_robust(self.__class__, request=req)
         s = Session()
         prepped = s.prepare_request(req)
+        # Send signal
+        pre_fetch.send_robust(self.__class__, request=req)
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
             verify=FhirServerVerify(crosswalk=request.crosswalk))
-        post_fetch.send_robust(self.__class__, request=req, response=r)
+        # Send signal
+        post_fetch.send_robust(self.__class__, request=prepped, response=r)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         if response.status_code == 404:
