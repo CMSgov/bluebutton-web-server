@@ -103,5 +103,6 @@ class Response:
         }
 
     def __str__(self):
-        result = {**self.to_dict(), **self.req}
+        result = self.to_dict().copy()
+        result.update(self.req)
         return json.dumps(result)
