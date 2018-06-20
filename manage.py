@@ -5,8 +5,13 @@ import sys
 import dotenv
 
 
+
+
 if __name__ == "__main__":
-    dotenv.read_dotenv()
+    if os.environ.get('DJANGO_DOTENV_FILE', None):
+        dotenv.read_dotenv(os.environ.get('DJANGO_DOTENV_FILE'))
+    else:
+        dotenv.read_dotenv()
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                           "hhs_oauth_server.settings.base")
