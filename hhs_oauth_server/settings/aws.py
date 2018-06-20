@@ -1,4 +1,7 @@
 from .base import *
+from getenv import env
+
+AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
 
 STATICFILES_LOCATION = '/static/'
 STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
