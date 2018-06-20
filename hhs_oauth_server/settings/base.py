@@ -41,8 +41,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-DEBUG = True
-APPEND_SLASH = False
+DEBUG = env('DEBUG', True)
 
 # apps and middlewares
 INSTALLED_APPS = [
@@ -80,6 +79,8 @@ INSTALLED_APPS = [
 
     'apps.logging',
 ]
+if env('ENV_SPECIFIC_APPS', False):
+    INSTALLED_APPS += env('ENV_SPECIFIC_APPS')
 
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
@@ -96,9 +97,12 @@ AXES_LOGIN_FAILURE_LIMIT = 5
 AXES_LOCK_OUT_AT_FAILURE = True
 AXES_ONLY_USER_FAILURES = True
 AXES_USERNAME_FORM_FIELD = "username"
+
 # Used for testing for optional apps in templates without causing a crash
 # used in SETTINGS_EXPORT below.
 OPTIONAL_INSTALLED_APPS = ["", ]
+if env('OPTIONAL_INSTALLED_APPS', False):
+    OPTIONAL_INSTALLED_APPS += env('OPTIONAL_INSTALLED_APPS')
 
 MIDDLEWARE_CLASSES = [
     # Middleware that adds headers to the resposne
@@ -433,6 +437,8 @@ SLS_TOKEN_ENDPOINT = env(
 
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', True)
+SLS_CLIENT_ID = env('DJANGO_SLS_CLIENT_ID')
+SLS_CLIENT_SECRET = env('DJANGO_SLS_CLIENT_SECRET')
 
 AUTHENTICATION_BACKENDS = ('apps.accounts.email_auth_backend.EmailBackend',
                            'django.contrib.auth.backends.ModelBackend')
