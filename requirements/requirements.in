@@ -10,6 +10,7 @@ django-axes
 
 # support
 django-storages
+django-dotenv
 jsonschema
 requests
 requests_oauthlib
