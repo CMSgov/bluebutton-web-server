@@ -2,18 +2,12 @@
 import os
 import sys
 
-DJANGO_CUSTOM_SETTINGS_DIR = os.environ.get("DJANGO_CUSTOM_SETTINGS_DIR", '..')
-EXEC_FILE = os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, 'custom-envvars.py')
+import dotenv
 
-# check if custom-envvars.py exists
-# If it does then run it
-if os.path.isfile(EXEC_FILE):
-    exec(open(EXEC_FILE).read())
-
-else:
-    print("no custom variables set:[%s] - Not Found" % EXEC_FILE)
 
 if __name__ == "__main__":
+    dotenv.read_dotenv()
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                           "hhs_oauth_server.settings.base")
 
