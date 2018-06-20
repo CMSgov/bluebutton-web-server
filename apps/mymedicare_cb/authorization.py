@@ -1,6 +1,7 @@
 import logging
 import requests
 from django.conf import settings
+from .signals import response_hook
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -37,7 +38,8 @@ class OAuth2Config():
         response = requests.post(self.token_endpoint,
                                  auth=self.basic_auth(),
                                  json=token_dict,
-                                 verify=self.verify_ssl)
+                                 verify=self.verify_ssl,
+                                 hooks={'response': response_hook})
 
         response.raise_for_status()
 
