@@ -9,7 +9,12 @@ from apps.fhir.bluebutton.signals import (
 )
 from apps.mymedicare_cb.signals import post_sls
 
-from .serializers import (Token, Request, Response)
+from .serializers import (
+    Token,
+    FHIRRequest,
+    FHIRResponse,
+    SLSResponse,
+)
 
 token_logger = logging.getLogger('audit.authorization.token')
 sls_logger = logging.getLogger('audit.authorization.sls')
@@ -30,6 +35,7 @@ def fetching_data(sender, request=None, **kwargs):
 
 def fetched_data(sender, request=None, response=None, **kwargs):
     fhir_logger.info(FHIRResponse(response))
+
 
 def sls_hook(sender, response=None, **kwargs):
     sls_logger.info(SLSResponse(response))

@@ -41,7 +41,7 @@ class Request:
 
     def __init__(self, request):
         self.req = request
-    
+
     def get_request(self):
         return self.req
 
@@ -57,6 +57,7 @@ class Request:
 
     def __str__(self):
         return json.dumps(self.to_dict())
+
 
 class SLSRequest(Request):
 
@@ -74,7 +75,6 @@ class SLSRequest(Request):
 
     def path(self):
         return self.req.path
-
 
 
 class FHIRRequest(Request):
@@ -108,7 +108,7 @@ class Response:
     def __init__(self, response):
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
-        self.req = self.response_class(response.request).to_dict() if response.request else {}
+        self.req = self.request_class(response.request).to_dict() if response.request else {}
 
     def code(self):
         return self.resp.status_code
@@ -134,6 +134,7 @@ class Response:
 
 class FHIRResponse(Response):
     request_class = FHIRRequest
+
 
 class SLSResponse(Response):
     request_class = SLSRequest
