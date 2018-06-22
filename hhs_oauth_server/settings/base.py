@@ -187,7 +187,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
-
 # emails
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
 DEFAULT_ADMIN_EMAIL = env('DJANGO_ADMIN_EMAIL', 'change-me@example.com')
@@ -471,3 +470,6 @@ if env('TARGET_ENV', '') in ['dev', 'test', 'impl', 'prod']:
 
     # Email config
     SEND_EMAIL = True
+
+    # Use env-specific logging config
+    LOGGING = env("DJANGO_LOGGING")
