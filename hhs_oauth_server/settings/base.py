@@ -228,7 +228,7 @@ LOGGING = env("DJANGO_LOGGING", {
             'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
         },
         'jsonout': {
-            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", '
+            'format': '{"env": "' + env('DJANGO_ENV', 'dev') + '", "time": "%(asctime)s", "level": "%(levelname)s", '
                       '"name": "%(name)s", "message": "%(message)s"}',
             'datefmt': '%Y-%m-%d %H:%M:%S'
 
