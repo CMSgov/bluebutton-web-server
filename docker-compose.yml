@@ -17,7 +17,6 @@ services:
             - OAUTHLIB_INSECURE_TRANSPORT=true
     volumes:
       - .:/code
-      - ./docker-compose/custom-envvars.py:/custom-envvars.py
     ports:
       - "8000:8000"
     depends_on:

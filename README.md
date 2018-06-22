@@ -92,38 +92,6 @@ See https://docs.djangoproject.com/en/1.11/topics/testing/overview/#running-test
 for more information.
 
 
-Custom Environment Variables
-----------------------------
-
-Sensitive values, such as the SECRET_KEY should NOT be stored in files that
-are stored in to the repository. This project has created a structure that
-enables sensitive values to be defined via Environment Variables. The convention
-we have used is as follows:
-
-    - A file `custom-envvars.py` is defined in the parent directory. ie. Where
-    the project is git cloned from.
-    - Custom-envvars.py is a python file that will set an environment variable
-    if it has not already been defined.
-    - If the custom-envvars file exists it is called from manage.py and  wsgi.py
-    - the base.py settings will then define various settings using an
-    environment variable, or a default if a variable is not found.
-
-An example of a `custom-envvars.py` file is shown below:
-
-    import os
-
-    def no_overwrite(env_var, env_val):
-        """ Do not overwrite ENV VAR if it exists """
-        check_for = os.environ.get(env_var)
-        if check_for:
-            # print("%s already set" % env_var)
-            return
-        else:
-            # Not set
-            os.environ.setdefault(env_var, env_val)
-            # print("%s set to %s" % (env_var, env_val))
-        return
-
 Using this Project
 ------------------
 
