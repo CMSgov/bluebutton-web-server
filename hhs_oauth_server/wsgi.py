@@ -17,6 +17,6 @@ if os.path.isfile(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, 'newrelic.ini')):
 if os.path.isfile(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, '.env')):
     dotenv.read_dotenv(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, '.env'))
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hhs_oauth_server.settings.aws")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hhs_oauth_server.settings.base")
 
 application = get_wsgi_application()
