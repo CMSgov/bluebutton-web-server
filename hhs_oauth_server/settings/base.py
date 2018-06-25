@@ -187,7 +187,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
 ]
 
-
 # emails
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
 DEFAULT_ADMIN_EMAIL = env('DJANGO_ADMIN_EMAIL', 'change-me@example.com')
@@ -216,7 +215,8 @@ MFA = True
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
 
-LOGGING = {
+# Use env-specific logging config if present
+LOGGING = env("DJANGO_LOGGING", {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -278,7 +278,7 @@ LOGGING = {
             'level': 'INFO',
         }
     },
-}
+})
 
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
