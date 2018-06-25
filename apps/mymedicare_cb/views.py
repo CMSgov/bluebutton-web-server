@@ -18,6 +18,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from .authorization import OAuth2Config
+from .signals import response_hook
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
@@ -42,9 +43,12 @@ def authenticate(request):
         'SLS_USERINFO_ENDPOINT',
         'https://test.accounts.cms.gov/v1/oauth/userinfo')
 
+    headers = sls_client.auth_header()
+    headers.update({"X-Request-ID": getattr(request, '__logging_uuid', None)})
     response = requests.get(userinfo_endpoint,
-                            headers=sls_client.auth_header(),
-                            verify=sls_client.verify_ssl)
+                            headers=headers,
+                            verify=sls_client.verify_ssl,
+                            hooks={'response': response_hook})
 
     try:
         response.raise_for_status()

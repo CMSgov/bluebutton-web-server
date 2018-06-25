@@ -42,6 +42,43 @@ class Request:
     def __init__(self, request):
         self.req = request
 
+    def get_request(self):
+        return self.req
+
+    def to_dict(self):
+        result = {
+            "uuid": self.uuid(),
+            "user": self.user(),
+            "start_time": self.start_time(),
+            "application": self.application(),
+            "path": self.path(),
+        }
+        return result
+
+    def __str__(self):
+        return json.dumps(self.to_dict())
+
+
+class SLSRequest(Request):
+
+    def uuid(self):
+        return self.req.headers.get('X-Request-ID')
+
+    def user(self):
+        return None
+
+    def start_time(self):
+        return None
+
+    def application(self):
+        return None
+
+    def path(self):
+        return self.req.path
+
+
+class FHIRRequest(Request):
+
     def uuid(self):
         return self.req.headers.get('BlueButton-OriginalQueryId')
 
@@ -63,28 +100,15 @@ class Request:
     def path(self):
         return self.req.headers.get('BlueButton-OriginalUrl')
 
-    def to_dict(self):
-        result = {
-            "uuid": self.uuid(),
-            "user": self.user(),
-            "start_time": self.start_time(),
-            "application": self.application(),
-            "path": self.path(),
-        }
-        return result
-
-    def __str__(self):
-        return json.dumps(self.to_dict())
-
 
 class Response:
+    request_class = None
     resp = None
-    req = None
 
     def __init__(self, response):
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
-        self.req = Request(response.request).to_dict() if response.request else {}
+        self.req = self.request_class(response.request).to_dict() if response.request else {}
 
     def code(self):
         return self.resp.status_code
@@ -106,3 +130,11 @@ class Response:
         result = self.to_dict().copy()
         result.update(self.req)
         return json.dumps(result)
+
+
+class FHIRResponse(Response):
+    request_class = FHIRRequest
+
+
+class SLSResponse(Response):
+    request_class = SLSRequest
