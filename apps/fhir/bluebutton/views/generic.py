@@ -113,4 +113,8 @@ class FhirDataView(APIView):
 
         self.check_object_permissions(request, out_data)
 
+        raw = r.json()
+        if raw != out_data:
+            logger.info("Raw and Proccessed data do not match")
+
         return out_data

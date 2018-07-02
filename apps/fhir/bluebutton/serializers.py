@@ -1,4 +1,5 @@
 from apps.fhir.bluebutton.utils import (build_rewrite_list,
+                                        get_resourcerouter,
                                         get_host_url,
                                         post_process_request,
                                         get_response_text)
@@ -10,6 +11,9 @@ def localize(request=None,
              resource_type=None):
 
     rewrite_list = build_rewrite_list(crosswalk)
+
+    resource_router = get_resourcerouter()
+    rewrite_list.append(request.scheme + "://" + request.get_host() + "/" + resource_router.server_release)
     host_path = get_host_url(request, resource_type)[:-1]
 
     text_in = get_response_text(fhir_response=response)
