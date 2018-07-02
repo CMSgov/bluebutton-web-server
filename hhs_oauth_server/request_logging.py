@@ -71,6 +71,10 @@ class RequestResponseLog(object):
             log_msg['app_id'] = at.application.id
             log_msg['dev_id'] = at.application.user.id
             log_msg['dev_name'] = str(at.application.user)
+            try:
+                log_msg['org_name'] = at.application.user.user_profile.organization_name
+            except Exception:
+                pass
             log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
 
         return(json.dumps(log_msg))
