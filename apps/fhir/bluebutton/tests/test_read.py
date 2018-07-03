@@ -182,7 +182,7 @@ class BackendConnectionTest(BaseApiTest):
         expected_request = {
             'method': 'GET',
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
-                    "baseDstu3/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
+                    "v1/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
                 'User-Agent': 'python-requests/2.18.4',
                 'Accept-Encoding': 'gzip, deflate',
@@ -194,7 +194,7 @@ class BackendConnectionTest(BaseApiTest):
                 'BlueButton-OriginatingIpAddress': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
                 'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/',
+                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/',
             }
         }
 
@@ -252,7 +252,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/", req.url)
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/", req.url)
             self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
             self.assertIn("_id=20140000008325", req.url)
             self.assertEqual(expected_request['method'], req.method)
@@ -291,7 +291,7 @@ class BackendConnectionTest(BaseApiTest):
         expected_request = {
             'method': 'GET',
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
-                    "baseDstu3/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
+                    "v1/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
                 'User-Agent': 'python-requests/2.18.4',
                 'Accept-Encoding': 'gzip, deflate',
@@ -303,13 +303,13 @@ class BackendConnectionTest(BaseApiTest):
                 'BlueButton-OriginatingIpAddress': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
                 'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/',
+                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/',
             }
         }
 
         @all_requests
         def catchall(url, req):
-            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/", req.url)
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/", req.url)
             self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
             self.assertIn("_id=20140000008325", req.url)
             self.assertEqual(expected_request['method'], req.method)
@@ -348,7 +348,7 @@ class BackendConnectionTest(BaseApiTest):
                     "link": [
                         {
                             "relation": "self",
-                            "url": "http://hapi.fhir.org/baseDstu3/ExplanationOfBenefit?_pretty=true&patient=1234"
+                            "url": "http://hapi.fhir.org/v1/fhir/ExplanationOfBenefit?_pretty=true&patient=1234"
                         },
                     ],
                 },
@@ -370,7 +370,7 @@ class BackendConnectionTest(BaseApiTest):
         expected_request = {
             'method': 'GET',
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
-                    "baseDstu3/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
+                    "v1/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
                 'User-Agent': 'python-requests/2.18.4',
                 'Accept-Encoding': 'gzip, deflate',
@@ -382,13 +382,13 @@ class BackendConnectionTest(BaseApiTest):
                 'BlueButton-OriginatingIpAddress': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
                 'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/',
+                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/',
             }
         }
 
         @all_requests
         def catchall(url, req):
-            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/", req.url)
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/", req.url)
             self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
             self.assertIn("_id=20140000008325", req.url)
             self.assertEqual(expected_request['method'], req.method)
@@ -415,7 +415,7 @@ class BackendConnectionTest(BaseApiTest):
         expected_request = {
             'method': 'GET',
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
-                    "baseDstu3/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
+                    "v1/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
                 'User-Agent': 'python-requests/2.18.4',
                 'Accept-Encoding': 'gzip, deflate',
@@ -427,7 +427,7 @@ class BackendConnectionTest(BaseApiTest):
                 'BlueButton-OriginatingIpAddress': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
                 'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/',
+                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/',
             }
         }
 
@@ -447,7 +447,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/", req.url)
+            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/", req.url)
             self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
             self.assertIn("_id=20140000008325", req.url)
             self.assertEqual(expected_request['method'], req.method)
@@ -507,7 +507,7 @@ class BackendConnectionTest(BaseApiTest):
 
         expected_request = {
             'method': 'GET',
-            'url': 'https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/20140000008325/?_format=json',
+            'url': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/20140000008325/?_format=json',
             'headers': {
                 'User-Agent': 'python-requests/2.18.4',
                 'Accept-Encoding': 'gzip, deflate',
@@ -519,7 +519,7 @@ class BackendConnectionTest(BaseApiTest):
                 'BlueButton-OriginatingIpAddress': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
                 'BlueButton-OriginalUrl': '/v1/fhir/Patient/20140000008325',
-                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/baseDstu3/Patient/20140000008325/',
+                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/20140000008325/',
             }
         }
 
