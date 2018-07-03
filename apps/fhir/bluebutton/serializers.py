@@ -1,5 +1,4 @@
 from apps.fhir.bluebutton.utils import (build_rewrite_list,
-                                        get_resourcerouter,
                                         get_host_url,
                                         post_process_request,
                                         get_response_text)

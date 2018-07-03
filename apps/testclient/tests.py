@@ -103,7 +103,9 @@ class BlueButtonClientApiFhirTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], "application/json")
         self.assertEqual(len(response_data['entry']), 12)
-        self.assertEqual(response_data['entry'][0]['fullUrl'], "http://testserver/v1/fhir/ExplanationOfBenefit/carrier-20587716665")
+        self.assertEqual(
+            response_data['entry'][0]['fullUrl'],
+            "http://testserver/v1/fhir/ExplanationOfBenefit/carrier-20587716665")
         self.assertContains(response, "ExplanationOfBenefit")
 
     def test_bad_count(self):
