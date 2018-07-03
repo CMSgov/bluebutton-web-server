@@ -12,8 +12,6 @@ def localize(request=None,
 
     rewrite_list = build_rewrite_list(crosswalk)
 
-    resource_router = get_resourcerouter()
-    rewrite_list.append(request.scheme + "://" + request.get_host() + "/" + resource_router.server_release)
     host_path = get_host_url(request, resource_type)[:-1]
 
     text_in = get_response_text(fhir_response=response)
