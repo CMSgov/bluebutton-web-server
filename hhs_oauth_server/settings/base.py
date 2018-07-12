@@ -425,7 +425,7 @@ ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
 
 MEDICARE_LOGON = True
-MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI ',
+MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI',
                          'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
 MEDICARE_REDIRECT_URI = env(
     'DJANGO_MEDICARE_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
