@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 from apps.test import BaseApiTest
 
 from ..models import Crosswalk

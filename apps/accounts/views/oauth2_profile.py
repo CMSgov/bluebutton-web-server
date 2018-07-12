@@ -3,9 +3,6 @@ from django.views.decorators.http import require_GET
 from apps.fhir.bluebutton.models import Crosswalk
 from oauth2_provider.decorators import protected_resource
 from collections import OrderedDict
-from django.contrib.auth.decorators import login_required
-
-__author__ = "Alan Viars"
 
 
 def get_userinfo(user):
@@ -19,7 +16,7 @@ def get_userinfo(user):
     data['family_name'] = user.last_name
     data['email'] = user.email
     data['iat'] = user.date_joined
-    # data['ial'] = up.ial  # experimental
+
     # Get the FHIR ID if its there
     fhir_id = get_fhir_id(user)
     if fhir_id:
@@ -32,17 +29,6 @@ def get_userinfo(user):
 @protected_resource()
 def openidconnect_userinfo(request):
     user = request.resource_owner
-    data = get_userinfo(user)
-    return JsonResponse(data)
-
-
-@require_GET
-@login_required()
-def userinfo_w_login(request):
-    """
-    OIDC Style userinfo
-    """
-    user = request.user
     data = get_userinfo(user)
     return JsonResponse(data)
 

@@ -1,12 +1,9 @@
-from __future__ import unicode_literals
 from django.test import TestCase
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.utils import six
 from django.conf import settings
 import json
-
-__author__ = "Alan Viars"
 
 
 class OpenIDConnectConfigurationTestCase(TestCase):

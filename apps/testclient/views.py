@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.shortcuts import render
 from requests_oauthlib import OAuth2Session
 from collections import OrderedDict
@@ -11,14 +9,14 @@ import logging
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 from django.views.decorators.cache import never_cache
 
-__author__ = "Alan Viars"
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def callback(request):
 
     response = OrderedDict()
+    if 'error' in request.GET:
+        return render(request, "access-denied.html", {"error": request.GET.get("error")})
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
     host = settings.HOSTNAME_URL

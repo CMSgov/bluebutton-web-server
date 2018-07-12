@@ -9,27 +9,43 @@
 
 {% block pagename %} {{ settings.APPLICATION_TITLE }} {% endblock %}
 {% block Content %}
+    <main class="row container-fluid" id="main-content">
 
+        <div class="row container-fluid">
 
-<div class="hero-unit text-center">
+<div class="ds-base">
+  <header class="main-header ds-u-margin-bottom--2 ds-u-lg-margin-bottom--5">
+    <div class="solid-container ds-u-padding-y--2 ds-u-lg-padding-y--5">
+      <div class="ds-l-container">
+        <div class="ds-l-row">
+          <div class="ds-u-color--white ds-l-sm-cold--12 ds-l-xl-col--10 ds-u-margin-left--auto ds-u-padding-x--4">
+              <span class="ds-c-badge ds-u-text-transform--uppercase">api</span>
+              <h1 class="ds-display">Blue Button 2.0</h1>
+              <p class="ds-text--lead">
+                A developer-friendly, standards-based API that enables Medicare beneficiaries to connect their claims data to applications, services and research programs they trust.
+              </p>
 
- <h1 class="display-3">{{settings.TAG_LINE_1}}</h1>
-  <p class="lead">{{settings.TAG_LINE_2}}</p>
-  <hr class="my-4">
-  <p>{{settings.EXPLAINATION_LINE}}</p>
-  <p class="lead">
+              <div class="ctas">
+              
+              <a class="ds-c-button button--white" href="https://bluebutton.cms.gov/developers/" aria-label="View the documentation" target="_self">View the documentation &rarr;</a>
+                {% if settings.REQUIRE_INVITE_TO_REGISTER %}
+                                                 
+                   <a class="ds-c-button button--white" href="{% url 'accounts_create_account' %}"> aria-label="Sign up for the {{ settings.APPLICATION_TITLE }}" target="_self">Sign up for the {{ settings.APPLICATION_TITLE }} &rarr;</a>
+                {% else %}
+                    <a class="ds-c-button button--white" href="{% url 'request_invite' %}"  aria-label="Sign up for the {{ settings.APPLICATION_TITLE }}" target="_self">Sign up for the {{ settings.APPLICATION_TITLE }} &rarr;</a>
+                {% endif %}
+              </div>
 
-   {% if settings.REQUIRE_INVITE_TO_REGISTER %}
-    <a class="ds-c-button  ds-c-button--default ds-c-button--big" href="{% url 'request_invite' %}" role="button"><i class="fa fa-code"></i>  Request an Invite to the {{ settings.APPLICATION_TITLE }}</a></p>
-  {% else %}
-     <a class="ds-c-button  ds-c-button--default ds-c-button--big" href="{% url 'accounts_create_account' %}" role="button"><i class="fa fa-code"></i>  Signup for the {{ settings.APPLICATION_TITLE }}</a></p>
-  {% endif %}
-  </p>
-
- <p>If you are a developer who already has an account, then <a href="{% url 'mfa_login' %}">login here</a>.</p>
- <p>If you are a Medicare beneficiary with a {{settings.EXTERNAL_AUTH_NAME}} account,  then
-       <a href="{% url 'mymedicare-login' %}?next=/"> login here.</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      <div class="gradient-container ds-u-padding-y--2 ds-u-lg-padding-y--5 ds-u-display--none ds-u-md-display--block">
+    </div>
+  </header>
 </div>
 
+</div>
+</main>
 
 {% endblock %}

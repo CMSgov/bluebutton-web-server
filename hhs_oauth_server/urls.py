@@ -1,27 +1,28 @@
 from django.conf import settings
+from django.http import JsonResponse
+from rest_framework import status
 from django.conf.urls import include, url
 from django.contrib import admin
-from apps.accounts.views.oauth2_profile import (openidconnect_userinfo,
-                                                userinfo_w_login)
+from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance
 from apps.home.views import home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
-
-__author__ = "Alan Viars"
 
 admin.autodiscover()
 
 ADMIN_REDIRECTOR = getattr(settings, 'ADMIN_PREPEND_URL', '')
 
+
 urlpatterns = [
+    url(r'health', include('apps.health.urls')),
     url(r'.well-known/', include('apps.wellknown.urls')),
     url(r'^v1/accounts/', include('apps.accounts.urls')),
     url(r'^v1/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo'),
-    url(r'^v1/userinfo', userinfo_w_login, name='openid_connect_user_w_login'),
     url(r'^v1/fhir/metadata$', fhir_conformance, name='fhir_conformance_metadata'),
     url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
     url(r'^v1/o/', include('apps.dot_ext.urls')),
-    url(r'^social-auth/', include('social_django.urls', namespace='social')),
+    url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
+
 
     url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls)),
 ]
@@ -36,6 +37,31 @@ if IsAppInstalled("apps.mymedicare_cb"):
         url(r'^mymedicare/', include('apps.mymedicare_cb.urls')),
     ]
 
-urlpatterns += [
-    url(r'^$', home, name='home'),
-]
+if not getattr(settings, 'NO_UI', False):
+    urlpatterns += [
+        url(r'^$', home, name='home'),
+    ]
+
+handler500 = 'hhs_oauth_server.urls.server_error'
+handler400 = 'hhs_oauth_server.urls.bad_request'
+
+
+# TODO Replace this with defaults from rest_framework once upgrated to > 3.7.7
+def server_error(request, *args, **kwargs):
+    """
+    Generic 500 error handler.
+    """
+    data = {
+        'error': 'Server Error (500)'
+    }
+    return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def bad_request(request, exception, *args, **kwargs):
+    """
+    Generic 400 error handler.
+    """
+    data = {
+        'error': 'Bad Request (400)'
+    }
+    return JsonResponse(data, status=status.HTTP_400_BAD_REQUEST)
