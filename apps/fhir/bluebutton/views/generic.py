@@ -17,7 +17,6 @@ from ..signals import (
 from ..authentication import OAuth2ResourceOwner
 from ..permissions import (HasCrosswalk, ResourcePermission)
 from ..exceptions import UpstreamServerException
-from ..serializers import localize
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
@@ -106,10 +105,7 @@ class FhirDataView(APIView):
 
         self.validate_response(response)
 
-        out_data = localize(request=request,
-                            response=response,
-                            crosswalk=request.crosswalk,
-                            resource_type=resource_type)
+        out_data = r.json()
 
         self.check_object_permissions(request, out_data)
 
