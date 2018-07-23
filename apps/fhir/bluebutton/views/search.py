@@ -11,7 +11,8 @@ from apps.fhir.bluebutton.utils import (request_get_with_params,
                                         get_host_url,
                                         get_resourcerouter,
                                         post_process_request,
-                                        get_response_text)
+                                        get_response_text,
+                                        get_page_size)
 
 from rest_framework.decorators import throttle_classes, api_view
 from apps.dot_ext.throttling import TokenRateThrottle
@@ -61,7 +62,10 @@ def search(request, resource_type, *args, **kwargs):
         return build_error_response(400, '%s must be an integer between zero and the number of results' % START_PARAMETER)
 
     try:
-        page_size = int(request.GET.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
+        # page_size = int(request.GET.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
+        # returns -1 if not found otherwise count or _count value or default size
+        page_size = get_page_size(request)
+
         if page_size <= 0 or page_size > MAX_PAGE_SIZE:
             raise ValueError
     except ValueError:

@@ -5,6 +5,10 @@ import pytz
 import requests
 import uuid
 
+from .constants import (DEFAULT_PAGE_SIZE,
+                        MAX_PAGE_SIZE,
+                        SIZE_PARAMETER_OPTIONS)
+
 from collections import OrderedDict
 from datetime import datetime
 from pytz import timezone
@@ -909,3 +913,25 @@ def build_oauth_resource(request, format_type="json"):
         ]
 
     return security
+
+
+def get_page_size(request):
+    """
+    Get count or _count from request.GET
+    :param request:
+    :return page_size:
+    """
+
+    for page_size_field in SIZE_PARAMETER_OPTIONS:
+        if page_size_field in request.GET:
+            page_size = int(request.GET.get(page_size_field, 0))
+
+    if page_size:
+        if page_size == 0:
+            page_size = DEFAULT_PAGE_SIZE
+        else:
+            return page_size
+
+    else:
+        page_size = -1
+        return page_size
