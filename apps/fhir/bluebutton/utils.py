@@ -6,7 +6,6 @@ import requests
 import uuid
 
 from .constants import (DEFAULT_PAGE_SIZE,
-                        MAX_PAGE_SIZE,
                         SIZE_PARAMETER_OPTIONS)
 
 from collections import OrderedDict

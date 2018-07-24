@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 import logging
 
-from ..constants import ALLOWED_RESOURCE_TYPES, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from ..constants import ALLOWED_RESOURCE_TYPES, MAX_PAGE_SIZE
 from ..decorators import require_valid_token
 from ..errors import build_error_response
 
@@ -62,8 +62,6 @@ def search(request, resource_type, *args, **kwargs):
         return build_error_response(400, '%s must be an integer between zero and the number of results' % START_PARAMETER)
 
     try:
-        # page_size = int(request.GET.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
-        # returns -1 if not found otherwise count or _count value or default size
         page_size = get_page_size(request)
 
         if page_size <= 0 or page_size > MAX_PAGE_SIZE:
