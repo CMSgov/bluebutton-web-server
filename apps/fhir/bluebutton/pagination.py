@@ -14,6 +14,7 @@ Created by: '@ekivemark'
 from .constants import SIZE_PARAMETER_OPTIONS, DEFAULT_PAGE_SIZE
 # FHIR Standard Query Parameter first in SIZE_PARAMETER_OPTIONS list
 
+
 def get_page_size(qp):
     """
     Get count or _count from request.GET passed in as QP
