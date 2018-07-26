@@ -1,5 +1,27 @@
 import logging
 
+from ..constants import (ALLOWED_RESOURCE_TYPES,
+                         MAX_PAGE_SIZE,
+                         START_PARAMETER,
+                         SIZE_PARAMETER)
+
+from ..decorators import require_valid_token
+from ..errors import build_error_response
+
+from apps.fhir.bluebutton.utils import (request_get_with_params,
+                                        build_rewrite_list,
+                                        get_crosswalk,
+                                        get_host_url,
+                                        get_resourcerouter,
+                                        post_process_request,
+                                        get_response_text,
+                                        )
+
+from apps.fhir.bluebutton.pagination import (get_page_size)
+
+from rest_framework.decorators import throttle_classes, api_view
+from apps.dot_ext.throttling import TokenRateThrottle
+
 from urllib.parse import urlencode
 from rest_framework import (exceptions, permissions)
 from rest_framework.response import Response
@@ -9,9 +31,6 @@ from apps.fhir.bluebutton.views.generic import FhirDataView
 from ..permissions import (SearchCrosswalkPermission, ResourcePermission)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-START_PARAMETER = 'startIndex'
-SIZE_PARAMETER = 'count'
 
 
 class SearchView(FhirDataView):
@@ -31,15 +50,37 @@ class SearchView(FhirDataView):
         if start_index < 0:
             raise exceptions.ParseError()
 
-        try:
-            page_size = int(request.GET.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
-        except ValueError:
-            raise exceptions.ParseError(detail='%s must be an integer between 1 and %s' % (SIZE_PARAMETER, MAX_PAGE_SIZE))
-
+    try:
+        page_size = get_page_size(request.GET)
         if page_size <= 0 or page_size > MAX_PAGE_SIZE:
-            raise exceptions.ParseError()
+            raise ValueError
+    except ValueError:
+        return build_error_response(400, '%s must be an integer between 1 and %s' % (SIZE_PARAMETER, MAX_PAGE_SIZE))
 
-        data = self.fetch_data(request, resource_type, *args, **kwargs)
+    resource_router = get_resourcerouter(crosswalk)
+    target_url = resource_router.fhir_url + resource_type + "/"
+
+    get_parameters = {
+        '_format': 'application/json+fhir'
+    }
+
+    patient_id = crosswalk.fhir_id
+
+    if 'patient' in request.GET and request.GET['patient'] != patient_id:
+        return build_error_response(403, 'You do not have permission to access'
+                                         ' the requested patient\'s data')
+
+    if resource_type == 'ExplanationOfBenefit':
+        replay_parameters['patient'] = patient_id
+        get_parameters['patient'] = patient_id
+    elif resource_type == 'Coverage':
+        get_parameters['beneficiary'] = 'Patient/' + patient_id
+        replay_parameters['beneficiary'] = 'Patient/' + patient_id
+        if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
+            return build_error_response(403, 'You do not have permission to '
+                                             'access the requested patient\'s data')
+    elif resource_type == 'Patient':
+        get_parameters['_id'] = patient_id
 
         if data.get('total', 0) > 0:
             # TODO update to pagination class

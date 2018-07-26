@@ -94,6 +94,8 @@ class BlueButtonClientApiFhirTest(TestCase):
     def test_get_eob(self):
         """
         Test get eob
+        WE may want to test adding count and _count to see which takes precedence,
+        hopefully _count as the standard is the primary.
         """
 
         uri = "%s?patient=%s&count=12" % (
@@ -108,8 +110,52 @@ class BlueButtonClientApiFhirTest(TestCase):
             "http://testserver/v1/fhir/ExplanationOfBenefit/carrier-20587716665")
         self.assertContains(response, "ExplanationOfBenefit")
 
+        uri = "%s?patient=%s&_count=12" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        response_data = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response_data['entry']), 12)
+        self.assertContains(response, "ExplanationOfBenefit")
+
+    def test_not_number_count(self):
+        uri = "%s?patient=%s&count=cdef" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 400)
+
+        uri = "%s?patient=%s&_count=cdef" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 400)
+
+    def test_both_counts(self):
+        """
+        Test we get the _count value if both are presented
+        """
+        uri = "%s?patient=%s&count=6&_count=12" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        response_data = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response_data['entry']), 12)
+        self.assertContains(response, "ExplanationOfBenefit")
+
+        uri = "%s?patient=%s&_count=12&count=6" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        response_data = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response_data['entry']), 12)
+        self.assertContains(response, "ExplanationOfBenefit")
+
     def test_bad_count(self):
         uri = "%s?patient=%s&count=10000000" % (
+            self.testclient_setup['eob_uri'], self.patient)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 400)
+
+        uri = "%s?patient=%s&_count=10000000" % (
             self.testclient_setup['eob_uri'], self.patient)
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 400)
