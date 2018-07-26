@@ -1,7 +1,11 @@
 from django.http import JsonResponse
 import logging
 
-from ..constants import ALLOWED_RESOURCE_TYPES, MAX_PAGE_SIZE
+from ..constants import (ALLOWED_RESOURCE_TYPES,
+                         MAX_PAGE_SIZE,
+                         START_PARAMETER,
+                         SIZE_PARAMETER)
+
 from ..decorators import require_valid_token
 from ..errors import build_error_response
 
@@ -13,6 +17,7 @@ from apps.fhir.bluebutton.utils import (request_get_with_params,
                                         post_process_request,
                                         get_response_text,
                                         )
+
 from apps.fhir.bluebutton.pagination import (get_page_size)
 
 from rest_framework.decorators import throttle_classes, api_view
@@ -20,9 +25,6 @@ from apps.dot_ext.throttling import TokenRateThrottle
 from urllib.parse import urlencode
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-START_PARAMETER = 'startIndex'
-SIZE_PARAMETER = 'count'
 
 
 @require_valid_token()
@@ -79,7 +81,8 @@ def search(request, resource_type, *args, **kwargs):
     patient_id = crosswalk.fhir_id
 
     if 'patient' in request.GET and request.GET['patient'] != patient_id:
-        return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
+        return build_error_response(403, 'You do not have permission to access'
+                                         ' the requested patient\'s data')
 
     if resource_type == 'ExplanationOfBenefit':
         replay_parameters['patient'] = patient_id
@@ -88,7 +91,8 @@ def search(request, resource_type, *args, **kwargs):
         get_parameters['beneficiary'] = 'Patient/' + patient_id
         replay_parameters['beneficiary'] = 'Patient/' + patient_id
         if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
-            return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
+            return build_error_response(403, 'You do not have permission to '
+                                             'access the requested patient\'s data')
     elif resource_type == 'Patient':
         get_parameters['_id'] = patient_id
 
