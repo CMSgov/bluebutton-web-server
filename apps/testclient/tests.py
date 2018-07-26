@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.core.management import call_command
 from django.test.client import Client
 from django.test import TestCase
@@ -7,8 +5,6 @@ from .utils import test_setup
 from django.core.urlresolvers import reverse
 from unittest import skipIf
 from django.conf import settings
-
-__author__ = "Alan Viars"
 
 
 class BlueButtonClientApiUserInfoTest(TestCase):
@@ -63,6 +59,25 @@ class BlueButtonClientApiFhirTest(TestCase):
         uri = "%s%s" % (
             self.testclient_setup['patient_uri'], self.patient)
         response = self.client.get(uri)
+        self.assertEqual(response['Content-Type'], "application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.patient)
+
+    def test_get_patient_fhir(self):
+        """
+        Test get patient
+        """
+        uri = "%s%s" % (
+            self.testclient_setup['patient_uri'], self.patient)
+        response = self.client.get(uri, HTTP_ACCEPT='application/fhir+json')
+        self.assertEqual(response['Content-Type'], "application/fhir+json")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.patient)
+
+        # Test for search endpoint
+        uri = self.testclient_setup['patient_uri']
+        response = self.client.get(uri, HTTP_ACCEPT='application/fhir+json')
+        self.assertEqual(response['Content-Type'], "application/fhir+json")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.patient)
 
@@ -74,7 +89,7 @@ class BlueButtonClientApiFhirTest(TestCase):
             self.testclient_setup['patient_uri'], self.another_patient)
         response = self.client.get(uri)
         print(response.content)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
 
     def test_get_eob(self):
         """
@@ -88,7 +103,11 @@ class BlueButtonClientApiFhirTest(TestCase):
         response = self.client.get(uri)
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], "application/json")
         self.assertEqual(len(response_data['entry']), 12)
+        self.assertEqual(
+            response_data['entry'][0]['fullUrl'],
+            "http://testserver/v1/fhir/ExplanationOfBenefit/carrier-20587716665")
         self.assertContains(response, "ExplanationOfBenefit")
 
         uri = "%s?patient=%s&_count=12" % (
@@ -148,20 +167,20 @@ class BlueButtonClientApiFhirTest(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_offset_math(self):
-        uri = "%s?patient=%s&count=12&startIndex=133" % (
+        uri = "%s?patient=%s&count=12&startIndex=25" % (
             self.testclient_setup['eob_uri'], self.patient)
         response = self.client.get(uri)
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_data['total'], 32)
         self.assertEqual(len(response_data['entry']), 7)
-        self.assertEqual(response_data['total'], 140)
         previous_links = [data['url'] for data in response_data['link'] if data['relation'] == 'previous']
         next_links = [data['url'] for data in response_data['link'] if data['relation'] == 'next']
         first_links = [data['url'] for data in response_data['link'] if data['relation'] == 'first']
         self.assertEqual(len(previous_links), 1)
         self.assertEqual(len(next_links), 0)
         self.assertEqual(len(first_links), 1)
-        self.assertIn('startIndex=121', previous_links[0])
+        self.assertIn('startIndex=13', previous_links[0])
         self.assertIn('startIndex=0', first_links[0])
         self.assertContains(response, "ExplanationOfBenefit")
 

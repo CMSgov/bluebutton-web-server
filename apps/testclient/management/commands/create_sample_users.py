@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -7,8 +5,6 @@ from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
 import csv
-
-__author__ = "Alan Viars"
 
 
 def create_group(name="BlueButton"):

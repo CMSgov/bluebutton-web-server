@@ -19,6 +19,7 @@ from apps.fhir.bluebutton.utils import (
     dt_patient_reference,
     crosswalk_patient_id,
     get_resourcerouter,
+    build_oauth_resource,
 )
 
 ENCODED = settings.ENCODING
@@ -73,7 +74,7 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
         self.assertEqual(response, listing)
 
 
-class BlueButtonUtilSrtcTestCase(TestCase):
+class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
     fixtures = ['fhir_bluebutton_new_testdata.json',
                 'fhir_server_new_testdata.json']
@@ -83,28 +84,28 @@ class BlueButtonUtilSrtcTestCase(TestCase):
 
         """ Test 1: pass nothing"""
 
-        rr = get_resourcerouter()
+        resource_router = get_resourcerouter()
         expected = {}
-        expected['client_auth'] = rr.client_auth
+        expected['client_auth'] = resource_router.client_auth
         expected['cert_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             rr.cert_file)
+                                             resource_router.cert_file)
         expected['key_file'] = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                            rr.key_file)
+                                            resource_router.key_file)
 
         response = FhirServerAuth()
 
         self.assertDictEqual(response, expected)
 
-        """ Test 2: pass cx """
-        cx = Crosswalk.objects.get(pk=1)
+        """ Test 2: pass crosswalk """
+        crosswalk = Crosswalk.objects.get(pk=1)
 
-        response = FhirServerAuth(cx)
+        response = FhirServerAuth(crosswalk)
 
-        expected = {'client_auth': cx.fhir_source.client_auth,
+        expected = {'client_auth': crosswalk.fhir_source.client_auth,
                     'cert_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                              cx.fhir_source.cert_file),
+                                              crosswalk.fhir_source.cert_file),
                     'key_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             cx.fhir_source.key_file)}
+                                             crosswalk.fhir_source.key_file)}
 
         self.assertDictEqual(response, expected)
 
@@ -121,12 +122,12 @@ class BlueButtonUtilSrtcTestCase(TestCase):
         """ Test 2: Pass no parameters """
         response = FhirServerUrl()
 
-        rr = get_resourcerouter()
-        rr_server_address = rr.server_address
+        resource_router = get_resourcerouter()
+        resource_router_server_address = resource_router.server_address
 
-        expected = rr_server_address
-        expected += rr.server_path
-        expected += rr.server_release
+        expected = resource_router_server_address
+        expected += resource_router.server_path
+        expected += resource_router.server_release
         if expected.endswith('/'):
             pass
         else:
@@ -161,38 +162,38 @@ class BlueButtonUtilsRtTestCase(TestCase):
     fixtures = ['fhir_bluebutton_test_rt.json']
 
     def test_masked(self):
-        """ Checking for srtc.override_url_id """
+        """ Checking for supported_resource_type_control.override_url_id """
 
-        """ Test:1 srtc with valid override_url_id=True """
+        """ Test:1 supported_resource_type_control with valid override_url_id=True """
 
-        srtc = SupportedResourceType.objects.get(pk=1)
+        supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
 
-        response = masked(srtc)
+        response = masked(supported_resource_type_control)
         expected = True
 
         self.assertEqual(response, expected)
 
-        """ Test:2 srtc with valid override_url_id=False """
+        """ Test:2 supported_resource_type_control with valid override_url_id=False """
 
-        srtc = SupportedResourceType.objects.get(pk=4)
+        supported_resource_type_control = SupportedResourceType.objects.get(pk=4)
 
-        response = masked(srtc)
+        response = masked(supported_resource_type_control)
         expected = False
 
         self.assertEqual(response, expected)
 
-        """ Test:3 srtc =None """
+        """ Test:3 supported_resource_type_control =None """
 
-        srtc = SupportedResourceType.objects.get(pk=1)
+        supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
 
         response = masked(None)
         expected = False
 
         self.assertEqual(response, expected)
 
-        """ Test:4 No SRTC """
+        """ Test:4 No supported_resource_type_control """
 
-        # srtc = SupportedResourceType.objects.get(pk=1)
+        # supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
 
         response = masked()
         expected = False
@@ -453,3 +454,51 @@ class Patient_Resource_Test(BaseApiTest):
         result = dt_patient_reference(u)
 
         self.assertEqual(result, None)
+
+
+class Security_Metadata_test(BaseApiTest):
+    """
+    Testing for security content addition
+    """
+
+    def setUp(self):
+        # Setup the RequestFactory
+        self.factory = RequestFactory()
+
+    def test_oauth_resource_empty(self):
+        """
+        Test build_oauth_resource with no parameters
+        """
+        request = self.factory.get('/cmsblue/fhir/v1/metadata')
+
+        result = build_oauth_resource(request)
+
+        expected = True
+
+        self.assertEqual(result['cors'], expected)
+
+    def test_oauth_resource_json(self):
+        """
+        Test build_oauth_resource with json
+        """
+        request = self.factory.get('/cmsblue/fhir/v1/metadata')
+
+        result = build_oauth_resource(request, "json")
+
+        expected = True
+
+        self.assertEqual(result['cors'], expected)
+
+    def test_oauth_resource_xml(self):
+        """
+        Test build_oauth_resource with xml
+        """
+        request = self.factory.get('/cmsblue/fhir/v1/metadata')
+
+        result = build_oauth_resource(request, "xml")
+
+        expected = "<cors>true</cors>"
+
+        # print(result[16:33])
+
+        self.assertEqual(result[16:33], expected)

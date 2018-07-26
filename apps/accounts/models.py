@@ -1,23 +1,18 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import pytz
 import random
 import uuid
-import json
 from datetime import datetime, timedelta
 from django.contrib.admin.models import LogEntry
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-import boto3
 from django.core.urlresolvers import reverse
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
                      mfa_via_email, send_invite_to_create_account,
                      send_invitation_code_to_user,
                      notify_admin_of_invite_request)
-from collections import OrderedDict
 import logging
 from django.utils.crypto import pbkdf2
 import binascii
@@ -258,36 +253,14 @@ class MFACode(models.Model):
             self.expires = expires
             self.code = str(random.randint(1000, 9999))
             up = UserProfile.objects.get(user=self.user)
-            if self.mode == "SMS" and \
-               up.mobile_phone_number and \
-               settings.SEND_SMS:
-                # Send SMS to up.mobile_phone_number
-                sns = boto3.client(
-                    'sns',
-                    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                    region_name='us-east-1')
-                number = "+1%s" % (up.mobile_phone_number)
-                sns.publish(
-                    PhoneNumber=number,
-                    Message="Your code is : %s" % (self.code),
-                    MessageAttributes={
-                        'AWS.SNS.SMS.SenderID': {
-                            'DataType': 'String',
-                            'StringValue': 'MySenderID'
-                        }
-                    }
-                )
-            elif self.mode == "SMS" and not up.mobile_phone_number:
+            if self.mode == "SMS" and not up.mobile_phone_number:
                 logger.info("Cannot send SMS. No phone number on file.")
             elif self.mode == "EMAIL" and self.user.email:
                 # "Send SMS to self.user.email
                 mfa_via_email(self.user, self.code)
             elif self.mode == "EMAIL" and not self.user.email:
                 logger.info("Cannot send email. No email_on_file.")
-            else:
-                # No MFA code sent
-                pass
+
         super(MFACode, self).save(**kwargs)
 
 
@@ -376,7 +349,7 @@ class UserRegisterCode(models.Model):
     def save(self, commit=True, **kwargs):
         if commit:
             self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        settings.USER_ID_SALT,
+                                                        get_user_id_salt(),
                                                         settings.USER_ID_ITERATIONS)).decode("ascii")
             if self.sender:
                 up = UserProfile.objects.get(user=self.sender)
@@ -508,39 +481,6 @@ def create_activation_key(user):
     return key
 
 
-class EmailWebhook(models.Model):
-    email = models.EmailField(max_length=150, default="", blank=True)
-    status = models.CharField(max_length=30, default="", blank=True)
-    details = models.TextField(max_length=2048, default="", blank=True)
-    added = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        r = '%s: %s' % (self.email, self.status)
-        return r
-
-    def save(self, commit=True, request_body="", **kwargs):
-        if commit:
-            if request_body:
-                whr = json.loads(str(request_body.decode('utf-8')),
-                                 object_pairs_hook=OrderedDict)
-                message = json.loads(whr["Message"])
-                self.status = message['notificationType']
-                if self.status == "Bounce":
-                    self.email = message['bounce'][
-                        'bouncedRecipients'][0]["emailAddress"]
-                if self.status == "Complaint":
-                    self.email = message['complainedRecipients'][
-                        0]["emailAddress"]
-                if self.status == "Delivery":
-                    self.email = message['mail']["destination"][0]
-                self.details = request_body
-                logger.info("Sent email {} status is {}.".format(
-                    self.email, self.status))
-                super(EmailWebhook, self).save(**kwargs)
-
-# method for updating
-
-
 @receiver(post_save)
 def export_admin_log(sender, instance, **kwargs):
 
@@ -569,3 +509,14 @@ def export_admin_log(sender, instance, **kwargs):
                 'action_time': instance.action_time}
 
         admin_logger.info(msg)
+
+
+def get_user_id_salt(salt=settings.USER_ID_SALT):
+    """
+    Assumes `USER_ID_SALT` is a hex encoded value. Decodes the salt val,
+    returning binary data represented by the hexadecimal string.
+
+    :param: salt
+    :return: bytes
+    """
+    return binascii.unhexlify(salt)

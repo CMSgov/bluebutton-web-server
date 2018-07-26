@@ -7,7 +7,4 @@ Adjust the following settings for environments.  Below the DEV defaults are give
     SLS_TOKEN_ENDPOINT = 'https://dev.accounts.cms.gov/v1/oauth/token'
     MEDICARE_LOGIN_URI = 'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton'
     MEDICARE_REDIRECT_URI = 'http://localhost:8000/mymedicare/sls-callback'
-    MEDICARE_LOGIN_TEMPLATE_NAME = 'design_system/login.html'
-    AUTHORIZATION_TEMPLATE_NAME = 'design_system/authorize.html'
     SLS_VERIFY_SSL = False
-
