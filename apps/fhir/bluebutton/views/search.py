@@ -64,7 +64,6 @@ def search(request, resource_type, *args, **kwargs):
 
     try:
         page_size = get_page_size(request.GET)
-
         if page_size <= 0 or page_size > MAX_PAGE_SIZE:
             raise ValueError
     except ValueError:
