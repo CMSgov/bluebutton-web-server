@@ -1,7 +1,7 @@
-FROM python:3
+FROM python:3.4
 ENV PYTHONUNBUFFERED 1
 RUN mkdir /code
 ADD . /code/
 WORKDIR /code
-RUN pip install -r requirements/requirements.txt
+RUN pip install -r requirements/requirements.dev.txt
 RUN pip install psycopg2

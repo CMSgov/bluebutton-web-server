@@ -125,6 +125,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
+        'audit': {
+            'handlers': ['console'],   # 'perf_mon'],
+            'level': 'INFO',
+        },
         'performance': {
             'handlers': ['console'],   # 'perf_mon'],
             'level': 'INFO',

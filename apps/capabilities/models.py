@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import json
 import re
 
@@ -28,6 +25,8 @@ class ProtectedCapability(models.Model):
         Example: [["GET","/api/task1"], ["POST","/api/task2/[id]"]]""",
         default="""[["GET", "/some-url"]]"""
     )
+
+    default = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title

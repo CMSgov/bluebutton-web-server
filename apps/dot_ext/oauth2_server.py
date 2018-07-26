@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from oauth2_provider.settings import oauth2_settings
 
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer

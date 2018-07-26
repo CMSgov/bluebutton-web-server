@@ -2,9 +2,6 @@ import re
 import logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-logger_error = logging.getLogger('hhs_server_error.%s' % __name__)
-logger_debug = logging.getLogger('hhs_server_debug.%s' % __name__)
-logger_info = logging.getLogger('hhs_server_info.%s' % __name__)
 
 
 def text_to_list(t_in='[]'):

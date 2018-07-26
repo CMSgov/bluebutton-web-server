@@ -1,4 +1,3 @@
-from django.http import JsonResponse
 import logging
 
 from ..constants import ALLOWED_RESOURCE_TYPES, MAX_PAGE_SIZE
@@ -18,6 +17,12 @@ from apps.fhir.bluebutton.pagination import (get_page_size)
 from rest_framework.decorators import throttle_classes, api_view
 from apps.dot_ext.throttling import TokenRateThrottle
 from urllib.parse import urlencode
+from rest_framework import (exceptions, permissions)
+from rest_framework.response import Response
+
+from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from apps.fhir.bluebutton.views.generic import FhirDataView
+from ..permissions import (SearchCrosswalkPermission, ResourcePermission)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -25,42 +30,22 @@ START_PARAMETER = 'startIndex'
 SIZE_PARAMETER = 'count'
 
 
-@require_valid_token()
-@api_view(['GET'])
-@throttle_classes([TokenRateThrottle])
-def search(request, resource_type, *args, **kwargs):
-    # reset request back to django.HttpRequest
-    request = request._request
-    """
-    Search from Remote FHIR Server
-    """
+class SearchView(FhirDataView):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        ResourcePermission,
+        SearchCrosswalkPermission,
+    ]
 
-    logger.debug("resource_type: %s" % resource_type)
-    logger.debug("Interaction: search. ")
-    logger.debug("Request.path: %s" % request.path)
+    def get(self, request, resource_type, *args, **kwargs):
+        # Verify paging inputs. Casting an invalid int will throw a ValueError
+        try:
+            start_index = int(request.GET.get(START_PARAMETER, 0))
+        except ValueError:
+            raise exceptions.ParseError(detail='%s must be an integer between zero and the number of results' % START_PARAMETER)
 
-    if resource_type not in ALLOWED_RESOURCE_TYPES:
-        logger.info('User requested search access to the %s resource type' % resource_type)
-        return build_error_response(404, 'The requested resource type, %s, is not supported'
-                                         % resource_type)
-
-    crosswalk = get_crosswalk(request.resource_owner)
-
-    # Get parameters required to replay request for relative links
-    replay_parameters = {}
-
-    # If the user isn't matched to a backend ID, they have no permissions
-    if crosswalk is None:
-        logger.info('Crosswalk for %s does not exist' % request.user)
-        return build_error_response(403, 'No access information was found for the authenticated user')
-
-    # Verify paging inputs. Casting an invalid int will throw a ValueError
-    try:
-        start_index = int(request.GET.get(START_PARAMETER, 0))
         if start_index < 0:
-            raise ValueError
-    except ValueError:
-        return build_error_response(400, '%s must be an integer between zero and the number of results' % START_PARAMETER)
+            raise exceptions.ParseError()
 
     try:
         page_size = get_page_size(request.GET)
@@ -79,53 +64,47 @@ def search(request, resource_type, *args, **kwargs):
 
     patient_id = crosswalk.fhir_id
 
-    if 'patient' in request.GET and request.GET['patient'] != patient_id:
-        return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
+        if page_size <= 0 or page_size > MAX_PAGE_SIZE:
+            raise exceptions.ParseError()
 
-    if resource_type == 'ExplanationOfBenefit':
-        replay_parameters['patient'] = patient_id
-        get_parameters['patient'] = patient_id
-    elif resource_type == 'Coverage':
-        get_parameters['beneficiary'] = 'Patient/' + patient_id
-        replay_parameters['beneficiary'] = 'Patient/' + patient_id
-        if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
-            return build_error_response(403, 'You do not have permission to access the requested patient\'s data')
-    elif resource_type == 'Patient':
-        get_parameters['_id'] = patient_id
+        data = self.fetch_data(request, resource_type, *args, **kwargs)
 
-    response = request_get_with_params(request,
-                                       target_url,
-                                       get_parameters,
-                                       crosswalk,
-                                       timeout=resource_router.wait_time)
+        if data.get('total', 0) > 0:
+            # TODO update to pagination class
+            data['entry'] = data['entry'][start_index:start_index + page_size]
+            replay_parameters = self.build_parameters(request)
+            data['link'] = get_paging_links(request.build_absolute_uri('?'),
+                                            start_index,
+                                            page_size,
+                                            data['total'],
+                                            replay_parameters)
 
-    if response.status_code >= 300:
-        logger.debug("We have an error code to deal with: %s" % response.status_code)
-        return build_error_response(response.status_code,
-                                    'An error occurred while contacting our data server',
-                                    details=response._content)
+        return Response(data)
 
-    rewrite_list = build_rewrite_list(crosswalk)
-    host_path = get_host_url(request, resource_type)[:-1]
+    def build_parameters(self, request, *args, **kwargs):
+        patient_id = request.crosswalk.fhir_id
+        resource_type = request.resource_type
+        get_parameters = {
+            '_format': 'application/json+fhir'
+        }
 
-    text_in = get_response_text(fhir_response=response)
+        if resource_type == 'ExplanationOfBenefit':
+            get_parameters['patient'] = patient_id
+        elif resource_type == 'Coverage':
+            get_parameters['beneficiary'] = 'Patient/' + patient_id
+        elif resource_type == 'Patient':
+            get_parameters['_id'] = patient_id
+        return get_parameters
 
-    out_data = post_process_request(request,
-                                    host_path,
-                                    text_in,
-                                    rewrite_list)
-
-    out_data['entry'] = out_data['entry'][start_index:start_index + page_size]
-    out_data['link'] = get_paging_links(request.build_absolute_uri('?'),
-                                        start_index,
-                                        page_size,
-                                        out_data['total'],
-                                        replay_parameters)
-
-    return JsonResponse(out_data)
+    def build_url(self, resource_router, resource_type, *args, **kwargs):
+        return resource_router.fhir_url + resource_type + "/"
 
 
 def get_paging_links(base_url, start_index, page_size, count, replay_parameters):
+
+    if base_url[-1] != '/':
+        base_url += '/'
+
     out = []
     replay_parameters[SIZE_PARAMETER] = page_size
 
@@ -142,7 +121,7 @@ def get_paging_links(base_url, start_index, page_size, count, replay_parameters)
             'url': base_url + '?' + urlencode(replay_parameters)
         })
 
-    if start_index - page_size > 0:
+    if start_index - page_size >= 0:
         replay_parameters[START_PARAMETER] = start_index - page_size
         out.append({
             'relation': 'previous',

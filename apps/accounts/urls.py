@@ -1,10 +1,8 @@
 from django.conf.urls import url
 from .views.core import (create_account,
                          account_settings,
-                         reissue_api_keys,
                          request_invite,
                          mylogout,
-                         display_api_keys,
                          activation_verify,
                          )
 
@@ -19,11 +17,7 @@ from .views.password_reset import (change_secret_questions,
 
 from .views.mfa import mfa_code_confirm, mfa_login
 from .views.user_code_login import user_code_register
-from .views.invites import bulk_user_codes
-from .views.email_bounce_webhook import record_email_bounce
 from .views.api_profile import my_profile
-
-__author__ = "Alan Viars"
 
 
 urlpatterns = [
@@ -52,8 +46,6 @@ urlpatterns = [
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
         mfa_code_confirm, name='mfa_code_confirm'),
-
-    url(r'^bulk-user-codes$', bulk_user_codes, name='bulk_user_codes'),
 
     # Request a Developer invite to signup ---------------------------
     url(r'^request-invite$',
@@ -90,12 +82,4 @@ urlpatterns = [
     # Verify the account
     url(r'^activation-verify/(?P<activation_key>[^/]+)/$', activation_verify,
         name='activation_verify'),
-
-    # Email Bounce Webhook
-
-    url(r'^email-bounce$', record_email_bounce, name='record_email_bounce'),
-
-    url(r'^display-api-keys$', display_api_keys, name='display_api_keys'),
-
-    url(r'^reissue-api-keys$', reissue_api_keys, name='reissue_api_keys'),
 ]

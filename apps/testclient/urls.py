@@ -3,8 +3,6 @@ from .views import (authorize_link, callback, test_eob, test_userinfo,
                     test_coverage, test_patient, test_links)
 from django.views.generic import TemplateView
 
-__author__ = "Alan Viars"
-
 urlpatterns = [
 
     url(r'^callback$', callback, name='testclient-callback'),

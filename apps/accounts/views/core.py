@@ -1,7 +1,5 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import logging
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -16,8 +14,6 @@ from ..models import UserProfile
 from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
-
-__author__ = "Alan Viars"
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -92,22 +88,6 @@ def simple_login(request):
             return render(request, 'login.html', {'form': form})
     # this is a GET
     return render(request, 'login.html', {'form': LoginForm()})
-
-
-@login_required
-def display_api_keys(request):
-    up = get_object_or_404(UserProfile, user=request.user)
-    return render(request, 'display-api-keys.html', {'up': up})
-
-
-@never_cache
-@login_required
-def reissue_api_keys(request):
-    up = get_object_or_404(UserProfile, user=request.user)
-    up.access_key_reset = True
-    up.save()
-    messages.success(request, _('Your API credentials have been reissued.'))
-    return HttpResponseRedirect(reverse('display_api_keys'))
 
 
 def create_account(request):

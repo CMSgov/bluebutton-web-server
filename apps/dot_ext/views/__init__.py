@@ -1,3 +1,3 @@
 from .application import ApplicationRegistration, ApplicationUpdate  # NOQA
-from .authorization import AuthorizationView  # NOQA
-from .authorization import ScopeAuthorizationView   # NOQA
+from .authorization import AuthorizationView, ApprovalView  # NOQA
+from .token import AuthorizedTokens  # NOQA
