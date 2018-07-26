@@ -1,5 +1,21 @@
 import logging
 
+from ..constants import ALLOWED_RESOURCE_TYPES, MAX_PAGE_SIZE
+from ..decorators import require_valid_token
+from ..errors import build_error_response
+
+from apps.fhir.bluebutton.utils import (request_get_with_params,
+                                        build_rewrite_list,
+                                        get_crosswalk,
+                                        get_host_url,
+                                        get_resourcerouter,
+                                        post_process_request,
+                                        get_response_text,
+                                        )
+from apps.fhir.bluebutton.pagination import (get_page_size)
+
+from rest_framework.decorators import throttle_classes, api_view
+from apps.dot_ext.throttling import TokenRateThrottle
 from urllib.parse import urlencode
 from rest_framework import (exceptions, permissions)
 from rest_framework.response import Response
@@ -31,10 +47,22 @@ class SearchView(FhirDataView):
         if start_index < 0:
             raise exceptions.ParseError()
 
-        try:
-            page_size = int(request.GET.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
-        except ValueError:
-            raise exceptions.ParseError(detail='%s must be an integer between 1 and %s' % (SIZE_PARAMETER, MAX_PAGE_SIZE))
+    try:
+        page_size = get_page_size(request.GET)
+
+        if page_size <= 0 or page_size > MAX_PAGE_SIZE:
+            raise ValueError
+    except ValueError:
+        return build_error_response(400, '%s must be an integer between 1 and %s' % (SIZE_PARAMETER, MAX_PAGE_SIZE))
+
+    resource_router = get_resourcerouter(crosswalk)
+    target_url = resource_router.fhir_url + resource_type + "/"
+
+    get_parameters = {
+        '_format': 'application/json+fhir'
+    }
+
+    patient_id = crosswalk.fhir_id
 
         if page_size <= 0 or page_size > MAX_PAGE_SIZE:
             raise exceptions.ParseError()
