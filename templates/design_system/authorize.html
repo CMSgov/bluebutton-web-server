@@ -23,6 +23,17 @@
     <div class="ds-l-col--3">
         {% if not error %}
             <form id="authorizationForm" method="post">
+
+     	        <img src={{ application.logo_uri }} height="128" width="128"/>
+
+		<div> {{ application.name }} </div>
+
+		<a href={{ application.policy_uri }} >Privacy Policy </a>
+
+		<a href={{ application.tos_uri }} >Terms and Conditions</a>
+	        
+
+
                 <h2 class="block-center-heading">
                     {{ application.name }} wants permission to access your Medicare data.
                 </h2>
@@ -40,7 +51,7 @@
 
 		<p>
 		You have the right to share your health information, but there may be risks.
-		Be sure to review the app's Privacy Policy and Terms of Conditions.
+		Be sure to review the app's Privacy Policy and Terms and Conditions.
 		You can revoke an app's access to your data at any time by logging in to your <a href=https://www.mymedicare.gov>MyMedicare.gov</a> account or calling us at 1-800-633-4227.
 		</p>
 
