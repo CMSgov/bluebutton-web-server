@@ -25,11 +25,11 @@
         </div>
     </div>
   
-    <div class="ds-l-row ds-u-justify-content--left ds-u-fill--white row">
-        <div class="ds-l-col--3 col">
+    <div class="ds-l-row ds-u-justify-content--left ds-u-fill--white">
+        <div class="ds-l-col--3">
             {% if application.logo_uri %}
               <div class="ds-u-text-align--center">
-     	          <img src={{ application.logo_uri }} height="160" width="160"/>
+     	          <img src={{ application.logo_uri }} width="100%"/>
               </div>
             {% endif %}
 
@@ -50,7 +50,7 @@
             {% endif %}
         </div>
 
-        <div class="ds-l-col--9 col">
+        <div class="ds-l-col--9">
             {% if not error %}
                 <form id="authorizationForm" method="post">
 
