@@ -26,7 +26,7 @@
     </div>
   
     <div class="ds-l-row ds-u-justify-content--left ds-u-fill--white">
-        <div class="ds-l-col--3">
+        <div class="ds-l-md-col--3">
             {% if application.logo_uri %}
               <div class="ds-u-text-align--center">
      	          <img src={{ application.logo_uri }} width="100%"/>
@@ -34,7 +34,7 @@
             {% endif %}
 
             <div class="ds-u-text-align--center">
-                {{ application.name }}
+	        <h3>{{ application.name }}</h3>
             </div>
 
             {% if application.policy_uri %}
@@ -50,7 +50,7 @@
             {% endif %}
         </div>
 
-        <div class="ds-l-col--9">
+        <div class="ds-l-md-col--9">
             {% if not error %}
                 <form id="authorizationForm" method="post">
 
@@ -92,7 +92,7 @@
     <center>
         <input id="approve" type="submit" class="ds-c-button ds-c-button--primary ds-u-margin-right--6 ds-u-margin-left--6"  name="allow" value="Allow"/>
       
-        <input type="submit" class="ds-c-button ds-c-button--outline ds-u-margin-top--1 ds-u-display--block ds-u-md-display--inline-block ds-u-margin-left--6 ds-u-margin-right--6" value="Deny" \>
+        <input type="submit" class="ds-c-button ds-c-button--outline ds-u-margin-top--3 ds-u-display--block ds-u-md-display--inline-block ds-u-margin-left--6 ds-u-margin-right--6" value="Deny" \>
     </center> 
 </form>
 
