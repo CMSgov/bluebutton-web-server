@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db.models import Count
 from oauth2_provider.models import AccessToken
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 from rest_framework.generics import ListAPIView
@@ -7,6 +8,10 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import (
+    generics,
+)
+from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application
 
@@ -15,7 +20,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
+        fields = ('id', 'username', 'email', 'date_joined')
 
 
 class AppMetricsSerializer(ModelSerializer):
@@ -125,3 +130,30 @@ class TokenMetricsView(APIView):
             'count': AccessToken.objects.count()
         }
         return Response(content)
+
+
+class DeveloperFilter(filters.FilterSet):
+    joined_after = filters.DateFilter(field_name="date_joined", lookup_expr='gte')
+    joined_before = filters.DateFilter(field_name="date_joined", lookup_expr='lte')
+    app_count = filters.NumberFilter(
+        field_name="app_count",
+        label="Application Count")
+    min_app_count = filters.NumberFilter(
+        field_name="app_count",
+        lookup_expr='gte',
+        label="Min Application Count")
+    max_app_count = filters.NumberFilter(
+        field_name="app_count",
+        lookup_expr='lte',
+        label="Max Application Count")
+
+    class Meta:
+        model = User
+        fields = ['joined_after', 'joined_before', 'app_count', 'min_app_count', 'max_app_count']
+
+
+class DevelopersView(generics.ListAPIView):
+    queryset = User.objects.annotate(app_count=Count('dot_ext_application')).all()
+    serializer_class = UserSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = DeveloperFilter
