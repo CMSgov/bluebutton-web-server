@@ -8,7 +8,6 @@ from .views import (
     DevelopersView,
 )
 
-# QUESTION: What is this?
 admin.autodiscover()
 
 urlpatterns = [

@@ -1,7 +1,11 @@
 from django.contrib.auth.models import User
 from django.db.models import Count
 from oauth2_provider.models import AccessToken
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import (
+    ModelSerializer,
+    SerializerMethodField,
+    CharField,
+)
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -17,10 +21,18 @@ from ..dot_ext.models import Application
 
 
 class UserSerializer(ModelSerializer):
+    organization = CharField(source='userprofile.organization_name')
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'date_joined')
+        fields = (
+            'id',
+            'username',
+            'email',
+            'date_joined',
+            'last_login',
+            'organization',
+        )
 
 
 class AppMetricsSerializer(ModelSerializer):
