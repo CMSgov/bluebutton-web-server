@@ -165,6 +165,11 @@ class DeveloperFilter(filters.FilterSet):
 
 
 class DevelopersView(generics.ListAPIView):
+    permission_classes = (
+        IsAuthenticated,
+        IsAdminUser,
+    )
+
     queryset = User.objects.annotate(app_count=Count('dot_ext_application')).all()
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
