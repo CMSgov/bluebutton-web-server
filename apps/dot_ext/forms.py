@@ -84,6 +84,18 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
         return self.cleaned_data
 
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        app_model = get_application_model()
+        if app_model.objects.filter(name=name).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("""
+                                        It looks like this application name
+                                        is already in use with another app.
+                                        Please enter a different application
+                                        name to prevent future errors.
+                                        """)
+        return name
+
     def clean_client_type(self):
         client_type = self.cleaned_data.get('client_type')
         authorization_grant_type = self.cleaned_data.get(
