@@ -87,7 +87,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     def clean_name(self):
         name = self.cleaned_data.get('name')
         app_model = get_application_model()
-        if app_model.objects.filter(name=name).exists():
+        if app_model.objects.filter(name=name).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError(name)
         return name
 
