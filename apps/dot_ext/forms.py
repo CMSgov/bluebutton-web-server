@@ -92,7 +92,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                         It looks like this application name
                                         is already in use with another app.
                                         Please enter a different application
-                                        name to prevent future errors. 
+                                        name to prevent future errors.
                                         Note that names are case-insensitive.
                                         """)
         return name
