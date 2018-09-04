@@ -87,12 +87,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     def clean_name(self):
         name = self.cleaned_data.get('name')
         app_model = get_application_model()
-        if app_model.objects.filter(name=name).exclude(pk=self.instance.pk).exists():
+        if app_model.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("""
                                         It looks like this application name
                                         is already in use with another app.
                                         Please enter a different application
-                                        name to prevent future errors.
+                                        name to prevent future errors. 
+                                        Note that names are case-insensitive.
                                         """)
         return name
 
