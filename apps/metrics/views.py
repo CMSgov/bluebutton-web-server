@@ -12,9 +12,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import (
-    generics,
-)
+from rest_framework_csv.renderers import CSVRenderer
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application
@@ -89,7 +87,7 @@ class AppMetricsView(ListAPIView):
         IsAdminUser,
     ]
 
-    renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, CSVRenderer)
     serializer_class = AppMetricsSerializer
     pagination_class = AppMetricsPagination
 
@@ -164,7 +162,7 @@ class DeveloperFilter(filters.FilterSet):
         fields = ['joined_after', 'joined_before', 'app_count', 'min_app_count', 'max_app_count']
 
 
-class DevelopersView(generics.ListAPIView):
+class DevelopersView(ListAPIView):
     permission_classes = (
         IsAuthenticated,
         IsAdminUser,
@@ -174,3 +172,4 @@ class DevelopersView(generics.ListAPIView):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DeveloperFilter
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, CSVRenderer)

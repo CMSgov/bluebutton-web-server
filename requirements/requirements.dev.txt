@@ -26,6 +26,7 @@ django-ses==0.7.1
 django-settings-export==1.1.0
 django-storages==1.5.1
 django==1.11.9
+djangorestframework-csv==2.1.0
 djangorestframework==3.7.7
 flake8==3.5.0
 httmock==1.2.6
