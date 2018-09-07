@@ -3,6 +3,7 @@ import hashlib
 import logging
 import uuid
 from datetime import datetime
+from urllib.parse import urlparse
 
 from django.utils.dateparse import parse_duration
 from django.core.urlresolvers import reverse
@@ -68,6 +69,14 @@ class Application(AbstractApplication):
 
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
+
+    def get_allowed_schemes(self):
+        allowed_schemes = []
+        redirect_uris = self.redirect_uris.strip().split()
+        for uri in redirect_uris:
+            scheme = urlparse(uri).scheme
+            allowed_schemes.append(scheme)
+        return allowed_schemes
 
     def save(self, commit=True, **kwargs):
         if commit:
