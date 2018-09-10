@@ -47,8 +47,9 @@ pytz==2016.4
 pyyaml==3.12              # via python-coveralls
 requests-oauthlib==0.8.0
 requests==2.18.4
-six==1.10.0               # via python-coveralls, tox
+six==1.11.0
 sqlparse==0.2.4           # via django-debug-toolbar
 tox==3.0.0
+unicodecsv==0.14.1
 urllib3==1.22
 virtualenv==15.2.0        # via tox
