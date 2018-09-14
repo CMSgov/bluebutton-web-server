@@ -277,6 +277,15 @@ class BackendConnectionTest(BaseApiTest):
             self.assertTrue(len(response.json()['link']) > 0)
             self.assertIn("_count=5", response.json()['link'][0]['url'])
 
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_search',
+                    kwargs={'resource_type': 'Patient'}),
+                {'_count': 6},
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertIn("_count=6", response.json()['link'][0]['url'])
+
     def test_search_request_unauthorized(self):
         response = self.client.get(
             reverse(
