@@ -6,6 +6,7 @@ django-cors-headers
 django-localflavor
 django-settings-export
 djangorestframework
+djangorestframework-csv
 django-filter
 django-axes
 
