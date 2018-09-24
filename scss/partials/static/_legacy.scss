@@ -1,0 +1,437 @@
+// Blue Button Legacy Styles
+// -------------------------
+// Note: This is taken from what was "main.scss" in the old SCSS configuration.
+// It would be good to separate this content out into more specific partials.
+
+//
+// Colors
+//
+$ocean: #00529B;
+$teal: #45CEB0;
+$ocean-teal-gradient: linear-gradient(30deg, $ocean 10%, $teal 90%);
+
+$cherry: #C9312A;
+$tangerine: #F1B75E;
+$cherry-tangerine-gradient: linear-gradient(30deg, $cherry 10%, $tangerine 90%);
+
+$grape: #6F38AE;
+$rose: #DC6069;
+$grape-rose-gradient: linear-gradient(30deg, $grape 10%, $rose 90%);
+
+$blueberry: #2A5CC9;
+$lime: #5EF1E1;
+$blueberry-lime-gradient: linear-gradient(30deg, $blueberry 10%, $lime 90%);
+
+//
+// Screen reader only class
+//
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
+//
+// Mixins
+//
+@mixin gradient-underline($gradient) {
+  position: relative;
+    &:after {
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      height: 4px;
+      width: 100%;
+      background: $gradient;
+    }
+}
+
+.cherry-tangerine-underline { @include gradient-underline($cherry-tangerine-gradient); }
+.grape-rose-underline { @include gradient-underline($grape-rose-gradient); }
+.blueberry-lime-underline { @include gradient-underline($blueberry-lime-gradient); }
+
+@mixin gradient-border-left($gradient) {
+  position: relative;
+    &:before {
+      content: "";
+      position: absolute;
+      left: -8px;
+      width: 4px;
+      height: 100%;
+      background: $gradient;
+    }
+}
+
+//
+// Nav
+//
+
+.ds-base site-top{
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+.main-nav {
+
+  ul {
+    list-style-type: none;
+
+    li {
+      display: inline-block;
+      margin-left: 32px;
+
+      a {
+        color: $color-gray-dark;
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+.other-main-nav {
+  ul {
+    list-style-type: none;
+
+    li {
+      display: inline-block;
+      a {
+        color: $color-gray-dark;
+        text-decoration: none;
+        font-size: 26px;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 544px) {
+  .main-nav {
+    display: none;
+  }
+}
+
+@media only screen and (min-width: 545px) and (max-width: 951px ) {
+  .ctas {
+    width: 700px;
+    }
+}
+
+@media only screen and (min-width: 544px) and (max-width: 738px ) {
+  .main-nav {
+    font-size: 14px;
+  }
+}
+
+.subnav {
+  position: sticky;
+  top: 24px;
+
+  ul li {
+    margin-bottom: 16px;
+
+    a {
+      color: $color-gray-dark;
+      text-decoration: none;
+      transition: padding 0.5s ease;
+      position: relative;
+
+      &:hover, &:focus, &:active {
+        padding-left: 8px;
+      }
+    }
+  }
+
+  ul li.active {
+    a { padding-left: 8px; }
+    .cherry-tangerine-link { @include gradient-border-left($cherry-tangerine-gradient); }
+    .grape-rose-link { @include gradient-border-left($grape-rose-gradient); }
+    .blueberry-lime-link { @include gradient-border-left($blueberry-lime-gradient); }
+  }
+
+  .cherry-tangerine-link {
+    &:hover, &:focus, &:active {
+      @include gradient-border-left($cherry-tangerine-gradient);
+    }
+  }
+
+  .grape-rose-link {
+    &:hover, &:focus, &:active {
+      @include gradient-border-left($grape-rose-gradient);
+    }
+  }
+
+  .blueberry-lime-link {
+    &:hover, &:focus, &:active {
+      @include gradient-border-left($blueberry-lime-gradient);
+    }
+  }
+
+}
+
+//
+// Mobile nav
+//
+.mobile-nav-trigger {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.mobile-nav-tray {
+  position: fixed;
+  top: 100%;
+  height: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+  transition: all 0.5s ease;
+
+  .mobile-nav ul li a {
+    color: $color-gray-dark;
+    text-decoration: none;
+  }
+}
+
+.mobile-nav-tray-expanded {
+  top: 0;
+  height: 100%;
+  transition: all 0.5s ease;
+}
+
+//
+// Heroes
+//
+
+.header-main {
+  background-image: url(img/circuit-board-final.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+	background-position: center center;
+	background-attachment: fixed;
+  position: relative;
+
+.alt-ds-l-row-ds-u-margin-y--7  {
+  margin-bottom: 0px !important;
+  margin-top: 0px !important;
+}
+
+.alt-ds-l-md-col--8 {
+  max-width: 80%
+}
+
+.alt-ds-u-padding-y--3{
+  padding-bottom: 0px !important;
+  padding-top: 0px !important;
+}
+
+h2 {
+    margin-top: 0px;
+}
+
+&:before {
+  background: $ocean-teal-gradient;
+  content: '';
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0.8;
+  position: absolute;
+  }
+}
+
+.cherry-tangerine-background {
+  background-image: url(img/api-pattern-fade.png),
+    $cherry-tangerine-gradient;
+    background-size: cover;
+}
+
+.grape-rose-background {
+  background-image: url(img/fwsg-pattern-fade.png),
+  $grape-rose-gradient;
+  background-size: cover;
+}
+
+.blueberry-lime-background {
+  background-image: none,
+  $blueberry-lime-gradient;
+  background-size: cover;
+}
+
+.ocean-teal-background {
+  background: $ocean-teal-gradient;
+}
+
+header {
+  .ctas a:not(:first-child) {
+    margin-left: 16px;
+  }
+}
+
+@media only screen and (max-width: 544px) {
+  header {
+    .ctas a:not(:first-child) {
+      margin-left: 0px;
+      margin-top: 16px;
+    }
+    .ds-text--lead  {
+      margin-bottom: 40px;
+    }
+    .ds-c-badge {
+      margin-bottom: 8px;
+    }
+  }
+}
+
+.transparent-box {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+//
+// Homepage cards
+//
+.project-section {
+  margin-bottom: 96px;
+}
+
+.project-list {
+  list-style-type: none;
+  margin: 0px;
+  padding: 0px;
+}
+
+.project-card {
+  box-shadow: 0 1px 5px 0 rgba(0,0,0,.07),0 7px 17px 0 rgba(0,0,0,.1);
+  padding: 16px;
+  position: relative;
+  transition: all .2s ease-out;
+  text-decoration: none !important;
+
+  &:hover {
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,.1),0 7px 17px 0 rgba(0,0,0,.3);
+  }
+
+}
+
+//
+// 508-accessible gradient
+//
+
+.main-header {
+  display: flex;
+}
+
+.solid-container {
+  width: 80%;
+  flex-grow: 2;
+  background-color: #2A5CC9;
+}
+
+.gradient-container {
+  width: 20%;
+  flex-grow: 1;
+  background: linear-gradient(90deg, #2A5CC9 10%, #5EF1E1 90%);
+}
+
+.ds-u-color--white  {
+  margin-top: 56px;
+  margin-bottom: 56px;
+}
+
+
+
+//
+// Pages
+//
+.page-header {
+  background: $ocean-teal-gradient;
+}
+
+//
+// Posts
+//
+.ds-c-badge {
+  letter-spacing: 2px;
+  background-color: transparent;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 4px;
+  border-color: white;
+  color: white;
+  font-weight: bold;
+}
+
+article {
+  hr {
+    border: 0;
+    height: 2px;
+    background: $color-gray-lighter;
+    margin: 32px 0px;
+  }
+}
+
+article.api {
+  h2 {
+    @include gradient-underline($blueberry-lime-gradient);
+    display: inline-block;
+  }
+}
+
+
+//
+// Content, specifically for styling code blocks
+//
+
+pre {
+  background-color: #F3F6FA;
+  border: solid 1px #DCE6F0;
+  padding: 8px;
+  font: 1rem Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: .9rem;
+  line-height: 1.45;
+  color: #567482;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+
+//
+// Buttons
+//
+.button--white {
+  color: $color-white;
+  border: 2px $color-white solid;
+  transition: all .3s ease;
+
+  &:hover, &:active, &:focus {
+    border: 2px #fff solid;
+    background-color: #fff;
+    color: $color-gray-dark;
+  }
+}
+
+//
+// Footer
+//
+footer {
+  &:before {
+    background: $ocean-teal-gradient;
+    content: '';
+    position: relative;
+    top: -48px;
+    display: block;
+    height: 3px;
+    width: 100%;
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "bluebutton-css",
+  "version": "0.0.1",
+  "description": "The consolidate repo for all Blue Button CSS files",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CMSgov/bluebutton-css.git"
+  },
+  "keywords": [
+    "CSS",
+    "BlueButton"
+  ],
+  "author": "John French",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CMSgov/bluebutton-css/issues"
+  },
+  "homepage": "https://github.com/CMSgov/bluebutton-css#readme",
+  "devDependencies": {
+    "gulp-clean-css": "^3.10.0",
+    "gulp-minify": "^3.1.0",
+    "gulp-rename": "^1.4.0",
+    "gulp-sass": "^4.0.1",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-wait": "0.0.2",
+    "pump": "^3.0.0"
+  },
+  "dependencies": {
+    "@cmsgov/design-system-core": "^1.24.0",
+    "@cmsgov/design-system-layout": "^1.24.0",
+    "gulp": "^4.0.0"
+  }
+}
