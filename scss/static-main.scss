@@ -1,9 +1,5 @@
 // Global Imports
-@import 'partials/global/normalize';
-@import url('https://fonts.googleapis.com/css?family=Roboto:400,700');
-@import 'partials/global/variable-overrides';
-@import '@cmsgov/design-system-core/src/index';
-@import '@cmsgov/design-system-layout/src/index';
+@import 'partials/global/global-master';
 
 // Static Site Imports
 @import 'partials/static/legacy';
