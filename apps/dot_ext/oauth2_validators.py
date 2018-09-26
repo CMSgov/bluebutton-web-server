@@ -5,9 +5,13 @@ from django.utils.timezone import timedelta
 
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.oauth2_validators import OAuth2Validator
+from apps.pkce.oauth2_validators import PKCEValidatorMixin
 
 
-class SingleAccessTokenValidator(OAuth2Validator):
+class SingleAccessTokenValidator(
+        PKCEValidatorMixin,
+        OAuth2Validator,
+):
     """
     This custom oauth2 validator checks if a valid token
     exists for the current user/application and return
@@ -26,6 +30,8 @@ class SingleAccessTokenValidator(OAuth2Validator):
             *args,
             **kwargs)
 
+    # TODO: remove this
+    # https://github.com/jazzband/django-oauth-toolkit/blob/f0091f17445e1481692bcebc2fc2d9b5b522b608/oauth2_provider/oauth2_validators.py#L337
     def save_bearer_token(self, token, request, *args, **kwargs):
         """
         Check if an access_token exists for the couple user/application

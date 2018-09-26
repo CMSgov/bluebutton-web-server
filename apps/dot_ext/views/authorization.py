@@ -1,9 +1,11 @@
 import logging
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
+from oauth2_provider.models import get_application_model
+from oauth2_provider.exceptions import OAuthToolkitError
 from ..forms import SimpleAllowForm
 from ..models import Approval
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+log = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class AuthorizationView(DotAuthorizationView):
@@ -14,6 +16,31 @@ class AuthorizationView(DotAuthorizationView):
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
     template_name = "design_system/authorize.html"
+
+    def form_valid(self, form):
+        client_id = form.cleaned_data["client_id"]
+        application = get_application_model().objects.get(client_id=client_id)
+        credentials = {
+            "client_id": form.cleaned_data.get("client_id"),
+            "redirect_uri": form.cleaned_data.get("redirect_uri"),
+            "response_type": form.cleaned_data.get("response_type", None),
+            "state": form.cleaned_data.get("state", None),
+            "code_challenge": form.cleaned_data.get("code_challenge", None),
+            "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
+        }
+        scopes = form.cleaned_data.get("scope")
+        allow = form.cleaned_data.get("allow")
+
+        try:
+            uri, headers, body, status = self.create_authorization_response(
+                request=self.request, scopes=scopes, credentials=credentials, allow=allow
+            )
+        except OAuthToolkitError as error:
+            return self.error_response(error, application)
+
+        self.success_url = uri
+        log.debug("Success url for the request: {0}".format(self.success_url))
+        return self.redirect(self.success_url, application)
 
 
 class ApprovalView(DotAuthorizationView):
