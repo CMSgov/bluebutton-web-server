@@ -23,7 +23,7 @@ pipeline {
       }
     }
 
-    stage('Deploy to Test') {
+    stage('Deploy To Test') {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
