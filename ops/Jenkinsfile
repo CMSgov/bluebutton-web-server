@@ -15,7 +15,7 @@ pipeline {
       steps {
         checkout([
             $class: 'GitSCM',
-            branches: 'dev',
+            branches: [[name: "dev"]],
             userRemoteConfigs: [[
               url: 'https://github.com/CMSgov/bluebutton-css.git'
             ]]
