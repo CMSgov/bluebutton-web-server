@@ -3,6 +3,7 @@ import hashlib
 import logging
 import uuid
 from datetime import datetime
+from urllib.parse import urlparse
 
 from django.utils.dateparse import parse_duration
 from django.core.urlresolvers import reverse
@@ -13,8 +14,6 @@ from django.contrib.auth import get_user_model
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AbstractApplication
 from django.conf import settings
-
-from apps.dot_ext.validators import validate_uris
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -30,7 +29,7 @@ class Application(AbstractApplication):
                                   help_text="This is typically a homepage for the application.")
     help_text = _('Allowed redirect URIs. Space or new line separated.')
     redirect_uris = models.TextField(help_text=help_text,
-                                     validators=[validate_uris], blank=True)
+                                     blank=True)
     logo_uri = models.CharField(
         default="", blank=True, max_length=512, verbose_name="Logo URI")
     tos_uri = models.CharField(
@@ -68,6 +67,14 @@ class Application(AbstractApplication):
 
     def get_absolute_url(self):
         return reverse('oauth2_provider:detail', args=[str(self.id)])
+
+    def get_allowed_schemes(self):
+        allowed_schemes = []
+        redirect_uris = self.redirect_uris.strip().split()
+        for uri in redirect_uris:
+            scheme = urlparse(uri).scheme
+            allowed_schemes.append(scheme)
+        return allowed_schemes
 
     def save(self, commit=True, **kwargs):
         if commit:

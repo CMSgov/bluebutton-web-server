@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_csv',
     'django_filters',
 
     # 1st Party (in-house) ----------

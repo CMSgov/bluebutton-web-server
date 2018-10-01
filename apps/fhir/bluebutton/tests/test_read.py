@@ -208,7 +208,7 @@ class BackendConnectionTest(BaseApiTest):
             "total": 1,
             "link": [{
                 "url": ("http://testserver/v1/fhir/Patient/"
-                        "?_format=application%2Fjson%2Bfhir&_id=20140000008325&count=10&startIndex=0"),
+                        "?_format=application%2Fjson%2Bfhir&_id=20140000008325&_count=10&startIndex=0"),
                 "relation": "self"
             }],
             "entry": [{
@@ -269,11 +269,22 @@ class BackendConnectionTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_search',
                     kwargs={'resource_type': 'Patient'}),
+                {'count': 5},
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['entry'], expected_response['entry'])
             self.assertTrue(len(response.json()['link']) > 0)
+            self.assertIn("_count=5", response.json()['link'][0]['url'])
+
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_search',
+                    kwargs={'resource_type': 'Patient'}),
+                {'_count': 6},
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertIn("_count=6", response.json()['link'][0]['url'])
 
     def test_search_request_unauthorized(self):
         response = self.client.get(

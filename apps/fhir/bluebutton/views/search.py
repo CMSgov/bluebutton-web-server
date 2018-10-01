@@ -11,7 +11,27 @@ from ..permissions import (SearchCrosswalkPermission, ResourcePermission)
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 START_PARAMETER = 'startIndex'
-SIZE_PARAMETER = 'count'
+SIZE_PARAMETER = '_count'
+
+QUERY_TRANSFORMS = {
+    'count': '_count',
+}
+
+
+class ParamSerializer(object):
+    # conforming to the basics of http://www.django-rest-framework.org/api-guide/serializers/#validation
+    def __init__(self, data=None, **kwargs):
+        self.initial_data = data
+        self.data = {}
+
+    def is_valid(self, raise_exception=False, **kwargs):
+        for key, val in self.initial_data.items():
+            self.data[key] = val
+
+        for key, correct in QUERY_TRANSFORMS.items():
+            val = self.data.pop(key, None)
+            if val is not None:
+                self.data[correct] = val
 
 
 class SearchView(FhirDataView):
@@ -22,9 +42,13 @@ class SearchView(FhirDataView):
     ]
 
     def get(self, request, resource_type, *args, **kwargs):
+        serializer = ParamSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        query_params = serializer.data
+
         # Verify paging inputs. Casting an invalid int will throw a ValueError
         try:
-            start_index = int(request.GET.get(START_PARAMETER, 0))
+            start_index = int(query_params.get(START_PARAMETER, 0))
         except ValueError:
             raise exceptions.ParseError(detail='%s must be an integer between zero and the number of results' % START_PARAMETER)
 
@@ -32,7 +56,7 @@ class SearchView(FhirDataView):
             raise exceptions.ParseError()
 
         try:
-            page_size = int(request.GET.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
+            page_size = int(query_params.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
         except ValueError:
             raise exceptions.ParseError(detail='%s must be an integer between 1 and %s' % (SIZE_PARAMETER, MAX_PAGE_SIZE))
 

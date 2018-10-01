@@ -17,7 +17,7 @@ class RedirectURIValidator(URIValidator):
         scheme, netloc, path, query, fragment = urlsplit(value)
 
         if scheme.lower() not in self.allowed_schemes:
-            raise ValidationError('Invalid Redirect URI scheme: %s' % scheme.lower())
+            raise ValidationError('Invalid Redirect URI scheme: %s, Must be one of %s' % (scheme.lower(), self.allowed_schemes))
 
 
 def validate_uris(value):
