@@ -1,0 +1,29 @@
+// Styles for the Sandbox Login Page
+// ---------------------------------
+
+// Variables
+$login-container-bg: #f5f5f5;
+$login-container-border: 1px solid #e3e3e3;
+
+.sandbox-login-container {
+	h1 {
+		color: #0071BC;
+		font-weight: bold;
+		margin: 0 0 .5rem 0;
+	}
+}
+
+.login-message-container {
+	background: $login-container-bg;
+	border: $login-container-border; 
+	border-radius: 4px;
+	padding: 2rem;
+	.title {
+		font-size: 1.5rem;
+		font-weight: bold;
+	}
+	.content {
+		font-size: 1.3rem;
+	}
+}
+
