@@ -22,7 +22,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # user logs in
         self.client.login(username='anna', password='123456')
 
-        code_challenge = "n4bQgYhMfWWaL-qgxVrQFaO_TxsrC4Is0V1sFbDwCgg="
+        code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
 
         payload = {
             'client_id': application.client_id,
@@ -54,7 +54,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'code_verifier': 'test',
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         self.assertEqual(response.status_code, 200)
