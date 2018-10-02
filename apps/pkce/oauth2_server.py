@@ -40,12 +40,22 @@ def validate_code_verifier(request):
         code_verifier = request.code_verifier
     except AttributeError:
         raise OAuth2Error("code_verifier required for this request")
+    if len(code_verifier) > 128:
+        raise OAuth2Error("code_verifier max length is 128")
+
+    if len(code_verifier) < 43:
+        raise OAuth2Error("code_verifier min length is 43")
 
     code_challenge = base64.urlsafe_b64encode(
         hashlib.sha256(code_verifier.encode('ASCII')).digest()).decode('utf-8')
 
-    if code_challenge != grant.codechallenge.challenge:
-        raise OAuth2Error("code_challenge does not match")
+    grant_challenge = grant.codechallenge.challenge
+    # Add padding to compensate for base64 encoding behavior
+    while len(grant_challenge) < len(code_challenge):
+        grant_challenge += "="
 
     # check grant.code against request.code
+    if code_challenge != grant_challenge:
+        raise OAuth2Error("code_challenge does not match")
+
     return {}

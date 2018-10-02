@@ -17,6 +17,17 @@ class AuthorizationView(DotAuthorizationView):
     login_url = "/mymedicare/login"
     template_name = "design_system/authorize.html"
 
+    def get_initial(self):
+        initial_data = super().get_initial()
+        initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
+        initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
+        return initial_data
+
+    def get(self, request, *args, **kwargs):
+        kwargs['code_challenge'] = request.GET.get('code_challenge', None)
+        kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
+        return super().get(request, *args, **kwargs)
+
     def form_valid(self, form):
         client_id = form.cleaned_data["client_id"]
         application = get_application_model().objects.get(client_id=client_id)
@@ -43,7 +54,7 @@ class AuthorizationView(DotAuthorizationView):
         return self.redirect(self.success_url, application)
 
 
-class ApprovalView(DotAuthorizationView):
+class ApprovalView(AuthorizationView):
     """
     Override the base authorization view from dot to
     use the custom AllowForm.
