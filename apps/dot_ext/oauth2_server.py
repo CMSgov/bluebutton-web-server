@@ -3,6 +3,7 @@ from oauth2_provider.settings import oauth2_settings
 from oauthlib.oauth2.rfc6749.endpoints import Server as OAuthLibServer
 
 from .models import ExpiresIn
+from ..pkce.oauth2_server import PKCEServerMixin
 
 
 def my_token_expires_in(request):
@@ -23,7 +24,7 @@ def my_token_expires_in(request):
     return expires_in
 
 
-class Server(OAuthLibServer):
+class Server(PKCEServerMixin, OAuthLibServer):
     def __init__(self, request_validator, token_expires_in=None,
                  token_generator=None, refresh_token_generator=None,
                  *args, **kwargs):

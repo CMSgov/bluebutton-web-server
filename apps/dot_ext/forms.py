@@ -127,7 +127,11 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
 
 class SimpleAllowForm(DotAllowForm):
-    pass
+    code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
+    code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
+
+    # def is_valid(self):
+    #     raise Exception(self)
 
 
 def get_allowed_schemes():

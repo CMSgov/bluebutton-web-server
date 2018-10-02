@@ -18,8 +18,20 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
+
         # user logs in
         self.client.login(username='anna', password='123456')
+
+        code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
+
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
+        }
+        response = self.client.get('/v1/o/authorize', data=payload)
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -28,8 +40,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'scope': ['capability-a'],
             'expires_in': 86400,
             'allow': True,
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        response = self.client.post(response['Location'], data=payload)
 
         self.assertEqual(response.status_code, 302)
         # now extract the authorization code and use it to request an access_token
@@ -40,6 +54,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
+            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         self.assertEqual(response.status_code, 200)
