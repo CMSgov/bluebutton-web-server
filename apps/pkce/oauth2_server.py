@@ -1,9 +1,10 @@
 import base64
 import hashlib
+from urllib.parse import urlparse
 from oauthlib.oauth2.rfc6749.errors import OAuth2Error
 
 from oauth2_provider.models import get_grant_model
-
+from oauth2_provider.settings import oauth2_settings
 from django.core.exceptions import ObjectDoesNotExist
 
 Grant = get_grant_model()
@@ -12,8 +13,22 @@ Grant = get_grant_model()
 class PKCEServerMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.response_types['code'].default_auth_grant.custom_validators.pre_auth.append(validate_redirect_uri_pkce)
         self.response_types['code'].default_auth_grant.custom_validators.post_auth.append(validate_code_challenge_method)
         self.response_types['code'].default_auth_grant.custom_validators.post_token.append(validate_code_verifier)
+
+
+def validate_redirect_uri_pkce(request):
+    redirect_uri = urlparse(request.redirect_uri)
+    if redirect_uri.scheme not in oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES:
+        if getattr(request, 'code_challenge_method', False) \
+                and getattr(request, 'code_challenge', False):
+
+            return {}
+
+        raise OAuth2Error("Non http uri scheme's must be used with pkce")
+
+    return {}
 
 
 def validate_code_challenge_method(request):
