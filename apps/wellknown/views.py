@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from collections import OrderedDict
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 

@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import Group
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth import get_user_model
 from apps.accounts.models import Invitation, UserProfile
 from apps.fhir.bluebutton.models import Crosswalk

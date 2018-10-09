@@ -3,7 +3,7 @@ from requests_oauthlib import OAuth2Session
 from collections import OrderedDict
 from django.http import JsonResponse, HttpResponseRedirect
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from .utils import test_setup, get_client_secret
 import logging
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError

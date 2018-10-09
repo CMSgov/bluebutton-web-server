@@ -8,8 +8,8 @@ from apps.fhir.bluebutton.views.home import (conformance_filter)
 from django.test import TestCase, RequestFactory
 from apps.test import BaseApiTest
 from django.test.client import Client
-from django.core.urlresolvers import reverse
 from oauth2_provider.models import get_access_token_model
+from django.urls import reverse
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE

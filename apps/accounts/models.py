@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
                      mfa_via_email, send_invite_to_create_account,
