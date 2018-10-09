@@ -2,9 +2,11 @@ import math
 
 from django.utils import timezone
 from django.utils.timezone import timedelta
+from django.http import Http404
 
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.oauth2_validators import OAuth2Validator
+from django.core.exceptions import ObjectDoesNotExist
 from apps.pkce.oauth2_validators import PKCEValidatorMixin
 
 
@@ -92,3 +94,9 @@ class SingleAccessTokenValidator(
                 access_token=access_token
             )
             refresh_token.save()
+
+    def get_original_scopes(self, refresh_token, request, *args, **kwargs):
+        try:
+            return super().get_original_scopes(refresh_token, request, *args, **kwargs)
+        except ObjectDoesNotExist:
+            raise Http404
