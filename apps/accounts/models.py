@@ -19,6 +19,7 @@ import binascii
 from django.utils.translation import ugettext
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db.models import CASCADE
 
 ADDITION = 1
 CHANGE = 2
@@ -100,7 +101,7 @@ ISSUE_INVITE = (
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=CASCADE,)
     organization_name = models.CharField(max_length=255,
                                          blank=True,
                                          default='')
@@ -220,7 +221,7 @@ class UserProfile(models.Model):
 
 
 class MFACode(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=CASCADE,)
     uid = models.CharField(blank=True,
                            default=uuid.uuid4,
                            max_length=36, editable=False)
@@ -312,7 +313,7 @@ class UserRegisterCode(models.Model):
     valid = models.BooleanField(default=False, blank=True)
     username = models.CharField(max_length=40)
     email = models.EmailField(max_length=150)
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, null=True, blank=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     sent = models.BooleanField(default=False, editable=False)
@@ -411,7 +412,7 @@ class Invitation(models.Model):
 
 
 class ActivationKey(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
     key = models.CharField(default=uuid.uuid4, max_length=40)
     expires = models.DateTimeField(blank=True)
 
@@ -432,7 +433,7 @@ class ActivationKey(models.Model):
 
 
 class ValidPasswordResetKey(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
     reset_password_key = models.CharField(max_length=50, blank=True)
     # switch from datetime.now to timezone.now
     expires = models.DateTimeField(default=timezone.now)
