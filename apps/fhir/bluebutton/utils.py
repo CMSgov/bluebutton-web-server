@@ -29,7 +29,7 @@ def get_user_from_request(request):
     if hasattr(request, 'resource_owner'):
         user = request.resource_owner
     if hasattr(request, 'user'):
-        if not request.user.is_anonymous():
+        if not request.user.is_anonymous:
             user = request.user
     return user
 
@@ -649,7 +649,7 @@ def get_crosswalk(user):
         Return Crosswalk or None
     """
 
-    if user is None or user.is_anonymous():
+    if user is None or user.is_anonymous:
         return None
 
     try:

@@ -16,7 +16,7 @@ from django.contrib.auth import authenticate, login
 def reset_password(request):
 
     name = _('Reset Password')
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         if request.method == 'POST':
             form = PasswordResetForm(request.POST)
             if form.is_valid():

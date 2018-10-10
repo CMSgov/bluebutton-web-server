@@ -7,7 +7,7 @@ from django.views.decorators.cache import never_cache
 
 def home(request):
     template = "index.html"
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return authenticated_home(request)
     return render(request, template, {})
 
@@ -16,7 +16,7 @@ def home(request):
 def authenticated_home(request):
 
     template = 'authenticated-home.html'
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         name = _('Authenticated Home')
         try:
             profile = UserProfile.objects.get(user=request.user)
