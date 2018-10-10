@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_csv.renderers import CSVRenderer
+from rest_framework_csv.renderers import PaginatedCSVRenderer
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application
@@ -46,7 +46,7 @@ class AppMetricsSerializer(ModelSerializer):
         return({'count': AccessToken.objects.filter(application=obj.id).distinct('user').count()})
 
 
-class AppMetricsPagination(PageNumberPagination):
+class MetricsPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 10000
@@ -87,9 +87,9 @@ class AppMetricsView(ListAPIView):
         IsAdminUser,
     ]
 
-    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, CSVRenderer)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     serializer_class = AppMetricsSerializer
-    pagination_class = AppMetricsPagination
+    pagination_class = MetricsPagination
 
     def get_queryset(self):
 
@@ -172,4 +172,5 @@ class DevelopersView(ListAPIView):
     serializer_class = UserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DeveloperFilter
-    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, CSVRenderer)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
+    pagination_class = MetricsPagination
