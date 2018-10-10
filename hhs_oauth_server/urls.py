@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
 
 
-    url(r'^' + ADMIN_REDIRECTOR + 'admin/', include(admin.site.urls)),
+    url(r'^' + ADMIN_REDIRECTOR + 'admin/', admin.site.urls),
 ]
 
 if IsAppInstalled("apps.testclient"):

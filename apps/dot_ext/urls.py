@@ -15,5 +15,5 @@ router.register(r'tokens', views.AuthorizedTokens, base_name='token')
 urlpatterns = [
     url(r'', include(oauth2_provider_urls)),
     url(r'', include('oauth2_provider.urls')),
-    url(r'', include(router.urls, namespace='token_management')),
+    url(r'', include((router.urls, 'dot_ext'), namespace='token_management')),
 ]
