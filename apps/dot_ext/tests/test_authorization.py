@@ -1,5 +1,4 @@
 from oauth2_provider.compat import parse_qs, urlparse
-<<<<<<< HEAD
 from oauth2_provider.models import get_access_token_model
 from django.urls import reverse
 from django.test import Client
