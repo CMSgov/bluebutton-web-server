@@ -108,7 +108,8 @@ OPTIONAL_INSTALLED_APPS = ["", ]
 if env('OPTIONAL_INSTALLED_APPS', False):
     OPTIONAL_INSTALLED_APPS += env('OPTIONAL_INSTALLED_APPS')
 
-MIDDLEWARE_CLASSES = [
+
+MIDDLEWARE = [
     # Middleware that adds headers to the resposne
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -119,7 +120,6 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.dot_ext.throttling.ThrottleMiddleware',
