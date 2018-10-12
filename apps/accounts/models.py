@@ -101,7 +101,7 @@ ISSUE_INVITE = (
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=CASCADE,)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=CASCADE, )
     organization_name = models.CharField(max_length=255,
                                          blank=True,
                                          default='')
@@ -221,7 +221,7 @@ class UserProfile(models.Model):
 
 
 class MFACode(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=CASCADE,)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, )
     uid = models.CharField(blank=True,
                            default=uuid.uuid4,
                            max_length=36, editable=False)
