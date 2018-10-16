@@ -4,52 +4,55 @@
 #
 #    pip-compile --output-file requirements/requirements.dev.txt requirements/requirements.dev.in
 #
-boto==2.40.0
-certifi==2017.7.27.1
+boto==2.49.0
+certifi==2018.10.15
 chardet==3.0.4
 configparser==3.5.0
 coverage==4.0.3
 decorate-url==1.1
-dj-database-url==0.4.1
+dj-database-url==0.5.0
 django-appconf==1.0.2
-django-axes==4.1.0
-django-bootstrap-form==3.3
+django-axes==4.4.0
+django-bootstrap-form==3.4
 django-cors-headers==2.4.0
-django-debug-toolbar==1.9.1
+django-debug-toolbar==1.10.1
 django-dotenv==1.4.2
 django-filter==2.0.0
-django-getenv==1.3.1
-django-ipware==2.0.1
-django-localflavor==1.3
-django-oauth-toolkit==1.1.2
-django-ses==0.7.1
-django-settings-export==1.1.0
-django-storages==1.5.1
+django-getenv==1.3.2
+django-ipware==2.1.0
+django-localflavor==1.6.2
+django-oauth-toolkit==1.1.3
+django-ses==0.8.7
+django-settings-export==1.2.1
+django-storages==1.7.1
 django==2.1.2
 djangorestframework-csv==2.1.0
-djangorestframework==3.7.7
+djangorestframework==3.8.2
+filelock==3.0.9           # via tox
 flake8==3.5.0
+future==0.16.0
 httmock==1.2.6
-idna==2.6
-jsonschema==2.5.1
+idna==2.7
+jsonschema==2.6.0
 mccabe==0.6.1             # via flake8
-newrelic==2.106.0.87
+newrelic==4.4.1.104
 oauthlib==2.1.0
-pluggy==0.6.0             # via tox
-psycopg2==2.7.4
-py==1.5.3                 # via tox
+pluggy==0.8.0             # via tox
+psycopg2==2.7.5
+py==1.7.0                 # via tox
 pycodestyle==2.3.1        # via flake8
 pyflakes==1.6.0           # via flake8
-pyjwt==1.5.3
+pyjwt==1.6.4
 python-coveralls==2.9.1
 python-openid==2.2.5
-pytz==2016.4
-pyyaml==3.12              # via python-coveralls
-requests-oauthlib==0.8.0
-requests==2.18.4
+pytz==2018.5
+pyyaml==3.13              # via python-coveralls
+requests-oauthlib==1.0.0
+requests==2.19.1
 six==1.11.0
-sqlparse==0.2.4           # via django-debug-toolbar
-tox==3.0.0
+sqlparse==0.2.4
+toml==0.10.0              # via tox
+tox==3.5.2
 unicodecsv==0.14.1
-urllib3==1.22
-virtualenv==15.2.0        # via tox
+urllib3==1.23
+virtualenv==16.0.0        # via tox
