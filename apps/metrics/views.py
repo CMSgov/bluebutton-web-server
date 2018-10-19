@@ -1,12 +1,10 @@
 from django.contrib.auth.models import User
-from django.db.models import Count, Min, Max
+from django.db.models import Count
 from oauth2_provider.models import AccessToken
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
     CharField,
-    IntegerField,
-    DateTimeField,
 )
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -20,22 +18,19 @@ from ..accounts.models import UserProfile
 from ..dot_ext.models import Application
 
 
+class StreamingSerializer(ListSerializer):
+    @property
+    def data(self):
+        data = self.instance
+        psize = 10
+        count = data.count()
+        for i in range(0, count, psize):
+            iterable = data.all()[i:psize] if isinstance(data, Manager) else data
+            for item in iterable:
+                yield self.child.to_representation(item)
+
+
 class UserSerializer(ModelSerializer):
-    organization = CharField(source='userprofile.organization_name')
-
-    class Meta:
-        model = User
-        fields = (
-            'id',
-            'username',
-            'email',
-            'date_joined',
-            'last_login',
-            'organization',
-        )
-
-
-class DevUserSerializer(ModelSerializer):
     organization = CharField(source='userprofile.organization_name')
     user_type = CharField(source='userprofile.user_type')
     app_count = IntegerField()
@@ -58,6 +53,15 @@ class DevUserSerializer(ModelSerializer):
             'last_active',
             'active_app_count',
         )
+        stream_serializer_class = StreamingSerializer
+
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        stream = kwargs.pop('stream', False)
+        if stream:
+            meta = getattr(cls, 'Meta', None)
+            setattr(meta, 'list_serializer_class', getattr(meta, 'stream_serializer_class', ListSerializer))
+        return super().many_init(*args, **kwargs)
 
 
 class AppMetricsSerializer(ModelSerializer):
@@ -183,36 +187,6 @@ class DeveloperFilter(filters.FilterSet):
         field_name="app_count",
         lookup_expr='lte',
         label="Max Application Count")
-
-    first_active_after = filters.DateFilter(
-        label="Date first_active is greater than or equal to",
-        field_name="first_active",
-        lookup_expr='gte')
-    first_active_before = filters.DateFilter(
-        label="Date first_active is less than or equal to",
-        field_name="first_active",
-        lookup_expr='lte')
-
-    last_active_after = filters.DateFilter(
-        label="Date last_active is greater than or equal to",
-        field_name="last_active",
-        lookup_expr='gte')
-    last_active_before = filters.DateFilter(
-        label="Date last_active is less than or equal to",
-        field_name="last_active",
-        lookup_expr='lte')
-
-    active_app_count = filters.NumberFilter(
-        field_name="active_app_count",
-        label="Active Application Count")
-    min_active_app_count = filters.NumberFilter(
-        field_name="active_app_count",
-        lookup_expr='gte',
-        label="Min Active Application Count")
-    max_active_app_count = filters.NumberFilter(
-        field_name="active_app_count",
-        lookup_expr='lte',
-        label="Max Active Application Count")
 
     class Meta:
         model = User
