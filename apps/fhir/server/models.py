@@ -20,7 +20,7 @@ class ResourceRouter(models.Model):
                                    verbose_name="path to API with "
                                                 "terminating /")
     server_release = models.CharField(max_length=254,
-                                      default="baseDstu3/",
+                                      default="v1/fhir/",
                                       verbose_name="FHIR release with "
                                                    "terminating /")
     server_search_expiry = models.IntegerField(verbose_name="Search expires "
