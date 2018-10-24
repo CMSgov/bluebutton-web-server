@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='resourcerouter',
             name='server_release',
-            field=models.CharField(default='baseDstu3/', max_length=254, verbose_name='FHIR release with terminating /'),
+            field=models.CharField(default='v1/fhir/', max_length=254, verbose_name='FHIR release with terminating /'),
         ),
         migrations.AlterField(
             model_name='supportedresourcetype',
