@@ -42,6 +42,8 @@ class Application(AbstractApplication):
                                 verbose_name="Client's Contacts",
                                 help_text="This is typically an email")
     active = models.BooleanField(default=True)
+    first_active = models.DateTimeField(blank=True, null=True)
+    last_active = models.DateTimeField(blank=True, null=True)
 
     def scopes(self):
         scope_list = []
