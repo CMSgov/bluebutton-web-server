@@ -6,6 +6,7 @@ from rest_framework.serializers import (
     SerializerMethodField,
     CharField,
     IntegerField,
+    DateTimeField,
 )
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -21,7 +22,23 @@ from ..dot_ext.models import Application
 
 class UserSerializer(ModelSerializer):
     organization = CharField(source='userprofile.organization_name')
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'date_joined',
+            'last_login',
+            'organization',
+        )
+
+class DevUserSerializer(ModelSerializer):
+    organization = CharField(source='userprofile.organization_name')
     app_count = IntegerField()
+    #first_active = DateTimeField()
+    #last_active = DateTimeField()
 
     class Meta:
         model = User
@@ -36,6 +53,8 @@ class UserSerializer(ModelSerializer):
         )
 
 
+
+
 class AppMetricsSerializer(ModelSerializer):
 
     beneficiaries = SerializerMethodField()
@@ -43,7 +62,7 @@ class AppMetricsSerializer(ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ('id', 'name', 'active', 'user', 'beneficiaries')
+        fields = ('id', 'name', 'active', 'user', 'beneficiaries', 'first_active', 'last_active')
 
     def get_beneficiaries(self, obj):
         return({'count': AccessToken.objects.filter(application=obj.id).distinct('user').count()})
@@ -172,7 +191,7 @@ class DevelopersView(ListAPIView):
     )
 
     queryset = User.objects.annotate(app_count=Count('dot_ext_application')).all()
-    serializer_class = UserSerializer
+    serializer_class = DevUserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DeveloperFilter
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
