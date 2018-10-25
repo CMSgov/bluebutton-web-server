@@ -5,6 +5,7 @@ from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
     CharField,
+    IntegerField,
 )
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -20,6 +21,7 @@ from ..dot_ext.models import Application
 
 class UserSerializer(ModelSerializer):
     organization = CharField(source='userprofile.organization_name')
+    app_count = IntegerField()
 
     class Meta:
         model = User
@@ -30,6 +32,7 @@ class UserSerializer(ModelSerializer):
             'date_joined',
             'last_login',
             'organization',
+            'app_count',
         )
 
 
