@@ -6,7 +6,6 @@ from rest_framework.serializers import (
     SerializerMethodField,
     CharField,
     IntegerField,
-    DateTimeField,
 )
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -34,11 +33,11 @@ class UserSerializer(ModelSerializer):
             'organization',
         )
 
+
 class DevUserSerializer(ModelSerializer):
     organization = CharField(source='userprofile.organization_name')
+    user_type = CharField(source='userprofile.user_type')
     app_count = IntegerField()
-    #first_active = DateTimeField()
-    #last_active = DateTimeField()
 
     class Meta:
         model = User
@@ -49,10 +48,9 @@ class DevUserSerializer(ModelSerializer):
             'date_joined',
             'last_login',
             'organization',
+            'user_type',
             'app_count',
         )
-
-
 
 
 class AppMetricsSerializer(ModelSerializer):
@@ -190,7 +188,8 @@ class DevelopersView(ListAPIView):
         IsAdminUser,
     )
 
-    queryset = User.objects.annotate(app_count=Count('dot_ext_application')).all()
+    queryset = User.objects.select_related().filter(userprofile__user_type='DEV'
+                                                    ).annotate(app_count=Count('dot_ext_application')).all()
     serializer_class = DevUserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DeveloperFilter
