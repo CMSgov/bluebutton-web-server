@@ -1,11 +1,12 @@
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Min, Max
 from oauth2_provider.models import AccessToken
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
     CharField,
     IntegerField,
+    DateTimeField,
 )
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -38,6 +39,8 @@ class DevUserSerializer(ModelSerializer):
     organization = CharField(source='userprofile.organization_name')
     user_type = CharField(source='userprofile.user_type')
     app_count = IntegerField()
+    first_active = DateTimeField()
+    last_active = DateTimeField()
 
     class Meta:
         model = User
@@ -50,6 +53,8 @@ class DevUserSerializer(ModelSerializer):
             'organization',
             'user_type',
             'app_count',
+            'first_active',
+            'last_active',
         )
 
 
@@ -188,8 +193,10 @@ class DevelopersView(ListAPIView):
         IsAdminUser,
     )
 
-    queryset = User.objects.select_related().filter(userprofile__user_type='DEV'
-                                                    ).annotate(app_count=Count('dot_ext_application')).all()
+    queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
+        app_count=Count('dot_ext_application'),
+        first_active=Min('dot_ext_application__first_active'),
+        last_active=Max('dot_ext_application__last_active')).all()
     serializer_class = DevUserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DeveloperFilter
