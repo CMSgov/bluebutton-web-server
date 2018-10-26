@@ -41,6 +41,7 @@ class DevUserSerializer(ModelSerializer):
     app_count = IntegerField()
     first_active = DateTimeField()
     last_active = DateTimeField()
+    active_app_count = IntegerField()
 
     class Meta:
         model = User
@@ -55,6 +56,7 @@ class DevUserSerializer(ModelSerializer):
             'app_count',
             'first_active',
             'last_active',
+            'active_app_count',
         )
 
 
@@ -182,9 +184,41 @@ class DeveloperFilter(filters.FilterSet):
         lookup_expr='lte',
         label="Max Application Count")
 
+    first_active_after = filters.DateFilter(
+        label="Date first_active is greater than or equal to",
+        field_name="first_active",
+        lookup_expr='gte')
+    first_active_before = filters.DateFilter(
+        label="Date first_active is less than or equal to",
+        field_name="first_active",
+        lookup_expr='lte')
+
+    last_active_after = filters.DateFilter(
+        label="Date last_active is greater than or equal to",
+        field_name="last_active",
+        lookup_expr='gte')
+    last_active_before = filters.DateFilter(
+        label="Date last_active is less than or equal to",
+        field_name="last_active",
+        lookup_expr='lte')
+
+    active_app_count = filters.NumberFilter(
+        field_name="active_app_count",
+        label="Active Application Count")
+    min_active_app_count = filters.NumberFilter(
+        field_name="active_app_count",
+        lookup_expr='gte',
+        label="Min Active Application Count")
+    max_active_app_count = filters.NumberFilter(
+        field_name="active_app_count",
+        lookup_expr='lte',
+        label="Max Active Application Count")
+
     class Meta:
         model = User
-        fields = ['joined_after', 'joined_before', 'app_count', 'min_app_count', 'max_app_count']
+        fields = ['joined_after', 'joined_before', 'app_count', 'min_app_count', 'max_app_count',
+                  'first_active_after', 'first_active_before', 'last_active_after', 'last_active_before',
+                  'active_app_count', 'min_active_app_count', 'max_active_app_count']
 
 
 class DevelopersView(ListAPIView):
@@ -196,7 +230,9 @@ class DevelopersView(ListAPIView):
     queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
         app_count=Count('dot_ext_application'),
         first_active=Min('dot_ext_application__first_active'),
+        active_app_count=Count('dot_ext_application__first_active'),
         last_active=Max('dot_ext_application__last_active')).all()
+
     serializer_class = DevUserSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DeveloperFilter
