@@ -27,7 +27,7 @@ pipeline {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
-            aws s3 sync ./dist/static-main.css s3://test.bluebutton.cms.gov/assets/css
+            aws s3 cp ./dist/static-main.css s3://test.bluebutton.cms.gov/assets/css
           """
         }
       }
@@ -37,7 +37,7 @@ pipeline {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
-            aws s3 sync ./dist/static-main.css s3://bluebutton.cms.gov/assets/css
+            aws s3 cp ./dist/static-main.css s3://bluebutton.cms.gov/assets/css
           """
         }
       }
