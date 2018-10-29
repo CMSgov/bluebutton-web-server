@@ -78,14 +78,12 @@ class Application(AbstractApplication):
             allowed_schemes.append(scheme)
         return allowed_schemes
 
-    def save(self, commit=True, **kwargs):
-        if commit:
-            # Write the TOS that the app developer agreed to.
-            self.op_tos_uri = settings.TOS_URI
-            super(Application, self).save(**kwargs)
-            logmsg = "%s agreed to %s for the application %s on %s" % (self.user, self.op_tos_uri,
-                                                                       self.name, self.updated)
-            logger.info(logmsg)
+    def set_tos_agree(self):
+        # Write the TOS that the app developer agreed to.
+        self.op_tos_uri = settings.TOS_URI
+        logmsg = "%s agreed to %s for the application %s on %s" % (self.user, self.op_tos_uri,
+                                                                   self.name, self.updated)
+        logger.info(logmsg)
 
 
 class ExpiresInManager(models.Manager):

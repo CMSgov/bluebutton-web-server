@@ -125,6 +125,14 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                         raise forms.ValidationError(msg)
         return redirect_uris
 
+    def save(self, commit=True):
+        instance = super(CustomRegisterApplicationForm, self).save(commit=False)
+        instance.set_tos_agree()
+        if commit:
+            instance.save()
+
+        return instance
+
 
 class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
