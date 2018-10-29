@@ -1,6 +1,10 @@
 // Global Imports
 @import 'partials/global/global-master';
 
+// Static Site Imports
+@import 'partials/static/legacy';
+
 // Sandbox Imports
 @import 'partials/sandbox/sandbox-global';
 @import 'partials/sandbox/bene-auth-consent-view';
+@import 'partials/sandbox/sandbox-login';
