@@ -135,7 +135,7 @@ class TestTokenView(BaseApiTest):
     def test_delete_token_success(self):
         anna = self._create_user(self.test_username, '123456')
         # create a couple of capabilities
-        capability_a = self._create_capability('token_management', [['DELETE', '/v1/o/tokens/\d+/']], default=False)
+        capability_a = self._create_capability('token_management', [['DELETE', r'/v1/o/tokens/\d+/']], default=False)
         # create an application and add capabilities
         application = self._create_application(
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
@@ -172,7 +172,7 @@ class TestTokenView(BaseApiTest):
     def test_update_token_fail(self):
         anna = self._create_user(self.test_username, '123456')
         # create a couple of capabilities
-        capability_a = self._create_capability('token_management', [['PUT', '/v1/o/tokens/\d+/']], default=False)
+        capability_a = self._create_capability('token_management', [['PUT', r'/v1/o/tokens/\d+/']], default=False)
         # create an application and add capabilities
         application = self._create_application(
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
