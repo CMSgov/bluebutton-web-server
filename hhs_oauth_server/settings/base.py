@@ -66,7 +66,9 @@ INSTALLED_APPS = [
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
+    # TODO I don't think this is needed, apps register as the last item (after the last .)
     'apps.dot_ext.apps.dot_extConfig',
+    'apps.pkce',
     'apps.home',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
@@ -292,7 +294,7 @@ OAUTH2_PROVIDER = {
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
     'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
-    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
 }
 
 # These choices will be available in the expires_in field

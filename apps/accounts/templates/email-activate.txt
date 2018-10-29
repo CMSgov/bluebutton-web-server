@@ -9,7 +9,7 @@ To complete your signup, follow this link:
 Some helpful tips:
 
 - Ask questions and give feedback in the {{ APPLICATION_TITLE }} Google Group https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api
-- Download the Django Client App to get started https://github.com/cmsgov/django_bluebutton_client
+- Download the Django Client App to get started https://github.com/cmsgov/bluebutton-sample-client-django
 
 Thanks,
 The {{APPLICATION_TITLE}} Team

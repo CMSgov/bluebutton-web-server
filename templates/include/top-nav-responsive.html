@@ -17,8 +17,6 @@
     <defs></defs>
     <g id="nav-when-not-logged-in" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" transform="translate(-30.000000, -16.000000)">
         <g id="Group-6" transform="translate(30.000000, 16.000000)" fill="#404040">
-           
-           
             <text id="CMS-Blue-Button-API" font-family="Roboto-Bold, Roboto" font-size="17" font-weight="bold">
                 <tspan x="36" y="23"> {{settings.APPLICATION_TITLE}}</tspan>
             </text>
@@ -33,7 +31,6 @@
     </g>
 </svg>
 
-            <a href="/" > </a>
           </li>
     </ul>
     </div>
@@ -42,7 +39,7 @@
         <h5 class="sr-only" id="desktop-nav">Main site navigation</h5>
         <ul aria-labelledby="desktop-nav">
           <li>
-            <a href="https://bluebutton.cms.gov/developers/"" >Documentation</a>
+            <a href="https://bluebutton.cms.gov/developers/">Documentation</a>
           </li>
           <li>
             <a href="https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api" >Support</a>
@@ -51,11 +48,9 @@
           {% if 'apps.testclient' in settings.INSTALLED_APPS %}
               <li><a href="{% url 'test_links' %}"> <i class="fa fa-check"></i> Test Client</a></li>
           {%  endif %}
-          
             {% if user.is_authenticated %}
                 <li><a href="{% url 'account_settings' %}"> <i class="fa fa-user"></i> Profile</a></li>
                       <li><a href="{% url 'mylogout' %}">Logout <i class="fa fa-sign-out"></i></a></li>
-          
               {% else %}
                       {% if 'apps.testclient' in settings.INSTALLED_APPS %}
                           <li><a href="{% url 'mfa_login' %}"> <i class="fa fa-user"></i>  Login</a></li>
@@ -64,14 +59,11 @@
                           <li><a href="https://sandbox.bluebutton.cms.gov/v1/accounts/create"> <i class="fa fa-plus"></i>  Signup</a></li>
                       {%  endif %}
               {% endif %}
-              
             <li>
         </ul>
       </nav>
     </div>
   </div>
-     
 </header>
 
 </nav>
-      
