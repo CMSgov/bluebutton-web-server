@@ -20,7 +20,7 @@ def text_to_list(t_in='[]'):
             # list_out = eval('t_in')
             # replace eval with re.compile to convert text to list.
             # first build a list of delimiters to remove ( [ " ' space ] )
-            strip_out = re.compile('[["\' \]]')
+            strip_out = re.compile(r'[["\' \]]')
             # now we evaluate the string list and split on commas
             list_out = strip_out.sub('', t_in).split(',')
         else:
