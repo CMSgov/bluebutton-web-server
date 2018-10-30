@@ -132,9 +132,9 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         app = self.instance
         logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
-                                                                   app.name)
+                                                             app.name)
         logger.info(logmsg)
-        return super().save(*args,**kwargs)
+        return super().save(*args, **kwargs)
 
 
 class SimpleAllowForm(DotAllowForm):
