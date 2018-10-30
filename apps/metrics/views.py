@@ -1,10 +1,20 @@
+import logging
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.http import StreamingHttpResponse
+from django.db.models import (
+    Count,
+    QuerySet,
+    Min,
+    Max,
+)
 from oauth2_provider.models import AccessToken
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
     CharField,
+    ListSerializer,
+    IntegerField,
+    DateTimeField,
 )
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -12,25 +22,54 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_csv.renderers import PaginatedCSVRenderer
+from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRenderer
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application
+
+log = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class StreamingSerializer(ListSerializer):
     @property
     def data(self):
         data = self.instance
-        psize = 10
-        count = data.count()
+        psize = 100
+        count = data.count() if isinstance(data, QuerySet) else len(data)
+        log.info("csv of {} items".format(count))
         for i in range(0, count, psize):
-            iterable = data.all()[i:psize] if isinstance(data, Manager) else data
+            iterable = data.all()[i:i + psize] if isinstance(data, QuerySet) else data
+            log.info("pulled {} items from the db starting at index {}".format(len(iterable), i))
             for item in iterable:
                 yield self.child.to_representation(item)
 
 
+class StreamableSerializerMixin(object):
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        stream = kwargs.pop('stream', False)
+        if stream:
+            meta = getattr(cls, 'Meta', None)
+            setattr(meta, 'list_serializer_class', getattr(meta, 'stream_serializer_class', StreamingSerializer))
+        return super().many_init(*args, **kwargs)
+
+
 class UserSerializer(ModelSerializer):
+    organization = CharField(source='userprofile.organization_name')
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'date_joined',
+            'last_login',
+            'organization',
+        )
+
+
+class DevUserSerializer(StreamableSerializerMixin, ModelSerializer):
     organization = CharField(source='userprofile.organization_name')
     user_type = CharField(source='userprofile.user_type')
     app_count = IntegerField()
@@ -53,15 +92,6 @@ class UserSerializer(ModelSerializer):
             'last_active',
             'active_app_count',
         )
-        stream_serializer_class = StreamingSerializer
-
-    @classmethod
-    def many_init(cls, *args, **kwargs):
-        stream = kwargs.pop('stream', False)
-        if stream:
-            meta = getattr(cls, 'Meta', None)
-            setattr(meta, 'list_serializer_class', getattr(meta, 'stream_serializer_class', ListSerializer))
-        return super().many_init(*args, **kwargs)
 
 
 class AppMetricsSerializer(ModelSerializer):
@@ -188,6 +218,36 @@ class DeveloperFilter(filters.FilterSet):
         lookup_expr='lte',
         label="Max Application Count")
 
+    first_active_after = filters.DateFilter(
+        label="Date first_active is greater than or equal to",
+        field_name="first_active",
+        lookup_expr='gte')
+    first_active_before = filters.DateFilter(
+        label="Date first_active is less than or equal to",
+        field_name="first_active",
+        lookup_expr='lte')
+
+    last_active_after = filters.DateFilter(
+        label="Date last_active is greater than or equal to",
+        field_name="last_active",
+        lookup_expr='gte')
+    last_active_before = filters.DateFilter(
+        label="Date last_active is less than or equal to",
+        field_name="last_active",
+        lookup_expr='lte')
+
+    active_app_count = filters.NumberFilter(
+        field_name="active_app_count",
+        label="Active Application Count")
+    min_active_app_count = filters.NumberFilter(
+        field_name="active_app_count",
+        lookup_expr='gte',
+        label="Min Active Application Count")
+    max_active_app_count = filters.NumberFilter(
+        field_name="active_app_count",
+        lookup_expr='lte',
+        label="Max Active Application Count")
+
     class Meta:
         model = User
         fields = ['joined_after', 'joined_before', 'app_count', 'min_app_count', 'max_app_count',
@@ -212,3 +272,29 @@ class DevelopersView(ListAPIView):
     filterset_class = DeveloperFilter
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     pagination_class = MetricsPagination
+
+
+class DevelopersStreamView(ListAPIView):
+    permission_classes = (
+        IsAuthenticated,
+        IsAdminUser,
+    )
+
+    queryset = queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
+        app_count=Count('dot_ext_application'),
+        first_active=Min('dot_ext_application__first_active'),
+        active_app_count=Count('dot_ext_application__first_active'),
+        last_active=Max('dot_ext_application__last_active')).all()
+
+    serializer_class = DevUserSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = DeveloperFilter
+    renderer_classes = (CSVStreamingRenderer,)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        serializer = self.get_serializer(queryset, many=True, stream=True)
+        renderer = CSVStreamingRenderer()
+        response = StreamingHttpResponse(renderer.render(serializer.data), content_type='text/csv')
+        return response

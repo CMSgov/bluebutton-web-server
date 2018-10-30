@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.conf.urls import include, url
 from django.contrib import admin
 from .views import (
     BeneMetricsView,
@@ -6,6 +6,7 @@ from .views import (
     AppMetricsDetailView,
     TokenMetricsView,
     DevelopersView,
+    DevelopersStreamView,
 )
 
 admin.autodiscover()
@@ -16,4 +17,7 @@ urlpatterns = [
     url(r'^applications/$', AppMetricsView.as_view(), name='applications'),
     url(r'^developers/$', DevelopersView.as_view(), name='developers'),
     url(r'^tokens$', TokenMetricsView.as_view(), name='tokens'),
+    url(r'^raw/', include([
+        url(r'^developers', DevelopersStreamView.as_view()),
+    ]))
 ]
