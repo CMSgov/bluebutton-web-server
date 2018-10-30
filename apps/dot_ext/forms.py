@@ -117,13 +117,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         if not agree:
             msg = _('You must agree to the API Terms of Service Agreement')
             raise forms.ValidationError(msg)
-
-        # Log the TOS that the app developer agreed to.
-        app = get_application_model().objects.get(pk=self.instance.pk)
-        logmsg = "%s agreed to %s for the application %s on %s" % (app.user, app.op_tos_uri,
-                                                                   app.name, app.updated)
-        logger.info(logmsg)
-
         return agree
 
     def clean_redirect_uris(self):
@@ -135,6 +128,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                         msg = _('Redirect URIs must not use http.')
                         raise forms.ValidationError(msg)
         return redirect_uris
+
+    def save(self, *args, **kwargs):
+        app = self.instance
+        logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
+                                                                   app.name)
+        logger.info(logmsg)
+        return super().save(*args,**kwargs)
 
 
 class SimpleAllowForm(DotAllowForm):
