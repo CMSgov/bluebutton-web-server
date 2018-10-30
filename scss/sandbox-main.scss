@@ -1,3 +1,6 @@
+// Import Bootstrap
+@import 'partials/sandbox/bootstrap';
+
 // Global Imports
 @import 'partials/global/global-master';
 
@@ -5,6 +8,7 @@
 @import 'partials/static/legacy';
 
 // Sandbox Imports
-@import 'partials/sandbox/sandbox-global';
-@import 'partials/sandbox/bene-auth-consent-view';
 @import 'partials/sandbox/sandbox-login';
+@import 'partials/sandbox/sandbox-global';
+
+@import 'partials/sandbox/bene-auth-consent-view';
