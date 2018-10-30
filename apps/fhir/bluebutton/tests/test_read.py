@@ -9,9 +9,12 @@ from django.test import TestCase, RequestFactory
 from apps.test import BaseApiTest
 from django.test.client import Client
 from django.core.urlresolvers import reverse
+from oauth2_provider.models import get_application_model
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
+
+Application = get_application_model()
 
 
 class ConformanceReadRequestTest(TestCase):
@@ -601,3 +604,67 @@ class BackendConnectionTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
+
+    def test_application_first_last_active(self):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        application = Application.objects.get(pk=1)
+        # Check that application last_active and first_active are not set (= None)
+        self.assertEqual(application.first_active, None)
+        self.assertEqual(application.last_active, None)
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    'beneficiary': {
+                        'reference': 'stuff/20140000008325',
+                    },
+                },
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 200)
+
+        application = Application.objects.get(pk=1)
+        # Check that application last_active and first_active are set
+        self.assertNotEqual(application.first_active, None)
+        self.assertNotEqual(application.last_active, None)
+
+        prev_first_active = application.first_active
+        prev_last_active = application.last_active
+
+        # 2nd resource call
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    'beneficiary': {
+                        'reference': 'stuff/20140000008325',
+                    },
+                },
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 200)
+
+        application = Application.objects.get(pk=1)
+        # Check that application first_active is the same
+        self.assertEqual(application.first_active, prev_first_active)
+        # Check that application last_active was updated
+        self.assertNotEqual(application.last_active, prev_last_active)
