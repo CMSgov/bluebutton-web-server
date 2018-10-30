@@ -60,21 +60,19 @@ class RequestResponseLog(object):
         elif self.response.content:
             log_msg['size'] = len(self.response.content)
 
-        user = get_user_from_request(self.request)
-        log_msg['user'] = str(user)
+        log_msg['user'] = str(get_user_from_request(self.request))
         log_msg['ip_addr'] = get_ip_from_request(self.request)
 
         access_token = getattr(self.request, 'auth', get_access_token_from_request(self.request))
 
         if AccessToken.objects.filter(token=access_token).exists():
             at = AccessToken.objects.get(token=access_token)
-            application = at.application
-            log_msg['app_name'] = application.name
-            log_msg['app_id'] = application.id
-            log_msg['dev_id'] = application.user.id
-            log_msg['dev_name'] = str(application.user)
+            log_msg['app_name'] = at.application.name
+            log_msg['app_id'] = at.application.id
+            log_msg['dev_id'] = at.application.user.id
+            log_msg['dev_name'] = str(at.application.user)
             try:
-                log_msg['org_name'] = application.user.user_profile.organization_name
+                log_msg['org_name'] = at.application.user.user_profile.organization_name
             except Exception:
                 pass
             log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
