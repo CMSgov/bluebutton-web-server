@@ -15,7 +15,7 @@ pipeline {
       steps {
         checkout([
             $class: 'GitSCM',
-            branches: [[name: "${params.BuildTagCommit}"]],
+            branches: [[name: "${params.GIT_VERSION}"]],
             userRemoteConfigs: [[
               url: 'https://github.com/CMSgov/bluebutton-css.git'
             ]]
@@ -23,27 +23,12 @@ pipeline {
       }
     }
 
-    stage('Deploy To TEST') {
-      steps {
-        withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
-          sh """
-            aws s3 cp ./dist/static-main.css s3://test.bluebutton.cms.gov/assets/css
-          """
-        }
-      }
-    }
-
-    stage('Deploy to Prod') {
+    stage('Deploy To PROD') {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
             aws s3 cp ./dist/static-main.css s3://bluebutton.cms.gov/assets/css
           """
-        }
-      }
-      when {
-        expression {
-          params.DEPLOY_PROD == true
         }
       }
     }
