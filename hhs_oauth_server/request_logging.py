@@ -1,7 +1,5 @@
 import logging
 import datetime
-import pytz
-from django.utils import timezone
 import uuid
 import hashlib
 import json
@@ -80,14 +78,6 @@ class RequestResponseLog(object):
             except Exception:
                 pass
             log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
-
-            # Update Application activity metric datetime fields
-            if application:
-                if user:
-                    application.last_active = timezone.now()
-                    if application.first_active is None:
-                        application.first_active = application.last_active
-                    application.save()
 
         return(json.dumps(log_msg))
 
