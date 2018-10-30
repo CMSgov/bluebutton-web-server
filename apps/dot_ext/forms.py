@@ -6,6 +6,10 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.validators import urlsplit
+import logging
+
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
@@ -113,6 +117,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         if not agree:
             msg = _('You must agree to the API Terms of Service Agreement')
             raise forms.ValidationError(msg)
+
+        # Log the TOS that the app developer agreed to.
+        app = get_application_model().objects.get(pk=self.instance.pk)
+        logmsg = "%s agreed to %s for the application %s on %s" % (app.user, app.op_tos_uri,
+                                                                   app.name, app.updated)
+        logger.info(logmsg)
+
         return agree
 
     def clean_redirect_uris(self):
@@ -124,14 +135,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                         msg = _('Redirect URIs must not use http.')
                         raise forms.ValidationError(msg)
         return redirect_uris
-
-    def save(self, commit=True):
-        instance = super(CustomRegisterApplicationForm, self).save(commit=False)
-        instance.set_tos_agree()
-        if commit:
-            instance.save()
-
-        return instance
 
 
 class SimpleAllowForm(DotAllowForm):

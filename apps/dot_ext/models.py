@@ -23,7 +23,7 @@ class Application(AbstractApplication):
     agree = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    op_tos_uri = models.CharField(default="", blank=True, max_length=512)
+    op_tos_uri = models.CharField(default=settings.TOS_URI, blank=True, max_length=512)
     op_policy_uri = models.CharField(default="", blank=True, max_length=512)
     client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client URI",
                                   help_text="This is typically a homepage for the application.")
@@ -77,13 +77,6 @@ class Application(AbstractApplication):
             scheme = urlparse(uri).scheme
             allowed_schemes.append(scheme)
         return allowed_schemes
-
-    def set_tos_agree(self):
-        # Write the TOS that the app developer agreed to.
-        self.op_tos_uri = settings.TOS_URI
-        logmsg = "%s agreed to %s for the application %s on %s" % (self.user, self.op_tos_uri,
-                                                                   self.name, self.updated)
-        logger.info(logmsg)
 
 
 class ExpiresInManager(models.Manager):
