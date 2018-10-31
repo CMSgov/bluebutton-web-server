@@ -32,50 +32,5 @@ pipeline {
         }
       }
     }
-
-    stage('Deploy To TEST') {
-      steps {
-        withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
-          sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-test-bbonfhir-com/static/statsite/assets/css/
-          """
-        }
-      }
-      when {
-        expression {
-          params.DEPLOY_TEST == true
-        }
-      }
-    }
-
-    stage('Deploy To IMPL') {
-      steps {
-        withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
-          sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-impl-bluebutton-cms-gov/static/statsite/assets/css/
-          """
-        }
-      }
-      when {
-        expression {
-          params.DEPLOY_IMPL == true
-        }
-      }
-    }
-
-    stage('Deploy To PROD') {
-      steps {
-        withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
-          sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-prod-bluebutton-cms-gov/static/statsite/assets/css/
-          """
-        }
-      }
-      when {
-        expression {
-          params.DEPLOY_PROD == true
-        }
-      }
-    }
   }
 }
