@@ -9,12 +9,12 @@ from django.test import TestCase, RequestFactory
 from apps.test import BaseApiTest
 from django.test.client import Client
 from django.core.urlresolvers import reverse
-from oauth2_provider.models import get_application_model
+from oauth2_provider.models import get_access_token_model
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
 
-Application = get_application_model()
+AccessToken = get_access_token_model()
 
 
 class ConformanceReadRequestTest(TestCase):
@@ -609,7 +609,9 @@ class BackendConnectionTest(BaseApiTest):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
-        application = Application.objects.get(pk=1)
+        access_token_obj = AccessToken.objects.get(token=first_access_token)
+        application = access_token_obj.application
+
         # Check that application last_active and first_active are not set (= None)
         self.assertEqual(application.first_active, None)
         self.assertEqual(application.last_active, None)
@@ -634,7 +636,9 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 200)
 
-        application = Application.objects.get(pk=1)
+        access_token_obj = AccessToken.objects.get(token=first_access_token)
+        application = access_token_obj.application
+
         # Check that application last_active and first_active are set
         self.assertNotEqual(application.first_active, None)
         self.assertNotEqual(application.last_active, None)
@@ -663,7 +667,9 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 200)
 
-        application = Application.objects.get(pk=1)
+        access_token_obj = AccessToken.objects.get(token=first_access_token)
+        application = access_token_obj.application
+
         # Check that application first_active is the same
         self.assertEqual(application.first_active, prev_first_active)
         # Check that application last_active was updated
