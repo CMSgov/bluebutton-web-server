@@ -81,4 +81,14 @@ class Migration(migrations.Migration):
         migrations.DeleteModel(
             name='Endorsement',
         ),
+        migrations.AddField(
+            model_name='application',
+            name='first_active',
+            field=models.DateTimeField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name='application',
+            name='last_active',
+            field=models.DateTimeField(blank=True, null=True),
+        ),
     ]
