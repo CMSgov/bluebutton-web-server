@@ -15,7 +15,7 @@ class CrosswalkAdmin(admin.ModelAdmin):
     get_user_username.short_description = "User Name"
 
     def get_fhir_source(self, obj):
-        return obj.fhir_source.name
+        return getattr(obj.fhir_source, 'name', '')
 
     get_fhir_source.admin_order_field = "name"
     get_fhir_source.short_description = "Name"
