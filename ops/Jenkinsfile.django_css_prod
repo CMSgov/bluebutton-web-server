@@ -23,27 +23,12 @@ pipeline {
       }
     }
 
-    stage('Deploy To DEV') {
-      steps {
-        withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
-          sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-dev-bbonfhir-com/static/statsite/assets/css/
-          """
-        }
-      }
-    }
-
     stage('Deploy To TEST') {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-test-bbonfhir-com/static/statsite/assets/css/
+            aws s3 cp ./dist/sandbox-main.css s3://content-test-bbonfhir-com-gov/static/statsite/assets/css/
           """
-        }
-      }
-      when {
-        expression {
-          params.DEPLOY_TEST == true
         }
       }
     }
