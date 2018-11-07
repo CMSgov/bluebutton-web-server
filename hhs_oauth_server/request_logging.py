@@ -57,7 +57,7 @@ class RequestResponseLog(object):
 
         if log_msg['response_code'] in (300, 301, 302, 307):
             log_msg['location'] = self.response.get('Location', '?')
-        elif self.response.content:
+        elif getattr(self.response, 'content', False):
             log_msg['size'] = len(self.response.content)
 
         log_msg['user'] = str(get_user_from_request(self.request))
