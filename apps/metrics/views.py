@@ -15,6 +15,7 @@ from rest_framework.serializers import (
     ListSerializer,
     IntegerField,
     DateTimeField,
+    LIST_SERIALIZER_KWARGS,
 )
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -28,6 +29,8 @@ from ..accounts.models import UserProfile
 from ..dot_ext.models import Application
 
 log = logging.getLogger('hhs_server.%s' % __name__)
+
+STREAM_SERIALIZER_KWARGS = LIST_SERIALIZER_KWARGS
 
 
 class StreamingSerializer(ListSerializer):
@@ -45,13 +48,35 @@ class StreamingSerializer(ListSerializer):
 
 
 class StreamableSerializerMixin(object):
+    def __new__(cls, *args, **kwargs):
+
+        # We override this method in order to automagically create
+        # `ListSerializer` classes instead when `many=True` is set.
+        if kwargs.pop('many', False):
+            if kwargs.pop('stream', False):
+                return cls.stream_init(*args, **kwargs)
+            return cls.many_init(*args, **kwargs)
+
+        return super().__new__(cls, *args, **kwargs)
+
     @classmethod
-    def many_init(cls, *args, **kwargs):
-        stream = kwargs.pop('stream', False)
-        if stream:
-            meta = getattr(cls, 'Meta', None)
-            setattr(meta, 'list_serializer_class', getattr(meta, 'stream_serializer_class', StreamingSerializer))
-        return super().many_init(*args, **kwargs)
+    def stream_init(cls, *args, **kwargs):
+        allow_empty = kwargs.pop('allow_empty', None)
+        child_serializer = cls(*args, **kwargs)
+        stream_kwargs = {
+            'child': child_serializer,
+        }
+        if allow_empty is not None:
+            stream_kwargs['allow_empty'] = allow_empty
+
+        stream_kwargs.update({
+            key: value for key, value in kwargs.items()
+            if key in STREAM_SERIALIZER_KWARGS
+        })
+
+        meta = getattr(cls, 'Meta', None)
+        stream_serializer_class = getattr(meta, 'stream_serializer_class', StreamingSerializer)
+        return stream_serializer_class(*args, **stream_kwargs)
 
 
 class UserSerializer(ModelSerializer):
