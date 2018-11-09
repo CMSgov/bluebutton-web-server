@@ -1,4 +1,6 @@
 from rest_framework.throttling import SimpleRateThrottle
+from django.utils.deprecation import MiddlewareMixin
+
 
 HEADERS = {
     'Remaining': 'X-RateLimit-Remaining',
@@ -46,7 +48,7 @@ class TokenRateThrottle(SimpleRateThrottle):
         return result
 
 
-class ThrottleMiddleware(object):
+class ThrottleMiddleware(MiddlewareMixin):
     scope = 'throttle'
 
     def process_response(self, request, response):

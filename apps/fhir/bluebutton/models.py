@@ -6,6 +6,8 @@ from apps.accounts.models import get_user_id_salt
 from apps.fhir.server.models import ResourceRouter
 from django.utils.crypto import pbkdf2
 import binascii
+from django.db.models import CASCADE
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -20,8 +22,9 @@ class Crosswalk(models.Model):
     HICN and BeneID added
     """
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
     fhir_source = models.ForeignKey(ResourceRouter,
+                                    on_delete=CASCADE,
                                     blank=True,
                                     null=True)
     # default=settings.FHIR_SERVER_DEFAULT)

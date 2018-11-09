@@ -6,7 +6,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 from django.utils.dateparse import parse_duration
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model

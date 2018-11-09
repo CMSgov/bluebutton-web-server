@@ -1,5 +1,6 @@
 from django.db import models
 from apps.fhir.server.utils import text_to_list, init_text_list
+from django.db.models import CASCADE
 
 
 class ResourceRouter(models.Model):
@@ -119,6 +120,7 @@ class SupportedResourceType(models.Model):
                                                   "name in this table")
     # FHIR_Server
     fhir_source = models.ForeignKey(ResourceRouter,
+                                    on_delete=CASCADE,
                                     blank=True,
                                     null=True)
     # fhir_resourceType

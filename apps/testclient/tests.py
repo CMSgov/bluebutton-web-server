@@ -2,7 +2,7 @@ from django.core.management import call_command
 from django.test.client import Client
 from django.test import TestCase
 from .utils import test_setup
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from unittest import skipIf
 from django.conf import settings
 

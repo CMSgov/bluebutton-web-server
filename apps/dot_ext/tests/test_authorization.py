@@ -1,6 +1,6 @@
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import get_access_token_model
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import Client
 
 from apps.test import BaseApiTest
