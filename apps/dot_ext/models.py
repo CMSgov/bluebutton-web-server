@@ -8,11 +8,16 @@ from urllib.parse import urlparse
 from django.utils.dateparse import parse_duration
 from django.urls import reverse
 from django.db import models
+from django.db.models.signals import post_delete
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
 
 from apps.capabilities.models import ProtectedCapability
-from oauth2_provider.models import AbstractApplication
+from oauth2_provider.models import (
+    AbstractApplication,
+    get_refresh_token_model,
+)
+from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -142,6 +147,26 @@ class Approval(models.Model):
                 getattr(settings, 'AUTHORIZATION_EXPIRATION', "600"))).timestamp() < datetime.now().timestamp()
 
 
+class ArchivedToken(models.Model):
+
+    id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
+        related_name="%(app_label)s_%(class)s"
+    )
+    source_refresh_token = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    token = models.CharField(max_length=255, unique=True, )
+    application = models.ForeignKey(
+        oauth2_settings.APPLICATION_MODEL, on_delete=models.CASCADE, blank=True, null=True,
+    )
+    expires = models.DateTimeField()
+    scope = models.TextField(blank=True)
+
+    created = models.DateTimeField()
+    updated = models.DateTimeField()
+    archived_at = models.DateTimeField(auto_now_add=True)
+
+
 class ExpiresIn(models.Model):
     """
     This model is used to save the expires_in value selected
@@ -152,3 +177,20 @@ class ExpiresIn(models.Model):
     expires_in = models.IntegerField()
 
     objects = ExpiresInManager()
+
+
+def archive_token(sender, instance=None, **kwargs):
+    archived_token = ArchivedToken()
+    tkn = instance
+    archived_token.user = tkn.user
+    archived_token.source_refresh_token = getattr(tkn.source_refresh_token, 'token', None)
+    archived_token.token = tkn.token
+    archived_token.application = tkn.application
+    archived_token.expires = tkn.expires
+    archived_token.scope = tkn.scope
+    archived_token.created = tkn.created
+    archived_token.updated = tkn.updated
+    archived_token.save()
+
+
+post_delete.connect(archive_token, sender='oauth2_provider.AccessToken')
