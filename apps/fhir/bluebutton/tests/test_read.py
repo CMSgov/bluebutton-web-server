@@ -8,8 +8,8 @@ from apps.fhir.bluebutton.views.home import (conformance_filter)
 from django.test import TestCase, RequestFactory
 from apps.test import BaseApiTest
 from django.test.client import Client
-from django.core.urlresolvers import reverse
 from oauth2_provider.models import get_access_token_model
+from django.urls import reverse
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
@@ -187,7 +187,7 @@ class BackendConnectionTest(BaseApiTest):
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
                     "v1/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
-                'User-Agent': 'python-requests/2.18.4',
+                'User-Agent': 'python-requests/2.19.1',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept': '*/*',
                 'Connection': 'keep-alive',
@@ -307,7 +307,7 @@ class BackendConnectionTest(BaseApiTest):
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
                     "v1/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
-                'User-Agent': 'python-requests/2.18.4',
+                'User-Agent': 'python-requests/2.19.1',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept': '*/*',
                 'Connection': 'keep-alive',
@@ -386,7 +386,7 @@ class BackendConnectionTest(BaseApiTest):
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
                     "v1/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
-                'User-Agent': 'python-requests/2.18.4',
+                'User-Agent': 'python-requests/2.19.1',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept': '*/*',
                 'Connection': 'keep-alive',
@@ -431,7 +431,7 @@ class BackendConnectionTest(BaseApiTest):
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
                     "v1/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=20140000008325"),
             'headers': {
-                'User-Agent': 'python-requests/2.18.4',
+                'User-Agent': 'python-requests/2.19.1',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept': '*/*',
                 'Connection': 'keep-alive',
@@ -523,7 +523,7 @@ class BackendConnectionTest(BaseApiTest):
             'method': 'GET',
             'url': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/20140000008325/?_format=json',
             'headers': {
-                'User-Agent': 'python-requests/2.18.4',
+                'User-Agent': 'python-requests/2.19.1',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept': '*/*',
                 'Connection': 'keep-alive',

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
@@ -16,7 +16,7 @@ from django.contrib.auth import authenticate, login
 def reset_password(request):
 
     name = _('Reset Password')
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         if request.method == 'POST':
             form = PasswordResetForm(request.POST)
             if form.is_valid():

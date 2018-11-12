@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.test import TestCase

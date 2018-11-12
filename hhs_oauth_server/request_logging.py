@@ -7,6 +7,7 @@ from apps.fhir.bluebutton.utils import (get_ip_from_request,
                                         get_user_from_request,
                                         get_access_token_from_request)
 from oauth2_provider.models import AccessToken
+from django.utils.deprecation import MiddlewareMixin
 
 
 audit = logging.getLogger('audit.%s' % __name__)
@@ -88,7 +89,7 @@ class RequestResponseLog(object):
 ##############################################################################
 
 
-class RequestTimeLoggingMiddleware(object):
+class RequestTimeLoggingMiddleware(MiddlewareMixin):
     """Middleware class logging request time to stderr.
 
     This class can be used to measure time of request processing

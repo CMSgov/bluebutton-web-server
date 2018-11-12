@@ -4,7 +4,7 @@ import base64
 from django.utils import timezone
 from datetime import timedelta
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.scopes import get_scopes_backend

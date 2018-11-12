@@ -4,6 +4,7 @@ import re
 from django.db import models
 from django.contrib.auth.models import Group
 from django.utils.lru_cache import lru_cache
+from django.db.models import CASCADE
 
 
 class ProtectedCapability(models.Model):
@@ -14,7 +15,7 @@ class ProtectedCapability(models.Model):
                             max_length=255,
                             default='',
                             unique=True)
-    group = models.ForeignKey(Group)
+    group = models.ForeignKey(Group, on_delete=CASCADE,)
     description = models.TextField(max_length=10240,
                                    blank=True,
                                    default='')
