@@ -26,26 +26,6 @@ class Migration(migrations.Migration):
                 ('archived_at', models.DateTimeField(auto_now_add=True)),
             ],
         ),
-        migrations.AlterField(
-            model_name='application',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False),
-        ),
-        migrations.AlterField(
-            model_name='application',
-            name='redirect_uris',
-            field=models.TextField(blank=True, help_text='Allowed redirect URIs. Space or new line separated.'),
-        ),
-        migrations.AlterField(
-            model_name='application',
-            name='scope',
-            field=models.ManyToManyField(to='capabilities.ProtectedCapability'),
-        ),
-        migrations.AlterField(
-            model_name='application',
-            name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='dot_ext_application', to=settings.AUTH_USER_MODEL),
-        ),
         migrations.AddField(
             model_name='archivedtoken',
             name='application',
