@@ -159,6 +159,13 @@ class BeneMetricsView(APIView):
         return Response(content)
 
 
+class ArchivedTokenSerializer(ModelSerializer):
+
+    class Meta:
+        model = ArchivedToken
+        fields = '__all__'
+
+
 class ArchivedTokenView(ListAPIView):
     permission_classes = [
         IsAuthenticated,
@@ -166,7 +173,7 @@ class ArchivedTokenView(ListAPIView):
     ]
 
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
-    serializer_class = AppMetricsSerializer
+    serializer_class = ArchivedTokenSerializer
     pagination_class = MetricsPagination
 
     def get_queryset(self):
