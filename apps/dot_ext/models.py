@@ -15,7 +15,6 @@ from django.contrib.auth import get_user_model
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import (
     AbstractApplication,
-    get_refresh_token_model,
 )
 from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
