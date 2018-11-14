@@ -153,7 +153,6 @@ class ArchivedToken(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
         related_name="%(app_label)s_%(class)s"
     )
-    source_refresh_token = models.CharField(max_length=255, unique=True, blank=True, null=True)
     token = models.CharField(max_length=255, unique=True, )
     application = models.ForeignKey(
         oauth2_settings.APPLICATION_MODEL, on_delete=models.CASCADE, blank=True, null=True,
@@ -182,7 +181,6 @@ def archive_token(sender, instance=None, **kwargs):
     archived_token = ArchivedToken()
     tkn = instance
     archived_token.user = tkn.user
-    archived_token.source_refresh_token = getattr(tkn.source_refresh_token, 'token', None)
     archived_token.token = tkn.token
     archived_token.application = tkn.application
     archived_token.expires = tkn.expires

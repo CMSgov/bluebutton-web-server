@@ -17,7 +17,6 @@ class Migration(migrations.Migration):
             name='ArchivedToken',
             fields=[
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('source_refresh_token', models.CharField(blank=True, max_length=255, null=True, unique=True)),
                 ('token', models.CharField(max_length=255, unique=True)),
                 ('expires', models.DateTimeField()),
                 ('scope', models.TextField(blank=True)),
