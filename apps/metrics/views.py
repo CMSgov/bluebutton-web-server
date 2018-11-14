@@ -26,7 +26,7 @@ from rest_framework.views import APIView
 from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRenderer
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
-from ..dot_ext.models import Application
+from ..dot_ext.models import Application, ArchivedToken
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -157,6 +157,30 @@ class BeneMetricsView(APIView):
             'count': UserProfile.objects.filter(user_type='BEN').count()
         }
         return Response(content)
+
+
+class ArchivedTokenSerializer(ModelSerializer):
+
+    class Meta:
+        model = ArchivedToken
+        fields = '__all__'
+
+
+class ArchivedTokenView(ListAPIView):
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
+    serializer_class = ArchivedTokenSerializer
+    pagination_class = MetricsPagination
+
+    def get_queryset(self):
+
+        queryset = ArchivedToken.objects.all().order_by('archived_at')
+
+        return queryset
 
 
 class AppMetricsView(ListAPIView):

@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.test import Client
 
 from apps.test import BaseApiTest
-from ..models import Application
+from ..models import Application, ArchivedToken
 
 AccessToken = get_access_token_model()
 
@@ -249,6 +249,9 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         }
         rev_response = c.post('/v1/o/revoke_token/', data=revoke_request_data)
         self.assertEqual(rev_response.status_code, 200)
+        archived_token = ArchivedToken.objects.get(token=tkn)
+        self.assertEqual(application.id, archived_token.application.id)
+        self.assertEqual(tkn, archived_token.token)
         refresh_tkn = response.json()['refresh_token']
         refresh_request_data = {
             'grant_type': 'refresh_token',
