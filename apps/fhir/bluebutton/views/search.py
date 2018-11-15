@@ -65,7 +65,7 @@ class SearchView(FhirDataView):
 
         data = self.fetch_data(request, resource_type, *args, **kwargs)
 
-        if not data.get('total', False):
+        if not data.get('total', False) and len(data.get('entry', [])) > 0:
             data['total'] = len(data['entry'])
 
         if data.get('total', 0) > 0:
