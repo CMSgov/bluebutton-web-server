@@ -65,6 +65,9 @@ class SearchView(FhirDataView):
 
         data = self.fetch_data(request, resource_type, *args, **kwargs)
 
+        if not data.get('total', False):
+            data['total'] = len(data['entry'])
+
         if data.get('total', 0) > 0:
             # TODO update to pagination class
             data['entry'] = data['entry'][start_index:start_index + page_size]
