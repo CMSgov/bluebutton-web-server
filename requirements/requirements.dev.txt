@@ -48,7 +48,7 @@ python-openid==2.2.5
 pytz==2018.5
 pyyaml==3.13              # via python-coveralls
 requests-oauthlib==1.0.0
-requests==2.19.1
+requests==2.20.0
 six==1.11.0
 sqlparse==0.2.4
 toml==0.10.0              # via tox
