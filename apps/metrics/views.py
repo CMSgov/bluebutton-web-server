@@ -6,6 +6,7 @@ from django.db.models import (
     QuerySet,
     Min,
     Max,
+    Q,
 )
 from oauth2_provider.models import AccessToken
 from rest_framework.serializers import (
@@ -27,6 +28,8 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRende
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application, ArchivedToken
+from apps.fhir.bluebutton.models import Crosswalk
+
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -127,17 +130,38 @@ class ApplicationSerializer(ModelSerializer):
         fields = ('id', 'name', 'user', )
 
 
+class BeneUserSerializer(StreamableSerializerMixin, ModelSerializer):
+    user_type = CharField(source='userprofile.user_type')
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'date_joined',
+            'last_login',
+            'user_type',
+        )
+>>>>>>> 4896b452... Add real & synth bene token counts to AppMetricsView
+
+
 class AppMetricsSerializer(ModelSerializer):
 
-    beneficiaries = SerializerMethodField()
-    user = UserSerializer(read_only=True)
+    tokens = SerializerMethodField()
+    user = BeneUserSerializer(read_only=True)
 
     class Meta:
         model = Application
-        fields = ('id', 'name', 'active', 'user', 'beneficiaries', 'first_active', 'last_active')
+        fields = ('id', 'name', 'active', 'user', 'tokens', 'first_active', 'last_active')
 
-    def get_beneficiaries(self, obj):
-        return({'count': AccessToken.objects.filter(application=obj.id).distinct('user').count()})
+    def get_tokens(self, obj):
+        distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
+        real_cnt = Crosswalk.objects.filter(user__in=[item['user'] for item in distinct]).filter(
+            ~Q(fhir_id__startswith='-')).values('user', 'fhir_id').count()
+        synth_cnt = Crosswalk.objects.filter(user__in=[item['user'] for item in distinct]).filter(
+            Q(fhir_id__startswith='-')).values('user', 'fhir_id').count()
+        return({'real_cnt': real_cnt, 'synth_cnt': synth_cnt})
 
 
 class MetricsPagination(PageNumberPagination):
@@ -227,7 +251,7 @@ class AppMetricsView(ListAPIView):
 
     def get_queryset(self):
 
-        queryset = Application.objects.all().order_by('name')
+        queryset = Application.objects.select_related().all().order_by('name')
 
         return queryset
 
