@@ -148,20 +148,20 @@ class BeneUserSerializer(StreamableSerializerMixin, ModelSerializer):
 
 class AppMetricsSerializer(ModelSerializer):
 
-    tokens = SerializerMethodField()
+    beneficiaries = SerializerMethodField()
     user = BeneUserSerializer(read_only=True)
 
     class Meta:
         model = Application
-        fields = ('id', 'name', 'active', 'user', 'tokens', 'first_active', 'last_active')
+        fields = ('id', 'name', 'active', 'user', 'beneficiaries', 'first_active', 'last_active')
 
-    def get_tokens(self, obj):
+    def get_beneficiaries(self, obj):
         distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
         real_cnt = Crosswalk.objects.filter(user__in=[item['user'] for item in distinct]).filter(
             ~Q(fhir_id__startswith='-')).values('user', 'fhir_id').count()
         synth_cnt = Crosswalk.objects.filter(user__in=[item['user'] for item in distinct]).filter(
             Q(fhir_id__startswith='-')).values('user', 'fhir_id').count()
-        return({'real_cnt': real_cnt, 'synth_cnt': synth_cnt})
+        return({'real': real_cnt, 'synthetic': synth_cnt})
 
 
 class MetricsPagination(PageNumberPagination):
