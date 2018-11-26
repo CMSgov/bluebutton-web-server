@@ -143,13 +143,12 @@ class BeneUserSerializer(StreamableSerializerMixin, ModelSerializer):
             'last_login',
             'user_type',
         )
->>>>>>> 4896b452... Add real & synth bene token counts to AppMetricsView
 
 
 class AppMetricsSerializer(ModelSerializer):
 
     beneficiaries = SerializerMethodField()
-    user = BeneUserSerializer(read_only=True)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Application
@@ -250,9 +249,7 @@ class AppMetricsView(ListAPIView):
     pagination_class = MetricsPagination
 
     def get_queryset(self):
-
         queryset = Application.objects.select_related().all().order_by('name')
-
         return queryset
 
 
