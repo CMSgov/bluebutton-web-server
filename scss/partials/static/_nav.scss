@@ -1,0 +1,199 @@
+// Styles for the main navigation
+// ------------------------------
+
+// Variables
+// ---------
+
+$desktop-nav-bg: #f7f7f7;
+$desktop-nav-color: #323A45;
+
+
+// Breakpoints
+// -----------
+
+$phone: "(min-width: 0px) and (max-width: 639px)";
+$mobile-nav: "(min-width: 0px) and (max-width: 895px)";
+$tablet: "(min-width: 640px) and (max-width: 1023px)";
+$desktop: "(min-width: 1024px)";
+
+$large-nav: "(min-width: 780px)";
+$med-nav: "(min-width: 500px) and (max-width: 779px)";
+$small-nav: "(min-width: 0px) and (max-width: 500px)";
+
+
+// Header
+// ------
+
+header {
+  background: $desktop-nav-bg;
+  font-family: 'Roboto', sans-serif;
+}
+
+// Desktop Navigation
+// ------------------
+
+// Desktop Nav Container
+.ds-c-desktop-nav {
+  background: $desktop-nav-bg;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  // Hide for small screens
+  @media #{$med-nav, $small-nav} {
+    display: none;
+  }
+}
+
+// Logo Link Container
+.logo-link-container {
+  font-weight: bold;
+  color: $desktop-nav-color;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  transition: color 90ms ease;
+  svg {
+    margin-right: .5rem;
+  }
+  &:hover {
+    color: #000000;
+  }
+}
+
+// Desktop Nav Items (and mobile as well)
+.ds-c-desktop-nav .desktop-nav-items,
+.mobile-nav-items {
+  font-size: .85rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  a {
+    color: $desktop-nav-color;
+    text-decoration: none;
+    margin-left: 1.5rem;
+    transition: color 90ms ease;
+    &:hover {
+      text-decoration: underline;
+      color: #000;
+    }
+  }
+  // Button
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $desktop-nav-color;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: .3rem;
+    font-size: .8rem;
+    transition: background 90ms ease;
+    svg {
+      margin-right: .5rem;
+    }
+    &:hover {
+      background: #000;
+      color: #fff;
+      text-decoration: none;
+    }
+  }
+}
+
+.desktop-nav-items {
+  @media #{$med-nav, $small-nav} {
+    display: none !important;
+  }
+}
+
+// Mobile Navigation
+// -----------------
+
+// Desktop Nav Container
+.ds-c-mobile-nav {
+  background: $desktop-nav-bg;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0rem;
+  // Show for small screens
+  @media #{$med-nav, $small-nav} {
+    display: flex;
+  }
+  // Add margin for logo on mobile
+  .logo-link-container {
+    margin-left: 1rem;
+  }
+}
+
+// Mobile Nav Trigger Button
+.mobile-nav-trigger-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: $desktop-nav-color;
+  background: darken($desktop-nav-bg, 5%);
+  font-weight: bold;
+  font-size: .8rem;
+  text-decoration: none;
+  padding: 1rem;
+  transition: background .4s ease;
+  @media #{$large-nav} {
+    display: none;
+  }
+  &:visited {
+    color: $desktop-nav-color !important;
+  }
+  &:active {
+    color: $desktop-nav-color !important;
+  }
+}
+
+.trigger-active {
+  background: $desktop-nav-bg !important;
+  color: $desktop-nav-color !important;
+}
+
+// Mobile Nav Items
+.mobile-nav-items {
+  // General Styles
+  background: $desktop-nav-bg;
+  position: absolute;
+  width: 100%;
+  z-index: 100;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 2rem;
+  padding-top: 4rem;
+
+  // Animation/Visibility Styles
+  height: 0;
+  opacity: 0;
+	overflow: hidden;
+  transition: opacity .5s ease, height .4s ease;
+
+  a {
+    margin: .5rem 1rem;
+    line-height: 1;
+  }
+  a, a.button {
+    transition: opacity .4s ease-in-out;
+    transition-delay: .4s;
+    opacity: 0;
+  }
+  // Hide for large screens
+  @media #{$large-nav} {
+    display: none;
+  }
+}
+
+.mobile-nav-items.is-visible {
+  display: flex;
+	height: 100%;
+  opacity: 1;
+  a {
+    opacity: 1;
+  }
+}
