@@ -119,6 +119,14 @@ class DevUserSerializer(StreamableSerializerMixin, ModelSerializer):
         )
 
 
+class ApplicationSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Application
+        fields = ('id', 'name', 'user', )
+
+
 class AppMetricsSerializer(ModelSerializer):
 
     beneficiaries = SerializerMethodField()
@@ -159,11 +167,25 @@ class BeneMetricsView(APIView):
         return Response(content)
 
 
+class ArchivedTokenFilter(filters.FilterSet):
+    class Meta:
+        model = ArchivedToken
+        fields = {
+            'user': ['exact'],
+            'application': ['exact'],
+            'created': ['gte', 'lte'],
+            'archived_at': ['gte', 'lte'],
+            'token': ['exact'],
+        }
+
+
 class ArchivedTokenSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+    application = ApplicationSerializer(read_only=True)
 
     class Meta:
         model = ArchivedToken
-        fields = '__all__'
+        fields = ('user', 'application', 'token', 'expires', 'created', 'archived_at', )
 
 
 class ArchivedTokenView(ListAPIView):
@@ -175,6 +197,8 @@ class ArchivedTokenView(ListAPIView):
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     serializer_class = ArchivedTokenSerializer
     pagination_class = MetricsPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ArchivedTokenFilter
 
     def get_queryset(self):
 
