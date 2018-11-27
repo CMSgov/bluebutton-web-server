@@ -6,7 +6,6 @@ from django.db.models import (
     QuerySet,
     Min,
     Max,
-    Q,
 )
 from oauth2_provider.models import AccessToken
 from rest_framework.serializers import (
@@ -146,7 +145,6 @@ class BeneUserSerializer(StreamableSerializerMixin, ModelSerializer):
 
 
 class AppMetricsSerializer(ModelSerializer):
-
     beneficiaries = SerializerMethodField()
     user = UserSerializer(read_only=True)
 
@@ -156,10 +154,10 @@ class AppMetricsSerializer(ModelSerializer):
 
     def get_beneficiaries(self, obj):
         distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
-        real_cnt = Crosswalk.objects.filter(user__in=[item['user'] for item in distinct]).filter(
-            ~Q(fhir_id__startswith='-')).values('user', 'fhir_id').count()
-        synth_cnt = Crosswalk.objects.filter(user__in=[item['user'] for item in distinct]).filter(
-            Q(fhir_id__startswith='-')).values('user', 'fhir_id').count()
+
+        real_cnt = Crosswalk.real_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id').count()
+        synth_cnt = Crosswalk.synth_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id').count()
+
         return({'real': real_cnt, 'synthetic': synth_cnt})
 
 
