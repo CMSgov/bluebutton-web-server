@@ -27,6 +27,8 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRende
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application, ArchivedToken
+from apps.fhir.bluebutton.models import Crosswalk
+
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -127,8 +129,22 @@ class ApplicationSerializer(ModelSerializer):
         fields = ('id', 'name', 'user', )
 
 
-class AppMetricsSerializer(ModelSerializer):
+class BeneUserSerializer(StreamableSerializerMixin, ModelSerializer):
+    user_type = CharField(source='userprofile.user_type')
 
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'date_joined',
+            'last_login',
+            'user_type',
+        )
+
+
+class AppMetricsSerializer(ModelSerializer):
     beneficiaries = SerializerMethodField()
     user = UserSerializer(read_only=True)
 
@@ -137,7 +153,12 @@ class AppMetricsSerializer(ModelSerializer):
         fields = ('id', 'name', 'active', 'user', 'beneficiaries', 'first_active', 'last_active')
 
     def get_beneficiaries(self, obj):
-        return({'count': AccessToken.objects.filter(application=obj.id).distinct('user').count()})
+        distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
+
+        real_cnt = Crosswalk.real_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id').count()
+        synth_cnt = Crosswalk.synth_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id').count()
+
+        return({'real': real_cnt, 'synthetic': synth_cnt})
 
 
 class MetricsPagination(PageNumberPagination):
@@ -226,9 +247,7 @@ class AppMetricsView(ListAPIView):
     pagination_class = MetricsPagination
 
     def get_queryset(self):
-
-        queryset = Application.objects.all().order_by('name')
-
+        queryset = Application.objects.select_related().all().order_by('name')
         return queryset
 
 
