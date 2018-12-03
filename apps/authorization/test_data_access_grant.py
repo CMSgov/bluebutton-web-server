@@ -1,7 +1,6 @@
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import get_application_model
 from django.urls import reverse
-from django.test import Client
 
 from apps.test import BaseApiTest
 
@@ -59,7 +58,6 @@ class TestDataAccessGrant(BaseApiTest):
 
         # errors if DNE or more than one is found
         DataAccessGrant.objects.get(beneficiary=user.id, application=application.id)
-
 
     def test_no_action_on_reapproval(self):
         redirect_uri = 'http://localhost'
