@@ -1,12 +1,22 @@
+from django.utils import timezone
+from datetime import timedelta
 from oauth2_provider.compat import parse_qs, urlparse
-from oauth2_provider.models import get_application_model
+from oauth2_provider.models import (
+    get_application_model,
+    get_access_token_model,
+)
 from django.urls import reverse
 
 from apps.test import BaseApiTest
 
-from .models import DataAccessGrant
+from .models import (
+    DataAccessGrant,
+    check_grants,
+    update_grants,
+)
 
 Application = get_application_model()
+AccessToken = get_access_token_model()
 
 
 class TestDataAccessGrant(BaseApiTest):
@@ -140,3 +150,60 @@ class TestDataAccessGrant(BaseApiTest):
 
         # errors if DNE or more than one is found
         DataAccessGrant.objects.get(beneficiary=user.id, application=application.id)
+
+    def test_check_and_update_grants(self):
+        redirect_uri = 'http://localhost'
+        # create a user
+        user = self._create_user('anna', '123456')
+        user2 = self._create_user('bob', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+
+        AccessToken.objects.create(
+            token="existingtoken",
+            user=user,
+            application=application,
+            expires=timezone.now()+timedelta(seconds=10),
+        )
+
+        checks = check_grants()
+        self.assertGreater(
+            checks['unique_tokens'],
+            checks['grants'],
+        )
+
+        update_grants()
+
+        checks = check_grants()
+        self.assertEqual(
+            checks['unique_tokens'],
+            checks['grants'],
+        )
+
+        #create expired token
+        AccessToken.objects.create(
+            token="expiredtoken",
+            user=user2,
+            application=application,
+            expires=timezone.now()-timedelta(seconds=10),
+        )
+
+        checks = check_grants()
+        self.assertEqual(
+            checks['unique_tokens'],
+            checks['grants'],
+        )
+
+        update_grants()
+
+        checks = check_grants()
+        self.assertEqual(
+            checks['unique_tokens'],
+            checks['grants'],
+        )
