@@ -13,3 +13,11 @@ class DataAccessGrant(models.Model):
         on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ("beneficiary", "application")
+        indexes = [
+            models.Index(fields=["beneficiary", "application"]),
+            models.Index(fields=["beneficiary"]),
+            models.Index(fields=["application"]),
+        ]
