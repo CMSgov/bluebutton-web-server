@@ -25,7 +25,7 @@ class DataAccessGrant(models.Model):
         ]
 
 
-def update_grants():
+def update_grants(*args, **kwargs):
     AccessToken = get_access_token_model()
     # inefficient version
     tokens = AccessToken.objects.all()
@@ -39,7 +39,9 @@ def update_grants():
 
 def check_grants():
     AccessToken = get_access_token_model()
-    token_count = AccessToken.objects.filter(expires__gt=timezone.now()).values('user', 'application').distinct().count()
+    token_count = AccessToken.objects.filter(
+        expires__gt=timezone.now(),
+    ).values('user', 'application').distinct().count()
     grant_count = DataAccessGrant.objects.all().count()
     return {
         "unique_tokens": token_count,
