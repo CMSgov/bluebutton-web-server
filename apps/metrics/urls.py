@@ -8,6 +8,7 @@ from .views import (
     DevelopersView,
     DevelopersStreamView,
     ArchivedTokenView,
+    DataAccessGrantView,
 )
 
 admin.autodiscover()
@@ -19,6 +20,7 @@ urlpatterns = [
     url(r'^developers/$', DevelopersView.as_view(), name='developers'),
     url(r'^tokens$', TokenMetricsView.as_view(), name='tokens'),
     url(r'^tokens/archive$', ArchivedTokenView.as_view(), name='archived-tokens'),
+    url(r'^grants$', DataAccessGrantView.as_view(), name='grants'),
     url(r'^raw/', include([
         url(r'^developers', DevelopersStreamView.as_view()),
     ]))
