@@ -240,7 +240,7 @@ class DataAccessGrantFilter(filters.FilterSet):
 
 
 class DataAccessGrantSerializer(ModelSerializer):
-    user = UserSerializer(read_only=True)
+    beneficiary = UserSerializer(read_only=True)
     application = ApplicationSerializer(read_only=True)
 
     class Meta:
