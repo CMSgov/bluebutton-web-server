@@ -169,7 +169,7 @@ class TestDataAccessGrant(BaseApiTest):
             token="existingtoken",
             user=user,
             application=application,
-            expires=timezone.now()+timedelta(seconds=10),
+            expires=timezone.now() + timedelta(seconds=10),
         )
 
         checks = check_grants()
@@ -186,12 +186,12 @@ class TestDataAccessGrant(BaseApiTest):
             checks['grants'],
         )
 
-        #create expired token
+        # create expired token
         AccessToken.objects.create(
             token="expiredtoken",
             user=user2,
             application=application,
-            expires=timezone.now()-timedelta(seconds=10),
+            expires=timezone.now() - timedelta(seconds=10),
         )
 
         checks = check_grants()
