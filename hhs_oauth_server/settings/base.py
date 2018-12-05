@@ -467,7 +467,7 @@ BLOCK_HTTP_REDIRECT_URIS = False
 
 if env('TARGET_ENV', '') in ['dev', 'test', 'impl', 'prod']:
     AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
-
+    AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
     STATICFILES_LOCATION = 'static/'
     STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
     STATIC_URL = "https://%s%s/" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
