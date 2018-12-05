@@ -27,7 +27,7 @@ pipeline {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-test-bbonfhir-com/static/statsite/assets/css/
+            aws s3 cp ./dist/sandbox-main.css s3://content-test-bbonfhir-com/static/dist/
           """
         }
       }
@@ -37,7 +37,7 @@ pipeline {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-impl-bbonfhir-com/static/statsite/assets/css/
+            aws s3 cp ./dist/sandbox-main.css s3://content-impl-bbonfhir-com/static/dist/
           """
         }
       }
@@ -52,7 +52,7 @@ pipeline {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-prod-bluebutton-cms-gov/static/statsite/assets/css/
+            aws s3 cp ./dist/sandbox-main.css s3://content-prod-bluebutton-cms-gov/static/dist/
           """
         }
       }
