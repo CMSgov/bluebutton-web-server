@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'apps.fhir.server',
     'apps.fhir.bluebutton',
     'apps.mymedicare_cb',
+    'apps.authorization',
 
     # 3rd Party ---------------------
     'corsheaders',
