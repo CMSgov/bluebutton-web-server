@@ -27,7 +27,7 @@ pipeline {
       steps {
         withAwsCli(credentialsId: aws_creds, defaultRegion: 'us-east-1') {
           sh """
-            aws s3 cp ./dist/sandbox-main.css s3://content-dev-bbonfhir-com/static/statsite/assets/css/
+            aws s3 cp ./dist/sandbox-main.css s3://content-dev-bbonfhir-com/static/dist/
           """
         }
       }
