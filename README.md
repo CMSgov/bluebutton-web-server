@@ -80,6 +80,50 @@ Note you can find the path to your Python3 binary by typing `which python3`.
 
 Instructions for running the development environment via `docker-compose` can be found [here](./docker-compose/readme.md)
 
+How to View the CSS/Styles Locally
+----------------------------------
+
+To keep our CSS organized and consolidated across our applications, we use a dedicated [Blue Button CSS Repo](https://github.com/CMSgov/bluebutton-css).
+
+In order to be able to see the styles locally for this project, you'll just need to clone the Blue Button CSS Repo at the root of this project.
+
+From within `bluebutton-web-server`, run the following commands (Bash):
+
+```bash
+git clone git@github.com:CMSgov/bluebutton-css.git
+```
+*That sould be all you need to get the styles working.* The instructions below will tell you how to work with or update the SCSS.
+
+To get started making changes to the styles:
+
+```bash
+cd bluebutton-css
+```
+
+You'll need to make sure you have NodeJS installed. [Click here to find out more about NodeJS](https://nodejs.org/en/). Once you have NodeJs installed, run:
+
+```bash
+npm i
+```
+
+Finally, make sure you have Gulp 4.0 installed:
+
+```bash
+npm i gulp@4
+```
+
+*To export the CSS once, run:*
+
+```bash
+gulp
+```
+
+*To watch the SCSS files for changes, run:*
+
+```bash
+gulp watch
+```
+
 Running Tests
 -------------
 
@@ -95,8 +139,8 @@ for more information.
 Using this Project
 ------------------
 
-This project is free and open source software under the Apache2 license. 
-You may add additional applications, authentication backends, and styles/themes 
+This project is free and open source software under the Apache2 license.
+You may add additional applications, authentication backends, and styles/themes
 are not subject to the Apache2 license.
 
 In other words, you or your organization are not in any way prevented from build closed source applications
