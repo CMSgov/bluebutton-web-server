@@ -118,18 +118,18 @@
       </a>
     </div>
   </div>
-             
+
                <script
     src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
     integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
     crossorigin="anonymous"></script>
-    <script src="{% static 'statsite/assets/js/main.js' %}"></script>  
+    <script src="{% static 'statsite/assets/js/main.js' %}"></script>
 
         </div>
     </div> <!-- /.footer-wrapper -->
  <div class="row container-fluid">
     <div class="row footer-wrapper panel-footer">
-         
+
          {% if user.is_authenticated %}
          <div class="row-container-fluid" >
             <p class="row-container-fluid footer-small well">
@@ -144,6 +144,6 @@
                     {% if settings.DEBUG %}
                        <div class="ds ds-l-row ds-u-fill--gray-lightest ds-u-font-style--italic ds-u-font-size--small">{{ settings.ALLOWED_HOSTS|last }}</div>
                     {% endif %}
-             {% endif %}       
+             {% endif %}
 
 </div><!-- /.container-fluid -->
