@@ -229,6 +229,45 @@ class ArchivedTokenView(ListAPIView):
         return queryset
 
 
+class ArchivedDataAccessGrantFilter(filters.FilterSet):
+    class Meta:
+        model = ArchivedDataAccessGrant
+        fields = {
+            'user': ['exact'],
+            'application': ['exact'],
+            'created_at': ['gte', 'lte'],
+            'archived_at': ['gte', 'lte'],
+        }
+
+
+class ArchivedDataAccessGrantSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+    application = ApplicationSerializer(read_only=True)
+
+    class Meta:
+        model = ArchivedDataAccessGrant
+        fields = ('user', 'application', 'created_at', 'archived_at', )
+
+
+class ArchivedDataAccessGrantView(ListAPIView):
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
+    serializer_class = ArchivedDataAccessGrantSerializer
+    pagination_class = MetricsPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ArchivedDataAccessGrantFilter
+
+    def get_queryset(self):
+
+        queryset = ArchivedDataAccessGrant.objects.all().order_by('archived_at')
+
+        return queryset
+
+
 class DataAccessGrantFilter(filters.FilterSet):
     class Meta:
         model = DataAccessGrant

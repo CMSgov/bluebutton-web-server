@@ -46,14 +46,23 @@ def app_authorized_record_grant(sender, request, token, **kwargs):
 
 app_authorized.connect(app_authorized_record_grant)
 
+
 def revoke_associated_tokens(sender, instance=None, **kwargs):
     tokens = AccessToken.objects.filter(application=instance.application, user=instance.user).all()
     for token in tokens:
         token.revoke()
 
+
 def log_grant_removed(sender, instance=None, **kwargs):
     token_logger.info(DataAccessGrantSerializer(instance, action="revoked"))
 
 
+def archive_removed_grant(sender, instance=None, **kwargs):
+    ArchivedDataAccessGrant.objects.create(
+        created_at=instance.created_at,
+        application=instance.application,
+        beneficiary=instance.beneficiary)
+
 post_delete.connect(remove_associated_tokens, sender='apps.authorization.DataAccessGrant')
 post_delete.connect(log_grant_removed, sender='apps.authorization.DataAccessGrant')
+post_delete.connect(archive_removed_grant, sender='apps.authorization.DataAccessGrant')

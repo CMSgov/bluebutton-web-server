@@ -25,6 +25,25 @@ class DataAccessGrant(models.Model):
         ]
 
 
+class ArchivedDataAccessGrant(models.Model):
+    beneficiary = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    application = models.ForeignKey(
+        oauth2_settings.APPLICATION_MODEL,
+        on_delete=models.CASCADE,
+    )
+    created_at = models.DateTimeField()
+    archived_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["beneficiary"]),
+            models.Index(fields=["application"]),
+        ]
+
+
 def update_grants(*args, **kwargs):
     AccessToken = get_access_token_model()
     # inefficient version
