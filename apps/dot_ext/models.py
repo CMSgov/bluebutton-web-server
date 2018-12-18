@@ -30,7 +30,7 @@ class Application(AbstractApplication):
     op_tos_uri = models.CharField(default=settings.TOS_URI, blank=True, max_length=512)
     op_policy_uri = models.CharField(default="", blank=True, max_length=512)
     client_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client URI",
-                                  help_text="This is typically a homepage for the application.")
+                                  help_text="This is typically a home/download page for the application.")
     help_text = _('Allowed redirect URIs. Space or new line separated.')
     redirect_uris = models.TextField(help_text=help_text,
                                      blank=True)
