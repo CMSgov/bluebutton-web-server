@@ -13,6 +13,7 @@ import logging
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+
 class CustomRegisterApplicationForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
@@ -132,11 +133,12 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def clean_client_uri(self):
         client_uri = self.cleaned_data.get('client_uri')
-        validator = URLValidator()
-        try:
-            validator(client_uri)
-        except:
-            raise forms.ValidationError('Please enter a valid URI.')
+        if client_uri:
+            validator = URLValidator()
+            try:
+                validator(client_uri)
+            except:
+                raise forms.ValidationError('Please enter a valid URI. For example, "https://www.example.org"')
         return client_uri
 
     def save(self, *args, **kwargs):
