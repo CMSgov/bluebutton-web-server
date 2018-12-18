@@ -24,6 +24,10 @@ class DataAccessGrant(models.Model):
             models.Index(fields=["application"]),
         ]
 
+    @property
+    def user(self):
+        return self.beneficiary
+
 
 class ArchivedDataAccessGrant(models.Model):
     beneficiary = models.ForeignKey(
@@ -42,6 +46,10 @@ class ArchivedDataAccessGrant(models.Model):
             models.Index(fields=["beneficiary"]),
             models.Index(fields=["application"]),
         ]
+
+    @property
+    def user(self):
+        return self.beneficiary
 
 
 def update_grants(*args, **kwargs):

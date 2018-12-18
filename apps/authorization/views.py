@@ -17,10 +17,11 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
 class DataAccessGrantSerializer(serializers.ModelSerializer):
     application = ApplicationSerializer(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True, source='beneficiary')
 
     class Meta:
         model = DataAccessGrant
-        fields = ('id', 'application')
+        fields = ('id', 'application', 'user')
 
 
 class AuthorizedGrants(viewsets.GenericViewSet,
@@ -34,4 +35,4 @@ class AuthorizedGrants(viewsets.GenericViewSet,
     serializer_class = DataAccessGrantSerializer
 
     def get_queryset(self):
-        return DataAccessGrant.objects.select_related("application").filter(user=self.request.user)
+        return DataAccessGrant.objects.select_related("application").filter(beneficiary=self.request.user)

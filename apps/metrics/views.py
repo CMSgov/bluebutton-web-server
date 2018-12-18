@@ -27,7 +27,7 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRende
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application, ArchivedToken
-from apps.authorization.models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.fhir.bluebutton.models import Crosswalk
 
 
@@ -233,7 +233,7 @@ class ArchivedDataAccessGrantFilter(filters.FilterSet):
     class Meta:
         model = ArchivedDataAccessGrant
         fields = {
-            'user': ['exact'],
+            'beneficiary': ['exact'],
             'application': ['exact'],
             'created_at': ['gte', 'lte'],
             'archived_at': ['gte', 'lte'],
@@ -246,7 +246,7 @@ class ArchivedDataAccessGrantSerializer(ModelSerializer):
 
     class Meta:
         model = ArchivedDataAccessGrant
-        fields = ('user', 'application', 'created_at', 'archived_at', )
+        fields = ('beneficiary', 'application', 'created_at', 'archived_at', )
 
 
 class ArchivedDataAccessGrantView(ListAPIView):
