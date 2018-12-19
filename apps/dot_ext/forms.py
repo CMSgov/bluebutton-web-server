@@ -13,7 +13,6 @@ import logging
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-
 class CustomRegisterApplicationForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):

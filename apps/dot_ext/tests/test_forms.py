@@ -37,3 +37,21 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
         self.assertNotEqual(form.errors.get('name'), None)
+
+        # Test form with client_url valid URI.
+        data = {'client_uri': 'https://www.example.org'}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('client_uri'), None)
+
+        # Test form with client_url in-valid URI.
+        data = {'client_uri': 'xyzs:/www.example.org'}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('client_uri'), None)
+
+        # Test form with client_url EMPTY URI is OK.
+        data = {'client_uri': ''}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('client_uri'), None)
