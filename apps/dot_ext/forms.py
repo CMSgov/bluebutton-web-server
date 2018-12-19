@@ -6,7 +6,6 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.validators import urlsplit
-from django.core.validators import URLValidator
 import logging
 
 
@@ -34,7 +33,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         fields = ('name',
                   'client_type',
                   'authorization_grant_type', 'redirect_uris',
-                  'logo_uri', 'client_uri', 'policy_uri', 'tos_uri', 'contacts',
+                  'logo_uri', 'website_uri', 'policy_uri', 'tos_uri', 'contacts',
                   'agree')
 
     required_css_class = 'required'
@@ -129,16 +128,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                         msg = _('Redirect URIs must not use http.')
                         raise forms.ValidationError(msg)
         return redirect_uris
-
-    def clean_client_uri(self):
-        client_uri = self.cleaned_data.get('client_uri')
-        if client_uri:
-            validator = URLValidator()
-            try:
-                validator(client_uri)
-            except:
-                raise forms.ValidationError('Please enter a valid URI. For example, "https://www.example.org"')
-        return client_uri
 
     def save(self, *args, **kwargs):
         app = self.instance
