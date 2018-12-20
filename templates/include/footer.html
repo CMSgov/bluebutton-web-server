@@ -93,20 +93,4 @@
     {{ settings.APPLICATION_TITLE }} is operated by {{settings.ORGANIZATION_TITLE }}. {{settings.DISCLOSURE_TEXT}}
   </div>
   {% endif %}
-
-  {% if user.is_superuser %}
-  <div class="">
-    {% if settings.ALLOWED_HOSTS %}
-    <div class="">
-      {{ settings.ALLOWED_HOSTS|last }}
-    </div>
-    {% endif %}
-    {% else %}
-      {% if settings.DEBUG %}
-      <div class="">
-        {{ settings.ALLOWED_HOSTS|last }}
-      </div>
-      {% endif %}
-  </div>
-  {% endif %}
 </div>
