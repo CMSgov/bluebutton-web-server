@@ -79,3 +79,10 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
         self.assertEqual(form.errors.get('description'), None)
+
+        # Test form with HTML tags in the description.
+        data = {'description': '<b>Test</b> <button>Test</button> a <span>Test</span>'}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        print("ERROR:  ", form.errors.get('description'))
+        self.assertNotEqual(form.errors.get('description'), None)

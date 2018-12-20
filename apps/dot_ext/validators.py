@@ -3,6 +3,8 @@ from oauth2_provider.validators import urlsplit
 from oauth2_provider.settings import oauth2_settings
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
+from django.utils.html import strip_tags
+from django.utils.translation import ugettext_lazy as _
 
 
 class RedirectURIValidator(URIValidator):
@@ -27,3 +29,10 @@ def validate_uris(value):
     v = RedirectURIValidator(oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES)
     for uri in value.split():
         v(uri)
+
+
+# Validate that there are no HTML tags
+def validate_notags(value):
+    result = strip_tags(value)
+    if result != value:
+        raise ValidationError(_('The text contains HTML tags. Please use plain-text only!'))
