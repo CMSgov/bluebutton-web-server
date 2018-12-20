@@ -2,31 +2,30 @@
 
 {% load i18n %}
 {% block content %}
-    <!-- CI_TESTING:START -->
-    <!-- test_dot_ext_application_delete -->
-    <!-- CI_TESTING:END -->
-    <div class="row">
-        <div class="ds-col-lg-12">
-            <ol class="breadcrumb">
-                <li><a href="/">Home</a></li>
-                <li><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
-                <li><a href="{% url 'oauth2_provider:detail' application.pk %}" >{{ application.name }}</a></li>
-                <li class="active"><a href="{% url 'oauth2_provider:delete' application.pk %}" >{% trans "Delete" %}</a></li>
-            </ol>
-        </div>
-    </div>
+<!-- CI_TESTING:START -->
+<!-- test_dot_ext_application_delete -->
+<!-- CI_TESTING:END -->
 
-    <div class="block-center">
-        <h3 class="ds-h3">{% trans "Are you sure to delete the application" %} {{ application.name }}?</h3>
-        <form method="post" action="{% url 'oauth2_provider:delete' application.pk %}">
-            {% csrf_token %}
+<!-- Breadcrumbs -->
+<ol class="breadcrumb">
+  <li><a href="/">Home</a></li>
+  <li><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
+  <li><a href="{% url 'oauth2_provider:detail' application.pk %}" >{{ application.name }}</a></li>
+  <li class="active"><a href="{% url 'oauth2_provider:delete' application.pk %}" >{% trans "Delete" %}</a></li>
+</ol>
 
-            <div class="control-group">
-                <div class="controls">
-                    <a class="btn btn-large" href="{% url 'oauth2_provider:list' %}">{% trans "Cancel" %}</a>
-                    <input type="submit" class="btn btn-large btn-danger" name="allow" value="{% trans "Delete" %}"/>
-                </div>
-            </div>
-        </form>
-    </div>
+<h1>Delete Application</h1>
+
+<div class="ds-u-margin-y--2">
+  {% trans "Are you sure you want to delete" %} {{ application.name }}?
+</div>
+
+<form method="post" action="{% url 'oauth2_provider:delete' application.pk %}">
+  {% csrf_token %}
+
+  <input type="submit" class="ds-c-button--danger" name="allow" value="{% trans "Delete" %}"/>
+  <a class="ds-u-margin-x--2" href="{% url 'oauth2_provider:list' %}">{% trans "Cancel" %}</a>
+
+</form>
+
 {% endblock content %}

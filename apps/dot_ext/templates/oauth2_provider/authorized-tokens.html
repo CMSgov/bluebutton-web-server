@@ -3,41 +3,46 @@
 {% load i18n %}
 {% block content %}
 
-      <div class="row">
-        <div class="ds-col-lg-12">
-	      <ol class="breadcrumb">
-	        <li ><a href="/">Home</a></li>
-            <li class="active"><a href="{% url 'oauth2_provider:authorized-token-list' %}">{% trans "Applications Tokens" %}</a></li>
-	      </ol>
-        </div>
-      </div>
+<!-- Breadcrumbs -->
+<ol class="breadcrumb">
+  <li >
+    <a href="/">Home</a>
+  </li>
+  <li class="active">
+    <a href="{% url 'oauth2_provider:authorized-token-list' %}">{% trans "Applications Tokens" %}</a>
+  </li>
+</ol>
 
-    <div class="alert alert-info">
-    <button type="button" class="close" data-dismiss="alert">×</button>
-    <h4>{%trans "What are tokens?" %}</h4>
-    Tokens give application's access to your information. This page contains a list of
-		applications that you have given access to.
-		Revoking an application token will remove an application's ability
-		to access your information until you reauthorize it.
-    </div>
+<h1>{% trans "Application Tokens" %}</h1>
 
+<!-- Token Message -->
+<div class="ds-c-alert ds-u-margin-y--2">
+  <div class="ds-c-alert__body">
+    <h3 class="ds-c-alert__heading">What are tokens?</h3>
+    <p class="ds-c-alert__text">
+      Tokens give application's access to your information. This page contains a list of
+		applications that you have given access to. Revoking an application token will remove an application's ability to access your information until you reauthorize it.
+  </p>
+  </div>
+</div>
 
-    <div class="block-center">
-    <h1>{% trans "Application Tokens" %}</h1>
-        <ul>
-        {% for authorized_token in authorized_tokens %}
-            <li>
-                {{ authorized_token.application }}
-                (<a href="{% url 'oauth2_provider:authorized-token-delete' authorized_token.pk %}">revoke</a>)
-            </li>
-            <ul>
-            {% for scope_name, scope_description in authorized_token.scopes.items %}
-                <li>{{ scope_name }}: {{ scope_description }}</li>
-            {% endfor %}
-            </ul>
-        {% empty %}
-            <li>{% trans "There are no authorized tokens yet." %}</li>
-        {% endfor %}
-        </ul>
-    </div>
+<!-- Token List -->
+<div class="on ds-u-fill--gray-lightest ds-u-padding--2">
+  <ul style="list-style: none">
+  {% for authorized_token in authorized_tokens %}
+    <li>
+      {{ authorized_token.application }}
+      (<a href="{% url 'oauth2_provider:authorized-token-delete' authorized_token.pk %}">revoke</a>)
+    </li>
+    <ul>
+      {% for scope_name, scope_description in authorized_token.scopes.items %}
+        <li>{{ scope_name }}: {{ scope_description }}</li>
+      {% endfor %}
+    </ul>
+  {% empty %}
+    <li>{% trans "There are no authorized tokens yet." %}</li>
+  {% endfor %}
+  </ul>
+</div>
+
 {% endblock %}

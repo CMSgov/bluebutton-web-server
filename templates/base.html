@@ -2,26 +2,21 @@
 {% load static %}
 <html lang="en">
 <head>
-
-
 	{% load i18n %}
-        <title>
-        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
-        </title>
 
-    {% block head %}
-        {% include "include/head.html" %}
-    {% endblock %}
+	<title>
+		{% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+  </title>
 
-    {% block extra_head %}
-    {% endblock %}
+  {% block head %}
+      {% include "include/head.html" %}
+  {% endblock %}
 
-    {% include "include/fix_header_offset.html" %}
-    <style>
-
-    </style>
+  {% block extra_head %}
+  {% endblock %}
 
 </head>
+
 <body class="container-fluid">
  {% include "include/top-nav-responsive.html" %}
 
@@ -51,7 +46,6 @@
     {% block ExtraJSFoot %}
 
 	{% endblock %}
-
 
 </body>
 </html>
