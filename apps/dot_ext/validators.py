@@ -33,6 +33,5 @@ def validate_uris(value):
 
 # Validate that there are no HTML tags
 def validate_notags(value):
-    result = strip_tags(value)
-    if result != value:
+    if value != strip_tags(value):
         raise ValidationError(_('The text contains HTML tags. Please use plain-text only!'))
