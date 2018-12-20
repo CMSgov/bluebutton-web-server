@@ -152,6 +152,7 @@ class TestTokenView(BaseApiTest):
 
     def test_delete_token_success(self):
         anna = self._create_user(self.test_username, '123456')
+        bob = self._create_user('bob', '123456')
         # create a couple of capabilities
         capability_a = self._create_capability('token_management', [['DELETE', r'/v1/o/tokens/\d+/']], default=False)
         # create an application and add capabilities
@@ -159,7 +160,13 @@ class TestTokenView(BaseApiTest):
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris='http://example.it')
         application.scope.add(capability_a)
-        self._create_test_token(anna, application)
+        tkn = self._create_test_token(anna, application)
+        response = self.client.get('/v1/fhir/Patient',
+            HTTP_AUTHORIZATION="Bearer "+tkn.token)
+        self.assertEqual(response.status_code, 403)
+
+        bob_tkn = self._create_test_token(bob, application)
+
         response = self.client.get(reverse('token_management:token-list'),
                                    HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
                                                                                         application.client_secret),
@@ -176,6 +183,14 @@ class TestTokenView(BaseApiTest):
                                                                                                   application.client_secret),
                                              HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         self.assertEqual(failed_response.status_code, 404)
+        response = self.client.get('/v1/fhir/Patient',
+            HTTP_AUTHORIZATION="Bearer "+tkn.token)
+        self.assertEqual(response.status_code, 401)
+        response = self.client.get('/v1/fhir/Patient',
+            HTTP_AUTHORIZATION="Bearer "+bob_tkn.token)
+        # 403 is an expected response if the token is ok but the test can't reach the data server (which it shouldn't)
+        self.assertEqual(response.status_code, 403)
+
 
     def test_create_token_fail(self):
         self._create_user(self.test_username, '123456')
