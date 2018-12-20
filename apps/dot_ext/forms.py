@@ -33,7 +33,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         fields = ('name',
                   'client_type',
                   'authorization_grant_type', 'redirect_uris',
-                  'logo_uri', 'policy_uri', 'tos_uri', 'contacts',
+                  'logo_uri', 'website_uri', 'policy_uri', 'tos_uri', 'contacts',
                   'agree')
 
     required_css_class = 'required'
