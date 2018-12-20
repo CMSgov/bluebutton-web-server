@@ -162,7 +162,7 @@ class TestTokenView(BaseApiTest):
         application.scope.add(capability_a)
         tkn = self._create_test_token(anna, application)
         response = self.client.get('/v1/fhir/Patient',
-            HTTP_AUTHORIZATION="Bearer "+tkn.token)
+                                   HTTP_AUTHORIZATION="Bearer " + tkn.token)
         self.assertEqual(response.status_code, 403)
 
         bob_tkn = self._create_test_token(bob, application)
@@ -184,13 +184,12 @@ class TestTokenView(BaseApiTest):
                                              HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         self.assertEqual(failed_response.status_code, 404)
         response = self.client.get('/v1/fhir/Patient',
-            HTTP_AUTHORIZATION="Bearer "+tkn.token)
+                                   HTTP_AUTHORIZATION="Bearer " + tkn.token)
         self.assertEqual(response.status_code, 401)
         response = self.client.get('/v1/fhir/Patient',
-            HTTP_AUTHORIZATION="Bearer "+bob_tkn.token)
+                                   HTTP_AUTHORIZATION="Bearer " + bob_tkn.token)
         # 403 is an expected response if the token is ok but the test can't reach the data server (which it shouldn't)
         self.assertEqual(response.status_code, 403)
-
 
     def test_create_token_fail(self):
         self._create_user(self.test_username, '123456')
