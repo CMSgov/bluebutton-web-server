@@ -47,7 +47,7 @@ class Application(AbstractApplication):
                                 help_text="This is typically an email")
     description = models.TextField(default="", blank=True, max_length=1000,
                                 verbose_name="Application's Description",
-                                help_text="This is a plain-text description of this application up to 1000 characters in length.")
+                                help_text="This is plain-text up to 1000 characters in length.")
     active = models.BooleanField(default=True)
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)
