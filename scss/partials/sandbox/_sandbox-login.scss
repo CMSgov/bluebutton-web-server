@@ -17,12 +17,13 @@ $login-container-border: 1px solid #e3e3e3;
 	background: $login-container-bg;
 	border: $login-container-border;
 	border-radius: 4px;
-	padding: 2rem;
+	padding: 1rem;
+	width: 100%;
 	.title {
 		font-size: 1.5rem;
 		font-weight: bold;
 	}
 	.content {
-		font-size: 1.3rem;
+		font-size: .85rem;
 	}
 }

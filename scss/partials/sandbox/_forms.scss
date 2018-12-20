@@ -1,0 +1,126 @@
+// Form Styling
+// ------------
+
+// Global Form & Search Elements
+// -----------------------------
+
+$black: #000000;
+$blue: #004E60;
+$dark-gray: #3e3e3e;
+$light-gray: #f7f7f7;
+$purple: #575478;
+$red: #BA0C2F;
+$teal: #00A3AD;
+$white: #ffffff;
+
+$component-border: 1px solid darken($light-gray, 5%);
+
+
+$main-content-search-border-color: #95989a;
+
+// Default Form Styles
+// -------------------
+
+form {
+	// Input Styles
+	input[type="text"],
+	input[type="email"],
+	input[type="number"],
+  input[type="password"] {
+		box-sizing: border-box;
+		margin: .5rem 0 1rem 0;
+		display: block;
+    width: 100%;
+		background: $light-gray;
+		border: $component-border;
+		border-radius: .3rem;
+		font-weight: bold;
+		padding: 1rem;
+		transition: background 180ms ease, 180ms ease border-color;
+		&:focus {
+			background: $white;
+			border-color: darken($light-gray, 20%);
+		}
+	}
+	// Textarea Styles
+	textarea {
+		margin: .5rem 0;
+		display: block;
+		background: $light-gray;
+		border: $component-border;
+		border-radius: .3rem;
+		font-weight: normal;
+		font-size: .9rem;
+		padding: 1rem;
+		transition: background 180ms ease, 180ms ease border-color;
+		&:focus {
+			background: $white;
+			border-color: darken($light-gray, 20%);
+		}
+	}
+	// Submit Styles
+	input[type="submit"],
+	button[type="submit"] {
+		// background: $red;
+		// color: $white;
+		padding: 1rem;
+		border: none;
+		border-radius: .3rem;
+		cursor: pointer;
+	}
+	input[type="button"] {
+		// background: $blue;
+		// color: $white;
+		padding: 1rem;
+		border: none;
+		border-radius: .3rem;
+		cursor: pointer;
+	}
+	input[type="reset"] {
+		background: $light-gray;
+		color: $dark-gray;
+		padding: 1rem;
+		border: none;
+		border-radius: .3rem;
+		cursor: pointer;
+	}
+}
+
+// Placeholder Color Mixin
+@mixin placeholder($color:$dark-gray) {
+	&::-webkit-input-placeholder {
+		color: $color !important;
+		opacity: 1;
+		transition: color 180ms ease;
+	}
+	&::-moz-placeholder {
+		color: $color !important;
+		opacity: 1;
+		transition: color 180ms ease;
+	}
+	&:-ms-input-placeholder {
+		color: $color !important;
+		opacity: 1;
+		transition: color 180ms ease;
+	}
+	&:moz-placeholder {
+		color: $color !important;
+		opacity: 1;
+		transition: color 180ms ease;
+	}
+	&::placeholder {
+		color: $color !important;
+		opacity: 1;
+		transition: color 180ms ease;
+	}
+}
+
+select {
+  background: $light-gray;
+  border: $component-border;
+  height: 3.5rem;
+  border-radius: .3rem;
+  font-weight: bold;
+  margin: 1rem 0;
+	width: 100%;
+}

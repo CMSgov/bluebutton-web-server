@@ -7,6 +7,9 @@
 $desktop-nav-bg: #f7f7f7;
 $desktop-nav-color: #323A45;
 
+$sandbox-desktop-nav-bg: #323A45;
+$sandbox-desktop-nav-color: #ffffff;
+
 
 // Breakpoints
 // -----------
@@ -86,9 +89,9 @@ header {
     justify-content: center;
     background: $desktop-nav-color;
     color: white;
-    padding: 1em 1.5em;
+    padding: 1rem 1.5rem;
     border-radius: .3em;
-    font-size: .8em;
+    font-size: .85em;
     transition: background 90ms ease;
     svg {
       margin-right: .5em;
@@ -99,6 +102,49 @@ header {
       text-decoration: none;
     }
   }
+
+}
+
+// Sandbox Color Overrides
+// -----------------------
+
+.sandbox-colors {
+  background: $sandbox-desktop-nav-bg !important;
+  a {
+    color: $sandbox-desktop-nav-color !important;
+  }
+  .mobile-nav-trigger-button {
+    background: darken($sandbox-desktop-nav-bg, 5%) !important;
+    color: $sandbox-desktop-nav-color !important;
+    &:visited {
+      color: $sandbox-desktop-nav-color !important;
+    }
+    &:active {
+      color: $sandbox-desktop-nav-color !important;
+    }
+  }
+  .mobile-nav-trigger-button.trigger-active {
+    background: $sandbox-desktop-nav-bg !important;
+  }
+}
+
+// Login Button (Sandbox)
+.login-button {
+  background: #0071BC !important;
+  &:hover {
+    background: darken(#0071BC, 10%) !important;
+  }
+}
+// Sign Up Button (Sandbox)
+.signup-button {
+  background: #2E8540 !important;
+  &:hover {
+    background: darken(#2E8540, 10%) !important;
+  }
+}
+
+.profile-button, .logout-button {
+  background: darken($sandbox-desktop-nav-bg, 5%) !important;
 }
 
 .desktop-nav-items {
@@ -166,7 +212,7 @@ header {
   flex-direction: column;
   align-items: flex-start;
   font-size: 2em;
-  padding-top: 4em;
+  padding-top: 4rem;
 
   // Animation/Visibility Styles
   height: 0;
@@ -175,13 +221,16 @@ header {
   transition: opacity .5s ease, height .4s ease;
 
   a {
-    margin: .5em 1em;
+    margin: .5rem 1rem;
     line-height: 1;
   }
   a, a.button {
     transition: opacity .4s ease-in-out;
     transition-delay: .4s;
     opacity: 0;
+  }
+  .button {
+    min-width: 150px;
   }
   // Hide for large screens
   @media #{$large-nav} {
@@ -195,5 +244,8 @@ header {
   opacity: 1;
   a {
     opacity: 1;
+  }
+  a.button {
+    font-size: .85rem;
   }
 }
