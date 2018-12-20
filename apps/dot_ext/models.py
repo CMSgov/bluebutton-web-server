@@ -45,6 +45,9 @@ class Application(AbstractApplication):
     contacts = models.TextField(default="", blank=True, max_length=512,
                                 verbose_name="Client's Contacts",
                                 help_text="This is typically an email")
+    description = models.TextField(default="", blank=True, max_length=1000,
+                                verbose_name="Application's Description",
+                                help_text="This is a plain-text description of this application up to 1000 characters in length.")
     active = models.BooleanField(default=True)
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)
