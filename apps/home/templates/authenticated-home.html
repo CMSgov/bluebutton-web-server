@@ -5,56 +5,42 @@
 
 <div class="container">
 
-    <div class="row">
-        <div class="col-lg-12">
-	      <ol class="breadcrumb">
-	        <li class="active"><a href="/">Home</a></li>
-	      </ol>
+  <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+    <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+      <!-- Breadcrumbs -->
+      <ol class="breadcrumb">
+        <li class="active"><a href="/">Home</a></li>
+      </ol>
+
+      <!-- <h1>Dashboard</h1> -->
+
+      <!-- Welcome Message -->
+      <div class="ds-c-alert ds-u-margin-y--2">
+        <div class="ds-c-alert__body">
+          <h2 class="ds-c-alert__heading">Welcome Developers</h2>
+          <p class="ds-c-alert__text"> From here you can add, edit, and delete applications you wish to connect. You may also revoke access to any access tokens you have authorized.</p>
         </div>
-     </div>
-
-
-    <div class="row">
-      <div class="col-lg-10">
-        {% include "include/messages.html" %}
       </div>
+
+      {% include "include/messages.html" %}
+
+      <!-- Action Buttons -->
+      <div class="ds-u-display--flex ds-u-justify-content--center">
+        <a class="ds-c-button ds-c-button--default ds-u-margin--2" href="{% url 'oauth2_provider:authorized-token-list' %}">
+          Application Tokens
+        </a>
+        {% if profile.user_type == "DEV" or profile == None or profile.create_applications %}
+        <a class="ds-c-button ds-c-button--default ds-u-margin--2" href="{% url 'oauth2_provider:list' %}">
+           <!-- test_developer_can_register_apps -->
+           Application Registration
+         </a>
+        {% endif %}
+      </div>
+
     </div>
-
-
-<div class="ds-c-alert">
-  <div class="ds-c-alert__body">
-    <h3 class="ds-c-alert__heading">Welcome Developers</h3>
-    <p class="ds-c-alert__text"> From here you can add, edit, and delete applications you wish to connect. You may also revoke access to any access tokens you have authorized.</p>
   </div>
+
 </div>
 
 
-
-
-
- <div class="col-lg-12 well">
-    <div class="row text-center">
-        <div class="col-lg-12">
-
-				<div class="btn-group-justified">
-					
-     
-     
-     <a class="ds-c-button  ds-c-button--default"  href="{% url 'oauth2_provider:authorized-token-list' %}" >
-					  Application Tokens</a>
-    {% if profile.user_type == "DEV" or profile == None or profile.create_applications %} 
-					<a class="ds-c-button  ds-c-button--default"  href="{% url 'oauth2_provider:list' %}">
-						 <!-- test_developer_can_register_apps -->
-  Application Registration</a>
-					{% endif %}
-
-				</div>
-	    </div>
-		
-    </div> <!-- /.row -->
- </div> <!-- /.well -->
-</div><!-- /.container -->
-
-
 {% endblock %}
-
