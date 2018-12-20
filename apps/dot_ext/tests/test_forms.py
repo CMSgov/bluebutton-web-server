@@ -55,3 +55,27 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
         self.assertEqual(form.errors.get('website_uri'), None)
+
+        # Test form with empty description.
+        data = {'description': ''}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('description'), None)
+
+        # Test form with valid description.
+        data = {'description': 'Testing short description here!'}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('description'), None)
+
+        # Test form with description over 1000 characters.
+        data = {'description': 'T' * 1001}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('description'), None)
+
+        # Test form with description exactly 1000 characters.
+        data = {'description': 'T' * 1000}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('description'), None)
