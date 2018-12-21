@@ -26,7 +26,8 @@ form {
 	input[type="text"],
 	input[type="email"],
 	input[type="number"],
-  input[type="password"] {
+  input[type="password"],
+	input[type="url"] {
 		box-sizing: border-box;
 		margin: .5rem 0 1rem 0;
 		display: block;
