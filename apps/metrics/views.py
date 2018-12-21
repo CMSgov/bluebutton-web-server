@@ -27,7 +27,7 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRende
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application, ArchivedToken
-from apps.authorization.models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.fhir.bluebutton.models import Crosswalk
 
 
@@ -225,6 +225,45 @@ class ArchivedTokenView(ListAPIView):
     def get_queryset(self):
 
         queryset = ArchivedToken.objects.all().order_by('archived_at')
+
+        return queryset
+
+
+class ArchivedDataAccessGrantFilter(filters.FilterSet):
+    class Meta:
+        model = ArchivedDataAccessGrant
+        fields = {
+            'beneficiary': ['exact'],
+            'application': ['exact'],
+            'created_at': ['gte', 'lte'],
+            'archived_at': ['gte', 'lte'],
+        }
+
+
+class ArchivedDataAccessGrantSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+    application = ApplicationSerializer(read_only=True)
+
+    class Meta:
+        model = ArchivedDataAccessGrant
+        fields = ('beneficiary', 'application', 'created_at', 'archived_at', )
+
+
+class ArchivedDataAccessGrantView(ListAPIView):
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
+    serializer_class = ArchivedDataAccessGrantSerializer
+    pagination_class = MetricsPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ArchivedDataAccessGrantFilter
+
+    def get_queryset(self):
+
+        queryset = ArchivedDataAccessGrant.objects.all().order_by('archived_at')
 
         return queryset
 

@@ -1,10 +1,12 @@
 from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework import serializers
-from oauth2_provider.models import AccessToken
+from oauth2_provider.models import get_application_model
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 from apps.dot_ext.authentication import SLSAuthentication
-from ..models import Application
+from .models import DataAccessGrant
+
+Application = get_application_model()
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -13,15 +15,16 @@ class ApplicationSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'logo_uri', 'tos_uri', 'policy_uri', 'contacts')
 
 
-class AccessTokenSerializer(serializers.ModelSerializer):
+class DataAccessGrantSerializer(serializers.ModelSerializer):
     application = ApplicationSerializer(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True, source='beneficiary')
 
     class Meta:
-        model = AccessToken
-        fields = ('id', 'user', 'application')
+        model = DataAccessGrant
+        fields = ('id', 'application', 'user')
 
 
-class AuthorizedTokens(viewsets.GenericViewSet,
+class AuthorizedGrants(viewsets.GenericViewSet,
                        mixins.ListModelMixin,
                        mixins.RetrieveModelMixin,
                        mixins.DestroyModelMixin):
@@ -29,7 +32,7 @@ class AuthorizedTokens(viewsets.GenericViewSet,
     authentication_classes = [SLSAuthentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['token_management']
-    serializer_class = AccessTokenSerializer
+    serializer_class = DataAccessGrantSerializer
 
     def get_queryset(self):
-        return AccessToken.objects.select_related("application").filter(user=self.request.user)
+        return DataAccessGrant.objects.select_related("application").filter(beneficiary=self.request.user)

@@ -11,6 +11,7 @@ from apps.mymedicare_cb.signals import post_sls
 
 from .serializers import (
     Token,
+    DataAccessGrantSerializer,
     FHIRRequest,
     FHIRResponse,
     SLSResponse,
@@ -29,6 +30,10 @@ def token_removed(sender, instance=None, **kwargs):
     token_logger.info(Token(instance, action="revoked"))
 
 
+def log_grant_removed(sender, instance=None, **kwargs):
+    token_logger.info(DataAccessGrantSerializer(instance, action="revoked"))
+
+
 def fetching_data(sender, request=None, **kwargs):
     fhir_logger.info(FHIRRequest(request))
 
@@ -43,6 +48,7 @@ def sls_hook(sender, response=None, **kwargs):
 
 app_authorized.connect(handle_app_authorized)
 post_delete.connect(token_removed, sender='oauth2_provider.AccessToken')
+post_delete.connect(log_grant_removed, sender='authorization.DataAccessGrant')
 pre_fetch.connect(fetching_data)
 post_fetch.connect(fetched_data)
 post_sls.connect(sls_hook)
