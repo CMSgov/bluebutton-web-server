@@ -151,7 +151,8 @@ class AppMetricsSerializer(ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ('id', 'name', 'active', 'user', 'beneficiaries', 'first_active', 'last_active')
+        fields = ('id', 'name', 'active', 'user', 'beneficiaries', 'first_active', 'last_active',
+                  'logo_uri', 'tos_uri', 'policy_uri', 'contacts', 'website_uri', 'description')
 
     def get_beneficiaries(self, obj):
         distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
