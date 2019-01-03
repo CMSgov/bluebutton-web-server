@@ -7,16 +7,15 @@ from apps.authorization.models import update_grants
 
 
 def migrate_grants(*args, **kwargs):
-    try:
-        update_grants()
-    except Exception:
-        pass
+    update_grants()
 
 
 class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
+        ('oauth2_provider', '__latest__'),
+        ('dot_ext', '__latest__'),
         ('authorization', '0002_auto_20181203_1542'),
     ]
 
