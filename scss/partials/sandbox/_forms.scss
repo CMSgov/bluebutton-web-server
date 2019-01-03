@@ -124,4 +124,35 @@ select {
   font-weight: bold;
   margin: 1rem 0;
 	width: 100%;
+	padding: 1rem;
+	background-image:
+    linear-gradient(45deg, transparent 50%, gray 50%),
+    linear-gradient(135deg, gray 50%, transparent 50%),
+    linear-gradient(to right, #ccc, #ccc);
+  background-position:
+    calc(100% - 20px) calc(1.5rem + 2px),
+    calc(100% - 15px) calc(1.5rem + 2px),
+    calc(100% - 2.5rem) 0rem;
+  background-size:
+    5px 5px,
+    5px 5px,
+    1px 3.5rem;
+  background-repeat: no-repeat;
+	-webkit-appearance: none;
+}
+
+// Form Help Messages
+$form-help-message-bg: #E1F3F8;
+
+.help-block {
+	background: $form-help-message-bg;
+	font-size: .85rem;
+	padding: .5rem;
+	border-radius: .3rem;
+	margin-bottom: 1rem;
+}
+
+span.help-block {
+	background: #FFF1D2;
+	display: block;
 }
