@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('oauth2_provider', '__latest__'),
+        ('dot_ext', '__latest__'),
         ('authorization', '0002_auto_20181203_1542'),
     ]
 
