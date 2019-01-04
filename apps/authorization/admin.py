@@ -9,6 +9,7 @@ from .models import (
 def sync(modeladmin, request, queryset):
     update_grants()
 
+
 sync.short_description = "Sync Data Access Grants to existing Tokens"
 
 
@@ -20,10 +21,10 @@ class DataAccessGrantAdmin(admin.ModelAdmin):
         current_state_text = ": {} unique AccessTokens, {} Data Access Grants".format(
             current_state["unique_tokens"],
             current_state["grants"])
-        
+
         actions[sync.__name__] = (sync,
                                   sync.__name__,
-                                  sync.short_description+current_state_text)
+                                  sync.short_description + current_state_text)
         return actions
 
 
