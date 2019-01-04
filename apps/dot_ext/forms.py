@@ -4,8 +4,6 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
-from oauth2_provider.settings import oauth2_settings
-from oauth2_provider.validators import urlsplit
 import logging
 
 
@@ -39,7 +37,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         client_type = self.cleaned_data.get('client_type')
         authorization_grant_type = self.cleaned_data.get(
             'authorization_grant_type')
-        redirect_uris = self.cleaned_data.get('redirect_uris')
 
         msg = ""
         validate_error = False
