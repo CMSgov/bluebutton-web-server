@@ -10,6 +10,7 @@ from .views import (
     ArchivedTokenView,
     DataAccessGrantView,
     ArchivedDataAccessGrantView,
+    CheckDataAccessGrantsView,
 )
 
 admin.autodiscover()
@@ -22,7 +23,8 @@ urlpatterns = [
     url(r'^tokens$', TokenMetricsView.as_view(), name='tokens'),
     url(r'^tokens/archive$', ArchivedTokenView.as_view(), name='archived-tokens'),
     url(r'^grants$', DataAccessGrantView.as_view(), name='grants'),
-    url(r'^grants/archive$', ArchivedDataAccessGrantView.as_view(), name='grants'),
+    url(r'^grants/archive$', ArchivedDataAccessGrantView.as_view(), name='archive-grants'),
+    url(r'^grants/check$', CheckDataAccessGrantsView.as_view(), name='check-grants'),
     url(r'^raw/', include([
         url(r'^developers', DevelopersStreamView.as_view()),
     ]))
