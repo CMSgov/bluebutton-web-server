@@ -4,8 +4,6 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
-from oauth2_provider.settings import oauth2_settings
-from oauth2_provider.validators import urlsplit
 import logging
 
 
@@ -39,7 +37,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         client_type = self.cleaned_data.get('client_type')
         authorization_grant_type = self.cleaned_data.get(
             'authorization_grant_type')
-        redirect_uris = self.cleaned_data.get('redirect_uris')
 
         msg = ""
         validate_error = False
@@ -60,22 +57,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             validate_error = True
             msg += 'A confidential client may not ' \
                    'request an implicit grant type.'
-
-        # Native mobile applications using RCF 8252 must supply https or
-        # LL00000000
-        for uri in redirect_uris.split():
-            scheme, netloc, path, query, fragment = urlsplit(uri)
-
-            valid_schemes = get_allowed_schemes()
-
-            if scheme in valid_schemes:
-                validate_error = False
-            else:
-                validate_error = True
-
-            if validate_error:
-                msg += '%s is an invalid scheme. Redirect URIs must use %s ' \
-                    % (scheme, ' or '.join(valid_schemes))
 
         if validate_error:
             msg_output = _(msg)
@@ -137,19 +118,3 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
-
-    # def is_valid(self):
-    #     raise Exception(self)
-
-
-def get_allowed_schemes():
-    """
-    get allowed_schemes set in OAUTH2_PROVIDER.ALLOWED_REDIRECT_URI_SCHEMES
-    :return: list
-    """
-    if oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES:
-        valid_list = oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES
-    else:
-        valid_list = ['https', ]
-
-    return valid_list
