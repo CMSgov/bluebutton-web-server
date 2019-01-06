@@ -215,10 +215,10 @@ class BackendConnectionTest(BaseApiTest):
                 "relation": "self"
             }],
             "entry": [{
-                "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/19990000000001",
+                "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/20140000008325",
                 "resource": {
                     "resourceType": "Patient",
-                    "id": "19990000000001",
+                    "id": "20140000008325",
                     "extension": [{
                         "url": "https://bluebutton.cms.gov/resources/variables/race",
                         "valueCoding": {
@@ -229,7 +229,7 @@ class BackendConnectionTest(BaseApiTest):
                     }],
                     "identifier": [{
                         "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
-                        "value": "19990000000001"
+                        "value": "20140000008325"
                     }, {
                         "system": "https://bluebutton.cms.gov/resources/identifier/hicn-hash",
                         "value": "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
@@ -566,6 +566,7 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
+                    'resourceType': 'ExplanationOfBenefit',
                     'patient': {
                         'reference': 'stuff/20140000008325',
                     },
@@ -590,6 +591,7 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
+                    'resourceType': 'Coverage',
                     'beneficiary': {
                         'reference': 'stuff/20140000008325',
                     },
@@ -621,6 +623,7 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
+                    'resourceType': 'Coverage',
                     'beneficiary': {
                         'reference': 'stuff/20140000008325',
                     },
@@ -652,6 +655,7 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
+                    'resourceType': 'Coverage',
                     'beneficiary': {
                         'reference': 'stuff/20140000008325',
                     },
