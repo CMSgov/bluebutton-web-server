@@ -14,6 +14,7 @@ from ..signals import (
     pre_fetch,
     post_fetch
 )
+from apps.authorization.permissions import DataAccessGrantPermission
 from ..authentication import OAuth2ResourceOwner
 from ..permissions import (HasCrosswalk, ResourcePermission)
 from ..exceptions import UpstreamServerException
@@ -30,7 +31,7 @@ class FhirDataView(APIView):
     renderer_classes = [JSONRenderer, FHIRRenderer]
     throttle_classes = [TokenRateThrottle]
     authentication_classes = [OAuth2ResourceOwner]
-    permission_classes = [permissions.IsAuthenticated, HasCrosswalk, ResourcePermission]
+    permission_classes = [permissions.IsAuthenticated, HasCrosswalk, ResourcePermission, DataAccessGrantPermission]
 
     # Must return a Crosswalk
     def check_resource_permission(self, request, **kwargs):

@@ -64,3 +64,12 @@ class LoginTestCase(TestCase):
         response = self.client.get(reverse('mylogout'), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
+
+    def test_valid_login_email(self):
+        """
+        Valid User can login using their email address
+        """
+        form_data = {'username': 'fred@example.com', 'password': 'bedrocks'}
+        response = self.client.post(self.url, form_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Logout')

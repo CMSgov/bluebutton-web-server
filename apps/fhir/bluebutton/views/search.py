@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.authorization.permissions import DataAccessGrantPermission
 from ..permissions import (SearchCrosswalkPermission, ResourcePermission)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -39,6 +40,7 @@ class SearchView(FhirDataView):
         permissions.IsAuthenticated,
         ResourcePermission,
         SearchCrosswalkPermission,
+        DataAccessGrantPermission,
     ]
 
     def get(self, request, resource_type, *args, **kwargs):

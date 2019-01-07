@@ -27,7 +27,11 @@ from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRende
 from django_filters import rest_framework as filters
 from ..accounts.models import UserProfile
 from ..dot_ext.models import Application, ArchivedToken
-from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
+from apps.authorization.models import (
+    DataAccessGrant,
+    ArchivedDataAccessGrant,
+    check_grants,
+    update_grants)
 from apps.fhir.bluebutton.models import Crosswalk
 
 
@@ -305,6 +309,19 @@ class DataAccessGrantView(ListAPIView):
         queryset = DataAccessGrant.objects.all()
 
         return queryset
+
+
+class CheckDataAccessGrantsView(APIView):
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    def get(self, request, format=None):
+        return Response(check_grants())
+
+    def post(self, request, format=None):
+        return Response(update_grants())
 
 
 class AppMetricsView(ListAPIView):
