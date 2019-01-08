@@ -1,9 +1,10 @@
 import logging
-from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
+from oauth2_provider.views.base import (AuthorizationView as DotAuthorizationView, TokenView as DotTokenView)
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from ..forms import SimpleAllowForm
 from ..models import Approval
+from django.http.response import (Http404, HttpResponse)
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -85,3 +86,19 @@ class ApprovalView(AuthorizationView):
             approval.save()
 
         return result
+
+
+class TokenView(DotTokenView):
+    """
+    Override the base token view from dot to
+    handle error on refresh with better 404 error description.
+    """
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+            response = super().post(request, *args, **kwargs)
+        except Http404 as error:
+            response = HttpResponse('invalid_grant', status=404)
+
+        return response
