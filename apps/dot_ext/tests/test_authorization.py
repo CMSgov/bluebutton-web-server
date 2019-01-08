@@ -261,5 +261,5 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.content, b'invalid_grant')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.content, b'{"error": "invalid_grant"}')
