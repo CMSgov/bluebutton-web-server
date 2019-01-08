@@ -198,7 +198,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 401)
 
     def test_refresh_with_revoked_token(self):
         redirect_uri = 'http://localhost'
