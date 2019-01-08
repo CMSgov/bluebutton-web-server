@@ -10,7 +10,6 @@ from apps.pkce.oauth2_validators import PKCEValidatorMixin
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 
-
 class SingleAccessTokenValidator(
         PKCEValidatorMixin,
         OAuth2Validator,
@@ -97,7 +96,6 @@ class SingleAccessTokenValidator(
             refresh_token.save()
 
     def get_original_scopes(self, refresh_token, request, *args, **kwargs):
-
         try:
             return super().get_original_scopes(refresh_token, request, *args, **kwargs)
         except ObjectDoesNotExist:
