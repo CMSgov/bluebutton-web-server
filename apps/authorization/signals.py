@@ -10,7 +10,7 @@ AccessToken = get_access_token_model()
 
 def app_authorized_record_grant(sender, request, token, application=None, **kwargs):
     bene = request.user
-    if token is not None: 
+    if token is not None:
         bene = token.user
         application = token.application
 

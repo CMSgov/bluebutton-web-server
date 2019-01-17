@@ -233,7 +233,6 @@ class TestTokenView(BaseApiTest):
             application=application,
         ).exists())
 
-
     def test_create_token_fail(self):
         self._create_user(self.test_username, '123456')
 
