@@ -12,10 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='application',
-            name='client_uri',
-        ),
         migrations.AddField(
             model_name='application',
             name='website_uri',
