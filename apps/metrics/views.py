@@ -246,12 +246,12 @@ class ArchivedDataAccessGrantFilter(filters.FilterSet):
 
 
 class ArchivedDataAccessGrantSerializer(ModelSerializer):
-    user = UserSerializer(read_only=True)
+    beneficiary = UserSerializer(read_only=True)
     application = ApplicationSerializer(read_only=True)
 
     class Meta:
         model = ArchivedDataAccessGrant
-        fields = ('beneficiary', 'application', 'created_at', 'archived_at', )
+        fields = ('beneficiary', 'application', 'created_at', 'archived_at', 'id', )
 
 
 class ArchivedDataAccessGrantView(ListAPIView):
@@ -289,7 +289,7 @@ class DataAccessGrantSerializer(ModelSerializer):
 
     class Meta:
         model = DataAccessGrant
-        fields = ('beneficiary', 'application', 'created_at', )
+        fields = ('beneficiary', 'application', 'created_at', 'id', )
 
 
 class DataAccessGrantView(ListAPIView):
