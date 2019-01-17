@@ -8,10 +8,15 @@ from .models import DataAccessGrant, ArchivedDataAccessGrant
 AccessToken = get_access_token_model()
 
 
-def app_authorized_record_grant(sender, request, token, **kwargs):
+def app_authorized_record_grant(sender, request, token, application=None, **kwargs):
+    bene = request.user
+    if token is not None: 
+        bene = token.user
+        application = token.application
+
     DataAccessGrant.objects.get_or_create(
-        beneficiary=token.user,
-        application=token.application,
+        beneficiary=bene,
+        application=application,
     )
 
 
