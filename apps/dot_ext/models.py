@@ -52,8 +52,15 @@ class Application(AbstractApplication):
     support_email = models.EmailField(blank=True, null=True)
 
     # FROM https://stackoverflow.com/questions/19130942/whats-the-best-way-to-store-phone-number-in-django-models
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
-    support_phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True) # validators should be a list
+    phone_regex = RegexValidator(
+        regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+
+    support_phone_number = models.CharField(
+        validators=[phone_regex],
+        max_length=17,
+        blank=True,
+        null=True)
 
     description = models.TextField(default="", blank=True, max_length=1000,
                                    verbose_name="Application Description",
