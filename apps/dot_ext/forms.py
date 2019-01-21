@@ -38,10 +38,10 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'description',
             'policy_uri',
             'tos_uri',
-            'contacts',
-            'agree',
             'support_email',
             'support_phone_number',
+            'contacts',
+            'agree',
         )
 
     required_css_class = 'required'
