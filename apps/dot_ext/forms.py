@@ -28,8 +28,21 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     class Meta:
         model = get_application_model()
-        fields = ('name', 'client_type', 'authorization_grant_type', 'redirect_uris', 'logo_uri',
-                  'website_uri', 'description', 'policy_uri', 'tos_uri', 'contacts', 'agree')
+        fields = (
+            'name',
+            'client_type',
+            'authorization_grant_type',
+            'redirect_uris',
+            'logo_uri',
+            'website_uri',
+            'description',
+            'policy_uri',
+            'tos_uri',
+            'contacts',
+            'agree',
+            'support_email',
+            'support_phone_number',
+        )
 
     required_css_class = 'required'
 
