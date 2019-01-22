@@ -23,6 +23,7 @@ pyjwt
 newrelic
 psycopg2
 sqlparse
+Pillow
 
 # notifications
 django-ses

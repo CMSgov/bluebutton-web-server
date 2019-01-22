@@ -56,3 +56,4 @@ tox==3.5.2
 unicodecsv==0.14.1
 urllib3==1.23
 virtualenv==16.0.0        # via tox
+Pillow==5.4.1

@@ -41,3 +41,4 @@ six==1.11.0               # via djangorestframework-csv, six
 sqlparse==0.2.4
 unicodecsv==0.14.1        # via djangorestframework-csv
 urllib3==1.23             # via requests
+Pillow==5.4.1
