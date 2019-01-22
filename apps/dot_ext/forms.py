@@ -43,6 +43,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'authorization_grant_type',
             'redirect_uris',
             'logo_uri',
+            'logo_image',
             'website_uri',
             'description',
             'policy_uri',
