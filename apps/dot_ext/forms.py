@@ -1,9 +1,11 @@
+import os
 from django.utils.safestring import mark_safe
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
+
 import logging
 
 
@@ -25,6 +27,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields[
             'authorization_grant_type'].label = "Authorization Grant Type*"
         self.fields['redirect_uris'].label = "Redirect URIs*"
+        self.fields['logo_uri'].widget.attrs['readonly'] = True
+
+        app = self.instance
+        if getattr(app, 'logo_image', False):
+            self.previous_image_path = app.logo_image.path
+        else:
+            self.previous_image_path = ""
 
     class Meta:
         model = get_application_model()
@@ -125,7 +134,22 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
                                                              app.name)
         logger.info(logmsg)
-        return super().save(*args, **kwargs)
+
+        app = super().save(*args, **kwargs)
+
+        if getattr(app, 'logo_image', False):
+            if app.logo_image.path != self.previous_image_path:
+                if os.path.exists(self.previous_image_path):
+                    os.remove(self.previous_image_path)
+
+            app.logo_uri = app.logo_image.url
+            app.save()
+        else:
+            if self.previous_image_path != "":
+                os.remove(self.previous_image_path)
+                app.logo_uri = ""
+                app.save()
+        return app
 
 
 class SimpleAllowForm(DotAllowForm):
