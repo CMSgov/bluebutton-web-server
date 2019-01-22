@@ -13,7 +13,16 @@
   <li class="active"><a href="">{{ application.name }}</a></li>
 </ol>
 
-<h1>{{ application.name }}</h1>
+
+<!-- Display Application Logo -->
+  {% if application.logo_uri %}
+
+    <img src={{ application.logo_uri }} alt="{{ application.name }} logo" />
+
+  {% endif %}
+
+
+  <h1>{{ application.name }}</h1>
 
 <div class="ds-u-margin-y--2">
   <p><b>{% trans "Client ID" %}</b></p>
