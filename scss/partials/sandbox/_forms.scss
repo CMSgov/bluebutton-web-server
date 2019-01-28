@@ -27,7 +27,8 @@ form {
 	input[type="email"],
 	input[type="number"],
   input[type="password"],
-	input[type="url"] {
+	input[type="url"],
+ 	input[type="file"]	{
 		box-sizing: border-box;
 		margin: .5rem 0 1rem 0;
 		display: block;
