@@ -31,7 +31,13 @@ class Application(AbstractApplication):
     updated = models.DateTimeField(auto_now=True)
     op_tos_uri = models.CharField(default=settings.TOS_URI, blank=True, max_length=512)
     op_policy_uri = models.CharField(default="", blank=True, max_length=512)
-    website_uri = models.URLField(default="", blank=True, max_length=512, verbose_name="Website URI",
+
+    # client_uri is depreciated but will continued to be referenced until it can be removed safely
+    client_uri = models.URLField(default="", blank=True, null=True, max_length=512, verbose_name="Client URI",
+                                 help_text="This is typically a home/download website for the application. "
+                                           "For example, https://www.example.org or http://www.example.org .")
+
+    website_uri = models.URLField(default="", blank=True, null=True, max_length=512, verbose_name="Website URI",
                                   help_text="This is typically a home/download website for the application. "
                                             "For example, https://www.example.org or http://www.example.org .")
     help_text = _('Allowed redirect URIs. Space or new line separated.')
@@ -62,7 +68,7 @@ class Application(AbstractApplication):
         blank=True,
         null=True)
 
-    description = models.TextField(default="", blank=True, max_length=1000,
+    description = models.TextField(default="", blank=True, null=True, max_length=1000,
                                    verbose_name="Application Description",
                                    help_text="This is plain-text up to 1000 characters in length.",
                                    validators=[validate_notags])
