@@ -19,11 +19,7 @@ from oauth2_provider.models import (
 )
 from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
-from apps.dot_ext.validators import (
-    validate_notags,
-    validate_logo_image
-)
-from apps.dot_ext.utils import logo_image_filename
+from apps.dot_ext.validators import validate_notags
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -80,12 +76,6 @@ class Application(AbstractApplication):
     active = models.BooleanField(default=True)
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)
-    logo_image = models.ImageField("Logo Image Upload", upload_to=logo_image_filename,
-                                   validators=[validate_logo_image], blank=True, null=True,
-                                   help_text="Upload your logo image file here in JPEG (.jpg) format! "
-                                   "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels."
-                                   % (settings.APP_LOGO_SIZE_MAX, settings.APP_LOGO_WIDTH_MAX,
-                                      settings.APP_LOGO_HEIGHT_MAX))
 
     def scopes(self):
         scope_list = []
