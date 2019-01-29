@@ -44,8 +44,7 @@ class Application(AbstractApplication):
     redirect_uris = models.TextField(help_text=help_text,
                                      blank=True)
     logo_uri = models.CharField(
-        default="", blank=True, null=True, max_length=512, verbose_name="Logo URI",
-        help_text='This will be automatically updated via the Logo Image Upload after saving.')
+        default="", blank=True, max_length=512, verbose_name="Logo URI")
     tos_uri = models.CharField(
         default="", blank=True, max_length=512, verbose_name="Client's Terms of Service URI")
     policy_uri = models.CharField(default="", blank=True, max_length=512, verbose_name="Client's Policy URI",
