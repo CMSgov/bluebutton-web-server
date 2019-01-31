@@ -9,7 +9,6 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import ugettext_lazy as _
 from .themes import THEMES, THEME_SELECTED
 
-
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, '..')
@@ -479,7 +478,6 @@ BLOCK_HTTP_REDIRECT_URIS = False
 
 if env('TARGET_ENV', '') in ['dev', 'test', 'impl', 'prod']:
     AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
-
     STATICFILES_LOCATION = 'static/'
     STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
     STATIC_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
@@ -487,7 +485,6 @@ if env('TARGET_ENV', '') in ['dev', 'test', 'impl', 'prod']:
     MEDIAFILES_LOCATION = 'media/'
     DEFAULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
     MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
-
     # Email config
     SEND_EMAIL = True
 else:
@@ -497,7 +494,6 @@ else:
     #     The following ENV variables are needed:
     #         AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_CUSTOM_DOMAIN
     AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
-
     if AWS_S3_CUSTOM_DOMAIN:
         IS_MEDIA_URL_LOCAL = False
         AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')

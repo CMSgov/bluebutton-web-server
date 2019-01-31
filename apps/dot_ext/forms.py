@@ -14,7 +14,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
-
     logo_image = forms.ImageField(label='Logo Image Upload', required=False,
                                   help_text="Upload your logo image file here in JPEG (.jpg) format! "
                                   "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels."
@@ -133,10 +132,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def clean_logo_image(self):
         logo_image = self.cleaned_data.get('logo_image')
-
         if getattr(logo_image, 'name', False):
             validate_logo_image(logo_image)
-
         return logo_image
 
     def save(self, *args, **kwargs):
@@ -144,24 +141,16 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
                                                              app.name)
         logger.info(logmsg)
-
         app = super().save(*args, **kwargs)
-
         logo_image = self.cleaned_data.pop('logo_image', None)
-
         if getattr(logo_image, 'name', False):
             file_path = "applications/" + hashlib.sha256(str(app.pk).encode('utf-8')).hexdigest() + "/logo.jpg"
-
             if default_storage.exists(file_path):
                 default_storage.delete(file_path)
-
             default_storage.save(file_path, logo_image)
-
             if default_storage.exists(file_path):
                 app.logo_uri = settings.MEDIA_URL + file_path
-
             app.save()
-
         return app
 
 
