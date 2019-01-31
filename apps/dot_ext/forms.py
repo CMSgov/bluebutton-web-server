@@ -1,12 +1,11 @@
-import hashlib
 from django.utils.safestring import mark_safe
 from django import forms
 from django.conf import settings
-from django.core.files.storage import default_storage
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.dot_ext.validators import validate_logo_image
+from apps.dot_ext.storage import store_logo_image
 import logging
 
 
@@ -142,14 +141,9 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                                              app.name)
         logger.info(logmsg)
         app = super().save(*args, **kwargs)
-        logo_image = self.cleaned_data.pop('logo_image', None)
-        if getattr(logo_image, 'name', False):
-            file_path = "applications/" + hashlib.sha256(str(app.pk).encode('utf-8')).hexdigest() + "/logo.jpg"
-            if default_storage.exists(file_path):
-                default_storage.delete(file_path)
-            default_storage.save(file_path, logo_image)
-            if default_storage.exists(file_path):
-                app.logo_uri = settings.MEDIA_URL + file_path
+        uri = store_logo_image(self.cleaned_data.pop('logo_image', None), app.pk)
+        if uri:
+            app.logo_uri = uri
             app.save()
         return app
 
