@@ -480,13 +480,13 @@ BLOCK_HTTP_REDIRECT_URIS = False
 if env('TARGET_ENV', '') in ['dev', 'test', 'impl', 'prod']:
     AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
 
-    STATICFILES_LOCATION = 'static'
+    STATICFILES_LOCATION = 'static/'
     STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
-    STATIC_URL = "https://%s%s/" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
+    STATIC_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
     AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
-    MEDIAFILES_LOCATION = 'media'
+    MEDIAFILES_LOCATION = 'media/'
     DEFAULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
-    MEDIA_URL = "https://%s%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+    MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
 
     # Email config
     SEND_EMAIL = True
@@ -501,10 +501,10 @@ else:
     if AWS_S3_CUSTOM_DOMAIN:
         IS_MEDIA_URL_LOCAL = False
         AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
-        MEDIAFILES_LOCATION = 'media'
-        STATICFILES_LOCATION = 'static'
+        MEDIAFILES_LOCATION = 'media/'
+        STATICFILES_LOCATION = 'static/'
         DEFAULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
-        MEDIA_URL = "https://%s%s/" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+        MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
     else:
         # This sets up a media path in urls.py when set for local storage.
         IS_MEDIA_URL_LOCAL = True

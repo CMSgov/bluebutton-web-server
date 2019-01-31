@@ -29,9 +29,10 @@ urlpatterns = [
     url(r'^' + ADMIN_REDIRECTOR + 'admin/', admin.site.urls),
 ]
 
-# If running in local development, add the media path:
-if settings.DEBUG is True:
+# If running in local development, add the media and static urls:
+if settings.IS_MEDIA_URL_LOCAL is True:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if IsAppInstalled("apps.testclient"):
     urlpatterns += [
