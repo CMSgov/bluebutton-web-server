@@ -39,23 +39,20 @@ def validate_notags(value):
         raise ValidationError(_('The text contains HTML tags. Please use plain-text only!'))
 
 
-# Validate the applciation logo imagefield
+# Validate the applciation logo imagefield in form clean
 def validate_logo_image(value):
     file_extension = ospath.splitext(value.name)[1]
     if not file_extension.lower() in ['.jpg']:
         raise ValidationError("The file type must be JPEG with a .jpg file extension!")
 
-    image_size = value.file.size
-    if image_size > int(settings.APP_LOGO_SIZE_MAX) * 1024:
+    if value.size > int(settings.APP_LOGO_SIZE_MAX) * 1024:
         raise ValidationError("Max file size is %sKB. Your file size is %0.1fKB"
-                              % (str(settings.APP_LOGO_SIZE_MAX), image_size / 1024))
+                              % (str(settings.APP_LOGO_SIZE_MAX), value.size / 1024))
 
-    image_width = value.width
-    if image_width > int(settings.APP_LOGO_WIDTH_MAX):
+    if value.image.width > int(settings.APP_LOGO_WIDTH_MAX):
         raise ValidationError("Max image width is %s. Your image width is %s."
-                              % (str(settings.APP_LOGO_WIDTH_MAX), str(image_width)))
+                              % (str(settings.APP_LOGO_WIDTH_MAX), str(value.image.width)))
 
-    image_height = value.height
-    if image_height > int(settings.APP_LOGO_HEIGHT_MAX):
+    if value.image.height > int(settings.APP_LOGO_HEIGHT_MAX):
         raise ValidationError("Max image height is %s. Your image height is %s."
-                              % (str(settings.APP_LOGO_HEIGHT_MAX), str(image_height)))
+                              % (str(settings.APP_LOGO_HEIGHT_MAX), str(value.image.height)))
