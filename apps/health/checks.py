@@ -13,18 +13,18 @@ def databases():
 
 
 def dataserver():
-        resource_router = get_resourcerouter()
-        target_url = resource_router.fhir_url + "metadata"
-        r = requests.get(target_url,
-                         params={"_format": "json"},
-                         cert=backend_connection.certs(),
-                         verify=False)
-        try:
-            r.raise_for_status()
-        except Exception:
-            logger.exception("Failed to ping backend")
-            return False
-        return r.json()
+    resource_router = get_resourcerouter()
+    target_url = resource_router.fhir_url + "metadata"
+    r = requests.get(target_url,
+                     params={"_format": "json"},
+                     cert=backend_connection.certs(),
+                     verify=False)
+    try:
+        r.raise_for_status()
+    except Exception:
+        logger.exception("Failed to ping backend")
+        return False
+    return r.json()
 
 
 services = (
