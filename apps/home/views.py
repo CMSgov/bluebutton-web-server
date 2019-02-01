@@ -32,7 +32,7 @@ def authenticated_home(request):
         else:
             fhir_id = crosswalk.fhir_id
 
-        if fhir_id is '':
+        if fhir_id == '':
             fhir_id = '0'
         # this is a GET
         context = {'name': name, 'profile': profile,

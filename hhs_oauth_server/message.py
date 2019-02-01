@@ -468,7 +468,7 @@ class EmailMultiAlternatives(EmailMessage):
         clean_list = []
         for email in addr_list:
             if email is not None:
-                if email.upper() is not "NONE":
+                if email.upper() != "NONE":
                     clean_list.append(email)
                 else:
                     pass

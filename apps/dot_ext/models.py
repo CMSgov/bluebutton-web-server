@@ -110,6 +110,13 @@ class Application(AbstractApplication):
         return allowed_schemes
 
 
+class ApplicationLabel(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(db_index=True, unique=True)
+    description = models.TextField()
+    applications = models.ManyToManyField(Application, null=True, blank=True)
+
+
 class ExpiresInManager(models.Manager):
     """
     Provide a `set_expires_in` and `get_expires_in` methods that

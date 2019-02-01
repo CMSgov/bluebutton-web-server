@@ -183,7 +183,7 @@ def set_default_header(request, header=None):
 
     header['keep-alive'] = settings.REQUEST_EOB_KEEP_ALIVE
     if request.is_secure():
-            header['X-Forwarded-Proto'] = "https"
+        header['X-Forwarded-Proto'] = "https"
     else:
         header['X-Forwarded-Proto'] = "http"
 
