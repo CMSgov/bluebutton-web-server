@@ -25,7 +25,7 @@
       {% endblock app-form-title %}
     </h1>
 
-    <form class="form-horizontal" method="post" action="{% block app-form-action-url %}{% url 'oauth2_provider:update' application.id %}{% endblock app-form-action-url %}">
+    <form class="form-horizontal" method="post" enctype="multipart/form-data" action="{% block app-form-action-url %}{% url 'oauth2_provider:update' application.id %}{% endblock app-form-action-url %}">
       {% csrf_token %}
 
       <div class="control-group {% if form.non_field_errors %}error{% endif %}">

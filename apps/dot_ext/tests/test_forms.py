@@ -1,5 +1,9 @@
 from apps.test import BaseApiTest
 from apps.dot_ext.forms import CustomRegisterApplicationForm
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.conf import settings
 
 
 class TestRegisterApplicationForm(BaseApiTest):
@@ -85,3 +89,62 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
         self.assertNotEqual(form.errors.get('description'), None)
+
+        # Testing valid logo_image with max dimensions
+        file = BytesIO()
+        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
+                          int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image.save(file, 'jpeg')
+        file.seek(0)
+        image = InMemoryUploadedFile(
+            file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None
+        )
+        data = {}
+        files = {'logo_image': image}
+        form = CustomRegisterApplicationForm(user, data, files)
+        form.is_valid()
+        self.assertEqual(form.errors.get('logo_image'), None)
+
+        # Testing logo_image exceeding max width
+        file = BytesIO()
+        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX) + 1,
+                          int(settings.APP_LOGO_HEIGHT_MAX)), color='red')
+        image.save(file, 'jpeg')
+        file.seek(0)
+        image = InMemoryUploadedFile(
+            file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None
+        )
+        data = {}
+        files = {'logo_image': image}
+        form = CustomRegisterApplicationForm(user, data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
+
+        # Testing logo_image exceeding max height
+        file = BytesIO()
+        image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
+                          int(settings.APP_LOGO_HEIGHT_MAX) + 1), color='red')
+        image.save(file, 'jpeg')
+        file.seek(0)
+        image = InMemoryUploadedFile(
+            file, None, 'test.jpg', 'image/jpeg', len(file.getvalue()), None
+        )
+        data = {}
+        files = {'logo_image': image}
+        form = CustomRegisterApplicationForm(user, data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
+
+        # Testing logo_image not JPEG type
+        file = BytesIO()
+        image = Image.new('RGB', size=(50, 50), color='red')
+        image.save(file, 'png')
+        file.seek(0)
+        image = InMemoryUploadedFile(
+            file, None, 'test.png', 'image/png', len(file.getvalue()), None
+        )
+        data = {}
+        files = {'logo_image': image}
+        form = CustomRegisterApplicationForm(user, data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)

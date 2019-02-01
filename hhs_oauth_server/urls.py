@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.conf.urls.static import static
 from django.http import JsonResponse
 from rest_framework import status
 from django.conf.urls import include, url
@@ -27,6 +28,11 @@ urlpatterns = [
 
     url(r'^' + ADMIN_REDIRECTOR + 'admin/', admin.site.urls),
 ]
+
+# If running in local development, add the media and static urls:
+if settings.IS_MEDIA_URL_LOCAL is True:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if IsAppInstalled("apps.testclient"):
     urlpatterns += [
