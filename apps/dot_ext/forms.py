@@ -13,9 +13,10 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
-    logo_image = forms.ImageField(label='Logo Image Upload', required=False,
+    logo_image = forms.ImageField(label='Logo URI Image Upload', required=False,
                                   help_text="Upload your logo image file here in JPEG (.jpg) format! "
-                                  "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels."
+                                  "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
+                                  "This will update the Logo URI after saving."
                                   % (settings.APP_LOGO_SIZE_MAX, settings.APP_LOGO_WIDTH_MAX,
                                      settings.APP_LOGO_HEIGHT_MAX))
 
