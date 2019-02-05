@@ -49,7 +49,7 @@ def callback(request):
         userinfo = {'patient': token.get('patient', None)}
 
     request.session['patient'] = userinfo.get('patient', None)
-    
+
     response['userinfo'] = userinfo
 
     response['oidc_discovery_uri'] = host + \
