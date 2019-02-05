@@ -1,0 +1,105 @@
+// Custom Banner Component
+// NOTE: Will need to make this as a mixing for use on sandbox.
+
+// Variables
+$banner-bg-primary: #0071BC;
+$banner-color-primary: #ffffff;
+
+// Banner Styles
+.ds-c-banner {
+  background: $banner-bg-primary;
+  display: flex;
+  font-family: 'Roboto', 'Helvetica', sans-serif;
+  // Container that contains text/buttons
+  // This is always a solid color for accessibility purposes.
+  .solid {
+    background: $banner-bg-primary;
+    padding: 5rem 3rem;
+    flex-grow: 2;
+    max-width: 60vw;
+    // Adds left padding on large screens
+    @media #{$large-desktop} {
+      padding-left: 20vw;
+      max-width: 50vw;
+    }
+    // Fills the width of device on smaller screens
+    @media #{$tablet, $phone} {
+      max-width: 100vw;
+    }
+    // Reduces padding to be better viewable on phone screens
+    @media #{$phone} {
+      padding: 5rem 1rem;
+    }
+  }
+  // Bade Styles
+  .ds-c-badge {
+    background: $banner-color-primary;
+    color: $banner-bg-primary;
+    letter-spacing: 0 !important;
+    padding: .5rem .6rem;
+  }
+  // Page Description
+  .page-description {
+    color: $banner-color-primary;
+    font-size: 1.1rem;
+    @media #{$phone} {
+      font-size: 1rem;
+    }
+  }
+  // Call to Action Buttons
+  .ctas {
+    display: flex;
+    // Display the buttons vertically on phones
+    @media #{$phone} {
+      flex-direction: column;
+    }
+    // Custom CTA Button
+    // NOTE: I created this because of a CMS DS bug in Firefox. Just looked off. Should notify that team.
+    .cta-button {
+      background: none;
+      font-size: .9rem;
+      text-transform: uppercase;
+      margin-right: 1rem;
+      border-radius: .3rem;
+      border: 3px solid $banner-color-primary;
+      color: $banner-color-primary;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background 180ms ease, color 180ms ease;
+      @media #{$small-phone} {
+        align-items: center;
+        justify-content: center;
+        font-size: .8rem;
+        margin-right: 0;
+        text-align: center;
+      }
+    }
+    // Button Hover Styles
+    .cta-button:hover {
+      background: $banner-color-primary;
+      color: $banner-bg-primary;
+    }
+    // Styles feather icon
+		svg {
+      fill: none;
+      margin-left: 1rem;
+      @media #{$small-phone} {
+        display: none;
+      }
+    }
+  }
+  // Gradient Container
+  .gradient {
+    background: rgb(0,113,188);
+    background: linear-gradient(90deg, rgba(0,113,188,1) 0%, rgba(66,184,209,1) 100%);
+    flex-grow: 1;
+    // Hide the gradient container for smaller screens
+    @media #{$tablet, $phone} {
+      display: none;
+    }
+  }
+}
