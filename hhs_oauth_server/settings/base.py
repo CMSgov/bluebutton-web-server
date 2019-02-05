@@ -194,7 +194,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
     os.path.join(BASE_DIR, 'bluebutton-css'),
     os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'media'),
 ]
 
 # emails
