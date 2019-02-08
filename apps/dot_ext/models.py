@@ -40,7 +40,11 @@ class Application(AbstractApplication):
     website_uri = models.URLField(default="", blank=True, null=True, max_length=512, verbose_name="Website URI",
                                   help_text="This is typically a home/download website for the application. "
                                             "For example, https://www.example.org or http://www.example.org .")
-    help_text = _('Allowed redirect URIs. Space or new line separated.')
+    help_text = _("Multiple redirect URIs can"
+                  " be separated by a space or on"
+                  " a separate line. Read more"
+                  " about implementing redirect"
+                  " URIs in our documentation.")
     redirect_uris = models.TextField(help_text=help_text,
                                      blank=True)
     logo_uri = models.CharField(
