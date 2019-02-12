@@ -17,7 +17,7 @@ class ApplicationListSerializer(ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ('id', 'name', 'website_uri', 'logo_uri', 'tos_uri', 'policy_uri',
+        fields = ('name', 'website_uri', 'logo_uri', 'tos_uri', 'policy_uri',
                   'support_email', 'support_phone_number', 'description', 'labels')
 
     def get_labels(self, obj):
