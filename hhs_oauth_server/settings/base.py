@@ -348,7 +348,7 @@ APP_LOGO_SIZE_MAX = env('DJANGO_APP_LOGO_SIZE_MAX', '100')
 APP_LOGO_WIDTH_MAX = env('DJANGO_APP_LOGO_WIDTH_MAX', '128')
 APP_LOGO_HEIGHT_MAX = env('DJANGO_APP_LOGO_HEIGHT_MAX', '128')
 
-# Application category slugs to exclude from externally
+# Application label slugs to exclude from externally
 # published lists, like those used for internal use testing.
 APP_LIST_EXCLUDE = env('DJANGO_APP_LIST_EXCLUDE', ['internal-use'])
 
