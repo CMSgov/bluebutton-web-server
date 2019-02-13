@@ -350,7 +350,7 @@ APP_LOGO_HEIGHT_MAX = env('DJANGO_APP_LOGO_HEIGHT_MAX', '128')
 
 # Application category slugs to exclude from externally
 # published lists, like those used for internal use testing.
-APP_LIST_EXCLUDE = env('DJANGO_APP_LIST_EXCLUDE', ['internal-use', 'do-not-publish'])
+APP_LIST_EXCLUDE = env('DJANGO_APP_LIST_EXCLUDE', ['internal-use'])
 
 # LINKS TO DOCS
 DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
