@@ -6,8 +6,22 @@ from apps.accounts.models import get_user_id_salt
 from apps.fhir.server.models import ResourceRouter
 from django.utils.crypto import pbkdf2
 import binascii
+from django.db.models import (CASCADE, Q)
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+# Real fhir_id Manager subclass
+class RealCrosswalkManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(~Q(fhir_id__startswith='-'))
+
+
+# Synthetic fhir_id Manager subclass
+class SynthCrosswalkManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(Q(fhir_id__startswith='-'))
 
 
 class Crosswalk(models.Model):
@@ -20,8 +34,9 @@ class Crosswalk(models.Model):
     HICN and BeneID added
     """
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
     fhir_source = models.ForeignKey(ResourceRouter,
+                                    on_delete=CASCADE,
                                     blank=True,
                                     null=True)
     # default=settings.FHIR_SERVER_DEFAULT)
@@ -37,6 +52,10 @@ class Crosswalk(models.Model):
                                     default="",
                                     verbose_name="PBKDF2 of User ID",
                                     db_index=True)
+
+    objects = models.Manager()  # Default manager
+    real_objects = RealCrosswalkManager()  # Real bene manager
+    synth_objects = SynthCrosswalkManager()  # Synth bene manager
 
     def save(self, commit=True, **kwargs):
         if commit:

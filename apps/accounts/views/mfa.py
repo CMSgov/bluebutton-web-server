@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..models import UserProfile, MFACode
@@ -14,6 +15,7 @@ from ...utils import get_client_ip
 import sys
 from django.views.decorators.cache import never_cache
 from axes.decorators import axes_dispatch
+
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
 failed_login_log = logging.getLogger('unsuccessful_logins')
@@ -88,6 +90,17 @@ def mfa_login(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
+
+            # If username doesn't exist, try username matching email address.
+            try:
+                User.objects.get(username__iexact=username)
+            except User.DoesNotExist:
+                try:
+                    check_user = User.objects.get(email__iexact=username)
+                    username = check_user.username
+                except User.DoesNotExist:
+                    pass
+
             user = authenticate(request=request, username=username.lower(), password=password)
 
             if user is not None:

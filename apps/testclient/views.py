@@ -3,7 +3,7 @@ from requests_oauthlib import OAuth2Session
 from collections import OrderedDict
 from django.http import JsonResponse, HttpResponseRedirect
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from .utils import test_setup, get_client_secret
 import logging
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
@@ -42,10 +42,15 @@ def callback(request):
             response['token_response'][k] = v
         else:
             response['token_response'][k] = ' '.join(v)
+    userinfo_uri = request.session['userinfo_uri']
+    try:
+        userinfo = oas.get(userinfo_uri).json()
+    except Exception:
+        userinfo = {'patient': token.get('patient', None)}
 
-    userinfo = oas.get(request.session['userinfo_uri']).json()
+    request.session['patient'] = userinfo.get('patient', None)
+
     response['userinfo'] = userinfo
-    request.session['patient'] = userinfo['patient']
 
     response['oidc_discovery_uri'] = host + \
         reverse('openid-configuration')

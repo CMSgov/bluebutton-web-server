@@ -2,61 +2,65 @@
 
 {% load i18n %}
 {% block content %}
-    <!-- CI_TESTING:START -->
-    <!-- test_dot_ext_application_detail -->
-    <!-- CI_TESTING:END -->
-    <div class="row">
-        <div class="ds-col-lg-12">
-            <ol class="breadcrumb">
-                <li ><a href="/">Home</a></li>
-                <li ><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
-                <li class="active"><a href="">{{ application.name }}</a></li>
-            </ol>
-        </div>
-    </div>
+<!-- CI_TESTING:START -->
+<!-- test_dot_ext_application_detail -->
+<!-- CI_TESTING:END -->
 
-    <div class="block-center">
-        <h3 class="ds-h3">{{ application.name }}</h3>
+<!-- Breadcrumbs -->
+<ol class="breadcrumb">
+  <li ><a href="/">Home</a></li>
+  <li ><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
+  <li class="active"><a href="">{{ application.name }}</a></li>
+</ol>
 
-        <ul class="unstyled">
-            <li>
-                <p><b>{% trans "Client ID" %}</b></p>
-                <p><pre>{{ application.client_id }}</pre></p>
-            </li>
 
-                <li>
-                    <p><b>{% trans "Client Secret" %}</b></p>
-                    {% if application.client_type == "confidential" %}
-                        <p><pre>{{ application.client_secret }}</pre></p>
-                    {% else %}
-                        <p><pre>This value is not used when using a public client.</pre></p>
-                    {% endif%}
-                </li>
-            <li>
-                <p><b>{% trans "Client Type" %}</b></p>
-                <p><pre>{{ application.client_type }}</pre></p>
-            </li>
-            
-            <li>
-                <p><b>{% trans "Grant Type" %}</b></p>
-                <p><pre>{{ application.authorization_grant_type }}</pre></p>
-            </li>
+<!-- Display Application Logo -->
+  {% if application.logo_uri %}
+     <img src={{ application.logo_uri }} alt="{{ application.name }} logo" />
+  {% endif %}
 
-            <li>
-                <p><b>{% trans "Redirect Uris" %}</b></p>
-                <pre>{{ application.redirect_uris }}</pre>
-            </li>
-            
-           <li>
-                <p><b>{% trans "Timestamps" %}</b></p>
-                <pre>Updated: {{ application.updated }} / Created: {{ application.created }}</pre>
-            </li>
-        </ul>
+  <h1>{{ application.name }}</h1>
 
-        <div class="btn-toolbar">
-            <a class="btn" href="{% url "oauth2_provider:list" %}">{% trans "Go Back" %}</a>
-            <a class="ds-c-button  ds-c-button--default" href="{% url "oauth2_provider:update" application.id %}">{% trans "Edit" %}</a>
-            <a class="ds-c-button  ds-c-button--danger" href="{% url "oauth2_provider:delete" application.id %}">{% trans "Delete" %}</a>
-        </div>
-    </div>
+<div class="ds-u-margin-y--2">
+  <p><b>{% trans "Client ID" %}</b></p>
+  <p><pre>{{ application.client_id }}</pre></p>
+</div>
+
+<div class="ds-u-margin-y--2">
+  <p><b>{% trans "Client Secret" %}</b></p>
+  {% if application.client_type == "confidential" %}
+      <p><pre>{{ application.client_secret }}</pre></p>
+  {% else %}
+      <p><pre>This value is not used when using a public client.</pre></p>
+  {% endif%}
+</div>
+
+<div class="ds-u-margin-y--2">
+  <p><b>{% trans "Client Type" %}</b></p>
+  <p><pre>{{ application.client_type }}</pre></p>
+</div>
+
+<div class="ds-u-margin-y--2">
+  <p><b>{% trans "Grant Type" %}</b></p>
+  <p><pre>{{ application.authorization_grant_type }}</pre></p>
+</div>
+
+<div class="ds-u-margin-y--2">
+  <p><b>{% trans "Redirect Uris" %}</b></p>
+  <pre>{{ application.redirect_uris }}</pre>
+</div>
+
+<div class="ds-u-margin-y--2">
+  <p><b>{% trans "Timestamps" %}</b></p>
+  <pre>Updated: {{ application.updated }} / Created: {{ application.created }}</pre>
+</div>
+
+
+<a class="ds-c-button  ds-c-button--default" href="{% url "oauth2_provider:update" application.id %}">{% trans "Edit" %}</a>
+<a class="ds-c-button  ds-c-button--danger" href="{% url "oauth2_provider:delete" application.id %}">{% trans "Delete" %}</a>
+
+<div class="ds-u-margin-y--2">
+  <a class="btn" href="{% url "oauth2_provider:list" %}">{% trans "Go Back" %}</a>  
+</div>
+
 {% endblock content %}

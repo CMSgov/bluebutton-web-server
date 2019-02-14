@@ -1,6 +1,6 @@
 import json
 from django.contrib.auth.models import Group
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.management.base import BaseCommand
 from ...models import ProtectedCapability
 

@@ -1,25 +1,56 @@
 import logging
 
 from urllib.parse import urlencode
-from rest_framework import exceptions
+from rest_framework import (exceptions, permissions)
 from rest_framework.response import Response
 
 from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-from apps.fhir.bluebutton.utils import get_crosswalk
 from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.authorization.permissions import DataAccessGrantPermission
+from ..permissions import (SearchCrosswalkPermission, ResourcePermission)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 START_PARAMETER = 'startIndex'
-SIZE_PARAMETER = 'count'
+SIZE_PARAMETER = '_count'
+
+QUERY_TRANSFORMS = {
+    'count': '_count',
+}
+
+
+class ParamSerializer(object):
+    # conforming to the basics of http://www.django-rest-framework.org/api-guide/serializers/#validation
+    def __init__(self, data=None, **kwargs):
+        self.initial_data = data
+        self.data = {}
+
+    def is_valid(self, raise_exception=False, **kwargs):
+        for key, val in self.initial_data.items():
+            self.data[key] = val
+
+        for key, correct in QUERY_TRANSFORMS.items():
+            val = self.data.pop(key, None)
+            if val is not None:
+                self.data[correct] = val
 
 
 class SearchView(FhirDataView):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        ResourcePermission,
+        SearchCrosswalkPermission,
+        DataAccessGrantPermission,
+    ]
 
     def get(self, request, resource_type, *args, **kwargs):
+        serializer = ParamSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        query_params = serializer.data
+
         # Verify paging inputs. Casting an invalid int will throw a ValueError
         try:
-            start_index = int(request.GET.get(START_PARAMETER, 0))
+            start_index = int(query_params.get(START_PARAMETER, 0))
         except ValueError:
             raise exceptions.ParseError(detail='%s must be an integer between zero and the number of results' % START_PARAMETER)
 
@@ -27,7 +58,7 @@ class SearchView(FhirDataView):
             raise exceptions.ParseError()
 
         try:
-            page_size = int(request.GET.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
+            page_size = int(query_params.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
         except ValueError:
             raise exceptions.ParseError(detail='%s must be an integer between 1 and %s' % (SIZE_PARAMETER, MAX_PAGE_SIZE))
 
@@ -36,40 +67,21 @@ class SearchView(FhirDataView):
 
         data = self.fetch_data(request, resource_type, *args, **kwargs)
 
-        # TODO update to pagination class
-        data['entry'] = data['entry'][start_index:start_index + page_size]
-        replay_parameters = self.build_parameters()
-        data['link'] = get_paging_links(request.build_absolute_uri('?'),
-                                        start_index,
-                                        page_size,
-                                        data['total'],
-                                        replay_parameters)
+        if data.get('total', 0) > 0:
+            # TODO update to pagination class
+            data['entry'] = data['entry'][start_index:start_index + page_size]
+            replay_parameters = self.build_parameters(request)
+            data['link'] = get_paging_links(request.build_absolute_uri('?'),
+                                            start_index,
+                                            page_size,
+                                            data['total'],
+                                            replay_parameters)
 
         return Response(data)
 
-    def check_resource_permission(self, request, *args, **kwargs):
-        crosswalk = get_crosswalk(request.resource_owner)
-
-        # If the user isn't matched to a backend ID, they have no permissions
-        if crosswalk is None:
-            logger.info('Crosswalk for %s does not exist' % request.user)
-            raise exceptions.PermissionDenied(
-                'No access information was found for the authenticated user')
-
-        patient_id = crosswalk.fhir_id
-
-        if 'patient' in request.GET and request.GET['patient'] != patient_id:
-            raise exceptions.PermissionDenied(
-                'You do not have permission to access the requested patient\'s data')
-
-        if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
-            raise exceptions.PermissionDenied(
-                'You do not have permission to access the requested patient\'s data')
-        return crosswalk
-
-    def build_parameters(self, *args, **kwargs):
-        patient_id = self.crosswalk.fhir_id
-        resource_type = self.resource_type
+    def build_parameters(self, request, *args, **kwargs):
+        patient_id = request.crosswalk.fhir_id
+        resource_type = request.resource_type
         get_parameters = {
             '_format': 'application/json+fhir'
         }

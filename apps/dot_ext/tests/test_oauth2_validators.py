@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from apps.dot_ext.oauth2_validators import validate_uris
+from apps.dot_ext.validators import validate_uris
 
 
 class TestOauth2Validators(TestCase):

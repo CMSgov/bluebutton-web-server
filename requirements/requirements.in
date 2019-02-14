@@ -6,27 +6,33 @@ django-cors-headers
 django-localflavor
 django-settings-export
 djangorestframework
+djangorestframework-csv
+django-filter
 django-axes
 
 # support
 django-storages
+django-dotenv
 jsonschema
 requests
+requests_oauthlib
 pytz
 configparser
 dj-database-url
 pyjwt
 newrelic
 psycopg2
+sqlparse
+Pillow
+boto3
 
 # notifications
 django-ses
 
 # security and identity system
-social-auth-app-django
 oauthlib
 python-openid
-django-oauth-toolkit-scopes-backend
+django-oauth-toolkit
 
 # Decorate admin urls to force MFA login
 decorate_url

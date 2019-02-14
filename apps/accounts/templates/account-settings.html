@@ -2,71 +2,46 @@
 {% load i18n %}
 {% block Content %}
 
-    <div class="container">
-      <div class="row">
+<div class="container">
+  <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+    <div class="ds-l-col--11">
 
-        <div class="ds-col-lg-12">
-          <h1>{{name}} <small>{{subname}}</small></h1>
-        </div>
+      <h1>{{name}} <small>{{subname}}</small></h1>
 
-      </div>
-	  
-       <div class="row">
-
-        <div class="ds-col-lg-12">
-
-          <a class="ds-c-button  ds-c-button--default" href="{% url 'reset_password' %}">
-			  Change Your Password
-          </a>
-										
-          <a class="ds-c-button  ds-c-button--default" href="{% url 'change_secret_questions' %}">
-              Change You Secret Questions and Answers
-				</a>
-        </div>
-
+      <div class="ds-u-margin-y--2">
+        <!-- Password Update Button -->
+        <a class="ds-c-button  ds-c-button--default" href="{% url 'reset_password' %}">
+          Change Your Password
+        </a>
+        <!-- Secret Question Update Button -->
+        <a class="ds-c-button  ds-c-button--default" href="{% url 'change_secret_questions' %}">
+          Change Your Secret Questions and Answers
+        </a>
       </div>
 
-      
-	  <div class="row">
-
-        <div class="ds-col-lg-12">
-          * Required Fields
+      {% if additional_info %}
+        <div class="alert alert-info">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            <h4 class="ds-h4">{%trans "Important" %}</h4>
+            {{ additional_info |safe }}
         </div>
 
-      </div>
+      {% endif %}
 
-      <div class="hero-unit">
+      {% include "include/messages.html" %}
 
-        <div class="row">
+      <form class="well ds-u-margin-y--2" method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
 
-          {% if additional_info %}
-            <div class="alert alert-info">
-                <button type="button" class="close" data-dismiss="alert">×</button>
-                <h4 class="ds-h4">{%trans "Important" %}</h4>
-                {{ additional_info |safe }}
-            </div>
+        {% load bootstrap %}
+        {{ form|bootstrap }}
 
-          {% endif %}
-        </div>
+        <input type="submit" class="ds-c-button ds-c-button--primary ds-u-margin-y--2" value="{% trans 'Continue' %}" /><br>
+        <a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
 
-
-             {% include "include/messages.html" %}
-             <div class="row">
-      
-                  <form class="well" method="post" action="" enctype="multipart/form-data">
-                    {% csrf_token %}
-
-                    {% load bootstrap %}
-                    {{ form|bootstrap }}
-
-                    <input type="submit" class="ds-c-button  ds-c-button--primary" value="{% trans 'Continue' %}" /><br>
-                    <a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
-
-                  </form>
-             </div>
-
+      </form>
     </div>
+  </div>
+</div>
 
 {% endblock %}
-
-

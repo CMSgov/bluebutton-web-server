@@ -1,10 +1,8 @@
 from django.conf.urls import url
 from .views.core import (create_account,
                          account_settings,
-                         reissue_api_keys,
                          request_invite,
                          mylogout,
-                         display_api_keys,
                          activation_verify,
                          )
 
@@ -84,8 +82,4 @@ urlpatterns = [
     # Verify the account
     url(r'^activation-verify/(?P<activation_key>[^/]+)/$', activation_verify,
         name='activation_verify'),
-
-    url(r'^display-api-keys$', display_api_keys, name='display_api_keys'),
-
-    url(r'^reissue-api-keys$', reissue_api_keys, name='reissue_api_keys'),
 ]

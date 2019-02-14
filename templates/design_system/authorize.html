@@ -5,79 +5,108 @@
 {% load i18n %}
 {% load bootstrap %}
 
+{% block Header %}
+  <!-- <link rel="stylesheet" href="{% static 'statsite/assets/main.css' %}"> -->
+  <link rel="stylesheet" href="{% static 'statsite/assets/custom.css' %}" />
+{% endblock %}
+
 {% block Content %}
-<div class="container">
+<div class="bene-auth-container">
+  <section id="theform">
+    <article class="">
+      <section class="bene-auth-outer-flex">
 
+        <!-- Application Logo / Information -->
+        <div class="guest-app-info">
 
-<section id="theform">
-<article class="ds-u-border--1 ds-u-radius ds-u-padding--2 ds-u-md-padding--4">
+          <div class="logo-container">
+            <!-- Medicare.gov Logo -->
+            <a href="https://mymedicare.gov">
+              <img class="medicare-logo" src="{% static 'img/medicaregov.png' %}" alt="medicare.gov">
+            </a>
 
- <section class="ds-l-container preview__grid">
-  <div class="ds-l-row ds-u-fill--white">
-    <div class="ds-l-col--3">
-                 <a href="https://mymedicare.gov"> <img src="{% static 'img/medicaregov.png' %}"></a>
-    </div>
-  </div>
-  
-   <div class="ds-l-row ds-u-justify-content--ledt ds-u-fill--white">
-    <div class="ds-l-col--3">
-        {% if not error %}
+            <!-- Display Application Logo -->
+            {% if application.logo_uri %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+
+            <div class="app-logo">
+              <img src={{ application.logo_uri }} alt="{{ application.name }} logo" />
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Display Application Name -->
+          <span class="app-name">{{ application.name }}</span>
+
+          <!-- App Policy Container -->
+          <div class="app-policy-container">
+            <!-- Display Application Privacy Policy -->
+            {% if application.policy_uri %}
+              <div>
+                <a href={{ application.policy_uri }} >Privacy Policy </a>
+              </div>
+            {% endif %}
+
+            <!-- Display Application Terms & Conditions -->
+            {% if application.tos_uri %}
+              <div>
+                <a href={{ application.tos_uri }} >Terms and Conditions</a>
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <!-- Authorization Message Container -->
+        <div class="auth-info">
+          {% if not error %}
             <form id="authorizationForm" method="post">
-                <h2 class="block-center-heading">{% trans "Do you approve the application" %} <strong>{{ application.name }}</strong> {% trans "to access your Medicare information?" %}
-                </h2>
-                
-                <h1>{{ application.name }} WILL BE ABLE TO:</h1>
-                
-                <ul class="ds-c-list" aria-labelledby="unordered-list-id">
-                  <li>Access at least 4 years worth of Medicare claims information.</li>
-                  <li>Access your profile and demographic information.</li>
-                  <li>Create copies of your Medicare data.</li>
-                  <li>Get updates to your Medicare data so long as you do not revoke access.</li>
+              <div class="message">
+                <h1>
+                  {{ application.name }} wants permission to access your Medicare data.
+                </h1>
+
+                <h2>{{ application.name }} will be able to:</h2>
+
+                <ul class="ds-c-list">
+                  <li>Access your Medicare claims data.</li>
+                  <li>Access your personal details like your name, address, and age.</li>
+                  <li>Store your Medicare data on their systems.</li>
+                  <li>Get updates to your Medicare data unless you revoke access.</li>
                 </ul>
-                
+
+                <h2 class="ds-u-color--error">Understand the risks:</h2>
+
+                <p>
+                  You have the right to share your health information, but there may be risks. Be sure to review the app's Privacy Policy and Terms and Conditions. You can revoke an app's access to your data at any time by logging in to your <a href=https://www.mymedicare.gov>MyMedicare.gov</a> account or calling us at 1-800-633-4227.
+                </p>
+
                 {% csrf_token %}
 
                 {% for field in form %}
-                    {% if field.is_hidden %}
-                        {{ field }}
-                    {% endif %}
+                  {% if field.is_hidden %}
+                    {{ field }}
+                  {% endif %}
                 {% endfor %}
 
                 {{ form.non_field_errors }}
-       </div>
-    </div>                  
+              </div>
 
-                  
-                   <center>
-                    <div class="ds-l-row">
-                      <div class="ds-l-col--auto">
-                          <input id="approve" type="submit" class="ds-c-button  ds-c-button--big ds-c-button--primary"  name="allow"
-                               value="Yes, approve access"/>
-                      </div>
-                    </div>                  
-      
-                     <div class="ds-l-row">
-                      <div class="ds-l-col--auto">
-			      <input type="submit" class="ds-c-button ds-c-button--outline ds-u-margin-top--1 ds-u-display--block ds-u-md-display--inline-block" value="No, do not approve access" \>
-                      </div>     
-                     </center> 
+              <!-- Authoirzation Buttons Container -->
+              <div class="auth-button-container">
+                <input class="ds-c-button ds-c-button--primary" id="approve" type="submit" name="allow" value="Allow" />
+                <input class="ds-c-button ds-c-button--outline" type="submit"  value="Deny" \>
+              </div>
             </form>
 
-        {% else %}
+          {% else %}
             <h2>Error: {{ error.error }}</h2>
             <p>{{ error.description }}</p>
-        {% endif %}
-    </div>
+          {% endif %}
+        </div>
 
- </section>
-
-
- 
- 
- 
- </article>      
-</section>
+      </section>
+    </article>
+  </section>
 </div>
 {% endblock %}
-
- 

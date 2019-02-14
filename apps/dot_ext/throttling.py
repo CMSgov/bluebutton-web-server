@@ -1,4 +1,6 @@
 from rest_framework.throttling import SimpleRateThrottle
+from django.utils.deprecation import MiddlewareMixin
+
 
 HEADERS = {
     'Remaining': 'X-RateLimit-Remaining',
@@ -18,7 +20,7 @@ class TokenRateThrottle(SimpleRateThrottle):
 
     def get_cache_key(self, request, view):
         try:
-            ident = request.oauth.access_token
+            ident = request.auth
         except AttributeError:
             ident = self.get_ident(request)
 
@@ -46,7 +48,7 @@ class TokenRateThrottle(SimpleRateThrottle):
         return result
 
 
-class ThrottleMiddleware(object):
+class ThrottleMiddleware(MiddlewareMixin):
     scope = 'throttle'
 
     def process_response(self, request, response):

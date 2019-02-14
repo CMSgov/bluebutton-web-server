@@ -28,12 +28,7 @@
               <div class="ctas">
               
               <a class="ds-c-button button--white" href="https://bluebutton.cms.gov/developers/" aria-label="View the documentation" target="_self">View the documentation &rarr;</a>
-                {% if settings.REQUIRE_INVITE_TO_REGISTER %}
-                                                 
-                   <a class="ds-c-button button--white" href="{% url 'accounts_create_account' %}"> aria-label="Sign up for the {{ settings.APPLICATION_TITLE }}" target="_self">Sign up for the {{ settings.APPLICATION_TITLE }} &rarr;</a>
-                {% else %}
-                    <a class="ds-c-button button--white" href="{% url 'request_invite' %}"  aria-label="Sign up for the {{ settings.APPLICATION_TITLE }}" target="_self">Sign up for the {{ settings.APPLICATION_TITLE }} &rarr;</a>
-                {% endif %}
+              <a class="ds-c-button button--white" href="https://sandbox.bluebutton.cms.gov/v1/accounts/create" aria-label="Sign up for the Blue Button 2.0 Sandbox" target="_self">Sign up for the Blue Button 2.0 Sandbox &rarr;</a>
               </div>
 
               </div>

@@ -1,7 +1,7 @@
 import logging
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..forms import EndUserRegisterForm

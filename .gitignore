@@ -75,3 +75,8 @@ db.sqlite3
 .venv
 venv/
 ENV/
+
+# CSS/SCSSS
+*.css.map
+.sass-cache/*
+bluebutton-css/

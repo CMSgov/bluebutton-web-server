@@ -1,25 +1,80 @@
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
-from django.contrib.auth import login
+from django.urls import reverse
 import requests
 from django.http import JsonResponse
 import urllib.request as urllib_request
+from urllib.parse import (
+    urlsplit,
+    urlunsplit,
+)
 import random
 from .models import (
     AnonUserState,
     get_and_update_user,
 )
 import logging
+from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from .authorization import OAuth2Config
+from .signals import response_hook
+from apps.dot_ext.models import Approval
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+def authenticate(request):
+    code = request.GET.get('code')
+    if not code:
+        raise ValidationError('The code parameter is required')
+
+    sls_client = OAuth2Config()
+
+    try:
+        sls_client.exchange(code)
+    except requests.exceptions.HTTPError as e:
+        logger.error("Token request response error {reason}".format(reason=e))
+        raise UpstreamServerException('An error occurred connecting to account.mymedicare.gov')
+
+    userinfo_endpoint = getattr(
+        settings,
+        'SLS_USERINFO_ENDPOINT',
+        'https://test.accounts.cms.gov/v1/oauth/userinfo')
+
+    headers = sls_client.auth_header()
+    headers.update({"X-Request-ID": getattr(request, '__logging_uuid', None)})
+    response = requests.get(userinfo_endpoint,
+                            headers=headers,
+                            verify=sls_client.verify_ssl,
+                            hooks={'response': response_hook})
+
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        logger.error("User info request response error {reason}".format(reason=e))
+        raise UpstreamServerException(
+            'An error occurred connecting to account.mymedicare.gov')
+
+    # Get the userinfo response object
+    user_info = response.json()
+    user = get_and_update_user(user_info)
+    request.user = user
+
+
 @never_cache
 def callback(request):
+    try:
+        authenticate(request)
+    except ValidationError as e:
+        return JsonResponse({
+            "error": e.message,
+        }, status=400)
+    except UpstreamServerException as e:
+        return JsonResponse({
+            "error": e.detail,
+        }, status=502)
 
     state = request.GET.get('state')
     if not state:
@@ -33,45 +88,16 @@ def callback(request):
         return JsonResponse({"error": 'The requested state was not found'}, status=400)
     next_uri = anon_user_state.next_uri
 
-    code = request.GET.get('code')
-    if not code:
-        return JsonResponse({
-            "error": 'The code parameter is required'
-        }, status=400)
+    scheme, netloc, path, query_string, fragment = urlsplit(next_uri)
 
-    sls_client = OAuth2Config()
+    approval = Approval.objects.create(
+        user=request.user)
 
-    try:
-        sls_client.exchange(code)
-    except requests.exceptions.HTTPError as e:
-        logger.error("Token request response error {reason}".format(reason=e))
-        return JsonResponse({
-            "error": 'An error occurred connecting to account.mymedicare.gov'
-        }, status=502)
+    # Only go back to app authorization
+    auth_uri = reverse('dot_ext:authorize-instance', args=[approval.uuid])
+    _, _, auth_path, _, _ = urlsplit(auth_uri)
 
-    userinfo_endpoint = getattr(
-        settings,
-        'SLS_USERINFO_ENDPOINT',
-        'https://test.accounts.cms.gov/v1/oauth/userinfo')
-
-    response = requests.get(userinfo_endpoint,
-                            headers=sls_client.auth_header(),
-                            verify=sls_client.verify_ssl)
-
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        logger.error("User info request response error {reason}".format(reason=e))
-        return JsonResponse({
-            "error": 'An error occurred connecting to account.mymedicare.gov'
-        }, status=502)
-
-    # Get the userinfo response object
-    user_info = response.json()
-    user = get_and_update_user(user_info)
-    login(request, user)
-
-    return HttpResponseRedirect(next_uri)
+    return HttpResponseRedirect(urlunsplit((scheme, netloc, auth_path, query_string, fragment)))
 
 
 def generate_nonce(length=26):

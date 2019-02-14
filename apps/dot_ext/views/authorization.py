@@ -2,11 +2,11 @@ import logging
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
-from oauth2_provider.http import HttpResponseUriRedirect
-from ..forms import AllowForm, SimpleAllowForm
-from ..models import ExpiresIn
+from oauth2_provider.signals import app_authorized
+from ..forms import SimpleAllowForm
+from ..models import Approval
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+log = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class AuthorizationView(DotAuthorizationView):
@@ -18,81 +18,77 @@ class AuthorizationView(DotAuthorizationView):
     login_url = "/mymedicare/login"
     template_name = "design_system/authorize.html"
 
+    def get_initial(self):
+        initial_data = super().get_initial()
+        initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
+        initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
+        return initial_data
 
-class ScopeAuthorizationView(DotAuthorizationView):
+    def get(self, request, *args, **kwargs):
+        kwargs['code_challenge'] = request.GET.get('code_challenge', None)
+        kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
+        return super().get(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        client_id = form.cleaned_data["client_id"]
+        application = get_application_model().objects.get(client_id=client_id)
+        credentials = {
+            "client_id": form.cleaned_data.get("client_id"),
+            "redirect_uri": form.cleaned_data.get("redirect_uri"),
+            "response_type": form.cleaned_data.get("response_type", None),
+            "state": form.cleaned_data.get("state", None),
+            "code_challenge": form.cleaned_data.get("code_challenge", None),
+            "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
+        }
+        scopes = form.cleaned_data.get("scope")
+        allow = form.cleaned_data.get("allow")
+
+        try:
+            uri, headers, body, status = self.create_authorization_response(
+                request=self.request, scopes=scopes, credentials=credentials, allow=allow
+            )
+        except OAuthToolkitError as error:
+            return self.error_response(error, application)
+
+        app_authorized.send(
+            sender=self,
+            request=self.request,
+            token=None,
+            application=application)
+
+        self.success_url = uri
+        log.debug("Success url for the request: {0}".format(self.success_url))
+        return self.redirect(self.success_url, application)
+
+
+class ApprovalView(AuthorizationView):
     """
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+    form_class = SimpleAllowForm
+    login_url = "/mymedicare/login"
+    template_name = "design_system/authorize.html"
 
-    form_class = AllowForm
-
-    def form_valid(self, form):
+    def dispatch(self, request, uuid, *args, **kwargs):
+        # trows DoesNotExist
         try:
-            credentials = {
-                'client_id': form.cleaned_data.get('client_id'),
-                'redirect_uri': form.cleaned_data.get('redirect_uri'),
-                'response_type': form.cleaned_data.get('response_type', None),
-                'state': form.cleaned_data.get('state', None),
-                'form_expires_in': form.cleaned_data.get('expires_in'),
-            }
+            approval = Approval.objects.get(uuid=uuid)
+            if approval.expired:
+                raise Approval.DoesNotExist
+            if approval.application\
+                    and approval.application.client_id != request.GET.get('client_id', None)\
+                    and approval.application.client_id != request.POST.get('client_id', None):
+                raise Approval.DoesNotExist
+            request.user = approval.user
+        except Approval.DoesNotExist:
+            pass
 
-            scopes = form.cleaned_data.get('scope')
-            allow = form.cleaned_data.get('allow')
-            uri, headers, body, status = self.create_authorization_response(
-                request=self.request, scopes=scopes, credentials=credentials, allow=allow)
-            self.success_url = uri
+        result = super(ApprovalView, self).dispatch(request, *args, **kwargs)
 
-            # here we save the expires_in choice from the allow form
-            # into the expires cache table.
-            expires_in = form.cleaned_data.get('expires_in')
-            client_id = form.cleaned_data.get('client_id')
-            user_id = self.request.user.pk
-            ExpiresIn.objects.set_expires_in(client_id, user_id, expires_in)
+        application = self.oauth2_data.get('application', None)
+        if application is not None:
+            approval.application = self.oauth2_data.get('application', None)
+            approval.save()
 
-            logger.debug(
-                "Success url for the request: {0}".format(self.success_url))
-            return HttpResponseUriRedirect(self.success_url)
-
-        except OAuthToolkitError as error:
-            return self.error_response(error)
-
-    def get_form_kwargs(self):
-        kwargs = super(ScopeAuthorizationView, self).get_form_kwargs()
-
-        # the application instance is needed by our custom AllowForm
-        # to properly initialize choices for the scope field
-        if self.request.method == 'GET':
-            kwargs['application'] = self.oauth2_data['application']
-        else:
-            # in case of a PUT or POST request we must load
-            # the application instance from `client_id` param in
-            # the POST dict because self.oauth2_data is empty.
-            client_id = self.request.POST.get('client_id')
-
-            Application = get_application_model()
-            try:
-                application = Application.objects.get(client_id=client_id)
-                kwargs['application'] = application
-            except Application.DoesNotExist:
-                logger.warning(
-                    "no application found with client_id '%s'", client_id)
-
-        return kwargs
-
-    def create_authorization_response(self, request, scopes, credentials, allow):
-        """
-        A wrapper method that calls create_authorization_response on `server_class`
-        instance.
-
-        :param request: The current django.http.HttpRequest object
-        :param credentials: Authorization credentials dictionary containing
-                           `client_id`, `state`, `redirect_uri`, `response_type`
-        :param allow: True if the user authorize the client, otherwise False
-        """
-        # we needed to override this method because it called
-        # split(" ") on the scopes parameter to transform it into a list.
-        # With our custom AllowForm, the scopes parameter is already a string
-        # and we don't need to call `split` here.
-        core = self.get_oauthlib_core()
-        return core.create_authorization_response(request, scopes, credentials, allow)
+        return result

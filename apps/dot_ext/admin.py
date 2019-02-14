@@ -1,6 +1,7 @@
 from django.contrib import admin
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
+from .models import ApplicationLabel
 
 
 Application = get_application_model()
@@ -45,3 +46,11 @@ class MyAccessTokenAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MyAccessToken, MyAccessTokenAdmin)
+
+
+class ApplicationLabelAdmin(admin.ModelAdmin):
+    model = ApplicationLabel
+    filter_horizontal = ('applications',)
+
+
+admin.site.register(ApplicationLabel, ApplicationLabelAdmin)

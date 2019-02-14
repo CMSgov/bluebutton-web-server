@@ -1,17 +1,14 @@
 import json
 import base64
 
-from django.utils import timezone
-from datetime import timedelta
-
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from oauth2_provider.compat import parse_qs, urlparse
-from oauth2_provider.scopes import get_scopes_backend
 from oauth2_provider.models import AccessToken
 
 from apps.test import BaseApiTest
 from ..models import Application
+from apps.authorization.models import DataAccessGrant
 
 
 class TestApplicationUpdateView(BaseApiTest):
@@ -84,16 +81,45 @@ class TestTokenView(BaseApiTest):
     test_username = "9abcdefghijklmnopqrstuvwxyz"
 
     def _create_test_token(self, user, application):
+        # user logs in
+        self.client.force_login(user)
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': application.redirect_uris,
+            'scope': application.scopes().split(" "),
+            'expires_in': 86400,
+            'allow': True,
+        }
+        if application.authorization_grant_type == Application.GRANT_IMPLICIT:
+            payload['response_type'] = 'token'
+        response = self.client.post('/v1/o/authorize/', data=payload)
+        self.client.logout()
+        if response.status_code != 302:
+            raise Exception(response.context_data)
+        self.assertEqual(response.status_code, 302)
+        # now extract the authorization code and use it to request an access_token
+        if application.authorization_grant_type == Application.GRANT_IMPLICIT:
+            fragment = parse_qs(urlparse(response['Location']).fragment)
+            tkn = fragment.pop('access_token')[0]
+        else:
+            query_dict = parse_qs(urlparse(response['Location']).query)
+            authorization_code = query_dict.pop('code')
+            token_request_data = {
+                'grant_type': 'authorization_code',
+                'code': authorization_code,
+                'redirect_uri': application.redirect_uris,
+                'client_id': application.client_id,
+                'client_secret': application.client_secret,
+            }
 
-        now = timezone.now()
-        expires = now + timedelta(days=1)
+            response = self.client.post('/v1/o/token/', data=token_request_data)
+            self.assertEqual(response.status_code, 200)
+            # Now we have a token and refresh token
+            tkn = response.json()['access_token']
 
-        scope = get_scopes_backend().get_available_scopes(application)
-
-        t = AccessToken.objects.create(user=user, application=application,
-                                       token="sample-token-string",
-                                       expires=expires,
-                                       scope=' '.join(scope))
+        t = AccessToken.objects.get(token=tkn)
         return t
 
     def _create_authorization_header(self, client_id, client_secret):
@@ -111,7 +137,7 @@ class TestTokenView(BaseApiTest):
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris='http://example.it')
         application.scope.add(capability_a)
-        tkn = self._create_test_token(anna, application)
+        self._create_test_token(anna, application)
         response = self.client.get(reverse('token_management:token-list'),
                                    HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
                                                                                         application.client_secret),
@@ -119,7 +145,8 @@ class TestTokenView(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         result = response.json()
         expected = [{
-            'id': tkn.id,
+            # can't predict the id in this case
+            'id': result[0]['id'],
             'user': anna.id,
             'application': {
                 'id': application.id,
@@ -134,24 +161,77 @@ class TestTokenView(BaseApiTest):
 
     def test_delete_token_success(self):
         anna = self._create_user(self.test_username, '123456')
+        bob = self._create_user('bob', '123456')
         # create a couple of capabilities
-        capability_a = self._create_capability('token_management', [['DELETE', '/v1/o/tokens/\d+/']], default=False)
+        capability_a = self._create_capability('token_management', [['DELETE', r'/v1/o/tokens/\d+/']], default=False)
         # create an application and add capabilities
         application = self._create_application(
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris='http://example.it')
         application.scope.add(capability_a)
+        other_application = self._create_application(
+            'another app', grant_type=Application.GRANT_IMPLICIT,
+            client_type=Application.CLIENT_PUBLIC,
+            redirect_uris='http://example.it',
+            user=application.user,
+        )
+        other_application.scope.add(capability_a)
         tkn = self._create_test_token(anna, application)
-        response = self.client.delete(reverse('token_management:token-detail', args=[tkn.pk]),
+
+        self.assertTrue(DataAccessGrant.objects.filter(
+            beneficiary=anna,
+            application=application,
+        ).exists())
+
+        response = self.client.get('/v1/fhir/Patient',
+                                   HTTP_AUTHORIZATION="Bearer " + tkn.token)
+        self.assertEqual(response.status_code, 403)
+
+        bob_tkn = self._create_test_token(bob, other_application)
+        self.assertTrue(DataAccessGrant.objects.filter(
+            beneficiary=bob,
+            application=other_application,
+        ).exists())
+
+        response = self.client.get(reverse('token_management:token-list'),
+                                   HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
+                                                                                        application.client_secret),
+                                   HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
+        grant_list = response.json()
+        self.assertEqual(1, len(grant_list))
+        response = self.client.delete(reverse('token_management:token-detail', args=[grant_list[0]['id']]),
                                       HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
                                                                                            application.client_secret),
                                       HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         self.assertEqual(response.status_code, 204)
-        failed_response = self.client.delete(reverse('token_management:token-detail', args=[tkn.pk]),
+        failed_response = self.client.delete(reverse('token_management:token-detail', args=[grant_list[0]['id']]),
                                              HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
                                                                                                   application.client_secret),
                                              HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         self.assertEqual(failed_response.status_code, 404)
+        response = self.client.get('/v1/fhir/Patient',
+                                   HTTP_AUTHORIZATION="Bearer " + tkn.token)
+        self.assertEqual(response.status_code, 401)
+
+        self.assertFalse(DataAccessGrant.objects.filter(
+            beneficiary=anna,
+            application=application,
+        ).exists())
+
+        response = self.client.get('/v1/fhir/Patient',
+                                   HTTP_AUTHORIZATION="Bearer " + bob_tkn.token)
+        # 403 is an expected response if the token is ok but the test can't reach the data server (which it shouldn't)
+        self.assertEqual(response.status_code, 403)
+
+        next_tkn = self._create_test_token(anna, application)
+        response = self.client.get('/v1/fhir/Patient',
+                                   HTTP_AUTHORIZATION="Bearer " + next_tkn.token)
+        self.assertEqual(response.status_code, 403)
+        # self.assertEqual(next_tkn.token, tkn.token)
+        self.assertTrue(DataAccessGrant.objects.filter(
+            beneficiary=anna,
+            application=application,
+        ).exists())
 
     def test_create_token_fail(self):
         self._create_user(self.test_username, '123456')
@@ -172,7 +252,7 @@ class TestTokenView(BaseApiTest):
     def test_update_token_fail(self):
         anna = self._create_user(self.test_username, '123456')
         # create a couple of capabilities
-        capability_a = self._create_capability('token_management', [['PUT', '/v1/o/tokens/\d+/']], default=False)
+        capability_a = self._create_capability('token_management', [['PUT', r'/v1/o/tokens/\d+/']], default=False)
         # create an application and add capabilities
         application = self._create_application(
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
@@ -189,10 +269,12 @@ class TestTokenView(BaseApiTest):
         anna = self._create_user(self.test_username, '123456')
         # create a couple of capabilities
         self._create_capability('token_management', [['GET', '/v1/o/tokens/']], default=False)
+        capability = self._create_capability('test', [], default=True)
         # create an application and add capabilities
         application = self._create_application(
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris='http://example.it')
+        application.scope.add(capability)
         self._create_test_token(anna, application)
 
         response = self.client.get(reverse('token_management:token-list'),

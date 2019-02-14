@@ -41,8 +41,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
-DEBUG = True
-APPEND_SLASH = False
+DEBUG = env('DEBUG', True)
 
 # apps and middlewares
 INSTALLED_APPS = [
@@ -54,31 +53,39 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_csv',
+    'django_filters',
 
     # 1st Party (in-house) ----------
     'apps.accounts',
     'apps.capabilities',
     'apps.wellknown',
+    'apps.health',
 
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
     # could deal with apps.dot_ext.model_name when it encounters a string
+    # TODO I don't think this is needed, apps register as the last item (after the last .)
     'apps.dot_ext.apps.dot_extConfig',
+    'apps.pkce',
     'apps.home',
     'apps.fhir.server',
     'apps.fhir.bluebutton',
     'apps.mymedicare_cb',
+    'apps.authorization',
 
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
-    'social_django',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
     'axes',
 
+    'apps.logging',
 ]
+if env('ENV_SPECIFIC_APPS', False):
+    INSTALLED_APPS += env('ENV_SPECIFIC_APPS')
 
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
@@ -95,11 +102,15 @@ AXES_LOGIN_FAILURE_LIMIT = 5
 AXES_LOCK_OUT_AT_FAILURE = True
 AXES_ONLY_USER_FAILURES = True
 AXES_USERNAME_FORM_FIELD = "username"
+
 # Used for testing for optional apps in templates without causing a crash
 # used in SETTINGS_EXPORT below.
 OPTIONAL_INSTALLED_APPS = ["", ]
+if env('OPTIONAL_INSTALLED_APPS', False):
+    OPTIONAL_INSTALLED_APPS += env('OPTIONAL_INSTALLED_APPS')
 
-MIDDLEWARE_CLASSES = [
+
+MIDDLEWARE = [
     # Middleware that adds headers to the resposne
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -110,10 +121,8 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'social_django.middleware.SocialAuthExceptionMiddleware',
     'apps.dot_ext.throttling.ThrottleMiddleware',
 ]
 
@@ -174,15 +183,18 @@ USE_TZ = True
 # static files and media
 ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', BASE_DIR)
 
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(ASSETS_ROOT, 'collectedstatic')
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
+MEDIA_URL = '/media/'
+STATIC_URL = '/static/'
+STATIC_ROOT = 'collectedstatic'
+
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sitestatic'),
+    os.path.join(BASE_DIR, 'bluebutton-css'),
+    os.path.join(BASE_DIR, 'static'),
 ]
-
 
 # emails
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
@@ -212,7 +224,8 @@ MFA = True
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
 
-LOGGING = {
+# Use env-specific logging config if present
+LOGGING = env("DJANGO_LOGGING", {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
@@ -224,7 +237,7 @@ LOGGING = {
             'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
         },
         'jsonout': {
-            'format': '{"time": "%(asctime)s", "level": "%(levelname)s", '
+            'format': '{"env": "' + env('TARGET_ENV', 'DEV') + '", "time": "%(asctime)s", "level": "%(levelname)s", '
                       '"name": "%(name)s", "message": "%(message)s"}',
             'datefmt': '%Y-%m-%d %H:%M:%S'
 
@@ -265,12 +278,16 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
         },
+        'audit': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
         'performance': {
             'handlers': ['console'],
             'level': 'INFO',
         }
     },
-}
+})
 
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
@@ -282,7 +299,7 @@ OAUTH2_PROVIDER = {
     'OAUTH2_SERVER_CLASS': 'apps.dot_ext.oauth2_server.Server',
     'SCOPES_BACKEND_CLASS': 'apps.dot_ext.scopes.CapabilitiesScopes',
     'OAUTH2_BACKEND_CLASS': 'apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR',
-    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http']
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
 }
 
 # These choices will be available in the expires_in field
@@ -326,6 +343,15 @@ TAG_LINE_2 = env('DJANGO_TAG_LINE_2',
 EXPLAINATION_LINE = 'This service allows Medicare beneficiaries to connect their health data to applications of their choosing.'
 EXPLAINATION_LINE = env('DJANGO_EXPLAINATION_LINE ', EXPLAINATION_LINE)
 
+# Application model settings
+APP_LOGO_SIZE_MAX = env('DJANGO_APP_LOGO_SIZE_MAX', '100')
+APP_LOGO_WIDTH_MAX = env('DJANGO_APP_LOGO_WIDTH_MAX', '128')
+APP_LOGO_HEIGHT_MAX = env('DJANGO_APP_LOGO_HEIGHT_MAX', '128')
+
+# Application label slugs to exclude from externally
+# published lists, like those used for internal use testing.
+APP_LIST_EXCLUDE = env('DJANGO_APP_LIST_EXCLUDE', ['internal-use'])
+
 # LINKS TO DOCS
 DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
 DEVELOPER_DOCS_TITLE = "Documentation"
@@ -359,6 +385,8 @@ SETTINGS_EXPORT = [
     'THEME',
     'STATIC_URL',
     'STATIC_ROOT',
+    'MEDIA_URL',
+    'MEDIA_ROOT',
     'MFA',
     'DEVELOPER_DOCS_URI',
     'DEVELOPER_DOCS_TITLE',
@@ -373,7 +401,6 @@ SETTINGS_EXPORT = [
     'EXPLAINATION_LINE',
     'EXTERNAL_AUTH_NAME',
     'ALLOW_END_USER_EXTERNAL_AUTH',
-    'SOCIAL_AUTH_BACKEND_NAME',
     'OPTIONAL_INSTALLED_APPS',
     'INSTALLED_APPS',
     'REQUIRE_INVITE_TO_REGISTER',
@@ -414,42 +441,11 @@ REQUIRE_AUTHORIZE_APP_FLAG = False
 # Move Admin to a variable url location
 ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 
-# Python Social Auth Settings.
-SOCIAL_AUTH_PIPELINE = (
-    'social_core.pipeline.social_auth.social_details',
-    'social_core.pipeline.social_auth.social_uid',
-    'social_core.pipeline.social_auth.auth_allowed',
-    'social_core.pipeline.social_auth.social_user',
-    'social_core.pipeline.user.get_username',
-    'social_core.pipeline.mail.mail_validation',
-    'social_core.pipeline.user.create_user',
-    'apps.accounts.auth_backends.pipeline.create_user_profile',
-    'apps.fhir.bluebutton.auth_backends.pso_pipeline.set_sample_patient_id',
-    'social_core.pipeline.social_auth.associate_user',
-    'social_core.pipeline.debug.debug',
-    'social_core.pipeline.social_auth.load_extra_data',
-    'social_core.pipeline.user.user_details',
-    'social_core.pipeline.debug.debug'
-)
-
-# Get your own Google Client OAuth2 client and secret.
-# https://console.developers.google.com/apis/credentials
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ''
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
-# The name of an external oauth2 provider.
 ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
-SOCIAL_AUTH_BACKEND_NAME = "google_oauth2"
-
-# python-social-auth settings
-SOCIAL_AUTH_URL_NAMESPACE = 'social'
-
-SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ['next']
-SOCIAL_AUTH_ALWAYS_ASSOCIATE = True
-
 
 MEDICARE_LOGON = True
-MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI ',
+MEDICARE_LOGIN_URI = env('DJANGO_MEDICARE_LOGIN_URI',
                          'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton')
 MEDICARE_REDIRECT_URI = env(
     'DJANGO_MEDICARE_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
@@ -461,6 +457,8 @@ SLS_TOKEN_ENDPOINT = env(
 
 # Since this is internal False may be acceptable.
 SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', True)
+SLS_CLIENT_ID = env('DJANGO_SLS_CLIENT_ID')
+SLS_CLIENT_SECRET = env('DJANGO_SLS_CLIENT_SECRET')
 
 AUTHENTICATION_BACKENDS = ('apps.accounts.email_auth_backend.EmailBackend',
                            'django.contrib.auth.backends.ModelBackend')
@@ -479,3 +477,32 @@ OFFLINE = False
 EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'
 
 BLOCK_HTTP_REDIRECT_URIS = False
+IS_MEDIA_URL_LOCAL = False
+
+if env('TARGET_ENV', '') in ['dev', 'test', 'impl', 'prod']:
+    AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
+    STATICFILES_LOCATION = 'static/'
+    STATICFILES_STORAGE = 'hhs_oauth_server.s3_storage.StaticStorage'
+    STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
+    AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+    MEDIAFILES_LOCATION = 'media/'
+    DEFAULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
+    MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+    # Email config
+    SEND_EMAIL = True
+else:
+    # Setup S3 media storage only for local docker testing.
+    # NOTE: To test, place variables in the .env file of the project root directory.
+    #
+    #     The following ENV variables are needed:
+    #         AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_CUSTOM_DOMAIN
+    AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
+    if AWS_S3_CUSTOM_DOMAIN:
+        AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+        MEDIAFILES_LOCATION = 'media/'
+        STATICFILES_LOCATION = 'static/'
+        DEFAULT_FILE_STORAGE = 'hhs_oauth_server.s3_storage.MediaStorage'
+        MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+    else:
+        # This sets up a media path in urls.py when set for local storage.
+        IS_MEDIA_URL_LOCAL = True
