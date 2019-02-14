@@ -348,6 +348,10 @@ APP_LOGO_SIZE_MAX = env('DJANGO_APP_LOGO_SIZE_MAX', '100')
 APP_LOGO_WIDTH_MAX = env('DJANGO_APP_LOGO_WIDTH_MAX', '128')
 APP_LOGO_HEIGHT_MAX = env('DJANGO_APP_LOGO_HEIGHT_MAX', '128')
 
+# Application label slugs to exclude from externally
+# published lists, like those used for internal use testing.
+APP_LIST_EXCLUDE = env('DJANGO_APP_LIST_EXCLUDE', ['internal-use'])
+
 # LINKS TO DOCS
 DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
 DEVELOPER_DOCS_TITLE = "Documentation"
@@ -383,7 +387,6 @@ SETTINGS_EXPORT = [
     'STATIC_ROOT',
     'MEDIA_URL',
     'MEDIA_ROOT',
-    'IS_MEDIA_URL_LOCAL',
     'MFA',
     'DEVELOPER_DOCS_URI',
     'DEVELOPER_DOCS_TITLE',
