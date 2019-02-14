@@ -109,7 +109,7 @@ def mfa_login(request):
                     # Get User profile
                     up, g_o_c = UserProfile.objects.get_or_create(user=user)
                     # If MFA, send code and redirect
-                    if up.mfa_login_mode in ("EMAIL") and settings.MFA:
+                    if up.mfa_login_mode in ("EMAIL",) and settings.MFA:
                         # Create an MFA message
                         mfac = MFACode.objects.create(
                             user=up.user, mode=up.mfa_login_mode)
