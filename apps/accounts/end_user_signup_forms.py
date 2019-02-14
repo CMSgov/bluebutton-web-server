@@ -1,9 +1,6 @@
 import logging
 import binascii
 from random import randint
-
-from localflavor.us.forms import USPhoneNumberField
-
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User, Group
@@ -207,13 +204,6 @@ class UserSignupForm(forms.Form):
     email = forms.EmailField(max_length=75, label=_("Email"))
     first_name = forms.CharField(max_length=100, label=_("First Name"))
     last_name = forms.CharField(max_length=100, label=_("Last Name"))
-    mobile_phone_number = USPhoneNumberField(required=False,
-                                             label=_("Mobile Phone Number "
-                                                     "(Optional)"),
-                                             help_text=_("We use this for "
-                                                         "multi-factor "
-                                                         "authentication. "
-                                                         "US numbers only."))
 
     password1 = forms.CharField(widget=forms.PasswordInput, max_length=120,
                                 label=_("Password"))
@@ -347,11 +337,6 @@ class AccountSettingsForm(forms.Form):
                                        help_text=_("Change this to turn on "
                                                    "multi-factor "
                                                    "authentication (MFA)."))
-    mobile_phone_number = USPhoneNumberField(required=False,
-                                             help_text=_("US numbers only. "
-                                                         "We use this for "
-                                                         "multi-factor "
-                                                         "authentication."))
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
                                         required=False)
@@ -367,15 +352,6 @@ class AccountSettingsForm(forms.Form):
                 raise forms.ValidationError(_('This email address is '
                                               'already registered.'))
         return email.rstrip().lstrip().lower()
-
-    def clean_mobile_phone_number(self):
-        mobile_phone_number = self.cleaned_data.get('mobile_phone_number', '')
-        mfa_login_mode = self.cleaned_data.get('mfa_login_mode', '')
-        if mfa_login_mode == "SMS" and not mobile_phone_number:
-            raise forms.ValidationError(
-                _('A mobile phone number is required to use SMS-based '
-                  'multi-factor authentication'))
-        return mobile_phone_number
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
