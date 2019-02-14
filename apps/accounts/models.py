@@ -239,7 +239,6 @@ class MFACode(models.Model):
 
     def endpoint(self):
         e = ""
-        up = UserProfile.objects.get(user=self.user)
         if self.mode == "EMAIL" and self.user.email:
             e = self.user.email
         return e
@@ -250,7 +249,6 @@ class MFACode(models.Model):
             expires = now + timedelta(days=1)
             self.expires = expires
             self.code = str(random.randint(1000, 9999))
-            up = UserProfile.objects.get(user=self.user)
             if self.mode == "EMAIL" and self.user.email:
                 # "Send to self.user.email
                 mfa_via_email(self.user, self.code)
