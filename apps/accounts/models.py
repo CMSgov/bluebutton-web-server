@@ -89,7 +89,6 @@ QUESTION_3_CHOICES = (
 MFA_CHOICES = (
     ('', 'None'),
     ('EMAIL', "Email"),
-    ('SMS', "Text Message (SMS)"),
 )
 
 ISSUE_INVITE = (
@@ -240,9 +239,6 @@ class MFACode(models.Model):
 
     def endpoint(self):
         e = ""
-        up = UserProfile.objects.get(user=self.user)
-        if self.mode == "SMS" and up.mobile_phone_number:
-            e = up.mobile_phone_number
         if self.mode == "EMAIL" and self.user.email:
             e = self.user.email
         return e
@@ -253,11 +249,8 @@ class MFACode(models.Model):
             expires = now + timedelta(days=1)
             self.expires = expires
             self.code = str(random.randint(1000, 9999))
-            up = UserProfile.objects.get(user=self.user)
-            if self.mode == "SMS" and not up.mobile_phone_number:
-                logger.info("Cannot send SMS. No phone number on file.")
-            elif self.mode == "EMAIL" and self.user.email:
-                # "Send SMS to self.user.email
+            if self.mode == "EMAIL" and self.user.email:
+                # "Send to self.user.email
                 mfa_via_email(self.user, self.code)
             elif self.mode == "EMAIL" and not self.user.email:
                 logger.info("Cannot send email. No email_on_file.")

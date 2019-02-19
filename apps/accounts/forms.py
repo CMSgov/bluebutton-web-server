@@ -10,7 +10,6 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import Invitation, RequestInvite, UserProfile, create_activation_key, UserRegisterCode
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
-from localflavor.us.forms import USPhoneNumberField
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -146,13 +145,7 @@ class EndUserRegisterForm(forms.Form):
     password_reset_answer_2 = forms.CharField(max_length=50)
     password_reset_question_3 = forms.ChoiceField(choices=QUESTION_3_CHOICES)
     password_reset_answer_3 = forms.CharField(max_length=50)
-    mobile_phone_number = USPhoneNumberField(required=False,
-                                             label=_("Mobile Phone Number "
-                                                     "(Optional)"),
-                                             help_text=_("We use this for "
-                                                         "multi-factor "
-                                                         "authentication. "
-                                                         "US numbers only."))
+
     code = forms.CharField(
         max_length=30,
         label=_('Code'),
@@ -245,13 +238,6 @@ class SignupForm(forms.Form):
                                  label=_("First Name"))
     last_name = forms.CharField(max_length=100,
                                 label=_("Last Name"))
-    mobile_phone_number = USPhoneNumberField(required=False,
-                                             label=_("Mobile Phone Number "
-                                                     "(Optional)"),
-                                             help_text=_("We use this for "
-                                                         "multi-factor "
-                                                         "authentication. "
-                                                         "US numbers only."))
     organization_name = forms.CharField(max_length=100,
                                         label=_("Organization Name"),
                                         required=True
@@ -378,11 +364,6 @@ class AccountSettingsForm(forms.Form):
                                        help_text=_("Change this to turn on "
                                                    "multi-factor "
                                                    "authentication (MFA)."))
-    mobile_phone_number = USPhoneNumberField(required=False,
-                                             help_text=_("US numbers only. "
-                                                         "We use this for "
-                                                         "multi-factor "
-                                                         "authentication."))
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
                                         required=True)
@@ -404,12 +385,3 @@ class AccountSettingsForm(forms.Form):
                 raise forms.ValidationError(_('This email address is '
                                               'already registered.'))
         return email.rstrip().lstrip().lower()
-
-    def clean_mobile_phone_number(self):
-        mobile_phone_number = self.cleaned_data.get('mobile_phone_number', '')
-        mfa_login_mode = self.cleaned_data.get('mfa_login_mode', '')
-        if mfa_login_mode == "SMS" and not mobile_phone_number:
-            raise forms.ValidationError(
-                _('A mobile phone number is required to use SMS-based '
-                  'multi-factor authentication'))
-        return mobile_phone_number
