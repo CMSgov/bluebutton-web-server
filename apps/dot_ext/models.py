@@ -20,6 +20,7 @@ from oauth2_provider.models import (
 from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
 from apps.dot_ext.validators import validate_notags
+from django.template.defaultfilters import truncatechars
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -119,6 +120,10 @@ class ApplicationLabel(models.Model):
     slug = models.SlugField(db_index=True, unique=True)
     description = models.TextField()
     applications = models.ManyToManyField(Application, null=True, blank=True)
+
+    @property
+    def short_description(self):
+        return truncatechars(self.description, 80)
 
 
 class ExpiresInManager(models.Manager):
