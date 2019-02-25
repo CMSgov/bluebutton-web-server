@@ -51,6 +51,8 @@ admin.site.register(MyAccessToken, MyAccessTokenAdmin)
 class ApplicationLabelAdmin(admin.ModelAdmin):
     model = ApplicationLabel
     filter_horizontal = ('applications',)
+    list_display = ("name", "slug", "short_description")
+    list_filter = ("name", "slug")
 
 
 admin.site.register(ApplicationLabel, ApplicationLabelAdmin)
