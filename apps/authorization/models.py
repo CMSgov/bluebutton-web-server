@@ -33,10 +33,14 @@ class ArchivedDataAccessGrant(models.Model):
     beneficiary = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        db_constraint=False,
+        null=True,
     )
     application = models.ForeignKey(
         oauth2_settings.APPLICATION_MODEL,
         on_delete=models.CASCADE,
+        db_constraint=False,
+        null=True,
     )
     created_at = models.DateTimeField()
     archived_at = models.DateTimeField(auto_now_add=True)
