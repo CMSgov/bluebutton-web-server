@@ -6,7 +6,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 from django.utils.dateparse import parse_duration
 from django.urls import reverse
-from django.db import models
+from django.db import models, transaction
 from django.db.models.signals import post_delete
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -193,12 +193,12 @@ class ArchivedToken(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True, db_constraint=False,
         related_name="%(app_label)s_%(class)s"
     )
     token = models.CharField(max_length=255, unique=True, )
     application = models.ForeignKey(
-        oauth2_settings.APPLICATION_MODEL, on_delete=models.CASCADE, blank=True, null=True,
+        oauth2_settings.APPLICATION_MODEL, on_delete=models.CASCADE, blank=True, null=True, db_constraint=False,
     )
     expires = models.DateTimeField()
     scope = models.TextField(blank=True)
@@ -233,26 +233,4 @@ def archive_token(sender, instance=None, **kwargs):
     )
 
 
-def application_post_delete(sender, instance=None, **kwargs):
-    archived_grants = ArchivedDataAccessGrant.objects.filter(application=instance).all()
-    for archived_grant in archived_grants:
-        archived_grant.delete()
-
-    archived_tokens = ArchivedToken.objects.filter(application=instance).all()
-    for archived_token in archived_tokens:
-        archived_token.delete()
-
-
-def user_post_delete(sender, instance=None, **kwargs):
-    archived_grants = ArchivedDataAccessGrant.objects.filter(beneficiary=instance).all()
-    for archived_grant in archived_grants:
-        archived_grant.delete()
-
-    archived_tokens = ArchivedToken.objects.filter(user=instance).all()
-    for archived_token in archived_tokens:
-        archived_token.delete()
-
-
 post_delete.connect(archive_token, sender='oauth2_provider.AccessToken')
-post_delete.connect(application_post_delete, sender='dot_ext.Application')
-post_delete.connect(user_post_delete, sender=settings.AUTH_USER_MODEL)

@@ -316,9 +316,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.delete()
         # Test related objects are deleted
         self.assertFalse(AccessToken.objects.filter(token=tkn).exists())
+        self.assertTrue(ArchivedToken.objects.filter(token=tkn).exists())
         self.assertFalse(RefreshToken.objects.filter(token=refresh_tkn).exists())
         self.assertFalse(DataAccessGrant.objects.filter(application__pk=application_pk).exists())
-        self.assertFalse(ArchivedDataAccessGrant.objects.filter(application__pk=application_pk).exists())
+        self.assertTrue(ArchivedDataAccessGrant.objects.filter(application__pk=application_pk).exists())
 
     def test_user_delete_after_auth(self):
         # Test that there are no errors with cascading deletes
@@ -370,6 +371,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         user.delete()
         # Test related objects are deleted
         self.assertFalse(AccessToken.objects.filter(token=tkn).exists())
+        self.assertTrue(ArchivedToken.objects.filter(token=tkn).exists())
+        self.assertTrue(ArchivedDataAccessGrant.objects.filter(application__pk=application.pk).exists())
         self.assertFalse(RefreshToken.objects.filter(token=refresh_tkn).exists())
-        self.assertFalse(DataAccessGrant.objects.filter(beneficiary__pk=user_pk).exists())
-        self.assertFalse(ArchivedDataAccessGrant.objects.filter(beneficiary__pk=user_pk).exists())
