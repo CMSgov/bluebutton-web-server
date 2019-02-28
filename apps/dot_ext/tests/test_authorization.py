@@ -372,5 +372,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         # Test related objects are deleted
         self.assertFalse(AccessToken.objects.filter(token=tkn).exists())
         self.assertTrue(ArchivedToken.objects.filter(token=tkn).exists())
-        self.assertTrue(ArchivedDataAccessGrant.objects.filter(application__pk=application.pk).exists())
         self.assertFalse(RefreshToken.objects.filter(token=refresh_tkn).exists())
+        self.assertFalse(DataAccessGrant.objects.filter(beneficiary__pk=user_pk).exists())
+        self.assertTrue(ArchivedDataAccessGrant.objects.filter(beneficiary__pk=user_pk).exists())

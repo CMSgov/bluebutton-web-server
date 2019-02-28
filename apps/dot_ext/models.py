@@ -6,7 +6,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 from django.utils.dateparse import parse_duration
 from django.urls import reverse
-from django.db import models, transaction
+from django.db import models
 from django.db.models.signals import post_delete
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -19,7 +19,6 @@ from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
 from apps.dot_ext.validators import validate_notags
 from django.template.defaultfilters import truncatechars
-from apps.authorization.models import ArchivedDataAccessGrant
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
