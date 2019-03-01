@@ -4,7 +4,6 @@ import logging
 import uuid
 from datetime import datetime
 from urllib.parse import urlparse
-
 from django.utils.dateparse import parse_duration
 from django.urls import reverse
 from django.db import models
@@ -12,7 +11,6 @@ from django.db.models.signals import post_delete
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
-
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import (
     AbstractApplication,
@@ -21,6 +19,7 @@ from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
 from apps.dot_ext.validators import validate_notags
 from django.template.defaultfilters import truncatechars
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -193,12 +192,12 @@ class ArchivedToken(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True, db_constraint=False,
         related_name="%(app_label)s_%(class)s"
     )
     token = models.CharField(max_length=255, unique=True, )
     application = models.ForeignKey(
-        oauth2_settings.APPLICATION_MODEL, on_delete=models.CASCADE, blank=True, null=True,
+        oauth2_settings.APPLICATION_MODEL, on_delete=models.CASCADE, blank=True, null=True, db_constraint=False,
     )
     expires = models.DateTimeField()
     scope = models.TextField(blank=True)
@@ -221,16 +220,16 @@ class ExpiresIn(models.Model):
 
 
 def archive_token(sender, instance=None, **kwargs):
-    archived_token = ArchivedToken()
     tkn = instance
-    archived_token.user = tkn.user
-    archived_token.token = tkn.token
-    archived_token.application = tkn.application
-    archived_token.expires = tkn.expires
-    archived_token.scope = tkn.scope
-    archived_token.created = tkn.created
-    archived_token.updated = tkn.updated
-    archived_token.save()
+    ArchivedToken.objects.get_or_create(
+        user=tkn.user,
+        token=tkn.token,
+        application=tkn.application,
+        expires=tkn.expires,
+        scope=tkn.scope,
+        created=tkn.created,
+        updated=tkn.updated,
+    )
 
 
 post_delete.connect(archive_token, sender='oauth2_provider.AccessToken')
