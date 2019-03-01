@@ -2,14 +2,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.urlpatterns import format_suffix_patterns
 from django.conf.urls import include, url
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance
 from apps.home.views import home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
-from hhs_oauth_server import views
 
 admin.autodiscover()
 
@@ -25,15 +23,12 @@ urlpatterns = [
     url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
     url(r'^v1/o/', include('apps.dot_ext.urls')),
     url(r'^v1/o/', include('apps.authorization.urls')),
+    url(r'^v1/', include('apps.openapi.urls')),
     url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
 
 
     url(r'^' + ADMIN_REDIRECTOR + 'admin/', admin.site.urls),
 ]
-urlpatterns += format_suffix_patterns(
-    [url(r'^v1/openapi', views.OpenAPI.as_view())],
-    allowed=['json', 'yaml'],
-    suffix_required=True)
 
 # If running in local development, add the media and static urls:
 if settings.IS_MEDIA_URL_LOCAL is True:
