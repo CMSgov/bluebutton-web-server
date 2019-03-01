@@ -25,7 +25,6 @@ psycopg2
 sqlparse
 Pillow
 boto3
-pyyaml
 djangorestframework-yaml
 
 # notifications

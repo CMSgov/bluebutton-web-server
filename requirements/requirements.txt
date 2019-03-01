@@ -42,7 +42,7 @@ pyjwt==1.6.4
 python-dateutil==2.7.5    # via botocore
 python-openid==2.2.5
 pytz==2018.5
-pyyaml==3.13
+pyyaml==4.2b4             # via djangorestframework-yaml
 requests-oauthlib==1.0.0
 requests==2.20.0
 s3transfer==0.1.13        # via boto3
