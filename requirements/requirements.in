@@ -25,6 +25,7 @@ psycopg2
 sqlparse
 Pillow
 boto3
+djangorestframework-yaml
 
 # notifications
 django-ses

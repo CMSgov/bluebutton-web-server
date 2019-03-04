@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
     url(r'^v1/o/', include('apps.dot_ext.urls')),
     url(r'^v1/o/', include('apps.authorization.urls')),
+    url(r'^v1/', include('apps.openapi.urls')),
     url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
 
 

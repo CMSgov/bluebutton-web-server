@@ -27,6 +27,7 @@ django-settings-export==1.2.1
 django-storages==1.7.1
 django==2.1.7
 djangorestframework-csv==2.1.0
+djangorestframework-yaml==1.0.3
 djangorestframework==3.8.2
 docutils==0.14            # via botocore
 future==0.16.0            # via django-ses
@@ -41,6 +42,7 @@ pyjwt==1.6.4
 python-dateutil==2.7.5    # via botocore
 python-openid==2.2.5
 pytz==2018.5
+pyyaml==4.2b4             # via djangorestframework-yaml
 requests-oauthlib==1.0.0
 requests==2.20.0
 s3transfer==0.1.13        # via boto3

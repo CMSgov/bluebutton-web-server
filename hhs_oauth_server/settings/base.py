@@ -13,6 +13,8 @@ from .themes import THEMES, THEME_SELECTED
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, '..')
 
+OPENAPI_DOC = os.path.join(BASE_DIR, "bluebutton-openapi-doc/bluebutton/openapi.yaml")
+
 # security
 SECRET_KEY = env('DJANGO_SECRET_KEY',
                  'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR')
@@ -83,6 +85,7 @@ INSTALLED_APPS = [
     'axes',
 
     'apps.logging',
+    'apps.openapi',
 ]
 if env('ENV_SPECIFIC_APPS', False):
     INSTALLED_APPS += env('ENV_SPECIFIC_APPS')
