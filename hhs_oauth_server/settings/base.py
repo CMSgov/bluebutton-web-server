@@ -439,6 +439,8 @@ ORGANIZATION_NAME = 'CMS Medicare Blue Button'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/v1/accounts/mfa/login'
 
+REQUIRE_AUTHORIZE_APP_FLAG = False
+
 # Move Admin to a variable url location
 ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 
