@@ -115,14 +115,14 @@ class Application(AbstractApplication):
         return allowed_schemes
 
     # Save a file to application media storage
-    def store_media_file(self, logo_image, filename):
+    def store_media_file(self, file, filename):
         uri = None
-        if logo_image:
-            if getattr(logo_image, 'name', False):
+        if file:
+            if getattr(file, 'name', False):
                 file_path = "applications/" + hashlib.sha256(str(self.pk).encode('utf-8')).hexdigest() + "/" + filename
                 if default_storage.exists(file_path):
                     default_storage.delete(file_path)
-                default_storage.save(file_path, logo_image)
+                default_storage.save(file_path, file)
                 if default_storage.exists(file_path):
                     uri = settings.MEDIA_URL + file_path
         return uri
