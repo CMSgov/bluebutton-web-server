@@ -2,6 +2,7 @@ from django.contrib import admin
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 from .models import ApplicationLabel
+from .forms import CustomAdminApplicationForm
 
 
 Application = get_application_model()
@@ -23,6 +24,7 @@ class MyApplication(Application):
 
 class MyApplicationAdmin(admin.ModelAdmin):
 
+    form = CustomAdminApplicationForm
     list_display = ("name", "user", "authorization_grant_type", "client_id",
                     "skip_authorization", "scopes", "created", "updated")
     list_filter = ("name", "user", "client_type", "authorization_grant_type",
