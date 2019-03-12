@@ -11,17 +11,14 @@ import logging
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-logo_image_field = forms.ImageField(label='Logo URI Image Upload', required=False,
-                                    help_text="Upload your logo image file here in JPEG (.jpg) format! "
-                                    "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
-                                    "This will update the Logo URI after saving."
-                                    % (settings.APP_LOGO_SIZE_MAX, settings.APP_LOGO_WIDTH_MAX,
-                                       settings.APP_LOGO_HEIGHT_MAX))
-
-
 class CustomRegisterApplicationForm(forms.ModelForm):
 
-    logo_image = logo_image_field
+    logo_image = forms.ImageField(label='Logo URI Image Upload', required=False,
+                                  help_text="Upload your logo image file here in JPEG (.jpg) format! "
+                                  "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
+                                  "This will update the Logo URI after saving."
+                                  % (settings.APP_LOGO_SIZE_MAX, settings.APP_LOGO_WIDTH_MAX,
+                                     settings.APP_LOGO_HEIGHT_MAX))
 
     def __init__(self, user, *args, **kwargs):
         agree_label = u'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*' % (
@@ -141,79 +138,11 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         app = self.instance
-        logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
-                                                             app.name)
-        logger.info(logmsg)
-        app = super().save(*args, **kwargs)
-        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None), "logo.jpg")
-        if uri:
-            app.logo_uri = uri
-            app.save()
-        return app
-
-
-class CustomAdminApplicationForm(forms.ModelForm):
-
-    logo_image_bypass = forms.BooleanField(label='Bypass Logo Image Upload Restrictions', required=False,
-                                           help_text="If checked, this will bypass image type, size and dimension checks. ")
-    logo_image = logo_image_field
-
-    class Meta:
-        model = get_application_model()
-        fields = (
-            'client_id',
-            'user',
-            'client_type',
-            'authorization_grant_type',
-            'client_secret',
-            'name',
-            'skip_authorization',
-            'scope',
-            'agree',
-            'op_tos_uri',
-            'op_policy_uri',
-            'client_uri',
-            'website_uri',
-            'redirect_uris',
-            'logo_uri',
-            'logo_image',
-            'logo_image_bypass',
-            'tos_uri',
-            'policy_uri',
-            'software_id',
-            'contacts',
-            'support_email',
-            'support_phone_number',
-            'description',
-            'active',
-            'first_active',
-            'last_active',
-        )
-
-    required_css_class = 'required'
-
-    def clean(self):
-        logo_image_bypass = self.cleaned_data.get('logo_image_bypass')
-        logo_image = self.cleaned_data.get('logo_image')
-        if getattr(logo_image, 'name', False) and not logo_image_bypass:
-            validate_logo_image(logo_image)
-        return self.cleaned_data
-
-    def clean_name(self):
-        name = self.cleaned_data.get('name')
-        app_model = get_application_model()
-        if app_model.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("""
-                                        It looks like this application name
-                                        is already in use with another app.
-                                        Please enter a different application
-                                        name to prevent future errors.
-                                        Note that names are case-insensitive.
-                                        """)
-        return name
-
-    def save(self, *args, **kwargs):
-        app = self.instance
+        # Only log agreement from a Register form
+        if app.agree and type(self) == CustomRegisterApplicationForm:
+            logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
+                                                                 app.name)
+            logger.info(logmsg)
         app = super().save(*args, **kwargs)
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None), "logo.jpg")
         if uri:

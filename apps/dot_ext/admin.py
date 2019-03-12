@@ -1,8 +1,10 @@
 from django.contrib import admin
+from django.forms import BooleanField, ModelForm
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 from .models import ApplicationLabel
-from .forms import CustomAdminApplicationForm
+from .forms import CustomRegisterApplicationForm
+from apps.dot_ext.validators import validate_logo_image
 
 
 Application = get_application_model()
@@ -20,6 +22,69 @@ class MyApplication(Application):
     class Meta:
         proxy = True
         app_label = "bluebutton"
+
+
+class CustomAdminApplicationForm(CustomRegisterApplicationForm):
+
+    logo_image_bypass = BooleanField(label='Bypass Logo Image Upload Restrictions', required=False,
+                                           help_text="If checked, this will bypass image type, size and dimension checks. ")
+
+    def __init__(self, *args, **kwargs):
+        super(ModelForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = MyApplication
+        fields = (
+            'client_id',
+            'user',
+            'client_type',
+            'authorization_grant_type',
+            'client_secret',
+            'name',
+            'skip_authorization',
+            'scope',
+            'agree',
+            'op_tos_uri',
+            'op_policy_uri',
+            'client_uri',
+            'website_uri',
+            'redirect_uris',
+            'logo_uri',
+            'logo_image',
+            'logo_image_bypass',
+            'tos_uri',
+            'policy_uri',
+            'software_id',
+            'contacts',
+            'support_email',
+            'support_phone_number',
+            'description',
+            'active',
+            'first_active',
+            'last_active',
+        )
+
+    def clean(self):
+        logo_image_bypass = self.cleaned_data.get('logo_image_bypass')
+        logo_image = self.cleaned_data.get('logo_image')
+        if getattr(logo_image, 'name', False) and not logo_image_bypass:
+            validate_logo_image(logo_image)
+        return self.cleaned_data
+
+    def clean_name(self):
+        return super().clean_name()
+
+    def clean_agree(self):
+        return self.cleaned_data.get('agree')
+
+    def clean_redirect_uris(self):
+        return self.cleaned_data.get('redirect_uris')
+
+    def clean_logo_image(self):
+        return self.cleaned_data.get('logo_image')
+
+    def save(self, *args, **kwargs):
+        return super().save(*args, **kwargs)
 
 
 class MyApplicationAdmin(admin.ModelAdmin):
