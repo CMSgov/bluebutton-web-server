@@ -5,7 +5,6 @@ from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.dot_ext.validators import validate_logo_image
-from apps.dot_ext.storage import store_logo_image
 import logging
 
 
@@ -13,6 +12,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
+
     logo_image = forms.ImageField(label='Logo URI Image Upload', required=False,
                                   help_text="Upload your logo image file here in JPEG (.jpg) format! "
                                   "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
@@ -138,11 +138,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         app = self.instance
-        logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
-                                                             app.name)
-        logger.info(logmsg)
+        # Only log agreement from a Register form
+        if app.agree and type(self) == CustomRegisterApplicationForm:
+            logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
+                                                                 app.name)
+            logger.info(logmsg)
         app = super().save(*args, **kwargs)
-        uri = store_logo_image(self.cleaned_data.pop('logo_image', None), app.pk)
+        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None), "logo.jpg")
         if uri:
             app.logo_uri = uri
             app.save()

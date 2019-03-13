@@ -19,6 +19,7 @@ from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
 from apps.dot_ext.validators import validate_notags
 from django.template.defaultfilters import truncatechars
+from django.core.files.storage import default_storage
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -112,6 +113,19 @@ class Application(AbstractApplication):
             scheme = urlparse(uri).scheme
             allowed_schemes.append(scheme)
         return allowed_schemes
+
+    # Save a file to application media storage
+    def store_media_file(self, file, filename):
+        uri = None
+        if file:
+            if getattr(file, 'name', False):
+                file_path = "applications/" + hashlib.sha256(str(self.pk).encode('utf-8')).hexdigest() + "/" + filename
+                if default_storage.exists(file_path):
+                    default_storage.delete(file_path)
+                default_storage.save(file_path, file)
+                if default_storage.exists(file_path):
+                    uri = settings.MEDIA_URL + file_path
+        return uri
 
 
 class ApplicationLabel(models.Model):
