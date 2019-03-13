@@ -1,10 +1,9 @@
 from django.contrib import admin
-from django.forms import BooleanField, ModelForm
+from django.forms import ModelForm
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 from .models import ApplicationLabel
 from .forms import CustomRegisterApplicationForm
-from apps.dot_ext.validators import validate_logo_image
 
 
 Application = get_application_model()
@@ -25,9 +24,6 @@ class MyApplication(Application):
 
 
 class CustomAdminApplicationForm(CustomRegisterApplicationForm):
-
-    logo_image_bypass = BooleanField(label='Bypass Logo Image Upload Restrictions', required=False,
-                                           help_text="If checked, this will bypass image type, size and dimension checks. ")
 
     def __init__(self, *args, **kwargs):
         super(ModelForm, self).__init__(*args, **kwargs)
@@ -51,7 +47,6 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             'redirect_uris',
             'logo_uri',
             'logo_image',
-            'logo_image_bypass',
             'tos_uri',
             'policy_uri',
             'software_id',
@@ -65,10 +60,6 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         )
 
     def clean(self):
-        logo_image_bypass = self.cleaned_data.get('logo_image_bypass')
-        logo_image = self.cleaned_data.get('logo_image')
-        if getattr(logo_image, 'name', False) and not logo_image_bypass:
-            validate_logo_image(logo_image)
         return self.cleaned_data
 
     def clean_name(self):
@@ -81,7 +72,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         return self.cleaned_data.get('redirect_uris')
 
     def clean_logo_image(self):
-        return self.cleaned_data.get('logo_image')
+        return super().clean_logo_image()
 
     def save(self, *args, **kwargs):
         return super().save(*args, **kwargs)
