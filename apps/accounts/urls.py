@@ -42,7 +42,6 @@ urlpatterns = [
     url(r'mfa/confirm/(?P<uid>[^/]+)/', waffle_switch('login')(mfa_code_confirm),
         name='mfa_code_confirm'),
 
-
     # Reset password? ---------------------------------------
     url(r'^reset-password$', waffle_switch('login')(reset_password),
         name='reset_password'),
