@@ -1,5 +1,4 @@
 import logging
-from random import randint
 from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
@@ -8,38 +7,11 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import ugettext_lazy as _
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
-from .models import Invitation, RequestInvite, UserProfile, create_activation_key, UserRegisterCode
+from .models import Invitation, UserProfile, create_activation_key, UserRegisterCode
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-
-class RequestInviteForm(forms.ModelForm):
-
-    class Meta:
-        model = RequestInvite
-        fields = ('first_name', 'last_name', 'email',)
-
-    human_x = randint(1, 9)
-    human_y = randint(1, 9)
-    human_z = human_x + human_y
-    human_q = ('What is %s + %s?' % (human_x, human_y))
-    human = forms.CharField(
-        max_length=30,
-        label=_(human_q),
-        help_text='We are asking this to make sure you are human. '
-                  'Hint: the answer is %s.' % human_z,
-    )
-    required_css_class = 'required'
-
-    def clean_human(self):
-        human = self.cleaned_data.get('human', '')
-        logger.debug("Compare [%s] to [%s]" % (str(human), str(self.human_z)))
-        if str(human) != str(self.human_z):
-            raise forms.ValidationError(_('You are either not human or '
-                                          'just just really bad at math.'))
-        return human
 
 
 class SecretQuestionForm(forms.Form):
@@ -219,16 +191,7 @@ class EndUserRegisterForm(forms.Form):
 
 
 class SignupForm(forms.Form):
-    if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
-        invitation_code = forms.CharField(max_length=30,
-                                          label=_("Invitation Code"),
-                                          help_text=_("An Invitation Code is "
-                                                      "needed in order to "
-                                                      "create your account. "
-                                                      "<br/>You "
-                                                      "probably received one by "
-                                                      "email.")
-                                          )
+
     email = forms.EmailField(max_length=255,
                              label=_("Email"),
                              help_text=_("Your email address is needed for "
@@ -293,23 +256,7 @@ class SignupForm(forms.Form):
         else:
             return email.rstrip().lstrip().lower()
 
-    if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
-        def clean_invitation_code(self):
-            invitation_code = self.cleaned_data['invitation_code']
-            if Invitation.objects.filter(valid=True,
-                                         code=invitation_code).count() != 1:
-                raise forms.ValidationError(
-                    _('The invitation code is not valid.'))
-            return invitation_code
-
     def save(self):
-        if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
-            invitation_code = self.cleaned_data['invitation_code']
-            # make the invitation a invalid/spent.
-            invite = Invitation.objects.get(
-                code=str(invitation_code), valid=True)
-            invite.valid = False
-            invite.save()
 
         new_user = User.objects.create_user(
             username=self.cleaned_data['email'],

@@ -1,7 +1,6 @@
 from django.conf.urls import url
 from .views.core import (create_account,
                          account_settings,
-                         request_invite,
                          mylogout,
                          activation_verify,
                          )
@@ -46,11 +45,6 @@ urlpatterns = [
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
         mfa_code_confirm, name='mfa_code_confirm'),
-
-    # Request a Developer invite to signup ---------------------------
-    url(r'^request-invite$',
-        request_invite,
-        name='request_invite'),
 
     # Reset password? ---------------------------------------
     url(r'^reset-password$', reset_password, name='reset_password'),
