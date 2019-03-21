@@ -7,7 +7,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import ugettext_lazy as _
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
-from .models import Invitation, UserProfile, create_activation_key, UserRegisterCode
+from .models import UserProfile, create_activation_key
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
 
 
@@ -94,100 +94,6 @@ class CodeLoginForm(forms.Form):
     def clean_username(self):
         username = self.cleaned_data.get('username', '')
         return username.rstrip().lstrip().lower()
-
-
-class EndUserRegisterForm(forms.Form):
-    code = forms.CharField(
-        max_length=30,
-        label=_('Code'),
-        help_text="The code provided by your accountable care organization")
-    username = forms.CharField(max_length=30, label=_('Username'),
-                               help_text="Your desired user name")
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=120,
-                                label=_('Password'),
-                                help_text="Set your password")
-
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=120,
-                                label=_('Password (again)'),
-                                help_text="Set your Password")
-
-    password_reset_question_1 = forms.ChoiceField(choices=QUESTION_1_CHOICES)
-    password_reset_answer_1 = forms.CharField(max_length=50)
-    password_reset_question_2 = forms.ChoiceField(choices=QUESTION_2_CHOICES)
-    password_reset_answer_2 = forms.CharField(max_length=50)
-    password_reset_question_3 = forms.ChoiceField(choices=QUESTION_3_CHOICES)
-    password_reset_answer_3 = forms.CharField(max_length=50)
-
-    code = forms.CharField(
-        max_length=30,
-        label=_('Code'),
-        help_text="The code provided to you.")
-    required_css_class = 'required'
-
-    def clean_code(self):
-        code = self.cleaned_data.get('code')
-        if not UserRegisterCode.objects.filter(code=code, used=False).exists():
-            raise forms.ValidationError(_('The code provided is invalid.'))
-        return code
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username', '')
-        return username.rstrip().lstrip().lower()
-
-    def clean_password2(self):
-        password1 = self.cleaned_data.get('password1', '')
-        password2 = self.cleaned_data.get('password2', '')
-        if password1 != password2:
-            raise forms.ValidationError(_('The two password fields '
-                                          'didn\'t match.'))
-
-        try:
-            validate_password(password1)
-        except ValidationError as err:
-            raise forms.ValidationError(err.error_list[0])
-        return password2
-
-    def save(self):
-
-        code = self.cleaned_data.get('code', '')
-        # Get the invitation.
-        urc = UserRegisterCode.objects.get(code=code, used=False)
-
-        new_user = User.objects.create_user(
-            username=self.cleaned_data['username'],
-            first_name=urc.first_name,
-            last_name=urc.last_name,
-            password=self.cleaned_data['password1'],
-            email=urc.email,
-            is_active=False)
-
-        UserProfile.objects.create(user=new_user,
-                                   user_type="BEN",
-                                   create_applications=False,
-                                   password_reset_question_1=self.cleaned_data[
-                                       'password_reset_question_1'],
-                                   password_reset_answer_1=self.cleaned_data[
-                                       'password_reset_answer_1'],
-                                   password_reset_question_2=self.cleaned_data[
-                                       'password_reset_question_2'],
-                                   password_reset_answer_2=self.cleaned_data[
-                                       'password_reset_answer_2'],
-                                   password_reset_question_3=self.cleaned_data[
-                                       'password_reset_question_3'],
-                                   password_reset_answer_3=self.cleaned_data[
-                                       'password_reset_answer_3']
-                                   )
-        group = Group.objects.get(name='BlueButton')
-        new_user.groups.add(group)
-
-        # Add the user id to the crosswalk...
-        from ..fhir.bluebutton.models import Crosswalk
-        Crosswalk.objects.create(user=new_user, user_id_hash=urc.user_id_hash)
-
-        # Send a verification email
-        create_activation_key(new_user)
-        urc.delete()
-        return new_user
 
 
 class SignupForm(forms.Form):

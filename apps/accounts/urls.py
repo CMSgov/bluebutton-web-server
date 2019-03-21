@@ -15,7 +15,6 @@ from .views.password_reset import (change_secret_questions,
                                    secret_question_challenge_3)
 
 from .views.mfa import mfa_code_confirm, mfa_login
-from .views.user_code_login import user_code_register
 from .views.api_profile import my_profile
 
 
@@ -38,9 +37,6 @@ urlpatterns = [
 
     # MFA URLs ------------------------------------------
     url(r'^mfa/login$', mfa_login, name='mfa_login'),
-
-    url(r'^user-code/register$', user_code_register, name='user_code_register'),
-
 
     # Confirm MFA ------------------------
     url(r'mfa/confirm/(?P<uid>[^/]+)/',
