@@ -3,7 +3,7 @@ from django.test.client import Client
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from apps.accounts.models import Invitation, UserProfile
+from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from django.conf import settings
 
@@ -16,7 +16,6 @@ class CreateDeveloperAccountTestCase(TestCase):
     fixtures = ['testfixture']
 
     def setUp(self):
-        Invitation.objects.create(code='1234', email='bambam@example.com')
         Group.objects.create(name='BlueButton')
         self.client = Client()
         self.url = reverse('accounts_create_account')
@@ -26,7 +25,6 @@ class CreateDeveloperAccountTestCase(TestCase):
         Create an Account Valid
         """
         form_data = {
-            'invitation_code': '1234',
             'email': 'BamBam@Example.com',
             'organization_name': 'transhealth',
             'password1': 'bedrocks',
