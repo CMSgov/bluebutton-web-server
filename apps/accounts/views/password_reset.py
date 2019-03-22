@@ -11,8 +11,10 @@ from ..forms import (ChangeSecretQuestionsForm, PasswordResetForm,
                      PasswordResetRequestForm, SecretQuestionForm)
 from ..models import UserProfile, ValidPasswordResetKey
 from django.contrib.auth import authenticate, login
+from waffle.decorators import waffle_flag
 
 
+@waffle_flag('login-global')
 def reset_password(request):
 
     name = _('Reset Password')
@@ -39,6 +41,7 @@ def reset_password(request):
         return HttpResponseRedirect(reverse('home'))
 
 
+@waffle_flag('login-global')
 def password_reset_email_verify(request, reset_password_key=None):
     vprk = get_object_or_404(ValidPasswordResetKey,
                              reset_password_key=reset_password_key)
@@ -63,6 +66,7 @@ def password_reset_email_verify(request, reset_password_key=None):
                    'reset_password_key': reset_password_key})
 
 
+@waffle_flag('login-global')
 def forgot_password(request):
     name = _('Forgot Password')
     if request.method == 'POST':
@@ -129,6 +133,7 @@ def change_secret_questions(request):
                        )})
 
 
+@waffle_flag('login-global')
 def secret_question_challenge(request, username):
     r = randint(1, 3)
     if r == 1:
@@ -142,6 +147,7 @@ def secret_question_challenge(request, username):
                                             args=(username,)))
 
 
+@waffle_flag('login-global')
 def secret_question_challenge_1(request, username):
     up = get_object_or_404(UserProfile, user__username=username)
 
@@ -169,6 +175,7 @@ def secret_question_challenge_1(request, username):
                    'form': SecretQuestionForm()})
 
 
+@waffle_flag('login-global')
 def secret_question_challenge_2(request, username):
     up = get_object_or_404(UserProfile, user__username=username)
 
@@ -195,6 +202,7 @@ def secret_question_challenge_2(request, username):
                    'form': SecretQuestionForm()})
 
 
+@waffle_flag('login-global')
 def secret_question_challenge_3(request, username):
     up = get_object_or_404(UserProfile, user__username=username)
     if request.method == 'POST':

@@ -15,6 +15,7 @@ from ...utils import get_client_ip
 import sys
 from django.views.decorators.cache import never_cache
 from axes.decorators import axes_dispatch
+from waffle.decorators import waffle_flag
 
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
@@ -27,6 +28,7 @@ def user_login_failed_callback(sender, credentials, **kwargs):
     failed_login_log.warning(lw)
 
 
+@waffle_flag('login-global')
 @never_cache
 def mfa_code_confirm(request, uid):
     mfac = get_object_or_404(MFACode, uid=uid)
@@ -82,6 +84,7 @@ def mfa_code_confirm(request, uid):
                   {'form': MFACodeForm()})
 
 
+@waffle_flag('login-global')
 @never_cache
 @axes_dispatch
 def mfa_login(request):

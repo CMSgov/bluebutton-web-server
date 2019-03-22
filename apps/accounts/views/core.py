@@ -14,6 +14,7 @@ from ..models import UserProfile
 from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
+from waffle.decorators import waffle_flag
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -58,6 +59,7 @@ def simple_login(request):
     return render(request, 'login.html', {'form': LoginForm()})
 
 
+@waffle_flag('signup-global')
 def create_account(request):
 
     name = "Create your %s Account" % settings.APPLICATION_TITLE
@@ -137,6 +139,7 @@ def account_settings(request):
                   {'name': name, 'form': form})
 
 
+@waffle_flag('login-global')
 def activation_verify(request, activation_key):
     if validate_activation_key(activation_key):
         messages.success(request,
