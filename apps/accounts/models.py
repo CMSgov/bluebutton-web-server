@@ -272,7 +272,8 @@ class RequestInvite(models.Model):
         return r
 
     def save(self, commit=True, **kwargs):
-        super().save(**kwargs)
+        if commit:
+            super().save(**kwargs)
 
     class Meta:
         verbose_name = "Invite Request"
@@ -302,7 +303,8 @@ class UserRegisterCode(models.Model):
         return r
 
     def save(self, commit=True, **kwargs):
-        super().save(**kwargs)
+        if commit:
+            super().save(**kwargs)
 
 
 class Invitation(models.Model):
@@ -318,7 +320,8 @@ class Invitation(models.Model):
         return self.code
 
     def save(self, commit=True, **kwargs):
-        super().save(**kwargs)
+        if commit:
+            super().save(**kwargs)
 
 
 class ActivationKey(models.Model):
