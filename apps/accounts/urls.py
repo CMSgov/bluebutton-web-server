@@ -52,7 +52,7 @@ urlpatterns = [
     url(r'^forgot-password$', waffle_switch('login')(forgot_password),
         name='forgot_password'),
 
-    url(r'^change-secret-questions$', 
+    url(r'^change-secret-questions$',
         change_secret_questions,
         name='change_secret_questions'),
 
@@ -79,7 +79,7 @@ urlpatterns = [
         name='secret_question_challenge_3'),
 
     # Verify the account
-    url(r'^activation-verify/(?P<activation_key>[^/]+)/$', 
+    url(r'^activation-verify/(?P<activation_key>[^/]+)/$',
         waffle_switch('login')(activation_verify),
         name='activation_verify'),
 ]
