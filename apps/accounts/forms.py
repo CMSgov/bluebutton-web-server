@@ -79,23 +79,6 @@ class LoginForm(forms.Form):
         return username.rstrip().lstrip().lower()
 
 
-class CodeLoginForm(forms.Form):
-    username = forms.CharField(max_length=30, label=_('Username'),
-                               help_text="MyMedicare.gov user name")
-    password = forms.CharField(widget=forms.PasswordInput, max_length=120,
-                               label=_('Password'),
-                               help_text="MyMedicare.gov password")
-    code = forms.CharField(
-        max_length=30,
-        label=_('Code'),
-        help_text="The code provided by your accountable care organization")
-    required_css_class = 'required'
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username', '')
-        return username.rstrip().lstrip().lower()
-
-
 class SignupForm(forms.Form):
 
     email = forms.EmailField(max_length=255,
