@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     # 1st Party (in-house) ----------
     'apps.accounts',
     'apps.capabilities',
+    'apps.core',
     'apps.wellknown',
     'apps.health',
 
@@ -80,6 +81,7 @@ INSTALLED_APPS = [
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
+    'waffle',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
     'axes',
@@ -127,6 +129,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.dot_ext.throttling.ThrottleMiddleware',
+    'waffle.middleware.WaffleMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
@@ -198,6 +201,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'bluebutton-css'),
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# Waffle
+WAFFLE_FLAG_MODEL = "core.Flag"
 
 # emails
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
