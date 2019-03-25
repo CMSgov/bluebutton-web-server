@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from django.conf import settings
-from waffle.testutils import override_flag
+from waffle.testutils import override_switch
 
 
 class CreateDeveloperAccountTestCase(TestCase):
@@ -16,14 +16,14 @@ class CreateDeveloperAccountTestCase(TestCase):
 
     fixtures = ['testfixture']
 
-    @override_flag('signup-global', active=True)
+    @override_switch('signup', active=True)
     def setUp(self):
         Group.objects.create(name='BlueButton')
         self.client = Client()
         self.url = reverse('accounts_create_account')
 
-    @override_flag('signup-global', active=True)
-    @override_flag('login-global', active=True)
+    @override_switch('signup', active=True)
+    @override_switch('login', active=True)
     def test_valid_account_create(self):
         """
         Create an Account Valid
@@ -57,8 +57,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(Crosswalk.objects.filter(user=u,
                                                   fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists(), True)
 
-    @override_flag('signup-global', active=False)
-    @override_flag('login-global', active=True)
+    @override_switch('signup', active=False)
+    @override_switch('login', active=True)
     def test_valid_account_create_flag_off(self):
         """
         Create an Account Valid
@@ -80,7 +80,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 404)
 
-    @override_flag('signup-global', active=True)
+    @override_switch('signup', active=True)
     def test_account_create_shold_fail_when_password_too_short(self):
         """
         Create account should fail if password is too short
@@ -104,7 +104,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'too short')
 
-    @override_flag('signup-global', active=True)
+    @override_switch('signup', active=True)
     def test_account_create_shold_fail_when_password_too_common(self):
         """
         Create account should fail if password is too common
@@ -128,7 +128,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'too common')
 
-    @override_flag('signup-global', active=True)
+    @override_switch('signup', active=True)
     def test_valid_account_create_is_a_developer(self):
         """
         Account Created on site is a developer and not a benny

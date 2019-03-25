@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.urls import reverse
 from apps.accounts.models import UserProfile
-from waffle.testutils import override_flag
+from waffle.testutils import override_switch
 
 
 class LoginTestCase(TestCase):
@@ -21,6 +21,8 @@ class LoginTestCase(TestCase):
                                         **extra_fields)
         return user
 
+    @override_switch('login', active=True)
+    @override_switch('signup', active=True)
     def setUp(self):
         self._create_user('fred', 'bedrocks', first_name='Fred',
                           last_name='Flinstone', email='fred@example.com')
@@ -30,7 +32,7 @@ class LoginTestCase(TestCase):
         self.url = reverse('mfa_login')
         Group.objects.create(name='BlueButton')
 
-    @override_flag('login-global', active=True)
+    @override_switch('login', active=True)
     def test_valid_login(self):
         """
         Valid User can login
@@ -40,8 +42,8 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logout')
 
-    @override_flag('login-global', active=False)
-    def test_valid_login_flag_off(self):
+    @override_switch('login', active=False)
+    def test_valid_login_switch_off(self):
         """
         Valid User can login
         """
@@ -49,7 +51,7 @@ class LoginTestCase(TestCase):
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 404)
 
-    @override_flag('login-global', active=True)
+    @override_switch('login', active=True)
     def test_valid_login_case_insensitive_username(self):
         """
         Valid User can login and username is case insensitive
@@ -59,7 +61,7 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logout')
 
-    @override_flag('login-global', active=True)
+    @override_switch('login', active=True)
     def test_invalid_login(self):
         """
         Invalid user cannot login
@@ -78,7 +80,7 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
 
-    @override_flag('login-global', active=True)
+    @override_switch('login', active=True)
     def test_valid_login_email(self):
         """
         Valid User can login using their email address
