@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.urls import reverse
 from apps.accounts.models import UserProfile, MFACode
+from waffle.testutils import override_switch
 
 
 class MFALoginTestCase(TestCase):
@@ -20,6 +21,7 @@ class MFALoginTestCase(TestCase):
                                         **extra_fields)
         return user
 
+    @override_switch('login', active=True)
     def setUp(self):
         self._create_user('fred', 'bedrocks', first_name='Fred',
                           last_name='Flinstone', email='fred@example.com')
@@ -30,6 +32,7 @@ class MFALoginTestCase(TestCase):
         self.url = reverse('mfa_login')
         Group.objects.create(name='BlueButton')
 
+    @override_switch('login', active=True)
     def test_valid_mfa_login_with_email(self):
         """
         Valid User can login with valid MFA code

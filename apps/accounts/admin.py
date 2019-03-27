@@ -4,12 +4,9 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import (
     ValidPasswordResetKey,
-    Invitation,
-    RequestInvite,
     UserProfile,
     ActivationKey,
-    MFACode,
-    UserRegisterCode)
+    MFACode)
 
 
 admin.site.register(ActivationKey)
@@ -23,39 +20,6 @@ ua.list_display = ('username', 'email', 'first_name',
 
 admin.site.unregister(User)
 admin.site.register(User, ua)
-
-
-class UserRegisterCodeAdmin(admin.ModelAdmin):
-    list_display = ('email',
-                    'sender',
-                    'code',
-                    'name',
-                    'sent',
-                    'added',
-                    'username',
-                    'used')
-    search_fields = ('username', 'first_name', 'last_name',
-                     'code', 'email')
-
-
-admin.site.register(UserRegisterCode, UserRegisterCodeAdmin)
-
-
-class RequestInviteAdmin(admin.ModelAdmin):
-    list_display = (
-        'first_name',
-        'last_name',
-        'user_type',
-        'organization',
-        'email',
-        'issue_invite',
-        'invite_sent',
-        'added')
-    search_fields = ('first_name', 'last_name',
-                     'user_type', 'organization', 'email')
-
-
-admin.site.register(RequestInvite, RequestInviteAdmin)
 
 
 class UserProfileAdmin(admin.ModelAdmin):
@@ -82,14 +46,6 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 
 admin.site.register(UserProfile, UserProfileAdmin)
-
-
-class InvitationAdmin(admin.ModelAdmin):
-    list_display = ('email', 'code', 'valid', 'added')
-    search_fields = ('code', 'valid', 'email')
-
-
-admin.site.register(Invitation, InvitationAdmin)
 
 
 class MFACodeAdmin(admin.ModelAdmin):

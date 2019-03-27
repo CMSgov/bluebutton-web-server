@@ -7,14 +7,10 @@ from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
 from .emails import (send_password_reset_url_via_email,
                      send_activation_key_via_email,
-                     mfa_via_email, send_invite_to_create_account,
-                     send_invitation_code_to_user,
-                     notify_admin_of_invite_request)
+                     mfa_via_email)
 import logging
-from django.utils.crypto import pbkdf2
 import binascii
 from django.utils.translation import ugettext
 from django.db.models.signals import post_save
@@ -256,152 +252,6 @@ class MFACode(models.Model):
                 logger.info("Cannot send email. No email_on_file.")
 
         super(MFACode, self).save(**kwargs)
-
-
-class RequestInvite(models.Model):
-    user_type = models.CharField(max_length=3, choices=USER_CHOICES,
-                                 default="DEV")
-    first_name = models.CharField(max_length=150, default="")
-    last_name = models.CharField(max_length=150, default="")
-    organization = models.CharField(max_length=150, blank=True, default="")
-    email = models.EmailField(max_length=150)
-    added = models.DateField(auto_now_add=True)
-    issue_invite = models.CharField(max_length=4,
-                                    choices=ISSUE_INVITE,
-                                    default="")
-    invite_sent = models.BooleanField(default=False)
-
-    def __str__(self):
-        r = '%s %s as a %s' % (self.first_name, self.last_name, self.user_type)
-        return r
-
-    def save(self, commit=True, **kwargs):
-        if commit:
-            logger.info(
-                "Invite requested for {} {} ({})".format(
-                    self.first_name,
-                    self.last_name,
-                    self.email))
-            notify_admin_of_invite_request(self)
-
-            if self.issue_invite == "YES" and self.invite_sent is False:
-                # Add record to Invitation
-                object, created = Invitation.objects.update_or_create(email=self.email,
-                                                                      code=random_code())
-                if created:
-                    self.issue_invite = "DONE"
-                    self.invite_sent = True
-                else:
-                    self.issue_invite = ""
-
-            super(RequestInvite, self).save(**kwargs)
-
-    class Meta:
-        verbose_name = "Invite Request"
-
-
-class UserRegisterCode(models.Model):
-    user_id_hash = models.CharField(max_length=64, blank=True, default="")
-    code = models.CharField(max_length=30, db_index=True)
-    valid = models.BooleanField(default=False, blank=True)
-    username = models.CharField(max_length=40)
-    email = models.EmailField(max_length=150)
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, null=True, blank=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    sent = models.BooleanField(default=False, editable=False)
-    used = models.BooleanField(default=False)
-    resend = models.BooleanField(default=False,
-                                 help_text="Check to resend")
-    added = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        r = '%s %s' % (self.first_name, self.last_name)
-        return r
-
-    def name(self):
-        r = '%s %s' % (self.first_name, self.last_name)
-        return r
-
-    def url(self):
-        hostname = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
-
-        if "http://" in hostname.lower():
-            pass
-        elif "https://" in hostname.lower():
-            pass
-        else:
-            logger.debug("HOSTNAME_URL [%s] "
-                         "does not contain http or https prefix. "
-                         "Issuer:%s" % (settings.HOSTNAME_URL, hostname))
-            # no http/https prefix in HOST_NAME_URL so we add it
-            hostname = "https://%s" % (hostname)
-        return "%s%s?username=%s&code=%s" % (hostname,
-                                             reverse('user_code_register'),
-                                             self.username, self.code)
-
-    def save(self, commit=True, **kwargs):
-        if commit:
-            self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        get_user_id_salt(),
-                                                        settings.USER_ID_ITERATIONS)).decode("ascii")
-            if self.sender:
-                up = UserProfile.objects.get(user=self.sender)
-                if self.sent is False:
-                    if up.remaining_user_invites > 0:
-                        up.remaining_user_invites -= 1
-                        up.save()
-                        send_invitation_code_to_user(self)
-                        self.sent = True
-                        self.resend = False
-                if self.sent is True and self.resend is True:
-                    send_invitation_code_to_user(self)
-                    self.sent = True
-                    self.resend = False
-            else:
-                if self.sent is False or self.resend is True:
-                    send_invitation_code_to_user(self)
-                    self.sent = True
-                    self.resend = False
-            super(UserRegisterCode, self).save(**kwargs)
-
-
-class Invitation(models.Model):
-    code = models.CharField(max_length=10, unique=True)
-    email = models.EmailField(blank=True)
-    valid = models.BooleanField(default=True)
-    added = models.DateField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Developer Invitation"
-
-    def __str__(self):
-        return self.code
-
-    def url(self):
-        hostname = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
-
-        if "http://" in hostname.lower():
-            pass
-        elif "https://" in hostname.lower():
-            pass
-        else:
-            logger.debug("HOSTNAME_URL [%s] "
-                         "does not contain http or https prefix. "
-                         "Issuer:%s" % (settings.HOSTNAME_URL, hostname))
-            # no http/https prefix in HOST_NAME_URL so we add it
-            hostname = "https://%s" % (hostname)
-        return "%s%s" % (hostname,
-                         reverse('accounts_create_account'))
-
-    def save(self, commit=True, **kwargs):
-        if commit:
-            if self.valid:
-                # send the invitation verification email.
-                send_invite_to_create_account(self)
-                logger.info("Invitation sent to {}".format(self.email))
-
-            super(Invitation, self).save(**kwargs)
 
 
 class ActivationKey(models.Model):

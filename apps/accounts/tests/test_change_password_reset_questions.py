@@ -2,8 +2,8 @@ from django.test import TestCase
 from django.test.client import Client
 from django.contrib.auth.models import User
 from django.urls import reverse
-
 from ..models import UserProfile, ValidPasswordResetKey
+from waffle.testutils import override_switch
 
 
 class ChangePasswordResetQuestionsTestCase(TestCase):
@@ -49,6 +49,7 @@ class ChangePasswordResetQuestionsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'This field is required.')
 
+    @override_switch('login', active=True)
     def test_password_reset_invalid_user(self):
         url = reverse('forgot_password')
         form_data = {'email': 'derf@example.com'}
@@ -56,6 +57,7 @@ class ChangePasswordResetQuestionsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'A user with the email supplied does not exist.')
 
+    @override_switch('login', active=True)
     def test_password_reset_invalid_answer_3(self):
         url = reverse('secret_question_challenge_3', args=('fred',))
         form_data = {'answer': 'Yogo'}
@@ -63,6 +65,7 @@ class ChangePasswordResetQuestionsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Wrong answer.')
 
+    @override_switch('login', active=True)
     def test_password_reset_valid_answer_3(self):
         url = reverse('secret_question_challenge_3', args=('fred',))
         form_data = {'answer': 'bentley'}

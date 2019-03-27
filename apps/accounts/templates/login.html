@@ -30,11 +30,7 @@
 					<input type="submit" class="ds-c-button  ds-c-button--primary" value="{% trans 'Login' %}" />
 					<div class="ds-u-margin-top--2">
 						<a href="{% url 'forgot_password' %}">Forgot Password?</a> |
-						{% if settings.REQUIRE_INVITE_TO_REGISTER %}
-							<a href="{% url 'request_invite' %}">{% trans "Request Invite" %}</a>
-							{% else %}
-								<a href="{% url 'accounts_create_account' %}"> {% trans "Create an Account "%}</a>
-						{% endif %}
+							<a href="{% url 'accounts_create_account' %}"> {% trans "Create an Account "%}</a>
 					</div>
 				</form>
       </div>

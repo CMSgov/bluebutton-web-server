@@ -3,6 +3,7 @@ from django.test.client import Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from ..models import UserProfile
+from waffle.testutils import override_switch
 
 
 class ResetPasswordWhileAuthenticatedTestCase(TestCase):
@@ -27,17 +28,20 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                                    password_reset_answer_3='Bentley')
         self.client = Client()
 
+    @override_switch('login', active=True)
     def test_page_loads(self):
         self.client.login(username="fred", password="foobarfoobarfoobar")
         url = reverse('reset_password')
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
+    @override_switch('login', active=True)
     def test_page_requires_authentication(self):
         url = reverse('reset_password')
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
+    @override_switch('login', active=True)
     def test_password_ischanged(self):
         self.client.login(username="fred", password="foobarfoobarfoobar")
         url = reverse('reset_password')

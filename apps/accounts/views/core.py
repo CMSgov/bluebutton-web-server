@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-from ..forms import (RequestInviteForm, AccountSettingsForm,
+from ..forms import (AccountSettingsForm,
                      LoginForm,
                      SignupForm)
 from ..models import UserProfile
@@ -16,38 +16,6 @@ from django.conf import settings
 from django.views.decorators.cache import never_cache
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-
-@never_cache
-def request_invite(request):
-    if not settings.REQUIRE_INVITE_TO_REGISTER:
-        return HttpResponseRedirect(reverse('accounts_create_account'))
-    if request.method == 'POST':
-        form = RequestInviteForm(request.POST)
-        if form.is_valid():
-            invite_request = form.save()
-            messages.success(
-                request,
-                _('You will be contacted by email when your '
-                  'invitation is ready.'),
-            )
-            logger.debug("email to invite:%s" % invite_request.email)
-            return pick_reverse_login()
-        else:
-            return render(request, 'developer-invite-request.html', {
-                'form': form,
-            })
-    else:
-        # this is an HTTP  GET
-        additional_info = """
-        Your request will be reviewed by a member of our team and an invite
-        will then be issued. Please allow up to two business days for the
-        Invite to be issued.
-        """
-        return render(request,
-                      'developer-invite-request.html',
-                      {'form': RequestInviteForm(),
-                       'additional_info': additional_info})
 
 
 def mylogout(request):
@@ -109,17 +77,9 @@ def create_account(request):
                           'generic/bootstrapform.html',
                           {'name': name, 'form': form})
     else:
-        # this is an HTTP  GET
-        # Adding ability to pre-fill invitation_code and email
-        # via GET paramters
-        form_data = {'invitation_code': request.GET.get('invitation_code', ''),
-                     'email': request.GET.get('email', '')}
-        if getattr(settings, 'REQUIRE_INVITE_TO_REGISTER', False):
-            messages.info(request,
-                          _("An invitation code is required to register."))
         return render(request,
                       'generic/bootstrapform.html',
-                      {'name': name, 'form': SignupForm(initial=form_data)})
+                      {'name': name, 'form': SignupForm()})
 
 
 @never_cache

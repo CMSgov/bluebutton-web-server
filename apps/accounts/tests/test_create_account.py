@@ -3,9 +3,10 @@ from django.test.client import Client
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from apps.accounts.models import Invitation, UserProfile
+from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from django.conf import settings
+from waffle.testutils import override_switch
 
 
 class CreateDeveloperAccountTestCase(TestCase):
@@ -15,18 +16,19 @@ class CreateDeveloperAccountTestCase(TestCase):
 
     fixtures = ['testfixture']
 
+    @override_switch('signup', active=True)
     def setUp(self):
-        Invitation.objects.create(code='1234', email='bambam@example.com')
         Group.objects.create(name='BlueButton')
         self.client = Client()
         self.url = reverse('accounts_create_account')
 
+    @override_switch('signup', active=True)
+    @override_switch('login', active=True)
     def test_valid_account_create(self):
         """
         Create an Account Valid
         """
         form_data = {
-            'invitation_code': '1234',
             'email': 'BamBam@Example.com',
             'organization_name': 'transhealth',
             'password1': 'bedrocks',
@@ -55,6 +57,30 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(Crosswalk.objects.filter(user=u,
                                                   fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists(), True)
 
+    @override_switch('signup', active=False)
+    @override_switch('login', active=True)
+    def test_valid_account_create_flag_off(self):
+        """
+        Create an Account Valid
+        """
+        form_data = {
+            'email': 'BamBam@Example.com',
+            'organization_name': 'transhealth',
+            'password1': 'bedrocks',
+            'password2': 'bedrocks',
+            'first_name': 'BamBam',
+            'last_name': 'Rubble',
+            'password_reset_question_1': '1',
+            'password_reset_answer_1': 'blue',
+            'password_reset_question_2': '2',
+            'password_reset_answer_2': 'Jason',
+            'password_reset_question_3': '3',
+            'password_reset_answer_3': 'Jeep'
+        }
+        response = self.client.post(self.url, form_data, follow=True)
+        self.assertEqual(response.status_code, 404)
+
+    @override_switch('signup', active=True)
     def test_account_create_shold_fail_when_password_too_short(self):
         """
         Create account should fail if password is too short
@@ -78,6 +104,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'too short')
 
+    @override_switch('signup', active=True)
     def test_account_create_shold_fail_when_password_too_common(self):
         """
         Create account should fail if password is too common
@@ -101,6 +128,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'too common')
 
+    @override_switch('signup', active=True)
     def test_valid_account_create_is_a_developer(self):
         """
         Account Created on site is a developer and not a benny

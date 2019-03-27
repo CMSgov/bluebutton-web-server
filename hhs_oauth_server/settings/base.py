@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     # 1st Party (in-house) ----------
     'apps.accounts',
     'apps.capabilities',
+    'apps.core',
     'apps.wellknown',
     'apps.health',
 
@@ -80,6 +81,7 @@ INSTALLED_APPS = [
     # 3rd Party ---------------------
     'corsheaders',
     'bootstrapform',
+    'waffle',
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
     'axes',
@@ -127,6 +129,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.dot_ext.throttling.ThrottleMiddleware',
+    'waffle.middleware.WaffleMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env('CORS_ORIGIN_ALLOW_ALL', True))
@@ -198,6 +201,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'bluebutton-css'),
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# Waffle
+WAFFLE_FLAG_MODEL = "core.Flag"
 
 # emails
 DEFAULT_FROM_EMAIL = env('DJANGO_FROM_EMAIL', 'change-me@example.com')
@@ -371,8 +377,6 @@ DEFAULT_DISCLOSURE_TEXT = """
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
-INVITE_REQUEST_ADMIN = env('DJANGO_INVITE_REQUEST_ADMIN')
-REQUIRE_INVITE_TO_REGISTER = env('REQUIRE_INVITE_TO_REGISTER', False)
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
@@ -406,7 +410,6 @@ SETTINGS_EXPORT = [
     'ALLOW_END_USER_EXTERNAL_AUTH',
     'OPTIONAL_INSTALLED_APPS',
     'INSTALLED_APPS',
-    'REQUIRE_INVITE_TO_REGISTER',
     'TEALIUM_ENV',
 ]
 

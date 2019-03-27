@@ -11,6 +11,7 @@ django-filter
 django-axes
 
 # support
+django-waffle
 django-storages
 django-dotenv
 jsonschema
