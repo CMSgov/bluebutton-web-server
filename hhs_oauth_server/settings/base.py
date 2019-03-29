@@ -439,8 +439,10 @@ REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
 SIGNUP_TIMEOUT_DAYS = env('SIGNUP_TIMEOUT_DAYS', 7)
 ORGANIZATION_NAME = 'CMS Medicare Blue Button'
 
-LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/v1/accounts/mfa/login'
+LOGIN_REDIRECT_URL = 'home'
+LOGIN_URL = '/v1/accounts/login'
+
+LOGOUT_REDIRECT_URL = '/'
 
 REQUIRE_AUTHORIZE_APP_FLAG = False
 
@@ -466,7 +468,7 @@ SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', True)
 SLS_CLIENT_ID = env('DJANGO_SLS_CLIENT_ID')
 SLS_CLIENT_SECRET = env('DJANGO_SLS_CLIENT_SECRET')
 
-AUTHENTICATION_BACKENDS = ('apps.accounts.email_auth_backend.EmailBackend',
+AUTHENTICATION_BACKENDS = ('apps.accounts.backends.EmailAuthBackend',
                            'django.contrib.auth.backends.ModelBackend')
 
 # Change these for production
