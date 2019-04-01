@@ -9,6 +9,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import UserProfile, create_activation_key
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
+from django.contrib.auth.forms import AuthenticationForm, UsernameField
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -221,3 +222,20 @@ class AccountSettingsForm(forms.Form):
                 raise forms.ValidationError(_('This email address is '
                                               'already registered.'))
         return email.rstrip().lstrip().lower()
+
+
+class CustomAuthenticationForm(AuthenticationForm):
+    username = UsernameField(widget=forms.TextInput(attrs={'autofocus': True}),
+                             max_length=150, label=_('Email'))
+    error_messages = {
+        'invalid_login': _(
+            "Please enter a correct email and password."
+        ),
+        'inactive': _("This account is inactive."),
+    }
+
+    required_css_class = 'required'
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '')
+        return username.rstrip().lstrip().lower()
