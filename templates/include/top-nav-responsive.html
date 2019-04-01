@@ -30,10 +30,10 @@
       {%  endif %}
       {% if user.is_authenticated %}
       <a class="button profile-button" href="{% url 'account_settings' %}"><i data-feather="user"></i>Profile</a>
-      <a class="button logout-button" href="{% url 'mylogout' %}"><i data-feather="power"></i>Logout</a>
+      <a class="button logout-button" href="{% url 'logout' %}"><i data-feather="power"></i>Logout</a>
       {% else %}
       {% if 'apps.testclient' in settings.INSTALLED_APPS %}
-      <a class="button login-button" href="{% url 'mfa_login' %}"><i data-feather="user"></i>Login</a>
+      <a class="button login-button" href="{% url 'login' %}"><i data-feather="user"></i>Login</a>
       <a class="button signup-button" href="{% url 'accounts_create_account' %}"><i data-feather="plus"></i>Signup</a>
       {% else %}
         <a class="button" href="https://sandbox.bluebutton.cms.gov/v1/accounts/create">Signup</a>
@@ -117,10 +117,10 @@
               {%  endif %}
               {% if user.is_authenticated %}
               <li><a href="{% url 'account_settings' %}"> <i class="fa fa-user"></i> Profile</a></li>
-              <li><a href="{% url 'mylogout' %}">Logout <i class="fa fa-sign-out"></i></a></li>
+              <li><a href="{% url 'logout' %}">Logout <i class="fa fa-sign-out"></i></a></li>
               {% else %}
                 {% if 'apps.testclient' in settings.INSTALLED_APPS %}
-                    <li><a href="{% url 'mfa_login' %}"> <i class="fa fa-user"></i>  Login</a></li>
+                    <li><a href="{% url 'login' %}"> <i class="fa fa-user"></i>  Login</a></li>
                     <li><a href="{% url 'accounts_create_account' %}"> <i class="fa fa-plus"></i>  Signup</a></li>
                 {% else %}
                     <li><a href="https://sandbox.bluebutton.cms.gov/v1/accounts/create"> <i class="fa fa-plus"></i>  Signup</a></li>
