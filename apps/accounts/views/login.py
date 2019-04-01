@@ -1,8 +1,10 @@
+from axes.decorators import axes_dispatch
 from django.conf import settings
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from sys import version_info
 from ..forms import CustomAuthenticationForm
@@ -14,6 +16,10 @@ class LoginView(LoginView):
     Custom Django login view.
     """
     authentication_form = CustomAuthenticationForm
+
+    @method_decorator(axes_dispatch)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         """
