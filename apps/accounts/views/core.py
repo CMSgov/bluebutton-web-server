@@ -147,4 +147,4 @@ def pick_reverse_login():
     Check settings.MFA to determine which reverse call to make
     :return:
     """
-    return HttpResponseRedirect(reverse('mfa_login'))
+    return HttpResponseRedirect(reverse('login'))
