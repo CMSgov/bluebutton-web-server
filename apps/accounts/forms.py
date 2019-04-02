@@ -212,7 +212,7 @@ class AccountSettingsForm(forms.Form):
         return email.rstrip().lstrip().lower()
 
 
-class CustomAuthenticationForm(AuthenticationForm):
+class AuthenticationForm(AuthenticationForm):
     username = UsernameField(widget=forms.TextInput(attrs={'autofocus': True}),
                              max_length=150, label=_('Email'))
     error_messages = {

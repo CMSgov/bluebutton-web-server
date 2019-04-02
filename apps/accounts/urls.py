@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'mfa/confirm/(?P<uid>[^/]+)/', waffle_switch('login')(mfa_code_confirm),
         name='mfa_code_confirm'),
 
+    # Handle mfa/login incase there are any extenal links to it.
     url(r'^login$|^mfa/login$', waffle_switch('login')(LoginView.as_view()), name='login'),
 
     url(r'^password-change$',

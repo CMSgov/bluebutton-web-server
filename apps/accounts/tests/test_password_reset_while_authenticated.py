@@ -48,11 +48,4 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         form_data = {'password1': "ichangedthepassword",
                      "password2": "ichangedthepassword"}
         response = self.client.post(url, form_data, follow=True)
-        print("------------")
-        print("------------")
-        print("------------")
-        print("------------response:  ", response)
-        print("------------")
-        print("------------")
-        print("------------")
         self.assertContains(response, "Your password was updated.")

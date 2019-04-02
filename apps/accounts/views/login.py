@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from sys import version_info
-from ..forms import CustomAuthenticationForm
+from ..forms import AuthenticationForm
 from ..models import UserProfile, MFACode
 
 
@@ -15,7 +15,7 @@ class LoginView(LoginView):
     """
     Custom Django login view.
     """
-    authentication_form = CustomAuthenticationForm
+    authentication_form = AuthenticationForm
 
     @method_decorator(axes_dispatch)
     def dispatch(self, request, *args, **kwargs):
