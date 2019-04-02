@@ -1,12 +1,12 @@
 from django.conf.urls import url
-from django.contrib.auth.views import LogoutView, PasswordChangeView
+from django.contrib.auth.views import LogoutView
 from waffle.decorators import waffle_switch
 from .views.api_profile import my_profile
 from .views.core import (create_account,
                          account_settings,
                          activation_verify,
                          )
-from .views.login import LoginView
+from .views.login import LoginView, PasswordChangeView
 from .views.mfa import mfa_code_confirm
 from .views.password_reset import (change_secret_questions,
                                    forgot_password,

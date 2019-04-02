@@ -1,6 +1,7 @@
 from axes.decorators import axes_dispatch
 from django.conf import settings
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -64,3 +65,13 @@ class LoginView(LoginView):
                 up.aal = '1'
                 up.save()
         return None
+
+
+class PasswordChangeView(PasswordChangeView):
+    """
+    Custom Django password change view.
+    """
+    @method_decorator(login_required)
+    def form_valid(self, form):
+        messages.success(self.request, 'Your password was updated.')
+        return super().form_valid(form)
