@@ -29,7 +29,7 @@ class MFALoginTestCase(TestCase):
         self.up = UserProfile.objects.create(user=self.user, mfa_login_mode="EMAIL",
                                              mobile_phone_number="555-555-5555")
         self.client = Client()
-        self.url = reverse('mfa_login')
+        self.url = reverse('login')
         Group.objects.create(name='BlueButton')
 
     @override_switch('login', active=True)
@@ -56,4 +56,4 @@ class MFALoginTestCase(TestCase):
         # Now that a valid code is provided, the user is logged in (sees
         # Logout)
         self.assertContains(response, 'Logout')
-        self.client.get(reverse('mylogout'))
+        self.client.get(reverse('logout'))

@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from django.contrib.auth.views import LogoutView, PasswordChangeView, PasswordChangeDoneView
+from django.contrib.auth.views import LogoutView, PasswordChangeView
 from waffle.decorators import waffle_switch
 from .views.api_profile import my_profile
 from .views.core import (create_account,
@@ -35,11 +35,9 @@ urlpatterns = [
 
     url(r'^password-change$',
         waffle_switch('login')(PasswordChangeView.as_view(
-                               template_name='generic/bootstrapform.html')),
+                               template_name='generic/bootstrapform.html',
+                               success_url='settings')),
         name='password_change'),
-
-    url(r'^password-change-done$', waffle_switch('login')(PasswordChangeDoneView.as_view()),
-        name='password_change_done'),
 
     url(r'^forgot-password$', waffle_switch('login')(forgot_password),
         name='forgot_password'),

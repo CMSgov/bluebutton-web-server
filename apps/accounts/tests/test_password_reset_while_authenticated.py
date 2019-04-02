@@ -31,21 +31,28 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
     @override_switch('login', active=True)
     def test_page_loads(self):
         self.client.login(username="fred", password="foobarfoobarfoobar")
-        url = reverse('reset_password')
+        url = reverse('password_change')
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
     @override_switch('login', active=True)
     def test_page_requires_authentication(self):
-        url = reverse('reset_password')
+        url = reverse('password_change')
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
     @override_switch('login', active=True)
     def test_password_ischanged(self):
         self.client.login(username="fred", password="foobarfoobarfoobar")
-        url = reverse('reset_password')
+        url = reverse('password_change')
         form_data = {'password1': "ichangedthepassword",
                      "password2": "ichangedthepassword"}
         response = self.client.post(url, form_data, follow=True)
+        print("------------")
+        print("------------")
+        print("------------")
+        print("------------response:  ", response)
+        print("------------")
+        print("------------")
+        print("------------")
         self.assertContains(response, "Your password was updated.")
