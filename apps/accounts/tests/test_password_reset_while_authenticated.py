@@ -49,8 +49,6 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                      'new_password1': 'ichangedthepassword',
                      'new_password2': 'ichangedthepassword'}
         response = self.client.post(url, form_data, follow=True)
-        messages = list(response.context['messages'])
-
         self.assertContains(response, "Your password was updated.")
         self.user = User.objects.get(username="fred")  # get user again so that you can see updated password
         self.assertEquals(self.user.check_password("ichangedthepassword"), True)
