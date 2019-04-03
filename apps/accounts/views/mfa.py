@@ -1,4 +1,3 @@
-from axes.decorators import axes_dispatch
 from django.contrib.auth import login
 from django.contrib.auth.signals import user_login_failed
 from django.contrib import messages
@@ -10,9 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
 from ..mfa_forms import MFACodeForm
 from ..models import UserProfile, MFACode
-from ...utils import get_client_ip
 import logging
-import sys
 
 
 logger = logging.getLogger('hhs_oauth_server.accounts')
