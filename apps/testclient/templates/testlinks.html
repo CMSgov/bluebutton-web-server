@@ -47,7 +47,7 @@ test redirect_uri callback function {% url 'testclient-callback' %} will do this
      <li> <a target="_blank" href="{% url 'openid-configuration' %}">OIDC Discovery </a>(No Token Needed) </li>
      </ul>
     {% if not request.user.is_authenticated %}
-      <h2><a href="{% url 'mfa_login' %}">Login to the developer portal</a> </h1>
+      <h2><a href="{% url 'login' %}">Login to the developer portal</a> </h1>
      {% endif %}
     
 </body>

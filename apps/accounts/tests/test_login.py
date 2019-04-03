@@ -29,7 +29,7 @@ class LoginTestCase(TestCase):
         user = User.objects.get(username='fred')
         UserProfile.objects.create(user=user)
         self.client = Client()
-        self.url = reverse('mfa_login')
+        self.url = reverse('login')
         Group.objects.create(name='BlueButton')
 
     @override_switch('login', active=True)
@@ -71,12 +71,12 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
 
+    @override_switch('login', active=True)
     def test_logout(self):
         """
         User can logout
         """
-        self.client.login(username='fred', password='bedrocks')
-        response = self.client.get(reverse('mylogout'), follow=True)
+        response = self.client.get(reverse('logout'), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
 

@@ -2,6 +2,7 @@ import logging
 from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import ugettext_lazy as _
@@ -9,6 +10,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import UserProfile, create_activation_key
 from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
+from django.contrib.auth.forms import AuthenticationForm, UsernameField
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -79,8 +81,7 @@ class LoginForm(forms.Form):
         return username.rstrip().lstrip().lower()
 
 
-class SignupForm(forms.Form):
-
+class SignupForm(UserCreationForm):
     email = forms.EmailField(max_length=255,
                              label=_("Email"),
                              help_text=_("Your email address is needed for "
@@ -119,19 +120,12 @@ class SignupForm(forms.Form):
 
     required_css_class = 'required'
 
-    def clean_password2(self):
-        password1 = self.cleaned_data.get("password1", "")
-        password2 = self.cleaned_data.get("password2", "")
-        if password1 != password2:
-            raise forms.ValidationError(
-                _("The two password fields didn't match."))
-
-        try:
-            validate_password(password1)
-        except ValidationError as err:
-            raise forms.ValidationError(err.error_list[0])
-
-        return password2
+    class Meta:
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'organization_name', 'password1', 'password2',
+                  'password_reset_question_1', 'password_reset_answer_1', 'password_reset_question_2',
+                  'password_reset_answer_2', 'password_reset_question_3', 'password_reset_answer_3',
+                  )
 
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
@@ -146,16 +140,11 @@ class SignupForm(forms.Form):
             return email.rstrip().lstrip().lower()
 
     def save(self):
+        self.instance.username = self.instance.email
+        self.instance.is_active = False
+        user = super().save()
 
-        new_user = User.objects.create_user(
-            username=self.cleaned_data['email'],
-            first_name=self.cleaned_data['first_name'],
-            last_name=self.cleaned_data['last_name'],
-            password=self.cleaned_data['password1'],
-            email=self.cleaned_data['email'],
-            is_active=False)
-
-        UserProfile.objects.create(user=new_user,
+        UserProfile.objects.create(user=user,
                                    organization_name=self.cleaned_data[
                                        'organization_name'],
                                    user_type="DEV",
@@ -174,16 +163,16 @@ class SignupForm(forms.Form):
                                        'password_reset_answer_3']
                                    )
         # Attach the user to the default patient.
-        Crosswalk.objects.create(user=new_user, fhir_source=get_resourcerouter(),
+        Crosswalk.objects.create(user=user, fhir_source=get_resourcerouter(),
                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID)
 
         group = Group.objects.get(name='BlueButton')
-        new_user.groups.add(group)
+        user.groups.add(group)
 
         # Send a verification email
-        create_activation_key(new_user)
+        create_activation_key(user)
 
-        return new_user
+        return user
 
 
 class AccountSettingsForm(forms.Form):
@@ -221,3 +210,20 @@ class AccountSettingsForm(forms.Form):
                 raise forms.ValidationError(_('This email address is '
                                               'already registered.'))
         return email.rstrip().lstrip().lower()
+
+
+class AuthenticationForm(AuthenticationForm):
+    username = UsernameField(widget=forms.TextInput(attrs={'autofocus': True}),
+                             max_length=150, label=_('Email'))
+    error_messages = {
+        'invalid_login': _(
+            "Please enter a correct email and password."
+        ),
+        'inactive': _("This account is inactive."),
+    }
+
+    required_css_class = 'required'
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '')
+        return username.rstrip().lstrip().lower()
