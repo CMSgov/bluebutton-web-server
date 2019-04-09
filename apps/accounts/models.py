@@ -279,10 +279,7 @@ class ActivationKey(models.Model):
                         template_text='email-activate.txt',
                         template_html='email-activate.html',
                         to=[self.user.email, ],
-                        context={"APPLICATION_TITLE": settings.APPLICATION_TITLE,
-                                 "FIRST_NAME": self.user.first_name,
-                                 "LAST_NAME": self.user.last_name,
-                                 "ACTIVATION_LINK": activation_link})
+                        context={"ACTIVATION_LINK": activation_link})
         mailer.send()
         logger.info("Activation link sent to {} ({})".format(self.user.username,
                                                              self.user.email))

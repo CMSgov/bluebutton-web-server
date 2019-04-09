@@ -8,19 +8,11 @@ from django.template.loader import get_template
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-#  New mailer class???
 class Mailer(EmailMultiAlternatives):
     """ Custom mailer class """
-    template_top_html = "mailer-top.html"
-    template_top_text = "mailer-top.txt"
-    template_bottom_html = "mailer-bottom.html"
-    template_bottom_text = "mailer-bottom.txt"
-    # NOTE: top/bottom templates not implemented yet!
     from_email = settings.DEFAULT_FROM_EMAIL
 
     def __init__(self, subject='', template_text='', template_html='',
-                 template_top_html=None, template_top_text=None,
-                 template_bottom_html=None, template_bottom_text=None,
                  from_email=None, to=None, bcc=None, connection=None,
                  attachments=None, headers=None, alternatives=None,
                  cc=None, reply_to=None, context=None):

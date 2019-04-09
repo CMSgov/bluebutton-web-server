@@ -1,17 +1,42 @@
-Hi {{FIRST_NAME}} {{LAST_NAME}},
+Welcome to the Blue Button 2.0 Developer Sandbox!
 
-Thanks for signing up for the {{ APPLICATION_TITLE }}. 
+To verify your email address and complete your signup, copy the following URL into your browser to complete
+your signup:
+
+    {{ ACTIVATION_LINK }}
+
+
+Get started with Blue Button 2.0
+
+
+Read Our Documentation:
+
+Check out our documentation at https://bluebutton.cms.gov/developers/ to get your app up and running.
+
+
+Get Help and Support:
+
+Join our Google Group at https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api and Slack channel to find the support you need.
+
+
+*Get Started with Our Sample Apps*:
+
+Our sample apps and guides at https://bluebutton.cms.gov/blog/More-Sample-Applications.html can help make your idea a reality.
+
+
+
+
+
+
+
+
+
+
+
+
 
 To complete your signup, follow this link:
 
 {{ ACTIVATION_LINK }}
-
-Some helpful tips:
-
-- Ask questions and give feedback in the {{ APPLICATION_TITLE }} Google Group https://groups.google.com/forum/#!forum/developer-group-for-cms-blue-button-api
-- Download the Django Client App to get started https://github.com/cmsgov/bluebutton-sample-client-django
-
-Thanks,
-The {{APPLICATION_TITLE}} Team
 
 
