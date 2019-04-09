@@ -4,12 +4,12 @@ import uuid
 from datetime import datetime, timedelta
 from django.contrib.admin.models import LogEntry
 from django.utils import timezone
+from django.urls import reverse
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from .emails import (send_password_reset_url_via_email,
-                     send_activation_key_via_email,
-                     mfa_via_email)
+                     mfa_via_email, get_hostname, Mailer)
 import logging
 import binascii
 from django.utils.translation import ugettext
@@ -270,14 +270,29 @@ class ActivationKey(models.Model):
         expires = now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
         self.expires = expires
 
-        # send an email with reset url
-        send_activation_key_via_email(self.user, self.key)
+        # send an email with activation url
+        activation_link = '%s%s' % (get_hostname(),
+                                    reverse('activation_verify',
+                                            args=(self.key,)))
+
+        mailer = Mailer(subject='Verify Your Blue Button 2.0 Developer Sandbox Account',
+                        template_text='email-activate.txt',
+                        template_html='email-activate.html',
+                        to=[self.user.email, ],
+                        context={"APPLICATION_TITLE": settings.APPLICATION_TITLE,
+                                 "FIRST_NAME": self.user.first_name,
+                                 "LAST_NAME": self.user.last_name,
+                                 "ACTIVATION_LINK": activation_link})
+        mailer.send()
+        logger.info("Activation link sent to {} ({})".format(self.user.username,
+                                                             self.user.email))
         super(ActivationKey, self).save(**kwargs)
 
 
 class ValidPasswordResetKey(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
     reset_password_key = models.CharField(max_length=50, blank=True)
+
     # switch from datetime.now to timezone.now
     expires = models.DateTimeField(default=timezone.now)
 
