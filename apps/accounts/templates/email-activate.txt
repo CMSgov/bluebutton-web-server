@@ -6,8 +6,9 @@ your signup:
     {{ ACTIVATION_LINK }}
 
 
-Get started with Blue Button 2.0
 
+Get started with Blue Button 2.0
+--------------------------------
 
 Read Our Documentation:
 
@@ -19,24 +20,6 @@ Get Help and Support:
 Join our Google Group at https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api and Slack channel to find the support you need.
 
 
-*Get Started with Our Sample Apps*:
+Get Started with Our Sample Apps:
 
 Our sample apps and guides at https://bluebutton.cms.gov/blog/More-Sample-Applications.html can help make your idea a reality.
-
-
-
-
-
-
-
-
-
-
-
-
-
-To complete your signup, follow this link:
-
-{{ ACTIVATION_LINK }}
-
-
