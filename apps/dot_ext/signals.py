@@ -22,8 +22,8 @@ def check_first_application(sender, instance=None, created=False, **kwargs):
                             context={
                                 "FIRST_NAME": instance.user.first_name,
                                 })
-        mailer.send()
-        logger.info("Congrats on Registering Your First Application sent to {} ({})".format(instance.user.username,
+            mailer.send()
+            logger.info("Congrats on Registering Your First Application sent to {} ({})".format(instance.user.username,
                                                                                             instance.user.email))
 
 
