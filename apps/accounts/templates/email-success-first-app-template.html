@@ -1,26 +1,8 @@
-<!doctype html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-    <head>
-        <!-- NAME: EDUCATE -->
-        <!--[if gte mso 15]>
-        <xml>
-            <o:OfficeDocumentSettings>
-            <o:AllowPNG/>
-            <o:PixelsPerInch>96</o:PixelsPerInch>
-            </o:OfficeDocumentSettings>
-        </xml>
-        <![endif]-->
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Congrats on Registering Your First Application!</title>
-    
-	{% include "email-common-style-template.html" %}
+{% extends "base-email.html" %}
 
-    </head>
-    <body>
+{% block title %}Congrats on Registering Your First Application!{% endblock %}
 
-    	    {% include "email-common-body-heading-template.html" %}
+{% block content %}
 
                 <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%;" width="100%" class="mcnTextContentContainer">
                     <tbody><tr>
@@ -127,8 +109,4 @@ Our documentation gives you instructions for various ways to try out the API whe
     </tbody>
 </table>
 
-{% include "email-common-get-started-template.html" %}
-
-        </center>
-    </body>
-</html>
+{% endblock %}
