@@ -1,0 +1,6 @@
+{% block content %}
+{% endblock %}
+
+{% block body-tail %}
+{% include "email-common-get-started-template.txt" %}
+{% endblock %}

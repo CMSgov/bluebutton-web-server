@@ -1,0 +1,11 @@
+{% extends "base-email.txt" %}
+
+{% block content %}
+You've Made Your First API Call!
+
+Way to go, {{FIRST_NAME}}! You’ve just made your first API call with Blue Button 2.0. We hope the rest of your time developing your application is a breeze.
+
+When you’re ready to launch your application, be sure to apply for production access. We’ll walk you through the steps to getting your application ready to launch so that you and the beneficiaries your app serves are rock solid.
+
+Read More About the Production Access Process at https://bluebutton.cms.gov/developers/
+{% endblock %}

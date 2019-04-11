@@ -1,3 +1,6 @@
+{% extends "base-email.txt" %}
+
+{% block content %}
 You’ve Registered Your First Application!
 
 Way to go, {{FIRST_NAME}}! You’ve registered your first application with Blue Button 2.0. The next step is to make an API call to start interacting with our synthetic beneficiary data. You’ll be able to craft your app with confidence by being able to see real examples of exactly what your users will see.
@@ -6,22 +9,5 @@ Our documentation gives you instructions for various ways to try out the API whe
 
 
 Try Making an API Call at https://bluebutton.cms.gov/developers/#try-the-api
+{% endblock %}
 
-
-
-Get started with Blue Button 2.0
---------------------------------
-
-Read Our Documentation:
-
-Check out our documentation at https://bluebutton.cms.gov/developers/ to get your app up and running.
-
-
-Get Help and Support:
-
-Join our Google Group at https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api and Slack channel to find the support you need.
-
-
-Get Started with Our Sample Apps:
-
-Our sample apps and guides at https://bluebutton.cms.gov/blog/More-Sample-Applications.html can help make your idea a reality.
