@@ -1,7 +1,7 @@
 import logging
 from django.db.models.signals import post_save
 from oauth2_provider.models import get_application_model
-from apps.accounts.emails import Mailer
+from libs.mail import Mailer
 
 
 Application = get_application_model()
@@ -19,12 +19,10 @@ def check_first_application(sender, instance=None, created=False, **kwargs):
                             template_text='email-success-first-app-template.txt',
                             template_html='email-success-first-app-template.html',
                             to=[instance.user.email, ],
-                            context={
-                                "FIRST_NAME": instance.user.first_name,
-                                })
+                            context={"FIRST_NAME": instance.user.first_name})
             mailer.send()
             logger.info("Congrats on Registering Your First Application sent to {} ({})".format(instance.user.username,
-                                                                                            instance.user.email))
+                                                                                                instance.user.email))
 
 
 post_save.connect(check_first_application, sender='dot_ext.Application')

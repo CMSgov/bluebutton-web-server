@@ -9,13 +9,14 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from .emails import (send_password_reset_url_via_email,
-                     mfa_via_email, get_hostname, Mailer)
+                     mfa_via_email, get_hostname)
 import logging
 import binascii
 from django.utils.translation import ugettext
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.models import CASCADE
+from libs.mail import Mailer
 
 ADDITION = 1
 CHANGE = 2
