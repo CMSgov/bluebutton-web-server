@@ -14,15 +14,19 @@ def check_first_application(sender, instance=None, created=False, **kwargs):
     by the developer. If so, send an email.
     """
     if created:
-        if Application.objects.filter(user=instance.user).count() == 1:
-            mailer = Mailer(subject='Congrats on Registering Your First Application!',
-                            template_text='email/email-success-first-app-template.txt',
-                            template_html='email/email-success-first-app-template.html',
-                            to=[instance.user.email, ],
-                            context={"FIRST_NAME": instance.user.first_name})
-            mailer.send()
-            logger.info("Congrats on Registering Your First Application sent to {} ({})".format(instance.user.username,
-                                                                                                instance.user.email))
+        try:
+            if Application.objects.filter(user=instance.user).count() == 1:
+                mailer = Mailer(subject='Congrats on Registering Your First Application!',
+                                template_text='email/email-success-first-app-template.txt',
+                                template_html='email/email-success-first-app-template.html',
+                                to=[instance.user.email, ],
+                                context={"FIRST_NAME": instance.user.first_name})
+                mailer.send()
+                logger.info("Congrats on Registering Your First Application sent to %s (%s)" %
+                            (instance.user.username, instance.user.email))
+        except:
+                logger.error("Congrats on Registering Your First Application failed send to %s (%s)" %
+                             (instance.user.username, instance.user.email))
 
 
 post_save.connect(check_first_application, sender='dot_ext.Application')
