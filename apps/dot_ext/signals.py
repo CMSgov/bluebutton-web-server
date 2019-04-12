@@ -16,8 +16,8 @@ def check_first_application(sender, instance=None, created=False, **kwargs):
     if created:
         if Application.objects.filter(user=instance.user).count() == 1:
             mailer = Mailer(subject='Congrats on Registering Your First Application!',
-                            template_text='email-success-first-app-template.txt',
-                            template_html='email-success-first-app-template.html',
+                            template_text='email/email-success-first-app-template.txt',
+                            template_html='email/email-success-first-app-template.html',
                             to=[instance.user.email, ],
                             context={"FIRST_NAME": instance.user.first_name})
             mailer.send()

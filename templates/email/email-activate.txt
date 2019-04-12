@@ -1,4 +1,4 @@
-{% extends "base-email.txt" %}
+{% extends "email/base-email.txt" %}
 
 {% block content %}
 Welcome to the Blue Button 2.0 Developer Sandbox!

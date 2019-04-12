@@ -277,8 +277,8 @@ class ActivationKey(models.Model):
                                     reverse('activation_verify',
                                             args=(self.key,)))
         mailer = Mailer(subject='Verify Your Blue Button 2.0 Developer Sandbox Account',
-                        template_text='email-activate.txt',
-                        template_html='email-activate.html',
+                        template_text='email/email-activate.txt',
+                        template_html='email/email-activate.html',
                         to=[self.user.email, ],
                         context={"ACTIVATION_LINK": activation_link})
         mailer.send()

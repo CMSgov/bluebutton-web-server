@@ -1,21 +1,17 @@
-{% extends "base-email.html" %}
+{% extends "email/base-email.html" %}
 
-{% block title %}Congrats on Making Your First API Call!{% endblock %}
+{% block title %}Welcome to the Blue Button 2.0 Developer Sandbox!{% endblock %}
 
 {% block content %}
 
                 <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%;" width="100%" class="mcnTextContentContainer">
                     <tbody><tr>
-
-
-                        <td valign="top" class="mcnTextContent" style="padding: 0px 18px 9px; font-style: normal; font-weight: normal;">
                         
-                            <h2><strong id="docs-internal-guid-cc422a4d-7fff-1765-ef6f-b458cb279173">You've Made Your First API Call!</strong></h2>
+                        <td valign="top" class="mcnTextContent" style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
+                        
+                            <h2>Welcome to the Blue Button 2.0 Developer Sandbox!</h2>
 
-<p style="font-size: 18px !important; font-style: normal; font-weight: normal;"><strong id="docs-internal-guid-6a5a05a2-7fff-5f51-3ab2-aa3d10f3c881">Way to go, {{FIRST_NAME}}!&nbsp;</strong>You’ve just made your first API call with Blue Button 2.0. We hope the rest of your time developing your application is a breeze.<br>
-<br>
-When you’re ready to launch your application, be sure to apply for production access. We’ll walk you through the steps to getting your application ready to launch so that you and the beneficiaries your app serves are rock solid.<br>
-&nbsp;</p>
+<p style="font-size:18px !important;">To verify your email address and complete your signup, click the button below.</p>
 
                         </td>
                     </tr>
@@ -49,7 +45,9 @@ When you’re ready to launch your application, be sure to apply for production 
             </td>
         </tr>
     </tbody>
-</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnButtonBlock" style="min-width:100%;">
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnButtonBlock" style="min-width:100%;">
     <tbody class="mcnButtonBlockOuter">
         <tr>
             <td style="padding-top:0; padding-right:18px; padding-bottom:18px; padding-left:18px;" valign="top" align="center" class="mcnButtonBlockInner">
@@ -57,7 +55,7 @@ When you’re ready to launch your application, be sure to apply for production 
                     <tbody>
                         <tr>
                             <td align="center" valign="middle" class="mcnButtonContent" style="font-family: Roboto, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 18px; padding: 18px;">
-                                <a class="mcnButton " title="Read More About the Production Access Proccess" href="https://bluebutton.cms.gov/developers/" target="_blank" style="font-weight: bold;letter-spacing: -0.5px;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;">Read More About the Production Access Proccess</a>
+				    <a class="mcnButton " title="Verify Your Email" href="{{ ACTIVATION_LINK }}" target="_blank" style="font-weight: bold;letter-spacing: -0.5px;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;">Verify Your Email</a>
                             </td>
                         </tr>
                     </tbody>
@@ -65,7 +63,9 @@ When you’re ready to launch your application, be sure to apply for production 
             </td>
         </tr>
     </tbody>
-</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width:100%;">
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width:100%;">
     <tbody class="mcnDividerBlockOuter">
         <tr>
             <td class="mcnDividerBlockInner" style="min-width:100%; padding:18px;">
@@ -80,6 +80,39 @@ When you’re ready to launch your application, be sure to apply for production 
                 <td class="mcnDividerBlockInner" style="padding: 18px;">
                 <hr class="mcnDividerContent" style="border-bottom-color:none; border-left-color:none; border-right-color:none; border-bottom-width:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:0; margin-bottom:0; margin-left:0;" />
 -->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width:100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top:9px;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="599" style="width:599px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding: 0px 18px 9px; line-height: 100%;">
+                        
+                            <span style="font-size:12px">Button not working? Copy the following URL into your browser to complete your signup:<br>
+				    <a href="{{ ACTIVATION_LINK }}" rel="nofollow">{{ ACTIVATION_LINK }}</a></span>
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
             </td>
         </tr>
     </tbody>

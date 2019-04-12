@@ -2,5 +2,5 @@
 {% endblock %}
 
 {% block body-tail %}
-{% include "email-common-get-started-template.txt" %}
+{% include "email/email-common-get-started-template.txt" %}
 {% endblock %}

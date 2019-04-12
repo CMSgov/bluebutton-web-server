@@ -1,4 +1,4 @@
-{% extends "base-email.txt" %}
+{% extends "email/base-email.txt" %}
 
 {% block content %}
 You've Made Your First API Call!

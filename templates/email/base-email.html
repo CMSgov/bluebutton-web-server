@@ -16,21 +16,21 @@
 	<title>{% block title %}Title here?{% endblock %}</title>
 
 	{% block style %}
-	    {% include "email-common-style-template.html" %}
+	    {% include "email/email-common-style-template.html" %}
 	{% endblock %}
 
     </head>
     <body>
 
 	{% block body-head %}
-    	    {% include "email-common-body-heading-template.html" %}
+    	    {% include "email/email-common-body-heading-template.html" %}
 	{% endblock %}
 
         {% block content %}
         {% endblock %}
 
         {% block body-tail %}
-            {% include "email-common-get-started-template.html" %}
+            {% include "email/email-common-get-started-template.html" %}
         {% endblock %}
 
         </center>
