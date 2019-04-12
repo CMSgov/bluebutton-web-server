@@ -265,16 +265,16 @@ class ActivationKey(models.Model):
 
     def save(self, **kwargs):
         self.signup_key = str(uuid.uuid4())
-
         now = pytz.utc.localize(datetime.utcnow())
         expires = now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
         self.expires = expires
+
+        super(ActivationKey, self).save(**kwargs)
 
         # send an email with activation url
         activation_link = '%s%s' % (get_hostname(),
                                     reverse('activation_verify',
                                             args=(self.key,)))
-
         mailer = Mailer(subject='Verify Your Blue Button 2.0 Developer Sandbox Account',
                         template_text='email-activate.txt',
                         template_html='email-activate.html',
@@ -283,7 +283,6 @@ class ActivationKey(models.Model):
         mailer.send()
         logger.info("Activation link sent to {} ({})".format(self.user.username,
                                                              self.user.email))
-        super(ActivationKey, self).save(**kwargs)
 
 
 class ValidPasswordResetKey(models.Model):
