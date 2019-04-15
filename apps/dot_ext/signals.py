@@ -33,22 +33,19 @@ def check_first_application(sender, instance=None, created=False, **kwargs):
 
 
 def outreach_first_api_call(sender, instance=None, **kwargs):
-    if not isinstance(instance, Token):
-        return
-
-    if instance.application.first_active is not None:
-        return
-
-    if Token.objects.filter(application=instance.application).exists():
-        return
-
-    if ArchivedToken.objects.filter(application=instance.application).exists():
-        return
-
-    if Application.objects.filter(user=instance.application.user).count() != 1:
-        return
-
     try:
+        if instance.application.first_active is not None:
+            return
+
+        if Token.objects.filter(application=instance.application).exists():
+            return
+
+        if ArchivedToken.objects.filter(application=instance.application).exists():
+            return
+
+        if Application.objects.filter(user=instance.application.user).count() != 1:
+            return
+
         mailer = Mailer(subject='Congrats on Making Your First API Call',
                         template_text='email/email-success-first-api-call-template.txt',
                         template_html='email/email-success-first-api-call-template.html',
