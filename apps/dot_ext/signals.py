@@ -11,7 +11,7 @@ Token = get_access_token_model()
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-def check_first_application(sender, instance=None, created=False, **kwargs):
+def outreach_first_application(sender, instance=None, created=False, **kwargs):
     """
     On an application post_save signal, check to see if this is the first app created
     by the developer. If so, send an email.
@@ -27,7 +27,7 @@ def check_first_application(sender, instance=None, created=False, **kwargs):
                 mailer.send()
                 logger.info("Congrats on Registering Your First Application sent to %s (%s)" %
                             (instance.user.username, instance.user.email))
-        except:
+        except:  # noqa
             logger.error("Congrats on Registering Your First Application failed send to %s (%s)" %
                          (instance.user.username, instance.user.email))
 
@@ -59,5 +59,5 @@ def outreach_first_api_call(sender, instance=None, **kwargs):
                      (instance.application.user.username, instance.application.user.email))
 
 
-post_save.connect(check_first_application, sender='dot_ext.Application')
+post_save.connect(outreach_first_application, sender=Application)
 pre_save.connect(outreach_first_api_call, sender=Token)
