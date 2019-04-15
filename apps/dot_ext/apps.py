@@ -8,4 +8,3 @@ class dot_extConfig(AppConfig):
 
     def ready(self):
         from . import signals  # noqa
-

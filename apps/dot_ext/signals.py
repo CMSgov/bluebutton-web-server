@@ -25,8 +25,8 @@ def check_first_application(sender, instance=None, created=False, **kwargs):
                 logger.info("Congrats on Registering Your First Application sent to %s (%s)" %
                             (instance.user.username, instance.user.email))
         except:
-                logger.error("Congrats on Registering Your First Application failed send to %s (%s)" %
-                             (instance.user.username, instance.user.email))
+            logger.error("Congrats on Registering Your First Application failed send to %s (%s)" %
+                         (instance.user.username, instance.user.email))
 
 
 post_save.connect(check_first_application, sender='dot_ext.Application')
