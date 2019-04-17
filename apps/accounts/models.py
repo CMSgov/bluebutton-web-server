@@ -17,6 +17,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.models import CASCADE
 from libs.mail import Mailer
+from waffle import switch_is_active
+
 
 ADDITION = 1
 CHANGE = 2
@@ -272,18 +274,19 @@ class ActivationKey(models.Model):
 
         super(ActivationKey, self).save(**kwargs)
 
-        # send an email with activation url
-        activation_link = '%s%s' % (get_hostname(),
-                                    reverse('activation_verify',
-                                            args=(self.key,)))
-        mailer = Mailer(subject='Verify Your Blue Button 2.0 Developer Sandbox Account',
-                        template_text='email/email-activate.txt',
-                        template_html='email/email-activate.html',
-                        to=[self.user.email, ],
-                        context={"ACTIVATION_LINK": activation_link})
-        mailer.send()
-        logger.info("Activation link sent to {} ({})".format(self.user.username,
-                                                             self.user.email))
+        if switch_is_active('outreach_email'):
+            # send an email with activation url
+            activation_link = '%s%s' % (get_hostname(),
+                                        reverse('activation_verify',
+                                                args=(self.key,)))
+            mailer = Mailer(subject='Verify Your Blue Button 2.0 Developer Sandbox Account',
+                            template_text='email/email-activate.txt',
+                            template_html='email/email-activate.html',
+                            to=[self.user.email, ],
+                            context={"ACTIVATION_LINK": activation_link})
+            mailer.send()
+            logger.info("Activation link sent to {} ({})".format(self.user.username,
+                                                                 self.user.email))
 
 
 class ValidPasswordResetKey(models.Model):

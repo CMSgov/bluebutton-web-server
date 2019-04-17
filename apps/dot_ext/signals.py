@@ -3,6 +3,7 @@ from django.db.models.signals import post_save, pre_save
 from oauth2_provider.models import get_application_model, get_access_token_model
 from libs.mail import Mailer
 from .models import ArchivedToken
+from waffle import switch_is_active
 
 
 Application = get_application_model()
@@ -16,7 +17,7 @@ def outreach_first_application(sender, instance=None, created=False, **kwargs):
     On an application post_save signal, check to see if this is the first app created
     by the developer. If so, send an email.
     """
-    if created:
+    if switch_is_active('outreach_email') and created:
         try:
             if Application.objects.filter(user=instance.user).count() == 1:
                 mailer = Mailer(subject='Congrats on Registering Your First Application!',
@@ -34,6 +35,9 @@ def outreach_first_application(sender, instance=None, created=False, **kwargs):
 
 def outreach_first_api_call(sender, instance=None, **kwargs):
     try:
+        if not switch_is_active('outreach_email'):
+            return
+
         if instance.application.first_active is not None:
             return
 
