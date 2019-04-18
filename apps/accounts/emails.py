@@ -4,6 +4,9 @@ from django.conf import settings
 from django.urls import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
+from libs.decorators import waffle_function_switch
+from libs.mail import Mailer
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -71,30 +74,19 @@ def send_password_reset_url_via_email(user, reset_key):
     msg.send()
 
 
+@waffle_function_switch('outreach_email')
 def send_activation_key_via_email(user, signup_key):
-    """Do not call this directly.  Instead use create_signup_key in utils."""
-    plaintext = get_template('email-activate.txt')
-    htmly = get_template('email-activate.html')
-    subject = '[%s] Verify your email to complete account signup' % (
-        settings.APPLICATION_TITLE)
-    from_email = settings.DEFAULT_FROM_EMAIL
-    to_email = user.email
+    """ Send an email with activation key and welcome message. """
     activation_link = '%s%s' % (get_hostname(),
                                 reverse('activation_verify',
                                         args=(signup_key,)))
-    context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
-               "FIRST_NAME": user.first_name,
-               "LAST_NAME": user.last_name,
-               "ACTIVATION_LINK": activation_link}
-    subject = '[%s] Verify your email to complete your account setup.' % (
-        settings.APPLICATION_TITLE)
-    text_content = plaintext.render(context)
-    html_content = htmly.render(context)
-    msg = EmailMultiAlternatives(
-        subject, text_content, from_email, [
-            to_email, ])
-    msg.attach_alternative(html_content, "text/html")
-    msg.send()
+    mailer = Mailer(subject='Verify Your Blue Button 2.0 Developer Sandbox Account',
+                    template_text='email/email-activate.txt',
+                    template_html='email/email-activate.html',
+                    to=[user.email, ],
+                    context={"ACTIVATION_LINK": activation_link})
+    mailer.send()
+    logger.info("Activation link sent to {} ({})".format(user.username, user.email))
 
 
 def get_hostname():
