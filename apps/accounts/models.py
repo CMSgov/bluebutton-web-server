@@ -8,14 +8,14 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from .emails import (send_password_reset_url_via_email,
-                     send_activation_key_via_email,
-                     mfa_via_email)
+                     send_activation_key_via_email, mfa_via_email)
 import logging
 import binascii
 from django.utils.translation import ugettext
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.models import CASCADE
+
 
 ADDITION = 1
 CHANGE = 2
@@ -264,20 +264,17 @@ class ActivationKey(models.Model):
                                              self.expires)
 
     def save(self, **kwargs):
-        self.signup_key = str(uuid.uuid4())
-
         now = pytz.utc.localize(datetime.utcnow())
         expires = now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
         self.expires = expires
-
-        # send an email with reset url
-        send_activation_key_via_email(self.user, self.key)
         super(ActivationKey, self).save(**kwargs)
+        send_activation_key_via_email(self.user, self.key)
 
 
 class ValidPasswordResetKey(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
     reset_password_key = models.CharField(max_length=50, blank=True)
+
     # switch from datetime.now to timezone.now
     expires = models.DateTimeField(default=timezone.now)
 
