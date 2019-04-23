@@ -1,6 +1,5 @@
 import json
 import hashlib
-# from oauth2_provider.models import AccessToken
 
 
 class DataAccessGrantSerializer:
@@ -13,21 +12,24 @@ class DataAccessGrantSerializer:
 
     def __str__(self):
         # seems like this should be a serializer
+        app = getattr(self.tkn, 'application', None)
+        app_user = getattr(app, 'user', None)
+        user = getattr(self.tkn, 'user', None)
         result = {
             "type": "DataAccessGrant",
             "action": self.action,
-            "id": self.tkn.pk,
+            "id": getattr(self.tkn, 'pk', None),
             "application": {
-                "id": self.tkn.application.id,
-                "name": self.tkn.application.name,
+                "id": getattr(app, 'id', None),
+                "name": getattr(app, 'name', None),
                 "user": {
-                    "id": self.tkn.application.user.id,
-                    "username": self.tkn.application.user.username,
+                    "id": getattr(app_user, 'id', None),
+                    "username": getattr(app_user, 'username', None),
                 },
             },
             "user": {
-                "id": self.tkn.user.id,
-                "username": self.tkn.user.username,
+                "id": getattr(user, 'id', None),
+                "username": getattr(user, 'username', None),
             }
         }
         return json.dumps(result)
@@ -43,23 +45,26 @@ class Token:
 
     def __str__(self):
         # seems like this should be a serializer
+        app = getattr(self.tkn, 'application', None)
+        app_user = getattr(app, 'user', None)
+        user = getattr(self.tkn, 'user', None)
         result = {
             "type": "AccessToken",
             "action": self.action,
-            "id": self.tkn.pk,
+            "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(
-                str(self.tkn.token).encode('utf-8')).hexdigest(),
+                str(getattr(self.tkn, 'token', None)).encode('utf-8')).hexdigest(),
             "application": {
-                "id": self.tkn.application.id,
-                "name": self.tkn.application.name,
+                "id": getattr(app, 'id', None),
+                "name": getattr(app, 'name', None),
                 "user": {
-                    "id": self.tkn.application.user.id,
-                    "username": self.tkn.application.user.username,
+                    "id": getattr(app_user, 'id', None),
+                    "username": getattr(app_user, 'username', None),
                 },
             },
             "user": {
-                "id": self.tkn.user.id,
-                "username": self.tkn.user.username,
+                "id": getattr(user, 'id', None),
+                "username": getattr(user, 'username', None),
             }
         }
         return json.dumps(result)
