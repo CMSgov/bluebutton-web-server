@@ -1,0 +1,163 @@
+// Styles for the Blue Button Blog
+// -------------------------------
+
+// Variables
+$blog-card-bg: #ffffff;
+$blog-card-title-font-family: 'Roboto', sans-serif;
+$blog-card-body-font-family: 'Open Sans', sans-serif;
+
+$black: #323a45;
+$white: #ffffff;
+
+// Styles for Blog Card Grid and Featured Blog Card
+
+.ds-c-blog-post-grid {
+	padding: 1rem;
+	// Grid Fallback
+	display: flex;
+	flex-wrap: wrap;
+	// If the browser supports grid:
+	@supports (display: grid) {
+		display: grid;
+   	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		grid-gap: 1rem;
+	}
+}
+
+.ds-c-blog-card {
+	background: $blog-card-bg;
+	border-radius: .3rem;
+	color: $black;
+	text-decoration: none;
+	transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+	&:hover {
+		box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+		color: #000000;
+	}
+	// Grid Fallback
+	margin-left: 5px;
+  	margin-right: 5px;
+	flex: 1 1 200px;
+	// If the browser supports grid:
+	@supports (display: grid) {
+		display: grid;
+	}
+	// Blog Card Image
+	.blog-card-image {
+		height: 300px;
+		background-position: 50% !important;
+		background-repeat: no-repeat !important;
+		background-size: cover !important;
+	}
+	// Blog Card Content Container
+	.blog-card-content {
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		height: 7rem;
+		// Blog Card Date
+		.blog-card-content-date {
+			font-family: $blog-card-body-font-family;
+			font-size: .7rem;
+			font-weight: bold;
+		}
+		.blog-card-content-date::after {
+			background: none repeat scroll 0 0 $black;
+			top: .75rem;
+			content: "";
+			display: block;
+			margin-bottom: 1.5rem;
+			height: 1px;
+			position: relative;
+			width: 50px;
+		}
+		// Blog Card Title
+		.blog-card-content-title {
+			font-family: $blog-card-title-font-family;
+			font-size: 1.5rem;
+			font-weight: bold;
+			margin-bottom: .5rem;
+		}
+		// Blog Card Description
+		.blog-card-content-description {
+			font-family: $blog-card-body-font-family;
+			margin-bottom: 1rem;
+			font-size: .8rem;
+		}
+		// Blog Card Content Link
+		.blog-card-content-link {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			font-family: $blog-card-body-font-family;
+			font-weight: bold;
+			font-size: .8rem;
+			color: $black;
+			text-decoration: none;
+		}
+		.blog-card-content-link svg {
+			margin-left: .5rem;
+		}
+		.blog-card-content-link:hover {
+			color: #000000;
+			text-decoration: underline;
+		}
+	}
+}
+
+.ds-c-blog-card.featured {
+	max-width: 97%;
+	margin: 0 auto;
+	margin-bottom: 2rem;
+	display: flex;
+	flex-direction: row;
+	// Small Screen Styles
+	@media #{$tablet, $phone} {
+		flex-direction: column;
+	}
+	// Blog Card Image
+	// .blog-card-image {
+
+	// }
+	.blog-card-image img {
+		height: 100%;
+	}
+	// Blog Card Image Mobile Styles
+	.blog-card-image {
+		@media #{$tablet, $phone} {
+			display: none;
+		}
+	}
+	.blog-card-image--featured-mobile {
+		@media #{$tablet, $phone} {
+			display: block;
+		}
+	}
+	.blog-card-content {
+		flex-grow: 2;
+		height: auto;
+	}
+	// Blog Card "Read More" Button
+	.blog-card-content-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: $white;
+		color: $black;
+		padding: 1rem 1.5rem;
+		border-radius: .3em;
+		border: 3px solid $black;
+		font-size: .7rem;
+		max-width: 100px;
+		text-decoration: none;
+		font-weight: bold;
+		transition: background 90ms ease color 90ms ease;
+		font-family: $blog-card-body-font-family;
+		text-transform: uppercase;
+	}
+	.blog-card-content-button:hover {
+		background: $black;
+		color: $white;
+	}
+}

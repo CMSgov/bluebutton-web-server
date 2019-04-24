@@ -24,14 +24,14 @@
     "gulp-clean-css": "^3.10.0",
     "gulp-minify": "^3.1.0",
     "gulp-rename": "^1.4.0",
-    "gulp-sass": "^4.0.1",
-    "gulp-sourcemaps": "^2.6.4",
+    "gulp-sass": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
     "gulp-wait": "0.0.2",
     "pump": "^3.0.0"
   },
   "dependencies": {
-    "@cmsgov/design-system-core": "^1.24.0",
-    "@cmsgov/design-system-layout": "^1.24.0",
+    "@cmsgov/design-system-core": "^1.31.1",
+    "@cmsgov/design-system-layout": "^1.31.1",
     "gulp": "^4.0.0"
   }
 }

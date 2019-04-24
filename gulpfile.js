@@ -35,5 +35,5 @@ gulp.task('default', gulp.parallel(function(done) {
 }));
 
 gulp.task('watch', gulp.series(function(done) {
-	gulp.watch(['scss/**/*.scss'], gulp.parallel('default'));
+	gulp.watch(['./scss/**/*.scss'], gulp.parallel('default'));
 }));
