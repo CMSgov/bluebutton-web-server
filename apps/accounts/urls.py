@@ -1,5 +1,6 @@
+from django.conf import settings
 from django.conf.urls import url
-from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import LogoutView, PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from waffle.decorators import waffle_switch
 from .views.api_profile import my_profile
 from .views.core import (create_account,
@@ -40,8 +41,41 @@ urlpatterns = [
                                success_url='settings')),
         name='password_change'),
 
-    url(r'^forgot-password$', waffle_switch('login')(forgot_password),
+
+
+
+
+
+
+
+    url(r'^forgot-password$',
+        waffle_switch('login')(PasswordResetView.as_view(
+                               template_name='registration/password_forgot_form.html',
+                               email_template_name='email/email-password-forgot-link.txt',
+                               html_email_template_name='email/email-password-forgot-link.html',
+                               from_email = settings.DEFAULT_FROM_EMAIL
+                               )),
         name='forgot_password'),
+
+    url(r'^password-reset-done$',
+        waffle_switch('login')(PasswordResetDoneView.as_view()),
+        name='password_reset_done'),
+
+    url(r'^password-reset-confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        waffle_switch('login')(PasswordResetConfirmView.as_view()),
+        name='password_reset_confirm'),
+
+
+    url(r'^password-reset-complete$',
+        waffle_switch('login')(PasswordResetCompleteView.as_view()),
+        name='password_reset_complete'),
+
+
+
+
+
+    url(r'^forgot-password-old$', waffle_switch('login')(forgot_password),
+        name='forgot_password-old'),
 
     url(r'^change-secret-questions$',
         change_secret_questions,
