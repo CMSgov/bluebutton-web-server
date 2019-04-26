@@ -37,7 +37,7 @@ urlpatterns = [
 
     url(r'^password-change$',
         waffle_switch('login')(PasswordChangeView.as_view(
-                               template_name='generic/bootstrapform.html',
+                               template_name='registration/passwd_change_form.html',
                                success_url='settings')),
         name='password_change'),
 
