@@ -70,7 +70,8 @@ urlpatterns = [
 
 
     url(r'^password-reset-complete$',
-        waffle_switch('login')(PasswordResetCompleteView.as_view()),
+        waffle_switch('login')(PasswordResetCompleteView.as_view(
+                               template_name='registration/password_forgot_reset_complete.html')),
         name='password_reset_complete'),
 
 
