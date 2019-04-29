@@ -7,8 +7,7 @@ from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from .emails import (send_password_reset_url_via_email,
-                     send_activation_key_via_email, mfa_via_email)
+from .emails import send_activation_key_via_email, mfa_via_email
 import logging
 import binascii
 from django.utils.translation import ugettext
@@ -290,12 +289,6 @@ class ValidPasswordResetKey(models.Model):
             now = timezone.now()
             expires = now + timedelta(minutes=1440)
             self.expires = expires
-
-            # send an email with reset url
-            send_password_reset_url_via_email(
-                self.user, self.reset_password_key)
-            logger.info("Password reset sent to {} ({})".format(self.user.username,
-                                                                self.user.email))
             super(ValidPasswordResetKey, self).save(**kwargs)
 
 

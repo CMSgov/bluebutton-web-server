@@ -1,84 +1,17 @@
 import logging
 from django.conf import settings
 from django import forms
-from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
-from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import ugettext_lazy as _
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import UserProfile, create_activation_key
-from .models import QUESTION_1_CHOICES, QUESTION_2_CHOICES, QUESTION_3_CHOICES, MFA_CHOICES
+from .models import MFA_CHOICES
 from django.contrib.auth.forms import AuthenticationForm, UsernameField
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-
-class SecretQuestionForm(forms.Form):
-    answer = forms.CharField(max_length=50)
-    required_css_class = 'required'
-
-
-class ChangeSecretQuestionsForm(forms.ModelForm):
-
-    class Meta:
-        model = UserProfile
-        fields = ('password_reset_question_1',
-                  'password_reset_answer_1',
-                  'password_reset_question_2',
-                  'password_reset_answer_2',
-                  'password_reset_question_3',
-                  'password_reset_answer_3')
-
-    def __init__(self, *args, **kwargs):
-        super(ChangeSecretQuestionsForm, self).__init__(*args, **kwargs)
-
-        for key in self.fields:
-            self.fields[key].required = True
-
-
-class PasswordResetRequestForm(forms.Form):
-    email = forms.EmailField(max_length=255, label=_('Email'))
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email', "")
-        return email.rstrip().lstrip().lower()
-    required_css_class = 'required'
-
-
-class PasswordResetForm(forms.Form):
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=120,
-                                label=_('Password*'))
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=120,
-                                label=_('Password (again)*'))
-
-    required_css_class = 'required'
-
-    def clean_password2(self):
-        password1 = self.cleaned_data.get('password1', '')
-        password2 = self.cleaned_data['password2']
-        if password1 != password2:
-            raise forms.ValidationError(_('The two password fields '
-                                          'didn\'t match.'))
-
-        try:
-            validate_password(password1)
-        except ValidationError as err:
-            raise forms.ValidationError(err.error_list[0])
-        return password2
-
-
-class LoginForm(forms.Form):
-    username = forms.CharField(max_length=30, label=_('Username'))
-    password = forms.CharField(widget=forms.PasswordInput, max_length=120,
-                               label=_('Password'))
-    required_css_class = 'required'
-
-    def clean_username(self):
-        username = self.cleaned_data.get('username', '')
-        return username.rstrip().lstrip().lower()
 
 
 class SignupForm(UserCreationForm):
@@ -104,28 +37,12 @@ class SignupForm(UserCreationForm):
                                 help_text=_("We are asking you to re-enter "
                                             "your chosen password to make "
                                             "sure it was entered correctly."))
-    password_reset_question_1 = forms.ChoiceField(choices=QUESTION_1_CHOICES)
-    password_reset_answer_1 = forms.CharField(max_length=50)
-    password_reset_question_2 = forms.ChoiceField(choices=QUESTION_2_CHOICES)
-    password_reset_answer_2 = forms.CharField(max_length=50)
-    password_reset_question_3 = forms.ChoiceField(choices=QUESTION_3_CHOICES)
-    password_reset_answer_3 = forms.CharField(max_length=50,
-                                              help_text=_("We use your "
-                                                          "answers during any "
-                                                          "password reset "
-                                                          "request. <br/>"
-                                                          "Make sure you "
-                                                          "remember your "
-                                                          "answers!"))
 
     required_css_class = 'required'
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'organization_name', 'password1', 'password2',
-                  'password_reset_question_1', 'password_reset_answer_1', 'password_reset_question_2',
-                  'password_reset_answer_2', 'password_reset_question_3', 'password_reset_answer_3',
-                  )
+        fields = ('email', 'first_name', 'last_name', 'organization_name', 'password1', 'password2')
 
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
@@ -148,20 +65,8 @@ class SignupForm(UserCreationForm):
                                    organization_name=self.cleaned_data[
                                        'organization_name'],
                                    user_type="DEV",
-                                   create_applications=True,
-                                   password_reset_question_1=self.cleaned_data[
-                                       'password_reset_question_1'],
-                                   password_reset_answer_1=self.cleaned_data[
-                                       'password_reset_answer_1'],
-                                   password_reset_question_2=self.cleaned_data[
-                                       'password_reset_question_2'],
-                                   password_reset_answer_2=self.cleaned_data[
-                                       'password_reset_answer_2'],
-                                   password_reset_question_3=self.cleaned_data[
-                                       'password_reset_question_3'],
-                                   password_reset_answer_3=self.cleaned_data[
-                                       'password_reset_answer_3']
-                                   )
+                                   create_applications=True)
+
         # Attach the user to the default patient.
         Crosswalk.objects.create(user=user, fhir_source=get_resourcerouter(),
                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID)

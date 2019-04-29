@@ -3,7 +3,6 @@ import logging
 from django.conf import settings
 from django.urls import reverse
 from django.core.mail import EmailMultiAlternatives
-from django.template.loader import get_template
 from libs.decorators import waffle_function_switch
 from libs.mail import Mailer
 
@@ -48,29 +47,6 @@ def mfa_via_email(user, code):
     """ % (code, settings.APPLICATION_TITLE)
     msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
     msg.attach_alternative(html_content, 'text/html')
-    msg.send()
-
-
-def send_password_reset_url_via_email(user, reset_key):
-    plaintext = get_template('email-password-reset-link.txt')
-    htmly = get_template('email-password-reset-link.html')
-    subject = '[%s] Link to reset your password' % (settings.APPLICATION_TITLE)
-    from_email = settings.DEFAULT_FROM_EMAIL
-    to_email = user.email
-    password_reset_link = '%s%s' % (get_hostname(),
-                                    reverse('password_reset_email_verify',
-                                            args=(reset_key,)))
-
-    context = {"APPLICATION_TITLE": settings.APPLICATION_TITLE,
-               "FIRST_NAME": user.first_name,
-               "LAST_NAME": user.last_name,
-               "PASSWORD_RESET_LINK": password_reset_link}
-    text_content = plaintext.render(context)
-    html_content = htmly.render(context)
-    msg = EmailMultiAlternatives(
-        subject, text_content, from_email, [
-            to_email, ])
-    msg.attach_alternative(html_content, "text/html")
     msg.send()
 
 
