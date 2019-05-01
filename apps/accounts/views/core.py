@@ -3,11 +3,9 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from ..forms import (AccountSettingsForm,
-                     LoginForm,
                      SignupForm)
 from ..models import UserProfile
 from ..utils import validate_activation_key
@@ -15,41 +13,6 @@ from django.conf import settings
 from django.views.decorators.cache import never_cache
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-
-
-@never_cache
-def simple_login(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(username=username.lower(), password=password)
-
-            if user is not None:
-
-                if user.is_active:
-                    login(request, user)
-                    next_param = request.GET.get('next', '')
-                    if next_param:
-                        # If a next is in the URL, then go there
-                        return HttpResponseRedirect(next_param)
-                    # otherwise just go to home.
-                    return HttpResponseRedirect(reverse('home'))
-                else:
-                    # The user exists but is_active=False
-                    messages.error(request,
-                                   _('Please check your email for a link to '
-                                     'activate your account.'))
-                    return render(request, 'login.html', {'form': form})
-            else:
-                messages.error(request, _('Invalid username or password.'))
-                return render(request, 'login.html', {'form': form})
-
-        else:
-            return render(request, 'login.html', {'form': form})
-    # this is a GET
-    return render(request, 'login.html', {'form': LoginForm()})
 
 
 def create_account(request):
