@@ -24,7 +24,7 @@ class LabelSlugFilter(CharFilter):
                 # Check if label slug is valid
                 if not ApplicationLabel.objects.exclude(slug__in=settings.APP_LIST_EXCLUDE).filter(slug=slug).exists():
                     raise serializers.ValidationError(detail='Invalid slug name for label parameter:  %s' % (slug), code=400)
-                # Concatinate filter query results
+                # Concatenate filter query results
                 result_qs = result_qs | super().filter(qs, slug)
         else:
             result_qs = super().filter(qs, value)
