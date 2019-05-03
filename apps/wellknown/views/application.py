@@ -17,8 +17,8 @@ class ApplicationListPagination(PageNumberPagination):
 
 class LabelSlugFilter(CharFilter):
     def filter(self, qs, value):
-        result_qs = Application.objects.none()
         if value:
+            result_qs = Application.objects.none()
             slugs = [slug.strip() for slug in value.split(',')]
             for slug in slugs:
                 # Check if label slug is valid
