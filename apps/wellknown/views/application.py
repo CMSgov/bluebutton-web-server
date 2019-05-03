@@ -3,7 +3,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
-from ...dot_ext.models import Application, ApplicationLabel
+from apps.dot_ext.models import Application, ApplicationLabel
 from ..serializers import ApplicationListSerializer, ApplicationLabelSerializer
 
 
