@@ -1,10 +1,10 @@
-from ...dot_ext.models import Application
-from ..serializers import ApplicationListSerializer
 from django.conf import settings
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
+from apps.dot_ext.models import Application, ApplicationLabel
+from ..serializers import ApplicationListSerializer, ApplicationLabelSerializer
 
 
 class ApplicationListPagination(PageNumberPagination):
@@ -28,4 +28,21 @@ class ApplicationListView(ListAPIView):
     def get_queryset(self):
         queryset = Application.objects.exclude(active=False).exclude(
             applicationlabel__slug__in=settings.APP_LIST_EXCLUDE).order_by('name')
+        return queryset
+
+
+class ApplicationLabelView(ListAPIView):
+    """
+    View to provide an application labels list.
+
+    An application label that has a label slug in the APP_LIST_EXCLUDE
+    list will be excluded from this view.
+    """
+    permission_classes = (AllowAny,)
+    renderer_classes = (JSONRenderer,)
+    serializer_class = ApplicationLabelSerializer
+
+    def get_queryset(self):
+        queryset = ApplicationLabel.objects.exclude(
+            slug__in=settings.APP_LIST_EXCLUDE).order_by('name')
         return queryset
