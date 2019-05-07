@@ -28,7 +28,7 @@ class LabelSlugField(forms.CharField):
         super().__init__(validators=[LabelSlugValidator()], **kwargs)
 
 
-class LabelSlugFilter(BaseInFilter, Filter):
+class LabelSlugFilter(BaseInFilter):
     field_class = LabelSlugField
 
 
