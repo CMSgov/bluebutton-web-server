@@ -1,6 +1,7 @@
+from django import forms
 from django.conf import settings
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet, CharFilter
-from rest_framework import serializers
+from django.core.exceptions import ValidationError
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet, Filter
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
@@ -15,24 +16,38 @@ class ApplicationListPagination(PageNumberPagination):
     max_page_size = 10000
 
 
-class LabelSlugFilter(CharFilter):
+class LabelSlugsValidator:
+    def __call__(self, value):
+        if value:
+            slugs = [slug.strip() for slug in value.split(',')]
+            for slug in slugs:
+                if not ApplicationLabel.objects.exclude(slug__in=settings.APP_LIST_EXCLUDE).filter(slug=slug).exists():
+                    raise ValidationError('Invalid slug name for label parameter:  %s' % (slug), code=400)
+
+
+class LabelSlugsField(forms.CharField):
+    def __init__(self, **kwargs):
+        super().__init__(validators=[LabelSlugsValidator()], **kwargs)
+
+
+class LabelSlugsFilter(Filter):
+    def __init__(self, **kwargs):
+        self.field_class = LabelSlugsField
+        super().__init__(**kwargs)
+
     def filter(self, qs, value):
         if value:
             result_qs = Application.objects.none()
             slugs = [slug.strip() for slug in value.split(',')]
             for slug in slugs:
-                # Check if label slug is valid
-                if not ApplicationLabel.objects.exclude(slug__in=settings.APP_LIST_EXCLUDE).filter(slug=slug).exists():
-                    raise serializers.ValidationError(detail='Invalid slug name for label parameter:  %s' % (slug), code=400)
-                # Concatenate filter query results
                 result_qs = result_qs | super().filter(qs, slug)
         else:
             result_qs = super().filter(qs, value)
         return result_qs.distinct()
 
 
-class ApplicationFilter(FilterSet):
-    label = LabelSlugFilter(field_name="applicationlabel__slug")
+class ApplicationListFilter(FilterSet):
+    label = LabelSlugsFilter(field_name="applicationlabel__slug")
 
     class Meta:
         model = Application
@@ -51,7 +66,7 @@ class ApplicationListView(ListAPIView):
     serializer_class = ApplicationListSerializer
     pagination_class = ApplicationListPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_class = ApplicationFilter
+    filterset_class = ApplicationListFilter
 
     def get_queryset(self):
         queryset = Application.objects.exclude(active=False).exclude(
