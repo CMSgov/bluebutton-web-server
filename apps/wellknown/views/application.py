@@ -1,7 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet, Filter
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet, Filter, BaseInFilter
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
@@ -16,38 +16,24 @@ class ApplicationListPagination(PageNumberPagination):
     max_page_size = 10000
 
 
-class LabelSlugsValidator:
+class LabelSlugValidator:
     def __call__(self, value):
         if value:
-            slugs = [slug.strip() for slug in value.split(',')]
-            for slug in slugs:
-                if not ApplicationLabel.objects.exclude(slug__in=settings.APP_LIST_EXCLUDE).filter(slug=slug).exists():
-                    raise ValidationError('Invalid slug name for label parameter:  %s' % (slug), code=400)
+            if not ApplicationLabel.objects.exclude(slug__in=settings.APP_LIST_EXCLUDE).filter(slug=value).exists():
+                raise ValidationError('Invalid slug name for label parameter:  %s' % (value), code=400)
 
 
-class LabelSlugsField(forms.CharField):
+class LabelSlugField(forms.CharField):
     def __init__(self, **kwargs):
-        super().__init__(validators=[LabelSlugsValidator()], **kwargs)
+        super().__init__(validators=[LabelSlugValidator()], **kwargs)
 
 
-class LabelSlugsFilter(Filter):
-    def __init__(self, **kwargs):
-        self.field_class = LabelSlugsField
-        super().__init__(**kwargs)
-
-    def filter(self, qs, value):
-        if value:
-            result_qs = Application.objects.none()
-            slugs = [slug.strip() for slug in value.split(',')]
-            for slug in slugs:
-                result_qs = result_qs | super().filter(qs, slug)
-        else:
-            result_qs = super().filter(qs, value)
-        return result_qs.distinct()
+class LabelSlugFilter(BaseInFilter, Filter):
+    field_class = LabelSlugField
 
 
 class ApplicationListFilter(FilterSet):
-    label = LabelSlugsFilter(field_name="applicationlabel__slug")
+    label = LabelSlugFilter(field_name="applicationlabel__slug", lookup_expr='in')
 
     class Meta:
         model = Application
