@@ -1,7 +1,6 @@
-from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet, Filter, BaseInFilter
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet, BaseInFilter
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
@@ -16,24 +15,22 @@ class ApplicationListPagination(PageNumberPagination):
     max_page_size = 10000
 
 
-class LabelSlugValidator:
-    def __call__(self, value):
-        if value:
-            if not ApplicationLabel.objects.exclude(slug__in=settings.APP_LIST_EXCLUDE).filter(slug=value).exists():
-                raise ValidationError('Invalid slug name for label parameter:  %s' % (value), code=400)
+def label_slug_exists(value):
+    """ Validate slug exists for value """
+    if value:
+        if not ApplicationLabel.objects.filter(slug=value).exists():
+            raise ValidationError('Invalid slug name for label parameter:  %s' % (value), code=400)
 
 
-class LabelSlugField(forms.CharField):
-    def __init__(self, **kwargs):
-        super().__init__(validators=[LabelSlugValidator()], **kwargs)
-
-
-class LabelSlugFilter(BaseInFilter):
-    field_class = LabelSlugField
+def label_slug_excluded(value):
+    """ Validate slug is not excluded for value """
+    if value:
+        if value in settings.APP_LIST_EXCLUDE:
+            raise ValidationError('Invalid slug name for label parameter:  %s' % (value), code=400)
 
 
 class ApplicationListFilter(FilterSet):
-    label = LabelSlugFilter(field_name="applicationlabel__slug", lookup_expr='in')
+    label = BaseInFilter(field_name="applicationlabel__slug", validators=[label_slug_exists, label_slug_excluded])
 
     class Meta:
         model = Application
