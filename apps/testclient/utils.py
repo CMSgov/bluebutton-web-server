@@ -24,12 +24,6 @@ def test_setup(include_client_secret=True):
     return(response)
 
 
-def get_client_id_and_secret():
-    oa2client = Application.objects.get(name="TestApp")
-    return ({'client_id': oa2client.client_id,
-             'client_secret': oa2client.client_secret})
-
-
 def get_client_secret():
     oa2client = Application.objects.get(name="TestApp")
     return oa2client.client_secret
