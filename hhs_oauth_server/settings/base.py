@@ -444,8 +444,6 @@ LOGIN_URL = '/v1/accounts/login'
 
 LOGOUT_REDIRECT_URL = '/'
 
-REQUIRE_AUTHORIZE_APP_FLAG = False
-
 # Move Admin to a variable url location
 ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 
