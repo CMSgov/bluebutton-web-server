@@ -42,28 +42,6 @@ def list_to_text(l_in=[]):
     return repr(l_in)
 
 
-def add_to_text_list(t_list='[]', add_this=''):
-    """
-    Receive a list as text, convert to list, add item to list
-    new_list as text
-
-    :param t_list:
-    :param add_this:
-    :return: list_to_text(appended_list)
-    """
-
-    logger.debug("add_to_text_list %s[%s] + %s[%s]" % (t_list,
-                                                       type(t_list),
-                                                       add_this,
-                                                       type(add_this)))
-
-    appended_list = text_to_list(t_list)
-    if add_this:
-        appended_list.append(add_this)
-
-    return(list_to_text(appended_list))
-
-
 def init_text_list(replace_with=''):
     """
     Create a list in text format using replace_with

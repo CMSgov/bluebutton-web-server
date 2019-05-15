@@ -303,12 +303,6 @@ def random_secret(y=40):
                                  '0123456789') for x in range(y))
 
 
-def random_code(y=10):
-    return ''.join(random.choice('ABCDEFGHIJKLM'
-                                 'NOPQRSTUVWXYZ'
-                                 '234679') for x in range(y))
-
-
 def create_activation_key(user):
     # Create an new activation key and send the email.
     key = ActivationKey.objects.create(user=user)

@@ -294,125 +294,6 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
     return fhir_response
 
 
-def request_get_with_params(request,
-                            call_url,
-                            search_params={},
-                            crosswalk=None,
-                            timeout=None):
-    """  call to request or redirect on fail
-    call_url = target server URL and search parameters to be sent
-    crosswalk = Crosswalk record. The crosswalk is keyed off Request.user
-    timoeout allows a timeout in seconds to be set.
-    FhirServer is joined to Crosswalk.
-    FhirServerAuth and FhirServerVerify receive crosswalk and lookup
-       values in the linked fhir_server model.
-    """
-
-    # Updated to receive crosswalk (Crosswalk entry for user)
-    # call FhirServer_Auth(crosswalk) to get authentication
-    auth_state = FhirServerAuth(crosswalk)
-
-    logger.debug("Auth_state:%s" % auth_state)
-
-    verify_state = FhirServerVerify(crosswalk)
-    if auth_state['client_auth']:
-        # cert puts cert and key file together
-        # (cert_file_path, key_file_path)
-        # Cert_file_path and key_file_ath are fully defined paths to
-        # files on the appserver.
-        logger.debug('Cert:%s , Key:%s' % (auth_state['cert_file'],
-                                           auth_state['key_file']))
-
-        cert = (auth_state['cert_file'], auth_state['key_file'])
-    else:
-        cert = ()
-
-    logger.debug("\nrequest.get settings:%s\n"
-                 "params=%s\n"
-                 "cert:%s\ntimeout:%s\n"
-                 "verify:%s\n"
-                 "======="
-                 "========\n" % (call_url,
-                                 search_params,
-                                 cert,
-                                 timeout,
-                                 verify_state))
-
-    for k, v in search_params.items():
-        logger.debug("\nkey:%s - value:%s" % (k, v))
-
-    header_info = generate_info_headers(request)
-
-    header_info = set_default_header(request, header_info)
-
-    header_detail = header_info
-    header_detail['BlueButton-OriginalUrl'] = request.path
-    header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
-    header_detail['BlueButton-BackendCall'] = call_url
-
-    logger_perf.info(header_detail)
-
-    try:
-        if timeout:
-            r = requests.get(call_url,
-                             params=search_params,
-                             cert=cert,
-                             headers=header_info,
-                             timeout=timeout,
-                             verify=verify_state)
-        else:
-            r = requests.get(call_url,
-                             params=search_params,
-                             cert=cert,
-                             headers=header_info,
-                             verify=verify_state)
-
-        logger.debug("Request.get:%s" % call_url)
-        logger.debug("Status of Request:%s" % r.status_code)
-
-        header_detail['BlueButton-BackendResponse'] = r.status_code
-
-        logger_perf.info(header_detail)
-
-        fhir_response = build_fhir_response(request, call_url, crosswalk, r=r, e=None)
-
-        logger.debug("Leaving request_get_with_params with "
-                     "fhir_Response: %s" % fhir_response)
-
-        return fhir_response
-
-    except requests.exceptions.Timeout as e:
-
-        logger.debug("Gateway timeout talking to back-end server")
-        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
-
-        return fhir_response
-
-    except requests.ConnectionError as e:
-        logger.debug("Request.GET:%s" % request.GET)
-
-        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
-
-        return fhir_response
-
-    except requests.exceptions.HTTPError as e:
-        r_err = requests.exceptions.RequestException
-        logger.debug('Problem connecting to FHIR Server: %s' % call_url)
-        logger.debug('Exception: %s' % r_err)
-        handle_e = handle_http_error(e)
-        handle_e = handle_e
-
-        fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
-
-        messages.error(request, 'Problem connecting to FHIR Server.')
-
-        e = requests.Response
-        logger.debug("HTTPError Status_code:%s" %
-                     requests.exceptions.HTTPError)
-
-    return fhir_response
-
-
 def notNone(value=None, default=None):
     """
     Test value. Return Default if None
@@ -491,26 +372,6 @@ def FhirServerUrl(server=None, path=None, release=None):
         result = ""
 
     return result
-
-
-def check_resource_type_controls(resource_type, resource_router=None):
-    # Check for controls to apply to this resource_type
-
-    # We may get more than one resourceType returned.
-    # We need to deal with that.
-    # Best option is to pass fhir_server from Crosswalk to this call
-
-    if resource_router is None:
-        resource_router = get_resourcerouter()
-
-    try:
-        supported_resource_type_control = SupportedResourceType.objects.get(resourceType=resource_type,
-                                                                            fhir_source=resource_router)
-
-    except SupportedResourceType.DoesNotExist:
-        supported_resource_type_control = None
-
-    return supported_resource_type_control
 
 
 def masked(supported_resource_type_control=None):
@@ -869,27 +730,6 @@ def get_response_text(fhir_response=None):
         logger.debug("giving up...")
         text_in = ""
         return text_in
-
-
-def get_delegator(request, via_oauth=False):
-    """
-    When accessing by OAuth we need to replace the request.user with
-    the request.resource_owner.
-    This is the user giving the OAuth app permission to access
-    resources on their behalf
-
-    :return: delegator
-    """
-
-    if via_oauth:
-        if 'resource_owner' in request:
-            delegator = request.resource_owner
-        else:
-            delegator = request.user
-    else:
-        delegator = request.user
-
-    return delegator
 
 
 def build_oauth_resource(request, format_type="json"):
