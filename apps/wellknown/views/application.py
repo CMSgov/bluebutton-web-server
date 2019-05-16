@@ -30,7 +30,8 @@ def label_slug_excluded(value):
 
 
 class ApplicationListFilter(FilterSet):
-    label = BaseInFilter(field_name="applicationlabel__slug", validators=[label_slug_exists, label_slug_excluded])
+    label = BaseInFilter(field_name="applicationlabel__slug", distinct=True,
+                         validators=[label_slug_exists, label_slug_excluded])
 
     class Meta:
         model = Application
