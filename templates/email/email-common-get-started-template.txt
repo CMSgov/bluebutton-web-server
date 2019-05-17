@@ -8,7 +8,7 @@ Check out our documentation at https://bluebutton.cms.gov/developers/ to get you
 
 Get Help and Support:
 
-Join our Google Group at https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api and Slack channel to find the support you need.
+Join our Google Group at https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api to find the support you need.
 
 
 Get Started with Our Sample Apps:
