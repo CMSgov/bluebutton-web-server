@@ -16,6 +16,7 @@ $white: #ffffff;
 	// Grid Fallback
 	display: flex;
 	flex-wrap: wrap;
+	margin-bottom: 1rem;
 	// If the browser supports grid:
 	@supports (display: grid) {
 		display: grid;
@@ -107,7 +108,11 @@ $white: #ffffff;
 }
 
 .ds-c-blog-card.featured {
-	max-width: 97%;
+	// If the browser supports grid:
+	@supports (display: grid) {
+		max-width: 96%;
+	}
+	width: 100%;
 	margin: 0 auto;
 	margin-bottom: 2rem;
 	display: flex;
