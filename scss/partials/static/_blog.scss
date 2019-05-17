@@ -37,7 +37,8 @@ $white: #ffffff;
 	}
 	// Grid Fallback
 	margin-left: 5px;
-  	margin-right: 5px;
+	margin-right: 5px;
+	margin-bottom: 1rem;
 	flex: 1 1 200px;
 	// If the browser supports grid:
 	@supports (display: grid) {
@@ -108,11 +109,7 @@ $white: #ffffff;
 }
 
 .ds-c-blog-card.featured {
-	// If the browser supports grid:
-	@supports (display: grid) {
-		max-width: 96%;
-	}
-	width: 100%;
+	max-width: 96%;
 	margin: 0 auto;
 	margin-bottom: 2rem;
 	display: flex;
@@ -121,10 +118,6 @@ $white: #ffffff;
 	@media #{$tablet, $phone} {
 		flex-direction: column;
 	}
-	// Blog Card Image
-	// .blog-card-image {
-
-	// }
 	.blog-card-image img {
 		height: 100%;
 	}
@@ -142,6 +135,7 @@ $white: #ffffff;
 	.blog-card-content {
 		flex-grow: 2;
 		height: auto;
+		width: 100%;
 	}
 	// Blog Card "Read More" Button
 	.blog-card-content-button {
