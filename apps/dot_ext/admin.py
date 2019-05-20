@@ -1,32 +1,34 @@
 from django.contrib import admin
-from django.forms import ModelForm
+from django.forms import ModelForm, CharField, Textarea
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
-from .models import ApplicationLabel
 from .forms import CustomRegisterApplicationForm
+from .models import ApplicationLabel
 
 
 Application = get_application_model()
 
 
 class MyAccessToken(AccessToken):
-
     class Meta:
         proxy = True
         app_label = "bluebutton"
 
 
 class MyApplication(Application):
-
     class Meta:
         proxy = True
         app_label = "bluebutton"
 
 
 class CustomAdminApplicationForm(CustomRegisterApplicationForm):
+    description_input = CharField(label="Application Description",
+                                  help_text="Note text size and HTML tags are not validated under ADMIN.",
+                                  widget=Textarea, empty_value='', required=False)
 
     def __init__(self, *args, **kwargs):
         super(ModelForm, self).__init__(*args, **kwargs)
+        self.fields['description_input'].initial = self.instance.description
 
     class Meta:
         model = MyApplication
@@ -53,7 +55,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             'contacts',
             'support_email',
             'support_phone_number',
-            'description',
+            'description_input',
             'active',
             'first_active',
             'last_active',
@@ -74,12 +76,15 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
     def clean_logo_image(self):
         return super().clean_logo_image()
 
+    def clean_description_input(self):
+        return self.cleaned_data.get('description_input')
+
     def save(self, *args, **kwargs):
+        self.instance.description = self.cleaned_data.get('description_input')
         return super().save(*args, **kwargs)
 
 
 class MyApplicationAdmin(admin.ModelAdmin):
-
     form = CustomAdminApplicationForm
     list_display = ("name", "user", "authorization_grant_type", "client_id",
                     "skip_authorization", "scopes", "created", "updated")
@@ -96,7 +101,6 @@ admin.site.register(MyApplication, MyApplicationAdmin)
 
 
 class MyAccessTokenAdmin(admin.ModelAdmin):
-
     list_display = ('user', 'application', 'expires', 'scope')
     search_fields = ('user__username', 'application__name',)
     list_filter = ("user", "application")
