@@ -2,32 +2,42 @@
 {% load i18n %}
 {% block Content %}
 
-<div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4 ds-u-margin-x--1">
-  <div class="ds-l-col--12 ds-l-sm-col--12 ds-l-md-col--8 ds-l-lg-col--7 ds-l-xl-col--7">
-    <div class="ds-u-margin-bottom--4">
-      <h1>{{name}} <small>{{subname}}</small></h1>
-      <small>* Required Fields</small>
-    </div>
+<div class="sandbox-gradient-bg">
+	<div class="gradient-content-container">
+		<h1>Get Started. Create Your Account.</h1>
+		<p>Build apps that help Medicare beneficiaries take control of their data. Join the Developer Sandbox to access sample data to make your development easy.</p>
 
-    {% if additional_info %}
-      <div class="alert alert-info">
-        <button type="button" class="close" data-dismiss="alert">×</button>
-        <h4 class="ds-h4">{%trans "Important" %}</h4>
-        {{ additional_info |safe }}
-      </div>
-    {% endif %}
 
-    {% include "include/messages.html" %}
-    <form class="well" method="post" action="" enctype="multipart/form-data">
-      {% csrf_token %}
-      {% load bootstrap %}
-      {{ form|bootstrap }}
-      <input type="submit" class="ds-c-button  ds-c-button--primary ds-u-margin-y--4" value="{% trans 'Continue' %}" /><br>
-      <a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
-    </form>
-  </div>
+		<!-- Messages Container -->
+		<div class="gradient-messages-contianer">
+	 		{% include "include/messages.html" %}
+			 <!-- Not Sure how we'd like to do messages, but I'd like them to be in this format, if possible. -->
+		</div>
+
+		<!-- Content Card -->
+		<div class="gradient-content-card">
+			<div class="content">
+				<!-- Create Account Form -->
+				<form class="well" method="post" action="" enctype="multipart/form-data">
+      			{% csrf_token %}
+      			{% load bootstrap %}
+      			{{ form|bootstrap }}
+					<!-- Field to be added to generated form -->
+					<label for="selfIdentification">Your Role</label>
+					<select id="selfIdentification">
+						<option value="I am a developer working on behalf of my organization">I am a developer working on behalf of my organization</option>
+						<option value="I am a developer checking out Blue Button for fun">I am a developer checking out Blue Button for fun</option>
+						<option value="I am a student">I am a student</option>
+						<option value="I am part of an organization but am not a developer">I am part of an organization but am not a developer</option>
+						<option value="I am a Medicare beneficiary">I am a Medicare beneficiary</option>
+						<option value="Other">Other</option>
+					</select>
+      			<input type="submit" class="ds-c-button  ds-c-button--primary ds-u-margin-y--4" value="{% trans 'Continue' %}" />
+					<br />
+      			<a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
+    			</form>
+			</div>
+		</div>
+	</div>
 </div>
-
-
-
 {% endblock %}

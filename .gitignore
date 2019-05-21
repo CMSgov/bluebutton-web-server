@@ -80,3 +80,5 @@ ENV/
 *.css.map
 .sass-cache/*
 bluebutton-css/
+
+.vscode
