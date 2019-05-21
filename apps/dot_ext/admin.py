@@ -1,5 +1,5 @@
+from django import forms
 from django.contrib import admin
-from django.forms import ModelForm, CharField, Textarea
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 from .forms import CustomRegisterApplicationForm
@@ -22,13 +22,14 @@ class MyApplication(Application):
 
 
 class CustomAdminApplicationForm(CustomRegisterApplicationForm):
-    description_input = CharField(label="Application Description",
-                                  help_text="Note text size and HTML tags are not validated under ADMIN.",
-                                  widget=Textarea, empty_value='', required=False)
+    description_input = forms.CharField(label="Application Description",
+                                        help_text="Note text size and HTML tags are not validated under ADMIN.",
+                                        widget=forms.Textarea, empty_value='', required=False)
 
     def __init__(self, *args, **kwargs):
-        super(ModelForm, self).__init__(*args, **kwargs)
-        self.fields['description_input'].initial = self.instance.description
+        user = None
+        super().__init__(user, *args, **kwargs)
+        self.fields['logo_uri'].widget.attrs['readonly'] = False
 
     class Meta:
         model = MyApplication
@@ -64,24 +65,8 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
     def clean(self):
         return self.cleaned_data
 
-    def clean_name(self):
-        return super().clean_name()
-
     def clean_agree(self):
         return self.cleaned_data.get('agree')
-
-    def clean_redirect_uris(self):
-        return self.cleaned_data.get('redirect_uris')
-
-    def clean_logo_image(self):
-        return super().clean_logo_image()
-
-    def clean_description_input(self):
-        return self.cleaned_data.get('description_input')
-
-    def save(self, *args, **kwargs):
-        self.instance.description = self.cleaned_data.get('description_input')
-        return super().save(*args, **kwargs)
 
 
 class MyApplicationAdmin(admin.ModelAdmin):

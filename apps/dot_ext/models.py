@@ -17,7 +17,6 @@ from oauth2_provider.models import (
 )
 from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
-from apps.dot_ext.validators import validate_notags
 from django.template.defaultfilters import truncatechars
 from django.core.files.storage import default_storage
 
@@ -73,10 +72,8 @@ class Application(AbstractApplication):
         blank=True,
         null=True)
 
-    description = models.TextField(default="", blank=True, null=True, max_length=1000,
-                                   verbose_name="Application Description",
-                                   help_text="This is plain-text up to 1000 characters in length.",
-                                   validators=[validate_notags])
+    description = models.TextField(default="", blank=True, null=True, verbose_name="Application Description",
+                                   help_text="This is plain-text up to 1000 characters in length.")
     active = models.BooleanField(default=True)
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)

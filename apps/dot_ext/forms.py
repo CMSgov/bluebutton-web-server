@@ -1,11 +1,11 @@
-from django.utils.safestring import mark_safe
+import logging
 from django import forms
 from django.conf import settings
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
-from apps.dot_ext.validators import validate_logo_image
-import logging
+from apps.dot_ext.validators import validate_logo_image, validate_notags
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -20,6 +20,11 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                   % (settings.APP_LOGO_SIZE_MAX, settings.APP_LOGO_WIDTH_MAX,
                                      settings.APP_LOGO_HEIGHT_MAX))
 
+    description_input = forms.CharField(label="Application Description",
+                                        help_text="This is plain-text up to 1000 characters in length.",
+                                        widget=forms.Textarea, empty_value='', required=False,
+                                        max_length=1000, validators=[validate_notags])
+
     def __init__(self, user, *args, **kwargs):
         agree_label = u'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*' % (
             settings.TOS_URI)
@@ -30,10 +35,10 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields['name'].label = "Name*"
         self.fields['name'].required = True
         self.fields['client_type'].label = "Client Type*"
-        self.fields[
-            'authorization_grant_type'].label = "Authorization Grant Type*"
+        self.fields['authorization_grant_type'].label = "Authorization Grant Type*"
         self.fields['redirect_uris'].label = "Redirect URIs*"
         self.fields['logo_uri'].widget.attrs['readonly'] = True
+        self.fields['description_input'].initial = self.instance.description
 
     class Meta:
         model = get_application_model()
@@ -45,7 +50,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'logo_uri',
             'logo_image',
             'website_uri',
-            'description',
+            'description_input',
             'policy_uri',
             'tos_uri',
             'support_email',
@@ -137,6 +142,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         return logo_image
 
     def save(self, *args, **kwargs):
+        self.instance.description = self.cleaned_data.get('description_input')
         app = self.instance
         # Only log agreement from a Register form
         if app.agree and type(self) == CustomRegisterApplicationForm:
