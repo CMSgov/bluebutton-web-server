@@ -68,51 +68,50 @@ class TestRegisterApplicationForm(BaseApiTest):
         self.assertEqual(form.errors.get('website_uri'), None)
 
         # Test form with empty description.
-        data = {'description_input': ''}
+        data = {'description': ''}
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
-        self.assertEqual(form.errors.get('description_input'), None)
+        self.assertEqual(form.errors.get('description'), None)
 
         form = CustomAdminApplicationForm(data)
         form.is_valid()
-        self.assertEqual(form.errors.get('description_input'), None)
+        self.assertEqual(form.errors.get('description'), None)
 
         # Test form with valid description.
-        data = {'description_input': 'Testing short description here!'}
+        data = {'description': 'Testing short description here!'}
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
-        self.assertEqual(form.errors.get('description_input'), None)
+        self.assertEqual(form.errors.get('description'), None)
 
         form = CustomAdminApplicationForm(data)
         form.is_valid()
-        self.assertEqual(form.errors.get('description_input'), None)
+        self.assertEqual(form.errors.get('description'), None)
 
         # Test form with description over 1000 characters.
-        data = {'description_input': 'T' * 1001}
+        data = {'description': 'T' * 1001}
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
-        self.assertNotEqual(form.errors.get('description_input'), None)
+        self.assertNotEqual(form.errors.get('description'), None)
 
         form = CustomAdminApplicationForm(data)
         form.is_valid()
-        self.assertEqual(form.errors.get('description_input'), None)
+        self.assertEqual(form.errors.get('description'), None)
 
         # Test form with description exactly 1000 characters.
-        data = {'description_input': 'T' * 1000}
+        data = {'description': 'T' * 1000}
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
-        self.assertEqual(form.errors.get('description_input'), None)
+        self.assertEqual(form.errors.get('description'), None)
 
         # Test form with HTML tags in the description.
-        data = {'description_input': '<b>Test</b> <button>Test</button> a <span>Test</span>'}
+        data = {'description': '<b>Test</b> <button>Test</button> a <span>Test</span>'}
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
-        self.assertNotEqual(form.errors.get('description_input'), None)
+        self.assertNotEqual(form.errors.get('description'), None)
 
         form = CustomAdminApplicationForm(data)
         form.is_valid()
-        self.assertEqual(form.errors.get('description_input'), None)
-
+        self.assertEqual(form.errors.get('description'), None)
 
         # Testing valid logo_image with max dimensions
         file = BytesIO()

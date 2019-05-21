@@ -22,9 +22,9 @@ class MyApplication(Application):
 
 
 class CustomAdminApplicationForm(CustomRegisterApplicationForm):
-    description_input = forms.CharField(label="Application Description",
-                                        help_text="Note text size and HTML tags are not validated under ADMIN.",
-                                        widget=forms.Textarea, empty_value='', required=False)
+    description = forms.CharField(label="Application Description",
+                                  help_text="Note text size and HTML tags are not validated under ADMIN.",
+                                  widget=forms.Textarea, empty_value='', required=False)
 
     def __init__(self, *args, **kwargs):
         user = None
@@ -56,7 +56,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             'contacts',
             'support_email',
             'support_phone_number',
-            'description_input',
+            'description',
             'active',
             'first_active',
             'last_active',

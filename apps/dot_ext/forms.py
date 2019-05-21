@@ -20,7 +20,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                   % (settings.APP_LOGO_SIZE_MAX, settings.APP_LOGO_WIDTH_MAX,
                                      settings.APP_LOGO_HEIGHT_MAX))
 
-    description_input = forms.CharField(label="Application Description",
+    description = forms.CharField(label="Application Description",
                                         help_text="This is plain-text up to 1000 characters in length.",
                                         widget=forms.Textarea, empty_value='', required=False,
                                         max_length=1000, validators=[validate_notags])
@@ -38,7 +38,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields['authorization_grant_type'].label = "Authorization Grant Type*"
         self.fields['redirect_uris'].label = "Redirect URIs*"
         self.fields['logo_uri'].widget.attrs['readonly'] = True
-        self.fields['description_input'].initial = self.instance.description
 
     class Meta:
         model = get_application_model()
@@ -50,7 +49,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'logo_uri',
             'logo_image',
             'website_uri',
-            'description_input',
+            'description',
             'policy_uri',
             'tos_uri',
             'support_email',
@@ -142,7 +141,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         return logo_image
 
     def save(self, *args, **kwargs):
-        self.instance.description = self.cleaned_data.get('description_input')
         app = self.instance
         # Only log agreement from a Register form
         if app.agree and type(self) == CustomRegisterApplicationForm:
