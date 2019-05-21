@@ -3,14 +3,6 @@
 
 {% block messages %}
 
-<!-- Commenting this out because I think we might want to update the way we deliver messages to form
-to be in the gradient-messages-container (see below) -->
-<!-- <div class="row">
-	<div class="col-lg-8">
-		{% include "include/messages.html" %}
-	</div>
-</div> -->
-
 {% endblock %}
 
 {% block Content %}
@@ -21,11 +13,16 @@ to be in the gradient-messages-container (see below) -->
 
 		<!-- Messages Container -->
 		<div class="gradient-messages-container">
-			Your account was created! Please check your email to verify your account before logging in. 
+			<span>
+				Your account was created! Please check your email to verify your account before logging in. 
+			<span>
 		</div>
 
 		<div class="gradient-messages-container">
-			Success! Your account has been activated! Now you can log in and get started.
+			<i data-feather="check-circle"></i>
+			<span>
+				Success! Your account has been activated! Now you can log in and get started.
+			</span>
 		</div>
 
 		<!-- Content Card -->
