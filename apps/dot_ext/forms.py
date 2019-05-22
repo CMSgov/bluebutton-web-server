@@ -37,7 +37,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields['client_type'].label = "Client Type*"
         self.fields['authorization_grant_type'].label = "Authorization Grant Type*"
         self.fields['redirect_uris'].label = "Redirect URIs*"
-        self.fields['logo_uri'].widget.attrs['readonly'] = True
+        self.fields['logo_uri'].disabled = True
 
     class Meta:
         model = get_application_model()
