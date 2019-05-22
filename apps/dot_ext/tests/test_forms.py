@@ -1,9 +1,12 @@
-from apps.test import BaseApiTest
-from apps.dot_ext.forms import CustomRegisterApplicationForm
+from django.conf import settings
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from PIL import Image
 from io import BytesIO
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.conf import settings
+
+from apps.test import BaseApiTest
+from apps.dot_ext.forms import CustomRegisterApplicationForm
+from apps.dot_ext.admin import CustomAdminApplicationForm
 
 
 class TestRegisterApplicationForm(BaseApiTest):
@@ -21,6 +24,10 @@ class TestRegisterApplicationForm(BaseApiTest):
         # Test form with exact app name has error
         data = {'name': 'john_app'}
         form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('name'), None)
+
+        form = CustomAdminApplicationForm(data)
         form.is_valid()
         self.assertNotEqual(form.errors.get('name'), None)
 
@@ -66,9 +73,17 @@ class TestRegisterApplicationForm(BaseApiTest):
         form.is_valid()
         self.assertEqual(form.errors.get('description'), None)
 
+        form = CustomAdminApplicationForm(data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('description'), None)
+
         # Test form with valid description.
         data = {'description': 'Testing short description here!'}
         form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('description'), None)
+
+        form = CustomAdminApplicationForm(data)
         form.is_valid()
         self.assertEqual(form.errors.get('description'), None)
 
@@ -77,6 +92,10 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
         self.assertNotEqual(form.errors.get('description'), None)
+
+        form = CustomAdminApplicationForm(data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('description'), None)
 
         # Test form with description exactly 1000 characters.
         data = {'description': 'T' * 1000}
@@ -89,6 +108,10 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
         self.assertNotEqual(form.errors.get('description'), None)
+
+        form = CustomAdminApplicationForm(data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('description'), None)
 
         # Testing valid logo_image with max dimensions
         file = BytesIO()
@@ -120,6 +143,10 @@ class TestRegisterApplicationForm(BaseApiTest):
         form.is_valid()
         self.assertNotEqual(form.errors.get('logo_image'), None)
 
+        form = CustomAdminApplicationForm(data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
+
         # Testing logo_image exceeding max height
         file = BytesIO()
         image = Image.new('RGB', size=(int(settings.APP_LOGO_WIDTH_MAX),
@@ -135,6 +162,10 @@ class TestRegisterApplicationForm(BaseApiTest):
         form.is_valid()
         self.assertNotEqual(form.errors.get('logo_image'), None)
 
+        form = CustomAdminApplicationForm(data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
+
         # Testing logo_image not JPEG type
         file = BytesIO()
         image = Image.new('RGB', size=(50, 50), color='red')
@@ -146,5 +177,9 @@ class TestRegisterApplicationForm(BaseApiTest):
         data = {}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, data, files)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('logo_image'), None)
+
+        form = CustomAdminApplicationForm(data, files)
         form.is_valid()
         self.assertNotEqual(form.errors.get('logo_image'), None)
