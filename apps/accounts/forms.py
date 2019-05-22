@@ -86,7 +86,7 @@ class AccountSettingsForm(forms.Form):
         self.request = kwargs.pop("request")
         super(AccountSettingsForm, self).__init__(*args, **kwargs)
 
-    email = forms.EmailField(max_length=255, label=_('Email'))
+    email = forms.EmailField(max_length=255, label=_('Email'), disabled=True, required=False)
     first_name = forms.CharField(max_length=100, label=_('First Name'))
     last_name = forms.CharField(max_length=100, label=_('Last Name'))
     mfa_login_mode = forms.ChoiceField(required=False,
@@ -106,15 +106,6 @@ class AccountSettingsForm(forms.Form):
         if self.request.user.is_staff and not mfa_login_mode:
             raise forms.ValidationError(_('MFA is not optional for staff.'))
         return mfa_login_mode
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if email:
-            if email and User.objects.filter(
-                    email=email).exclude(email=email).count():
-                raise forms.ValidationError(_('This email address is '
-                                              'already registered.'))
-        return email.rstrip().lstrip().lower()
 
 
 class AuthenticationForm(AuthenticationForm):

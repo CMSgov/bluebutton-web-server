@@ -56,7 +56,6 @@ def account_settings(request):
         if form.is_valid():
             data = form.cleaned_data
             # update the user info
-            request.user.email = data['email']
             request.user.first_name = data['first_name']
             request.user.last_name = data['last_name']
             request.user.save()
