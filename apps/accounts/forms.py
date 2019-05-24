@@ -17,10 +17,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(max_length=255,
-                             label=_("Email"),
-                             help_text=_("Your email address is needed for "
-                                         "password reset and other "
-                                         "notifications."))
+                             label=_("Email"))
     first_name = forms.CharField(max_length=100,
                                  label=_("First Name"))
     last_name = forms.CharField(max_length=100,
@@ -34,16 +31,13 @@ class SignupForm(UserCreationForm):
                                 label=_("Password"))
     password2 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
-                                label=_("Password (again)"),
-                                help_text=_("We are asking you to re-enter "
-                                            "your chosen password to make "
-                                            "sure it was entered correctly."))
+                                label=_("Password (again)"))
 
     required_css_class = 'required'
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'organization_name', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'email', 'organization_name', 'password1', 'password2')
 
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
