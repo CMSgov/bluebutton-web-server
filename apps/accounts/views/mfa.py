@@ -44,7 +44,7 @@ def mfa_code_confirm(request, uid):
                     request, _('The code supplied did not match what was sent. Please try again.'))
 
                 return render(
-                    request, 'generic/bootstrapform.html', {'form': form})
+                    request, 'registration/mfa.html', {'form': form})
 
             if user.is_active:
                 # Fake backend here since its not needed.
@@ -68,10 +68,10 @@ def mfa_code_confirm(request, uid):
                         'Your account has not been activated. Please check your email for a link to '
                         'activate your account.'))
                 return render(
-                    request, 'generic/bootstrapform.html', {'form': form})
+                    request, 'registration/mfa.html', {'form': form})
         else:
-            return render(request, 'generic/bootstrapform.html',
+            return render(request, 'registration/mfa.html',
                           {'form': form})
     # this is a GET
-    return render(request, 'generic/bootstrapform.html',
+    return render(request, 'registration/mfa.html',
                   {'form': MFACodeForm()})

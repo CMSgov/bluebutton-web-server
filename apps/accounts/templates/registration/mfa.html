@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block Content %}
+
+<div class="sandbox-gradient-bg">
+	<div class="gradient-content-container">
+		<h1>MFA VERIFICATION</h1>
+		<p>Enter the code you received to login.</p>
+
+		<!-- Messages Container -->
+		<div class="gradient-messages-contianer">
+	 		{% include "include/messages.html" %}
+			 <!-- Not Sure how we'd like to do messages, but I'd like them to be in this format, if possible. -->
+		</div>
+
+		<!-- Content Card -->
+		<div class="gradient-content-card">
+			<div class="content">
+				<!-- Create Account Form -->
+				<form class="well" method="post" action="" enctype="multipart/form-data">
+      			{% csrf_token %}
+      			{% load bootstrap %}
+      			{{ form|bootstrap }}
+      			<a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
+    			</form>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
