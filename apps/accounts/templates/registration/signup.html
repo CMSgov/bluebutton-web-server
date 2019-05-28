@@ -21,16 +21,6 @@
       			{% csrf_token %}
       			{% load bootstrap %}
       			{{ form|bootstrap }}
-					<!-- Field to be added to generated form -->
-					<label for="selfIdentification">Your Role</label>
-					<select id="selfIdentification">
-						<option value="I am a developer working on behalf of my organization">I am a developer working on behalf of my organization</option>
-						<option value="I am a developer checking out Blue Button for fun">I am a developer checking out Blue Button for fun</option>
-						<option value="I am a student">I am a student</option>
-						<option value="I am part of an organization but am not a developer">I am part of an organization but am not a developer</option>
-						<option value="I am a Medicare beneficiary">I am a Medicare beneficiary</option>
-						<option value="Other">Other</option>
-					</select>
       			<input type="submit" class="ds-c-button  ds-c-button--primary ds-u-margin-y--2" value="{% trans 'Create Account' %}" />
 					<br />
       			<a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>

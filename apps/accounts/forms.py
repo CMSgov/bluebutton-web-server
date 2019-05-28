@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
-from .models import UserProfile, create_activation_key
+from .models import UserProfile, create_activation_key, UserIdentificationLabel
 from .models import MFA_CHOICES
 from django.contrib.auth.forms import AuthenticationForm, UsernameField
 
@@ -32,12 +32,14 @@ class SignupForm(UserCreationForm):
     password2 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
                                 label=_("Password (again)"))
+    identification_choice = forms.ChoiceField(label="Your Role", choices=[
+        (choice.pk, choice.name) for choice in UserIdentificationLabel.objects.order_by('weight').all()])
 
     required_css_class = 'required'
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'organization_name', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'email', 'organization_name', 'password1', 'password2', 'identification_choice')
 
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
@@ -66,6 +68,11 @@ class SignupForm(UserCreationForm):
 
         group = Group.objects.get(name='BlueButton')
         user.groups.add(group)
+
+        # Assign user to identification label
+        ident_obj = UserIdentificationLabel.objects.get(pk=self.cleaned_data['identification_choice'])
+        ident_obj.users.add(user)
+        ident_obj.save()
 
         # Send a verification email
         create_activation_key(user)
