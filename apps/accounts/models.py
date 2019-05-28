@@ -292,6 +292,17 @@ class ValidPasswordResetKey(models.Model):
             super(ValidPasswordResetKey, self).save(**kwargs)
 
 
+class UserIdentificationLabel(models.Model):
+    """
+    Provides identification labels that map to developer users.
+    """
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(db_index=True, unique=True)
+    weight = models.IntegerField(verbose_name="List Weight", null=False, default=0,
+                                 help_text="Integer value controlling the position of the label in lists.")
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, null=True, blank=True)
+
+
 def random_key_id(y=20):
     return ''.join(random.choice('ABCDEFGHIJKLM'
                                  'NOPQRSTUVWXYZ') for x in range(y))
