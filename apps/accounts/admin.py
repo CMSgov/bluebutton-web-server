@@ -6,7 +6,8 @@ from .models import (
     ValidPasswordResetKey,
     UserProfile,
     ActivationKey,
-    MFACode)
+    MFACode,
+    UserIdentificationLabel)
 
 
 admin.site.register(ActivationKey)
@@ -46,6 +47,17 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 
 admin.site.register(UserProfile, UserProfileAdmin)
+
+
+class UserIdentificationLabelAdmin(admin.ModelAdmin):
+    model = UserIdentificationLabel
+    filter_horizontal = ('users',)
+    list_display = ("name", "slug", "weight")
+    list_filter = ("name", "slug")
+    ordering = ("weight", )
+
+
+admin.site.register(UserIdentificationLabel, UserIdentificationLabelAdmin)
 
 
 class MFACodeAdmin(admin.ModelAdmin):
