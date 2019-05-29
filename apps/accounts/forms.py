@@ -3,6 +3,7 @@ from django.conf import settings
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
@@ -47,9 +48,7 @@ class SignupForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
         if email:
-            username = self.cleaned_data.get('username')
-            if email and User.objects.filter(email=email).exclude(
-                    username=username).count():
+            if User.objects.filter(Q(email=email) | Q(username=email)).exists():
                 raise forms.ValidationError(
                     _('This email address is already registered.'))
             return email.rstrip().lstrip().lower()
@@ -86,7 +85,7 @@ class AccountSettingsForm(forms.Form):
         self.request = kwargs.pop("request")
         super(AccountSettingsForm, self).__init__(*args, **kwargs)
 
-    email = forms.EmailField(max_length=255, label=_('Email'))
+    email = forms.EmailField(max_length=255, label=_('Email'), disabled=True, required=False)
     first_name = forms.CharField(max_length=100, label=_('First Name'))
     last_name = forms.CharField(max_length=100, label=_('Last Name'))
     mfa_login_mode = forms.ChoiceField(required=False,
@@ -106,15 +105,6 @@ class AccountSettingsForm(forms.Form):
         if self.request.user.is_staff and not mfa_login_mode:
             raise forms.ValidationError(_('MFA is not optional for staff.'))
         return mfa_login_mode
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if email:
-            if email and User.objects.filter(
-                    email=email).exclude(email=email).count():
-                raise forms.ValidationError(_('This email address is '
-                                              'already registered.'))
-        return email.rstrip().lstrip().lower()
 
 
 class AuthenticationForm(AuthenticationForm):
