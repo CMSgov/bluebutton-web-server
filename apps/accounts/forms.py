@@ -3,6 +3,7 @@ from django.conf import settings
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
@@ -47,9 +48,7 @@ class SignupForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
         if email:
-            username = self.cleaned_data.get('username')
-            if email and User.objects.filter(email=email).exclude(
-                    username=username).count():
+            if User.objects.filter(Q(email=email) | Q(username=email)).exists():
                 raise forms.ValidationError(
                     _('This email address is already registered.'))
             return email.rstrip().lstrip().lower()
