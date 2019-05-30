@@ -32,10 +32,15 @@ class SignupForm(UserCreationForm):
     password2 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
                                 label=_("Password (again)"))
-    identification_choice = forms.ChoiceField(label="Your Role", choices=[
-        (choice.pk, choice.name) for choice in UserIdentificationLabel.objects.order_by('weight').all()])
+    identification_choice = forms.ChoiceField(label="Your Role", choices=[])
 
     required_css_class = 'required'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Dynamically generate choices from DB
+        self.fields['identification_choice'].choices = [
+            (choice.pk, choice.name) for choice in UserIdentificationLabel.objects.order_by('weight').all()]
 
     class Meta:
         model = User
