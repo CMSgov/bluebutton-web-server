@@ -3,7 +3,7 @@ from django.test.client import Client
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from apps.accounts.models import UserProfile
+from apps.accounts.models import UserProfile, UserIdentificationLabel
 from apps.fhir.bluebutton.models import Crosswalk
 from django.conf import settings
 from waffle.testutils import override_switch
@@ -21,6 +21,13 @@ class CreateDeveloperAccountTestCase(TestCase):
         Group.objects.create(name='BlueButton')
         self.client = Client()
         self.url = reverse('accounts_create_account')
+        # Create user self identification choices
+        UserIdentificationLabel.objects.get_or_create(name="Self Identification #1",
+                                                      slug="ident1",
+                                                      weight=1)
+        UserIdentificationLabel.objects.get_or_create(name="Self Identification #2",
+                                                      slug="ident2",
+                                                      weight=2)
 
     @override_switch('signup', active=True)
     @override_switch('login', active=True)
@@ -28,6 +35,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create an Account Valid
         """
+        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
         form_data = {
             'email': 'BamBam@Example.com',
             'organization_name': 'transhealth',
@@ -35,12 +43,7 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'bedrocks',
             'first_name': 'BamBam',
             'last_name': 'Rubble',
-            'password_reset_question_1': '1',
-            'password_reset_answer_1': 'blue',
-            'password_reset_question_2': '2',
-            'password_reset_answer_2': 'Jason',
-            'password_reset_question_3': '3',
-            'password_reset_answer_3': 'Jeep'
+            'identification_choice': str(ident_choice.pk),
         }
         response = self.client.post(self.url, form_data, follow=True)
 
@@ -63,6 +66,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create an Account Valid
         """
+        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
         form_data = {
             'email': 'BamBam@Example.com',
             'organization_name': 'transhealth',
@@ -70,12 +74,7 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'bedrocks',
             'first_name': 'BamBam',
             'last_name': 'Rubble',
-            'password_reset_question_1': '1',
-            'password_reset_answer_1': 'blue',
-            'password_reset_question_2': '2',
-            'password_reset_answer_2': 'Jason',
-            'password_reset_question_3': '3',
-            'password_reset_answer_3': 'Jeep'
+            'identification_choice': str(ident_choice.pk),
         }
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 404)
@@ -85,6 +84,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create account should fail if password is too short
         """
+        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
         form_data = {
             'invitation_code': '1234',
             'username': 'fred2',
@@ -93,12 +93,7 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'p',
             'first_name': 'Fred',
             'last_name': 'Flinstone',
-            'password_reset_question_1': '1',
-            'password_reset_answer_1': 'blue',
-            'password_reset_question_2': '2',
-            'password_reset_answer_2': 'Jason',
-            'password_reset_question_3': '3',
-            'password_reset_answer_3': 'Jeep'
+            'identification_choice': str(ident_choice.pk),
         }
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -109,6 +104,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create account should fail if password is too common
         """
+        ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
         form_data = {
             'invitation_code': '1234',
             'username': 'fred',
@@ -117,12 +113,7 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'password',
             'first_name': 'Fred',
             'last_name': 'Flinstone',
-            'password_reset_question_1': '1',
-            'password_reset_answer_1': 'blue',
-            'password_reset_question_2': '2',
-            'password_reset_answer_2': 'Jason',
-            'password_reset_question_3': '3',
-            'password_reset_answer_3': 'Jeep'
+            'identification_choice': str(ident_choice.pk),
         }
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -133,6 +124,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Account Created on site is a developer and not a benny
         """
+        ident_choice = UserIdentificationLabel.objects.get(slug="ident1")
         form_data = {
             'invitation_code': '1234',
             'email': 'hank@example.com',
@@ -141,12 +133,7 @@ class CreateDeveloperAccountTestCase(TestCase):
             'password2': 'bedrocks',
             'first_name': 'Hank',
             'last_name': 'Flinstone',
-            'password_reset_question_1': '1',
-            'password_reset_answer_1': 'blue',
-            'password_reset_question_2': '2',
-            'password_reset_answer_2': 'Jason',
-            'password_reset_question_3': '3',
-            'password_reset_answer_3': 'Jeep'
+            'identification_choice': str(ident_choice.pk),
         }
         self.client.post(self.url, form_data, follow=True)
         up = UserProfile.objects.get(user__email='hank@example.com')
