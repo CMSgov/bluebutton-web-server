@@ -75,9 +75,9 @@ class SignupForm(UserCreationForm):
         user.groups.add(group)
 
         # Assign user to identification label
-        ident_obj = UserIdentificationLabel.objects.get(pk=self.cleaned_data['identification_choice'])
-        ident_obj.users.add(user)
-        ident_obj.save()
+        ident = UserIdentificationLabel.objects.get(pk=self.cleaned_data['identification_choice'])
+        ident.users.add(user)
+        ident.save()
 
         # Send a verification email
         create_activation_key(user)

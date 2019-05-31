@@ -60,6 +60,10 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(Crosswalk.objects.filter(user=u,
                                                   fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists(), True)
 
+        # verify user has identification label chosen
+        exist = User.objects.filter(useridentificationlabel__users=u).filter(useridentificationlabel__slug='ident2').exists()
+        self.assertEqual(exist, True)
+
     @override_switch('signup', active=False)
     @override_switch('login', active=True)
     def test_valid_account_create_flag_off(self):
