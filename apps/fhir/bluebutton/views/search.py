@@ -18,6 +18,9 @@ QUERY_TRANSFORMS = {
     'count': '_count',
 }
 
+# startIndex must be an int that defaults to 0
+# _count must be an int between 0 and MAX_PAGE_SIZE and defaults to DEFAULT_PAGE_SIZE
+# if count is pass transform it into _count before passing on to data server
 
 class ParamSerializer(object):
     # conforming to the basics of http://www.django-rest-framework.org/api-guide/serializers/#validation
@@ -34,6 +37,18 @@ class ParamSerializer(object):
             if val is not None:
                 self.data[correct] = val
 
+query_schema = Schema({
+    Required("_count", default=DEFAULT_PAGE_SIZE): All(Clamp(min=0, max=MAX_PAGE_SIZE), Coerce(int)),
+    Required("startIndex", default=0): Coerce(int),
+})
+def query_transform(data):
+        for key, correct in QUERY_TRANSFORMS.items():
+            val = data.pop(key, None)
+            if val is not None:
+                data[correct] = val
+
+
+
 
 class SearchView(FhirDataView):
     permission_classes = [
@@ -44,26 +59,7 @@ class SearchView(FhirDataView):
     ]
 
     def get(self, request, resource_type, *args, **kwargs):
-        serializer = ParamSerializer(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
-        query_params = serializer.data
-
-        # Verify paging inputs. Casting an invalid int will throw a ValueError
-        try:
-            start_index = int(query_params.get(START_PARAMETER, 0))
-        except ValueError:
-            raise exceptions.ParseError(detail='%s must be an integer between zero and the number of results' % START_PARAMETER)
-
-        if start_index < 0:
-            raise exceptions.ParseError()
-
-        try:
-            page_size = int(query_params.get(SIZE_PARAMETER, DEFAULT_PAGE_SIZE))
-        except ValueError:
-            raise exceptions.ParseError(detail='%s must be an integer between 1 and %s' % (SIZE_PARAMETER, MAX_PAGE_SIZE))
-
-        if page_size <= 0 or page_size > MAX_PAGE_SIZE:
-            raise exceptions.ParseError()
+        query_params = query_schema(query_transform(request.query_params, QUERY_TRANSFORMS))
 
         data = self.fetch_data(request, resource_type, *args, **kwargs)
 
