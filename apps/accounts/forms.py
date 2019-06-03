@@ -15,6 +15,11 @@ from django.contrib.auth.forms import AuthenticationForm, UsernameField
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+class IdentificationModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
+
+
 class SignupForm(UserCreationForm):
     email = forms.EmailField(max_length=255,
                              label=_("Email"))
@@ -32,15 +37,10 @@ class SignupForm(UserCreationForm):
     password2 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
                                 label=_("Password (again)"))
-    identification_choice = forms.ChoiceField(label="Your Role", choices=[])
+    identification_choice = IdentificationModelChoiceField(label="Your Role", empty_label=None,
+                                                           queryset=UserIdentificationLabel.objects.order_by('weight').all())
 
     required_css_class = 'required'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Dynamically generate choices from DB
-        self.fields['identification_choice'].choices = [
-            (choice.pk, choice.name) for choice in UserIdentificationLabel.objects.order_by('weight').all()]
 
     class Meta:
         model = User
@@ -75,7 +75,7 @@ class SignupForm(UserCreationForm):
         user.groups.add(group)
 
         # Assign user to identification label
-        ident = UserIdentificationLabel.objects.get(pk=self.cleaned_data['identification_choice'])
+        ident = self.cleaned_data['identification_choice']
         ident.users.add(user)
         ident.save()
 
