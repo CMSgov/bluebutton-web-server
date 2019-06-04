@@ -4,7 +4,6 @@
 // Global Form & Search Elements
 // -----------------------------
 
-$black: #000000;
 $blue: #004E60;
 $dark-gray: #3e3e3e;
 $light-gray: #f7f7f7;
@@ -21,22 +20,28 @@ $main-content-search-border-color: #95989a;
 // Default Form Styles
 // -------------------
 
+label {
+	font-weight: bold;
+	font-size: .8rem;
+	color: $black;
+}
+
 form {
 	// Input Styles
 	input[type="text"],
 	input[type="email"],
 	input[type="number"],
-  input[type="password"],
+	input[type="password"],
 	input[type="url"],
  	input[type="file"]	{
 		box-sizing: border-box;
 		margin: .5rem 0 1rem 0;
 		display: block;
-    width: 100%;
+		width: 100%;
 		background: $light-gray;
 		border: $component-border;
 		border-radius: .3rem;
-		font-weight: bold;
+		font-weight: normal;
 		padding: 1rem;
 		transition: background 180ms ease, 180ms ease border-color;
 		&:focus {
@@ -118,28 +123,28 @@ form {
 }
 
 select {
-  background: $light-gray;
-  border: $component-border;
-  height: 3.5rem;
-  border-radius: .3rem;
-  font-weight: bold;
-  margin: 1rem 0;
+	background: $light-gray;
+	border: $component-border;
+  	height: 3.5rem;
+  	border-radius: .3rem;
+  	margin: 1rem 0;
 	width: 100%;
 	padding: 1rem;
+	padding-right: 3rem;
 	background-image:
-    linear-gradient(45deg, transparent 50%, gray 50%),
-    linear-gradient(135deg, gray 50%, transparent 50%),
-    linear-gradient(to right, #ccc, #ccc);
-  background-position:
-    calc(100% - 20px) calc(1.5rem + 2px),
-    calc(100% - 15px) calc(1.5rem + 2px),
-    calc(100% - 2.5rem) 0rem;
-  background-size:
-    5px 5px,
-    5px 5px,
-    1px 3.5rem;
-  background-repeat: no-repeat;
-	-webkit-appearance: none;
+		linear-gradient(45deg, transparent 50%, gray 50%),
+    	linear-gradient(135deg, gray 50%, transparent 50%),
+	 	linear-gradient(to right, #ccc, #ccc);
+	background-position:
+   	calc(100% - 20px) calc(1.5rem + 2px),
+    	calc(100% - 15px) calc(1.5rem + 2px),
+		 calc(100% - 2.5rem) 0rem;
+	background-size:
+		5px 5px,
+		5px 5px,
+		1px 3.5rem;
+	background-repeat: no-repeat;
+		-webkit-appearance: none;
 }
 
 // Form Help Messages

@@ -2,18 +2,97 @@
 // Global Elements, Variables, and Mixins
 // --------------------------------------
 
-// CMS Design Color Variables
-// --------------------------
+// Import Global Variables
+@import '../global/global-variables';
 
-$color-gray-light: #AEB0B5;
-$color-gray-dark: #323A45;
 
-// General Color Variables
-// -----------------------
+// Gradient Container Layout & Styles
+// ----------------------------------
+// NOTE: This is used for login, signup, and forgot password screens.
+// It is global because it can also be reusable for future cases.
 
-$light-gray: #f7f7f7;
-$black: #000000;
-$white: #ffffff;
+// Gradient Container Variables
+$gradient-left-color: $blue;
+$gradient-right-color: #9E8FF3;
+$gradient-card-border-color: #DDDDDD;
+
+// Gradient Styles
+.sandbox-gradient-bg {
+	background-color: $gradient-left-color;
+	background-image: linear-gradient(45deg, $gradient-left-color, $gradient-right-color);
+	min-height: calc(100vh - 60px);
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+// Gradient Content Container
+.gradient-content-container {
+	margin-top: 1rem;
+	padding: 1rem; 
+	max-width: 500px;
+	h1 {
+		color: $white;
+		font-weight: bold;
+		margin: 0 0 .5rem 0;
+		text-transform: uppercase;
+	}
+	p {
+		color: $white;
+		margin-bottom: 2rem;
+	}
+	.gradient-messages-container {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: $black;
+		color: $white;
+		padding: 1rem 1.5rem;
+		margin-bottom: 2rem;
+		font-size: .8rem;
+		border-radius: .3rem;
+		svg {
+			margin-right: .5rem;
+		}
+	}
+	.gradient-content-card {
+		margin-bottom: 2rem;
+		.content {
+			background: $white;
+			padding: 2rem;
+		}
+		.action-container {
+			border-top: 1px solid $gradient-card-border-color;
+			background: $white;
+			padding: 2rem;
+			border-bottom-left-radius: .3rem;
+			border-bottom-right-radius: .3rem;
+			display: flex;
+		}
+		.action-container a {
+			margin-right: 1rem;
+		}
+		&::before {
+			background-image: linear-gradient(30deg,#00529b 10%,#45ceb0 90%);;
+			top: 0;
+			left: 0;
+			content: "";
+			display: block;
+			height: 4px;
+			position: relative;
+			width: 100%;
+		}
+	}
+	// For status messages/additional info like terms
+	.sub-card {
+		background: $white;
+		margin-bottom: 2rem;
+		padding: 2rem;
+		border-radius: .3rem;
+		font-size: .8rem;
+	}
+}
 
 // General Global Styles
 // ---------------------
@@ -25,7 +104,6 @@ $white: #ffffff;
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif;
 }
 
 h1 {
