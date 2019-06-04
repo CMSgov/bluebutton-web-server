@@ -31,11 +31,11 @@ def create_account(request):
         else:
             # return the bound form with errors
             return render(request,
-                          'generic/bootstrapform.html',
+                          'registration/signup.html',
                           {'name': name, 'form': form})
     else:
         return render(request,
-                      'generic/bootstrapform.html',
+                      'registration/signup.html',
                       {'name': name, 'form': SignupForm()})
 
 

@@ -3,46 +3,51 @@
 
 {% block messages %}
 
-<div class="row">
-	<div class="col-lg-8">
-		{% include "include/messages.html" %}
-	</div>
-</div>
-
 {% endblock %}
 
 {% block Content %}
+<div class="sandbox-gradient-bg">
+	<div class="gradient-content-container">
+		<h1>Sandbox Login</h1>
+		<p>Register applications, make sample API calls, manage tokens, and more.</p>
 
-<section class="ds-l-container preview__grid ds-u-margin-y--7 sandbox-login-container">
-  <div class="ds-l-row ds-u-justify-content--center">
-		<div class="ds-l-lg-col--6 ds-l-md-col--8 ds-l-sm-col--12">
-			<div class="hero-unit">
-				<!-- Title and Context Message -->
-				<h1>Blue Button 2.0 Sandbox Login</h1>
-				<p class="ds-u-font-size--base">Register applications, make sample API calls, manage tokens, and more.</p>
+		<!-- Messages Container -->
+		<div class="gradient-messages-container">
+			<span>
+				Your account was created! Please check your email to verify your account before logging in. 
+			<span>
+		</div>
+
+		<div class="gradient-messages-container">
+			<i data-feather="check-circle"></i>
+			<span>
+				Success! Your account has been activated! Now you can log in and get started.
+			</span>
+		</div>
+
+		<!-- Content Card -->
+		<div class="gradient-content-card">
+			<div class="content">
 				<!-- Login Form -->
-				<form class="well ds-u-margin-y--3" method="post" action="">
+				<form class="" method="post" action="">
 					{% csrf_token %}
 					<table>
 						{% load bootstrap %}
 						{{ form|bootstrap }}
 					</table>
-					<input type="submit" class="ds-c-button  ds-c-button--primary" value="Login" />
-					<div class="ds-u-margin-top--2">
-						<a href="{% url 'forgot_password' %}">Forgot Password?</a> |
-							<a href="{% url 'accounts_create_account' %}"> Create an Account</a>
-					</div>
+					<input type="submit" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary" value="Login" />
 				</form>
-      </div>
-			<!-- Usage Notice / Warning -->
-			<div class="login-message-container">
-				<div class="content">
-					{{ settings.DISCLOSURE_TEXT }}
-				</div>
 			</div>
-    </div>
-  </div>
-</section>
+			<div class="action-container">
+				<a href="{% url 'forgot_password' %}">Forgot Password?</a>
+				<a href="{% url 'accounts_create_account' %}"> Create an Account</a>			
+			</div>
+		</div>
+		<div class="sub-card">
+			{{ settings.DISCLOSURE_TEXT }}
+		</div>
+	</div>
+</div>
 
 {% endblock %}
 

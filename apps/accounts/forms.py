@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
-from .models import UserProfile, create_activation_key
+from .models import UserProfile, create_activation_key, UserIdentificationLabel
 from .models import MFA_CHOICES
 from django.contrib.auth.forms import AuthenticationForm, UsernameField
 
@@ -15,12 +15,14 @@ from django.contrib.auth.forms import AuthenticationForm, UsernameField
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+class IdentificationModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
+
+
 class SignupForm(UserCreationForm):
     email = forms.EmailField(max_length=255,
-                             label=_("Email"),
-                             help_text=_("Your email address is needed for "
-                                         "password reset and other "
-                                         "notifications."))
+                             label=_("Email"))
     first_name = forms.CharField(max_length=100,
                                  label=_("First Name"))
     last_name = forms.CharField(max_length=100,
@@ -34,16 +36,15 @@ class SignupForm(UserCreationForm):
                                 label=_("Password"))
     password2 = forms.CharField(widget=forms.PasswordInput,
                                 max_length=120,
-                                label=_("Password (again)"),
-                                help_text=_("We are asking you to re-enter "
-                                            "your chosen password to make "
-                                            "sure it was entered correctly."))
+                                label=_("Password (again)"))
+    identification_choice = IdentificationModelChoiceField(label="Your Role", empty_label=None,
+                                                           queryset=UserIdentificationLabel.objects.order_by('weight').all())
 
     required_css_class = 'required'
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'organization_name', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'email', 'organization_name', 'password1', 'password2', 'identification_choice')
 
     def clean_email(self):
         email = self.cleaned_data.get('email', "")
@@ -72,6 +73,11 @@ class SignupForm(UserCreationForm):
 
         group = Group.objects.get(name='BlueButton')
         user.groups.add(group)
+
+        # Assign user to identification label
+        ident = self.cleaned_data['identification_choice']
+        ident.users.add(user)
+        ident.save()
 
         # Send a verification email
         create_activation_key(user)
