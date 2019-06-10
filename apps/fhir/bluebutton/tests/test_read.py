@@ -258,6 +258,9 @@ class BackendConnectionTest(BaseApiTest):
             self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/", req.url)
             self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
             self.assertIn("_id=20140000008325", req.url)
+            self.assertIn("startIndex=0", req.url)
+            self.assertIn("count=5", req.url)
+            self.assertNotIn("hello", req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
@@ -272,7 +275,7 @@ class BackendConnectionTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_search',
                     kwargs={'resource_type': 'Patient'}),
-                {'count': 5},
+                {'count': 5, 'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
