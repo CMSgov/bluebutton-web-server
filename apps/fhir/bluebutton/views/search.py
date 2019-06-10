@@ -1,5 +1,11 @@
 import logging
 
+from voluptuous import (
+    Required,
+    All,
+    Range,
+    Coerce,
+)
 from urllib.parse import urlencode
 from rest_framework import (exceptions, permissions)
 from rest_framework.response import Response
@@ -19,13 +25,14 @@ class SearchView(FhirDataView):
         SearchCrosswalkPermission,
         DataAccessGrantPermission,
     ]
-
-    # startIndex must be an int that defaults to 0
-    # _count must be an int between 0 and MAX_PAGE_SIZE and defaults to DEFAULT_PAGE_SIZE
-    # if count is pass transform it into _count before passing on to data server
     
     query_transforms = {
         'count': '_count',
+    }
+
+    query_schema = {
+            Required('startIndex', default=0): Coerce(int),
+            Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
     }
 
     def build_parameters(self, request, *args, **kwargs):
