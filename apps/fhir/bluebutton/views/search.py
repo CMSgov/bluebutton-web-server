@@ -6,9 +6,7 @@ from voluptuous import (
     Range,
     Coerce,
 )
-from urllib.parse import urlencode
-from rest_framework import (exceptions, permissions)
-from rest_framework.response import Response
+from rest_framework import (permissions)
 
 from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
@@ -25,14 +23,14 @@ class SearchView(FhirDataView):
         SearchCrosswalkPermission,
         DataAccessGrantPermission,
     ]
-    
+
     query_transforms = {
         'count': '_count',
     }
 
     query_schema = {
-            Required('startIndex', default=0): Coerce(int),
-            Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
+        Required('startIndex', default=0): Coerce(int),
+        Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
     }
 
     def build_parameters(self, request, *args, **kwargs):
