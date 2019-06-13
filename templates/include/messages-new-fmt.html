@@ -1,0 +1,12 @@
+<div id="messages">
+{% if messages %}
+  {% for message in messages %}
+  <div class="gradient-content-container">
+    <!-- <a class="close" data-dismiss="alert">×</a> -->
+    <div class="gradient-messages-container">
+      {{message}}
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}
+</div>
