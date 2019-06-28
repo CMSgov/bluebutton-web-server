@@ -496,6 +496,7 @@ class BackendConnectionTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
                     kwargs={'resource_type': 'Patient', 'resource_id': '20140000008325'}),
+                {'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
