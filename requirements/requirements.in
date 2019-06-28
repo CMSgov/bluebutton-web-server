@@ -27,6 +27,7 @@ sqlparse
 Pillow
 boto3
 djangorestframework-yaml
+voluptuous
 
 # notifications
 django-ses

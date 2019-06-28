@@ -1,4 +1,5 @@
 import logging
+import voluptuous
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
 from rest_framework.parsers import JSONParser
@@ -40,6 +41,21 @@ class FhirDataView(APIView):
     def build_parameters(self, request):
         raise NotImplementedError()
 
+    def map_parameters(self, params):
+        transforms = getattr(self, "query_transforms", {})
+        for key, correct in transforms.items():
+            val = params.pop(key, None)
+            if val is not None:
+                params[correct] = val
+        return params
+
+    def filter_parameters(self, request):
+        params = self.map_parameters(request.query_params.dict())
+        schema = voluptuous.Schema(
+            getattr(self, "query_schema", {}),
+            extra=voluptuous.REMOVE_EXTRA)
+        return schema(params)
+
     def validate_response(self, response):
         pass
 
@@ -73,7 +89,7 @@ class FhirDataView(APIView):
 
         logger.debug('FHIR URL with key:%s' % target_url)
 
-        get_parameters = self.build_parameters(request)
+        get_parameters = {**self.filter_parameters(request), **self.build_parameters(request)}
 
         logger.debug('Here is the URL to send, %s now add '
                      'GET parameters %s' % (target_url, get_parameters))

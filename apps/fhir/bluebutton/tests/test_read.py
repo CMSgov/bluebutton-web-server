@@ -201,63 +201,14 @@ class BackendConnectionTest(BaseApiTest):
             }
         }
 
-        expected_response = {
-            "resourceType": "Bundle",
-            "id": "d0c10556-a3df-4af6-bdb3-d60908b1f16b",
-            "meta": {
-                "lastUpdated": "2018-04-05T15:44:17.721-04:00"
-            },
-            "type": "searchset",
-            "total": 1,
-            "link": [{
-                "url": ("http://testserver/v1/fhir/Patient/"
-                        "?_format=application%2Fjson%2Bfhir&_id=20140000008325&_count=10&startIndex=0"),
-                "relation": "self"
-            }],
-            "entry": [{
-                "fullUrl": "https://sandbox.bluebutton.cms.gov/v1/fhir/Patient/20140000008325",
-                "resource": {
-                    "resourceType": "Patient",
-                    "id": "20140000008325",
-                    "extension": [{
-                        "url": "https://bluebutton.cms.gov/resources/variables/race",
-                        "valueCoding": {
-                            "system": "https://bluebutton.cms.gov/resources/variables/race",
-                            "code": "1",
-                            "display": "White"
-                        }
-                    }],
-                    "identifier": [{
-                        "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
-                        "value": "20140000008325"
-                    }, {
-                        "system": "https://bluebutton.cms.gov/resources/identifier/hicn-hash",
-                        "value": "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
-                    }],
-                    "name": [{
-                        "use": "usual",
-                        "family": "Doe",
-                        "given": [
-                            "Jane",
-                            "X"
-                        ]
-                    }],
-                    "gender": "unknown",
-                    "birthDate": "1999-06-01",
-                    "address": [{
-                        "district": "999",
-                        "state": "30",
-                        "postalCode": "99999"
-                    }]
-                }
-            }]
-        }
-
         @all_requests
         def catchall(url, req):
             self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/", req.url)
             self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
             self.assertIn("_id=20140000008325", req.url)
+            self.assertIn("startIndex=0", req.url)
+            self.assertIn("_count=5", req.url)
+            self.assertNotIn("hello", req.url)
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
@@ -272,22 +223,14 @@ class BackendConnectionTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_search',
                     kwargs={'resource_type': 'Patient'}),
-                {'count': 5},
+                {'count': 5, 'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.json()['entry'], expected_response['entry'])
+            # asserts no significant transformation
+            self.assertEqual(response.json()['entry'], patient_response['entry'])
             self.assertTrue(len(response.json()['link']) > 0)
             self.assertIn("_count=5", response.json()['link'][0]['url'])
-
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
-                {'_count': 6},
-                Authorization="Bearer %s" % (first_access_token))
-
-            self.assertIn("_count=6", response.json()['link'][0]['url'])
 
     def test_search_request_unauthorized(self):
         response = self.client.get(
@@ -553,6 +496,7 @@ class BackendConnectionTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
                     kwargs={'resource_type': 'Patient', 'resource_id': '20140000008325'}),
+                {'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
