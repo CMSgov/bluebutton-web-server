@@ -302,6 +302,9 @@ class UserIdentificationLabel(models.Model):
                                  help_text="Integer value controlling the position of the label in lists.")
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, null=True, blank=True)
 
+    def __str__(self):
+        return self.slug + " - " + self.name
+
 
 def random_key_id(y=20):
     return ''.join(random.choice('ABCDEFGHIJKLM'

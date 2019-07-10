@@ -1,13 +1,20 @@
 import logging
 from django.contrib.auth.models import User
-from django.http import StreamingHttpResponse
 from django.db.models import (
     Count,
     QuerySet,
     Min,
     Max,
 )
+from django_filters import rest_framework as filters
+from django.http import StreamingHttpResponse
 from oauth2_provider.models import AccessToken
+from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRenderer
+from rest_framework.generics import ListAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
+from rest_framework.response import Response
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
@@ -17,21 +24,14 @@ from rest_framework.serializers import (
     DateTimeField,
     LIST_SERIALIZER_KWARGS,
 )
-from rest_framework.generics import ListAPIView
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_csv.renderers import PaginatedCSVRenderer, CSVStreamingRenderer
-from django_filters import rest_framework as filters
-from ..accounts.models import UserProfile
-from ..dot_ext.models import Application, ArchivedToken
+from apps.accounts.models import UserProfile, UserIdentificationLabel
 from apps.authorization.models import (
     DataAccessGrant,
     ArchivedDataAccessGrant,
     check_grants,
     update_grants)
+from apps.dot_ext.models import Application, ArchivedToken
 from apps.fhir.bluebutton.models import Crosswalk
 
 
@@ -108,6 +108,7 @@ class DevUserSerializer(StreamableSerializerMixin, ModelSerializer):
     first_active = DateTimeField()
     last_active = DateTimeField()
     active_app_count = IntegerField()
+    identification = SerializerMethodField()
 
     class Meta:
         model = User
@@ -123,7 +124,12 @@ class DevUserSerializer(StreamableSerializerMixin, ModelSerializer):
             'first_active',
             'last_active',
             'active_app_count',
+            'identification',
         )
+
+    def get_identification(self, obj):
+        identification = UserIdentificationLabel.objects.filter(users=obj.id).values('slug', 'name')
+        return(list(identification))
 
 
 class ApplicationSerializer(ModelSerializer):
@@ -435,12 +441,16 @@ class DeveloperFilter(filters.FilterSet):
         field_name="active_app_count",
         lookup_expr='lte',
         label="Max Active Application Count")
+    identification = filters.ModelMultipleChoiceFilter(
+        label='Identification Label',
+        field_name='useridentificationlabel',
+        queryset=UserIdentificationLabel.objects.all())
 
     class Meta:
         model = User
         fields = ['joined_after', 'joined_before', 'app_count', 'min_app_count', 'max_app_count',
                   'first_active_after', 'first_active_before', 'last_active_after', 'last_active_before',
-                  'active_app_count', 'min_active_app_count', 'max_active_app_count']
+                  'active_app_count', 'min_active_app_count', 'max_active_app_count', 'identification']
 
 
 class DevelopersView(ListAPIView):
