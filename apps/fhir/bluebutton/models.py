@@ -1,4 +1,5 @@
 import logging
+import hashlib
 from requests import Response
 from django.conf import settings
 from django.db import models
@@ -123,3 +124,32 @@ class Fhir_Response(Response):
         # Add extra fields to Response Object
         for k, v in extend_response.items():
             self.__dict__[k] = v
+
+
+def update_crosswalks(*args, **kwargs):
+    '''  NOTE: This function only used for the one-time
+         migration for DPR switch-over
+
+         Hash for local testing
+         ALLOWED_FHIR_URL_HASH = "fae87b239c5e8821899b46cff4ab2be7767b3c5c009c322c08f6ce59677a653b"
+    '''
+    # Hash for DPR
+    ALLOWED_FHIR_URL_HASH = "e40546d58a288cc6b973a62a8d1e5f1103f468f435011e28f5dc7b626de8e69e"
+
+    crosswalks = Crosswalk.real_objects.all()
+    for crosswalk in crosswalks:
+        fhir_url = crosswalk.fhir_source.fhir_url
+        fhir_url_hash = hashlib.sha256(str(fhir_url).encode('utf-8')).hexdigest()
+        if fhir_url_hash == ALLOWED_FHIR_URL_HASH:
+            crosswalk.fhir_id = "-" + crosswalk.fhir_id
+            # Use the parent save() to avoid user_id_hash updating
+            super(Crosswalk, crosswalk).save()
+
+
+def check_crosswalks():
+    synth_count = Crosswalk.synth_objects.count()
+    real_count = Crosswalk.real_objects.count()
+    return {
+        "synthetic": synth_count,
+        "real": real_count,
+    }
