@@ -32,7 +32,10 @@ from apps.authorization.models import (
     check_grants,
     update_grants)
 from apps.dot_ext.models import Application, ArchivedToken
-from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.models import (
+    Crosswalk,
+    check_crosswalks,
+    update_crosswalks)
 
 
 log = logging.getLogger('hhs_server.%s' % __name__)
@@ -328,6 +331,19 @@ class CheckDataAccessGrantsView(APIView):
 
     def post(self, request, format=None):
         return Response(update_grants())
+
+
+class CheckCrosswalksView(APIView):
+    permission_classes = [
+        IsAuthenticated,
+        IsAdminUser,
+    ]
+
+    def get(self, request, format=None):
+        return Response(check_crosswalks())
+
+    def post(self, request, format=None):
+        return Response(update_crosswalks())
 
 
 class AppMetricsView(ListAPIView):
