@@ -1,16 +1,17 @@
-from apps.fhir.bluebutton.models import Crosswalk, check_crosswalks, update_crosswalks
+from apps.fhir.bluebutton.models import Crosswalk, check_crosswalks, convert_crosswalks_to_synthetic
 from django.contrib import admin
 from waffle import switch_is_active
 
 
-def update(modeladmin, request, queryset):
+def convert(modeladmin, request, queryset):
     '''  NOTE: This function only used for the one-time
          migration for DPR switch-over
     '''
-    update_crosswalks()
+    # Note: Hash for allowed FHIR server passed in below:
+    convert_crosswalks_to_synthetic("e40546d58a288cc6b973a62a8d1e5f1103f468f435011e28f5dc7b626de8e69e")
 
 
-update.short_description = "Update Crosswalks to negative ID values for DPR switch-over. NOTE: SPECIAL CASE USE!"
+convert.short_description = "Convert Crosswalks to negative ID values for DPR switch-over. NOTE: SPECIAL CASE USE!"
 
 
 class CrosswalkAdmin(admin.ModelAdmin):
@@ -42,9 +43,9 @@ class CrosswalkAdmin(admin.ModelAdmin):
                 current_state["synthetic"],
                 current_state["real"])
 
-            actions[update.__name__] = (update,
-                                        update.__name__,
-                                        update.short_description + current_state_text)
+            actions[convert.__name__] = (convert,
+                                         convert.__name__,
+                                         convert.short_description + current_state_text)
 
         return actions
 
