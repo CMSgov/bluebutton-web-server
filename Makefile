@@ -1,5 +1,5 @@
 reqs-compile:
-	pip-compile --output-file requirements/requirements.txt requirements/requirements.in
+	pip-compile --generate-hashes --output-file requirements/requirements.txt requirements/requirements.in
 
 reqs-download:
 	pip download -r requirements/requirements.txt --dest vendor --platform linux_x86_64 --no-deps
