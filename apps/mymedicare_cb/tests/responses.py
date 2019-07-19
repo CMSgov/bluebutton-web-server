@@ -4,15 +4,15 @@ patient_response = {
     "type": "searchset",
     "link": [
         {
-            "url": "http://localhost:8000/v1/fhir/Patient?_count=5&startIndex=0&_id=20140000008325",
+            "url": "http://localhost:8000/v1/fhir/Patient?_count=5&startIndex=0&_id=-20140000008325",
             "relation": "first"
         },
         {
-            "url": "http://localhost:8000/v1/fhir/Patient?_count=5&startIndex=0&_id=20140000008325",
+            "url": "http://localhost:8000/v1/fhir/Patient?_count=5&startIndex=0&_id=-20140000008325",
             "relation": "last"
         },
         {
-            "url": "http://localhost:8000/v1/fhir/Patient/?_count=5&_format=application%2Fjson%2Bfhir&_id=20140000008325&startIndex=0",  # noqa
+            "url": "http://localhost:8000/v1/fhir/Patient/?_count=5&_format=application%2Fjson%2Bfhir&_id=-20140000008325&startIndex=0",  # noqa
             "relation": "self"
         }
     ],
@@ -42,7 +42,7 @@ patient_response = {
                 ],
                 "identifier": [
                     {
-                        "value": "20140000008325",
+                        "value": "-20140000008325",
                         "system": "https://bluebutton.cms.gov/resources/variables/bene_id"
                     },
                     {
@@ -51,7 +51,7 @@ patient_response = {
                     }
                 ],
                 "resourceType": "Patient",
-                "id": "20140000008325",
+                "id": "-20140000008325",
                 "address": [
                     {
                         "state": "15",

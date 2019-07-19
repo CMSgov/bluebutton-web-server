@@ -16,7 +16,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 # Real fhir_id Manager subclass
 class RealCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(~Q(fhir_id__startswith='-'))
+        return super().get_queryset().filter(~Q(fhir_id__startswith='-') & ~Q(fhir_id=''))
 
 
 # Synthetic fhir_id Manager subclass
@@ -126,21 +126,24 @@ class Fhir_Response(Response):
             self.__dict__[k] = v
 
 
-def update_crosswalks(*args, **kwargs):
+def convert_crosswalks_to_synthetic(allowed_fhir_url_hash, *args, **kwargs):
     '''  NOTE: This function only used for the one-time
          migration for DPR switch-over
 
          Hash for local testing
-         ALLOWED_FHIR_URL_HASH = "fae87b239c5e8821899b46cff4ab2be7767b3c5c009c322c08f6ce59677a653b"
+         allowed_fhir_url_hash = "fae87b239c5e8821899b46cff4ab2be7767b3c5c009c322c08f6ce59677a653b"
+         Hash for DPR
+         allowed_fhir_url_hash = "e40546d58a288cc6b973a62a8d1e5f1103f468f435011e28f5dc7b626de8e69e"
     '''
-    # Hash for DPR
-    ALLOWED_FHIR_URL_HASH = "e40546d58a288cc6b973a62a8d1e5f1103f468f435011e28f5dc7b626de8e69e"
 
+    ''' Note: The following selects crosswalks with real/positive IDs
+            via the RealCrosswalkManager manager. '''
     crosswalks = Crosswalk.real_objects.all()
+
     for crosswalk in crosswalks:
         fhir_url = crosswalk.fhir_source.fhir_url
         fhir_url_hash = hashlib.sha256(str(fhir_url).encode('utf-8')).hexdigest()
-        if fhir_url_hash == ALLOWED_FHIR_URL_HASH:
+        if fhir_url_hash == allowed_fhir_url_hash:
             crosswalk.fhir_id = "-" + crosswalk.fhir_id
             # Use the parent save() to avoid user_id_hash updating
             super(Crosswalk, crosswalk).save()

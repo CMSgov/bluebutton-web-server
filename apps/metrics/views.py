@@ -34,8 +34,7 @@ from apps.authorization.models import (
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.fhir.bluebutton.models import (
     Crosswalk,
-    check_crosswalks,
-    update_crosswalks)
+    check_crosswalks)
 
 
 log = logging.getLogger('hhs_server.%s' % __name__)
@@ -341,9 +340,6 @@ class CheckCrosswalksView(APIView):
 
     def get(self, request, format=None):
         return Response(check_crosswalks())
-
-    def post(self, request, format=None):
-        return Response(update_crosswalks())
 
 
 class AppMetricsView(ListAPIView):
