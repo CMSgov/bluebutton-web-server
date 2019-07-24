@@ -1,6 +1,8 @@
+from libs.switch import switch_value
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+from rest_framework.decorators import api_view, permission_classes
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.capabilities.permissions import TokenHasProtectedCapability
 from oauth2_provider.decorators import protected_resource
 from collections import OrderedDict
 
@@ -25,8 +27,9 @@ def get_userinfo(user):
     return data
 
 
-@require_GET
+@api_view(["GET"])
 @protected_resource()
+@permission_classes(switch_value("require-scopes", [TokenHasProtectedCapability], []))
 def openidconnect_userinfo(request):
     user = request.resource_owner
     data = get_userinfo(user)

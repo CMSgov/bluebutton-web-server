@@ -8,9 +8,12 @@ from voluptuous import (
 )
 from rest_framework import (permissions)
 
+from libs.switch import switch_value
+
 from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.authorization.permissions import DataAccessGrantPermission
+from apps.capabilities.permissions import TokenHasProtectedCapability
 from ..permissions import (SearchCrosswalkPermission, ResourcePermission)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -22,7 +25,7 @@ class SearchView(FhirDataView):
         ResourcePermission,
         SearchCrosswalkPermission,
         DataAccessGrantPermission,
-    ]
+    ] + switch_value("require-scopes", [TokenHasProtectedCapability], [])
 
     query_transforms = {
         'count': '_count',
