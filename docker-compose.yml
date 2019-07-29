@@ -15,6 +15,7 @@ services:
             - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
             - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton
             - OAUTHLIB_INSECURE_TRANSPORT=true
+            - DJANGO_DEFAULT_SAMPLE_FHIR_ID="20140000008325"
     volumes:
       - .:/code
     ports:
