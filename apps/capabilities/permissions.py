@@ -1,10 +1,17 @@
 import json
+from waffle import switch_is_active
 from django.core.exceptions import ImproperlyConfigured
 from oauth2_provider.contrib.rest_framework import permissions
 from .models import ProtectedCapability
 
 
 class TokenHasProtectedCapability(permissions.TokenHasScope):
+
+    def has_permission(self, request, view):
+        if not switch_is_active("require-scopes"):
+            return True
+        return super().has_permission(request, view)
+
 
     def get_scopes(self, request, view):
         scopes = list(ProtectedCapability.objects.filter(

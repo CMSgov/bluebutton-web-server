@@ -1,7 +1,6 @@
 import logging
 from rest_framework import permissions
 
-from libs.switch import switch_value
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from ..permissions import (ReadCrosswalkPermission, ResourcePermission)
@@ -20,7 +19,8 @@ class ReadView(FhirDataView):
         ResourcePermission,
         ReadCrosswalkPermission,
         DataAccessGrantPermission,
-    ] + switch_value("require-scopes", [TokenHasProtectedCapability], [])
+        TokenHasProtectedCapability,
+    ]
 
     def build_parameters(self, *args, **kwargs):
         return {
