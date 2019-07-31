@@ -57,15 +57,14 @@ class Crosswalk(models.Model):
     real_objects = RealCrosswalkManager()  # Real bene manager
     synth_objects = SynthCrosswalkManager()  # Synth bene manager
 
-    def save(self, commit=True, **kwargs):
-        if commit:
-            self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        get_user_id_salt(),
-                                                        settings.USER_ID_ITERATIONS)).decode("ascii")
-            super(Crosswalk, self).save(**kwargs)
-
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
+
+    def set_hicn(self, hicn):
+        self.user_id_hash = binascii.hexlify(pbkdf2(hicn,
+                                                    get_user_id_salt(),
+                                                    settings.USER_ID_ITERATIONS)).decode("ascii")
+
 
     def get_fhir_patient_url(self):
         # Return the fhir server url and {Resource_name}/{id}
