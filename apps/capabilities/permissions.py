@@ -1,7 +1,6 @@
 import json
 import re
 from waffle import switch_is_active
-from django.core.exceptions import ImproperlyConfigured
 from rest_framework import permissions
 from .models import ProtectedCapability
 

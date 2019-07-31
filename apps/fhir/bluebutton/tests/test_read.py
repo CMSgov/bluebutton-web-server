@@ -81,7 +81,7 @@ class ThrottleReadRequestTest(BaseApiTest):
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
         self._create_capability('patient', [
-            ["GET", "\/v1\/fhir\/Patient\/\-\d+"],
+            ["GET", r"\/v1\/fhir\/Patient\/\-\d+"],
             ["GET", "/v1/fhir/Patient"],
         ])
         # Setup the RequestFactory
@@ -180,16 +180,16 @@ class BackendConnectionTest(BaseApiTest):
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
         self._create_capability('patient', [
-            ["GET", "\/v1\/fhir\/Patient\/\-\d+"],
-            ["GET", "\/v1\/fhir\/Patient\/\d+"],
+            ["GET", r"\/v1\/fhir\/Patient\/\-\d+"],
+            ["GET", r"\/v1\/fhir\/Patient\/\d+"],
             ["GET", "/v1/fhir/Patient"],
         ])
         self._create_capability('coverage', [
-            ["GET", "\/v1\/fhir\/Coverage\/.+"],
+            ["GET", r"\/v1\/fhir\/Coverage\/.+"],
             ["GET", "/v1/fhir/Coverage"],
         ])
         self._create_capability('eob', [
-            ["GET", "\/v1\/fhir\/ExplanationOfBenefit\/.+"],
+            ["GET", r"\/v1\/fhir\/ExplanationOfBenefit\/.+"],
             ["GET", "/v1/fhir/ExplanationOfBenefit"],
         ])
         # Setup the RequestFactory

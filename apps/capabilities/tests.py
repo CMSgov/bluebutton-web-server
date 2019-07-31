@@ -1,6 +1,5 @@
 import json
 from django.test import TestCase
-from django.core.exceptions import ImproperlyConfigured
 from django.contrib.auth.models import Group
 from waffle.testutils import override_switch
 
@@ -45,6 +44,7 @@ class TestTokenHasProtectedCapability(TestCase):
         request.path = "/path"
 
         perm = TokenHasProtectedCapability()
+        self.assertTrue(perm.has_permission(request, None))
 
     def test_protected_path_not_allowed(self):
         request = SimpleRequest("unused")
