@@ -106,8 +106,7 @@ class BaseApiTest(TestCase):
         # get the first access token for the user 'john'
         return self._get_access_token(first_name,
                                       passwd,
-                                      application,
-                                      scope='read')
+                                      application)
 
     def create_token_no_fhir(self, first_name, last_name):
         passwd = '123456'
@@ -125,5 +124,4 @@ class BaseApiTest(TestCase):
         # get the first access token for the user 'john'
         return self._get_access_token(first_name,
                                       passwd,
-                                      application,
-                                      scope='read')
+                                      application)
