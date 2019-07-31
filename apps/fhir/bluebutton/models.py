@@ -65,7 +65,6 @@ class Crosswalk(models.Model):
                                                     get_user_id_salt(),
                                                     settings.USER_ID_ITERATIONS)).decode("ascii")
 
-
     def get_fhir_patient_url(self):
         # Return the fhir server url and {Resource_name}/{id}
         full_url = self.fhir_source.fhir_url
