@@ -13,6 +13,7 @@ admin.autodiscover()
 
 ADMIN_REDIRECTOR = getattr(settings, 'ADMIN_PREPEND_URL', '')
 
+# JUST TESTING. Remove me!!!
 
 urlpatterns = [
     url(r'health', include('apps.health.urls')),
