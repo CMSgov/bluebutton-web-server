@@ -44,7 +44,7 @@ def get_and_update_user(user_info):
     crosswalk, _ = Crosswalk.objects.get_or_create(
         user=user, fhir_source=fhir_source)
     hicn = user_info.get('hicn', "")
-    crosswalk.user_id_hash = hicn
+    crosswalk.set_hicn(hicn)
     crosswalk.save()
 
     try:
