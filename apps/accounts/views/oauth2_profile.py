@@ -27,9 +27,9 @@ def get_userinfo(user):
     return data
 
 
-@permission_classes([TokenHasProtectedCapability])
-@authentication_classes([OAuth2Authentication])
 @api_view(["GET"])
+@authentication_classes([OAuth2Authentication])
+@permission_classes([TokenHasProtectedCapability])
 @protected_resource()
 def openidconnect_userinfo(request):
     user = request.resource_owner
