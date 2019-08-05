@@ -16,11 +16,11 @@ class TestUserSelfEndpoint(BaseApiTest):
         """
         Tests that POST requests to /user/self/ endpoint are forbidden.
         """
-        user = self._create_user('john',
-                                 '123456',
-                                 first_name='John',
-                                 last_name='Smith',
-                                 email='john@smith.net')
+        self._create_user('john',
+                          '123456',
+                          first_name='John',
+                          last_name='Smith',
+                          email='john@smith.net')
 
         self._create_capability("userinfo",
                                 [["GET", reverse('openid_connect_userinfo')]])
