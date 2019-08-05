@@ -39,6 +39,9 @@ class TestUserSelfEndpoint(BaseApiTest):
                                  last_name='Smith',
                                  email='john@smith.net')
 
+        self._create_capability("userinfo",
+                                [["GET", reverse('openid_connect_userinfo')]])
+
         # Get an access token for the user 'john'
         access_token = self._get_access_token('john', '123456')
         # Authenticate the request with the bearer access token

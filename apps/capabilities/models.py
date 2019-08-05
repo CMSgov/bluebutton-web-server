@@ -20,7 +20,6 @@ class ProtectedCapability(models.Model):
                                    blank=True,
                                    default='')
     protected_resources = models.TextField(
-        max_length=10240,
         help_text="""A JSON list of pairs containing HTTP method and URL.
         It may contain [id] placeholders for wildcards
         Example: [["GET","/api/task1"], ["POST","/api/task2/[id]"]]""",

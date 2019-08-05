@@ -1,6 +1,8 @@
 import logging
 from rest_framework import permissions
+
 from apps.authorization.permissions import DataAccessGrantPermission
+from apps.capabilities.permissions import TokenHasProtectedCapability
 from ..permissions import (ReadCrosswalkPermission, ResourcePermission)
 from apps.fhir.bluebutton.views.generic import FhirDataView
 
@@ -17,6 +19,7 @@ class ReadView(FhirDataView):
         ResourcePermission,
         ReadCrosswalkPermission,
         DataAccessGrantPermission,
+        TokenHasProtectedCapability,
     ]
 
     def build_parameters(self, *args, **kwargs):
