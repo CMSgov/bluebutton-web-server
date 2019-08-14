@@ -70,9 +70,9 @@ django-storages==1.7.1 \
 django-waffle==0.15.1 \
     --hash=sha256:55691686e3cd6bc0116cf9f025cc7b49b493e8dac8e43f5b4c303d5b8d865588 \
     --hash=sha256:5ee5b0a3dc6b5e19dcc60f1c02422343b3017b6559a2f1b68705e0d07617aed9
-django==2.1.10 \
-    --hash=sha256:65e2a548a52fca560cdd4e35f4fa1a79140f405af48950e59702a37e4227e958 \
-    --hash=sha256:d4244e2c9653e1349b37ab0cdf108607ba9d1e41f71d0711ac71360e4026ce94
+django==2.1.11 \
+    --hash=sha256:1a41831eace203fd1939edf899e07d7abd12ce9bafc3d9a5a63a24a8d1d12bd5 \
+    --hash=sha256:305b6c4fce9e03bb746e35780c2c4d52f29ea1669f15633cfd41bc8821c74c76
 djangorestframework-csv==2.1.0 \
     --hash=sha256:2f008b20a44f2d3c37835ea5b5ddfe19f54394f07b9cb267c616a917a7f7e27c
 djangorestframework-yaml==1.0.3 \
