@@ -61,7 +61,6 @@ def account_settings(request):
             request.user.save()
             # update the user profile
             up.organization_name = data['organization_name']
-            up.mfa_login_mode = data['mfa_login_mode']
             up.create_applications = data['create_applications']
             up.authorize_applications = True
             up.save()
@@ -81,7 +80,6 @@ def account_settings(request):
             'username': request.user.username,
             'email': request.user.email,
             'organization_name': up.organization_name,
-            'mfa_login_mode': up.mfa_login_mode,
             'create_applications': up.create_applications,
             'last_name': request.user.last_name,
             'first_name': request.user.first_name,
@@ -104,9 +102,4 @@ def activation_verify(request, activation_key):
 
 
 def pick_reverse_login():
-    """
-    settings.MFA should be True or False
-    Check settings.MFA to determine which reverse call to make
-    :return:
-    """
     return HttpResponseRedirect(reverse('login'))

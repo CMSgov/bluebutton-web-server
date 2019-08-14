@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from .emails import send_activation_key_via_email, mfa_via_email
+from .emails import send_activation_key_via_email
 import logging
 import binascii
 from django.utils.translation import ugettext
@@ -81,11 +81,6 @@ QUESTION_3_CHOICES = (
     ('3', "What was your paternal grandmother's maiden name?"),
 )
 
-MFA_CHOICES = (
-    ('', 'None'),
-    ('EMAIL', "Email"),
-)
-
 ISSUE_INVITE = (
     ('', 'Not Set'),
     ('YES', 'Yes - Send Invite'),
@@ -150,13 +145,6 @@ class UserProfile(models.Model):
             'Check this to allow the account to authorize applications.'),
     )
 
-    mfa_login_mode = models.CharField(
-        blank=True,
-        default="",
-        max_length=5,
-        choices=MFA_CHOICES,
-    )
-
     mobile_phone_number = models.CharField(
         max_length=12,
         blank=True,
@@ -204,53 +192,11 @@ class UserProfile(models.Model):
         return r
 
     def save(self, **kwargs):
-        if self.mfa_login_mode:
-            self.aal = '2'
-
         if not self.access_key_id or self.access_key_reset:
             self.access_key_id = random_key_id()
             self.access_key_secret = random_secret()
         self.access_key_reset = False
         super(UserProfile, self).save(**kwargs)
-
-
-class MFACode(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, )
-    uid = models.CharField(blank=True,
-                           default=uuid.uuid4,
-                           max_length=36, editable=False)
-    tries_counter = models.IntegerField(default=0, editable=False)
-    code = models.CharField(blank=True, max_length=4, editable=False)
-    mode = models.CharField(max_length=5, default="",
-                            choices=MFA_CHOICES)
-    valid = models.BooleanField(default=True)
-    expires = models.DateTimeField(blank=True)
-    added = models.DateField(auto_now_add=True)
-
-    def __str__(self):
-        name = 'To %s via %s' % (self.user,
-                                 self.mode)
-        return name
-
-    def endpoint(self):
-        e = ""
-        if self.mode == "EMAIL" and self.user.email:
-            e = self.user.email
-        return e
-
-    def save(self, **kwargs):
-        if not self.id:
-            now = pytz.utc.localize(datetime.utcnow())
-            expires = now + timedelta(days=1)
-            self.expires = expires
-            self.code = str(random.randint(1000, 9999))
-            if self.mode == "EMAIL" and self.user.email:
-                # "Send to self.user.email
-                mfa_via_email(self.user, self.code)
-            elif self.mode == "EMAIL" and not self.user.email:
-                logger.info("Cannot send email. No email_on_file.")
-
-        super(MFACode, self).save(**kwargs)
 
 
 class ActivationKey(models.Model):

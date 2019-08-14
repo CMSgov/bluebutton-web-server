@@ -8,7 +8,6 @@ from django.utils.translation import ugettext_lazy as _
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import UserProfile, create_activation_key, UserIdentificationLabel
-from .models import MFA_CHOICES
 from django.contrib.auth.forms import AuthenticationForm, UsernameField
 
 
@@ -94,23 +93,12 @@ class AccountSettingsForm(forms.Form):
     email = forms.EmailField(max_length=255, label=_('Email'), disabled=True, required=False)
     first_name = forms.CharField(max_length=100, label=_('First Name'))
     last_name = forms.CharField(max_length=100, label=_('Last Name'))
-    mfa_login_mode = forms.ChoiceField(required=False,
-                                       choices=MFA_CHOICES,
-                                       help_text=_("Change this to turn on "
-                                                   "multi-factor "
-                                                   "authentication (MFA)."))
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
                                         required=True)
     create_applications = forms.BooleanField(initial=False,
                                              required=False)
     required_css_class = 'required'
-
-    def clean_mfa_login_mode(self):
-        mfa_login_mode = self.cleaned_data.get('mfa_login_mode')
-        if self.request.user.is_staff and not mfa_login_mode:
-            raise forms.ValidationError(_('MFA is not optional for staff.'))
-        return mfa_login_mode
 
 
 class AuthenticationForm(AuthenticationForm):
