@@ -25,8 +25,6 @@ chardet==3.0.4 \
     # via requests
 configparser==3.5.0 \
     --hash=sha256:5308b47021bc2340965c371f0f058cc6971a04502638d4244225c49d80db273a
-decorate-url==1.1 \
-    --hash=sha256:a204c5659423add3ccd9cc05db41c13dd1c4a1e53953653005d7eaac9218477e
 dj-database-url==0.5.0 \
     --hash=sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163 \
     --hash=sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9

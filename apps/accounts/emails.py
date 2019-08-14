@@ -2,7 +2,6 @@ import random
 import logging
 from django.conf import settings
 from django.urls import reverse
-from django.core.mail import EmailMultiAlternatives
 from libs.decorators import waffle_function_switch
 from libs.mail import Mailer
 

@@ -1,15 +1,9 @@
 from axes.decorators import axes_dispatch
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext_lazy as _
-from sys import version_info
 from ..forms import AuthenticationForm
-from ..models import UserProfile
 
 
 class LoginView(LoginView):
