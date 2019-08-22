@@ -14,9 +14,6 @@ class Migration(migrations.Migration):
             model_name='mfacode',
             name='user',
         ),
-        migrations.DeleteModel(
-            name='RequestInvite',
-        ),
         migrations.RemoveField(
             model_name='userprofile',
             name='mfa_login_mode',
