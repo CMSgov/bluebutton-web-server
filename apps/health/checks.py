@@ -27,7 +27,10 @@ def dataserver():
     return r.json()
 
 
-services = (
+internal_services = (
     databases,
+)
+
+external_services = (
     dataserver,
 )
