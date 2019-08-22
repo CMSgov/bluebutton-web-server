@@ -6,7 +6,6 @@ from .models import (
     ValidPasswordResetKey,
     UserProfile,
     ActivationKey,
-    MFACode,
     UserIdentificationLabel)
 
 
@@ -58,16 +57,3 @@ class UserIdentificationLabelAdmin(admin.ModelAdmin):
 
 
 admin.site.register(UserIdentificationLabel, UserIdentificationLabelAdmin)
-
-
-class MFACodeAdmin(admin.ModelAdmin):
-    list_display = ('user', 'code',
-                    'tries_counter',
-                    'mode',
-                    'endpoint',
-                    'expires')
-    search_fields = ('mode', 'endpoint')
-    raw_id_fields = ("user", )
-
-
-admin.site.register(MFACode, MFACodeAdmin)

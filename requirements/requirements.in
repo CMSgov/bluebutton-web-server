@@ -36,6 +36,3 @@ django-ses
 oauthlib
 python-openid
 django-oauth-toolkit
-
-# Decorate admin urls to force MFA login
-decorate_url

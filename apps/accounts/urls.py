@@ -6,7 +6,6 @@ from waffle.decorators import waffle_switch
 from .views.api_profile import my_profile
 from .views.core import (create_account, account_settings, activation_verify)
 from .views.login import LoginView, PasswordChangeView
-from .views.mfa import mfa_code_confirm
 
 
 urlpatterns = [
@@ -20,10 +19,6 @@ urlpatterns = [
 
     url(r'^settings$', account_settings, name='account_settings'),
 
-    url(r'mfa/confirm/(?P<uid>[^/]+)/', waffle_switch('login')(mfa_code_confirm),
-        name='mfa_code_confirm'),
-
-    # Handle mfa/login incase there are any extenal links to it.
     url(r'^login$|^mfa/login$', waffle_switch('login')(LoginView.as_view()), name='login'),
 
     url(r'^password-change$',
