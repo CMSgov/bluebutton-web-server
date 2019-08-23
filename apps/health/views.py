@@ -37,7 +37,7 @@ class Check(APIView):
             raise ImproperlyConfigured
         if len(self.services) < 1:
             raise ImproperlyConfigured(
-                    "please specify at least one service to check")
+                "please specify at least one service to check")
         return self.services
 
 
