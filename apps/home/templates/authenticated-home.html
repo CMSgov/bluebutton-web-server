@@ -3,24 +3,68 @@
 {% load static %}
 {% block Content %}
 
+<div class="ds-c-banner ds-u-margin-bottom--4">
+  <!-- Solid Container -->
+  <div class="solid sandbox-solid">
+    <!-- Page Title -->
+    <h1 class="ds-display">Developer Sandbox</h1>
+    
+    <!-- Page Description -->
+    <p class="page-description">
+      The Developer Sandbox lets you register applications to get credentials to access our synthetic (or sample) beneficiary data. You can use that data to build and test your application to get it ready for production!
+    </p>
+  
+    <!-- Call To Action Buttons -->
+    <div class="ctas">
+      
+      <a class="cta-button ds-u-margin-y--1" href={% url "oauth2_provider:register" %}" aria-label="Add an Application" target="_self">
+        Add an Application
+        <i data-feather="arrow-right"></i>
+      </a>
+      
+      <a class="cta-button ds-u-margin-y--1" href="" aria-label="" target="_self">
+        Understand the Data
+        <i data-feather="arrow-right"></i>
+      </a>
+      
+    </div>
+  
+    </div>
+  
+    <!-- Gradient Container -->
+    <div class="gradient sandbox-gradient"></div>
+  </div>
+
 <div class="container">
 
   <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
     <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
-      <!-- Breadcrumbs -->
-      <ol class="breadcrumb">
-        <li class="active"><a href="/">Home</a></li>
-      </ol>
 
-      <!-- <h1>Dashboard</h1> -->
-
-      <!-- Welcome Message -->
+      {% if applications %}
+      <ul style="list-style: none">
+          {% for application in applications %}
+              <li class="ds-u-margin-y--1">
+                <a href="{{ application.get_absolute_url }}">{{ application.name }}</a> | Updated {{application.updated}}
+              </li>
+          {% endfor %}
+      </ul>
+      {% else %}
       <div class="ds-c-alert ds-u-margin-y--2">
         <div class="ds-c-alert__body">
-          <h2 class="ds-c-alert__heading">Welcome Developers</h2>
-          <p class="ds-c-alert__text"> From here you can add, edit, and delete applications you wish to connect. You may also revoke access to any access tokens you have authorized.</p>
+            <p></p>
+          <h2 class="ds-c-alert__heading">{% trans "You haven’t registered or created any apps yet." %}</h2>
+          <p class="ds-c-alert__text">{% trans "You’ll need to register your app to get a sample token and make API calls to our sample data. Let’s get started!" %}</p>
         </div>
       </div>
+      {% endif %}
+
+      <a class="ds-c-button  ds-c-button--default ds-u-margin-y--2" href="{% url "oauth2_provider:register" %}">
+          Add an Application
+        </a>
+
+      <br />
+      <br />
+      <hr />
 
       {% include "include/messages.html" %}
 
