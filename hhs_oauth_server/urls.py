@@ -6,7 +6,6 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance
-from apps.home.views import home
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 
 admin.autodiscover()
@@ -47,7 +46,7 @@ if IsAppInstalled("apps.mymedicare_cb"):
 
 if not getattr(settings, 'NO_UI', False):
     urlpatterns += [
-        url(r'^$', home, name='home'),
+        url(r'', include('apps.home.urls')),
     ]
 
 handler500 = 'hhs_oauth_server.urls.server_error'
