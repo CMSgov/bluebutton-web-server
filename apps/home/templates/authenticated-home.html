@@ -61,7 +61,7 @@
             </div>
             <!-- TODO: ADD IF/ELSE FOR DEFAULT IMAGE VERSUS HOSTED IMAGE -->
             {% if application.logo_uri %}
-            <div class="app-logo" style="background-image: url({{ application.logo_uri }})"></div>
+            <div class="app-logo" style="background-image: url({{application.logo_uri}})"></div>
             {% else %}
             <div class="app-logo" style="background-image: url({% static "img/default-app-avatar.png" %})"></div>
             {% endif %}
@@ -99,6 +99,37 @@
       </div>
     </div>
   </div>
-</div>
+<!-- </div> -->
+
+  <div class="bb-full-width--gray">
+      <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+        <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+          <h2>Blue Button Resources</h2>
+          <div class="bb-card-container-2-2 ds-u-margin-y--3">
+
+            <a class="bb-c-card default-card" href="google.com">
+              <div class="card-title">
+                Getting Production Access
+              </div>
+              <div class="card-image" style="background-image: url({% static 'img/handshake.jpg' %})" aria-role="presentation"></div>
+              <div class="card-description">
+                Protecting and empowering Medicare beneficiaries is our priority. As you get ready to apply for production access, here are some tips to help you along the way.
+              </div>
+            </a>
+
+            <a class="bb-c-card default-card" href="google.com">
+                <div class="card-title">
+                  Sample Apps to Get Your Started
+                </div>
+                <div class="card-image" style="background-image: url({% static 'img/developers.jpg' %})" aria-role="presentation"></div>
+                <div class="card-description">
+                  If you learn by example, we’ve got sample apps in a variety of languages and frameworks to get you started.
+                </div>
+              </a>
+
+          </div>
+      </div>
+    </div>
+  </div>
 
 {% endblock %}
