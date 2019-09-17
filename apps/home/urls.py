@@ -5,6 +5,6 @@ from .views import AuthenticatedHomeView, HomeView
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'home', AuthenticatedHomeView.as_view(), name='auth_home'),
-    url(r'', HomeView.as_view(), name='auth_home'),
+    url(r'home', AuthenticatedHomeView.as_view(), name='home'),
+    url(r'', HomeView.as_view(), name='unauth_home'),
 ]

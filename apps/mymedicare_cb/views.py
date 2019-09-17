@@ -94,7 +94,7 @@ def callback(request):
         user=request.user)
 
     # Only go back to app authorization
-    auth_uri = reverse('dot_ext:authorize-instance', args=[approval.uuid])
+    auth_uri = reverse('oauth2_provider:authorize-instance', args=[approval.uuid])
     _, _, auth_path, _, _ = urlsplit(auth_uri)
 
     return HttpResponseRedirect(urlunsplit((scheme, netloc, auth_path, query_string, fragment)))

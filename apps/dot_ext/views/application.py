@@ -1,3 +1,4 @@
+from django.urls import reverse_lazy
 from oauth2_provider import views as oauth2_views
 
 from ..forms import CustomRegisterApplicationForm
@@ -36,3 +37,8 @@ class ApplicationUpdate(CustomFormMixin, oauth2_views.ApplicationUpdate):
         Returns the form class for the application model
         """
         return CustomRegisterApplicationForm
+
+
+class ApplicationDelete(oauth2_views.ApplicationDelete):
+    
+    success_url= reverse_lazy("home")
