@@ -9,26 +9,28 @@
 <!-- Ignore Banner Code -->
 {% block banner %}{% endblock %}
 
-<!-- Breadcrumbs -->
-<ol class="breadcrumb">
-  <li><a href="/">Home</a></li>
-  <li><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
-  <li><a href="{% url 'oauth2_provider:detail' application.pk %}" >{{ application.name }}</a></li>
-  <li class="active"><a href="{% url 'oauth2_provider:delete' application.pk %}" >{% trans "Delete" %}</a></li>
-</ol>
-
-<h1>Delete Application</h1>
-
-<div class="ds-u-margin-y--2">
-  {% trans "Are you sure you want to delete" %} {{ application.name }}?
+<div class="sandbox-gradient-bg">
+  <div class="gradient-content-container">
+    <h1>Delete {{ application.name }}</h1>
+    <!-- <p>Are you sure?!</p> -->
+    <!-- Content Card -->
+    <div class="gradient-content-card">
+      <div class="content">
+        <strong>{% trans "Are you sure you want to delete" %} {{ application.name }}?</strong> This can't be undone.
+        <form class="ds-u-margin-top--4" method="post" action="{% url 'oauth2_provider:delete' application.pk %}">
+          {% csrf_token %}  
+          <input type="submit" class="ds-c-button--danger" name="allow" value="{% trans "Delete" %}"/>
+          <a class="ds-u-margin-x--2" href="{{ application.get_absolute_url }}">{% trans "Cancel" %}</a>    
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
-<form method="post" action="{% url 'oauth2_provider:delete' application.pk %}">
-  {% csrf_token %}
+<!-- <div class="ds-u-margin-y--2">
+  {% trans "Are you sure you want to delete" %} {{ application.name }}?
+</div> -->
 
-  <input type="submit" class="ds-c-button--danger" name="allow" value="{% trans "Delete" %}"/>
-  <a class="ds-u-margin-x--2" href="{% url 'oauth2_provider:list' %}">{% trans "Cancel" %}</a>
 
-</form>
 
 {% endblock content %}
