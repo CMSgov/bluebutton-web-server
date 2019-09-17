@@ -1,24 +1,69 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
+
 <head>
-	{% load i18n %}
+    {% load i18n %}
 
-	<title>
-		{% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
-  </title>
+    <title>
+        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+    </title>
 
-  {% block head %}
-      {% include "include/head.html" %}
-  {% endblock %}
+    {% block head %}
+    {% include "include/head.html" %}
+    {% endblock %}
 
-  {% block extra_head %}
-  {% endblock %}
+    {% block extra_head %}
+    {% endblock %}
 
 </head>
 
 <body class="container-fluid">
- {% include "include/top-nav-responsive.html" %}
+    {% include "include/top-nav-responsive.html" %}
+
+    {% block banner %}
+    <!-- Sandbox Banner -->
+    <div class="ds-c-banner ds-u-margin-bottom--4">
+        <!-- Solid Container -->
+        <div class="solid sandbox-solid">
+
+            <!-- Badge -->
+            {% block bannerBadge %}
+            <!-- <span class="ds-c-badge ds-u-text-transform--uppercase"></span> -->
+            {% endblock %}
+
+            <!-- Back Link (for detail page) -->
+            {% block bannerBackButton %}
+            <!-- <a class="banner-back-button" href="/"><i data-feather="arrow-left"></i>Back to Dashboard</a> -->
+            {% endblock %}
+
+            <!-- Page Title -->
+            <h1 class="ds-display">
+                {% block bannerTitle %}
+
+                {% endblock %}
+            </h1>
+
+            <!-- Page Description -->
+            <p class="page-description">
+                {% block bannerDescription %}
+
+                {% endblock %}
+            </p>
+
+            <!-- Call To Action Buttons -->
+            <div class="ctas">
+                {% block bannerCallToActionButtons %}
+
+                {% endblock %}
+            </div>
+
+        </div>
+
+        <!-- Gradient Container -->
+        <div class="gradient sandbox-gradient"></div>
+    </div>
+    {% endblock %}
 
     <main class="row container-fluid" id="main-content">
 
@@ -32,20 +77,21 @@
 
 
             {% block Content %}
-                {% if template %}{% include template %}{% endif %}
-                {{ content|safe }}
+            {% if template %}{% include template %}{% endif %}
+            {{ content|safe }}
             {% endblock %}
         </div>
 
     </main>
 
-        {% include "include/footer.html" %}
+    {% include "include/footer.html" %}
 
-        {% include "include/foot.html" %}
+    {% include "include/foot.html" %}
 
     {% block ExtraJSFoot %}
 
-	{% endblock %}
+    {% endblock %}
 
 </body>
+
 </html>

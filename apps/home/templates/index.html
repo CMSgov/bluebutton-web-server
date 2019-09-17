@@ -6,41 +6,47 @@
 {% block extra_head %}
 {% endblock %}
 
-
 {% block pagename %} {{ settings.APPLICATION_TITLE }} {% endblock %}
+
+{% block bannerBadge %}
+  <span class="ds-c-badge ds-u-text-transform--uppercase">Sandbox</span>
+{% endblock %}
+
+{% block bannerTitle %}
+  Blue Button 2.0 API
+{% endblock %}
+
+{% block bannerDescription %}
+  A developer-friendly, standards-based API that enables Medicare beneficiaries to connect their claims data to applications, services and research programs they trust. 		
+{% endblock %}
+
+{% block bannerCallToActionButtons %}
+<a class="cta-button ds-u-margin-y--1" href="{% url 'accounts_create_account' %}" aria-label="Create an Account" target="_self">
+  Create an Account
+  <i data-feather="arrow-right"></i>
+</a>
+   
+<a class="cta-button ds-u-margin-y--1" href="https://bluebutton.cms.gov/developers/" aria-label="Read Our Documentation" target="_self">
+  Read our Documentation
+  <i data-feather="arrow-right"></i>
+</a>
+{% endblock %}
+
 {% block Content %}
-    <main class="row container-fluid" id="main-content">
 
-        <div class="row container-fluid">
+<section class="ds-l-container ds-base ds-u-margin-bottom--4">
+    <div class="ds-l-row">
+  
+      <div class="ds-l-col--12">
+          <h2>Sample Heading</h2>
 
-<div class="ds-base">
-  <header class="main-header ds-u-margin-bottom--2 ds-u-lg-margin-bottom--5">
-    <div class="solid-container ds-u-padding-y--2 ds-u-lg-padding-y--5">
-      <div class="ds-l-container">
-        <div class="ds-l-row">
-          <div class="ds-u-color--white ds-l-sm-cold--12 ds-l-xl-col--10 ds-u-margin-left--auto ds-u-padding-x--4">
-              <span class="ds-c-badge ds-u-text-transform--uppercase">api</span>
-              <h1 class="ds-display">Blue Button 2.0</h1>
-              <p class="ds-text--lead">
-                A developer-friendly, standards-based API that enables Medicare beneficiaries to connect their claims data to applications, services and research programs they trust.
-              </p>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores doloremque consequuntur ducimus aut in ratione necessitatibus debitis voluptas possimus unde! Accusantium dignissimos ipsum consequatur recusandae deserunt quo molestias eaque unde!
+          
+          <h2>Sample Heading</h2>
+          
+          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Aperiam cum possimus laudantium voluptate, laboriosam neque officia, voluptatum illo sunt dignissimos ipsam pariatur laborum non eaque. Nulla ex amet tempore tempora!
+      </div>
 
-              <div class="ctas">
-              
-              <a class="ds-c-button button--white" href="https://bluebutton.cms.gov/developers/" aria-label="View the documentation" target="_self">View the documentation &rarr;</a>
-              <a class="ds-c-button button--white" href="https://sandbox.bluebutton.cms.gov/v1/accounts/create" aria-label="Sign up for the Blue Button 2.0 Sandbox" target="_self">Sign up for the Blue Button 2.0 Sandbox &rarr;</a>
-              </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      <div class="gradient-container ds-u-padding-y--2 ds-u-lg-padding-y--5 ds-u-display--none ds-u-md-display--block">
-    </div>
-  </header>
-</div>
-
-</div>
-</main>
+  </section>
 
 {% endblock %}

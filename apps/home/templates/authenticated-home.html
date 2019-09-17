@@ -1,41 +1,30 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
-{% block Content %}
 
-<!-- Sandbox Banner -->
-<div class="ds-c-banner ds-u-margin-bottom--4">
-  <!-- Solid Container -->
-  <div class="solid sandbox-solid">
-    
-    <!-- Page Title -->
-    <h1 class="ds-display">Developer Sandbox</h1>
-    
-    <!-- Page Description -->
-    <p class="page-description">
-      The Developer Sandbox lets you register applications to get credentials to access our synthetic (or sample) beneficiary data. You can use that data to build and test your application to get it ready for production!
-    </p>
-    
-    <!-- Call To Action Buttons -->
-    <div class="ctas">
-      
-      <a class="cta-button ds-u-margin-y--1" href="{% url "oauth2_provider:register" %}" aria-label="Add an Application" target="_self">
-        Add an Application
-        <i data-feather="arrow-right"></i>
-      </a>
-      
-      <a class="cta-button ds-u-margin-y--1" href="https://bluebutton.cms.gov/developers/" aria-label="Read Our Documentation" target="_self">
-        Read our Documentation
-        <i data-feather="arrow-right"></i>
-      </a>
-      
-    </div>
-  
-  </div>
-  
-  <!-- Gradient Container -->
-  <div class="gradient sandbox-gradient"></div>
-</div>
+{% block bannerBackButton %}{% endblock %}
+
+{% block bannerTitle %}
+Developer Dashboard
+{% endblock %}
+
+{% block bannerDescription %}
+The Developer Sandbox lets you register applications to get credentials to access our synthetic (or sample) beneficiary data. You can use that data to build and test your application to get it ready for production!
+{% endblock %}
+
+{% block bannerCallToActionButtons %}
+<a class="cta-button ds-u-margin-y--1" href="{% url "oauth2_provider:register" %}" aria-label="Add an Application" target="_self">
+  Add an Application
+  <i data-feather="arrow-right"></i>
+</a>
+   
+<a class="cta-button ds-u-margin-y--1" href="https://bluebutton.cms.gov/developers/" aria-label="Read Our Documentation" target="_self">
+  Read our Documentation
+  <i data-feather="arrow-right"></i>
+</a>
+{% endblock %}
+
+{% block Content %}
 
 <div class="container">
   <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
@@ -59,7 +48,7 @@
                 <strong>Last Updated:</strong> {{ application.updated }}
               </div>
             </div>
-            <!-- TODO: ADD IF/ELSE FOR DEFAULT IMAGE VERSUS HOSTED IMAGE -->
+            <!-- Application Logo -->
             {% if application.logo_uri %}
             <div class="app-logo" style="background-image: url({{application.logo_uri}})"></div>
             {% else %}
