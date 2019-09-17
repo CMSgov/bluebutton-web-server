@@ -1,97 +1,93 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
+	<head>
+		{% load i18n %}
 
-<head>
-    {% load i18n %}
+		<title>
+			{% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+		</title>
 
-    <title>
-        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
-    </title>
+		{% block head %}
+		{% include "include/head.html" %}
+		{% endblock %}
 
-    {% block head %}
-    {% include "include/head.html" %}
-    {% endblock %}
+		{% block extra_head %}
+		{% endblock %}
+	</head>
 
-    {% block extra_head %}
-    {% endblock %}
+	<body>
+		<!-- Navigation -->
+		{% include "include/top-nav-responsive.html" %}
 
-</head>
+		{% block banner %}
+		<!-- Sandbox Banner -->
+		<div class="ds-c-banner ds-u-margin-bottom--4">
+			<!-- Solid Container -->
+			<div class="solid sandbox-solid">
 
-<body class="container-fluid">
-    {% include "include/top-nav-responsive.html" %}
+				<!-- Badge -->
+				{% block bannerBadge %}
+				<!-- <span class="ds-c-badge ds-u-text-transform--uppercase"></span> -->
+				{% endblock %}
 
-    {% block banner %}
-    <!-- Sandbox Banner -->
-    <div class="ds-c-banner ds-u-margin-bottom--4">
-        <!-- Solid Container -->
-        <div class="solid sandbox-solid">
+				<!-- Back Link (for detail page) -->
+				{% block bannerBackButton %}
+				<!-- <a class="banner-back-button" href="/"><i data-feather="arrow-left"></i>Back to Dashboard</a> -->
+				{% endblock %}
 
-            <!-- Badge -->
-            {% block bannerBadge %}
-            <!-- <span class="ds-c-badge ds-u-text-transform--uppercase"></span> -->
-            {% endblock %}
+				<!-- Page Title -->
+				<h1 class="ds-display">
+					{% block bannerTitle %}
 
-            <!-- Back Link (for detail page) -->
-            {% block bannerBackButton %}
-            <!-- <a class="banner-back-button" href="/"><i data-feather="arrow-left"></i>Back to Dashboard</a> -->
-            {% endblock %}
+					{% endblock %}
+				</h1>
 
-            <!-- Page Title -->
-            <h1 class="ds-display">
-                {% block bannerTitle %}
+				<!-- Page Description -->
+				<p class="page-description">
+					{% block bannerDescription %}
 
-                {% endblock %}
-            </h1>
+					{% endblock %}
+				</p>
 
-            <!-- Page Description -->
-            <p class="page-description">
-                {% block bannerDescription %}
+				<!-- Call To Action Buttons -->
+				<div class="ctas">
+					{% block bannerCallToActionButtons %}
 
-                {% endblock %}
-            </p>
+					{% endblock %}
+				</div>
 
-            <!-- Call To Action Buttons -->
-            <div class="ctas">
-                {% block bannerCallToActionButtons %}
+			</div>
 
-                {% endblock %}
-            </div>
+			<!-- Gradient Container -->
+			<div class="gradient sandbox-gradient"></div>
+		</div>
+		{% endblock %}
 
-        </div>
+		<main id="main-content">
 
-        <!-- Gradient Container -->
-        <div class="gradient sandbox-gradient"></div>
-    </div>
-    {% endblock %}
+			{% block breadcrumbs %}
+			{% endblock %}
 
-    <main class="row container-fluid" id="main-content">
-
-        <div class="row container-fluid">
-
-            {% block breadcrumbs %}
-            {% endblock %}
-
-            {% block messages %}
-            {% endblock %}
+			{% block messages %}
+			{% endblock %}
 
 
-            {% block Content %}
-            {% if template %}{% include template %}{% endif %}
-            {{ content|safe }}
-            {% endblock %}
-        </div>
+			{% block Content %}
+			{% if template %}{% include template %}{% endif %}
+			{{ content|safe }}
+			{% endblock %}
 
-    </main>
+		</main>
 
-    {% include "include/footer.html" %}
+		{% include "include/footer.html" %}
 
-    {% include "include/foot.html" %}
+		{% include "include/foot.html" %}
 
-    {% block ExtraJSFoot %}
+		{% block ExtraJSFoot %}
 
-    {% endblock %}
+		{% endblock %}
 
-</body>
+	</body>
 
 </html>
