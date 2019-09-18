@@ -16,7 +16,10 @@
     <!-- Content Card -->
     <div class="gradient-content-card">
       <div class="content">
-        <strong>{% trans "Are you sure you want to delete" %} {{ application.name }}?</strong> This can't be undone.
+        <strong>{% trans "Are you sure you want to delete" %} {{ application.name }}?</strong>
+        <br />
+        <br />
+        This action can't be undone.
         <form class="ds-u-margin-top--4" method="post" action="{% url 'oauth2_provider:delete' application.pk %}">
           {% csrf_token %}  
           <input type="submit" class="ds-c-button--danger" name="allow" value="{% trans "Delete" %}"/>
