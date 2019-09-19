@@ -33,6 +33,7 @@
           {% csrf_token %}
 
           {% include "include/app-form-required-info.html" %}
+          {% include "include/app-form-optional-info.html" %}
 
           <div>
               <input type="checkbox" name="agree" id="id_agree" {% if application.name %} checked {% endif %}>
