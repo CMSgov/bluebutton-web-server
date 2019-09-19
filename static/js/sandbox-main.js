@@ -130,6 +130,7 @@ function copyCredential(copyID) {
 };
 
 // BB Accordion Component
+// ----------------------
 // Used for: Sandbox Application Registration - Optional Info Accordion
 
 const accordions = document.querySelectorAll('.accordion-toggle');
@@ -168,4 +169,17 @@ accordions.forEach(accordion => {
       }
     }    
   });
+});
+
+// BB Custom File Input Label Component
+// ------------------------------------
+// Used in the application edit/registration form
+
+const uploadLogoButton = document.querySelector('.bb-c-custom-file-input-label');
+
+uploadLogoButton.addEventListener('change', function(e) {
+  let filePathArray = e.target.value.split("\\").pop();
+  let labelUpdateWithFile = document.querySelector('.upload-file-text');
+
+  labelUpdateWithFile.innerHTML = filePathArray;
 });

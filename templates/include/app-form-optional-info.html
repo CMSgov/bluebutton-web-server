@@ -17,14 +17,18 @@
 			<h3 class="ds-u-margin-bottom--2">App Logo &amp; Description</h3>
 
 			<!-- App Logo -->
-			<label for="id_logo_uri">Logo URL</label>
-			<input type="text" name="logo_uri" maxlength="512" id="id_logo_uri" value="{{ application.logo_uri }}">
+			{% if application.logo_uri %}
+			<img class="ds-u-display--block" src="{{ application.logo_uri }}" alt="{{ application.name }} logo" />
+			<label for="id_logo_uri">Current Logo URL</label>
+			<input type="text" name="logo_uri" maxlength="512" id="id_logo_uri" value="{{ application.logo_uri }}" disabled>
+			{% endif %}
 
 			<label class="bb-c-custom-file-input-label ds-c-button bb-c-button" for="id_logo_image">
 				<i data-feather="upload-cloud"></i>
-				Or Upload a Logo
+				<span class="upload-file-text">Upload a Logo</span>
+				<input type="file" name="logo_image" accept="image/*" id="id_logo_image">
 			</label>	
-			<input type="file" name="logo_image" accept="image/*" id="id_logo_image">
+			
 
 			<div class="help-block ds-u-margin-top--2">Upload your logo image file here in JPEG (.jpg) format! The maximum file size allowed is 100KB and maximum dimensions are 256x256 pixels. This will update the Logo URI after saving.</div>
 
