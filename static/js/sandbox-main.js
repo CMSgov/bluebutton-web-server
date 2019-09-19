@@ -56,19 +56,21 @@ mobileNavTriggerButton.addEventListener('click', function () {
 // This shows/hides the client ID and secret for each application
 const appCredentialToggleLinks = document.querySelectorAll('.app-credentials-toggle');
 
+function toggleCredentials() {
+  let appID = document.querySelector('#id-' + this.id);
+  let appSecret = document.querySelector('#secret-' + this.id);
+  if (appID.type == 'password') {
+    appID.type = 'text';
+    appSecret.type = 'text';
+  } else {
+    appID.type = 'password';
+    appSecret.type = 'password';
+  }
+}
+
 // Toggle on Mouse Click
 appCredentialToggleLinks.forEach((appCredentialToggleLink) => {
-  appCredentialToggleLink.addEventListener('click', function() {
-    let appID = document.querySelector('#id-' + this.id);
-    let appSecret = document.querySelector('#secret-' + this.id);
-    if (appID.type == 'password') {
-      appID.type = 'text';
-      appSecret.type = 'text';
-    } else {
-      appID.type = 'password';
-      appSecret.type = 'password';
-    }
-  });
+  appCredentialToggleLink.addEventListener('click', toggleCredentials);
 });
 
 // Toggle for Keyboard Naviagation
@@ -76,15 +78,7 @@ appCredentialToggleLinks.forEach((appCredentialToggleLink) => {
   appCredentialToggleLink.addEventListener('keypress', function (e) {
     var key = e.which || e.keyCode;
     if (key === 13) { // 13 is enter
-      let appID = document.querySelector('#id-' + this.id);
-      let appSecret = document.querySelector('#secret-' + this.id);
-      if (appID.type == 'password') {
-        appID.type = 'text';
-        appSecret.type = 'text';
-      } else {
-        appID.type = 'password';
-        appSecret.type = 'password';
-      }
+      this.click();
     }
   });
 });
