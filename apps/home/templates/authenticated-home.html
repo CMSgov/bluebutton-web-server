@@ -33,7 +33,6 @@ The Developer Sandbox lets you register applications to get credentials to acces
 
       <h2>My Sandbox Apps</h2>
 
-      {% if applications %}
       <div class="bb-app-card-container-2-2 ds-u-margin-y--3">
         {% for application in applications %}
         <!-- Application Card -->
@@ -71,16 +70,15 @@ The Developer Sandbox lets you register applications to get credentials to acces
           </div>
         </div>
         {% endfor %}
-      </div>
-      {% else %}
-        <div class="bb-app-card-container-2-2 ds-u-margin-y--3"></div>
-          <div class="ds-c-alert bb-c-message-card ds-u-margin-y--2">
-            <div class="ds-c-alert__body">
-              <h2 class="ds-c-alert__heading">{% trans "You haven’t registered or created any apps yet." %}</h2>
-              <p class="ds-c-alert__text">{% trans "You’ll need to register your app to get a sample token and make API calls to our sample data. Let’s get started!" %}</p>
-            </div>
+        {% if not applications %}
+        <div class="ds-c-alert bb-c-message-card ds-u-margin-y--2">
+          <div class="ds-c-alert__body">
+            <h2 class="ds-c-alert__heading">{% trans "You haven’t registered or created any apps yet." %}</h2>
+            <p class="ds-c-alert__text">{% trans "You’ll need to register your app to get a sample token and make API calls to our sample data. Let’s get started!" %}</p>
           </div>
-      {% endif %}
+        </div>
+        {% endif %}
+      </div>
         <a class="ds-c-button bb-c-button ds-u-margin-y--2" href="{% url "oauth2_provider:register" %}">
           <i data-feather="plus-circle"></i>
             Add an Application
