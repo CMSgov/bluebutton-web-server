@@ -1,0 +1,107 @@
+<!-- App Form Requred Info -->
+<h2>App Details - Required Info</h2>
+
+<!-- App Name -->
+<label for="id_name">Application Name</label>
+<input type="text" name="name" maxlength="255" required="" id="id_name" value="{{ application.name }}">
+
+<!-- App Client Type -->
+<label for="id_client_type">OAuth - Client Type</label>
+<select name="client_type" required="" id="id_client_type">
+	<option value="">---------</option>
+	{% if application.client_type == "public" %}
+	<option value="confidential">Confidential</option>
+	<option value="public" selected>Public</option>
+	{% else %}
+	<option value="confidential" selected>Confidential</option>
+	<option value="public">Public</option>
+	{% endif %}
+</select>
+
+<!-- App Grant Type -->
+<label for="id_authorization_grant_type">Authorization Grant Type*</label>
+<select name="authorization_grant_type" id="id_authorization_grant_type">
+	{% if application.authorization_grant_type == "implicit" %}
+	<option value="authorization-code">Authorization code</option>
+	<option value="implicit" selected>Implicit</option>
+	{% else %}
+	<option value="authorization-code" selected>Authorization code</option>
+	<option value="implicit">Implicit</option>
+	{% endif %}
+</select>
+
+<!-- App Redirect URIs -->
+<label for="id_redirect_uris">Callback URLs / Redirect URIs</label>
+<textarea name="redirect_uris" cols="40" rows="10" id="id_redirect_uris">{{ application.redirect_uris }}</textarea>
+
+<!-- Optinal App Information Accordion -->
+<div class="bb-c-accordion ds-u-margin-top--4">
+	<div class="accordion-item">
+		<a class="accordion-toggle" tabindex="0">
+			<div class="title">
+				Optional App Information
+			</div>
+			{% if application.name %}
+			<i class="accordion-icon" data-feather="chevron-up"></i>
+			{% else %}
+			<i class="accordion-icon" data-feather="chevron-down"></i>
+			{% endif %}
+		</a>
+		<div class="accordion-content {% if application.name %}accordion-content-visible{% endif %}">
+			<p class="ds-u-margin-bottom--4">This information isn't required to use the Sandbox, but can help emulate the experience of having an application in production, especially the experience of a Medicare beneficiary authorizing your application.</p>
+
+			<h3 class="ds-u-margin-bottom--2">App Logo &amp; Description</h3>
+
+			<!-- App Logo -->
+			<label for="id_logo_uri">Logo URL</label>
+			<input type="text" name="logo_uri" maxlength="512" id="id_logo_uri" value="{{ application.logo_uri }}">
+
+			<label class="bb-c-custom-file-input-label ds-c-button bb-c-button" for="id_logo_image">
+				<i data-feather="upload-cloud"></i>
+				Or Upload a Logo
+			</label>	
+			<input type="file" name="logo_image" accept="image/*" id="id_logo_image">
+
+			<div class="help-block ds-u-margin-top--2">Upload your logo image file here in JPEG (.jpg) format! The maximum file size allowed is 100KB and maximum dimensions are 256x256 pixels. This will update the Logo URI after saving.</div>
+
+			<!-- App Description -->
+			<label for="id_description">Application Description (Max: 1000 characters )</label>
+			<textarea name="description" cols="40" rows="10" maxlength="1000" id="id_description">{{ application.description }}</textarea>
+
+			<h3 class="ds-u-margin-bottom--2 ds-u-margin-top--4">Organization &amp; Policy Info</h3>
+
+			<!-- Organization Website -->  	 
+			<label class="ds-u-margin-top--2" for="id_website_uri">Organization/Company Website URL</label>
+			<input type="url" name="website_uri" maxlength="512" id="id_website_uri" value="{% if application.website_uri %}{{ application.website_uri }}{% endif %}">
+				 
+			<!-- App Privacy Policy -->
+			<label for="id_policy_uri">Privacy Policy URL or URI</label>
+			<input type="text" name="policy_uri" maxlength="512" id="id_policy_uri" value="{{ application.policy_uri }}">
+					  	 
+			<div class="help-block">
+			This can be a model privacy notice or other policy document.
+			</div>
+			
+			<!-- App Terms of Service -->
+			<label for="id_tos_uri">Terms of Service URL or URI</label>
+			<input type="text" name="tos_uri" maxlength="512" id="id_tos_uri" value="{{ application.tos_uri }}">
+					  
+			<!-- App Support Email Address -->
+			<label for="id_support_email">Customer Support Email</label>
+			<input type="email" name="support_email" maxlength="254" id="id_support_email" value="{% if application.support_email %}{{ application.support_email }}{% endif %}">  
+			  
+			<!-- App Support Phone Number -->
+			<label for="id_support_phone_number">Customer Support Phone Number</label>
+			<input type="text" name="support_phone_number" maxlength="17" id="id_support_phone_number" value="{{ application.support_phone }}">
+
+			<!-- App Contacts -->
+			<label for="id_contacts">App Development Team Contacts</label>
+			<textarea name="contacts" cols="40" rows="10" maxlength="512" id="id_contacts">{{ application.contacts }}</textarea>
+
+			<div class="help-block">
+				This is typically an email address, or multiple email addresses separated by commas.
+			</div>
+					  
+		</div>
+	</div>
+</div>

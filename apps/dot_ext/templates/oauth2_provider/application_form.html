@@ -32,42 +32,15 @@
           <form class="form-horizontal" method="post" enctype="multipart/form-data" action="{% block app-form-action-url %}{% url 'oauth2_provider:update' application.id %}{% endblock app-form-action-url %}">
           {% csrf_token %}
 
-          <div class="{% if form.non_field_errors %}error{% endif %}">
-            {% for error in form.non_field_errors %}
-            <div class="ds-c-alert ds-c-alert--error">
-              <div class="ds-c-alert__body">
-                <h3 class="ds-c-alert__heading">Oops.</h3>
-                <p class="ds-c-alert__text">{{error}}</p>
-              </div>
-            </div>
-            {% endfor %}
+          {% include "include/app-form-required-info.html" %}
+
+          <div>
+              <input type="checkbox" name="agree" id="id_agree" {% if application.name %} checked {% endif %}>
+              <label class="control-label" for="id_agree">Yes I have read and agree to the <a target="_blank" href="https://bluebutton.cms.gov/terms">API Terms of Service Agreement</a>*</label>
           </div>
 
-          {% for field in form %}
-          <div class="control-group {% if field.errors %}error{% endif %}">
-            <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-            <div class="controls">
-              {{ field }}
-              {% for error in field.errors %}
-              <div class="ds-c-alert ds-c-alert--error">
-                <div class="ds-c-alert__body">
-                  <h3 class="ds-c-alert__heading">Oops.</h3>
-                  <p class="ds-c-alert__text">{{error}}</p>
-                </div>
-              </div>
-              {% endfor %}
-              {% if field.help_text %}
-              <div class="ds-c-alert ds-c-alert--hide-icon ds-u-margin-y--4">
-                <div class="ds-c-alert__body">{{ field.help_text }}</div>
-              </div>
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
+          <button type="submit" class="ds-c-button--success ds-u-margin-top--2">Save Application</button>
 
-          <button type="submit" class="ds-c-button--primary">Save</button>
-          <br />
-          <br />
         </form>
       </div>
     </div>

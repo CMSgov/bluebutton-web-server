@@ -128,3 +128,44 @@ function copyCredential(copyID) {
    $( copyConfirmation ).fadeIn( 300 ).delay( 1500 ).fadeOut( 400 );
   }
 };
+
+// BB Accordion Component
+// Used for: Sandbox Application Registration - Optional Info Accordion
+
+const accordions = document.querySelectorAll('.accordion-toggle');
+
+accordions.forEach(accordion => {
+  accordion.addEventListener('click', function() {
+    let contentToToggle = this.nextElementSibling;
+    let iconToToggle = this.querySelector('.accordion-icon');
+
+    if (contentToToggle.classList.contains('accordion-content-visible')) {
+      contentToToggle.classList.remove('accordion-content-visible');  
+      iconToToggle.innerHTML = feather.icons['chevron-down'].toSvg();
+    } else {
+      contentToToggle.classList.add('accordion-content-visible');
+      iconToToggle.innerHTML = feather.icons['chevron-up'].toSvg();
+    }
+
+  });
+});
+
+accordions.forEach(accordion => {
+  accordion.addEventListener('keypress', function(e) {
+
+    var key = e.which || e.keyCode;
+
+    if (key === 13) {
+      let contentToToggle = this.nextElementSibling;
+      let iconToToggle = this.querySelector('.accordion-icon');
+
+      if (contentToToggle.classList.contains('accordion-content-visible')) {
+        contentToToggle.classList.remove('accordion-content-visible');  
+        iconToToggle.innerHTML = feather.icons['chevron-down'].toSvg();
+      } else {
+        contentToToggle.classList.add('accordion-content-visible');
+        iconToToggle.innerHTML = feather.icons['chevron-up'].toSvg();
+      }
+    }    
+  });
+});
