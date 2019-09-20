@@ -14,8 +14,8 @@ ADMIN_REDIRECTOR = getattr(settings, 'ADMIN_PREPEND_URL', '')
 
 
 urlpatterns = [
-    url(r'health', include('apps.health.urls')),
-    url(r'.well-known/', include('apps.wellknown.urls')),
+    url(r'^health', include('apps.health.urls')),
+    url(r'^.well-known/', include('apps.wellknown.urls')),
     url(r'^v1/accounts/', include('apps.accounts.urls')),
     url(r'^v1/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo'),
     url(r'^v1/fhir/metadata$', fhir_conformance, name='fhir_conformance_metadata'),

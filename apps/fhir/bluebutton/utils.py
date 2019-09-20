@@ -751,7 +751,7 @@ def build_oauth_resource(request, format_type="json"):
     <service>
         <text>OAuth</text>
         <coding>
-            <system url="http://hl7.org/fhir/ValueSet/restful-security-service">
+            <system url="http://hl7.org/fhir/restful-security-service">
             <code>OAuth</code>
             <display>OAuth</display>
         </coding>
@@ -759,7 +759,7 @@ def build_oauth_resource(request, format_type="json"):
     <service>
         <text>SMART-on-FHIR</text>
         <coding>
-            <system url="http://hl7.org/fhir/ValueSet/restful-security-service">
+            <system url="http://hl7.org/fhir/restful-security-service">
             <code>SMART-on-FHIR</code>
             <display>SMART-on-FHIR</display>
         </coding>
@@ -785,14 +785,14 @@ def build_oauth_resource(request, format_type="json"):
             {
                 "text": "OAuth",
                 "coding": [{
-                    "system": "http://hl7.org/fhir/ValueSet/restful-security-service",
+                    "system": "http://hl7.org/fhir/restful-security-service",
                     "code": "OAuth",
                     "display": "OAuth"
                 }]
             }, {
-                "text": "SMART-on-FHIR",
+                "text": "OAuth2 using SMART-on-FHIR profile (see http://docs.smarthealthit.org)",
                 "coding": [{
-                    "system": "http://hl7.org/fhir/ValueSet/restful-security-service",
+                    "system": "http://hl7.org/fhir/restful-security-service",
                     "code": "SMART-on-FHIR",
                     "display": "SMART-on-FHIR"
                 }]
