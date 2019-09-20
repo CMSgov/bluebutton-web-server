@@ -83,44 +83,24 @@ appCredentialToggleLinks.forEach((appCredentialToggleLink) => {
   });
 });
 
-// Copy Credentials to Clipboard
+// Copy Credentials to Clipboard (Run via HTML onClick)
 function copyCredential(copyID) {
-  // Determine if a user is copying a client id or secret
-  if (copyID.includes('secret') === true) {
-    // Get the element we want to copy
-    let secretToCopy = document.querySelector('#' + copyID);
-    // If it is hidden, change to text, copy, and then hide again
-    if (secretToCopy.type == 'password') {
-      secretToCopy.type = 'text';
-      secretToCopy.select();
-      document.execCommand('copy');
-      secretToCopy.type = 'password';
-    } else {
-      // Else, if it is shown, just copy!
-      secretToCopy.select();
-      document.execCommand('copy');
-    }
-    // Fade In / Out Copy Confirmation Message
-    let copyConfirmation = document.querySelector('#confirm-' + copyID);
-    $( copyConfirmation ).fadeIn( 300 ).delay( 1500 ).fadeOut( 400 );
+  // Get the element we want to copy
+  let credentialToCopy = document.querySelector('#' + copyID);
+  // If it is hidden, change to text, copy, and then hide again
+  if (credentialToCopy.type == 'password') {
+    credentialToCopy.type = 'text';
+    credentialToCopy.select();
+    document.execCommand('copy');
+    credentialToCopy.type = 'password';
   } else {
-    // Get the element we want to copy
-    let IDToCopy = document.querySelector('#' + copyID);
-    // If it is hidden, change to text, copy, and then hide again
-    if (IDToCopy.type == 'password') {
-      IDToCopy.type = 'text';
-      IDToCopy.select();
-      document.execCommand('copy');
-      IDToCopy.type = 'password';
-  } else {
-      // Else, if it is shown, just copy!
-      IDToCopy.select();
-      document.execCommand("copy");
-   }
-   // Fade In / Out Copy Confirmation Message
-   let copyConfirmation = document.querySelector('#confirm-' + copyID);
-   $( copyConfirmation ).fadeIn( 300 ).delay( 1500 ).fadeOut( 400 );
+    // Else, if it is shown, just copy!
+    credentialToCopy.select();
+    document.execCommand('copy');
   }
+  // Fade In / Out Copy Confirmation Message
+  let copyConfirmation = document.querySelector('#confirm-' + copyID);
+  $( copyConfirmation ).fadeIn( 300 ).delay( 1500 ).fadeOut( 400 );
 };
 
 // BB Accordion Component
