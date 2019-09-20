@@ -129,38 +129,30 @@ function copyCredential(copyID) {
 
 const accordions = document.querySelectorAll('.accordion-toggle');
 
+function accordionToggle () {
+  let contentToToggle = this.nextElementSibling;
+  let iconToToggle = this.querySelector('.accordion-icon');
+
+  if (contentToToggle.classList.contains('accordion-content-visible')) {
+    contentToToggle.classList.remove('accordion-content-visible');  
+    iconToToggle.innerHTML = feather.icons['chevron-down'].toSvg();
+  } else {
+    contentToToggle.classList.add('accordion-content-visible');
+    iconToToggle.innerHTML = feather.icons['chevron-up'].toSvg();
+  }
+}
+
+// Toggle Accordion on Click
 accordions.forEach(accordion => {
-  accordion.addEventListener('click', function() {
-    let contentToToggle = this.nextElementSibling;
-    let iconToToggle = this.querySelector('.accordion-icon');
-
-    if (contentToToggle.classList.contains('accordion-content-visible')) {
-      contentToToggle.classList.remove('accordion-content-visible');  
-      iconToToggle.innerHTML = feather.icons['chevron-down'].toSvg();
-    } else {
-      contentToToggle.classList.add('accordion-content-visible');
-      iconToToggle.innerHTML = feather.icons['chevron-up'].toSvg();
-    }
-
-  });
+  accordion.addEventListener('click', accordionToggle);
 });
 
+// Toggle Accodrion on Enter Keypress (treated as click)
 accordions.forEach(accordion => {
   accordion.addEventListener('keypress', function(e) {
-
     var key = e.which || e.keyCode;
-
     if (key === 13) {
-      let contentToToggle = this.nextElementSibling;
-      let iconToToggle = this.querySelector('.accordion-icon');
-
-      if (contentToToggle.classList.contains('accordion-content-visible')) {
-        contentToToggle.classList.remove('accordion-content-visible');  
-        iconToToggle.innerHTML = feather.icons['chevron-down'].toSvg();
-      } else {
-        contentToToggle.classList.add('accordion-content-visible');
-        iconToToggle.innerHTML = feather.icons['chevron-up'].toSvg();
-      }
+      this.click();
     }    
   });
 });
