@@ -2,8 +2,16 @@
 // NOTE: Will need to make this as a mixing for use on sandbox.
 
 // Variables
+// ---------
+
+// Default Colors (For Static Site)
 $banner-bg-primary: #0071BC;
 $banner-color-primary: #ffffff;
+
+// Sandbox Color Variants
+$banner-sandbox-solid: #3D66AF;
+$banner-sandbox-gradient-solid: rgba(61, 102, 175, 50%);
+$banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
 
 // Banner Styles
 .ds-c-banner {
@@ -19,7 +27,7 @@ $banner-color-primary: #ffffff;
     max-width: 60vw;
     // Adds left padding on large screens
     @media #{$large-desktop} {
-      padding-left: 20vw;
+      padding-left: 5%;
       max-width: 50vw;
     }
     // Fills the width of device on smaller screens
@@ -42,6 +50,7 @@ $banner-color-primary: #ffffff;
   .page-description {
     color: $banner-color-primary;
     font-size: 1.1rem;
+    font-family: 'Open Sans', 'Roboto', 'Helvetica', sans-serif;
     @media #{$phone} {
       font-size: 1rem;
     }
@@ -69,6 +78,7 @@ $banner-color-primary: #ffffff;
       padding: 1rem;
       font-weight: bold;
       text-decoration: none;
+      outline-color: red;
       transition: background 180ms ease, color 180ms ease;
       @media #{$small-phone} {
         align-items: center;
@@ -79,7 +89,7 @@ $banner-color-primary: #ffffff;
       }
     }
     // Button Hover Styles
-    .cta-button:hover {
+    .cta-button:hover, .cta-button:focus {
       background: $banner-color-primary;
       color: $banner-bg-primary;
     }
@@ -103,3 +113,36 @@ $banner-color-primary: #ffffff;
     }
   }
 }
+
+// Sandbox Banner Overrides
+// ------------------------
+// Tweaks needed for Sandbox environment
+.ds-c-banner {
+  // Color override when banner is in use for the Sandbox
+  .sandbox-solid {
+    background: $banner-sandbox-solid;
+    h1, p, a, strong {
+      margin: 1rem 0;
+      color: $banner-color-primary;
+    }
+    .banner-back-button {
+      display: flex;
+      align-items: center;
+      color: $banner-color-primary;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .banner-back-button svg {
+      margin-right: .5rem;
+    }
+    .banner-back-button:hover {
+      text-decoration: underline;
+    }
+  }
+  // Color override when banner is in use for the Sandbox
+  .sandbox-gradient {
+    background: $banner-sandbox-solid;
+    background: linear-gradient(90deg, $banner-sandbox-gradient-solid, $banner-sandbox-gradient-accent); 
+  }
+}
+

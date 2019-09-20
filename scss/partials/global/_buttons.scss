@@ -1,0 +1,42 @@
+@import 'global-variables';
+
+// Buttons
+// -----
+
+// Default Button
+// ------------
+// NOTE: Meant to over-ride .ds-c-button
+
+// Default Button Mixin
+@mixin bb-c-button($bg, $color, $hover-bg, $hover-color) {
+	background: $bg;
+	color: $color;
+	padding: 1rem 1.5rem;
+	border-radius: .3em;
+	border: none;
+	font-size: .85em;
+	transition: background 90ms ease, background-color 90ms ease;
+	svg {
+		fill: none;
+		stroke: $color;
+		width: 24px;
+		height: 24px;
+		margin: 0 .5rem 0 0; 
+		top: 0;
+	}
+	&:hover, &:focus {
+	background: $hover-bg;
+	background-color: $hover-bg;
+	color: $hover-color;
+	text-decoration: none;
+	outline-color: red;
+	}
+	&:hover svg {
+		stroke: $hover-color;
+	}
+}
+
+// Default Button
+.bb-c-button {
+	@include bb-c-button($blue, $white, darken($blue, 10%), $white);
+}

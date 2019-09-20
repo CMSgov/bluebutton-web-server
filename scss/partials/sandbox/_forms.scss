@@ -162,3 +162,17 @@ span.help-block {
 	background: #FFF1D2;
 	display: block;
 }
+
+// File Input Overrides
+// --------------------
+// I don't like the way that the file input looks, so I want to replace it with a custom button
+
+// Class for custom upload button label
+.bb-c-custom-file-input-label {
+   cursor: pointer;
+}
+
+// Then hide file inputs
+input[type="file"] {
+	display: none !important;
+}

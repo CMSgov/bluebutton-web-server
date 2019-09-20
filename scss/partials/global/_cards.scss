@@ -1,0 +1,252 @@
+@import 'global-variables';
+
+// Cards
+// -----
+
+// Default Card
+// ------------
+
+$bb-card-default-border: #e8e8e8;
+
+.bb-c-card {
+	background: $white;
+	border: 1px solid $bb-card-default-border;
+	border-radius: .3rem;
+}
+
+.bb-c-card.default-card {
+	display: flex;
+	flex-direction: column;
+	color: $black;
+	max-width: 700px;
+	text-decoration: none;
+	margin: .5rem;
+	transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+	&:hover {
+		box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+		color: #000000;
+	}
+	.card-title {
+		padding: 2rem 1rem;
+		color: $black;
+		font-weight: bold;
+		font-size: 1.3rem;
+	}
+	.card-image {
+		width: 100%;
+		background-position: center;
+		background-size: cover;
+		height: 300px;
+	}
+	.card-description {
+		padding: 2rem 1rem;
+	}
+}
+
+.full-width-card {
+	max-width: 100%;
+	padding: 1rem;
+}
+
+// Message Card
+// ------------
+// NOTE: Meant to over-ride .ds-c-alert
+// This card can be used to deliver short messages. Does not expand to fill container width.
+
+// Message Card Variables
+$bb-c-message-card-bg: #EDEDED;
+$bb-c-message-card-border-color: $blue;
+
+// Message Card Styles
+.bb-c-message-card {
+	background: $bb-c-message-card-bg;
+	border-left-color: $bb-c-message-card-border-color;
+	border-radius: .3rem;
+	padding: 1rem;
+	max-width: 500px;
+	padding: 2rem;
+	.ds-c-alert__body {
+		padding: 0;
+		.ds-c-alert__heading,
+		.ds-c-alert__text {
+			font-size: .9rem;
+			margin: .5rem 0;
+		}
+	}
+}
+
+// Card Containers
+// ---------------
+// These classes can help define layouts for cards
+
+.bb-app-card-container-2-2,
+.bb-card-container-2-2 {
+	display: flex;
+	flex-wrap: wrap;
+	@media #{$large-desktop} {
+		.sandbox-app-card,
+		.default-card {
+			width: 45%;
+		}
+	}
+	@media #{$desktop} {
+		.sandbox-app-card,
+		.default-card {
+			width: 45%;
+		}
+	}
+	@media #{$tablet} {
+		.sandbox-app-card,
+		.default-card {
+			width: 100%;
+			max-width: 700px;
+		}
+	}
+	@media #{$phone} {
+		.sandbox-app-card,
+		.default-card {
+			width: 100%;
+		}
+	}
+}
+
+// Sandbox Application Card
+// ------------------------
+
+.sandbox-app-card {
+	display: flex;
+	flex-direction: column;
+	color: $black;
+	max-width: 500px;
+	margin: .5rem;
+	.app-info {
+		display: flex;
+		padding: 1rem;
+		align-items: center;
+	}
+	.app-info .app-date-and-title {
+		flex-grow: 2;
+		.app-title {
+			color: $black;
+			font-weight: bold;
+			font-size: 1.3rem;
+			display: inline-block;
+			margin-bottom: .5rem;
+			text-decoration: none;
+			transition: color 90ms ease;
+		}
+		.app-title:hover,
+		.app-title:focus {
+			color: #000000;
+			text-decoration: underline;
+		} 
+		.app-last-updated {
+			font-size: .9rem;
+		}
+	}
+	@media #{$phone, $small-phone} {
+		.app-info .app-title {
+			font-size: 1rem !important;
+		}
+		.app-info .app-last-updated {
+			font-size: .8rem !important;
+		}
+	}
+	.app-info .app-logo {
+		height: 50px;
+		width: 50px;
+		min-width: 50px;
+		border: 2px solid darken($bb-card-default-border, 10%);
+		border-radius: 50%;
+		background-position: center;
+		background-size: contain;
+		margin-left: .5rem;
+	}
+	.app-credentials {
+		border-top: 1px solid $bb-card-default-border;
+		border-bottom: 1px solid $bb-card-default-border;
+		padding: 1rem;
+		.app-credentials-toggle {
+			font-size: .9rem;
+			float: right;
+			text-align: right;
+			cursor: pointer;
+		}
+		.app-credentials-toggle:hover {
+			text-decoration: underline;
+		}
+		.copy-confirmation {
+			background: $color-success;
+			color: $white;
+			padding: .5rem;
+			font-size: .7rem;
+			border-radius: .3rem;
+			margin-right: .5rem;
+			position: absolute;
+			margin-top: -.75rem;
+			display: none;
+		}
+	}
+	.app-actions {
+		padding: 1rem;
+		.view-edit-app-link {
+			font-weight: bold;
+			color: $black;
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			text-decoration: none;
+			transition: color 90ms ease;
+		}
+		.view-edit-app-link svg {
+			margin-left: .5rem;
+		}
+		.view-edit-app-link:hover,
+		.view-edit-app-link:focus {
+			color: #000000;
+			text-decoration: underline;
+		}
+		.view-edit-app-link:hover svg,
+		.view-edit-app-link:focus svg {
+			stroke: #000000;
+		}
+	}
+}
+
+// Application Detail - Optional Information
+// -----------------------------------------
+
+.bb-app-optional-information-card {
+	display: flex;
+	background: $white;
+	border-radius: .3rem;
+	border: 1px solid #ebebeb;
+	margin-bottom: 2rem;
+	.info-card-left {
+		padding: 1rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		border-right: 1px solid #ebebeb;
+		.app-logo {
+			width: 100px;
+			height: 100px;
+			border: 5px solid $white;
+			border-radius: 50%;
+			background-size: contain;
+			background-position: center;
+			margin-bottom: 1rem;
+		}
+		.terms-container {
+			display: flex;
+			flex-direction: column;
+		}
+		.terms-container a,
+		.terms-container p {
+			margin-bottom: .5rem;
+		}
+	}
+	.info-card-right {
+		padding: 1rem;
+	}
+}
