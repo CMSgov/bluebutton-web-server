@@ -47,7 +47,4 @@ class AuthenticatedHomeView(LoginRequiredMixin, TemplateView):
                     'crosswalk': crosswalk,
                     'fhir_id': fhir_id,
                     'applications': Application.objects.filter(user=request.user)}
-        else:
-            name = ('home')
-            context = {'name': name}
         return context
