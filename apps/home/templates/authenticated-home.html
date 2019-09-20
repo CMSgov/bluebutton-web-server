@@ -1,46 +1,122 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+
+{% block bannerBackButton %}{% endblock %}
+
+{% block bannerTitle %}
+Developer Dashboard
+{% endblock %}
+
+{% block bannerDescription %}
+The Developer Sandbox lets you register applications to get credentials to access our synthetic (or sample) beneficiary data. You can use that data to build and test your application to get it ready for production!
+{% endblock %}
+
+{% block bannerCallToActionButtons %}
+<a class="cta-button ds-u-margin-y--1" href="{% url "oauth2_provider:register" %}" aria-label="Add an Application" target="_self">
+  Add an Application
+  <i data-feather="arrow-right"></i>
+</a>
+   
+<a class="cta-button ds-u-margin-y--1" href="https://bluebutton.cms.gov/developers/" aria-label="Read Our Documentation" target="_self">
+  Read our Documentation
+  <i data-feather="arrow-right"></i>
+</a>
+{% endblock %}
+
 {% block Content %}
 
 <div class="container">
-
   <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
     <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
-      <!-- Breadcrumbs -->
-      <ol class="breadcrumb">
-        <li class="active"><a href="/">Home</a></li>
-      </ol>
-
-      <!-- <h1>Dashboard</h1> -->
-
-      <!-- Welcome Message -->
-      <div class="ds-c-alert ds-u-margin-y--2">
-        <div class="ds-c-alert__body">
-          <h2 class="ds-c-alert__heading">Welcome Developers</h2>
-          <p class="ds-c-alert__text"> From here you can add, edit, and delete applications you wish to connect. You may also revoke access to any access tokens you have authorized.</p>
-        </div>
-      </div>
-
       {% include "include/messages.html" %}
 
-      <!-- Action Buttons -->
-      <div class="ds-u-display--flex ds-u-justify-content--center">
-        <a class="ds-c-button ds-c-button--default ds-u-margin--2" href="{% url 'oauth2_provider:authorized-token-list' %}">
-          Application Tokens
-        </a>
-        {% if profile.user_type == "DEV" or profile == None or profile.create_applications %}
-        <a class="ds-c-button ds-c-button--default ds-u-margin--2" href="{% url 'oauth2_provider:list' %}">
-           <!-- test_developer_can_register_apps -->
-           Application Registration
-         </a>
+      <h2>My Sandbox Apps</h2>
+
+      <div class="bb-app-card-container-2-2 ds-u-margin-y--3">
+        {% for application in applications %}
+        <!-- Application Card -->
+        <div class="bb-c-card sandbox-app-card">
+          <!-- Application Info -->
+          <div class="app-info">
+            <div class="app-date-and-title">
+              <a class="app-title" href="{{ application.get_absolute_url }}">
+                {{ application.name }}
+              </a>
+              <div class="app-last-updated">
+                <strong>Last Updated:</strong> {{ application.updated }}
+              </div>
+            </div>
+            <!-- Application Logo -->
+            {% if application.logo_uri %}
+            <div class="app-logo" style="background-image: url({{application.logo_uri}})"></div>
+            {% else %}
+            <div class="app-logo" style="background-image: url({% static "img/default-app-avatar.png" %})"></div>
+            {% endif %}
+          </div>
+          <!-- Application Credentials -->
+          <form class="app-credentials">
+            <span class="copy-confirmation" id="confirm-id-{{ application.client_id }}" aria-live="assertive" aria-role="alert">ID Copied to Clipboard</span>
+            <span class="copy-confirmation" id="confirm-secret-{{ application.client_id }}" aria-live="assertive" aria-role="alert">Secret Copied to Clipboard</span>
+            <a class="app-credentials-toggle" id="{{ application.client_id }}" tabindex="0">Show/Hide Credentials</a>
+            <label for"id-{{ application.client_id }}">Client ID</label>
+            <input type="password" value="{{ application.client_id }}" id="id-{{ application.client_id }}" onclick="copyCredential(this.id)" />
+            <label for"secret-{{ application.client_secret }}">Client Secret</label>
+            <input type="password" value="{{ application.client_secret }}" id="secret-{{ application.client_id }}" onclick="copyCredential(this.id)" />
+          </form>
+          <!-- Application Action Buttons/Links -->
+          <div class="app-actions">
+            <a class="view-edit-app-link" href="{{ application.get_absolute_url }}">View/Edit App <i data-feather="arrow-right"></i></a>
+          </div>
+        </div>
+        {% endfor %}
+        {% if not applications %}
+        <div class="ds-c-alert bb-c-message-card ds-u-margin-y--2">
+          <div class="ds-c-alert__body">
+            <h2 class="ds-c-alert__heading">{% trans "You haven’t registered or created any apps yet." %}</h2>
+            <p class="ds-c-alert__text">{% trans "You’ll need to register your app to get a sample token and make API calls to our sample data. Let’s get started!" %}</p>
+          </div>
+        </div>
         {% endif %}
       </div>
-
+        <a class="ds-c-button bb-c-button ds-u-margin-y--2" href="{% url "oauth2_provider:register" %}">
+          <i data-feather="plus-circle"></i>
+            Add an Application
+        </a>
+      </div>
     </div>
   </div>
+<!-- </div> -->
 
-</div>
+  <div class="bb-full-width--gray">
+      <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+        <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+          <h2>Blue Button Resources</h2>
+          <div class="bb-card-container-2-2 ds-u-margin-y--3">
 
+            <a class="bb-c-card default-card" href="https://bluebutton.cms.gov/blog/Delving-in-to-Blue-Button-Data.html">
+              <div class="card-title">
+                Delving Into Blue Button Data
+              </div>
+              <div class="card-image" style="background-image: url(https://images.unsplash.com/photo-1533279443086-d1c19a186416?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2689&q=80)" aria-role="presentation"></div>
+              <div class="card-description">
+                  The Blue Button 2.0 API publishes detailed claims information for a beneficiary. As a developer I want to be able to understand the data and be able to easily delve into the data that the API returns.
+              </div>
+            </a>
+
+            <a class="bb-c-card default-card" href="https://bluebutton.cms.gov/blog/More-Sample-Applications.html">
+                <div class="card-title">
+                  Sample Apps to Get Your Started
+                </div>
+                <div class="card-image" style="background-image: url({% static 'img/developers.jpg' %})" aria-role="presentation"></div>
+                <div class="card-description">
+                  If you learn by example, we’ve got sample apps in a variety of languages and frameworks to get you started.
+                </div>
+              </a>
+
+          </div>
+      </div>
+    </div>
+  </div>
 
 {% endblock %}
