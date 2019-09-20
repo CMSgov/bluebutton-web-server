@@ -40,5 +40,5 @@ class ApplicationUpdate(CustomFormMixin, oauth2_views.ApplicationUpdate):
 
 
 class ApplicationDelete(oauth2_views.ApplicationDelete):
-    
-    success_url= reverse_lazy("home")
+
+    success_url = reverse_lazy("home")

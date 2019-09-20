@@ -29,8 +29,3 @@ class DeveloperAccountTestCase(TestCase):
         response = self.client.get(self.url, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Logout')
-        # Is the button on the main page? For now it is still on the top nav.
-        # self.assertContains(
-        #     response, 'btn-primary"> <i class="fa fa-key"></i>')
-        self.assertContains(
-            response, '<!-- test_developer_can_register_apps -->')
