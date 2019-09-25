@@ -89,7 +89,10 @@ class FhirDataView(APIView):
 
         logger.debug('FHIR URL with key:%s' % target_url)
 
-        get_parameters = {**self.filter_parameters(request), **self.build_parameters(request)}
+        try:
+            get_parameters = {**self.filter_parameters(request), **self.build_parameters(request)}
+        except voluptuous.error.Invalid as e:
+            raise exceptions.ParseError(detail=e.msg)
 
         logger.debug('Here is the URL to send, %s now add '
                      'GET parameters %s' % (target_url, get_parameters))
