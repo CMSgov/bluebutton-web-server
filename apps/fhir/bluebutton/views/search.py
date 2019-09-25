@@ -5,6 +5,7 @@ from voluptuous import (
     All,
     Range,
     Coerce,
+    Any,
 )
 from rest_framework import (permissions)
 
@@ -33,6 +34,25 @@ class SearchView(FhirDataView):
     query_schema = {
         Required('startIndex', default=0): Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
+        'type': Any(
+            'carrier',
+            'pde',
+            'dme',
+            'hha',
+            'hospice',
+            'inpatient',
+            'outpatient',
+            'snf',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|carrier',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|pde',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|dme',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|hha',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|hospice',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|inpatient',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|outpatient',
+            'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf',
+        ),
     }
 
     def build_parameters(self, request, *args, **kwargs):
