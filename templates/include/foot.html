@@ -12,8 +12,8 @@
         {% if user.is_authenticated %}
                 <script type="text/javascript">
                     var time = 1000 * 60 * 30; // 30 minutes
-                    var theTimer = setTimeout("document.location.href='/v1/accounts/logout'",time);
-            </script>
+					var theTimer = setTimeout(function(){ document.location.href='/v1/accounts/logout'; }, time);
+            	</script>
 
         {% endif %}
     <script>window.tealiumEnvironment = "{{ settings.TEALIUM_ENV }}";</script>

@@ -30,7 +30,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     get_user_email.admin_order_field = "user__email"
     get_user_email.short_description = "Email Address"
 
-    def get_user_joined(selfself, obj):
+    def get_user_joined(self, obj):
         return obj.user.date_joined
 
     get_user_joined.admin_order_field = "user__date_joined"

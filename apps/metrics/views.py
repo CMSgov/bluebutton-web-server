@@ -329,7 +329,8 @@ class CheckDataAccessGrantsView(APIView):
         return Response(check_grants())
 
     def post(self, request, format=None):
-        return Response(update_grants())
+        update_grants()
+        return Response()
 
 
 class CheckCrosswalksView(APIView):
@@ -490,7 +491,7 @@ class DevelopersStreamView(ListAPIView):
         IsAdminUser,
     )
 
-    queryset = queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
+    queryset = User.objects.select_related().filter(userprofile__user_type='DEV').annotate(
         app_count=Count('dot_ext_application'),
         first_active=Min('dot_ext_application__first_active'),
         active_app_count=Count('dot_ext_application__first_active'),

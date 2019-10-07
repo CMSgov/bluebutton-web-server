@@ -259,37 +259,28 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
         logger.debug("Leaving request_call with "
                      "fhir_Response: %s" % fhir_response)
 
-        return fhir_response
-
     except requests.exceptions.Timeout as e:
 
         logger.debug("Gateway timeout talking to back-end server")
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
-
-        return fhir_response
 
     except requests.ConnectionError as e:
         logger.debug("Request.GET:%s" % request.GET)
 
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
-        return fhir_response
-
     except requests.exceptions.HTTPError as e:
         r_err = requests.exceptions.RequestException
         logger.debug('Problem connecting to FHIR Server: %s' % call_url)
         logger.debug('Exception: %s' % r_err)
-        handle_e = handle_http_error(e)
-        handle_e = handle_e
+        handle_http_error(e)
 
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
         messages.error(request, 'Problem connecting to FHIR Server.')
 
-        e = requests.Response
         logger.debug("HTTPError Status_code:%s" %
                      requests.exceptions.HTTPError)
-        return fhir_response
 
     return fhir_response
 
@@ -412,13 +403,13 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     return out_text
 
 
-def mask_list_with_host(request, host_path, in_text, urls_be_gone=[]):
+def mask_list_with_host(request, host_path, in_text, urls_be_gone=None):
     """ Replace a series of URLs with the host_name """
 
     if in_text == '':
         return in_text
 
-    if len(urls_be_gone) == 0:
+    if urls_be_gone is None:
         # Nothing in the list to be replaced
         return in_text
 
