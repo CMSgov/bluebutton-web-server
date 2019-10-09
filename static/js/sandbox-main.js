@@ -69,15 +69,16 @@ function toggleCredentials() {
 }
 
 // Toggle on Mouse Click
-appCredentialToggleLinks.forEach((appCredentialToggleLink) => {
+appCredentialToggleLinks.forEach(function(appCredentialToggleLink) {
   appCredentialToggleLink.addEventListener('click', toggleCredentials);
 });
 
 // Toggle for Keyboard Naviagation
-appCredentialToggleLinks.forEach((appCredentialToggleLink) => {
+appCredentialToggleLinks.forEach(function(appCredentialToggleLink) {
   appCredentialToggleLink.addEventListener('keypress', function (e) {
     var key = e.which || e.keyCode;
-    if (key === 13) { // 13 is enter
+	 if (key === 13 | key === 32) { // 13 is enter of spacebar
+		e.preventDefault();
       this.click();
     }
   });
@@ -123,15 +124,16 @@ function accordionToggle () {
 }
 
 // Toggle Accordion on Click
-accordions.forEach(accordion => {
-  accordion.addEventListener('click', accordionToggle);
+accordions.forEach(function(accordion) {
+	accordion.addEventListener('click', accordionToggle);
 });
 
 // Toggle Accodrion on Enter Keypress (treated as click)
-accordions.forEach(accordion => {
+accordions.forEach(function(accordion) {
   accordion.addEventListener('keypress', function(e) {
     var key = e.which || e.keyCode;
-    if (key === 13) {
+    if (key === 13 | key === 32) {
+		e.preventDefault();
       this.click();
     }    
   });
