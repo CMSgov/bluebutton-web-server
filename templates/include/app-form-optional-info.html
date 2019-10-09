@@ -11,7 +11,7 @@
 			<i class="accordion-icon" data-feather="chevron-down"></i>
 			{% endif %}
 		</a>
-		<div class="accordion-content {% if application.name %}accordion-content-visible{% endif %}">
+		<div class="accordion-content {% if application.name %}accordion-content-visible{% endif %}" {% if application.name %}aria-expanded="true"{% else %}aria-expanded="false"{% endif %}>
 			<p class="ds-u-margin-bottom--4">This information isn't required to use the Sandbox, but can help emulate the experience of having an application in production, especially the experience of a Medicare beneficiary authorizing your application.</p>
 
 			<h3 class="ds-u-margin-bottom--2">App Logo &amp; Description</h3>

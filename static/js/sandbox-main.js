@@ -115,10 +115,12 @@ function accordionToggle () {
   let iconToToggle = this.querySelector('.accordion-icon');
 
   if (contentToToggle.classList.contains('accordion-content-visible')) {
-    contentToToggle.classList.remove('accordion-content-visible');  
+	 contentToToggle.classList.remove('accordion-content-visible'); 
+	 contentToToggle.setAttribute("aria-expanded", "false"); 
     iconToToggle.innerHTML = feather.icons['chevron-down'].toSvg();
   } else {
-    contentToToggle.classList.add('accordion-content-visible');
+	 contentToToggle.classList.add('accordion-content-visible');
+	 contentToToggle.setAttribute("aria-expanded", "true");
     iconToToggle.innerHTML = feather.icons['chevron-up'].toSvg();
   }
 }
