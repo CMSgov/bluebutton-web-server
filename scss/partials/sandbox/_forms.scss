@@ -169,10 +169,9 @@ span.help-block {
 
 // Class for custom upload button label
 .bb-c-custom-file-input-label {
-   cursor: pointer;
-}
-
-// Then hide file inputs
-input[type="file"] {
-	display: none !important;
+	display: flex;
+	align-items: center;
+	svg {
+		margin-right: .5rem;
+	}
 }
