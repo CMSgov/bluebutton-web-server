@@ -6,7 +6,7 @@ from .signals import response_hook
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-class OAuth2Config():
+class OAuth2Config(object):
     token_endpoint = settings.SLS_TOKEN_ENDPOINT
     redirect_uri = settings.MEDICARE_REDIRECT_URI
     verify_ssl = getattr(settings, 'SLS_VERIFY_SSL', False)

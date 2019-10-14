@@ -69,10 +69,7 @@ class SingleAccessTokenValidator(
         # default behaviour when no old token is found
         if request.refresh_token:
             # remove used refresh token
-            try:
-                RefreshToken.objects.get(token=request.refresh_token).revoke()
-            except RefreshToken.DoesNotExist:
-                assert()  # TODO though being here would be very strange, at least log the error
+            RefreshToken.objects.get(token=request.refresh_token).revoke()
 
         expires = timezone.now() + timedelta(seconds=token['expires_in'])
         if request.grant_type == 'client_credentials':
