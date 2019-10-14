@@ -69,18 +69,20 @@ function toggleCredentials() {
 }
 
 // Toggle on Mouse Click
-appCredentialToggleLinks.forEach((appCredentialToggleLink) => {
+appCredentialToggleLinks.forEach(function(appCredentialToggleLink) {
   appCredentialToggleLink.addEventListener('click', toggleCredentials);
 });
 
 // Toggle for Keyboard Naviagation
-appCredentialToggleLinks.forEach((appCredentialToggleLink) => {
+appCredentialToggleLinks.forEach(function(appCredentialToggleLink) {
   appCredentialToggleLink.addEventListener('keypress', function (e) {
-    var key = e.which || e.keyCode;
-    if (key === 13) { // 13 is enter
-      this.click();
-    }
-  });
+	  var key = e.which || e.keyCode;
+	  // If keypress is enter or spacebar
+	  if (key === 13 | key === 32) {
+		  e.preventDefault();
+		  this.click();
+		}
+	});
 });
 
 // Copy Credentials to Clipboard (Run via HTML onClick)
@@ -114,24 +116,27 @@ function accordionToggle () {
   let iconToToggle = this.querySelector('.accordion-icon');
 
   if (contentToToggle.classList.contains('accordion-content-visible')) {
-    contentToToggle.classList.remove('accordion-content-visible');  
+	 contentToToggle.classList.remove('accordion-content-visible'); 
+	 contentToToggle.setAttribute("aria-expanded", "false"); 
     iconToToggle.innerHTML = feather.icons['chevron-down'].toSvg();
   } else {
-    contentToToggle.classList.add('accordion-content-visible');
+	 contentToToggle.classList.add('accordion-content-visible');
+	 contentToToggle.setAttribute("aria-expanded", "true");
     iconToToggle.innerHTML = feather.icons['chevron-up'].toSvg();
   }
 }
 
 // Toggle Accordion on Click
-accordions.forEach(accordion => {
-  accordion.addEventListener('click', accordionToggle);
+accordions.forEach(function(accordion) {
+	accordion.addEventListener('click', accordionToggle);
 });
 
 // Toggle Accodrion on Enter Keypress (treated as click)
-accordions.forEach(accordion => {
+accordions.forEach(function(accordion) {
   accordion.addEventListener('keypress', function(e) {
     var key = e.which || e.keyCode;
-    if (key === 13) {
+    if (key === 13 | key === 32) {
+		e.preventDefault();
       this.click();
     }    
   });

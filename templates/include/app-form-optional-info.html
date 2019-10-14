@@ -11,7 +11,7 @@
 			<i class="accordion-icon" data-feather="chevron-down"></i>
 			{% endif %}
 		</a>
-		<div class="accordion-content {% if application.name %}accordion-content-visible{% endif %}">
+		<div class="accordion-content {% if application.name %}accordion-content-visible{% endif %}" {% if application.name %}aria-expanded="true"{% else %}aria-expanded="false"{% endif %}>
 			<p class="ds-u-margin-bottom--4">This information isn't required to use the Sandbox, but can help emulate the experience of having an application in production, especially the experience of a Medicare beneficiary authorizing your application.</p>
 
 			<h3 class="ds-u-margin-bottom--2">App Logo &amp; Description</h3>
@@ -23,11 +23,11 @@
 			<input type="text" name="logo_uri" maxlength="512" id="id_logo_uri" value="{{ application.logo_uri }}" disabled>
 			{% endif %}
 
-			<label class="bb-c-custom-file-input-label ds-c-button bb-c-button" for="id_logo_image">
+			<label class="bb-c-custom-file-input-label" for="id_logo_image">
 				<i data-feather="upload-cloud"></i>
-				<span class="upload-file-text">Upload a Logo</span>
-				<input type="file" name="logo_image" accept="image/*" id="id_logo_image">
-			</label>	
+				Upload a Logo
+			</label>
+			<input type="file" name="logo_image" accept="image/*" id="id_logo_image">
 			
 
 			<div class="help-block ds-u-margin-top--2">Upload your logo image file here in JPEG (.jpg) format! The maximum file size allowed is 100KB and maximum dimensions are 256x256 pixels. This will update the Logo URI after saving.</div>
