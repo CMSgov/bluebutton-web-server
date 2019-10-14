@@ -189,7 +189,6 @@ USE_TZ = True
 # static files and media
 ASSETS_ROOT = env('DJANGO_ASSETS_ROOT', BASE_DIR)
 
-STATIC_ROOT = os.path.join(ASSETS_ROOT, 'collectedstatic')
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, 'media')
 
 MEDIA_URL = '/media/'
