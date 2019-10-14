@@ -76,12 +76,13 @@ appCredentialToggleLinks.forEach(function(appCredentialToggleLink) {
 // Toggle for Keyboard Naviagation
 appCredentialToggleLinks.forEach(function(appCredentialToggleLink) {
   appCredentialToggleLink.addEventListener('keypress', function (e) {
-    var key = e.which || e.keyCode;
-	 if (key === 13 | key === 32) { // 13 is enter of spacebar
-		e.preventDefault();
-      this.click();
-    }
-  });
+	  var key = e.which || e.keyCode;
+	  // If keypress is enter or spacebar
+	  if (key === 13 | key === 32) {
+		  e.preventDefault();
+		  this.click();
+		}
+	});
 });
 
 // Copy Credentials to Clipboard (Run via HTML onClick)
