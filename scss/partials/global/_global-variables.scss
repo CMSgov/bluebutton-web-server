@@ -2,24 +2,24 @@
 // ----------------
 
 // Typography
-@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700|Roboto:400,700&display=swap');
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,700|Roboto:400,700&display=swap");
 
 h1 {
-	font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
 }
 
 body {
-	font-family: 'Open Sans', sans-serif; 
+  font-family: "Open Sans", sans-serif;
 }
 
 // Color Variables
-$blue: #0071BC;
+$blue: #0071bc;
 $white: #ffffff;
-$black: #323A45;
+$black: #323a45;
 $light-gray: #f7f7f7;
-$green: #2E8540;
+$green: #2e8540;
 
 // For CMS Design System Compatability
 $color-gray-dark: $black;
-$color-gray-light: #AEB0B5;
+$color-gray-light: #aeb0b5;
 $color-success: $green;

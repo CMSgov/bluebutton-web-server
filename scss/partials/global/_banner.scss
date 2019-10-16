@@ -5,19 +5,19 @@
 // ---------
 
 // Default Colors (For Static Site)
-$banner-bg-primary: #0071BC;
+$banner-bg-primary: #0071bc;
 $banner-color-primary: #ffffff;
 
 // Sandbox Color Variants
-$banner-sandbox-solid: #3D66AF;
+$banner-sandbox-solid: #3d66af;
 $banner-sandbox-gradient-solid: rgba(61, 102, 175, 50%);
-$banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
+$banner-sandbox-gradient-accent: rgba(158, 143, 243, 100%);
 
 // Banner Styles
 .ds-c-banner {
   background: $banner-bg-primary;
   display: flex;
-  font-family: 'Roboto', 'Helvetica', sans-serif;
+  font-family: "Roboto", "Helvetica", sans-serif;
   // Container that contains text/buttons
   // This is always a solid color for accessibility purposes.
   .solid {
@@ -25,10 +25,16 @@ $banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
     padding: 5rem 3rem;
     flex-grow: 2;
     max-width: 60vw;
-    // Adds left padding on large screens
+    // Adds left padding on large screens - specifically for the static site (overwritten in sandbox section below)
     @media #{$large-desktop} {
-      padding-left: 5%;
+      padding-left: 20% !important;
       max-width: 50vw;
+    }
+    @media #{$macbook-pro} {
+      padding-left: 5% !important;
+    }
+    @media #{$desktop} {
+      padding-left: 5%;
     }
     // Fills the width of device on smaller screens
     @media #{$tablet, $phone} {
@@ -44,13 +50,13 @@ $banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
     background: $banner-color-primary;
     color: $banner-bg-primary;
     letter-spacing: 0 !important;
-    padding: .5rem .6rem;
+    padding: 0.5rem 0.6rem;
   }
   // Page Description
   .page-description {
     color: $banner-color-primary;
     font-size: 1.1rem;
-    font-family: 'Open Sans', 'Roboto', 'Helvetica', sans-serif;
+    font-family: "Open Sans", "Roboto", "Helvetica", sans-serif;
     @media #{$phone} {
       font-size: 1rem;
     }
@@ -66,10 +72,10 @@ $banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
     // NOTE: I created this because of a CMS DS bug in Firefox. Just looked off. Should notify that team.
     .cta-button {
       background: none;
-      font-size: .9rem;
+      font-size: 0.9rem;
       text-transform: uppercase;
       margin-right: 1rem;
-      border-radius: .3rem;
+      border-radius: 0.3rem;
       border: 3px solid $banner-color-primary;
       color: $banner-color-primary;
       display: flex;
@@ -83,18 +89,19 @@ $banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
       @media #{$small-phone} {
         align-items: center;
         justify-content: center;
-        font-size: .8rem;
+        font-size: 0.8rem;
         margin-right: 0;
         text-align: center;
       }
     }
     // Button Hover Styles
-    .cta-button:hover, .cta-button:focus {
+    .cta-button:hover,
+    .cta-button:focus {
       background: $banner-color-primary;
       color: $banner-bg-primary;
     }
     // Styles feather icon
-		svg {
+    svg {
       fill: none;
       margin-left: 1rem;
       @media #{$small-phone} {
@@ -104,8 +111,12 @@ $banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
   }
   // Gradient Container
   .gradient {
-    background: rgb(0,113,188);
-    background: linear-gradient(90deg, rgba(0,113,188,1) 0%, rgba(66,184,209,1) 100%);
+    background: rgb(0, 113, 188);
+    background: linear-gradient(
+      90deg,
+      rgba(0, 113, 188, 1) 0%,
+      rgba(66, 184, 209, 1) 100%
+    );
     flex-grow: 1;
     // Hide the gradient container for smaller screens
     @media #{$tablet, $phone} {
@@ -121,7 +132,14 @@ $banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
   // Color override when banner is in use for the Sandbox
   .sandbox-solid {
     background: $banner-sandbox-solid;
-    h1, p, a, strong {
+    // Padding specificaly for the static site (overwritten below)
+    @media #{$large-desktop, $macbook-pro, $desktop, $tablet, $phone, $small-phone} {
+      padding-left: 5% !important;
+    }
+    h1,
+    p,
+    a,
+    strong {
       margin: 1rem 0;
       color: $banner-color-primary;
     }
@@ -133,7 +151,7 @@ $banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
       text-decoration: none;
     }
     .banner-back-button svg {
-      margin-right: .5rem;
+      margin-right: 0.5rem;
     }
     .banner-back-button:hover {
       text-decoration: underline;
@@ -142,7 +160,10 @@ $banner-sandbox-gradient-accent: rgba(158,143,243, 100%);
   // Color override when banner is in use for the Sandbox
   .sandbox-gradient {
     background: $banner-sandbox-solid;
-    background: linear-gradient(90deg, $banner-sandbox-gradient-solid, $banner-sandbox-gradient-accent); 
+    background: linear-gradient(
+      90deg,
+      $banner-sandbox-gradient-solid,
+      $banner-sandbox-gradient-accent
+    );
   }
 }
-
