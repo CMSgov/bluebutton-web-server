@@ -1,4 +1,19 @@
 // Styles for the Sandbox Login Page
 // ---------------------------------
 
-@import '../global/global-variables';
+@import "../global/global-variables";
+
+// Bootstrap Error Messages
+//-------------------------
+// Styles to override legacy bootstrap error messages
+.alert,
+.alert-danger {
+	background: $black;
+	color: $white;
+	border-radius: .3rem;
+	padding: 1rem;
+	margin-bottom: 1rem;
+  .close {
+    display: none;
+  }
+}
