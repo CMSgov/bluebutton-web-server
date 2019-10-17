@@ -3,49 +3,71 @@
 {% load i18n %}
 
 {% block bannerBackButton %}
-  <a class="banner-back-button" href="{% block app-form-back-url %}{% url "oauth2_provider:detail" application.id %}{% endblock app-form-back-url %}"><i data-feather="arrow-left"></i>{% trans "Go Back" %}</a>
+	<a class="banner-back-button" href="{% block app-form-back-url %}{% url "oauth2_provider:detail" application.id %}{% endblock app-form-back-url %}">
+		<i data-feather="arrow-left"></i>{% trans "Go Back" %}</a>
 {% endblock %}
 
 {% block bannerTitle %}
-  {% block app-form-title %}
-    {% trans "Edit" %} {{ application.name }}
-  {% endblock app-form-title %}
+	{% block app-form-title %}
+		{% trans "Edit" %}
+		{{ application.name }}
+	{% endblock app-form-title %}
 {% endblock %}
 
-{% block bannerDescription %}
+{% block bannerDescription %}{% endblock %}
 
-{% endblock %}
-
-{% block bannerCallToActionButtons %}
-
-{% endblock %}
+{% block bannerCallToActionButtons %}{% endblock %}
 
 {% block content %}
-<!-- CI_TESTING:START -->
-<!-- test_dot_ext_application_registration -->
-<!-- CI_TESTING:END -->
+	<!-- CI_TESTING:START -->
+	<!-- test_dot_ext_application_registration -->
+	<!-- CI_TESTING:END -->
 
-<div class="container">
-    <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
-      <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
-        <div class="bb-c-card bb-width--75 ds-u-padding--2 bb-raised-section">
-          <form class="form-horizontal" method="post" enctype="multipart/form-data" action="{% block app-form-action-url %}{% url 'oauth2_provider:update' application.id %}{% endblock app-form-action-url %}">
-          {% csrf_token %}
+	<div class="container">
+		<div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+			<div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+				<div class="bb-c-card bb-width--75 ds-u-padding--2 bb-raised-section">
+					<form class="form-horizontal" method="post" enctype="multipart/form-data" action="{% block app-form-action-url %}{% url 'oauth2_provider:update' application.id %}{% endblock app-form-action-url %}">
+						{% csrf_token %}
 
-          {% include "include/app-form-required-info.html" %}
-          {% include "include/app-form-optional-info.html" %}
+						{% if form.non_field_errors %}
+						<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2">
+									<div class="ds-c-alert__body">
+										<h3 class="ds-c-alert__heading">Something went wrong.</h3>
+										<ul>
+										{% for error in form.non_field_errors %}
+											<li>{{ error }}</li>
+										{% endfor %}
+										</ul>
+									</div>
+								</div>
+						{% endif %}
 
-          <div>
-              <input type="checkbox" name="agree" id="id_agree" {% if application.name %} checked {% endif %}>
-              <label class="control-label" for="id_agree">Yes I have read and agree to the <a target="_blank" href="https://bluebutton.cms.gov/terms">API Terms of Service Agreement</a>*</label>
-          </div>
+						{% for field in form %}
+							{% for error in field.errors %}
+								<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2">
+									<div class="ds-c-alert__body">
+										<h3 class="ds-c-alert__heading">Something went wrong.</h3>
+										<p class="ds-c-alert__text">{{ error }}</p>
+									</div>
+								</div>
+							{% endfor %}
+						{% endfor %}
 
-          <button type="submit" class="ds-c-button--success ds-u-margin-top--2">Save Application</button>
+						{% include "include/app-form-required-info.html" %}
+						{% include "include/app-form-optional-info.html" %}
 
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
+						<div>
+							<input type="checkbox" name="agree" id="id_agree" {% if application.name %} checked {% endif %}>
+							<label class="control-label" for="id_agree">Yes I have read and agree to the <a target="_blank" href="https://bluebutton.cms.gov/terms">API Terms of Service Agreement</a>*</label>
+						</div>
+
+						<button type="submit" class="ds-c-button--success ds-u-margin-top--2">Save Application</button>
+
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 
 {% endblock content %}

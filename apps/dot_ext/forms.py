@@ -79,12 +79,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             msg += 'A confidential client may not ' \
                    'request an implicit grant type.'
 
-        # Confidential clients cannot use implicit authorization_grant_type
-        if client_type == 'confidential' and authorization_grant_type == 'implicit':
-            validate_error = True
-            msg += 'A confidential client may not ' \
-                   'request an implicit grant type.'
-
         if validate_error:
             msg_output = _(msg)
             raise forms.ValidationError(msg_output)
