@@ -1,64 +1,73 @@
-
 // Global Elements, Variables, and Mixins
 // --------------------------------------
 
 // Import Global Variables
-@import '../global/global-variables';
+@import "../global/global-variables";
 
 // General Global Styles
 // ---------------------
 
 * {
-	margin: 0;
+  margin: 0;
 }
 
 body {
-	margin: 0;
-	padding: 0;
-	background: $light-gray;
+  margin: 0;
+  padding: 0;
+  background: $light-gray;
 }
 
-h1, h2, h3, h4, h5, h6, p, strong {
-	color: $color-gray-dark;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+strong {
+  color: $color-gray-dark;
 }
 
 h2 {
-	margin-bottom: 1rem;
+  margin-bottom: 1rem;
 }
- 
-// NOTE: Fix for weird overflow issue. 
+
+// NOTE: Fix for weird overflow issue.
 .container {
-	.ds-l-row {
-		margin-left: 0 !important;
-		margin-right: 0 !important;
-	}
+  .ds-l-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
 }
 
 // Content Width
 // -------------
 
 .bb-full-width--gray {
-	width: 100%;
-	padding: 2rem 1rem;
-	background: darken($light-gray, 3.5%);
+  width: 100%;
+  padding: 2rem 1rem;
+  background: darken($light-gray, 3.5%);
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .bb-width--75 {
-	max-width: 75%;
-	@media #{$tablet, $phone, $small-phone} {
-		max-width: 100%;
-	}
+  max-width: 75%;
+  @media #{$tablet, $phone, $small-phone} {
+    max-width: 100%;
+  }
 }
 
 .bb-width--50 {
-	max-width: 50%;
-	@media #{$tablet, $phone, $small-phone} {
-		max-width: 100%;
-	}
+  max-width: 50%;
+  @media #{$tablet, $phone, $small-phone} {
+    max-width: 100%;
+  }
 }
 
 .bb-raised-section {
-	margin-top: -7rem;
+  margin-top: -7rem;
 }
 
 // Login Gradient Container Layout & Styles
@@ -68,83 +77,87 @@ h2 {
 
 // Gradient Container Variables
 $gradient-left-color: $blue;
-$gradient-right-color: #9E8FF3;
-$gradient-card-border-color: #DDDDDD;
+$gradient-right-color: #9e8ff3;
+$gradient-card-border-color: #dddddd;
 
 // Gradient Styles
 .sandbox-gradient-bg {
-	background-color: $gradient-left-color;
-	background-image: linear-gradient(45deg, $gradient-left-color, $gradient-right-color);
-	min-height: calc(100vh - 60px);
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+  background-color: $gradient-left-color;
+  background-image: linear-gradient(
+    45deg,
+    $gradient-left-color,
+    $gradient-right-color
+  );
+  min-height: calc(100vh - 60px);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 // Gradient Content Container
 .gradient-content-container {
-	margin-top: 1rem;
-	padding: 1rem; 
-	max-width: 500px;
-	h1 {
-		color: $white;
-		font-weight: bold;
-		margin: 0 0 .5rem 0;
-		text-transform: uppercase;
-	}
-	p {
-		color: $white;
-		margin-bottom: 2rem;
-	}
-	.gradient-messages-container {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: $black;
-		color: $white;
-		padding: 1rem 1.5rem;
-		margin-bottom: 2rem;
-		font-size: .8rem;
-		border-radius: .3rem;
-		svg {
-			margin-right: .5rem;
-		}
-	}
-	.gradient-content-card {
-		margin-bottom: 2rem;
-		.content {
-			background: $white;
-			padding: 2rem;
-		}
-		.action-container {
-			border-top: 1px solid $gradient-card-border-color;
-			background: $white;
-			padding: 2rem;
-			border-bottom-left-radius: .3rem;
-			border-bottom-right-radius: .3rem;
-			display: flex;
-		}
-		.action-container a {
-			margin-right: 1rem;
-		}
-		&::before {
-			background-image: linear-gradient(30deg,#00529b 10%,#45ceb0 90%);;
-			top: 0;
-			left: 0;
-			content: "";
-			display: block;
-			height: 4px;
-			position: relative;
-			width: 100%;
-		}
-	}
-	// For status messages/additional info like terms
-	.sub-card {
-		background: $white;
-		margin-bottom: 2rem;
-		padding: 2rem;
-		border-radius: .3rem;
-		font-size: .8rem;
-	}
+  margin-top: 1rem;
+  padding: 1rem;
+  max-width: 500px;
+  h1 {
+    color: $white;
+    font-weight: bold;
+    margin: 0 0 0.5rem 0;
+    text-transform: uppercase;
+  }
+  p {
+    color: $white;
+    margin-bottom: 2rem;
+  }
+  .gradient-messages-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $black;
+    color: $white;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.8rem;
+    border-radius: 0.3rem;
+    svg {
+      margin-right: 0.5rem;
+    }
+  }
+  .gradient-content-card {
+    margin-bottom: 2rem;
+    .content {
+      background: $white;
+      padding: 2rem;
+    }
+    .action-container {
+      border-top: 1px solid $gradient-card-border-color;
+      background: $white;
+      padding: 2rem;
+      border-bottom-left-radius: 0.3rem;
+      border-bottom-right-radius: 0.3rem;
+      display: flex;
+    }
+    .action-container a {
+      margin-right: 1rem;
+    }
+    &::before {
+      background-image: linear-gradient(30deg, #00529b 10%, #45ceb0 90%);
+      top: 0;
+      left: 0;
+      content: "";
+      display: block;
+      height: 4px;
+      position: relative;
+      width: 100%;
+    }
+  }
+  // For status messages/additional info like terms
+  .sub-card {
+    background: $white;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    border-radius: 0.3rem;
+    font-size: 0.8rem;
+  }
 }

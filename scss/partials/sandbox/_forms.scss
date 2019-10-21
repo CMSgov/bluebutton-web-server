@@ -57,7 +57,11 @@ form {
 		border: $component-border;
 		border-radius: .3rem;
 		font-weight: normal;
-		font-size: .9rem;
+		width: 100%;
+		-webkit-box-sizing: border-box;
+		-moz-box-sizing: border-box;
+		box-sizing: border-box;
+		font-size: 16pt;
 		padding: 1rem;
 		transition: background 180ms ease, 180ms ease border-color;
 		&:focus {
