@@ -68,22 +68,22 @@ function toggleCredentials() {
   }
 }
 
-// Toggle on Mouse Click
-appCredentialToggleLinks.forEach(function(appCredentialToggleLink) {
-  appCredentialToggleLink.addEventListener('click', toggleCredentials);
-});
+// Toggle credentials on mouse click
+for (var i = 0; i < appCredentialToggleLinks.length; i++) {
+	appCredentialToggleLinks[i].addEventListener('click', toggleCredentials);
+}
 
-// Toggle for Keyboard Naviagation
-appCredentialToggleLinks.forEach(function(appCredentialToggleLink) {
-  appCredentialToggleLink.addEventListener('keypress', function (e) {
-	  var key = e.which || e.keyCode;
+// Toggle credentials on keyboard navigation
+for (var i = 0; i < appCredentialToggleLinks.length; i++) {
+	appCredentialToggleLinks[i].addEventListener('keypress', function (e) {
+		var key = e.which || e.keyCode;
 	  // If keypress is enter or spacebar
 	  if (key === 13 | key === 32) {
 		  e.preventDefault();
 		  this.click();
 		}
 	});
-});
+}
 
 // Copy Credentials to Clipboard (Run via HTML onClick)
 function copyCredential(copyID) {
@@ -127,30 +127,17 @@ function accordionToggle () {
 }
 
 // Toggle Accordion on Click
-accordions.forEach(function(accordion) {
-	accordion.addEventListener('click', accordionToggle);
-});
+for (var i = 0; i < accordions.length; i++) {
+	accordions[i].addEventListener('click', accordionToggle);
+}
 
 // Toggle Accodrion on Enter Keypress (treated as click)
-accordions.forEach(function(accordion) {
-  accordion.addEventListener('keypress', function(e) {
-    var key = e.which || e.keyCode;
+for (var i = 0; i < accordions.length; i++) {
+	accordions[i].addEventListener('keypress', function (e) {
+		var key = e.which || e.keyCode;
     if (key === 13 | key === 32) {
 		e.preventDefault();
       this.click();
-    }    
-  });
-});
-
-// BB Custom File Input Label Component
-// ------------------------------------
-// Used in the application edit/registration form
-
-const uploadLogoButton = document.querySelector('.bb-c-custom-file-input-label');
-
-uploadLogoButton.addEventListener('change', function(e) {
-  let filePathArray = e.target.value.split("\\").pop();
-  let labelUpdateWithFile = document.querySelector('.upload-file-text');
-
-  labelUpdateWithFile.innerHTML = filePathArray;
-});
+    } 
+	});
+}
