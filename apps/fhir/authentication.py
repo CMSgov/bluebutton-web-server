@@ -22,4 +22,6 @@ def extract_username(auth, auth_prefix="SLS"):
 
 
 def convert_sls_uuid(id):
-    return id[9:36]
+    # Do not shorten SLS guid. It causes username collisions
+    # return id[9:36]
+    return id
