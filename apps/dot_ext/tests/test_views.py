@@ -78,7 +78,7 @@ class TestAuthorizationView(BaseApiTest):
 
 class TestTokenView(BaseApiTest):
     test_uuid = "0123456789abcdefghijklmnopqrstuvwxyz"
-    test_username = "9abcdefghijklmnopqrstuvwxyz"
+    test_username = "0123456789abcdefghijklmnopqrstuvwxyz"
 
     def _create_test_token(self, user, application):
         # user logs in
