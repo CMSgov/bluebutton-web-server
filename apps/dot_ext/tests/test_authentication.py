@@ -47,7 +47,7 @@ class TestOAuth2Authentication(TestCase):
     def setUp(self):
 
         self.test_username = "0123456789abcdefghijklmnopqrstuvwxyz"
-        self.test_user = UserModel.objects.create_user("9abcdefghijklmnopqrstuvwxyz", "test@example.com", "123456")
+        self.test_user = UserModel.objects.create_user("0123456789abcdefghijklmnopqrstuvwxyz", "test@example.com", "123456")
         self.dev_user = UserModel.objects.create_user("dev_user", "dev@example.com", "123456")
 
         self.application = Application.objects.create(
