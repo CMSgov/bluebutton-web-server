@@ -2,6 +2,7 @@ import logging
 from requests import Response
 from django.conf import settings
 from django.db import models
+from django.core.exceptions import ValidationError
 from apps.accounts.models import get_user_id_salt
 from apps.fhir.server.models import ResourceRouter
 from django.utils.crypto import pbkdf2
@@ -61,9 +62,8 @@ class Crosswalk(models.Model):
                                     default=settings.USER_ID_TYPE_DEFAULT,
                                     choices=settings.USER_ID_TYPE_CHOICES)
     user_id_hash = models.CharField(max_length=64,
-                                    blank=True,
-                                    default="",
                                     verbose_name="PBKDF2 of User ID",
+                                    unique=True,
                                     db_index=True)
 
     objects = models.Manager()  # Default manager
@@ -74,6 +74,8 @@ class Crosswalk(models.Model):
         return '%s %s' % (self.user.first_name, self.user.last_name)
 
     def set_hicn(self, hicn):
+        if self.pk:
+            raise ValidationError("this value cannot be modified.")
         self.user_id_hash = binascii.hexlify(pbkdf2(hicn,
                                                     get_user_id_salt(),
                                                     settings.USER_ID_ITERATIONS)).decode("ascii")
