@@ -132,7 +132,7 @@ class Command(BaseCommand):
 
             # line = ["id", "username", "short_guid", "short_guid_line", "user_date_joined", "user_last_login",
             #         "user_is_staff", "user_is_superuser", "user_is_active", "user_first_name", "user_last_name",
-            #         "crosswalk_id", "crosswalk_fhir_id", "crosswalk_hicn_hash", "crosswalk_date_created", ]
+            #         "crosswalk_id", "crosswalk_fhir_id", "crosswalk_hicn_hash", "crosswalk_date_created" ]
 
             # Build a line
 
