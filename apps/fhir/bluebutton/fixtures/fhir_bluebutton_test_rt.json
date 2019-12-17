@@ -69,7 +69,8 @@
   "pk": 1,
   "fields": {"user": 1,
              "fhir_source": 1,
-             "fhir_id": "4995802",
+             "_fhir_id": "4995802",
+	     "_user_id_hash": "badhash",
              "date_created": "2016-05-25T05:03:49.342Z"}
  },
   {

@@ -1,3 +1,4 @@
+from django.db.utils import IntegretyError
 from apps.test import BaseApiTest
 
 from ..models import Crosswalk
@@ -19,7 +20,8 @@ class TestModels(BaseApiTest):
 
         cw = Crosswalk.objects.create(user=user,
                                       fhir_source=fs,
-                                      fhir_id="123456")
+                                      fhir_id="123456",
+                                      _user_id_hash="badhash")
 
         fhir = Crosswalk.objects.get(user=user.pk)
 
@@ -43,7 +45,8 @@ class TestModels(BaseApiTest):
 
         Crosswalk.objects.create(user=user,
                                  fhir_source=fs,
-                                 fhir_id="123456")
+                                 fhir_id="123456",
+                                 _user_id_hash="badhash")
 
         fhir = Crosswalk.objects.get(user=user.pk)
 
@@ -51,3 +54,11 @@ class TestModels(BaseApiTest):
 
         invalid_match = "http://localhost:8000/fhir/" + "Practitioner/123456"
         self.assertNotEqual(url_info, invalid_match)
+
+    def test_require_user_id_hash(self):
+        user = self._create_user('john', 'password',
+                                 first_name='John',
+                                 last_name='Smith',
+                                 email='john@smith.net')
+        with self.assertRaises(IntegrityError):
+            Crosswalk.objects.create(user=user)

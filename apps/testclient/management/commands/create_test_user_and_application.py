@@ -45,7 +45,8 @@ def create_user(group):
 
     u.groups.add(group)
     c, g_o_c = Crosswalk.objects.get_or_create(user=u,
-                                               fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                               _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                               _user_id_hash="badhash",
                                                fhir_source=get_resourcerouter())
     return u
 
