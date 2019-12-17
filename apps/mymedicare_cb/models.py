@@ -11,7 +11,11 @@ from apps.fhir.bluebutton.utils import get_resourcerouter
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-
+# IR TODO
+#  - validate "sub" (e.g. encoding or character issues, format, length, type)
+#  - validate given_name, family_name, email for presence, type, etc, as needed
+# IR TODO - log when existing user fields (given_name, family_name, email) change based on new info from SLS
+# IR TODO - log when user already exists vs is created
 def get_and_update_user(user_info):
     username = convert_sls_uuid(user_info['sub'])
     try:
@@ -31,6 +35,7 @@ def get_and_update_user(user_info):
                     last_name=user_info['family_name'],
                     email=user_info['email'])
         user.set_unusable_password()
+        # IR TODO - what happens when saving fails? Also what happens when anything in lines 40-43 fails?
         user.save()
     UserProfile.objects.get_or_create(
         user=user, user_type='BEN')
@@ -43,12 +48,16 @@ def get_and_update_user(user_info):
     fhir_source = get_resourcerouter()
     crosswalk, _ = Crosswalk.objects.get_or_create(
         user=user, fhir_source=fhir_source)
+    # IR TODO - log when hicn is null
     hicn = user_info.get('hicn', "")
     crosswalk.set_hicn(hicn)
     crosswalk.save()
 
     try:
         backend_data = authenticate_crosswalk(crosswalk)
+        # IR TODO - How often do we not get this data from SLS?
+        # IR TODO - Do we validate the first/last name from FHIR  (eg format, type, etc)?
+        # IR TODO - Log when data is supplemented by FHIR
         # Get first and last name from FHIR if not in OIDC Userinfo response.
         if user_info['given_name'] == "" or user_info['family_name'] == "":
             if 'entry' in backend_data:

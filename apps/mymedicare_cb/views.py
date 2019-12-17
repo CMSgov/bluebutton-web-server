@@ -24,7 +24,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
-
+# IR TODO - Should validate code param is valid
 def authenticate(request):
     code = request.GET.get('code')
     if not code:
@@ -36,14 +36,17 @@ def authenticate(request):
         sls_client.exchange(code)
     except requests.exceptions.HTTPError as e:
         logger.error("Token request response error {reason}".format(reason=e))
+        # IR TODO - does this cause an alert for the team?
         raise UpstreamServerException('An error occurred connecting to account.mymedicare.gov')
 
+    # TODO shouldn't set env-specific defaults in code
     userinfo_endpoint = getattr(
         settings,
         'SLS_USERINFO_ENDPOINT',
         'https://test.accounts.cms.gov/v1/oauth/userinfo')
 
     headers = sls_client.auth_header()
+    # IR TODO - is this logging uuid critical for prod? If so should not be defaulted to None. What does this do?
     headers.update({"X-Request-ID": getattr(request, '__logging_uuid', None)})
     response = requests.get(userinfo_endpoint,
                             headers=headers,
@@ -54,6 +57,7 @@ def authenticate(request):
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         logger.error("User info request response error {reason}".format(reason=e))
+        # IR TODO - does this cause an alert for the team?
         raise UpstreamServerException(
             'An error occurred connecting to account.mymedicare.gov')
 
