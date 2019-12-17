@@ -3,9 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group
 from rest_framework import exceptions
 from apps.accounts.models import UserProfile
-from apps.fhir.authentication import convert_sls_uuid
-from apps.fhir.server.authentication import authenticate_crosswalk, match_hicn_hash
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.server.authentication import match_hicn_hash
 from apps.fhir.bluebutton.models import Crosswalk, hash_hicn
 from apps.fhir.bluebutton.utils import get_resourcerouter
 
@@ -46,9 +44,9 @@ def get_and_update_user(user_info):
     fhir_source = get_resourcerouter()
 
     user = User(username=subject,
-                first_name=user_info['given_name'],
-                last_name=user_info['family_name'],
-                email=user_info['email'])
+                first_name=given_name,
+                last_name=last_name,
+                email=email)
     user.set_unusable_password()
     user.save()
     Crosswalk.objects.create(user=user,
@@ -57,10 +55,10 @@ def get_and_update_user(user_info):
                              fhir_id=fhir_id)
 
     # Extra user information
-    UserProfile.objects.create(
-            user=user, user_type='BEN') # TODO: remvoe the idea of UserProfile
+    # TODO: remvoe the idea of UserProfile
+    UserProfile.objects.create(user=user, user_type='BEN')
     # TODO: magic strings are bad
-    group = Group.objects.get(name='BlueButton') # TODO: these do not need a group
+    group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
     user.groups.add(group)
 
     # Get first and last name from FHIR if not in OIDC Userinfo response.

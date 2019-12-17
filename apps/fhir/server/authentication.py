@@ -2,7 +2,6 @@ import requests
 import logging
 from rest_framework import exceptions
 from ..bluebutton.exceptions import UpstreamServerException
-from ..bluebutton.models import hash_hicn
 from ..bluebutton.utils import (FhirServerAuth,
                                 get_resourcerouter)
 
@@ -22,15 +21,16 @@ def match_hicn_hash(hicn_hash):
     if 'entry' in backend_data and backend_data['total'] == 1:
         fhir_id = backend_data['entry'][0]['resource']['id']
         return fhir_id, backend_data
-    
+
     if backend_data.get('total', 0) > 1:
         # Don't return a 404 because retrying later will not fix this.
         raise UpstreamServerException("Duplicate beneficiaries found")
 
     raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
 
+
 def authenticate_crosswalk(crosswalk):
-    fhir_id, backend_data = match_hicn_hash(crosswalk.user_id_hash) 
+    fhir_id, backend_data = match_hicn_hash(crosswalk.user_id_hash)
 
     crosswalk.fhir_id = fhir_id
     crosswalk.save()
