@@ -101,6 +101,7 @@ class BaseApiTest(TestCase):
                                         fhir_source=get_resourcerouter())
 
         # create a oauth2 application and add capabilities
+        # TODO confirm this is accurate with SLS flow
         application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)
         application.scope.add(self.read_capability, self.write_capability)
         # get the first access token for the user 'john'
@@ -115,6 +116,7 @@ class BaseApiTest(TestCase):
                                  first_name=first_name,
                                  last_name=last_name,
                                  email="%s@%s.net" % (first_name, last_name))
+        # TODO look into this hash and confirm it's accurate
         Crosswalk.objects.get_or_create(user=user,
                                         user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130",
                                         fhir_source=get_resourcerouter())

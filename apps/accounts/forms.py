@@ -66,6 +66,7 @@ class SignupForm(UserCreationForm):
                                    user_type="DEV",
                                    create_applications=True)
 
+        # TODO why do we do this (associate every user with a default patient)?
         # Attach the user to the default patient.
         Crosswalk.objects.create(user=user, fhir_source=get_resourcerouter(),
                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID)

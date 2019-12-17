@@ -170,6 +170,7 @@ class UserProfile(models.Model):
                                                blank=True,
                                                max_length=50)
 
+    # TODO it's less than ideal that the username field for DEV accounts is semantically and functionally different than for BEN accounts
     def __str__(self):
         name = '%s %s (%s)' % (self.user.first_name,
                                self.user.last_name,

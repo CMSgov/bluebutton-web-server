@@ -123,6 +123,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'too common')
 
+    # TODO require more complex password
     @override_switch('signup', active=True)
     def test_valid_account_create_is_a_developer(self):
         """

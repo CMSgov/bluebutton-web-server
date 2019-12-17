@@ -2,7 +2,7 @@ from django.views.decorators.http import require_GET
 from oauth2_provider.decorators import protected_resource
 from django.http import JsonResponse
 
-
+# TODO is this used?
 @require_GET
 @protected_resource()
 def my_profile(request):

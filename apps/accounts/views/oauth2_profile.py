@@ -6,7 +6,7 @@ from oauth2_provider.decorators import protected_resource
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from collections import OrderedDict
 
-
+# TODO remove unless there's a business requirement for supporting an OIDC compliant endpoint
 def get_userinfo(user):
     """
     OIDC-style userinfo
