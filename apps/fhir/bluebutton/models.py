@@ -58,17 +58,20 @@ class Crosswalk(models.Model):
                                     blank=True,
                                     null=True)
     # default=settings.FHIR_SERVER_DEFAULT)
-    fhir_id = models.CharField(max_length=80,
-                               blank=True, default="", db_index=True)
+    _fhir_id = models.CharField(max_length=80,
+                                null=True,
+                                db_column="fhir_id",
+                                db_index=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
     user_id_type = models.CharField(max_length=1,
                                     default=settings.USER_ID_TYPE_DEFAULT,
                                     choices=settings.USER_ID_TYPE_CHOICES)
-    user_id_hash = models.CharField(max_length=64,
-                                    verbose_name="PBKDF2 of User ID",
-                                    unique=True,
-                                    db_index=True)
+    _user_id_hash = models.CharField(max_length=64,
+                                     verbose_name="PBKDF2 of User ID",
+                                     unique=True,
+                                     db_column="user_id_hash",
+                                     db_index=True)
 
     objects = models.Manager()  # Default manager
     real_objects = RealCrosswalkManager()  # Real bene manager
@@ -76,6 +79,28 @@ class Crosswalk(models.Model):
 
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
+
+    @property
+    def fhir_id(self):
+        return self._fhir_id
+
+    @fhir_id.setter
+    def fhir_id(self, value):
+        if self._fhir_id is not None:
+            raise ValidationError("this value cannot be modified.")
+        self._fhir_id = value
+
+    @property
+    def user_id_hash(self):
+        return self._user_id_hash
+
+    @user_id_hash.setter
+    def user_id_hash(self, value):
+        if self.pk is not None:
+            raise ValidationError("this value cannot be modified.")
+        if self._user_id_hash is not None:
+            raise ValidationError("this value cannot be modified.")
+        self._user_id_hash = value
 
     def set_hicn(self, hicn):
         if self.pk:

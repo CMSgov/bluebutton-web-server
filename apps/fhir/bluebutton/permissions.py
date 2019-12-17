@@ -27,7 +27,7 @@ class HasCrosswalk(permissions.BasePermission):
             logger.info('Crosswalk for %s does not exist' % request.user)
             return False
 
-        if crosswalk.fhir_id == "":
+        if crosswalk.fhir_id is None:
             authenticate_crosswalk(crosswalk)
 
         request.crosswalk = crosswalk

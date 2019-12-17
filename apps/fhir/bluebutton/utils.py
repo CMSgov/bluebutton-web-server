@@ -137,7 +137,7 @@ def generate_info_headers(request):
     crosswalk = get_crosswalk(user)
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
-        if len(crosswalk.fhir_id) > 0:
+        if crosswalk.fhir_id is not None:
             result['BlueButton-BeneficiaryId'] = 'patientId:' + str(crosswalk.fhir_id)
         else:
             result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(crosswalk.user_id_hash)
