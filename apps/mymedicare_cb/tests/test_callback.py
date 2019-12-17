@@ -32,6 +32,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         Group.objects.create(name='BlueButton')
         ResourceRouter.objects.create(pk=settings.FHIR_SERVER_DEFAULT, fhir_url="http://bogus.com/")
 
+    # TODO what exactly is this test doing? Why is this redirect important to test?
     def test_login_url_success(self):
         """
         Test well-formed login_url has expected content
@@ -54,6 +55,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         response = self.client.get(self.callback_url)
         self.assertEqual(response.status_code, 400)
 
+    # TODO also curious about this one
     def test_authorize_uuid_dne(self):
         auth_uri = reverse(
             'oauth2_provider:authorize-instance',
@@ -155,7 +157,10 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             return {
                 'status_code': 200,
                 'content': {
+                    # IR TODO make this realistic data, esp 'sub'
                     'sub': '0123456789abcdefghijklmnopqrstuvwxyz',
+                    # IR TODO This tests when the names are blank; let's also test expected behavior when the names are not blank
+                    # Also test here that the new user record's fields are populated by the data from FHIR backend (unless that logic is tested elsewhere??)
                     'given_name': '',
                     'family_name': '',
                     'email': 'bob@bobserver.bob',
@@ -187,6 +192,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
 
+    # IR TODO - use realistic error JSON (as per docs and SLS tests)
     def test_callback_url_failure(self):
         # create a state
         state = generate_nonce()
@@ -204,6 +210,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             # assert http redirect
             self.assertEqual(response.status_code, 502)
 
+    # IR TODO - use realistic JSON (as per docs and SLS tests)
     def test_sls_token_exchange_w_creds(self):
         with self.settings(SLS_CLIENT_ID="test",
                            SLS_CLIENT_SECRET="stest"):
@@ -225,6 +232,8 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                 tkn = sls_client.exchange("test_code")
                 self.assertEquals(tkn, "test_tkn")
 
+    # IR TODO - consider behavior and testing for following errors from SLS: 400 Bad Request, 400 Validation Error, 404 NotFound, 401 Unauthorized
+    # IR TODO - use realistic error JSON (as per docs and SLS tests)
     def test_failed_sls_token_exchange(self):
         with self.settings(SLS_CLIENT_ID="test",
                            SLS_CLIENT_SECRET="stest"):

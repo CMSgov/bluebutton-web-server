@@ -16,6 +16,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 #  - validate given_name, family_name, email for presence, type, etc, as needed
 # IR TODO - log when existing user fields (given_name, family_name, email) change based on new info from SLS
 # IR TODO - log when user already exists vs is created
+# IR TODO where is all of this logic (user finding, user creation, field setting by FHIR, field setting by SLS payload, group addition) tested? Doesn't seem to be in test_callback.py in this dir's test
 def get_and_update_user(user_info):
     username = convert_sls_uuid(user_info['sub'])
     try:
