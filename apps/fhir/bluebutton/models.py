@@ -24,6 +24,10 @@ class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(Q(fhir_id__startswith='-'))
 
+def hash_hicn(hicn):
+    return binascii.hexlify(pbkdf2(hicn,
+                            get_user_id_salt(),
+                            settings.USER_ID_ITERATIONS)).decode("ascii")
 
 def hash_hicn(hicn):
     """
@@ -76,9 +80,7 @@ class Crosswalk(models.Model):
     def set_hicn(self, hicn):
         if self.pk:
             raise ValidationError("this value cannot be modified.")
-        self.user_id_hash = binascii.hexlify(pbkdf2(hicn,
-                                                    get_user_id_salt(),
-                                                    settings.USER_ID_ITERATIONS)).decode("ascii")
+        self.user_id_hash = hash_hicn(hicn)
 
     def get_fhir_patient_url(self):
         # Return the fhir server url and {Resource_name}/{id}

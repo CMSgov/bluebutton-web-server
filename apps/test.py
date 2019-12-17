@@ -98,6 +98,7 @@ class BaseApiTest(TestCase):
                                  email="%s@%s.net" % (first_name, last_name))
         Crosswalk.objects.get_or_create(user=user,
                                         fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                        user_id_hash=user.username,
                                         fhir_source=get_resourcerouter())
 
         # create a oauth2 application and add capabilities
