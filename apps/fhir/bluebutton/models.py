@@ -23,6 +23,10 @@ class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(Q(fhir_id__startswith='-'))
 
+def hash_hicn(hicn):
+    return binascii.hexlify(pbkdf2(hicn,
+                            get_user_id_salt(),
+                            settings.USER_ID_ITERATIONS)).decode("ascii")
 
 class Crosswalk(models.Model):
     """
