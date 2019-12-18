@@ -12,39 +12,47 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 def get_and_update_user(user_info):
     """
-    This is an example of Google style.
+    Find or create the user associated
+    with the identity information from the ID provider.
 
     Args:
-        user_info: This is the first param.
+        user_info: Identity response from the userinfo endpoint of the ID provider.
 
     Returns:
-        This is a description of what is returned.
+        A User
 
     Raises:
         KeyError: If an expected key is missing from user_info.
+        KeyError: If response from fhir server is malformed.
+        AssertionError: If a user is matched but not all identifiers match.
     """
     subject = user_info['sub']
+    hicn = user_info['hicn']
+    hicn_hash = hash_hicn(hicn)
+
     try:
         user = User.objects.get(username=subject)
+        assert user.crosswalk.user_id_hash == hicn_hash, "Found user's hicn did not match"
         return user
     except User.DoesNotExist:
         pass
 
-    hicn = user_info['hicn']
-    given_name = user_info['given_name']
-    last_name = user_info['family_name']
-    email = user_info['email']
+    first_name = user_info.get('given_name', "")
+    last_name = user_info.get('family_name', "")
+    email = user_info.get('email', "")
 
-    hicn_hash = hash_hicn(hicn)
     try:
         fhir_id, backend_data = match_hicn_hash(hicn_hash)
+        # Get first and last name from FHIR if not in OIDC Userinfo response.
+        if first_name == "" or last_name == "":
+            first_name, last_name = extract_beneficiary_names(backend_data)
     except exceptions.NotFound:
         fhir_id = None
 
     fhir_source = get_resourcerouter()
 
     user = User(username=subject,
-                first_name=given_name,
+                first_name=first_name,
                 last_name=last_name,
                 email=email)
     user.set_unusable_password()
@@ -61,23 +69,19 @@ def get_and_update_user(user_info):
     group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
     user.groups.add(group)
 
-    # Get first and last name from FHIR if not in OIDC Userinfo response.
-    if user_info['given_name'] == "" or user_info['family_name'] == "":
-        if 'entry' in backend_data:
-            if 'name' in backend_data['entry'][0]['resource']:
-                names = backend_data['entry'][0]['resource']['name']
-                first_name = ""
-                last_name = ""
-                for n in names:
-                    if n['use'] == 'usual':
-                        last_name = n['family']
-                        first_name = n['given'][0]
-                    if last_name or first_name:
-                        user.first_name = first_name
-                        user.last_name = last_name
-                        user.save()
-
     return user
+
+
+def extract_beneficiary_names(patient_resource):
+    if 'entry' in patient_resource:
+        if 'name' in patient_resource['entry'][0]['resource']:
+            names = patient_resource['entry'][0]['resource']['name']
+            for n in names:
+                if n['use'] == 'usual':
+                    last_name = n['family']
+                    first_name = n['given'][0]
+                    return first_name, last_name
+    return None, None
 
 
 class AnonUserState(models.Model):

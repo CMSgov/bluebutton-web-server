@@ -159,7 +159,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                     'given_name': '',
                     'family_name': '',
                     'email': 'bob@bobserver.bob',
-                    'hicn': 'test',
+                    'hicn': '1234567890A',
                 },
             }
 
