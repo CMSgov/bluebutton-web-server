@@ -24,6 +24,10 @@ def match_hicn_hash(hicn_hash):
         # Don't return a 404 because retrying later will not fix this.
         raise UpstreamServerException("Duplicate beneficiaries found")
 
+    if 'entry' in backend_data and len(backend_data['entry']) > 1:
+            raise UpstreamServerException("Duplicate beneficiaries found")
+
+
     if 'entry' in backend_data and backend_data['total'] == 1:
         fhir_id = backend_data['entry'][0]['resource']['id']
         return fhir_id, backend_data
