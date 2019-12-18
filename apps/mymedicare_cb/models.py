@@ -1,6 +1,7 @@
 import logging
 from django.db import models, transaction
 from django.contrib.auth.models import User, Group
+from django.core.exceptions import ValidationError
 from rest_framework import exceptions
 from apps.accounts.models import UserProfile
 from apps.fhir.server.authentication import match_hicn_hash
@@ -61,15 +62,25 @@ def get_and_update_user(user_info):
     return user
 
 
+# TODO default empty strings to null, requires non-null constraints to be fixed
 def create_beneficiary_record(username=None,
                               user_id_hash=None,
-                              fhir_id=None,
+                              fhir_id="",
                               fhir_source=None,
-                              first_name=None,
-                              last_name=None,
-                              email=None):
+                              first_name="",
+                              last_name="",
+                              email=""):
     assert username is not None
     assert user_id_hash is not None
+
+    if User.objects.filter(username=username).exists():
+        raise ValidationError("user already exists", username)
+
+    if Crosswalk.objects.filter(user_id_hash=user_id_hash).exists():
+        raise ValidationError("user_id_hash already exists", user_id_hash)
+
+    if fhir_id and Crosswalk.objects.filter(fhir_id=fhir_id).exists():
+        raise ValidationError("fhir_id already exists", fhir_id)
 
     with transaction.atomic():
         user = User(username=username,
