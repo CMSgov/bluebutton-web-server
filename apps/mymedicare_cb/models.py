@@ -1,5 +1,5 @@
 import logging
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import User, Group
 from rest_framework import exceptions
 from apps.accounts.models import UserProfile
@@ -51,24 +51,41 @@ def get_and_update_user(user_info):
 
     fhir_source = get_resourcerouter()
 
-    user = User(username=subject,
-                first_name=first_name,
-                last_name=last_name,
-                email=email)
-    user.set_unusable_password()
-    user.save()
-    Crosswalk.objects.create(user=user,
-                             fhir_source=fhir_source,
-                             user_id_hash=hicn_hash,
-                             fhir_id=fhir_id)
+    user = create_beneficiary_record(username=subject,
+                                     user_id_hash=hicn_hash,
+                                     fhir_id=fhir_id,
+                                     fhir_source=fhir_source,
+                                     first_name=first_name,
+                                     last_name=last_name,
+                                     email=email)
+    return user
 
-    # Extra user information
-    # TODO: remvoe the idea of UserProfile
-    UserProfile.objects.create(user=user, user_type='BEN')
-    # TODO: magic strings are bad
-    group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
-    user.groups.add(group)
 
+def create_beneficiary_record(username=None,
+                              user_id_hash=None,
+                              fhir_id=None,
+                              fhir_source=None,
+                              first_name=None,
+                              last_name=None,
+                              email=None):
+    with transaction.atomic():
+        user = User(username=username,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email)
+        user.set_unusable_password()
+        user.save()
+        Crosswalk.objects.create(user=user,
+                                 fhir_source=fhir_source,
+                                 user_id_hash=user_id_hash,
+                                 fhir_id=fhir_id)
+
+        # Extra user information
+        # TODO: remvoe the idea of UserProfile
+        UserProfile.objects.create(user=user, user_type='BEN')
+        # TODO: magic strings are bad
+        group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
+        user.groups.add(group)
     return user
 
 
