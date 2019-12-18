@@ -23,6 +23,7 @@ class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(Q(fhir_id__startswith='-'))
 
+
 def hash_hicn(hicn):
     """
     Hashes a hicn to match fhir server logic:

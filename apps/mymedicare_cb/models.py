@@ -68,6 +68,9 @@ def create_beneficiary_record(username=None,
                               first_name=None,
                               last_name=None,
                               email=None):
+    assert username is not None
+    assert user_id_hash is not None
+
     with transaction.atomic():
         user = User(username=username,
                     first_name=first_name,

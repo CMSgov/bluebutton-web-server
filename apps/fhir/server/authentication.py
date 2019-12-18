@@ -17,6 +17,7 @@ def match_hicn_hash(hicn_hash):
         hicn_hash + \
         "&_format=json"
     response = requests.get(url, cert=certs, verify=False)
+    response.raise_for_status()
     backend_data = response.json()
 
     if backend_data.get('total', 0) > 1:
