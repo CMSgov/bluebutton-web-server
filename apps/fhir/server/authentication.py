@@ -25,8 +25,7 @@ def match_hicn_hash(hicn_hash):
         raise UpstreamServerException("Duplicate beneficiaries found")
 
     if 'entry' in backend_data and len(backend_data['entry']) > 1:
-            raise UpstreamServerException("Duplicate beneficiaries found")
-
+        raise UpstreamServerException("Duplicate beneficiaries found")
 
     if 'entry' in backend_data and backend_data['total'] == 1:
         fhir_id = backend_data['entry'][0]['resource']['id']
