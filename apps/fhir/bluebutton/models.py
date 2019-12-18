@@ -23,8 +23,12 @@ class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(Q(fhir_id__startswith='-'))
 
-
 def hash_hicn(hicn):
+    """
+    Hashes a hicn to match fhir server logic:
+    https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-pipeline/bfd-pipeline-rif-load/src/main/java/gov/cms/bfd/pipeline/rif/load/RifLoader.java#L665-L706
+
+    """
     return binascii.hexlify(pbkdf2(hicn,
                             get_user_id_salt(),
                             settings.USER_ID_ITERATIONS)).decode("ascii")
