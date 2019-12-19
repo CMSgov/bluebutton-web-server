@@ -44,9 +44,6 @@ def get_and_update_user(user_info):
 
     try:
         fhir_id, backend_data = match_hicn_hash(hicn_hash)
-        # Get first and last name from FHIR if not in OIDC Userinfo response.
-        if first_name == "" or last_name == "":
-            first_name, last_name = extract_beneficiary_names(backend_data)
     except exceptions.NotFound:
         fhir_id = ""
 
@@ -102,18 +99,6 @@ def create_beneficiary_record(username=None,
         group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
         user.groups.add(group)
     return user
-
-
-def extract_beneficiary_names(patient_resource):
-    if 'entry' in patient_resource:
-        if 'name' in patient_resource['entry'][0]['resource']:
-            names = patient_resource['entry'][0]['resource']['name']
-            for n in names:
-                if n['use'] == 'usual':
-                    last_name = n['family']
-                    first_name = n['given'][0]
-                    return first_name, last_name
-    return None, None
 
 
 class AnonUserState(models.Model):
