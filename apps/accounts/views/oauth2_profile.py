@@ -1,7 +1,9 @@
 from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.capabilities.permissions import TokenHasProtectedCapability
 from oauth2_provider.decorators import protected_resource
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from collections import OrderedDict
 
 
@@ -25,7 +27,9 @@ def get_userinfo(user):
     return data
 
 
-@require_GET
+@api_view(["GET"])
+@authentication_classes([OAuth2Authentication])
+@permission_classes([TokenHasProtectedCapability])
 @protected_resource()
 def openidconnect_userinfo(request):
     user = request.resource_owner

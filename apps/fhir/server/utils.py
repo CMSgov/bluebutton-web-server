@@ -20,7 +20,7 @@ def text_to_list(t_in='[]'):
             # list_out = eval('t_in')
             # replace eval with re.compile to convert text to list.
             # first build a list of delimiters to remove ( [ " ' space ] )
-            strip_out = re.compile('[["\' \]]')
+            strip_out = re.compile(r'[["\' \]]')
             # now we evaluate the string list and split on commas
             list_out = strip_out.sub('', t_in).split(',')
         else:
@@ -40,28 +40,6 @@ def list_to_text(l_in=[]):
     logger.debug("list_to_text %s[%s]" % (l_in, type(l_in)))
 
     return repr(l_in)
-
-
-def add_to_text_list(t_list='[]', add_this=''):
-    """
-    Receive a list as text, convert to list, add item to list
-    new_list as text
-
-    :param t_list:
-    :param add_this:
-    :return: list_to_text(appended_list)
-    """
-
-    logger.debug("add_to_text_list %s[%s] + %s[%s]" % (t_list,
-                                                       type(t_list),
-                                                       add_this,
-                                                       type(add_this)))
-
-    appended_list = text_to_list(t_list)
-    if add_this:
-        appended_list.append(add_this)
-
-    return(list_to_text(appended_list))
 
 
 def init_text_list(replace_with=''):

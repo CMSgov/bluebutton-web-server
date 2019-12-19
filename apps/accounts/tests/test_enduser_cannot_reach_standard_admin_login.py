@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.test.client import Client
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from apps.accounts.models import UserProfile
 
 
@@ -36,6 +36,5 @@ class LoginTestCase(TestCase):
         """
         response = self.client.get(self.url, follow=True)
         self.assertEqual(response.status_code, 200)
-        # Redirect to our MFA enabled login.
         self.assertNotContains(response, 'Administration')
         self.assertNotContains(response, 'admin/css/login', html=True)

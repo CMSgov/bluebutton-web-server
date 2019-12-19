@@ -1,58 +1,93 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
-<head>
+	<head>
+		{% load i18n %}
+
+		<title>
+			{% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
+		</title>
+
+		{% block head %}
+		{% include "include/head.html" %}
+		{% endblock %}
+
+		{% block extra_head %}
+		{% endblock %}
+	</head>
+
+	<body>
+		<!-- Navigation -->
+		{% include "include/top-nav-responsive.html" %}
+
+		{% block banner %}
+		<!-- Sandbox Banner -->
+		<div class="ds-c-banner ds-u-margin-bottom--4">
+			<!-- Solid Container -->
+			<div class="solid sandbox-solid">
+
+				<!-- Badge -->
+				{% block bannerBadge %}
+				<!-- <span class="ds-c-badge ds-u-text-transform--uppercase"></span> -->
+				{% endblock %}
+
+				<!-- Back Link (for detail page) -->
+				{% block bannerBackButton %}
+				<!-- <a class="banner-back-button" href="/"><i data-feather="arrow-left"></i>Back to Dashboard</a> -->
+				{% endblock %}
+
+				<!-- Page Title -->
+				<h1 class="ds-display">
+					{% block bannerTitle %}
+
+					{% endblock %}
+				</h1>
+
+				<!-- Page Description -->
+				<p class="page-description">
+					{% block bannerDescription %}
+
+					{% endblock %}
+				</p>
+
+				<!-- Call To Action Buttons -->
+				<div class="ctas">
+					{% block bannerCallToActionButtons %}
+
+					{% endblock %}
+				</div>
+
+			</div>
+
+			<!-- Gradient Container -->
+			<div class="gradient sandbox-gradient"></div>
+		</div>
+		{% endblock %}
+
+		<main id="main-content">
+
+			{% block breadcrumbs %}
+			{% endblock %}
+
+			{% block messages %}
+			{% endblock %}
 
 
-	{% load i18n %}
-        <title>
-        {% block title %} {{settings.APPLICATION_TITLE}} {% endblock %}
-        </title>
-	
-    {% block head %}
-        {% include "include/head.html" %}
-    {% endblock %}
+			{% block Content %}
+			{% if template %}{% include template %}{% endif %}
+			{{ content|safe }}
+			{% endblock %}
 
-    {% block extra_head %}
-    {% endblock %}
+		</main>
 
-    {% include "include/fix_header_offset.html" %}
-    <style>
+		{% include "include/footer.html" %}
 
-    </style>
+		{% include "include/foot.html" %}
 
-</head>
-<body class="container-fluid">
- {% include "include/top-nav-responsive.html" %}
+		{% block ExtraJSFoot %}
 
-    <main class="row container-fluid" id="main-content">
+		{% endblock %}
 
-        <div class="row container-fluid">
-
-            {% block breadcrumbs %}
-            {% endblock %}
-
-            {% block messages %}
-            {% endblock %}
-
-
-            {% block Content %}
-                {% if template %}{% include template %}{% endif %}
-                {{ content|safe }}
-            {% endblock %}
-        </div>
-
-    </main>
-
-        {% include "include/footer.html" %}
-
-        {% include "include/foot.html" %}
-
-    {% block ExtraJSFoot %}
-	
-	{% endblock %}
-	
-
-</body>
+	</body>
 
 </html>

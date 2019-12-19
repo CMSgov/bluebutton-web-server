@@ -4,17 +4,29 @@
          javascript files at the bottom of the file just before the closing </body> tag
          for speed of page loading -->
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
         {% if user.is_authenticated %}
                 <script type="text/javascript">
                     var time = 1000 * 60 * 30; // 30 minutes
-                    var theTimer = setTimeout("document.location.href='/v1/accounts/logout'",time);
-            </script>
+					var theTimer = setTimeout(function(){ document.location.href='/v1/accounts/logout'; }, time);
+            	</script>
 
         {% endif %}
-    <script>window.tealiumEnvironment = "{{ settings.TEALIUM_ENV }}";</script>
-    <script src="//tags.tiqcdn.com/utag/cmsgov/cms-bluebutton/{{ settings.TEALIUM_ENV }}/utag.sync.js"></script>
+
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <script>
+      feather.replace()
+    </script>
+
+    <!-- Main Global JS File -->
+    <script src="{% static 'js/sandbox-main.js' %}"></script>
+
+    <!-- Crazy Egg Load -->
+    <script type="text/javascript"src="//script.crazyegg.com/pages/scripts/0078/9905.js"async="async"></script>
+

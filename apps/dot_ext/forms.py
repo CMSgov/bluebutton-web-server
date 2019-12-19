@@ -1,14 +1,29 @@
-from django.utils.safestring import mark_safe
+import logging
 from django import forms
 from django.conf import settings
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
-from oauth2_provider.settings import oauth2_settings
-from oauth2_provider.validators import urlsplit
+from apps.dot_ext.validators import validate_logo_image, validate_notags
+
+
+logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
+
+    logo_image = forms.ImageField(label='Logo URI Image Upload', required=False,
+                                  help_text="Upload your logo image file here in JPEG (.jpg) format! "
+                                  "The maximum file size allowed is %sKB and maximum dimensions are %sx%s pixels. "
+                                  "This will update the Logo URI after saving."
+                                  % (settings.APP_LOGO_SIZE_MAX, settings.APP_LOGO_WIDTH_MAX,
+                                     settings.APP_LOGO_HEIGHT_MAX))
+
+    description = forms.CharField(label="Application Description",
+                                        help_text="This is plain-text up to 1000 characters in length.",
+                                        widget=forms.Textarea, empty_value='', required=False,
+                                        max_length=1000, validators=[validate_notags])
 
     def __init__(self, user, *args, **kwargs):
         agree_label = u'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*' % (
@@ -20,17 +35,28 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields['name'].label = "Name*"
         self.fields['name'].required = True
         self.fields['client_type'].label = "Client Type*"
-        self.fields[
-            'authorization_grant_type'].label = "Authorization Grant Type*"
+        self.fields['authorization_grant_type'].label = "Authorization Grant Type*"
         self.fields['redirect_uris'].label = "Redirect URIs*"
+        self.fields['logo_uri'].disabled = True
 
     class Meta:
         model = get_application_model()
-        fields = ('name',
-                  'client_type',
-                  'authorization_grant_type', 'redirect_uris',
-                  'logo_uri', 'policy_uri', 'tos_uri', 'contacts',
-                  'agree')
+        fields = (
+            'name',
+            'client_type',
+            'authorization_grant_type',
+            'redirect_uris',
+            'logo_uri',
+            'logo_image',
+            'website_uri',
+            'description',
+            'policy_uri',
+            'tos_uri',
+            'support_email',
+            'support_phone_number',
+            'contacts',
+            'agree',
+        )
 
     required_css_class = 'required'
 
@@ -38,7 +64,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         client_type = self.cleaned_data.get('client_type')
         authorization_grant_type = self.cleaned_data.get(
             'authorization_grant_type')
-        redirect_uris = self.cleaned_data.get('redirect_uris')
 
         msg = ""
         validate_error = False
@@ -54,28 +79,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             msg += 'A confidential client may not ' \
                    'request an implicit grant type.'
 
-        # Confidential clients cannot use implicit authorization_grant_type
-        if client_type == 'confidential' and authorization_grant_type == 'implicit':
-            validate_error = True
-            msg += 'A confidential client may not ' \
-                   'request an implicit grant type.'
-
-        # Native mobile applications using RCF 8252 must supply https or
-        # LL00000000
-        for uri in redirect_uris.split():
-            scheme, netloc, path, query, fragment = urlsplit(uri)
-
-            valid_schemes = get_allowed_schemes()
-
-            if scheme in valid_schemes:
-                validate_error = False
-            else:
-                validate_error = True
-
-            if validate_error:
-                msg += '%s is an invalid scheme. Redirect URIs must use %s ' \
-                    % (scheme, ' or '.join(valid_schemes))
-
         if validate_error:
             msg_output = _(msg)
             raise forms.ValidationError(msg_output)
@@ -83,6 +86,19 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             pass
 
         return self.cleaned_data
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        app_model = get_application_model()
+        if app_model.objects.filter(name__iexact=name).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("""
+                                        It looks like this application name
+                                        is already in use with another app.
+                                        Please enter a different application
+                                        name to prevent future errors.
+                                        Note that names are case-insensitive.
+                                        """)
+        return name
 
     def clean_client_type(self):
         client_type = self.cleaned_data.get('client_type')
@@ -112,19 +128,27 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                         raise forms.ValidationError(msg)
         return redirect_uris
 
+    def clean_logo_image(self):
+        logo_image = self.cleaned_data.get('logo_image')
+        if getattr(logo_image, 'name', False):
+            validate_logo_image(logo_image)
+        return logo_image
+
+    def save(self, *args, **kwargs):
+        app = self.instance
+        # Only log agreement from a Register form
+        if app.agree and type(self) == CustomRegisterApplicationForm:
+            logmsg = "%s agreed to %s for the application %s" % (app.user, app.op_tos_uri,
+                                                                 app.name)
+            logger.info(logmsg)
+        app = super().save(*args, **kwargs)
+        uri = app.store_media_file(self.cleaned_data.pop('logo_image', None), "logo.jpg")
+        if uri:
+            app.logo_uri = uri
+            app.save()
+        return app
+
 
 class SimpleAllowForm(DotAllowForm):
-    pass
-
-
-def get_allowed_schemes():
-    """
-    get allowed_schemes set in OAUTH2_PROVIDER.ALLOWED_REDIRECT_URI_SCHEMES
-    :return: list
-    """
-    if oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES:
-        valid_list = oauth2_settings.ALLOWED_REDIRECT_URI_SCHEMES
-    else:
-        valid_list = ['https', ]
-
-    return valid_list
+    code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
+    code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())

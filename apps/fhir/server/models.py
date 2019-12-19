@@ -1,5 +1,6 @@
 from django.db import models
 from apps.fhir.server.utils import text_to_list, init_text_list
+from django.db.models import CASCADE
 
 
 class ResourceRouter(models.Model):
@@ -20,7 +21,7 @@ class ResourceRouter(models.Model):
                                    verbose_name="path to API with "
                                                 "terminating /")
     server_release = models.CharField(max_length=254,
-                                      default="baseDstu3/",
+                                      default="v1/fhir/",
                                       verbose_name="FHIR release with "
                                                    "terminating /")
     server_search_expiry = models.IntegerField(verbose_name="Search expires "
@@ -119,6 +120,7 @@ class SupportedResourceType(models.Model):
                                                   "name in this table")
     # FHIR_Server
     fhir_source = models.ForeignKey(ResourceRouter,
+                                    on_delete=CASCADE,
                                     blank=True,
                                     null=True)
     # fhir_resourceType

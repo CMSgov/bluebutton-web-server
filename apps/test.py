@@ -1,7 +1,7 @@
 import json
 
 from django.contrib.auth.models import User, Group
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase
 from django.utils.text import slugify
 from django.conf import settings
@@ -106,8 +106,7 @@ class BaseApiTest(TestCase):
         # get the first access token for the user 'john'
         return self._get_access_token(first_name,
                                       passwd,
-                                      application,
-                                      scope='read')
+                                      application)
 
     def create_token_no_fhir(self, first_name, last_name):
         passwd = '123456'
@@ -117,6 +116,7 @@ class BaseApiTest(TestCase):
                                  last_name=last_name,
                                  email="%s@%s.net" % (first_name, last_name))
         Crosswalk.objects.get_or_create(user=user,
+                                        user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130",
                                         fhir_source=get_resourcerouter())
 
         # create a oauth2 application and add capabilities
@@ -125,5 +125,4 @@ class BaseApiTest(TestCase):
         # get the first access token for the user 'john'
         return self._get_access_token(first_name,
                                       passwd,
-                                      application,
-                                      scope='read')
+                                      application)

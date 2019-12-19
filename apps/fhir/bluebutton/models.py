@@ -6,8 +6,22 @@ from apps.accounts.models import get_user_id_salt
 from apps.fhir.server.models import ResourceRouter
 from django.utils.crypto import pbkdf2
 import binascii
+from django.db.models import (CASCADE, Q)
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+# Real fhir_id Manager subclass
+class RealCrosswalkManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(~Q(fhir_id__startswith='-') & ~Q(fhir_id=''))
+
+
+# Synthetic fhir_id Manager subclass
+class SynthCrosswalkManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(Q(fhir_id__startswith='-'))
 
 
 class Crosswalk(models.Model):
@@ -20,8 +34,9 @@ class Crosswalk(models.Model):
     HICN and BeneID added
     """
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
     fhir_source = models.ForeignKey(ResourceRouter,
+                                    on_delete=CASCADE,
                                     blank=True,
                                     null=True)
     # default=settings.FHIR_SERVER_DEFAULT)
@@ -38,15 +53,17 @@ class Crosswalk(models.Model):
                                     verbose_name="PBKDF2 of User ID",
                                     db_index=True)
 
-    def save(self, commit=True, **kwargs):
-        if commit:
-            self.user_id_hash = binascii.hexlify(pbkdf2(self.user_id_hash,
-                                                        get_user_id_salt(),
-                                                        settings.USER_ID_ITERATIONS)).decode("ascii")
-            super(Crosswalk, self).save(**kwargs)
+    objects = models.Manager()  # Default manager
+    real_objects = RealCrosswalkManager()  # Real bene manager
+    synth_objects = SynthCrosswalkManager()  # Synth bene manager
 
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
+
+    def set_hicn(self, hicn):
+        self.user_id_hash = binascii.hexlify(pbkdf2(hicn,
+                                                    get_user_id_salt(),
+                                                    settings.USER_ID_ITERATIONS)).decode("ascii")
 
     def get_fhir_patient_url(self):
         # Return the fhir server url and {Resource_name}/{id}
@@ -104,3 +121,12 @@ class Fhir_Response(Response):
         # Add extra fields to Response Object
         for k, v in extend_response.items():
             self.__dict__[k] = v
+
+
+def check_crosswalks():
+    synth_count = Crosswalk.synth_objects.count()
+    real_count = Crosswalk.real_objects.count()
+    return {
+        "synthetic": synth_count,
+        "real": real_count,
+    }

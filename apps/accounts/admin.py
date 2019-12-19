@@ -4,12 +4,9 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import (
     ValidPasswordResetKey,
-    Invitation,
-    RequestInvite,
     UserProfile,
     ActivationKey,
-    MFACode,
-    UserRegisterCode)
+    UserIdentificationLabel)
 
 
 admin.site.register(ActivationKey)
@@ -25,39 +22,6 @@ admin.site.unregister(User)
 admin.site.register(User, ua)
 
 
-class UserRegisterCodeAdmin(admin.ModelAdmin):
-    list_display = ('email',
-                    'sender',
-                    'code',
-                    'name',
-                    'sent',
-                    'added',
-                    'username',
-                    'used')
-    search_fields = ('username', 'first_name', 'last_name',
-                     'code', 'email')
-
-
-admin.site.register(UserRegisterCode, UserRegisterCodeAdmin)
-
-
-class RequestInviteAdmin(admin.ModelAdmin):
-    list_display = (
-        'first_name',
-        'last_name',
-        'user_type',
-        'organization',
-        'email',
-        'issue_invite',
-        'invite_sent',
-        'added')
-    search_fields = ('first_name', 'last_name',
-                     'user_type', 'organization', 'email')
-
-
-admin.site.register(RequestInvite, RequestInviteAdmin)
-
-
 class UserProfileAdmin(admin.ModelAdmin):
 
     def get_user_email(self, obj):
@@ -66,7 +30,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     get_user_email.admin_order_field = "user__email"
     get_user_email.short_description = "Email Address"
 
-    def get_user_joined(selfself, obj):
+    def get_user_joined(self, obj):
         return obj.user.date_joined
 
     get_user_joined.admin_order_field = "user__date_joined"
@@ -84,22 +48,12 @@ class UserProfileAdmin(admin.ModelAdmin):
 admin.site.register(UserProfile, UserProfileAdmin)
 
 
-class InvitationAdmin(admin.ModelAdmin):
-    list_display = ('email', 'code', 'valid', 'added')
-    search_fields = ('code', 'valid', 'email')
+class UserIdentificationLabelAdmin(admin.ModelAdmin):
+    model = UserIdentificationLabel
+    filter_horizontal = ('users',)
+    list_display = ("name", "slug", "weight")
+    list_filter = ("name", "slug")
+    ordering = ("weight", )
 
 
-admin.site.register(Invitation, InvitationAdmin)
-
-
-class MFACodeAdmin(admin.ModelAdmin):
-    list_display = ('user', 'code',
-                    'tries_counter',
-                    'mode',
-                    'endpoint',
-                    'expires')
-    search_fields = ('mode', 'endpoint')
-    raw_id_fields = ("user", )
-
-
-admin.site.register(MFACode, MFACodeAdmin)
+admin.site.register(UserIdentificationLabel, UserIdentificationLabelAdmin)

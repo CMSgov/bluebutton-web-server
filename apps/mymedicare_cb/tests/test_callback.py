@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.test import TestCase
@@ -56,7 +56,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
 
     def test_authorize_uuid_dne(self):
         auth_uri = reverse(
-            'dot_ext:authorize-instance',
+            'oauth2_provider:authorize-instance',
             args=[uuid.uuid4()])
         response = self.client.get(auth_uri)
         self.assertEqual(302, response.status_code)
@@ -100,7 +100,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         approval = Approval.objects.create(
             user=user)
         auth_uri = reverse(
-            'dot_ext:authorize-instance',
+            'oauth2_provider:authorize-instance',
             args=[approval.uuid])
         response = self.client.get(auth_uri, data={
             "client_id": application.client_id,

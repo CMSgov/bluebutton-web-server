@@ -80,6 +80,50 @@ Note you can find the path to your Python3 binary by typing `which python3`.
 
 Instructions for running the development environment via `docker-compose` can be found [here](./docker-compose/readme.md)
 
+How to View the CSS/Styles Locally
+----------------------------------
+
+To keep our CSS organized and consolidated across our applications, we use a dedicated [Blue Button CSS Repo](https://github.com/CMSgov/bluebutton-css).
+
+In order to be able to see the styles locally for this project, you'll just need to clone the Blue Button CSS Repo at the root of this project.
+
+From within `bluebutton-web-server`, run the following commands (Bash):
+
+```bash
+git clone git@github.com:CMSgov/bluebutton-css.git
+```
+*That sould be all you need to get the styles working.* The instructions below will tell you how to work with or update the SCSS.
+
+To get started making changes to the styles:
+
+```bash
+cd bluebutton-css
+```
+
+You'll need to make sure you have NodeJS installed. [Click here to find out more about NodeJS](https://nodejs.org/en/). Once you have NodeJs installed, run:
+
+```bash
+npm i
+```
+
+Finally, make sure you have Gulp 4.0 installed:
+
+```bash
+npm i gulp@4
+```
+
+*To export the CSS once, run:*
+
+```bash
+gulp
+```
+
+*To watch the SCSS files for changes, run:*
+
+```bash
+gulp watch
+```
+
 Running Tests
 -------------
 
@@ -92,43 +136,11 @@ See https://docs.djangoproject.com/en/1.11/topics/testing/overview/#running-test
 for more information.
 
 
-Custom Environment Variables
-----------------------------
-
-Sensitive values, such as the SECRET_KEY should NOT be stored in files that
-are stored in to the repository. This project has created a structure that
-enables sensitive values to be defined via Environment Variables. The convention
-we have used is as follows:
-
-    - A file `custom-envvars.py` is defined in the parent directory. ie. Where
-    the project is git cloned from.
-    - Custom-envvars.py is a python file that will set an environment variable
-    if it has not already been defined.
-    - If the custom-envvars file exists it is called from manage.py and  wsgi.py
-    - the base.py settings will then define various settings using an
-    environment variable, or a default if a variable is not found.
-
-An example of a `custom-envvars.py` file is shown below:
-
-    import os
-
-    def no_overwrite(env_var, env_val):
-        """ Do not overwrite ENV VAR if it exists """
-        check_for = os.environ.get(env_var)
-        if check_for:
-            # print("%s already set" % env_var)
-            return
-        else:
-            # Not set
-            os.environ.setdefault(env_var, env_val)
-            # print("%s set to %s" % (env_var, env_val))
-        return
-
 Using this Project
 ------------------
 
-This project is free and open source software under the Apache2 license. 
-You may add additional applications, authentication backends, and styles/themes 
+This project is free and open source software under the Apache2 license.
+You may add additional applications, authentication backends, and styles/themes
 are not subject to the Apache2 license.
 
 In other words, you or your organization are not in any way prevented from build closed source applications

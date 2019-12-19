@@ -1,0 +1,11 @@
+{% extends "email/base-email.txt" %}
+
+{% block content %}
+Welcome to the Blue Button 2.0 Developer Sandbox!
+
+To verify your email address and complete your signup, copy the following URL into your browser to complete
+your signup:
+
+    {{ ACTIVATION_LINK }}
+
+{% endblock %}

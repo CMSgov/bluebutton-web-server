@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+<!-- Ignore Banner Code -->
+{% block banner %}{% endblock %}
+
+{% block messages %}
+
+{% endblock %}
+
+{% block Content %}
+<div class="sandbox-gradient-bg">
+	<div class="gradient-content-container">
+		<h1>Sandbox Login</h1>
+		<p>Register applications, make sample API calls, manage tokens, and more.</p>
+
+                {% include "include/messages-new-fmt.html" %}
+
+		<!-- Content Card -->
+		<div class="gradient-content-card">
+			<div class="content">
+				<!-- Login Form -->
+				<form class="" method="post" action="">
+					{% csrf_token %}
+					<table>
+						{% load bootstrap %}
+						{{ form|bootstrap }}
+					</table>
+					<input type="submit" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary" value="Login" />
+				</form>
+			</div>
+			<div class="action-container">
+				<a href="{% url 'forgot_password' %}">Forgot Password?</a>
+				<a href="{% url 'accounts_create_account' %}"> Create an Account</a>			
+			</div>
+		</div>
+		<div class="sub-card">
+			{{ settings.DISCLOSURE_TEXT }}
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block ExtraJSFoot %}
+    <script type="application/javascript">$("#id_email").focus();</script>
+{% endblock %}

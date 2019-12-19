@@ -10,6 +10,7 @@ from oauth2_provider.models import AccessToken
 from django.utils import timezone
 from datetime import timedelta
 from django.conf import settings
+from apps.authorization.models import update_grants
 
 
 def create_group(name="BlueButton"):
@@ -97,6 +98,7 @@ class Command(BaseCommand):
         u = create_user(g)
         a = create_application(u, g)
         t = create_test_token(u, a)
+        update_grants()
         print("Name:", a.name)
         print("client_id:", a.client_id)
         print("client_secret:", a.client_secret)

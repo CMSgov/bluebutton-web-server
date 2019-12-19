@@ -5,9 +5,15 @@ from django.utils.timezone import timedelta
 
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.oauth2_validators import OAuth2Validator
+from django.core.exceptions import ObjectDoesNotExist
+from apps.pkce.oauth2_validators import PKCEValidatorMixin
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 
-class SingleAccessTokenValidator(OAuth2Validator):
+class SingleAccessTokenValidator(
+        PKCEValidatorMixin,
+        OAuth2Validator,
+):
     """
     This custom oauth2 validator checks if a valid token
     exists for the current user/application and return
@@ -26,6 +32,8 @@ class SingleAccessTokenValidator(OAuth2Validator):
             *args,
             **kwargs)
 
+    # TODO: remove this
+    # https://github.com/jazzband/django-oauth-toolkit/blob/f0091f17445e1481692bcebc2fc2d9b5b522b608/oauth2_provider/oauth2_validators.py#L337
     def save_bearer_token(self, token, request, *args, **kwargs):
         """
         Check if an access_token exists for the couple user/application
@@ -61,10 +69,7 @@ class SingleAccessTokenValidator(OAuth2Validator):
         # default behaviour when no old token is found
         if request.refresh_token:
             # remove used refresh token
-            try:
-                RefreshToken.objects.get(token=request.refresh_token).revoke()
-            except RefreshToken.DoesNotExist:
-                assert()  # TODO though being here would be very strange, at least log the error
+            RefreshToken.objects.get(token=request.refresh_token).revoke()
 
         expires = timezone.now() + timedelta(seconds=token['expires_in'])
         if request.grant_type == 'client_credentials':
@@ -86,3 +91,9 @@ class SingleAccessTokenValidator(OAuth2Validator):
                 access_token=access_token
             )
             refresh_token.save()
+
+    def get_original_scopes(self, refresh_token, request, *args, **kwargs):
+        try:
+            return super().get_original_scopes(refresh_token, request, *args, **kwargs)
+        except ObjectDoesNotExist:
+            raise InvalidGrantError

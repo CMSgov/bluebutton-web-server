@@ -1,6 +1,6 @@
 from django.test.client import Client
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 class BlueButtonAPIMainPageTest(TestCase):
@@ -15,5 +15,5 @@ class BlueButtonAPIMainPageTest(TestCase):
         """
         Test main page / returns 200.
         """
-        response = self.client.get(reverse('home'))
+        response = self.client.get(reverse('unauth_home'))
         self.assertEqual(response.status_code, 200)

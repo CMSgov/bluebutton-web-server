@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from apps.test import BaseApiTest
 
 
@@ -16,7 +16,21 @@ class TestUserSelfEndpoint(BaseApiTest):
         """
         Tests that POST requests to /user/self/ endpoint are forbidden.
         """
-        response = self.client.post(reverse('openid_connect_userinfo'))
+        self._create_user('john',
+                          '123456',
+                          first_name='John',
+                          last_name='Smith',
+                          email='john@smith.net')
+
+        self._create_capability("userinfo",
+                                [["GET", reverse('openid_connect_userinfo')]])
+
+        # Get an access token for the user 'john'
+        access_token = self._get_access_token('john', '123456')
+        # Authenticate the request with the bearer access token
+        auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
+
+        response = self.client.post(reverse('openid_connect_userinfo'), **auth_headers)
         self.assertEqual(response.status_code, 405)
 
     def test_user_self_get_fails_without_credentials(self):
@@ -25,7 +39,8 @@ class TestUserSelfEndpoint(BaseApiTest):
         a valid access_token.
         """
         response = self.client.get(reverse('openid_connect_userinfo'))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.get("WWW-Authenticate"), 'Bearer realm="api"')
 
     def test_user_self_get(self):
         """
@@ -38,6 +53,9 @@ class TestUserSelfEndpoint(BaseApiTest):
                                  first_name='John',
                                  last_name='Smith',
                                  email='john@smith.net')
+
+        self._create_capability("userinfo",
+                                [["GET", reverse('openid_connect_userinfo')]])
 
         # Get an access token for the user 'john'
         access_token = self._get_access_token('john', '123456')

@@ -68,7 +68,8 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     # Append Security to ConformanceStatement
     security_endpoint = build_oauth_resource(request, format_type="json")
     od['rest'][0]['security'] = security_endpoint
-    od['format'] = ['appliction/json']
+    # Fix format values
+    od['format'] = ['application/json', 'application/fhir+json']
 
     return JsonResponse(od)
 

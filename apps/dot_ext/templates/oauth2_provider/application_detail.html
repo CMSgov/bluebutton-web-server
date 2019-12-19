@@ -1,62 +1,162 @@
 {% extends "oauth2_provider/base.html" %}
 
 {% load i18n %}
+{% load static %}
+
+{% block bannerBackButton %}
+  <a class="banner-back-button" href="/"><i data-feather="arrow-left"></i>Back to Dashboard</a>
+{% endblock %}
+
+{% block bannerTitle %}
+{{ application.name }}
+{% endblock %}
+
+{% block bannerDescription %}
+<strong>Last Updated:</strong> {{ application.updated }}
+{% endblock %}
+
+{% block bannerCallToActionButtons %}
+<a class="cta-button ds-u-margin-y--1" href="{% url "oauth2_provider:update" application.id %}" aria-label="Edit App" target="_self">
+  Edit Application
+  <i data-feather="edit"></i>
+</a>
+
+<a class="cta-button ds-u-margin-y--1" href="{% url "oauth2_provider:delete" application.id %}" aria-label="Delete App" target="_self">
+    Delete Application
+    <i data-feather="trash-2"></i>
+  </a>
+{% endblock %}
+
 {% block content %}
-    <!-- CI_TESTING:START -->
-    <!-- test_dot_ext_application_detail -->
-    <!-- CI_TESTING:END -->
-    <div class="row">
-        <div class="ds-col-lg-12">
-            <ol class="breadcrumb">
-                <li ><a href="/">Home</a></li>
-                <li ><a href="{% url "oauth2_provider:list" %}">{% trans "Created Applications" %}</a></li>
-                <li class="active"><a href="">{{ application.name }}</a></li>
-            </ol>
-        </div>
-    </div>
+<!-- CI_TESTING:START -->
+<!-- test_dot_ext_application_detail -->
+<!-- CI_TESTING:END -->
 
-    <div class="block-center">
-        <h3 class="ds-h3">{{ application.name }}</h3>
+<!-- <div class="bb-width--75 ds-u-md-margin-left--3 ds-u-lg-margin-left--4 ds-u-xl-margin-left--5"></div> -->
 
-        <ul class="unstyled">
-            <li>
-                <p><b>{% trans "Client ID" %}</b></p>
-                <p><pre>{{ application.client_id }}</pre></p>
-            </li>
-
-                <li>
-                    <p><b>{% trans "Client Secret" %}</b></p>
-                    {% if application.client_type == "confidential" %}
-                        <p><pre>{{ application.client_secret }}</pre></p>
+<div class="container">
+    <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+      <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+          <div class="bb-width--75">
+              <!-- App Credential Section -->
+              <h2 class="ds-u-margin-bottom--2">App Credentials</h2>
+            
+              <div class="bb-c-card sandbox-app-card">
+                <!-- Application Credentials -->
+                <form class="app-credentials">
+                  <span class="copy-confirmation" id="confirm-id-{{ application.client_id }}" aria-live="assertive" aria-role="alert">ID Copied to Clipboard</span>
+                  <span class="copy-confirmation" id="confirm-secret-{{ application.client_id }}" aria-live="assertive" aria-role="alert">Secret Copied to Clipboard</span>
+                  <a class="app-credentials-toggle" id="{{ application.client_id }}" tabindex="0">Show/Hide Credentials</a>
+                  <label for"id-{{ application.client_id }}">Client ID</label>
+                  <input type="password" value="{{ application.client_id }}" id="id-{{ application.client_id }}" onclick="copyCredential(this.id)" />
+                  <label for"secret-{{ application.client_secret }}">Client Secret</label>
+                  <input type="password" value="{{ application.client_secret }}" id="secret-{{ application.client_id }}" onclick="copyCredential(this.id)" />
+                </form>
+              </div>
+            
+              <!-- Required App Info Section -->
+              <h2 class="ds-u-margin-bottom--2 ds-u-margin-top--4">App Details - Required Information</h2>
+            
+              <div class="bb-c-card full-width-card">
+                      
+                <!-- Client Type -->
+                <div class="ds-u-margin-bottom--2">
+                  <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">OAuth - {% trans "Client Type" %}</p>
+                  <pre>{{ application.client_type }}</pre>
+                </div>
+                      
+                <!-- Grant Type -->
+                <div class="ds-u-margin-bottom--2">
+                  <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">OAuth - {% trans "Grant Type" %}</p>
+                  <pre>{{ application.authorization_grant_type }}</pre>
+                </div>
+                      
+                <!-- Redirect URIs -->
+                <div class="ds-u-margin-bottom--2">
+                  <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Callback URLS / {% trans "Redirect Uris" %}</p>
+                  <pre>{{ application.redirect_uris }}</pre>
+                </div>
+                      
+              </div>
+            
+              <!-- Optional App Info Section -->
+              <h2 class="ds-u-margin-bottom--2 ds-u-margin-top--4">App Details - Optional Information</h2>
+            
+              <p class="ds-u-margin-bottom--2">This information can be used to more fully emulate elements of having an application in production. <strong>This information is only used for sample purposes.</strong> For example, you can enter your website or privacy policy to simulate what a Medicare beneficiary would see when authorizing your application.</p>
+                      
+              <div class="bb-app-optional-information-card">
+            
+                <div class="info-card-left">
+                  <!-- Application Logo -->
+                  {% if application.logo_uri %}
+                  <div class="app-logo" style="background-image: url({{ application.logo_uri }})" aria-label="{{ application.name }} logo"></div>
+                  {% else %}
+                  <img src="{% static 'img/default-app-avatar.png' %}" alt="{{ application.name }}" />
+                  {% endif %}
+            
+                  <!-- App TOS/PP-->
+                  <div class="terms-container">
+                    <!-- Privacy Policy -->
+                    {% if application.policy_uri %}
+                    <a href="{{ application.policy_url }}">Privacy Policy</a>
                     {% else %}
-                        <p><pre>This value is not used when using a public client.</pre></p>
-                    {% endif%}
-                </li>
-            <li>
-                <p><b>{% trans "Client Type" %}</b></p>
-                <p><pre>{{ application.client_type }}</pre></p>
-            </li>
+                    <p>No Privacy Policy</p>
+                    {% endif %}
             
-            <li>
-                <p><b>{% trans "Grant Type" %}</b></p>
-                <p><pre>{{ application.authorization_grant_type }}</pre></p>
-            </li>
-
-            <li>
-                <p><b>{% trans "Redirect Uris" %}</b></p>
-                <pre>{{ application.redirect_uris }}</pre>
-            </li>
+                    <!-- Terms of Service -->
+                    {% if application.tos_uri %}
+                    <a href="{{ application.tos_uri }}">Terms of Service</a>
+                    {% else %}
+                    <p>No Terms of Service</p>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="info-card-right">
+                  <!-- Website URL -->
+                <div class="ds-u-margin-bottom--2">
+                    <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Organization Website</p>
+                    {% if application.website_uri %}
+                    <a href="{{ application.website_uri }}">{{ application.website_uri }}</a>
+                    {% else %}
+                    No website entered. 
+                    {% endif %}
+                  </div>
+                
+                  <!-- Application Description -->
+                  <div class="ds-u-margin-bottom--2">
+                    <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Application Description</p>
+                    {% if application.description %}
+                    <p>{{ application.description }}</p>
+                    {% else %}
+                    <p>You haven't entered an application description.</p>
+                    {% endif %}
+                  </div>
             
-           <li>
-                <p><b>{% trans "Timestamps" %}</b></p>
-                <pre>Updated: {{ application.updated }} / Created: {{ application.created }}</pre>
-            </li>
-        </ul>
+                  <!-- Application Contacts -->
+                  <div class="ds-u-margin-bottom--2">
+                    <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Application Contacts</p>
+                    {% if application.contacts %}
+                    <p>{{ application.contacts }}</p>
+                    {% else %}
+                    <p>You haven't entered any contacts.</p>
+                    {% endif %}
+                  </div>
+            
+                  <!-- Application Support Email -->
+                  <div class="ds-u-margin-bottom--2">
+                    <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Support Email</p>
+                    {% if application.support_email %}
+                    <p>{{ application.support_email }}</p>
+                    {% else %}
+                    <p>You haven't entered a support email.</p>
+                    {% endif %}
+                  </div>
+            
+                </div>
+              </div>
+            </div>
+      </div>
+  </div>
+</div>
 
-        <div class="btn-toolbar">
-            <a class="btn" href="{% url "oauth2_provider:list" %}">{% trans "Go Back" %}</a>
-            <a class="ds-c-button  ds-c-button--default" href="{% url "oauth2_provider:update" application.id %}">{% trans "Edit" %}</a>
-            <a class="ds-c-button  ds-c-button--danger" href="{% url "oauth2_provider:delete" application.id %}">{% trans "Delete" %}</a>
-        </div>
-    </div>
 {% endblock content %}

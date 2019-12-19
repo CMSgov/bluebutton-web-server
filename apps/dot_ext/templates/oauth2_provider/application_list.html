@@ -2,41 +2,46 @@
 
 {% load i18n %}
 {% block content %}
-    <!-- CI_TESTING:START -->
-    <!-- test_dot_ext_application_list -->
-    <!-- CI_TESTING:END -->
-    <div class="row">
-        <div class="ds-col-lg-12">
-            <ol class="breadcrumb">
-                <li ><a href="/">Home</a></li>
-                <li class="active"><a href="{% url "oauth2_provider:list" %}">{% trans "Registered Applications" %}</a></li>
-            </ol>
-        </div>
-    </div>
+<!-- CI_TESTING:START -->
+<!-- test_dot_ext_application_list -->
+<!-- CI_TESTING:END -->
 
-    <div class="row container-fluid">
-        <div class="alert alert-info">
-            <button type="button" class="close" data-dismiss="alert">×</button>
-            <h4 class="ds-h4">{%trans "What is this?" %}</h4>
-            Here is where application developers register applications and create OAuth2 credentials.
-            If you are not an application developer, perhaps you meant to go to the
-            <a href="{% url 'oauth2_provider:authorized-token-list' %}">application token page</a>.
+<!-- Breadcrumbs -->
+<ol class="breadcrumb">
+  <li ><a href="/">Home</a></li>
+  <li class="active"><a href="{% url "oauth2_provider:list" %}">{% trans "Registered Applications" %}</a></li>
+</ol>
 
-        </div>
-    </div>
+<h1>Registered Applications</h1>
 
-    <div class="block-center">
-        <h3 class="ds-h3">{% trans "Registered Applications" %}</h3>
-        {% if applications %}
-            <ul>
-                {% for application in applications %}
-                    <li><a href="{{ application.get_absolute_url }}">{{ application.name }}</a> | Updated {{application.updated}}
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>{% trans "No applications defined." %}</p>
-        {% endif %}
-           <a class="ds-c-button  ds-c-button--default"  href="{% url "oauth2_provider:register" %}"> Register New Application</a>    
-    </div>
-    <br><br>
+<!-- Application Message -->
+<div class="ds-c-alert ds-u-margin-y--2">
+  <div class="ds-c-alert__body">
+    <h3 class="ds-c-alert__heading">{%trans "What is this?" %}</h3>
+    <p class="ds-c-alert__text">
+      Here is where application developers register applications and create OAuth2 credentials. If you are not an application developer, perhaps you meant to go to the <a href="{% url 'oauth2_provider:authorized-token-list' %}">application token page</a>.
+    </p>
+  </div>
+</div>
+
+<!-- Registered Application List -->
+<div class="on ds-u-fill--gray-lightest ds-u-padding--2">
+  {% if applications %}
+      <ul style="list-style: none">
+          {% for application in applications %}
+              <li class="ds-u-margin-y--1">
+                <a href="{{ application.get_absolute_url }}">{{ application.name }}</a> | Updated {{application.updated}}
+              </li>
+          {% endfor %}
+      </ul>
+  {% else %}
+      <p>{% trans "No applications defined." %}</p>
+  {% endif %}
+</div>
+
+<!-- New Application Button -->
+<a class="ds-c-button  ds-c-button--default ds-u-margin-y--2" href="{% url "oauth2_provider:register" %}">
+  Register New Application
+</a>
+
 {% endblock content %}
