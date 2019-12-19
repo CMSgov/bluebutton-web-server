@@ -3,6 +3,7 @@ from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from oauth2_provider.signals import app_authorized
+from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
 from ..models import Approval
 
@@ -50,10 +51,10 @@ class AuthorizationView(DotAuthorizationView):
         except OAuthToolkitError as error:
             return self.error_response(error, application)
 
-        app_authorized.send(
+        beneficiary_authorized_application.send(
             sender=self,
             request=self.request,
-            token=None,
+            user=self.request.user,
             application=application)
 
         self.success_url = uri

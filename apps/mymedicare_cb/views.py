@@ -62,6 +62,11 @@ def authenticate(request):
     # Get the userinfo response object
     user_info = response.json()
     user = get_and_update_user(user_info)
+    logger.info({
+        "sub": user_info["sub"], 
+        "username": user.username,
+        "user_id_hash": user.crosswalk.user_id_hash,
+        "fhir_id": user.crosswalk.fhir_id})
     request.user = user
 
 
