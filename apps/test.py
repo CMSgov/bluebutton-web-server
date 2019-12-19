@@ -9,6 +9,7 @@ from django.conf import settings
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.server.models import ResourceRouter
+from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
 
@@ -103,6 +104,9 @@ class BaseApiTest(TestCase):
         # Request the access token
         response = self.client.post(reverse('oauth2_provider:token'), data=data)
         self.assertEqual(response.status_code, 200)
+        DataAccessGrant.objects.update_or_create(
+            beneficiary=User.objects.get(username=username),
+            application=application)
         # Unpack the response and return the token string
         content = json.loads(response.content.decode("utf-8"))
         return content['access_token']

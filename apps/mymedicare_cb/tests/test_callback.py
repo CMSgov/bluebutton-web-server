@@ -16,6 +16,7 @@ from apps.capabilities.models import ProtectedCapability
 from httmock import urlmatch, all_requests, HTTMock
 from django.contrib.auth.models import Group
 from apps.fhir.server.models import ResourceRouter
+from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Approval, Application
 
 from .responses import patient_response
@@ -87,6 +88,10 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         user = User.objects.create_user(
             "bob",
             password="bad")
+        Crosswalk.objects.create(
+            user=user,
+            fhir_id="-20000000002346",
+            user_id_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7")
         application = Application.objects.create(
             redirect_uris="http://test.com",
             authorization_grant_type='authorization-code',

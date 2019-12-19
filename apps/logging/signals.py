@@ -26,6 +26,7 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 def handle_token_created(sender, request, token, **kwargs):
     token_logger.info(Token(token, action="authorized"))
 
+
 def handle_app_authorized(sender, request, user, application, **kwargs):
     token_logger.info({
         "type": "Authorization",
