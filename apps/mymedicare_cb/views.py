@@ -25,6 +25,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+# For SLS auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
     code = request.GET.get('code')
     if not code:
