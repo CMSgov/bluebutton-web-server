@@ -11,7 +11,7 @@ class BeneficiaryLoginTest(TestCase):
 
     def test_create_beneficiary_record(self):
         args = {
-            "username": "worldhello",
+            "username": "00112233-4455-6677-8899-aabbccddeeff",
             "user_id_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
             "fhir_id": "-20000000002346",
             "first_name": "Hello",
@@ -38,7 +38,7 @@ class BeneficiaryLoginTest(TestCase):
             },
             "missing hash": {
                 "args": {
-                    "username": "helloworld",
+                    "username": "00112233-4455-6677-8899-aabbccddeeff",
                     "first_name": "Hello",
                     "last_name": "World",
                     "email": "fu@bar.bar",
@@ -55,11 +55,11 @@ class BeneficiaryLoginTest(TestCase):
             "colliding username": {
                 "args": [
                     {
-                        "username": "test01",
+                        "username": "00112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                     },
                     {
-                        "username": "test01",
+                        "username": "00112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "60ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                     },
                 ],
@@ -68,11 +68,11 @@ class BeneficiaryLoginTest(TestCase):
             "colliding hash": {
                 "args": [
                     {
-                        "username": "test02",
+                        "username": "10112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "70ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                     },
                     {
-                        "username": "test03",
+                        "username": "20112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "70ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                     },
                 ],
@@ -81,14 +81,14 @@ class BeneficiaryLoginTest(TestCase):
             "colliding fhir_id": {
                 "args": [
                     {
-                        "username": "test04",
+                        "username": "30112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "80ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
-                        "fhir_id": 12345,
+                        "fhir_id": "-19990000000001",
                     },
                     {
-                        "username": "test05",
+                        "username": "40112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "90ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
-                        "fhir_id": 12345,
+                        "fhir_id": "-19990000000001",
                     },
                 ],
                 "exception": ValidationError,
