@@ -48,7 +48,7 @@ def get_and_update_user(user_info):
         if first_name == "" or last_name == "":
             first_name, last_name = extract_beneficiary_names(backend_data)
     except exceptions.NotFound:
-        fhir_id = None
+        fhir_id = ""
 
     fhir_source = get_resourcerouter()
 
@@ -71,6 +71,7 @@ def create_beneficiary_record(username=None,
                               last_name="",
                               email=""):
     assert username is not None
+    assert username != ""
     assert user_id_hash is not None
 
     if User.objects.filter(username=username).exists():
