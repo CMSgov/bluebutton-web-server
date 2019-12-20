@@ -1,4 +1,4 @@
-from django.db.utils import IntegretyError
+from django.db.utils import IntegrityError
 from apps.test import BaseApiTest
 
 from ..models import Crosswalk

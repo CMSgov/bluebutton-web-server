@@ -70,14 +70,15 @@ def create_beneficiary_record(username=None,
     assert username is not None
     assert username != ""
     assert user_id_hash is not None
+    assert len(user_id_hash) == 64, "incorrect user id hash format"
 
     if User.objects.filter(username=username).exists():
         raise ValidationError("user already exists", username)
 
-    if Crosswalk.objects.filter(user_id_hash=user_id_hash).exists():
+    if Crosswalk.objects.filter(_user_id_hash=user_id_hash).exists():
         raise ValidationError("user_id_hash already exists", user_id_hash)
 
-    if fhir_id and Crosswalk.objects.filter(fhir_id=fhir_id).exists():
+    if fhir_id and Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
         raise ValidationError("fhir_id already exists", fhir_id)
 
     with transaction.atomic():
@@ -89,8 +90,8 @@ def create_beneficiary_record(username=None,
         user.save()
         Crosswalk.objects.create(user=user,
                                  fhir_source=fhir_source,
-                                 user_id_hash=user_id_hash,
-                                 fhir_id=fhir_id)
+                                 _user_id_hash=user_id_hash,
+                                 _fhir_id=fhir_id)
 
         # Extra user information
         # TODO: remvoe the idea of UserProfile

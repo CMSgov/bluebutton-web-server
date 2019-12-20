@@ -56,6 +56,7 @@ class Crosswalk(models.Model):
     # default=settings.FHIR_SERVER_DEFAULT)
     _fhir_id = models.CharField(max_length=80,
                                 null=True,
+                                default=None,
                                 db_column="fhir_id",
                                 db_index=True)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -66,6 +67,8 @@ class Crosswalk(models.Model):
     _user_id_hash = models.CharField(max_length=64,
                                      verbose_name="PBKDF2 of User ID",
                                      unique=True,
+                                     null=False,
+                                     default=None,
                                      db_column="user_id_hash",
                                      db_index=True)
 
