@@ -211,6 +211,10 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
 
         self._callback_url_success(sls_user_info_mock)
 
+        user = User.objects.get(username="0744b8c2-53ff-4288-91e5-96eb14703fda")
+        self.assertEqual(user.first_name, "")
+        self.assertEqual(user.last_name, "")
+
     def test_callback_url_failure(self):
         # create a state
         state = generate_nonce()
