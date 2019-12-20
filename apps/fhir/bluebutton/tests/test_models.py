@@ -84,7 +84,6 @@ class TestModels(BaseApiTest):
         with self.assertRaises(ValidationError):
             cw.fhir_id = "-20000000000002"
 
-
     def test_immuatble_user_id_hash(self):
         user = self._create_user('john', 'password',
                                  first_name='John',
@@ -98,9 +97,9 @@ class TestModels(BaseApiTest):
                                            server_search_expiry=1800)
 
         cw = Crosswalk.objects.create(user=user,
-                                 fhir_source=fs,
-                                 fhir_id="-20000000000001",
-                                 user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130")
+                                      fhir_source=fs,
+                                      fhir_id="-20000000000001",
+                                      user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130")
         cw = Crosswalk.objects.get(_fhir_id="-20000000000001")
         self.assertEqual(cw.user_id_hash, "139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130")
         with self.assertRaises(ValidationError):
