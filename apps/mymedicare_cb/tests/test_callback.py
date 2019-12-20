@@ -155,7 +155,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             return {
                 'status_code': 200,
                 'content': {
-                    'sub': '0123456789abcdefghijklmnopqrstuvwxyz',
+                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
                     'given_name': '',
                     'family_name': '',
                     'email': 'bob@bobserver.bob',
