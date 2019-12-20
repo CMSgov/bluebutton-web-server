@@ -30,9 +30,15 @@ def handle_token_created(sender, request, token, **kwargs):
 def handle_app_authorized(sender, request, user, application, **kwargs):
     token_logger.info({
         "type": "Authorization",
-        "username": user.username,
-        "user_id_hash": user.crosswalk.user_id_hash,
-        "fhir_id": user.crosswalk.fhir_id,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "crosswalk": {
+                "id": user.crosswalk.id,
+                "user_id_hash": user.crosswalk.user_id_hash,
+                "fhir_id": user.crosswalk.fhir_id,
+            },
+        },
         "application": {
             "id": application.id,
             "name": application.name,
