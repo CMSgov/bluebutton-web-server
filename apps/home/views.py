@@ -1,6 +1,5 @@
 from django.utils.translation import ugettext_lazy as _
 from ..accounts.models import UserProfile
-from ..fhir.bluebutton.models import Crosswalk
 from oauth2_provider.models import get_application_model
 from django.views.generic.base import TemplateView
 from django.shortcuts import redirect
@@ -28,24 +27,11 @@ class AuthenticatedHomeView(LoginRequiredMixin, TemplateView):
             profile = UserProfile.objects.get(user=request.user)
         except UserProfile.DoesNotExist:
             profile = None
-        try:
-            crosswalk = Crosswalk.objects.get(user=request.user)
-        except Crosswalk.DoesNotExist:
-            crosswalk = None
 
-        if crosswalk is None:
-            fhir_id = '0'
-        else:
-            fhir_id = crosswalk.fhir_id
-
-        if fhir_id == '':
-            fhir_id = '0'
         # this is a GET
         context = {
             'name': name,
             'profile': profile,
-            'crosswalk': crosswalk,
-            'fhir_id': fhir_id,
             'applications': Application.objects.filter(user=request.user),
         }
         return context

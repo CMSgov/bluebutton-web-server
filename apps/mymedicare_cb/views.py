@@ -15,7 +15,6 @@ from .models import (
 )
 import logging
 from django.core.exceptions import ValidationError
-from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from .authorization import OAuth2Config
 from .signals import response_hook
@@ -119,20 +118,5 @@ def mymedicare_login(request):
     next_uri = request.GET.get('next', "")
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
-    if getattr(settings, 'ALLOW_CHOOSE_LOGIN', False):
-        return HttpResponseRedirect(reverse('mymedicare-choose-login'))
 
     return HttpResponseRedirect(mymedicare_login_url)
-
-
-@never_cache
-def mymedicare_choose_login(request):
-    mymedicare_login_uri = settings.MEDICARE_LOGIN_URI
-    redirect = settings.MEDICARE_REDIRECT_URI
-    redirect = urllib_request.pathname2url(redirect)
-    anon_user_state = AnonUserState.objects.get(state=request.session['state'])
-    mymedicare_login_uri = "%s&state=%s&redirect_uri=%s" % (
-        mymedicare_login_uri, anon_user_state.state, redirect)
-    context = {'next_uri': anon_user_state.next_uri,
-               'mymedicare_login_uri': mymedicare_login_uri}
-    return render(request, 'design_system/login.html', context)

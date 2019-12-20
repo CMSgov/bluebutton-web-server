@@ -38,7 +38,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         """
         fake_login_url = 'https://example.com/login?scope=openid'
 
-        with self.settings(ALLOW_CHOOSE_LOGIN=False, MEDICARE_LOGIN_URI=fake_login_url, MEDICARE_REDIRECT_URI='/123'):
+        with self.settings(MEDICARE_LOGIN_URI=fake_login_url, MEDICARE_REDIRECT_URI='/123'):
             response = self.client.get(self.login_url + '?next=/')
             self.assertEqual(response.status_code, 302)
             query = parse_qs(urlparse(response['Location']).query)
