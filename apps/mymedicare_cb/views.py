@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 import requests
 from django.http import JsonResponse
+from django.template.response import TemplateResponse
 import urllib.request as urllib_request
 from urllib.parse import (
     urlsplit,
@@ -73,9 +74,13 @@ def callback(request):
             "error": e.message,
         }, status=400)
     except NotFound as e:
-        return JsonResponse({
-            "error": e.detail,
-        }, status=404)
+        return TemplateResponse(
+            request,
+            "bene_404.html",
+            context={
+                "error": e.detail,
+            },
+            status=404)
     except UpstreamServerException as e:
         return JsonResponse({
             "error": e.detail,

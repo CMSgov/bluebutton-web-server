@@ -2,7 +2,6 @@ import logging
 from django.db import models, transaction
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
-from rest_framework import exceptions
 from apps.accounts.models import UserProfile
 from apps.fhir.server.authentication import match_hicn_hash
 from apps.fhir.bluebutton.models import Crosswalk, hash_hicn
