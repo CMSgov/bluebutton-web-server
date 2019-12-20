@@ -8,6 +8,7 @@ from django.conf import settings
 
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.server.models import ResourceRouter
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
 
@@ -27,18 +28,18 @@ class BaseApiTest(TestCase):
             ResourceRouter.objects.create(pk=settings.FHIR_SERVER_DEFAULT,
                                           fhir_url="http://bogus.com/")
 
-    def _create_user(self, username, password, fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID, **extra_fields):
+    def _create_user(self, username, password, fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID, user_id_hash=test_hash, **extra_fields):
         """
         Helper method that creates a user instance
         with `username` and `password` set.
         """
         user = User.objects.create_user(username, password=password, **extra_fields)
-        if Crosswalk.objects.filter(fhir_id=fhir_id).exists():
-            Crosswalk.objects.filter(fhir_id=fhir_id).delete()
+        if Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
+            Crosswalk.objects.filter(_fhir_id=fhir_id).delete()
 
         cw, _ = Crosswalk.objects.get_or_create(user=user,
-                                                fhir_id=fhir_id,
-                                                user_id_hash=self.test_hash,
+                                                _fhir_id=fhir_id,
+                                                _user_id_hash=user_id_hash,
                                                 fhir_source=get_resourcerouter())
         cw.save()
         return user
@@ -63,7 +64,7 @@ class BaseApiTest(TestCase):
         client_type = client_type or Application.CLIENT_PUBLIC
         grant_type = grant_type or Application.GRANT_PASSWORD
         # This is the user to whom the application is bound.
-        dev_user = user or self._create_user('dev', '123456')
+        dev_user = user or User.objects.create_user('dev', password='123456')
         application = Application.objects.create(
             name=name, user=dev_user, client_type=client_type,
             authorization_grant_type=grant_type, **kwargs)
@@ -113,11 +114,11 @@ class BaseApiTest(TestCase):
                                  first_name=first_name,
                                  last_name=last_name,
                                  email="%s@%s.net" % (first_name, last_name))
-        if Crosswalk.objects.filter(fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists():
-            Crosswalk.objects.filter(fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).delete()
+        if Crosswalk.objects.filter(_fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists():
+            Crosswalk.objects.filter(_fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).delete()
         Crosswalk.objects.create(user=user,
                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-				 user_id_hash=test_hash,	
+                                 user_id_hash=self.test_hash,
                                  fhir_source=get_resourcerouter())
 
         # create a oauth2 application and add capabilities
@@ -136,7 +137,7 @@ class BaseApiTest(TestCase):
                                  last_name=last_name,
                                  email="%s@%s.net" % (first_name, last_name))
         Crosswalk.objects.update_or_create(user=user,
-                                           user_id_hash=self.test_hash,
+                                           _user_id_hash=self.test_hash,
                                            fhir_source=get_resourcerouter())
 
         # create a oauth2 application and add capabilities

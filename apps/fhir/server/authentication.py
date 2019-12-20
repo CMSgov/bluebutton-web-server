@@ -32,12 +32,3 @@ def match_hicn_hash(hicn_hash):
         return fhir_id, backend_data
 
     raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
-
-
-def authenticate_crosswalk(crosswalk):
-    fhir_id, backend_data = match_hicn_hash(crosswalk.user_id_hash)
-
-    crosswalk.fhir_id = fhir_id
-    crosswalk.save()
-
-    return backend_data

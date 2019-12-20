@@ -62,7 +62,7 @@ def get_and_update_user(user_info):
 # TODO default empty strings to null, requires non-null constraints to be fixed
 def create_beneficiary_record(username=None,
                               user_id_hash=None,
-                              fhir_id="",
+                              fhir_id=None,
                               fhir_source=None,
                               first_name="",
                               last_name="",
@@ -71,6 +71,7 @@ def create_beneficiary_record(username=None,
     assert username != ""
     assert user_id_hash is not None
     assert len(user_id_hash) == 64, "incorrect user id hash format"
+    assert fhir_id is not None
 
     if User.objects.filter(username=username).exists():
         raise ValidationError("user already exists", username)

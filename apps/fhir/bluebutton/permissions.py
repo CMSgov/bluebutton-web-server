@@ -1,7 +1,6 @@
 import logging
 from rest_framework import (permissions, exceptions)
 from .constants import ALLOWED_RESOURCE_TYPES
-from ..server.authentication import authenticate_crosswalk
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 

@@ -57,10 +57,12 @@ class BeneficiaryLoginTest(TestCase):
                     {
                         "username": "00112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "fhir_id": "-19990000000001",
                     },
                     {
                         "username": "00112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "60ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "fhir_id": "-19990000000002",
                     },
                 ],
                 "exception": ValidationError,
@@ -70,10 +72,12 @@ class BeneficiaryLoginTest(TestCase):
                     {
                         "username": "10112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "70ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "fhir_id": "-19990000000003",
                     },
                     {
                         "username": "20112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "70ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "fhir_id": "-19990000000004",
                     },
                 ],
                 "exception": ValidationError,
@@ -83,12 +87,12 @@ class BeneficiaryLoginTest(TestCase):
                     {
                         "username": "30112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "80ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
-                        "fhir_id": "-19990000000001",
+                        "fhir_id": "-19990000000005",
                     },
                     {
                         "username": "40112233-4455-6677-8899-aabbccddeeff",
                         "user_id_hash": "90ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
-                        "fhir_id": "-19990000000001",
+                        "fhir_id": "-19990000000005",
                     },
                 ],
                 "exception": ValidationError,
