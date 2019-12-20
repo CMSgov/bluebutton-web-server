@@ -15,6 +15,7 @@ from .models import (
 )
 import logging
 from django.core.exceptions import ValidationError
+from rest_framework.exceptions import NotFound
 from django.views.decorators.cache import never_cache
 from .authorization import OAuth2Config
 from .signals import response_hook
@@ -71,6 +72,10 @@ def callback(request):
         return JsonResponse({
             "error": e.message,
         }, status=400)
+    except NotFound as e:
+        return JsonResponse({
+            "error": e.detail,
+        }, status=404)
     except UpstreamServerException as e:
         return JsonResponse({
             "error": e.detail,

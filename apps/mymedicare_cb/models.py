@@ -42,10 +42,8 @@ def get_and_update_user(user_info):
     last_name = user_info.get('family_name', "")
     email = user_info.get('email', "")
 
-    try:
-        fhir_id, backend_data = match_hicn_hash(hicn_hash)
-    except exceptions.NotFound:
-        fhir_id = ""
+    # raises exceptions.NotFound:
+    fhir_id, backend_data = match_hicn_hash(hicn_hash)
 
     fhir_source = get_resourcerouter()
 
@@ -72,6 +70,7 @@ def create_beneficiary_record(username=None,
     assert user_id_hash is not None
     assert len(user_id_hash) == 64, "incorrect user id hash format"
     assert fhir_id is not None
+    assert fhir_id != ""
 
     if User.objects.filter(username=username).exists():
         raise ValidationError("user already exists", username)
