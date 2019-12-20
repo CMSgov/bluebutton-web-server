@@ -160,8 +160,8 @@ class TestTokenView(BaseApiTest):
         self.assertEqual(result, expected)
 
     def test_delete_token_success(self):
-        anna = self._create_user(self.test_username, '123456')
-        bob = self._create_user('bob', '123456')
+        anna = self._create_user(self.test_username, '123456', fhir_id='19990000000002')
+        bob = self._create_user('bob', '123456', fhir_id='19990000000001')
         # create a couple of capabilities
         capability_a = self._create_capability('token_management', [['DELETE', r'/v1/o/tokens/\d+/']], default=False)
         # create an application and add capabilities

@@ -382,9 +382,9 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 502)
 
-    def test_search_request_failed_no_fhir_id(self):
+    def test_search_request_failed_no_fhir_id_match(self):
         # create the user
-        first_access_token = self.create_token_no_fhir('John', 'Smith')
+        first_access_token = self.create_token('John', 'Smith')
 
         expected_request = {
             'method': 'GET',

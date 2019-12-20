@@ -18,12 +18,29 @@ class BaseApiTest(TestCase):
     protected with oauth2 using DOT.
     """
 
-    def _create_user(self, username, password, **extra_fields):
+    test_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
+
+    def setUp(self):
+        try:
+            ResourceRouter.objects.get(pk=settings.FHIR_SERVER_DEFAULT)
+        except ResourceRouter.DoesNotExist:
+            ResourceRouter.objects.create(pk=settings.FHIR_SERVER_DEFAULT,
+                                          fhir_url="http://bogus.com/")
+
+    def _create_user(self, username, password, fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID, **extra_fields):
         """
         Helper method that creates a user instance
         with `username` and `password` set.
         """
         user = User.objects.create_user(username, password=password, **extra_fields)
+        if Crosswalk.objects.filter(fhir_id=fhir_id).exists():
+            Crosswalk.objects.filter(fhir_id=fhir_id).delete()
+
+        cw, _ = Crosswalk.objects.get_or_create(user=user,
+                                                fhir_id=fhir_id,
+                                                user_id_hash=self.test_hash,
+                                                fhir_source=get_resourcerouter())
+        cw.save()
         return user
 
     def _create_group(self, name):
@@ -96,10 +113,12 @@ class BaseApiTest(TestCase):
                                  first_name=first_name,
                                  last_name=last_name,
                                  email="%s@%s.net" % (first_name, last_name))
-        Crosswalk.objects.get_or_create(user=user,
-                                        _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                        _user_id_hash=user.username,
-                                        fhir_source=get_resourcerouter())
+        if Crosswalk.objects.filter(fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists():
+            Crosswalk.objects.filter(fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).delete()
+        Crosswalk.objects.create(user=user,
+                                 fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+				 user_id_hash=test_hash,	
+                                 fhir_source=get_resourcerouter())
 
         # create a oauth2 application and add capabilities
         application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)
@@ -116,9 +135,9 @@ class BaseApiTest(TestCase):
                                  first_name=first_name,
                                  last_name=last_name,
                                  email="%s@%s.net" % (first_name, last_name))
-        Crosswalk.objects.get_or_create(user=user,
-                                        _user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130",
-                                        fhir_source=get_resourcerouter())
+        Crosswalk.objects.update_or_create(user=user,
+                                           user_id_hash=self.test_hash,
+                                           fhir_source=get_resourcerouter())
 
         # create a oauth2 application and add capabilities
         application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)
