@@ -70,7 +70,7 @@
   "fields": {"user": 1,
              "fhir_source": 1,
              "_fhir_id": "4995802",
-	     "_user_id_hash": "badhash",
+	     "_user_id_hash": "139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130",
              "date_created": "2016-05-25T05:03:49.342Z"}
  },
   {

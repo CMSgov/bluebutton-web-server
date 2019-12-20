@@ -85,7 +85,7 @@ class Crosswalk(models.Model):
 
     @fhir_id.setter
     def fhir_id(self, value):
-        if self._fhir_id is not None:
+        if self._fhir_id:
             raise ValidationError("this value cannot be modified.")
         self._fhir_id = value
 
@@ -95,9 +95,9 @@ class Crosswalk(models.Model):
 
     @user_id_hash.setter
     def user_id_hash(self, value):
-        if self.pk is not None:
+        if self.pk:
             raise ValidationError("this value cannot be modified.")
-        if self._user_id_hash is not None:
+        if self._user_id_hash:
             raise ValidationError("this value cannot be modified.")
         self._user_id_hash = value
 

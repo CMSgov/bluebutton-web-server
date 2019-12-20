@@ -90,8 +90,8 @@ def create_beneficiary_record(username=None,
         user.save()
         Crosswalk.objects.create(user=user,
                                  fhir_source=fhir_source,
-                                 _user_id_hash=user_id_hash,
-                                 _fhir_id=fhir_id)
+                                 user_id_hash=user_id_hash,
+                                 fhir_id=fhir_id)
 
         # Extra user information
         # TODO: remvoe the idea of UserProfile
