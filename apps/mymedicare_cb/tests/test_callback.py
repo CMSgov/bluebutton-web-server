@@ -196,8 +196,19 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         @all_requests
         def catchall(url, request):
             return {
-                'status_code': 403,
-                'content': {'error': 'nope'},
+                'status_code': 400,
+                'content': {
+                    'status': 'error',
+                    'code': 400,
+                    'errors': [
+                        {
+                            'type': 'ValidationError',
+                            'name': 'InvalidField',
+                            'field': 'Authorization',
+                            'message': 'Authorization header was invalid.'
+                        }
+                    ]
+                },
             }
 
         with HTTMock(catchall):
@@ -239,7 +250,15 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                 return {
                     'status_code': 401,
                     'content': {
-                        'error': 'nope!',
+                        'status': 'error',
+                        'code': 401,
+                        'errors': [
+                            {
+                                'type': 'Unauthorized',
+                                'name': 'Unauthorized',
+                                'message': 'Authorization header missing correct scopes.'
+                            }
+                        ]
                     },
                 }
 
