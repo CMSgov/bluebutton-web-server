@@ -134,7 +134,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             "response_type": "code"})
         self.assertEqual(302, response.status_code)
 
-    def test_callback_url_success(self):
+    def _callback_url_success(self, sls_user_info_mock):
         # create a state
         state = generate_nonce()
         AnonUserState.objects.create(
@@ -147,20 +147,6 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             return {
                 'status_code': 200,
                 'content': {'access_token': 'works'},
-            }
-
-        # mock sls user info endpoint
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
-        def sls_user_info_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {
-                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                    'given_name': '',
-                    'family_name': '',
-                    'email': 'bob@bobserver.bob',
-                    'hicn': '1234567890A',
-                },
             }
 
         # mock fhir user info endpoint
@@ -187,6 +173,43 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             # self.assertRedirects(response, "http://www.google.com", fetch_redirect_response=False)
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_callback_url_success(self):
+        # mock sls user info endpoint
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        def sls_user_info_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {
+                    'sub': '0744b8c2-53ff-4288-91e5-96eb14703fda',
+                    'given_name': 'Clarissa',
+                    'family_name': 'Dalloway',
+                    'email': 'bob@bobserver.bob',
+                    'hicn': '1234567890A',
+                },
+            }
+
+        self._callback_url_success(sls_user_info_mock)
+
+        # assert new user's name is Clarissa Dalloway
+        user = User.objects.get(username="0744b8c2-53ff-4288-91e5-96eb14703fda")
+        self.assertEqual(user.first_name, "Clarissa")
+        self.assertEqual(user.last_name, "Dalloway")
+
+    def test_callback_url_no_names_success(self):
+        # mock sls user info endpoint
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        def sls_user_info_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {
+                    'sub': '0744b8c2-53ff-4288-91e5-96eb14703fda',
+                    'email': 'bob@bobserver.bob',
+                    'hicn': '1234567890A',
+                },
+            }
+
+        self._callback_url_success(sls_user_info_mock)
 
     def test_callback_url_failure(self):
         # create a state
