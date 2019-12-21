@@ -8,6 +8,8 @@ class OAuth2ResourceOwner(authentication.OAuth2Authentication):
         if user_auth_tuple is not None:
             user, access_token = user_auth_tuple
             request.resource_owner = user
+            if not hasattr(user, 'crosswalk'):
+                return None
             request.crosswalk = user.crosswalk
 
             # Update Application activity metric datetime fields

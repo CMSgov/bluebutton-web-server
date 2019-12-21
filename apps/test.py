@@ -128,22 +128,3 @@ class BaseApiTest(TestCase):
         return self._get_access_token(first_name,
                                       passwd,
                                       application)
-
-    def create_token_no_fhir(self, first_name, last_name):
-        passwd = '123456'
-        user = self._create_user(first_name,
-                                 passwd,
-                                 first_name=first_name,
-                                 last_name=last_name,
-                                 email="%s@%s.net" % (first_name, last_name))
-        Crosswalk.objects.update_or_create(user=user,
-                                           _user_id_hash=self.test_hash,
-                                           fhir_source=get_resourcerouter())
-
-        # create a oauth2 application and add capabilities
-        application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)
-        application.scope.add(self.read_capability, self.write_capability)
-        # get the first access token for the user 'john'
-        return self._get_access_token(first_name,
-                                      passwd,
-                                      application)
