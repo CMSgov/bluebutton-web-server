@@ -58,7 +58,7 @@ class TestModels(BaseApiTest):
                                  last_name='Smith',
                                  email='john@smith.net')
         with self.assertRaisesRegexp(IntegrityError, "fhir_id"):
-            Crosswalk.objects.create(user=user)
+            Crosswalk.objects.create(user=user, user_id_hash=self.test_hash)
 
     def test_require_user_id_hash(self):
         user = self._create_user('john', 'password',
