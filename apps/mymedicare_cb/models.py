@@ -2,7 +2,6 @@ import logging
 from django.db import models, transaction
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
-from rest_framework import exceptions
 from apps.accounts.models import UserProfile
 from apps.fhir.server.authentication import match_hicn_hash
 from apps.fhir.bluebutton.models import Crosswalk, hash_hicn
@@ -42,10 +41,8 @@ def get_and_update_user(user_info):
     last_name = user_info.get('family_name', "")
     email = user_info.get('email', "")
 
-    try:
-        fhir_id, backend_data = match_hicn_hash(hicn_hash)
-    except exceptions.NotFound:
-        fhir_id = ""
+    # raises exceptions.NotFound:
+    fhir_id, backend_data = match_hicn_hash(hicn_hash)
 
     fhir_source = get_resourcerouter()
 
@@ -62,7 +59,7 @@ def get_and_update_user(user_info):
 # TODO default empty strings to null, requires non-null constraints to be fixed
 def create_beneficiary_record(username=None,
                               user_id_hash=None,
-                              fhir_id="",
+                              fhir_id=None,
                               fhir_source=None,
                               first_name="",
                               last_name="",
@@ -71,6 +68,8 @@ def create_beneficiary_record(username=None,
     assert username != ""
     assert user_id_hash is not None
     assert len(user_id_hash) == 64, "incorrect user id hash format"
+    assert fhir_id is not None
+    assert fhir_id != ""
 
     if User.objects.filter(username=username).exists():
         raise ValidationError("user already exists", username)

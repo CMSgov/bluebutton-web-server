@@ -1,8 +1,6 @@
 import logging
 from rest_framework import (permissions, exceptions)
 from .constants import ALLOWED_RESOURCE_TYPES
-from .utils import get_crosswalk
-from ..server.authentication import authenticate_crosswalk
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -20,19 +18,7 @@ class ResourcePermission(permissions.BasePermission):
 class HasCrosswalk(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        crosswalk = get_crosswalk(request.resource_owner)
-
-        # If the user isn't matched to a backend ID, they have no permissions
-        if crosswalk is None:
-            logger.info('Crosswalk for %s does not exist' % request.user)
-            return False
-
-        if crosswalk.fhir_id is None:
-            authenticate_crosswalk(crosswalk)
-
-        request.crosswalk = crosswalk
-
-        return True
+        return bool(request.user and request.user.crosswalk and request.user.crosswalk.fhir_id)
 
 
 class ReadCrosswalkPermission(HasCrosswalk):

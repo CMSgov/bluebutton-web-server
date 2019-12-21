@@ -55,7 +55,8 @@ class Crosswalk(models.Model):
                                     null=True)
     # default=settings.FHIR_SERVER_DEFAULT)
     _fhir_id = models.CharField(max_length=80,
-                                null=True,
+                                null=False,
+                                unique=True,
                                 default=None,
                                 db_column="fhir_id",
                                 db_index=True)
