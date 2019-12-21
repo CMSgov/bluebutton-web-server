@@ -13,6 +13,8 @@ class TestModels(BaseApiTest):
                                  first_name='John',
                                  last_name='Smith',
                                  email='john@smith.net')
+
+        user.crosswalk.delete()
         # created a default user
         fs = ResourceRouter.objects.create(name="Main Server",
                                            fhir_url="http://localhost:8000/fhir/",
@@ -35,6 +37,7 @@ class TestModels(BaseApiTest):
                                  first_name='John',
                                  last_name='Smith',
                                  email='john@smith.net')
+        user.crosswalk.delete()
 
         # created a default user
         fs = ResourceRouter.objects.create(name="Main Server",

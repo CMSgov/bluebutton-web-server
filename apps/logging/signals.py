@@ -8,6 +8,7 @@ from apps.fhir.bluebutton.signals import (
     post_fetch
 )
 from apps.mymedicare_cb.signals import post_sls
+from apps.dot_ext.signals import beneficiary_authorized_application
 
 from .serializers import (
     Token,
@@ -22,8 +23,27 @@ sls_logger = logging.getLogger('audit.authorization.sls')
 fhir_logger = logging.getLogger('audit.data.fhir')
 
 
-def handle_app_authorized(sender, request, token, **kwargs):
+def handle_token_created(sender, request, token, **kwargs):
     token_logger.info(Token(token, action="authorized"))
+
+
+def handle_app_authorized(sender, request, user, application, **kwargs):
+    token_logger.info({
+        "type": "Authorization",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "crosswalk": {
+                "id": user.crosswalk.id,
+                "user_id_hash": user.crosswalk.user_id_hash,
+                "fhir_id": user.crosswalk.fhir_id,
+            },
+        },
+        "application": {
+            "id": application.id,
+            "name": application.name,
+        },
+    })
 
 
 def token_removed(sender, instance=None, **kwargs):
@@ -46,7 +66,8 @@ def sls_hook(sender, response=None, **kwargs):
     sls_logger.info(SLSResponse(response))
 
 
-app_authorized.connect(handle_app_authorized)
+app_authorized.connect(handle_token_created)
+beneficiary_authorized_application.connect(handle_app_authorized)
 post_delete.connect(token_removed, sender='oauth2_provider.AccessToken')
 post_delete.connect(log_grant_removed, sender='authorization.DataAccessGrant')
 pre_fetch.connect(fetching_data)
