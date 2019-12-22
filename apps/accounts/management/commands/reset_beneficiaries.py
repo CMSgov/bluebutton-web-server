@@ -43,7 +43,7 @@ class Command(BaseCommand):
                     },
                     "exception": str(e),
                 })
-                sys.stdout.write(e)
+                sys.stdout.write(str(e))
                 sys.stdout.write("\n")
 
         sys.stdout.write(
