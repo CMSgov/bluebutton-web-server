@@ -1,11 +1,8 @@
 import sys
 import logging
 
-from django.contrib.auth.management import _get_all_permissions
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand
-from django.apps import apps
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -31,12 +28,18 @@ class Command(BaseCommand):
                 bene.delete()
                 successes += 1
                 sys.stdout.write("bene {} removed\n".format(bene.username))
+                logger.info({
+                    "msg": "removed bene records",
+                    "beneficiary": {
+                        "username": bene.username,
+                    },
+                })
             except Exception as e:
                 failures += 1
                 logger.info({
                     "msg": "failed to remove bene records",
                     "beneficiary": {
-                        "id": bene.pk,
+                        "id": bene.username,
                     },
                     "exception": str(e),
                 })
