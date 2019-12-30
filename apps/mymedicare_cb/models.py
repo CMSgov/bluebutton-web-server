@@ -30,9 +30,13 @@ def get_and_update_user(user_info):
     hicn = user_info['hicn']
     hicn_hash = hash_hicn(hicn)
 
+    # raises exceptions.NotFound:
+    fhir_id, backend_data = match_hicn_hash(hicn_hash)
+
     try:
         user = User.objects.get(username=subject)
         assert user.crosswalk.user_id_hash == hicn_hash, "Found user's hicn did not match"
+        assert user.crosswalk.fhir_id == fhir_id, "Found user's fhir_id did not match"
         return user
     except User.DoesNotExist:
         pass
@@ -40,9 +44,6 @@ def get_and_update_user(user_info):
     first_name = user_info.get('given_name', "")
     last_name = user_info.get('family_name', "")
     email = user_info.get('email', "")
-
-    # raises exceptions.NotFound:
-    fhir_id, backend_data = match_hicn_hash(hicn_hash)
 
     fhir_source = get_resourcerouter()
 
