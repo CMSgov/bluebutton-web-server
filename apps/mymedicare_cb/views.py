@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 import requests
 from django.http import JsonResponse
+from django.template.response import TemplateResponse
 import urllib.request as urllib_request
 from urllib.parse import (
     urlsplit,
@@ -15,7 +16,7 @@ from .models import (
 )
 import logging
 from django.core.exceptions import ValidationError
-from django.shortcuts import render
+from rest_framework.exceptions import NotFound
 from django.views.decorators.cache import never_cache
 from .authorization import OAuth2Config
 from .signals import response_hook
@@ -25,6 +26,7 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+# For SLS auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
     code = request.GET.get('code')
     if not code:
@@ -59,7 +61,25 @@ def authenticate(request):
 
     # Get the userinfo response object
     user_info = response.json()
+    logger.info({
+        "type": "Authentication:start",
+        "sub": user_info["sub"],
+    })
+
     user = get_and_update_user(user_info)
+    logger.info({
+        "type": "Authentication:success",
+        "sub": user_info["sub"],
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "crosswalk": {
+                "id": user.crosswalk.id,
+                "user_id_hash": user.crosswalk.user_id_hash,
+                "fhir_id": user.crosswalk.fhir_id,
+            },
+        },
+    })
     request.user = user
 
 
@@ -71,6 +91,14 @@ def callback(request):
         return JsonResponse({
             "error": e.message,
         }, status=400)
+    except NotFound as e:
+        return TemplateResponse(
+            request,
+            "bene_404.html",
+            context={
+                "error": e.detail,
+            },
+            status=404)
     except UpstreamServerException as e:
         return JsonResponse({
             "error": e.detail,
@@ -118,20 +146,5 @@ def mymedicare_login(request):
     next_uri = request.GET.get('next', "")
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
-    if getattr(settings, 'ALLOW_CHOOSE_LOGIN', False):
-        return HttpResponseRedirect(reverse('mymedicare-choose-login'))
 
     return HttpResponseRedirect(mymedicare_login_url)
-
-
-@never_cache
-def mymedicare_choose_login(request):
-    mymedicare_login_uri = settings.MEDICARE_LOGIN_URI
-    redirect = settings.MEDICARE_REDIRECT_URI
-    redirect = urllib_request.pathname2url(redirect)
-    anon_user_state = AnonUserState.objects.get(state=request.session['state'])
-    mymedicare_login_uri = "%s&state=%s&redirect_uri=%s" % (
-        mymedicare_login_uri, anon_user_state.state, redirect)
-    context = {'next_uri': anon_user_state.next_uri,
-               'mymedicare_login_uri': mymedicare_login_uri}
-    return render(request, 'design_system/login.html', context)

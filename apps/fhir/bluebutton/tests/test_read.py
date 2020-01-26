@@ -382,9 +382,9 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 502)
 
-    def test_search_request_failed_no_fhir_id(self):
+    def test_search_request_failed_no_fhir_id_match(self):
         # create the user
-        first_access_token = self.create_token_no_fhir('John', 'Smith')
+        first_access_token = self.create_token('John', 'Smith')
 
         expected_request = {
             'method': 'GET',
@@ -443,7 +443,7 @@ class BackendConnectionTest(BaseApiTest):
 
     def test_read_request_failed_no_fhir_id(self):
         # create the user
-        first_access_token = self.create_token_no_fhir('John', 'Smith')
+        first_access_token = self.create_token('John', 'Smith')
 
         @urlmatch(query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*')  # noqa
         def fhir_request(url, req):

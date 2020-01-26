@@ -5,7 +5,6 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from apps.accounts.models import UserProfile, UserIdentificationLabel
 from apps.fhir.bluebutton.models import Crosswalk
-from django.conf import settings
 from waffle.testutils import override_switch
 
 
@@ -56,9 +55,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(u.username, "bambam@example.com")
         self.assertEqual(u.email, "bambam@example.com")
 
-        # Ensure developer account has a sample FHIR id crosswalk entry.
-        self.assertEqual(Crosswalk.objects.filter(user=u,
-                                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists(), True)
+        # Ensure developer account does not have a crosswalk entry.
+        self.assertEqual(Crosswalk.objects.filter(user=u).exists(), False)
 
         # verify user has identification label chosen
         exist = User.objects.filter(useridentificationlabel__users=u).filter(useridentificationlabel__slug='ident2').exists()

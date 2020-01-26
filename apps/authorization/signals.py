@@ -1,4 +1,4 @@
-from oauth2_provider.signals import app_authorized
+from apps.dot_ext.signals import beneficiary_authorized_application
 from oauth2_provider.models import get_access_token_model
 from django.db.models.signals import (
     post_delete,
@@ -8,19 +8,14 @@ from .models import DataAccessGrant, ArchivedDataAccessGrant
 AccessToken = get_access_token_model()
 
 
-def app_authorized_record_grant(sender, request, token, application=None, **kwargs):
-    bene = request.user
-    if token is not None:
-        bene = token.user
-        application = token.application
-
+def app_authorized_record_grant(sender, request, user, application, **kwargs):
     DataAccessGrant.objects.get_or_create(
-        beneficiary=bene,
+        beneficiary=user,
         application=application,
     )
 
 
-app_authorized.connect(app_authorized_record_grant)
+beneficiary_authorized_application.connect(app_authorized_record_grant)
 
 
 def revoke_associated_tokens(sender, instance=None, **kwargs):
