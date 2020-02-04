@@ -16,13 +16,13 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 # Real fhir_id Manager subclass
 class RealCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(~Q(fhir_id__startswith='-') & ~Q(fhir_id=''))
+        return super().get_queryset().filter(~Q(_fhir_id__startswith='-') & ~Q(_fhir_id=''))
 
 
 # Synthetic fhir_id Manager subclass
 class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(Q(fhir_id__startswith='-'))
+        return super().get_queryset().filter(Q(_fhir_id__startswith='-'))
 
 
 def hash_hicn(hicn):
