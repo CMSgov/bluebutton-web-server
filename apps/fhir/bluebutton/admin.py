@@ -3,7 +3,7 @@ from django.contrib import admin
 
 
 class CrosswalkAdmin(admin.ModelAdmin):
-    list_display = ('get_user_username', '_fhir_id', 'get_fhir_source')
+    list_display = ('get_user_username', 'fhir_id', 'get_fhir_source')
     search_fields = ('user__username', '_fhir_id', 'fhir_source__name')
     raw_id_fields = ("user", )
 
