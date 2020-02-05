@@ -31,9 +31,9 @@
 <body class="ds-base">
  <h1>API Test Page</h1>
 
- <p><b>IMPORTANT:</b>  {% if user.is_authenticated %}It looks like you may be logged in to your Sandbox Developer Account. {% endif %}
+{% if user.is_authenticated %}<p><b>IMPORTANT:</b>  It looks like you may be logged in to your Sandbox Developer Account.
        Being logged into your Developer Account when using this Test Client triggers a 500 error.</p>
- <p><a href="{% url 'logout' %}">Logout</a> now.</p>
+ <p><a href="{% url 'logout' %}">Logout</a> now.</p>{% endif %}
 
  <p>These calls require a token to be attached to your session.  The
 test redirect_uri callback function {% url 'testclient-callback' %} will do this for you.<br/>
