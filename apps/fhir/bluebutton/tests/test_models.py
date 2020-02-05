@@ -2,7 +2,7 @@ from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from apps.test import BaseApiTest
 
-from ..models import Crosswalk
+from ..models import Crosswalk, check_crosswalks
 from ...server.models import ResourceRouter
 
 
@@ -91,3 +91,27 @@ class TestModels(BaseApiTest):
         self.assertEqual(cw.user_id_hash, self.test_hash)
         with self.assertRaises(ValidationError):
             cw.user_id_hash = "239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130"
+
+    def test_crosswalk_real_synth_query_managers(self):
+        # Test the RealCrosswalkManager and SynthCrosswalkManager queryset managers using
+        # the check_crosswalks method.
+
+        # Create 5x Real (positive FHIR_ID) users
+        for cnt in range(5):
+            self._create_user('johnsmith' + str(cnt), 'password',
+                              first_name='John1' + str(cnt),
+                              last_name='Smith',
+                              email='john' + str(cnt) + '@smith.net',
+                              fhir_id='2000000000000' + str(cnt),
+                              user_id_hash='239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
+
+        # Create 7x Synthetic (negative FHIR_ID) users
+        for cnt in range(7):
+            self._create_user('johndoe' + str(cnt), 'password',
+                              first_name='John1' + str(cnt),
+                              last_name='Doe',
+                              email='john' + str(cnt) + '@doe.net',
+                              fhir_id='-2000000000000' + str(cnt),
+                              user_id_hash='255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
+
+        self.assertEqual("{'synthetic': 7, 'real': 5}", str(check_crosswalks()))
