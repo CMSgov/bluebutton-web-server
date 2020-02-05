@@ -1,4 +1,5 @@
 import os
+import uuid
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
@@ -405,6 +406,7 @@ class Patient_Resource_Test(BaseApiTest):
         xwalk = Crosswalk()
         xwalk.user = self.user
         xwalk.fhir_id = "Patient/12345"
+        xwalk.set_hicn(uuid.uuid4())
         xwalk.save()
 
     def test_crosswalk_fhir_id(self):
@@ -422,6 +424,7 @@ class Patient_Resource_Test(BaseApiTest):
         x = Crosswalk()
         x.user = u
         x.fhir_id = "Patient/23456"
+        x.set_hicn(uuid.uuid4())
         x.save()
 
         result = crosswalk_patient_id(u)

@@ -1,4 +1,5 @@
 import logging
+from django.dispatch import Signal
 from django.db.models.signals import post_save, pre_save
 from oauth2_provider.models import get_application_model, get_access_token_model
 from libs.mail import Mailer
@@ -10,6 +11,9 @@ Application = get_application_model()
 Token = get_access_token_model()
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+beneficiary_authorized_application = Signal(providing_args=["request", "user", "application"])
 
 
 @waffle_function_switch('outreach_email')
