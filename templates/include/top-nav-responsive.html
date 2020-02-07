@@ -28,7 +28,7 @@
       <a href="{% url 'test_links' %}">Test Client</a>
       {%  endif %}
       {% if user.is_authenticated %}
-      <a class="button profile-button" href="{% url 'account_settings' %}"><i data-feather="user"></i>Profile</a>
+      <a class="button profile-button" href="{% url 'account_settings' %}"><i data-feather="user"></i>Account</a>
       <a class="button logout-button" href="{% url 'logout' %}"><i data-feather="power"></i>Logout</a>
       {% else %}
       {% if 'apps.testclient' in settings.INSTALLED_APPS %}
