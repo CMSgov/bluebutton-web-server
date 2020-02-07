@@ -4,74 +4,79 @@
 <!-- Ignore Banner Code -->
 {% block banner %}{% endblock %}
 
-{% block messages %}
-
-<div class="row">
-	<div class="col-lg-8">
-		{% include "include/messages.html" %}
-	</div>
-</div>
-
-{% endblock %}
-
-
 {% block Content %}
 <div class="sandbox-gradient-bg">
 	<div class="gradient-content-container">
 		<h1>Enter New Password</h1>
 		<p>Reset your password below. Please enter your new password twice so we can verify you typed it in correctly.</p>
 
+		{% if form.errors %}
 		<div class="gradient-messages-container">
-			{% if form.errors %}
-				<span>
-					{% if form.errors.items|length == 1 %}Please correct the error below.{% else %}Please correct the errors below.{% endif %}
-				</span>
-			{% endif %}
+			<span>
+				{% if form.errors.items|length == 1 %}Please correct the error below.{% else %}Please correct the errors below.{% endif %}
+			</span>
+
+			{% block messages %}
+				{% include "include/messages.html" %}
+			{% endblock %}			
+
 		</div>
+		{% endif %}
 
 		<!-- Content Card -->
 		<div class="gradient-content-card">
 			<div class="content">
 				<!-- Password Set Form -->
-				<form class="well ds-u-margin-y--3" method="post" action="">{% csrf_token %}
-					<p>Please enter your old password, for security's sake, and then enter your new password twice so we can verify you typed it in correctly.</p>
+				<form class="" method="post" action="">{% csrf_token %}
+					<p class="ds-u-color--base">Please enter your old password, for security's sake, and then enter your new password twice so we can verify you typed it in correctly.</p>
 
-					<div class="form-row">
-			    		{{ form.old_password.errors }}
-			    		{{ form.old_password.label_tag }} {{ form.old_password }}
+					<!-- Current Password Errors -->
+					{% if form.old_password.errors %}
+					<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2 ds-c-alert--hide-icon">
+						{{ form.old_password.errors }}
 					</div>
+					{% endif %}
 
-					<div class="form-row">
-						{{ form.new_password1.errors }}
-						<p class="ds-u-margin-y--1"> </p>
-						{{ form.new_password1.label_tag }} {{ form.new_password1 }}
-						{% if form.new_password1.help_text %}
-						<p class="ds-u-margin-y--1"> </p>
-						<div class="help">{{ form.new_password1.help_text|safe }}</div>
-						{% endif %}
-					</div>
+					<!-- Current Password Input -->
+					{{ form.old_password.label_tag }}
+					{{ form.old_password }}
+					
+					<!-- Password Requirements -->
+					<h2>Password Requirements</h2>
+					<div class="ds-u-margin-bottom--2">
+						{{ form.new_password1.help_text|safe }}
+					</div>					
 
-					<div class="form-row">
+					<!-- New Password Field 1 Errors -->
+					{% if form.new_password1.errors %}
+					<p class="ds-u-margin-y--1">{{ form.new_password1.errors }}</p>
+					{% endif %}
+
+					<!-- New Password Field 1 Input -->
+					{{ form.new_password1.label_tag }}
+					{{ form.new_password1 }}
+					
+					<!-- New Password Field 2 Errors (Confirm Password Errors) -->
+					{% if form.new_password2.errors %}
+					<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2 ds-c-alert--hide-icon">
 						{{ form.new_password2.errors }}
-						<p class="ds-u-margin-y--1"> </p>
-						{{ form.new_password2.label_tag }} {{ form.new_password2 }}
-						{% if form.new_password2.help_text %}
-						<div class="help">{{ form.new_password2.help_text|safe }}</div>
-						<p class="ds-u-margin-y--1"> </p>
-						{% endif %}
 					</div>
+					{% endif %}
 
-					<div class="submit-row">
-							<input type="submit" class="ds-c-button  ds-c-button--primary" value="Change my password" class="default">
-					</div>
+					<!-- New Password Field 2 Input (Confirm Password Input) -->
+					{{ form.new_password2.label_tag }}
+					{{ form.new_password2 }}
+
+					<!-- New Password Field 2 Help Text (Confirm Password Help Text)-->
+					{% if form.new_password2.help_text %}
+						{{ form.new_password2.help_text|safe }}
+					{% endif %}
+
+					<input type="submit" class="ds-c-button  ds-c-button--primary" value="Change my password" class="default">
 	
 				</form>
 			</div>
 		</div>
 	</div>
 </div>
-{% endblock %}
-
-{% block ExtraJSFoot %}
-    <script type="application/javascript">$("#id_email").focus();</script>
 {% endblock %}
