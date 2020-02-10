@@ -61,7 +61,6 @@ def account_settings(request):
             request.user.save()
             # update the user profile
             up.organization_name = data['organization_name']
-            up.create_applications = data['create_applications']
             up.authorize_applications = True
             up.save()
             messages.success(request,

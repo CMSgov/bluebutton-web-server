@@ -60,8 +60,7 @@ class SignupForm(UserCreationForm):
         UserProfile.objects.create(user=user,
                                    organization_name=self.cleaned_data[
                                        'organization_name'],
-                                   user_type="DEV",
-                                   create_applications=True)
+                                   user_type="DEV")
 
         group = Group.objects.get(name='BlueButton')
         user.groups.add(group)
@@ -89,8 +88,6 @@ class AccountSettingsForm(forms.Form):
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
                                         required=True)
-    create_applications = forms.BooleanField(initial=False,
-                                             required=False)
     required_css_class = 'required'
 
 
