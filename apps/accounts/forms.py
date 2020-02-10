@@ -89,8 +89,6 @@ class AccountSettingsForm(forms.Form):
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
                                         required=True)
-    create_applications = forms.BooleanField(initial=False,
-                                             required=False)
     required_css_class = 'required'
 
 
