@@ -60,7 +60,8 @@ class SignupForm(UserCreationForm):
         UserProfile.objects.create(user=user,
                                    organization_name=self.cleaned_data[
                                        'organization_name'],
-                                   user_type="DEV")
+                                   user_type="DEV",
+                                   create_applications=True)
 
         group = Group.objects.get(name='BlueButton')
         user.groups.add(group)
