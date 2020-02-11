@@ -83,9 +83,9 @@ django-storages==1.7.1 \
 django-waffle==0.15.1 \
     --hash=sha256:55691686e3cd6bc0116cf9f025cc7b49b493e8dac8e43f5b4c303d5b8d865588 \
     --hash=sha256:5ee5b0a3dc6b5e19dcc60f1c02422343b3017b6559a2f1b68705e0d07617aed9
-django==2.1.11 \
-    --hash=sha256:1a41831eace203fd1939edf899e07d7abd12ce9bafc3d9a5a63a24a8d1d12bd5 \
-    --hash=sha256:305b6c4fce9e03bb746e35780c2c4d52f29ea1669f15633cfd41bc8821c74c76
+django==2.2.10 \
+    --hash=sha256:1226168be1b1c7efd0e66ee79b0e0b58b2caa7ed87717909cd8a57bb13a7079a \
+    --hash=sha256:9a4635813e2d498a3c01b10c701fe4a515d76dd290aaa792ccb65ca4ccb6b038
 djangorestframework-csv==2.1.0 \
     --hash=sha256:2f008b20a44f2d3c37835ea5b5ddfe19f54394f07b9cb267c616a917a7f7e27c
 djangorestframework-yaml==1.0.3 \
@@ -265,4 +265,4 @@ voluptuous==0.11.5 \
 
 # WARNING: The following packages were not pinned, but pip requires them to be
 # pinned when the requirements file includes hashes. Consider using the --allow-unsafe flag.
-# setuptools==41.4.0        # via tox
+# setuptools
