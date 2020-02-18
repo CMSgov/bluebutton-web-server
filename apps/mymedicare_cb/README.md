@@ -1,6 +1,8 @@
 MyMedicare Callback
 ===================
 
+Docs for the MyMedicare (SLS) authentication flow can be found in Confluence: https://confluence.cms.gov/display/BB/OpenID+Connect+%28OIDC%29+for+SLS
+
 Adjust the following settings for environments.  Below the DEV defaults are given, but must be updated for production.
 
 

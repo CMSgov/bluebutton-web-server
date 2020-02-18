@@ -16,6 +16,7 @@ from apps.capabilities.models import ProtectedCapability
 from httmock import urlmatch, all_requests, HTTMock
 from django.contrib.auth.models import Group
 from apps.fhir.server.models import ResourceRouter
+from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Approval, Application
 
 from .responses import patient_response
@@ -38,7 +39,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         """
         fake_login_url = 'https://example.com/login?scope=openid'
 
-        with self.settings(ALLOW_CHOOSE_LOGIN=False, MEDICARE_LOGIN_URI=fake_login_url, MEDICARE_REDIRECT_URI='/123'):
+        with self.settings(MEDICARE_LOGIN_URI=fake_login_url, MEDICARE_REDIRECT_URI='/123'):
             response = self.client.get(self.login_url + '?next=/')
             self.assertEqual(response.status_code, 302)
             query = parse_qs(urlparse(response['Location']).query)
@@ -87,6 +88,10 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         user = User.objects.create_user(
             "bob",
             password="bad")
+        Crosswalk.objects.create(
+            user=user,
+            fhir_id="-20000000002346",
+            user_id_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7")
         application = Application.objects.create(
             redirect_uris="http://test.com",
             authorization_grant_type='authorization-code',
@@ -155,10 +160,11 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             return {
                 'status_code': 200,
                 'content': {
-                    'sub': '0123456789abcdefghijklmnopqrstuvwxyz',
+                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
                     'given_name': '',
                     'family_name': '',
                     'email': 'bob@bobserver.bob',
+                    'hicn': '1234567890A',
                 },
             }
 
