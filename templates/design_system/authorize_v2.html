@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% load bootstrap %}
+
+{% block navigation %}{% endblock %}
+
+{% block Header %}{% endblock %}
+
+{% block banner %}{% endblock %}
+
+{% block Content %}
+<div class="bene-auth-container ds-u-padding-y--7">
+	<!-- Medicare.gov Logo -->
+	<img class="medicare-logo" src="{% static 'img/medicare-logo.png' %}" alt="medicare.gov">
+
+	<!-- Auth Options/Content Container -->
+	<div class="bb-c-card ds-u-padding--4 ds-u-margin-x--2">
+
+		<!-- Display Application Logo -->
+		{% if application.logo_uri %}
+			<div class="app-logo">
+				<img src={{ application.logo_uri }} alt="{{ application.name }} logo"/>
+			</div>
+		{% endif %}
+
+		<h1 class="ds-u-font-size--h2">{{ application.name }} has asked for some of your data.</h1>
+
+		<ul>
+			<li>Information about your doctor/hosiptal visits</li>
+			<li>Information about the prescription medications you take</li>
+			<li>Personal Information like your name, address, date of birth, race, and gender</li>
+		</ul>
+
+		{% if not error %}
+		<form id="authorizationForm" method="post">
+                        {% csrf_token %}
+			<fieldset class="ds-c-fieldset bene-auth-fieldset">
+				<legend class="ds-c-label">
+					<h2 class="ds-u-font-size--h3">Privacy Options</h2>
+				</legend>
+				<input class="ds-c-choice" id="radio-1" type="radio" name="radio-choices" value="radio-1" checked />
+				<label for="radio-1">
+					<span class="ds-u-font-size--lead">Share all of your data</span>
+					<span class="ds-c-field__hint">This app will have access to both your healthcare data and some personal information</span>
+				</label>
+				<input class="ds-c-choice" id="radio-2" type="radio" name="radio-choices" value="radio-2"/>
+				<label for="radio-2">
+					<span class="ds-u-font-size--lead">Share healthcare data, but not your personal info</span>
+					<span class="ds-c-field__hint">Block some of your personal data like name, address, date of birth, race, and gender</span>
+				</label>
+			</fieldset>
+
+			<h3 class="ds-u-margin-y--2">Understand how your data is being used</h3>
+			<p>To understand fully how {{ application.name }} will use your data, please read the app’s <a href="{{ application.policy_uri }}">Privacy Policy</a> and <a href="{{ application.tos_uri }}">Terms and Conditions</a>.</p>
+
+			<div class="ds-u-margin-top--4 ds-u-display--flex ds-u-justify-content--end">
+				<input class="ds-c-button ds-c-button--primary" id="approve" type="submit" name="allow" value="Allow" />
+				<input class="ds-c-button ds-c-button--transparent" type="submit"  value="Deny" />
+			</div>
+
+		</form>
+		{% else %}
+		<h3>Error: {{ error.error }}</h3>
+		<p>{{ error.description }}</p>
+		{% endif %}
+
+	</div>
+
+	<div class="bb-c-card ds-u-margin-y--4 ds-u-padding--4 ds-u-margin-x--2 bene-auth-max-width">
+		You can revoke this app’s access to your data at any time by logging into your <a href="https://www.mymedicare.gov/">MyMedicare.gov</a> account or calling us at 1-800-633-427.
+	</div>
+
+</div>
+{% endblock %}
