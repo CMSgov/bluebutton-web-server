@@ -152,3 +152,14 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
+    share_choice = forms.CharField(required=False)
+
+    def clean_scope(self):
+        scope = self.cleaned_data.get("scope")
+        share_choice = self.data.get("share_choice")
+
+        # Remove personal information scopes, if requested
+        if share_choice == "block-personal":
+            return ' '.join([s for s in scope.split(" ") if s not in ["patient/Patient.read", "profile"]])
+        else:
+            return scope

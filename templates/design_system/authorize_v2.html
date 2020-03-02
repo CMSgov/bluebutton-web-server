@@ -34,22 +34,31 @@
 
 		{% if not error %}
 		<form id="authorizationForm" method="post">
-                        {% csrf_token %}
 			<fieldset class="ds-c-fieldset bene-auth-fieldset">
 				<legend class="ds-c-label">
 					<h2 class="ds-u-font-size--h3">Privacy Options</h2>
 				</legend>
-				<input class="ds-c-choice" id="radio-1" type="radio" name="radio-choices" value="radio-1" checked />
+				<input class="ds-c-choice" id="radio-1" type="radio" name="share_choice" value="all" checked />
 				<label for="radio-1">
 					<span class="ds-u-font-size--lead">Share all of your data</span>
 					<span class="ds-c-field__hint">This app will have access to both your healthcare data and some personal information</span>
 				</label>
-				<input class="ds-c-choice" id="radio-2" type="radio" name="radio-choices" value="radio-2"/>
+				<input class="ds-c-choice" id="radio-2" type="radio" name="share_choice" value="block-personal"/>
 				<label for="radio-2">
 					<span class="ds-u-font-size--lead">Share healthcare data, but not your personal info</span>
 					<span class="ds-c-field__hint">Block some of your personal data like name, address, date of birth, race, and gender</span>
 				</label>
 			</fieldset>
+
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                          {% if field.is_hidden %}
+                            {{ field }}
+                          {% endif %}
+                        {% endfor %}
+
+                        {{ form.non_field_errors }}
 
 			<h3 class="ds-u-margin-y--2">Understand how your data is being used</h3>
 			<p>To understand fully how {{ application.name }} will use your data, please read the app’s <a href="{{ application.policy_uri }}">Privacy Policy</a> and <a href="{{ application.tos_uri }}">Terms and Conditions</a>.</p>
