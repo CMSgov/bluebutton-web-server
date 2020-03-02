@@ -18,12 +18,13 @@ class AuthorizationView(DotAuthorizationView):
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
-    def get_initial(self):
+    def get_template_names(self):
         if waffle.switch_is_active('require-scopes'):
-            self.template_name = "design_system/authorize_v2.html"
+            return ["design_system/authorize_v2.html"]
         else:
-            self.template_name = "design_system/authorize.html"
+            return ["design_system/authorize.html"]
 
+    def get_initial(self):
         initial_data = super().get_initial()
         initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
         initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
