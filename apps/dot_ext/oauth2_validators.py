@@ -32,66 +32,6 @@ class SingleAccessTokenValidator(
             *args,
             **kwargs)
 
-    # TODO: remove this
-    # https://github.com/jazzband/django-oauth-toolkit/blob/f0091f17445e1481692bcebc2fc2d9b5b522b608/oauth2_provider/oauth2_validators.py#L337
-    def save_bearer_token(self, token, request, *args, **kwargs):
-        """
-        Check if an access_token exists for the couple user/application
-        that is valid and authorized for the same scopes and ensures that
-        no refresh token was used.
-
-        If all the conditions are true the same access_token is issued.
-        Otherwise a new one is created with the default strategy.
-        """
-        # this queryset identifies all the valid access tokens
-        # for the couple user/application.
-        previous_valid_tokens = AccessToken.objects.filter(
-            user=request.user, application=request.client,
-        ).filter(expires__gt=timezone.now()).order_by('-expires')
-
-        # if a refresh token was not used and a valid token exists we
-        # can replace the new generated token with the old one.
-        if not request.refresh_token and previous_valid_tokens.exists():
-            for access_token in previous_valid_tokens:
-                # the previous access_token must allow access to the same scope
-                # or bigger
-                if access_token.allow_scopes(token['scope'].split()):
-                    token['access_token'] = access_token.token
-                    expires_in = access_token.expires - timezone.now()
-                    token['expires_in'] = math.floor(expires_in.total_seconds())
-
-                    if hasattr(access_token, 'refresh_token'):
-                        token['refresh_token'] = access_token.refresh_token.token
-
-                    # break the loop and exist because we found to old token
-                    return
-
-        # default behaviour when no old token is found
-        if request.refresh_token:
-            # remove used refresh token
-            RefreshToken.objects.get(token=request.refresh_token).revoke()
-
-        expires = timezone.now() + timedelta(seconds=token['expires_in'])
-        if request.grant_type == 'client_credentials':
-            request.user = None
-
-        access_token = AccessToken(
-            user=request.user,
-            scope=token['scope'],
-            expires=expires,
-            token=token['access_token'],
-            application=request.client)
-        access_token.save()
-
-        if 'refresh_token' in token:
-            refresh_token = RefreshToken(
-                user=request.user,
-                token=token['refresh_token'],
-                application=request.client,
-                access_token=access_token
-            )
-            refresh_token.save()
-
     def get_original_scopes(self, refresh_token, request, *args, **kwargs):
         try:
             return super().get_original_scopes(refresh_token, request, *args, **kwargs)
