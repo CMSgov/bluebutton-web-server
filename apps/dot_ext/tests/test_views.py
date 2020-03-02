@@ -91,6 +91,7 @@ class TestTokenView(BaseApiTest):
             'scope': application.scopes().split(" "),
             'expires_in': 86400,
             'allow': True,
+            'share_choice': '',
         }
         if application.authorization_grant_type == Application.GRANT_IMPLICIT:
             payload['response_type'] = 'token'

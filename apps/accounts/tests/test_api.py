@@ -96,7 +96,10 @@ class TestSingleAccessTokenValidator(BaseApiTest):
         second_access_token = self._get_access_token('john',
                                                      '123456',
                                                      application)
-        self.assertEqual(first_access_token, second_access_token)
+        # NOTE: Since removing our custom save_bearer_token() function from 
+        #       apps/dot_ext/oauth2_validators.py and using oauth2's version, 
+        #       this now returns a different token instead of reusing the previous one.
+        self.assertNotEqual(first_access_token, second_access_token)
 
     def test_single_access_token_issued_when_changed_scope_allowed(self):
         """
@@ -128,7 +131,10 @@ class TestSingleAccessTokenValidator(BaseApiTest):
                                                      '123456',
                                                      application,
                                                      scope='read')
-        self.assertEqual(first_access_token, second_access_token)
+        # NOTE: Since removing our custom save_bearer_token() function from 
+        #       apps/dot_ext/oauth2_validators.py and using oauth2's version, 
+        #       this now returns a different token instead of reusing the previous one.
+        self.assertNotEqual(first_access_token, second_access_token)
 
     def test_new_access_token_issued_when_scope_added(self):
         """
