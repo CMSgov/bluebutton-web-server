@@ -46,13 +46,6 @@ class AuthorizationView(DotAuthorizationView):
             "code_challenge": form.cleaned_data.get("code_challenge", None),
             "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
         }
-
-        scope = form.cleaned_data.get("scope")
-        personal_scopes = ["patient/Patient.read", "profile"]
-        # Remove personal information scopes, if requested by bene
-        if form.cleaned_data.get("block_personal_choice"):
-            form.cleaned_data['scope'] = ' '.join([s for s in scope.split(" ") if s not in personal_scopes])
-
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
 

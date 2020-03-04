@@ -153,3 +153,15 @@ class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
     block_personal_choice = forms.BooleanField(required=False)
+
+    personal_scopes = ["patient/Patient.read", "profile"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        scope = cleaned_data.get("scope")
+
+        # Remove personal information scopes, if requested by bene
+        if cleaned_data.get("block_personal_choice"):
+            cleaned_data['scope'] = ' '.join([s for s in scope.split(" ") if s not in self.personal_scopes])
+
+        return cleaned_data
