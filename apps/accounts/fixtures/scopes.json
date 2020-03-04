@@ -3,66 +3,61 @@
         "model": "capabilities.protectedcapability",
         "pk": 1,
         "fields": {
-            "title": "Beneficiary Blue Button Patient Resource",
+            "title": "My general patient and demographic information.",
             "slug": "patient/Patient.read",
-            "group": 1,
-            "description": "This capability allows a 3rd party application to access beneficiary data when authorized by the beneficiary.",
-            "protected_resources": "[[\"GET\", \"/v1/fhir/Patient/[id]\"]]"
+            "group": 5,
+            "description": "Patient FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v1/fhir/Patient[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v1/fhir/Patient[/?].*$\"\n  ]\n]",
+            "default": "True"
         }
     },
     {
         "model": "capabilities.protectedcapability",
         "pk": 2,
         "fields": {
-            "title": "OpenID Connect Profile",
+            "title": "Profile information including name and email.",
             "slug": "profile",
-            "group": 1,
-            "description": "Get the Open ID profile.",
-            "protected_resources": "[[\"GET\", \"/connect/userinfo\"]]"
+            "group": 5,
+            "description": "OIDC userinfo endpoint /connect/userinfo",
+            "protected_resources": "[\n  [\n    \"GET\",\n    \"/v1/connect/userinfo.*$\"\n  ]\n]",
+            "default": "True"
         }
     },
     {
         "model": "capabilities.protectedcapability",
         "pk": 3,
         "fields": {
-            "title": "Beneficiary Blue Button ExplanationOfBenefit Resource",
+            "title": "My Medicare claim information.",
             "slug": "patient/ExplanationOfBenefit.read",
-            "group": 1,
-            "description": "[[\"GET\", \"/v1/fhir/ExplanationOfBenefit/[id]\"]]",
-            "protected_resources": "[[\"GET\", \"/v1/fhir/ExplanationOfBenefit/[id]\"]]"
+            "group": 5,
+            "description": "ExplanationOfBenefit FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v1/fhir/ExplanationOfBenefit[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v1/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
+            "default": "True"
         }
     },
     {
         "model": "capabilities.protectedcapability",
         "pk": 4,
         "fields": {
-            "title": "OpenIDConnect",
-            "slug": "openid",
-            "group": 1,
-            "description": "Just a declaration.",
-            "protected_resources": "[]"
+            "title": "My Medicare and supplemental coverage information.",
+            "slug": "patient/Coverage.read",
+            "group": 5,
+            "description": "Coverage FHIR Resource",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v1/fhir/Coverage[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v1/fhir/Coverage[/?].*$\"\n  ]\n]",
+            "default": "True"
         }
     },
     {
         "model": "capabilities.protectedcapability",
         "pk": 5,
         "fields": {
-            "title": "Beneficiary Blue Button Organization Resource",
-            "slug": "patient/Organization.read",
-            "group": 1,
-            "description": "Read FHIR Organization Resource",
-            "protected_resources": "[[\"GET\", \"/bluebutton/fhir/v1/Organization/[id]\"]]"
-        }
-    },
-    {
-        "model": "capabilities.protectedcapability",
-        "pk": 6,
-        "fields": {
-            "title": "Beneficiary Blue Button Coverage Resource",
-            "slug": "patient/Coverage.read",
-            "group": 1,
-            "description": "FHIR Coverage Resource (Read Only)",
-            "protected_resources": "[[\"GET\", \"/bluebutton/fhir/v1/Coverage/[id]\"]]"
+            "title": "Token Management",
+            "slug": "token_management",
+            "group": 5,
+            "description": "Allow an app to manage all of a user's tokens.",
+            "protected_resources": "[]",
+            "protected_resources": "[[\"GET\", \"/some-url\"]]",
+            "default": "False"
         }
     }
 ]
