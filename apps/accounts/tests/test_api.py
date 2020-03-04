@@ -98,41 +98,9 @@ class TestSingleAccessTokenValidator(BaseApiTest):
                                                      application)
         self.assertNotEqual(first_access_token, second_access_token)
 
-    def test_single_access_token_issued_when_changed_scope_allowed(self):
+    def test_new_access_token_issued_when_scope_changed(self):
         """
-        Test that the same access token is issued when a scope is changed but
-        it is a subset of the old token's scope.
-
-        e.g. old_token_scope = 'read write'
-             new_token_scope = 'read'
-        """
-        # create the user
-        self._create_user('john',
-                          '123456',
-                          first_name='John',
-                          last_name='Smith',
-                          email='john@smith.net')
-        # create read and write capabilities
-        read_capability = self._create_capability('Read', [])
-        write_capability = self._create_capability('Write', [])
-        # create a oauth2 application and add capabilities
-        application = self._create_application('test')
-        application.scope.add(read_capability, write_capability)
-        # get the first access token for the user 'john'
-        first_access_token = self._get_access_token('john',
-                                                    '123456',
-                                                    application,
-                                                    scope='read write')
-        # request another access token for the same user/application
-        second_access_token = self._get_access_token('john',
-                                                     '123456',
-                                                     application,
-                                                     scope='read')
-        self.assertNotEqual(first_access_token, second_access_token)
-
-    def test_new_access_token_issued_when_scope_added(self):
-        """
-        Test that a new access token is issued when a scope is added.
+        Test that a new access token is issued when a scope is changed.
 
         e.g. old_token_scope = 'read'
              new_token_scope = 'read write'
