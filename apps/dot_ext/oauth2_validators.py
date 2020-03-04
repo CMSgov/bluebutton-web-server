@@ -1,9 +1,3 @@
-import math
-
-from django.utils import timezone
-from django.utils.timezone import timedelta
-
-from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.oauth2_validators import OAuth2Validator
 from django.core.exceptions import ObjectDoesNotExist
 from apps.pkce.oauth2_validators import PKCEValidatorMixin
