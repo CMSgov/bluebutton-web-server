@@ -337,34 +337,6 @@ def FhirServerVerify(crosswalk=None):
     return verify_setting
 
 
-def FhirServerUrl(server=None, path=None, release=None):
-
-    resource_router_def = get_resourcerouter()
-
-    resource_router_server_address = resource_router_def.server_address
-
-    fhir_server = notNone(server, resource_router_server_address)
-
-    fhir_path = notNone(path, resource_router_def.server_path)
-
-    fhir_release = notNone(release, resource_router_def.server_release)
-
-    if fhir_release is not None:
-        if not fhir_release.endswith('/'):
-            fhir_release += '/'
-
-    result = fhir_server
-    if result is not None:
-        result += fhir_path
-    if result is not None:
-        result += fhir_release
-    # Set to "" if still None
-    if result is None:
-        result = ""
-
-    return result
-
-
 def masked(supported_resource_type_control=None):
     """ check if force_url_override is set in SupportedResourceType """
     mask = False

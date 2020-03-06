@@ -11,7 +11,6 @@ from apps.fhir.server.models import SupportedResourceType
 from apps.fhir.bluebutton.utils import (
     notNone,
     FhirServerAuth,
-    FhirServerUrl,
     masked,
     mask_with_this_url,
     mask_list_with_host,
@@ -109,33 +108,6 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
                                              crosswalk.fhir_source.key_file)}
 
         self.assertDictEqual(response, expected)
-
-    def test_FhirServerUrl(self):
-        """ Build a fhir server url """
-
-        """ Test 1: Pass all parameters """
-        response = FhirServerUrl('http://localhost:8000',
-                                 '/any_path',
-                                 '/release')
-        expected = 'http://localhost:8000/any_path/release/'
-        self.assertEquals(response, expected)
-
-        """ Test 2: Pass no parameters """
-        response = FhirServerUrl()
-
-        resource_router = get_resourcerouter()
-        resource_router_server_address = resource_router.server_address
-
-        expected = resource_router_server_address
-        expected += resource_router.server_path
-        expected += resource_router.server_release
-        if expected.endswith('/'):
-            pass
-        else:
-            expected += '/'
-        # expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
-
-        self.assertEquals(response, expected)
 
     def test_prepend_q_yes(self):
         """ Check that ? is added to front of parameters if required """
