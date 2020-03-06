@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 import pytz
 import requests
@@ -418,18 +417,6 @@ def get_host_url(request, resource_type=''):
         full_url_list = full_url.split(resource_type)
 
     return full_url_list[0]
-
-
-def post_process_request(request, host_path, r_text, rewrite_url_list):
-    if r_text == "":
-        return r_text
-
-    pre_text = mask_list_with_host(request,
-                                   host_path,
-                                   r_text,
-                                   rewrite_url_list)
-
-    return json.loads(pre_text, object_pairs_hook=OrderedDict)
 
 
 def prepend_q(pass_params):

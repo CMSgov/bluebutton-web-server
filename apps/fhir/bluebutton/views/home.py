@@ -1,13 +1,12 @@
 import json
 import logging
 
+from collections import OrderedDict
 from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from apps.fhir.bluebutton.utils import (request_call,
-                                        get_host_url,
                                         prepend_q,
-                                        post_process_request,
                                         get_resource_names,
                                         get_resourcerouter,
                                         get_response_text,
@@ -45,7 +44,6 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     r = request_call(request, call_to + pass_params, crosswalk)
 
     text_out = ''
-    host_path = get_host_url(request, '?')
 
     if r.status_code >= 300:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
@@ -55,10 +53,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
 
     text_in = get_response_text(fhir_response=r)
 
-    text_out = post_process_request(request,
-                                    host_path,
-                                    text_in,
-                                    [])
+    text_out = json.loads(text_in, object_pairs_hook=OrderedDict)
 
     od = conformance_filter(text_out, resource_router)
 
