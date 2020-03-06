@@ -374,34 +374,6 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     return out_text
 
 
-def mask_list_with_host(request, host_path, in_text, urls_be_gone=None):
-    """ Replace a series of URLs with the host_name """
-
-    if in_text == '':
-        return in_text
-
-    if urls_be_gone is None:
-        # Nothing in the list to be replaced
-        return in_text
-
-    resource_router_def = get_resourcerouter()
-    resource_router_def_server_address = resource_router_def.server_address
-
-    if isinstance(resource_router_def_server_address, str):
-        if resource_router_def_server_address not in urls_be_gone:
-
-            urls_be_gone.append(resource_router_def_server_address)
-
-    for kill_url in urls_be_gone:
-        # work through the list making replacements
-        if kill_url.endswith('/'):
-            kill_url = kill_url[:-1]
-
-        in_text = mask_with_this_url(request, host_path, in_text, kill_url)
-
-    return in_text
-
-
 def get_host_url(request, resource_type=''):
     """ get the full url and split on resource_type """
 

@@ -13,7 +13,6 @@ from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     masked,
     mask_with_this_url,
-    mask_list_with_host,
     get_host_url,
     prepend_q,
     dt_patient_reference,
@@ -238,106 +237,6 @@ class BlueButtonUtilRequestTest(TestCase):
                                       find_url='http://www.example.com:8000')
 
         expected = 'dddd anything http://www.replaced.com will get replaced'
-
-        self.assertEqual(response, expected)
-
-    def test_mask_list_with_host(self):
-        """ Replace urls in list with host_path in a text string """
-
-        # FHIR_SERVER_CONF = {
-        #   "SERVER": "http://fhir.bbonfhir.com/",
-        #   "PATH": "fhir-p/",
-        #   "RELEASE": "baseDstu2/",
-        #   "REWRITE_FROM": "http://ec2-52-4-198-86.compute-1.amazonaws.com" \
-        #                   ":8080/baseDstu2",
-        #   "REWRITE_TO": "http://localhost:8000/bluebutton/fhir/v1"}
-
-        """ Test 1: No text to replace. No changes """
-
-        request = self.factory.get('/cmsblue/fhir/v1/Patient')
-
-        rewrite_list = ['http://disappear.com',
-                        'http://www.example.com:8000',
-                        'http://example.com']
-
-        default_url = ['http://disappear.com',
-                       'http://www.disappear.com']
-
-        input_text = 'dddd anything '
-        input_text += default_url[0]
-        input_text += ' will get replaced more stuff '
-        input_text += 'http://www.example.com:8000 and '
-        input_text += 'http://example.com:8000/ okay'
-
-        response = mask_list_with_host(request,
-                                       'http://www.replaced.com',
-                                       '',
-                                       rewrite_list)
-
-        expected = ''
-        self.assertEqual(response, expected)
-
-        """ Test 2: No text to replace with. Only replace
-            FHIR_SERVER_CONF.REWRITE_FROM changes
-        """
-
-        input_text = 'dddd anything '
-        input_text += default_url[0]
-        input_text += ' will get replaced more stuff '
-        input_text += 'http://www.example.com:8000 and '
-        input_text += 'http://example.com:8000/ okay'
-
-        request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_list_with_host(request,
-                                       'http://www.replaced.com',
-                                       input_text,
-                                       [])
-
-        expected = input_text
-
-        self.assertEqual(response, expected)
-
-        """ Test 3: Replace text removing slash from end of replaced text """
-
-        input_text = 'dddd anything '
-        input_text += default_url[0]
-        input_text += ':8080/baseDstu2 will get replaced more stuff '
-        input_text += 'http://www.example.com:8000 and '
-        input_text += 'http://example.com:8000/ okay'
-
-        request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_list_with_host(request,
-                                       'http://www.replaced.com/',
-                                       input_text,
-                                       ['http://www.example.com:8000',
-                                        'http://disappear.com',
-                                        'http://www.replace.com:8080/baseDstu2',
-                                        'http://example.com'])
-
-        expected = 'dddd anything http://www.replaced.com:8080/baseDstu2' \
-                   ' will get replaced ' \
-                   'more stuff http://www.replaced.com and ' \
-                   'http://www.replaced.com:8000/ okay'
-
-        self.assertEqual(response, expected)
-
-        """ Test 4: Replace text """
-
-        input_text = 'dddd anything '
-        input_text += default_url[0]
-        input_text += ' will get replaced more stuff '
-        input_text += 'http://www.example.com:8000 and '
-        input_text += 'http://example.com:8000/ okay'
-
-        request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_list_with_host(request,
-                                       'http://www.replaced.com',
-                                       input_text,
-                                       rewrite_list)
-
-        expected = 'dddd anything http://www.replaced.com will get replaced ' \
-                   'more stuff http://www.replaced.com and ' \
-                   'http://www.replaced.com:8000/ okay'
 
         self.assertEqual(response, expected)
 
