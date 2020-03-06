@@ -11,7 +11,6 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         post_process_request,
                                         get_resource_names,
                                         get_resourcerouter,
-                                        build_rewrite_list,
                                         get_response_text,
                                         build_oauth_resource)
 
@@ -55,13 +54,12 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
                             status=r.status_code,
                             content_type='application/json')
 
-    rewrite_url_list = build_rewrite_list(crosswalk)
     text_in = get_response_text(fhir_response=r)
 
     text_out = post_process_request(request,
                                     host_path,
                                     text_in,
-                                    rewrite_url_list)
+                                    [])
 
     od = conformance_filter(text_out, resource_router)
 

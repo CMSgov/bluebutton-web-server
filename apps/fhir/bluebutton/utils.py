@@ -554,30 +554,6 @@ def get_resourcerouter(crosswalk=None):
     return resource_router
 
 
-def build_rewrite_list(crosswalk=None):
-    """
-    Build the rewrite_list of server addresses
-
-    :return: rewrite_list
-    """
-
-    rewrite_list = []
-    if crosswalk:
-        rewrite_list.append(crosswalk.fhir_source.fhir_url)
-
-    resource_router = get_resourcerouter()
-    # get the default ResourceRouter entry
-    if resource_router.fhir_url not in rewrite_list:
-        rewrite_list.append(resource_router.fhir_url)
-
-    if isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], list):
-        rewrite_list.extend(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
-    elif isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], str):
-        rewrite_list.append(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
-
-    return rewrite_list
-
-
 def handle_http_error(e):
     """ Handle http error from request_call
 
