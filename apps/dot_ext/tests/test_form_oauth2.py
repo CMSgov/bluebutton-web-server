@@ -1,30 +1,21 @@
-from waffle.testutils import override_switch
-from apps.test import BaseApiTest
 from apps.dot_ext.forms import SimpleAllowForm
+from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.test import BaseApiTest
+from django.conf import settings
 
 
 class TestSimpleAllowFormForm(BaseApiTest):
-
-    @override_switch('require-scopes', active=True)
-    def assertFormValidWithRequireScopes(self, data):
-        form = SimpleAllowForm(data)
-        self.assertTrue(form.is_valid())
-        return form.cleaned_data
-
-    def assertFormValid(self, data):
-        form = SimpleAllowForm(data)
-        self.assertTrue(form.is_valid())
-        return form.cleaned_data
+    fixtures = ['scopes.json']
 
     def test_form(self):
         """
-            Test form related to scopes and require-scopes feature switch.
+            Test form related to scopes and BENE block_personal_choice.
         """
-        full_scopes_list = 'patient/Patient.read profile patient/ExplanationOfBenefit.read patient/Coverage.read'
-        non_personal_scopes_list = 'patient/ExplanationOfBenefit.read patient/Coverage.read'
+        full_scopes_list = CapabilitiesScopes().get_default_scopes()
+        non_personal_scopes_list = list(set(full_scopes_list) - set(settings.BENE_PERSONAL_INFO_SCOPES))
 
         data = {'redirect_uri': 'http://localhost:3000/bluebutton/callback/',
-                'scope': full_scopes_list,
+                'scope': ' '.join(full_scopes_list),
                 'client_id': 'AAAAAAAAAA1111111111111111AAAAAAAAAAAAAA',
                 'state': 'ba0a6e3c704ced52c7788331e6bab262',
                 'response_type': 'code',
@@ -32,32 +23,23 @@ class TestSimpleAllowFormForm(BaseApiTest):
                 'code_challenge_method': '',
                 'allow': 'Allow'}
 
-        # Test with block_personal_choice = False
+        # 1. Test with block_personal_choice = False
+        #        Should have full scopes list.
         data['block_personal_choice'] = 'False'
-        #     1. with require-scopes switch disabled.
-        #        Should have full scopes list.
-        cleaned_data = self.assertFormValid(data)
+        form = SimpleAllowForm(data)
+        self.assertTrue(form.is_valid())
+        cleaned_data = form.cleaned_data
+
         self.assertNotEqual(cleaned_data['scope'].split(), None)
-        self.assertEqual(sorted(full_scopes_list.split()),
-                         sorted(cleaned_data['scope'].split()))
-        #     2. with require-scopes switch enabled.
-        #        Should have full scopes list.
-        cleaned_data = self.assertFormValidWithRequireScopes(data)
-        self.assertNotEqual(cleaned_data['scope'].split(), None)
-        self.assertEqual(sorted(full_scopes_list.split()),
+        self.assertEqual(sorted(full_scopes_list),
                          sorted(cleaned_data['scope'].split()))
 
-        # Test with block_personal_choice = True
+        # 2. Test with block_personal_choice = True
+        #        Should have non personal scopes list.
         data['block_personal_choice'] = 'True'
-        #     1. with require-scopes switch disabled.
-        #        Should have non personal scopes list.
-        cleaned_data = self.assertFormValid(data)
+        form = SimpleAllowForm(data)
+        self.assertTrue(form.is_valid())
+        cleaned_data = form.cleaned_data
         self.assertNotEqual(cleaned_data['scope'].split(), None)
-        self.assertEqual(sorted(non_personal_scopes_list.split()),
-                         sorted(cleaned_data['scope'].split()))
-        #     2. with require-scopes switch enabled.
-        #        Should have non personal scopes list.
-        cleaned_data = self.assertFormValidWithRequireScopes(data)
-        self.assertNotEqual(cleaned_data['scope'].split(), None)
-        self.assertEqual(sorted(non_personal_scopes_list.split()),
+        self.assertEqual(sorted(non_personal_scopes_list),
                          sorted(cleaned_data['scope'].split()))
