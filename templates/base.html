@@ -18,7 +18,9 @@
 
 	<body>
 		<!-- Navigation -->
-		{% include "include/top-nav-responsive.html" %}
+		{% block navigation %}
+			{% include "include/top-nav-responsive.html" %}
+		{% endblock %}
 
 		{% block banner %}
 		<!-- Sandbox Banner -->

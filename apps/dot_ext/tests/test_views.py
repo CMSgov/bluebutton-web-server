@@ -1,14 +1,15 @@
 import json
 import base64
-
+from django.conf import settings
 from django.urls import reverse
-
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import AccessToken
 
 from apps.test import BaseApiTest
 from ..models import Application
 from apps.authorization.models import DataAccessGrant
+from apps.dot_ext.scopes import CapabilitiesScopes
+from apps.capabilities.models import ProtectedCapability
 
 
 class TestApplicationUpdateView(BaseApiTest):
@@ -32,6 +33,22 @@ class TestApplicationUpdateView(BaseApiTest):
 
 
 class TestAuthorizationView(BaseApiTest):
+    fixtures = ['scopes.json']
+
+    def _authorize_and_request_token(self, payload, application):
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.assertEqual(response.status_code, 302)
+        # now extract the authorization code and use it to request an access_token
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': 'http://example.it',
+            'client_id': application.client_id,
+        }
+        return self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+
     def test_post_with_restricted_scopes_issues_token_with_same_scopes(self):
         """
         Test that when user unchecks some of the scopes the token is issued
@@ -58,22 +75,66 @@ class TestAuthorizationView(BaseApiTest):
             'expires_in': 86400,
             'allow': True,
         }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
-        self.assertEqual(response.status_code, 302)
-        # now extract the authorization code and use it to request an access_token
-        query_dict = parse_qs(urlparse(response['Location']).query)
-        authorization_code = query_dict.pop('code')
-        token_request_data = {
-            'grant_type': 'authorization_code',
-            'code': authorization_code,
-            'redirect_uri': 'http://example.it',
-            'client_id': application.client_id,
-        }
-        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+        response = self._authorize_and_request_token(payload, application)
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content.decode("utf-8"))
         # and here we test that only the capability-a scope has been issued
         self.assertEqual(content['scope'], "capability-a")
+
+    def test_post_with_block_personal_choice(self):
+        """
+        Test that when user chooses the block_personal_choice on
+        the BENE consent form, that the correct scopes are blocked
+        with the require-scopes feature switch DISABLED.
+        """
+        full_scopes_list = CapabilitiesScopes().get_default_scopes()
+        non_personal_scopes_list = list(set(full_scopes_list) - set(settings.BENE_PERSONAL_INFO_SCOPES))
+
+        # create a user
+        self._create_user('anna', '123456')
+
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris='http://example.it')
+        for s in full_scopes_list:
+            capability = ProtectedCapability.objects.get(slug=s)
+            application.scope.add(capability)
+
+        # user logs in
+        self.client.login(username='anna', password='123456')
+
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': 'http://example.it',
+            'scope': ' '.join(full_scopes_list),
+            'expires_in': 86400,
+            'allow': True,
+        }
+
+        # 1. Test the authorization with block_personal_choice = None.
+        response = self._authorize_and_request_token(payload, application)
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode("utf-8"))
+        # and here we test that the full scopes have been issued
+        self.assertEqual(sorted(content['scope'].split()), sorted(full_scopes_list))
+
+        # 2. Test the authorization with block_personal_choice = False.
+        payload['block_personal_choice'] = 'False'
+        response = self._authorize_and_request_token(payload, application)
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode("utf-8"))
+        # and here we test that the full scopes have been issued
+        self.assertEqual(sorted(content['scope'].split()), sorted(full_scopes_list))
+
+        # 3. Test the authorization with block_personal_choice = True.
+        payload['block_personal_choice'] = 'True'
+        response = self._authorize_and_request_token(payload, application)
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content.decode("utf-8"))
+        # and here we test that non-personal scopes have been issued
+        self.assertEqual(sorted(content['scope'].split()), sorted(non_personal_scopes_list))
 
 
 class TestTokenView(BaseApiTest):

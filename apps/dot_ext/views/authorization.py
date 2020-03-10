@@ -1,4 +1,5 @@
 import logging
+import waffle
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
@@ -16,7 +17,12 @@ class AuthorizationView(DotAuthorizationView):
     """
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
-    template_name = "design_system/authorize.html"
+
+    def get_template_names(self):
+        if waffle.switch_is_active('require-scopes'):
+            return ["design_system/authorize_v2.html"]
+        else:
+            return ["design_system/authorize.html"]
 
     def get_initial(self):
         initial_data = super().get_initial()
@@ -68,7 +74,6 @@ class ApprovalView(AuthorizationView):
     """
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
-    template_name = "design_system/authorize.html"
 
     def dispatch(self, request, uuid, *args, **kwargs):
         # trows DoesNotExist

@@ -5,7 +5,8 @@ from waffle.models import Switch
 WAFFLE_FEATURE_SWITCHES = (('outreach_email', True),
                            ('wellknown_applications', True),
                            ('login', True),
-                           ('signup', True))
+                           ('signup', True),
+                           ('require-scopes', True))
 
 
 class Command(BaseCommand):
