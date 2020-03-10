@@ -6,12 +6,10 @@ from django.test import TestCase, RequestFactory
 from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.server.models import SupportedResourceType
 
 from apps.fhir.bluebutton.utils import (
     notNone,
     FhirServerAuth,
-    masked,
     mask_with_this_url,
     get_host_url,
     prepend_q,
@@ -114,50 +112,6 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
         expected = pass_params
 
         self.assertEquals(response, expected)
-
-
-class BlueButtonUtilsRtTestCase(TestCase):
-
-    fixtures = ['fhir_bluebutton_test_rt.json']
-
-    def test_masked(self):
-        """ Checking for supported_resource_type_control.override_url_id """
-
-        """ Test:1 supported_resource_type_control with valid override_url_id=True """
-
-        supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
-
-        response = masked(supported_resource_type_control)
-        expected = True
-
-        self.assertEqual(response, expected)
-
-        """ Test:2 supported_resource_type_control with valid override_url_id=False """
-
-        supported_resource_type_control = SupportedResourceType.objects.get(pk=4)
-
-        response = masked(supported_resource_type_control)
-        expected = False
-
-        self.assertEqual(response, expected)
-
-        """ Test:3 supported_resource_type_control =None """
-
-        supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
-
-        response = masked(None)
-        expected = False
-
-        self.assertEqual(response, expected)
-
-        """ Test:4 No supported_resource_type_control """
-
-        # supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
-
-        response = masked()
-        expected = False
-
-        self.assertEqual(response, expected)
 
 
 class BlueButtonUtilRequestTest(TestCase):

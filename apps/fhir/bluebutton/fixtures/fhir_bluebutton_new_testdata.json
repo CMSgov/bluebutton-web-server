@@ -46,7 +46,6 @@
   "pk": 1,
   "fields": {
     "user": 1,
-    "fhir_source": 1,
     "_fhir_id": "Patient/9342511",
     "date_created": "2016-07-01T19:37:00.452Z",
     "_user_id_hash": "123456"
@@ -57,7 +56,6 @@
   "pk": 2,
   "fields": {
     "user": 2,
-    "fhir_source": 1,
     "_fhir_id": "Patient/9342512",
     "date_created": "2016-08-25T15:55:10.338Z",
     "_user_id_hash": "123457"
@@ -68,7 +66,6 @@
   "pk": 3,
   "fields": {
     "user": 3,
-    "fhir_source": 1,
     "_fhir_id": "Patient/9342703",
     "date_created": "2016-08-29T03:15:48.436Z",
     "_user_id_hash": "123458"

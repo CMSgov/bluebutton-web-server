@@ -7,7 +7,6 @@ from django.utils.text import slugify
 from django.conf import settings
 
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.server.models import ResourceRouter
 from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
@@ -20,13 +19,6 @@ class BaseApiTest(TestCase):
     """
 
     test_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
-
-    def setUp(self):
-        try:
-            ResourceRouter.objects.get(pk=settings.FHIR_SERVER_DEFAULT)
-        except ResourceRouter.DoesNotExist:
-            ResourceRouter.objects.create(pk=settings.FHIR_SERVER_DEFAULT,
-                                          fhir_url="http://bogus.com/")
 
     def _create_user(self, username, password, fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID, user_id_hash=test_hash, **extra_fields):
         """

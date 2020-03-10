@@ -10,7 +10,6 @@ from pytz import timezone
 
 from django.conf import settings
 from django.contrib import messages
-from apps.fhir.server.models import SupportedResourceType
 from apps.fhir.server.settings import fhir_settings
 
 from oauth2_provider.models import AccessToken
@@ -323,16 +322,6 @@ def FhirServerVerify(crosswalk=None):
     # Get default Server Verify Setting
     # Return True or False (Default)
     return get_resourcerouter().verify_server
-
-
-def masked(supported_resource_type_control=None):
-    """ check if force_url_override is set in SupportedResourceType """
-    mask = False
-    if supported_resource_type_control:
-        if supported_resource_type_control.override_url_id:
-            mask = True
-
-    return mask
 
 
 def mask_with_this_url(request, host_path='', in_text='', find_url=''):

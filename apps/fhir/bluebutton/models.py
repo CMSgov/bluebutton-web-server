@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from apps.accounts.models import get_user_id_salt
-from apps.fhir.server.models import ResourceRouter
+from apps.fhir.server.settings import fhir_settings
 from django.utils.crypto import pbkdf2
 import binascii
 from django.db.models import (CASCADE, Q)
@@ -49,11 +49,6 @@ class Crosswalk(models.Model):
     """
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
-    fhir_source = models.ForeignKey(ResourceRouter,
-                                    on_delete=CASCADE,
-                                    blank=True,
-                                    null=True)
-    # default=settings.FHIR_SERVER_DEFAULT)
     _fhir_id = models.CharField(max_length=80,
                                 null=False,
                                 unique=True,
@@ -81,6 +76,10 @@ class Crosswalk(models.Model):
         return '%s %s' % (self.user.first_name, self.user.last_name)
 
     @property
+    def fhir_source(self):
+        return fhir_settings
+
+    @property
     def fhir_id(self):
         return self._fhir_id
 
@@ -106,18 +105,6 @@ class Crosswalk(models.Model):
         if self.pk:
             raise ValidationError("this value cannot be modified.")
         self.user_id_hash = hash_hicn(hicn)
-
-    def get_fhir_patient_url(self):
-        # Return the fhir server url and {Resource_name}/{id}
-        full_url = self.fhir_source.fhir_url
-        if full_url.endswith('/'):
-            pass
-        else:
-            full_url += '/'
-        if self.fhir_source.shard_by:
-            full_url += self.fhir_source.shard_by + '/'
-        full_url += self.fhir_id
-        return full_url
 
     def get_fhir_resource_url(self, resource_type):
         # Return the fhir server url

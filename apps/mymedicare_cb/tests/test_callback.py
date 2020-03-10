@@ -15,7 +15,6 @@ from apps.mymedicare_cb.authorization import OAuth2Config
 from apps.capabilities.models import ProtectedCapability
 from httmock import urlmatch, all_requests, HTTMock
 from django.contrib.auth.models import Group
-from apps.fhir.server.models import ResourceRouter
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Approval, Application
 
@@ -31,7 +30,6 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         self.callback_url = reverse('mymedicare-sls-callback')
         self.login_url = reverse('mymedicare-login')
         Group.objects.create(name='BlueButton')
-        ResourceRouter.objects.create(pk=settings.FHIR_SERVER_DEFAULT, fhir_url="http://bogus.com/")
 
     def test_login_url_success(self):
         """
