@@ -427,6 +427,13 @@ FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
 FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, '../certstore'))
 
+FHIR_SERVER = {
+    "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/"),
+    "CERT_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, "ca.cert.pem"),
+    "KEY_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, "ca.key.nocrypt.pem"),
+    "CLIENT_AUTH": True,
+}
+
 # Timeout for request call
 REQUEST_CALL_TIMEOUT = (30, 120)
 # Headers Keep-Alive value

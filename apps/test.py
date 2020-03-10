@@ -6,7 +6,6 @@ from django.test import TestCase
 from django.utils.text import slugify
 from django.conf import settings
 
-from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.server.models import ResourceRouter
 from apps.authorization.models import DataAccessGrant
@@ -40,8 +39,7 @@ class BaseApiTest(TestCase):
 
         cw, _ = Crosswalk.objects.get_or_create(user=user,
                                                 _fhir_id=fhir_id,
-                                                _user_id_hash=user_id_hash,
-                                                fhir_source=get_resourcerouter())
+                                                _user_id_hash=user_id_hash)
         cw.save()
         return user
 
@@ -122,8 +120,7 @@ class BaseApiTest(TestCase):
             Crosswalk.objects.filter(_fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).delete()
         Crosswalk.objects.create(user=user,
                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                 user_id_hash=self.test_hash,
-                                 fhir_source=get_resourcerouter())
+                                 user_id_hash=self.test_hash)
 
         # create a oauth2 application and add capabilities
         application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)

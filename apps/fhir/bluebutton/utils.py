@@ -10,8 +10,8 @@ from pytz import timezone
 
 from django.conf import settings
 from django.contrib import messages
-from apps.fhir.server.models import (SupportedResourceType,
-                                     ResourceRouter)
+from apps.fhir.server.models import SupportedResourceType
+from apps.fhir.server.settings import fhir_settings
 
 from oauth2_provider.models import AccessToken
 
@@ -302,16 +302,10 @@ def FhirServerAuth(crosswalk=None):
     # Return a dict
 
     auth_settings = {}
-    if crosswalk is None:
-        resource_router = get_resourcerouter()
-        auth_settings['client_auth'] = resource_router.client_auth
-        auth_settings['cert_file'] = resource_router.cert_file
-        auth_settings['key_file'] = resource_router.key_file
-    else:
-        # crosswalk is passed in
-        auth_settings['client_auth'] = crosswalk.fhir_source.client_auth
-        auth_settings['cert_file'] = crosswalk.fhir_source.cert_file
-        auth_settings['key_file'] = crosswalk.fhir_source.key_file
+    resource_router = get_resourcerouter()
+    auth_settings['client_auth'] = resource_router.client_auth
+    auth_settings['cert_file'] = resource_router.cert_file
+    auth_settings['key_file'] = resource_router.key_file
 
     if auth_settings['client_auth']:
         # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
@@ -328,12 +322,7 @@ def FhirServerAuth(crosswalk=None):
 def FhirServerVerify(crosswalk=None):
     # Get default Server Verify Setting
     # Return True or False (Default)
-
-    verify_setting = False
-    if crosswalk:
-        verify_setting = crosswalk.fhir_source.server_verify
-
-    return verify_setting
+    return get_resourcerouter().verify_server
 
 
 def masked(supported_resource_type_control=None):
@@ -451,8 +440,6 @@ def get_resource_names(resource_router=None):
     """
     # TODO: filter by FHIRServer
 
-    if resource_router is None:
-        resource_router = get_resourcerouter()
     all_resources = SupportedResourceType.objects.filter(fhir_source=resource_router)
     resource_types = []
     for name in all_resources:
@@ -467,22 +454,7 @@ def get_resource_names(resource_router=None):
 
 
 def get_resourcerouter(crosswalk=None):
-    """
-    get the default from settings.FHIR_SERVER_DEFAULT
-
-    :crosswalk = Receive the crosswalk record
-    :return ResourceRouter
-
-    """
-
-    if crosswalk is None:
-        # use the default setting
-        resource_router = ResourceRouter.objects.get(pk=settings.FHIR_SERVER_DEFAULT)
-    else:
-        # use the user's default ResourceRouter from crosswalk
-        resource_router = crosswalk.fhir_source
-
-    return resource_router
+    return fhir_settings
 
 
 def handle_http_error(e):

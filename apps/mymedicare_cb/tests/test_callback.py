@@ -169,7 +169,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             }
 
         # mock fhir user info endpoint
-        @urlmatch(netloc='bogus.com', path='/Patient/')
+        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
         def fhir_patient_info_mock(url, request):
             return {
                 'status_code': 200,

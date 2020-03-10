@@ -95,19 +95,6 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
         self.assertDictEqual(response, expected)
 
-        """ Test 2: pass crosswalk """
-        crosswalk = Crosswalk.objects.get(pk=1)
-
-        response = FhirServerAuth(crosswalk)
-
-        expected = {'client_auth': crosswalk.fhir_source.client_auth,
-                    'cert_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                              crosswalk.fhir_source.cert_file),
-                    'key_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             crosswalk.fhir_source.key_file)}
-
-        self.assertDictEqual(response, expected)
-
     def test_prepend_q_yes(self):
         """ Check that ? is added to front of parameters if required """
 
