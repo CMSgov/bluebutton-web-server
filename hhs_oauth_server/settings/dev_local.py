@@ -35,19 +35,6 @@ TEMPLATES = [
     },
 ]
 
-
-FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
-
-# overrides FHIR server configuration with fake values
-FHIR_SERVER_CONF = {
-    'SERVER': env('THS_FHIR_SERVER', 'http://fhir.bbonfhir.com/'),
-    'PATH': env('THS_FHIR_PATH', 'fhir-p/'),
-    'RELEASE': env('THS_FHIR_RELEASE', 'baseDstu2/'),
-    # REWRITE_FROM should be defined as a list
-    'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM', ['http://ec2-52-4-198-86.compute-1.amazonaws.com:8080/baseDstu2', ]),
-    'REWRITE_TO': env('THS_FHIR_REWRITE_TO', 'http://localhost:8000/bluebutton/fhir/v1'),
-}
-
 # needed to support use of http for local testing
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 

@@ -413,16 +413,6 @@ SESSION_COOKIE_AGE = 5400
 SESSION_COOKIE_SECURE = env('DJANGO_SECURE_SESSION', True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
-
-FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
-                    'PATH': env('THS_FHIR_PATH'),
-                    'RELEASE': env('THS_FHIR_RELEASE'),
-                    # REWRITE_FROM should be a list
-                    'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM'),
-                    'REWRITE_TO': env('THS_FHIR_REWRITE_TO'),
-                    # Minutes until search expires
-                    'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}
 
 FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, '../certstore'))
