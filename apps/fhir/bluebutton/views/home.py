@@ -55,7 +55,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
 
     text_out = json.loads(text_in, object_pairs_hook=OrderedDict)
 
-    od = conformance_filter(text_out, resource_router)
+    od = conformance_filter(text_out)
 
     # Append Security to ConformanceStatement
     security_endpoint = build_oauth_resource(request, format_type="json")
@@ -66,14 +66,10 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     return JsonResponse(od)
 
 
-def conformance_filter(text_block, resource_router):
+def conformance_filter(text_block):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
-
-    # Get a list of resource names
-    if resource_router is None:
-        resource_router = get_resourcerouter()
 
     resource_names = constants.ALLOWED_RESOURCE_TYPES
     ct = 0

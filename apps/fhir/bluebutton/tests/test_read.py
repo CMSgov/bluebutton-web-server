@@ -57,7 +57,7 @@ class ConformanceReadRequestTest(TestCase):
         """ Check filtering of Conformance Statement """
 
         conform_out = json.loads(CONFORMANCE)
-        result = conformance_filter(conform_out, None)
+        result = conformance_filter(conform_out)
 
         if "vision" in result['rest'][0]['resource']:
             filter_works = False
