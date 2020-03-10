@@ -53,13 +53,8 @@ class ConformanceReadRequestTest(TestCase):
         # Test for a match
         self.assertEqual(result._response.content, CONFORMANCE)
 
-    @patch('apps.fhir.bluebutton.views.home.get_resource_names')
-    def test_fhir_conformance_filter(self, mock_get_resource_names):
+    def test_fhir_conformance_filter(self):
         """ Check filtering of Conformance Statement """
-
-        # Now we can setup the responses we want to the call
-        mock_get_resource_names.return_value = ['ExplanationOfBenefit',
-                                                'Patient']
 
         conform_out = json.loads(CONFORMANCE)
         result = conformance_filter(conform_out, None)

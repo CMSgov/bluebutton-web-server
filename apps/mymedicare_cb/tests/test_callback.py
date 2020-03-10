@@ -6,7 +6,6 @@ from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.conf import settings
 from django.test import TestCase
 from urllib.parse import urlparse, parse_qs
 from apps.mymedicare_cb.views import generate_nonce

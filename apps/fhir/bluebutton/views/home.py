@@ -5,9 +5,9 @@ from collections import OrderedDict
 from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
+from apps.fhir.bluebutton import constants
 from apps.fhir.bluebutton.utils import (request_call,
                                         prepend_q,
-                                        get_resource_names,
                                         get_resourcerouter,
                                         get_response_text,
                                         build_oauth_resource)
@@ -75,7 +75,7 @@ def conformance_filter(text_block, resource_router):
     if resource_router is None:
         resource_router = get_resourcerouter()
 
-    resource_names = get_resource_names(resource_router)
+    resource_names = constants.ALLOWED_RESOURCE_TYPES
     ct = 0
     if text_block:
         if 'rest' in text_block:

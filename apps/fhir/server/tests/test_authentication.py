@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.conf import settings
 from rest_framework import exceptions
 from requests.exceptions import HTTPError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
@@ -9,7 +8,6 @@ from .responses import responses
 
 
 class TestAuthentication(TestCase):
-
 
     def test_match_hicn_hash_success(self):
         @all_requests

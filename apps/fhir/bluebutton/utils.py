@@ -422,26 +422,6 @@ def get_crosswalk(user):
     return None
 
 
-def get_resource_names(resource_router=None):
-    """ Get names for all approved resources
-        We need to receive FHIRServer and filter list
-        :return list of FHIR resourceTypes
-    """
-    # TODO: filter by FHIRServer
-
-    all_resources = SupportedResourceType.objects.filter(fhir_source=resource_router)
-    resource_types = []
-    for name in all_resources:
-        # check resourceType not already loaded to list
-        if name.resourceType in resource_types:
-            pass
-        else:
-            # Get the resourceType into a list
-            resource_types.append(name.resourceType)
-
-    return resource_types
-
-
 def get_resourcerouter(crosswalk=None):
     return fhir_settings
 
