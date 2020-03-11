@@ -61,7 +61,7 @@ class SearchView(FhirDataView):
         Required('startIndex', default=0): Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
         'type': Match(regex_type_values_list, msg="the type parameter value is not valid"),
-        '_lastUpdated': [Match(regex_lastupdated_value, msg="the _lastUpdated operator is not valid")],
+        '_lastUpdated': [Match(regex_lastupdated_value, msg="the _lastUpdated operator is not valid")]
     }
 
     def build_parameters(self, request, *args, **kwargs):
