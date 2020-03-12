@@ -51,6 +51,9 @@ class FhirDataView(APIView):
 
     def filter_parameters(self, request):
         params = self.map_parameters(request.query_params.dict())
+        # Get list from _lastUpdated QueryDict(), since it can have multi params
+        params['_lastUpdated'] = request.query_params.getlist('_lastUpdated')
+
         schema = voluptuous.Schema(
             getattr(self, "query_schema", {}),
             extra=voluptuous.REMOVE_EXTRA)
