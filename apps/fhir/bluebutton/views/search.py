@@ -3,9 +3,9 @@ import logging
 from voluptuous import (
     Required,
     All,
+    Match,
     Range,
     Coerce,
-    Any,
 )
 from rest_framework import (permissions)
 
@@ -27,6 +27,33 @@ class SearchView(FhirDataView):
         TokenHasProtectedCapability,
     ]
 
+    # Regex to match a valid type value
+    regex_type_value = r"(carrier)|" + \
+        r"(pde)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)" + \
+        r"(dme)|" + \
+        r"(hha)|" + \
+        r"(hospice)|" + \
+        r"(inpatient)|" + \
+        r"(outpatient)|" + \
+        r"(snf)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|carrier)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|dme)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hha)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|hospice)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|inpatient)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|outpatient)|" + \
+        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|snf)"
+
+    # Regex to match a list of comma separated type values with IGNORECASE
+    regex_type_values_list = r'(?i)^((' + regex_type_value + r')\s*,*\s*)+$'
+
+    # Regex to match a valid _lastUpdated value that can begin with
+    # lt, le, gt and ge operators
+    regex_lastupdated_value = r'^((lt)|(le)|(gt)|(ge)).+'
+
     query_transforms = {
         'count': '_count',
     }
@@ -34,25 +61,8 @@ class SearchView(FhirDataView):
     query_schema = {
         Required('startIndex', default=0): Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
-        'type': Any(
-            'carrier',
-            'pde',
-            'dme',
-            'hha',
-            'hospice',
-            'inpatient',
-            'outpatient',
-            'snf',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|carrier',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|pde',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|dme',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|hha',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|hospice',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|inpatient',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|outpatient',
-            'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf',
-        ),
+        'type': Match(regex_type_values_list, msg="the type parameter value is not valid"),
+        '_lastUpdated': [Match(regex_lastupdated_value, msg="the _lastUpdated operator is not valid")],
     }
 
     def build_parameters(self, request, *args, **kwargs):
