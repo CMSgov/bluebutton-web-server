@@ -48,7 +48,7 @@ def callback(request):
     except Exception:
         userinfo = {'patient': token.get('patient', None)}
 
-    request.session['patient'] = userinfo.get('patient', None)
+    request.session['patient'] = userinfo.get('patient', token.get('patient', None))
 
     response['userinfo'] = userinfo
 
@@ -109,8 +109,8 @@ def test_eob(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?patient=%s&_format=json" % (
-        request.session['resource_uri'], request.session['patient'])
+    eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?_format=json" % (
+        request.session['resource_uri'])
     eob = oas.get(eob_uri).json()
     return JsonResponse(eob)
 
