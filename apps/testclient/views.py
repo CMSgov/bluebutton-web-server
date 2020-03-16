@@ -50,7 +50,7 @@ def callback(request):
 
     request.session['patient'] = userinfo.get('patient', token.get('patient', None))
 
-    response['userinfo'] = userinfo
+    response['userinfo'] = {'patient': request.session.get('patient', None)}
 
     response['oidc_discovery_uri'] = host + \
         reverse('openid-configuration')
