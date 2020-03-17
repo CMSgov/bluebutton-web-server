@@ -30,7 +30,6 @@ class SearchView(FhirDataView):
     # Regex to match a valid type value
     regex_type_value = r"(carrier)|" + \
         r"(pde)|" + \
-        r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|pde)" + \
         r"(dme)|" + \
         r"(hha)|" + \
         r"(hospice)|" + \
