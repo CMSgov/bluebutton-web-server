@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 import pytz
 import requests
@@ -11,8 +10,7 @@ from pytz import timezone
 
 from django.conf import settings
 from django.contrib import messages
-from apps.fhir.server.models import (SupportedResourceType,
-                                     ResourceRouter)
+from apps.fhir.server.settings import fhir_settings
 
 from oauth2_provider.models import AccessToken
 
@@ -303,16 +301,10 @@ def FhirServerAuth(crosswalk=None):
     # Return a dict
 
     auth_settings = {}
-    if crosswalk is None:
-        resource_router = get_resourcerouter()
-        auth_settings['client_auth'] = resource_router.client_auth
-        auth_settings['cert_file'] = resource_router.cert_file
-        auth_settings['key_file'] = resource_router.key_file
-    else:
-        # crosswalk is passed in
-        auth_settings['client_auth'] = crosswalk.fhir_source.client_auth
-        auth_settings['cert_file'] = crosswalk.fhir_source.cert_file
-        auth_settings['key_file'] = crosswalk.fhir_source.key_file
+    resource_router = get_resourcerouter()
+    auth_settings['client_auth'] = resource_router.client_auth
+    auth_settings['cert_file'] = resource_router.cert_file
+    auth_settings['key_file'] = resource_router.key_file
 
     if auth_settings['client_auth']:
         # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
@@ -329,50 +321,7 @@ def FhirServerAuth(crosswalk=None):
 def FhirServerVerify(crosswalk=None):
     # Get default Server Verify Setting
     # Return True or False (Default)
-
-    verify_setting = False
-    if crosswalk:
-        verify_setting = crosswalk.fhir_source.server_verify
-
-    return verify_setting
-
-
-def FhirServerUrl(server=None, path=None, release=None):
-
-    resource_router_def = get_resourcerouter()
-
-    resource_router_server_address = resource_router_def.server_address
-
-    fhir_server = notNone(server, resource_router_server_address)
-
-    fhir_path = notNone(path, resource_router_def.server_path)
-
-    fhir_release = notNone(release, resource_router_def.server_release)
-
-    if fhir_release is not None:
-        if not fhir_release.endswith('/'):
-            fhir_release += '/'
-
-    result = fhir_server
-    if result is not None:
-        result += fhir_path
-    if result is not None:
-        result += fhir_release
-    # Set to "" if still None
-    if result is None:
-        result = ""
-
-    return result
-
-
-def masked(supported_resource_type_control=None):
-    """ check if force_url_override is set in SupportedResourceType """
-    mask = False
-    if supported_resource_type_control:
-        if supported_resource_type_control.override_url_id:
-            mask = True
-
-    return mask
+    return get_resourcerouter().verify_server
 
 
 def mask_with_this_url(request, host_path='', in_text='', find_url=''):
@@ -403,34 +352,6 @@ def mask_with_this_url(request, host_path='', in_text='', find_url=''):
     return out_text
 
 
-def mask_list_with_host(request, host_path, in_text, urls_be_gone=None):
-    """ Replace a series of URLs with the host_name """
-
-    if in_text == '':
-        return in_text
-
-    if urls_be_gone is None:
-        # Nothing in the list to be replaced
-        return in_text
-
-    resource_router_def = get_resourcerouter()
-    resource_router_def_server_address = resource_router_def.server_address
-
-    if isinstance(resource_router_def_server_address, str):
-        if resource_router_def_server_address not in urls_be_gone:
-
-            urls_be_gone.append(resource_router_def_server_address)
-
-    for kill_url in urls_be_gone:
-        # work through the list making replacements
-        if kill_url.endswith('/'):
-            kill_url = kill_url[:-1]
-
-        in_text = mask_with_this_url(request, host_path, in_text, kill_url)
-
-    return in_text
-
-
 def get_host_url(request, resource_type=''):
     """ get the full url and split on resource_type """
 
@@ -446,18 +367,6 @@ def get_host_url(request, resource_type=''):
         full_url_list = full_url.split(resource_type)
 
     return full_url_list[0]
-
-
-def post_process_request(request, host_path, r_text, rewrite_url_list):
-    if r_text == "":
-        return r_text
-
-    pre_text = mask_list_with_host(request,
-                                   host_path,
-                                   r_text,
-                                   rewrite_url_list)
-
-    return json.loads(pre_text, object_pairs_hook=OrderedDict)
 
 
 def prepend_q(pass_params):
@@ -513,69 +422,8 @@ def get_crosswalk(user):
     return None
 
 
-def get_resource_names(resource_router=None):
-    """ Get names for all approved resources
-        We need to receive FHIRServer and filter list
-        :return list of FHIR resourceTypes
-    """
-    # TODO: filter by FHIRServer
-
-    if resource_router is None:
-        resource_router = get_resourcerouter()
-    all_resources = SupportedResourceType.objects.filter(fhir_source=resource_router)
-    resource_types = []
-    for name in all_resources:
-        # check resourceType not already loaded to list
-        if name.resourceType in resource_types:
-            pass
-        else:
-            # Get the resourceType into a list
-            resource_types.append(name.resourceType)
-
-    return resource_types
-
-
 def get_resourcerouter(crosswalk=None):
-    """
-    get the default from settings.FHIR_SERVER_DEFAULT
-
-    :crosswalk = Receive the crosswalk record
-    :return ResourceRouter
-
-    """
-
-    if crosswalk is None:
-        # use the default setting
-        resource_router = ResourceRouter.objects.get(pk=settings.FHIR_SERVER_DEFAULT)
-    else:
-        # use the user's default ResourceRouter from crosswalk
-        resource_router = crosswalk.fhir_source
-
-    return resource_router
-
-
-def build_rewrite_list(crosswalk=None):
-    """
-    Build the rewrite_list of server addresses
-
-    :return: rewrite_list
-    """
-
-    rewrite_list = []
-    if crosswalk:
-        rewrite_list.append(crosswalk.fhir_source.fhir_url)
-
-    resource_router = get_resourcerouter()
-    # get the default ResourceRouter entry
-    if resource_router.fhir_url not in rewrite_list:
-        rewrite_list.append(resource_router.fhir_url)
-
-    if isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], list):
-        rewrite_list.extend(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
-    elif isinstance(settings.FHIR_SERVER_CONF['REWRITE_FROM'], str):
-        rewrite_list.append(settings.FHIR_SERVER_CONF['REWRITE_FROM'])
-
-    return rewrite_list
+    return fhir_settings
 
 
 def handle_http_error(e):

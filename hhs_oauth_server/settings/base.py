@@ -413,19 +413,16 @@ SESSION_COOKIE_AGE = 5400
 SESSION_COOKIE_SECURE = env('DJANGO_SECURE_SESSION', True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-FHIR_SERVER_DEFAULT = env('DJANGO_FHIRSERVER_ID', 1)
-
-FHIR_SERVER_CONF = {'SERVER': env('THS_FHIR_SERVER'),
-                    'PATH': env('THS_FHIR_PATH'),
-                    'RELEASE': env('THS_FHIR_RELEASE'),
-                    # REWRITE_FROM should be a list
-                    'REWRITE_FROM': env('THS_FHIR_REWRITE_FROM'),
-                    'REWRITE_TO': env('THS_FHIR_REWRITE_TO'),
-                    # Minutes until search expires
-                    'SEARCH_EXPIRY': env('THS_SEARCH_EXPIRY', 30)}
 
 FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
-                            os.path.join(BASE_DIR, '../certstore'))
+                            os.path.join(BASE_DIR, env('DJANGO_FHIR_CERTSTORE_REL', '../certstore')))
+
+FHIR_SERVER = {
+    "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/"),
+    "CERT_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", "ca.cert.pem")),
+    "KEY_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_KEY_FILE", "ca.key.nocrypt.pem")),
+    "CLIENT_AUTH": True,
+}
 
 # Timeout for request call
 REQUEST_CALL_TIMEOUT = (30, 120)
@@ -441,8 +438,7 @@ LOGIN_URL = '/v1/accounts/login'
 
 LOGOUT_REDIRECT_URL = '/'
 
-# Move Admin to a variable url location
-ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
+# Move Admin to a variable url location ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 
 ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'

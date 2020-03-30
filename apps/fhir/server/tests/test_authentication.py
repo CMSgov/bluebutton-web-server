@@ -1,19 +1,13 @@
 from django.test import TestCase
-from django.conf import settings
 from rest_framework import exceptions
 from requests.exceptions import HTTPError
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from httmock import all_requests, HTTMock
-from ..models import ResourceRouter
 from ..authentication import match_hicn_hash
 from .responses import responses
 
 
 class TestAuthentication(TestCase):
-
-    def setUp(self):
-        ResourceRouter.objects.create(pk=settings.FHIR_SERVER_DEFAULT,
-                                      fhir_url="http://bogus.com/")
 
     def test_match_hicn_hash_success(self):
         @all_requests

@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from apps.accounts.models import UserProfile
 from apps.fhir.server.authentication import match_hicn_hash
 from apps.fhir.bluebutton.models import Crosswalk, hash_hicn
-from apps.fhir.bluebutton.utils import get_resourcerouter
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -45,12 +44,9 @@ def get_and_update_user(user_info):
     last_name = user_info.get('family_name', "")
     email = user_info.get('email', "")
 
-    fhir_source = get_resourcerouter()
-
     user = create_beneficiary_record(username=subject,
                                      user_id_hash=hicn_hash,
                                      fhir_id=fhir_id,
-                                     fhir_source=fhir_source,
                                      first_name=first_name,
                                      last_name=last_name,
                                      email=email)
@@ -61,7 +57,6 @@ def get_and_update_user(user_info):
 def create_beneficiary_record(username=None,
                               user_id_hash=None,
                               fhir_id=None,
-                              fhir_source=None,
                               first_name="",
                               last_name="",
                               email=""):
@@ -89,7 +84,6 @@ def create_beneficiary_record(username=None,
         user.set_unusable_password()
         user.save()
         Crosswalk.objects.create(user=user,
-                                 fhir_source=fhir_source,
                                  user_id_hash=user_id_hash,
                                  fhir_id=fhir_id)
 

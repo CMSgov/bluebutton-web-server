@@ -1,17 +1,14 @@
 import json
 import logging
 
+from collections import OrderedDict
 from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
+from apps.fhir.bluebutton import constants
 from apps.fhir.bluebutton.utils import (request_call,
-                                        FhirServerUrl,
-                                        get_host_url,
                                         prepend_q,
-                                        post_process_request,
-                                        get_resource_names,
                                         get_resourcerouter,
-                                        build_rewrite_list,
                                         get_response_text,
                                         build_oauth_resource)
 
@@ -32,7 +29,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """
     crosswalk = None
     resource_router = get_resourcerouter()
-    call_to = FhirServerUrl()
+    call_to = resource_router.fhir_url
 
     if call_to.endswith('/'):
         call_to += 'metadata'
@@ -47,7 +44,6 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     r = request_call(request, call_to + pass_params, crosswalk)
 
     text_out = ''
-    host_path = get_host_url(request, '?')
 
     if r.status_code >= 300:
         logger.debug("We have an error code to deal with: %s" % r.status_code)
@@ -55,15 +51,11 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
                             status=r.status_code,
                             content_type='application/json')
 
-    rewrite_url_list = build_rewrite_list(crosswalk)
     text_in = get_response_text(fhir_response=r)
 
-    text_out = post_process_request(request,
-                                    host_path,
-                                    text_in,
-                                    rewrite_url_list)
+    text_out = json.loads(text_in, object_pairs_hook=OrderedDict)
 
-    od = conformance_filter(text_out, resource_router)
+    od = conformance_filter(text_out)
 
     # Append Security to ConformanceStatement
     security_endpoint = build_oauth_resource(request, format_type="json")
@@ -74,16 +66,12 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     return JsonResponse(od)
 
 
-def conformance_filter(text_block, resource_router):
+def conformance_filter(text_block):
     """ Filter FHIR Conformance Statement based on
         supported ResourceTypes
     """
 
-    # Get a list of resource names
-    if resource_router is None:
-        resource_router = get_resourcerouter()
-
-    resource_names = get_resource_names(resource_router)
+    resource_names = constants.ALLOWED_RESOURCE_TYPES
     ct = 0
     if text_block:
         if 'rest' in text_block:

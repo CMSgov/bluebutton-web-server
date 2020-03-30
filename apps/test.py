@@ -6,9 +6,7 @@ from django.test import TestCase
 from django.utils.text import slugify
 from django.conf import settings
 
-from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.server.models import ResourceRouter
 from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
@@ -22,13 +20,6 @@ class BaseApiTest(TestCase):
 
     test_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
 
-    def setUp(self):
-        try:
-            ResourceRouter.objects.get(pk=settings.FHIR_SERVER_DEFAULT)
-        except ResourceRouter.DoesNotExist:
-            ResourceRouter.objects.create(pk=settings.FHIR_SERVER_DEFAULT,
-                                          fhir_url="http://bogus.com/")
-
     def _create_user(self, username, password, fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID, user_id_hash=test_hash, **extra_fields):
         """
         Helper method that creates a user instance
@@ -40,8 +31,7 @@ class BaseApiTest(TestCase):
 
         cw, _ = Crosswalk.objects.get_or_create(user=user,
                                                 _fhir_id=fhir_id,
-                                                _user_id_hash=user_id_hash,
-                                                fhir_source=get_resourcerouter())
+                                                _user_id_hash=user_id_hash)
         cw.save()
         return user
 
@@ -122,8 +112,7 @@ class BaseApiTest(TestCase):
             Crosswalk.objects.filter(_fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).delete()
         Crosswalk.objects.create(user=user,
                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                 user_id_hash=self.test_hash,
-                                 fhir_source=get_resourcerouter())
+                                 user_id_hash=self.test_hash)
 
         # create a oauth2 application and add capabilities
         application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)

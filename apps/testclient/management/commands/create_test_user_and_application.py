@@ -3,7 +3,6 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.dot_ext.models import Application
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AccessToken
@@ -46,8 +45,7 @@ def create_user(group):
     u.groups.add(group)
     c, g_o_c = Crosswalk.objects.get_or_create(user=u,
                                                _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                               _user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130",
-                                               fhir_source=get_resourcerouter())
+                                               _user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130")
     return u
 
 

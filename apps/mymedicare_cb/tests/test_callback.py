@@ -6,7 +6,6 @@ from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.conf import settings
 from django.test import TestCase
 from urllib.parse import urlparse, parse_qs
 from apps.mymedicare_cb.views import generate_nonce
@@ -15,7 +14,6 @@ from apps.mymedicare_cb.authorization import OAuth2Config
 from apps.capabilities.models import ProtectedCapability
 from httmock import urlmatch, all_requests, HTTMock
 from django.contrib.auth.models import Group
-from apps.fhir.server.models import ResourceRouter
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Approval, Application
 
@@ -31,7 +29,6 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         self.callback_url = reverse('mymedicare-sls-callback')
         self.login_url = reverse('mymedicare-login')
         Group.objects.create(name='BlueButton')
-        ResourceRouter.objects.create(pk=settings.FHIR_SERVER_DEFAULT, fhir_url="http://bogus.com/")
 
     def test_login_url_success(self):
         """
@@ -169,7 +166,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             }
 
         # mock fhir user info endpoint
-        @urlmatch(netloc='bogus.com', path='/Patient/')
+        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
         def fhir_patient_info_mock(url, request):
             return {
                 'status_code': 200,
