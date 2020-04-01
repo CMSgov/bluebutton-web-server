@@ -25,9 +25,7 @@ ENCODED = settings.ENCODING
 class BluebuttonUtilsSimpleTestCase(BaseApiTest):
     # Load fixtures
     fixtures = ['fhir_bluebutton_test_rt.json',
-                'fhir_bluebutton_new_testdata.json',
-                'fhir_server_new_testdata.json',
-                'test_install_fixture.json']
+                'fhir_bluebutton_new_testdata.json']
 
     def test_notNone(self):
         """ Test notNone return values """
