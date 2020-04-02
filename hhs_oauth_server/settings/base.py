@@ -438,7 +438,8 @@ LOGIN_URL = '/v1/accounts/login'
 
 LOGOUT_REDIRECT_URL = '/'
 
-# Move Admin to a variable url location ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
+# Move Admin to a variable url location
+ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 
 ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
