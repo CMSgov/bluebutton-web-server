@@ -71,8 +71,7 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
-    fixtures = ['fhir_bluebutton_new_testdata.json',
-                'fhir_server_new_testdata.json']
+    fixtures = ['fhir_bluebutton_new_testdata.json']
 
     def test_FhirServerAuth(self):
         """  Check FHIR Server ClientAuth settings """
