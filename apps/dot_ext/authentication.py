@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from oauth2_provider.oauth2_validators import OAuth2Validator
 from rest_framework import authentication
 from rest_framework import exceptions
 from apps.fhir.authentication import extract_username
+from .oauth2_validators import OAuth2Validator
 
 
 class SLSAuthentication(authentication.BaseAuthentication):
