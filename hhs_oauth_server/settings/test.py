@@ -2,6 +2,13 @@ from .dev import *
 
 del LOGGING['loggers']
 
+FHIR_SERVER = {
+    "FHIR_URL": "https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/",
+    "CERT_FILE": "ca.cert.pem",
+    "KEY_FILE": "ca.key.nocrypt.pem",
+    "CLIENT_AUTH": True,
+}
+
 SEND_SMS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 REQUIRE_AUTHOIRZE_APP_FLAG = False
