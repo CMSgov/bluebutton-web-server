@@ -250,11 +250,11 @@ class TestTokenView(BaseApiTest):
 
         try:
             response = self.client.get('/v1/fhir/Patient',
-                                   HTTP_AUTHORIZATION="Bearer " + tkn.token)
+                                       HTTP_AUTHORIZATION="Bearer " + tkn.token)
             # Pre Django 2.2:  403 is an expected response if the token is ok but the test can't reach the data
             #                  server (which it shouldn't)
-            # Post Django 2.2:  A requests ConnectionError exception is expected when trying to reach the 
-            #                   backend FHIR server and proves authentication worked. 
+            # Post Django 2.2:  A requests ConnectionError exception is expected when trying to reach the
+            #                   backend FHIR server and proves authentication worked.
             self.assertEqual(response.status_code, 403)
         except ConnectionError:
             pass
@@ -295,8 +295,8 @@ class TestTokenView(BaseApiTest):
                                        HTTP_AUTHORIZATION="Bearer " + bob_tkn.token)
             # Pre Django 2.2:  403 is an expected response if the token is ok but the test can't reach the data
             #                  server (which it shouldn't)
-            # Post Django 2.2:  A requests ConnectionError exception is expected when trying to reach the 
-            #                   backend FHIR server and proves authentication worked. 
+            # Post Django 2.2:  A requests ConnectionError exception is expected when trying to reach the
+            #                   backend FHIR server and proves authentication worked.
             self.assertEqual(response.status_code, 403)
         except ConnectionError:
             pass
