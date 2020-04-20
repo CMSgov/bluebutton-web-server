@@ -4,7 +4,6 @@ from django.conf import settings
 from django.urls import reverse
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import AccessToken
-from requests.exceptions import ConnectionError
 
 from apps.test import BaseApiTest
 from ..models import Application
@@ -248,9 +247,9 @@ class TestTokenView(BaseApiTest):
             application=application,
         ).exists())
 
-        # Post Django 2.2:  A requests ConnectionError exception is expected when trying to reach the
+        # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaises(ConnectionError):
+        with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):
             response = self.client.get('/v1/fhir/Patient',
                                        HTTP_AUTHORIZATION="Bearer " + tkn.token)
 
@@ -285,15 +284,17 @@ class TestTokenView(BaseApiTest):
             application=application,
         ).exists())
 
-        # Post Django 2.2:  A requests ConnectionError exception is expected when trying to reach the
+        # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaises(ConnectionError):
+        with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):
             response = self.client.get('/v1/fhir/Patient',
                                        HTTP_AUTHORIZATION="Bearer " + bob_tkn.token)
 
         next_tkn = self._create_test_token(anna, application)
 
-        with self.assertRaises(ConnectionError):
+        # Post Django 2.2:  An OSError exception is expected when trying to reach the
+        #                   backend FHIR server and proves authentication worked.
+        with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):
             response = self.client.get('/v1/fhir/Patient',
                                        HTTP_AUTHORIZATION="Bearer " + next_tkn.token)
 
