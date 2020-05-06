@@ -24,8 +24,6 @@ docker-compose up -d bb20
 docker-compose exec bb20 ./docker-compose/migrate.sh
 ```
 
-update [bb20 resource router](http://localhost:8000/admin/server/resourcerouter/1/change/) `https://bfd.local:9954`
-
 
 # Vagrant
 
