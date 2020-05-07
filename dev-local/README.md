@@ -21,6 +21,7 @@ docker-compose exec bfd make load
 ## bb 2.0 specific
 ```
 docker-compose up -d bb20
+docker-compose logs -f | grep bb20
 docker-compose exec bb20 ./docker-compose/migrate.sh
 ```
 

@@ -56,6 +56,7 @@ services:
       - DJANGO_MEDICARE_LOGIN_URI=http://127.0.0.1:8080?scope=openid%20profile&client_id=bluebutton
       - DJANGO_SLS_USERINFO_ENDPOINT=http://msls:8080/userinfo
       - DJANGO_SLS_TOKEN_ENDPOINT=http://msls:8080/token
+      - FHIR_URL=https://bfd.local:9954/v1/fhir/
     ports:
       - "8000:8000"
       - "5678:5678"
