@@ -46,7 +46,7 @@ services:
     build:
       context: ${BB20_CONTEXT}
       dockerfile: Dockerfile
-    command: python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload
+    command: bash -c "git clone https://github.com/CMSgov/bluebutton-css.git ; python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload"
     environment:
       - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
       - DATABASES_CUSTOM=postgres://postgres:toor@bbdb:5432/bluebutton
