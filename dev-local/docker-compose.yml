@@ -16,6 +16,9 @@ services:
       dockerfile: Dockerfile
     user: dev
     working_dir: /code
+    # command: bash -c "dos2unix /app/apps/bfd-server/bfd-server-war/src/main/config/server-start.sh; \
+    #          dos2unix /app/apps/bfd-server/bfd-server-war/src/main/config/server-stop.sh; \
+    #          make docker"
     command: make docker
     volumes:
       - .:/code
@@ -46,7 +49,8 @@ services:
     build:
       context: ${BB20_CONTEXT}
       dockerfile: Dockerfile
-    command: bash -c "git clone https://github.com/CMSgov/bluebutton-css.git ; python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload"
+    ##command: bash -c "git clone https://github.com/CMSgov/bluebutton-css.git ; python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload"
+    command: bash -c "if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi ; if [ '${BB20_ENABLE_REMOTE_DEBUG}' = true ] ; then python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload ; else python3 manage.py runserver 0.0.0.0:8000; fi"
     environment:
       - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
       - DATABASES_CUSTOM=postgres://postgres:toor@bbdb:5432/bluebutton
@@ -57,6 +61,7 @@ services:
       - DJANGO_SLS_USERINFO_ENDPOINT=http://msls:8080/userinfo
       - DJANGO_SLS_TOKEN_ENDPOINT=http://msls:8080/token
       - FHIR_URL=https://bfd.local:9954/v1/fhir/
+      - BB20_ENABLE_REMOTE_DEBUG=${BB20_ENABLE_REMOTE_DEBUG}
     ports:
       - "8000:8000"
       - "5678:5678"

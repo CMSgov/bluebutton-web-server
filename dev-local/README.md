@@ -8,8 +8,14 @@ The bfd system needs a few variables to be set:
 
 Here's an example `.env` file that docker-compose could use:
 ```
-BFD_DIR=../beneficiary-fhir-data
-SYNTHETIC_DATA=../synthetic-data
+BFD_DIR=../../beneficiary-fhir-data
+BB20_CONTEXT=../../bb2_dev_local_B
+SYNTHETIC_DATA=./synthetic-data
+CERTSTORE=./certstore
+BB20_ENABLE_REMOTE_DEBUG=true
+BFD_ENABLE_REMOTE_DEBUG=true
+BFD_ENABLE_PROFILER=true
+
 ```
 
 ```

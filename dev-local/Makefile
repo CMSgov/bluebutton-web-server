@@ -1,7 +1,7 @@
 BFD_MOUNT_POINT ?= "beneficiary-fhir-data"
 # psword for certs: changeit
 build:
-	cd ${BFD_MOUNT_POINT}/apps; mvn clean install -DskipITs
+	cd ${BFD_MOUNT_POINT}/apps; mvn -Dmin_port=9954 -Dmax_port=9954 clean install -DskipITs
 
 verify:
 	cd ${BFD_MOUNT_POINT}/apps; mvn clean verify
@@ -19,5 +19,5 @@ stop:
 fix: build
 	cd ${BFD_MOUNT_POINT}/apps/bfd-pipeline/bfd-pipeline-rif-extract; mvn exec:java -Dexec.mainClass="gov.cms.bfd.pipeline.rif.extract.synthetic.SyntheticDataFixer4" -Dexec.classpathScope=test
 
-load: build
+load: 
 	cd ${BFD_MOUNT_POINT}/apps/bfd-pipeline/bfd-pipeline-rif-load; mvn -Dits.db.url=jdbc:postgresql://bfddb:5432/bfd -Dits.db.username=bfd -Dits.db.password=InsecureLocalDev -Dit.test=RifLoaderIT#loadSyntheticData clean verify
