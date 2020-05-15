@@ -69,8 +69,6 @@ class ConformanceReadRequestTest(TestCase):
 
 class ThrottleReadRequestTest(BaseApiTest):
 
-    fixtures = ['testfixture']
-
     def setUp(self):
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
@@ -167,8 +165,6 @@ class ThrottleReadRequestTest(BaseApiTest):
 
 
 class BackendConnectionTest(BaseApiTest):
-
-    fixtures = ['testfixture']
 
     def setUp(self):
         # create read and write capabilities

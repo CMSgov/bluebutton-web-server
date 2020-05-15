@@ -5,6 +5,6 @@ from .views import (
 )
 
 urlpatterns = [
-    url(r'/external', CheckExternal.as_view()),
+    url(r'external', CheckExternal.as_view()),
     url(r'', CheckInternal.as_view()),
 ]
