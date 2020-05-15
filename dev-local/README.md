@@ -40,13 +40,11 @@ docker-compose exec bb20 ./docker-compose/migrate.sh
 ## Tetsted with Cygwin, WSL, VirtualBox + Linux
 ## For Docker server, please install Docker Desktop on host (Windows)
 ## and set DOCKER_HOST environment variable in linux sub system
-## On Windows, take care of EOL CRLF/LF by converting to unix EOL,
-## e.g. run dos2unix on Makefile, Dockerfile, docker-compose.yml, shell scripts etc.
-## a helper script is provided to do the job, run below script before above steps
+## On Windows, take care of EOL CRLF/LF by 
 
-install dos2unix
-recommended to apply dos2unix to shell scripts, .env, Makefile, Dockerfile in BB20 and BFD
-
+```
+git config --global core.autocrlf true
+```
 and in .env add below hint:
 COMPOSE_CONVERT_WINDOWS_PATHS=1
 
