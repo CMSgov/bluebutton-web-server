@@ -40,9 +40,11 @@ class ReadCrosswalkPermission(HasCrosswalk):
                 if reference_id != request.crosswalk.fhir_id:
                     raise exceptions.NotFound()
             else:
-                reference_id = obj['id']
-                if reference_id != request.crosswalk.fhir_id:
-                    raise exceptions.NotFound()
+                if obj:
+                    reference_id = obj['id']
+
+                if not obj or reference_id != request.crosswalk.fhir_id:
+                        raise exceptions.NotFound()
 
         except exceptions.NotFound:
             raise

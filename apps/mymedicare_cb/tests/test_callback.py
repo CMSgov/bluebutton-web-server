@@ -1,6 +1,7 @@
 import requests
 import uuid
 import json
+import os
 from datetime import datetime
 from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
@@ -19,6 +20,9 @@ from apps.dot_ext.models import Approval, Application
 
 from .responses import patient_response
 
+FHIR_URL=os.getenv('FHIR_URL', default="https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/")
+parts=urlparse(FHIR_URL)
+NET_LOC=parts.netloc
 
 class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
     """
@@ -166,7 +170,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             }
 
         # mock fhir user info endpoint
-        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
+        @urlmatch(netloc=NET_LOC, path='/v1/fhir/Patient/')
         def fhir_patient_info_mock(url, request):
             return {
                 'status_code': 200,
