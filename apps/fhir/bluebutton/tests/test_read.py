@@ -10,7 +10,7 @@ from apps.test import BaseApiTest
 from django.test.client import Client
 from oauth2_provider.models import get_access_token_model
 from django.urls import reverse
-import os
+from django.conf import settings
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
@@ -18,7 +18,7 @@ from .data_conformance import CONFORMANCE
 AccessToken = get_access_token_model()
 
 
-FHIR_URL=os.getenv('FHIR_URL', "https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/")
+FHIR_URL=settings.FHIR_SERVER['FHIR_URL']
 
 EXPECTED_REQUEST = {
     'method': 'GET',
@@ -233,24 +233,6 @@ class BackendConnectionTest(BaseApiTest):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
-        # expected_request = {
-        #     'method': 'GET',
-        #     'url': (FHIR_URL+"Patient/?_format=application%2Fjson%2Bfhir&_id=-20140000008325"),
-        #     'headers': {
-        #         'User-Agent': 'python-requests/2.20.0',
-        #         'Accept-Encoding': 'gzip, deflate',
-        #         'Accept': '*/*',
-        #         'Connection': 'keep-alive',
-        #         'BlueButton-OriginalQueryCounter': '1',
-        #         'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-        #         'BlueButton-Application': 'John_Smith_test',
-        #         'BlueButton-OriginatingIpAddress': '127.0.0.1',
-        #         'keep-alive': 'timeout=120, max=10',
-        #         'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-        #         'BlueButton-BackendCall': FHIR_URL+'Patient/',
-        #     }
-        # }
-
         @all_requests
         def catchall(url, req):
             self.assertIn(FHIR_URL+"Patient/", req.url)
@@ -294,24 +276,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_not_found(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
-
-        # expected_request = {
-        #     'method': 'GET',
-        #     'url': (FHIR_URL+"Patient/?_format=application%2Fjson%2Bfhir&_id=-20140000008325"),
-        #     'headers': {
-        #         'User-Agent': 'python-requests/2.20.0',
-        #         'Accept-Encoding': 'gzip, deflate',
-        #         'Accept': '*/*',
-        #         'Connection': 'keep-alive',
-        #         'BlueButton-OriginalQueryCounter': '1',
-        #         'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-        #         'BlueButton-Application': 'John_Smith_test',
-        #         'BlueButton-OriginatingIpAddress': '127.0.0.1',
-        #         'keep-alive': 'timeout=120, max=10',
-        #         'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-        #         'BlueButton-BackendCall': FHIR_URL+'Patient/',
-        #     }
-        # }
 
         @all_requests
         def catchall(url, req):
@@ -373,24 +337,6 @@ class BackendConnectionTest(BaseApiTest):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
-        # expected_request = {
-        #     'method': 'GET',
-        #     'url': (FHIR_URL+"Patient/?_format=application%2Fjson%2Bfhir&_id=-20140000008325"),
-        #     'headers': {
-        #         'User-Agent': 'python-requests/2.20.0',
-        #         'Accept-Encoding': 'gzip, deflate',
-        #         'Accept': '*/*',
-        #         'Connection': 'keep-alive',
-        #         'BlueButton-OriginalQueryCounter': '1',
-        #         'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-        #         'BlueButton-Application': 'John_Smith_test',
-        #         'BlueButton-OriginatingIpAddress': '127.0.0.1',
-        #         'keep-alive': 'timeout=120, max=10',
-        #         'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-        #         'BlueButton-BackendCall': FHIR_URL+'Patient/',
-        #     }
-        # }
-
         @all_requests
         def catchall(url, req):
             self.assertIn(FHIR_URL+"Patient/", req.url)
@@ -416,24 +362,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_failed_no_fhir_id_match(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
-
-        # expected_request = {
-        #     'method': 'GET',
-        #     'url': (FHIR_URL+"Patient/?_format=application%2Fjson%2Bfhir&_id=-20140000008325"),
-        #     'headers': {
-        #         'User-Agent': 'python-requests/2.20.0',
-        #         'Accept-Encoding': 'gzip, deflate',
-        #         'Accept': '*/*',
-        #         'Connection': 'keep-alive',
-        #         'BlueButton-OriginalQueryCounter': '1',
-        #         'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-        #         'BlueButton-Application': 'John_Smith_test',
-        #         'BlueButton-OriginatingIpAddress': '127.0.0.1',
-        #         'keep-alive': 'timeout=120, max=10',
-        #         'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-        #         'BlueButton-BackendCall': FHIR_URL+'Patient/',
-        #     }
-        # }
 
         @urlmatch(query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*')  # noqa
         def fhir_request(url, req):
@@ -600,24 +528,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_read_request(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
-
-        # expected_request = {
-        #     'method': 'GET',
-        #     'url': FHIR_URL+'Patient/-20140000008325/?_format=json',
-        #     'headers': {
-        #         'User-Agent': 'python-requests/2.20.0',
-        #         'Accept-Encoding': 'gzip, deflate',
-        #         'Accept': '*/*',
-        #         'Connection': 'keep-alive',
-        #         'BlueButton-OriginalQueryCounter': '1',
-        #         'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-        #         'BlueButton-Application': 'John_Smith_test',
-        #         'BlueButton-OriginatingIpAddress': '127.0.0.1',
-        #         'keep-alive': 'timeout=120, max=10',
-        #         'BlueButton-OriginalUrl': '/v1/fhir/Patient/-20140000008325',
-        #         'BlueButton-BackendCall': FHIR_URL+'Patient/-20140000008325/',
-        #     }
-        # }
 
         @all_requests
         def catchall(url, req):

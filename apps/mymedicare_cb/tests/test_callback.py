@@ -17,12 +17,23 @@ from httmock import urlmatch, all_requests, HTTMock
 from django.contrib.auth.models import Group
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Approval, Application
+from django.conf import settings
 
 from .responses import patient_response
 
-FHIR_URL=os.getenv('FHIR_URL', default="https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/")
-parts=urlparse(FHIR_URL)
-NET_LOC=parts.netloc
+##
+## end points netloc extracted here, some are not used now
+##
+FHIR_URL=settings.FHIR_SERVER['FHIR_URL']
+FHIR_NET_LOC=urlparse(FHIR_URL).netloc
+MEDICARE_LOGIN_URI=settings.MEDICARE_LOGIN_URI
+MEDICARE_LOGIN_NET_LOC=urlparse(MEDICARE_LOGIN_URI).netloc
+MEDICARE_REDIRECT_URI=settings.MEDICARE_REDIRECT_URI
+MEDICARE_REDIRECT_NET_LOC=urlparse(MEDICARE_REDIRECT_URI).netloc
+SLS_USERINFO_EP=settings.SLS_USERINFO_ENDPOINT
+SLS_USERINFO_NET_LOC=urlparse(SLS_USERINFO_EP).netloc
+SLS_TOKEN_EP=settings.SLS_TOKEN_ENDPOINT
+SLS_TOKEN_NET_LOC=urlparse(SLS_TOKEN_EP).netloc
 
 class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
     """
@@ -148,15 +159,22 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
         # mock sls token endpoint
 
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/token')
+        @urlmatch(netloc=SLS_TOKEN_NET_LOC, path='/v1/oauth/token')
         def sls_token_mock(url, request):
             return {
                 'status_code': 200,
                 'content': {'access_token': 'works'},
             }
 
+        @urlmatch(netloc=SLS_TOKEN_NET_LOC, path='/token')
+        def sls_local_token_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {'access_token': 'works'},
+            }
+
         # mock sls user info endpoint
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        @urlmatch(netloc=SLS_USERINFO_NET_LOC, path='/v1/oauth/userinfo')
         def sls_user_info_mock(url, request):
             return {
                 'status_code': 200,
@@ -169,8 +187,21 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                 },
             }
 
+        @urlmatch(netloc=SLS_USERINFO_NET_LOC, path='/userinfo')
+        def sls_local_user_info_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {
+                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                    'given_name': '',
+                    'family_name': '',
+                    'email': 'bob@bobserver.bob',
+                    'hicn': '1234567890A',
+                },
+            }
+
         # mock fhir user info endpoint
-        @urlmatch(netloc=NET_LOC, path='/v1/fhir/Patient/')
+        @urlmatch(netloc=FHIR_NET_LOC, path='/v1/fhir/Patient/')
         def fhir_patient_info_mock(url, request):
             return {
                 'status_code': 200,
@@ -182,7 +213,9 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             raise Exception(url)
 
         with HTTMock(sls_token_mock,
+                     sls_local_token_mock,
                      sls_user_info_mock,
+                     sls_local_user_info_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})

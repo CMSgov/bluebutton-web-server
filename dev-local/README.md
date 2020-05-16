@@ -48,6 +48,38 @@ git config --global core.autocrlf true
 and in .env add below hint:
 COMPOSE_CONVERT_WINDOWS_PATHS=1
 
+## Remote debugging blue button server
+## add to .env below environment variable for bb20 container
 
+BB20_ENABLE_REMOTE_DEBUG=true
+
+## Start blue button server
+
+```
+cd <cms_projects_base_dir>/bluebutton-web-server/dev-local
+docker-compose up -d bb20
+
+```
+## After bb20 is up and running, ptvsd is listening on port 5678,
+## attach to bb20 from IDE, e.g. VSCode and put break points on execution path, and debugging.
+
+## Remote debugging blue button server unit tests
+
+```
+cd <cms_projects_base_dir>/bluebutton-web-server/dev-local
+docker-compose up -d bb20tests
+
+```
+## docker-compose up -d bb20tests starts with ptvsd wait on port 6789 for debugger to attach,
+## attach to bb20tests from IDE, e.g. VSCode and put break points in test cases, and debugging.
+
+```
+docker-compose up -d bb20tests
+
+```
+make sure tests are waiting on 6789:
+
+.....................
+dev-local_bb20tests_1   python3 -m ptvsd --host 0. ...   Up      0.0.0.0:6789->6789/tcp
 
 

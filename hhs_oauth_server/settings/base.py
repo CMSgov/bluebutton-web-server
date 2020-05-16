@@ -419,7 +419,6 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 
 FHIR_SERVER = {
     "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/"),
-    ##"FHIR_URL": env("FHIR_URL", "https://localhost:9954/v1/fhir/"),
     "CERT_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", "ca.cert.pem")),
     "KEY_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_KEY_FILE", "ca.key.nocrypt.pem")),
     "CLIENT_AUTH": True,
