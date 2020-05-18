@@ -23,17 +23,34 @@ from .responses import patient_response
 
 ##
 ## end points netloc extracted here, some are not used now
+## 
 ##
 FHIR_URL=settings.FHIR_SERVER['FHIR_URL']
+assert not FHIR_URL is None, 'Tests expect a well-formed FHIR_URL to be set in settings or environment.'
 FHIR_NET_LOC=urlparse(FHIR_URL).netloc
+assert not FHIR_NET_LOC is None, 'Tests expect FHIR_URL contain a net location.'
+FHIR_NET_PATH=urlparse(FHIR_URL).path
+assert not FHIR_NET_PATH is None, 'Tests expect FHIR_URL contain a path.'
+
 MEDICARE_LOGIN_URI=settings.MEDICARE_LOGIN_URI
 MEDICARE_LOGIN_NET_LOC=urlparse(MEDICARE_LOGIN_URI).netloc
+
 MEDICARE_REDIRECT_URI=settings.MEDICARE_REDIRECT_URI
 MEDICARE_REDIRECT_NET_LOC=urlparse(MEDICARE_REDIRECT_URI).netloc
+
 SLS_USERINFO_EP=settings.SLS_USERINFO_ENDPOINT
+assert not SLS_USERINFO_EP is None, 'A well-formed SLS_USERINFO_ENDPOINT needs to be set in settings or environment.'
 SLS_USERINFO_NET_LOC=urlparse(SLS_USERINFO_EP).netloc
+assert not SLS_USERINFO_NET_LOC is None, 'Tests expect SLS_USERINFO_ENDPOINT contain a net location.'
+SLS_USERINFO_NET_PATH=urlparse(SLS_USERINFO_EP).path
+assert not SLS_USERINFO_NET_PATH is None, 'Tests expect SLS_USERINFO_ENDPOINT contain a path.'
+
 SLS_TOKEN_EP=settings.SLS_TOKEN_ENDPOINT
+assert not SLS_TOKEN_EP is None, 'A well-formed SLS_TOKEN_ENDPOINT needs to be set in settings or environment.'
 SLS_TOKEN_NET_LOC=urlparse(SLS_TOKEN_EP).netloc
+assert not SLS_TOKEN_NET_LOC is None, 'Tests expect SLS_TOKEN_ENDPOINT contain a net location.'
+SLS_TOKEN_NET_PATH=urlparse(SLS_TOKEN_EP).path
+assert not SLS_TOKEN_NET_PATH is None, 'Tests expect SLS_TOKEN_ENDPOINT contain a path.'
 
 class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
     """
@@ -159,22 +176,15 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
         # mock sls token endpoint
 
-        @urlmatch(netloc=SLS_TOKEN_NET_LOC, path='/v1/oauth/token')
+        @urlmatch(netloc=SLS_TOKEN_NET_LOC, path=SLS_TOKEN_NET_PATH)
         def sls_token_mock(url, request):
             return {
                 'status_code': 200,
                 'content': {'access_token': 'works'},
             }
 
-        @urlmatch(netloc=SLS_TOKEN_NET_LOC, path='/token')
-        def sls_local_token_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {'access_token': 'works'},
-            }
-
         # mock sls user info endpoint
-        @urlmatch(netloc=SLS_USERINFO_NET_LOC, path='/v1/oauth/userinfo')
+        @urlmatch(netloc=SLS_USERINFO_NET_LOC, path=SLS_USERINFO_NET_PATH)
         def sls_user_info_mock(url, request):
             return {
                 'status_code': 200,
@@ -187,21 +197,8 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                 },
             }
 
-        @urlmatch(netloc=SLS_USERINFO_NET_LOC, path='/userinfo')
-        def sls_local_user_info_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {
-                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                    'given_name': '',
-                    'family_name': '',
-                    'email': 'bob@bobserver.bob',
-                    'hicn': '1234567890A',
-                },
-            }
-
         # mock fhir user info endpoint
-        @urlmatch(netloc=FHIR_NET_LOC, path='/v1/fhir/Patient/')
+        @urlmatch(netloc=FHIR_NET_LOC, path=FHIR_NET_PATH)
         def fhir_patient_info_mock(url, request):
             return {
                 'status_code': 200,
@@ -213,9 +210,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             raise Exception(url)
 
         with HTTMock(sls_token_mock,
-                     sls_local_token_mock,
                      sls_user_info_mock,
-                     sls_local_user_info_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})

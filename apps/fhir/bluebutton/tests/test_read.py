@@ -1,5 +1,6 @@
 from unittest.mock import patch
 import json
+import requests
 from httmock import all_requests, HTTMock, urlmatch
 from apps.mymedicare_cb.tests.responses import patient_response
 import apps.fhir.bluebutton.utils
@@ -11,50 +12,63 @@ from django.test.client import Client
 from oauth2_provider.models import get_access_token_model
 from django.urls import reverse
 from django.conf import settings
+from enum import Enum
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
 
+class FhirResources(Enum):
+    Patient = 1
+    ExplanationOfBenefit = 2
+    Coverage = 3
+
 AccessToken = get_access_token_model()
-
-
 FHIR_URL=settings.FHIR_SERVER['FHIR_URL']
+assert not FHIR_URL is None, 'FHIR_URL is not set, it is required to runtests.'
 
-EXPECTED_REQUEST = {
-    'method': 'GET',
-    'url': FHIR_URL+'Patient/-20140000008325/?_format=json',
-    'headers': {
-        'User-Agent': 'python-requests/2.20.0',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept': '*/*',
-        'Connection': 'keep-alive',
-        'BlueButton-OriginalQueryCounter': '1',
-        'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-        'BlueButton-Application': 'John_Smith_test',
-        'BlueButton-OriginatingIpAddress': '127.0.0.1',
-        'keep-alive': 'timeout=120, max=10',
-        'BlueButton-OriginalUrl': '/v1/fhir/Patient/-20140000008325',
-        'BlueButton-BackendCall': FHIR_URL+'Patient/-20140000008325/',
-    }
-}
+FHIR_PATIENT_ID_SYNTHETIC_EXIST='-20140000008325'
+FHIR_PATIENT_ID_SYNTHETIC_NON_EXIST_INT = -20140000008324
+FHIR_PATIENT_ID_SYNTHETIC_EXIST_INT = -20140000008325
+ID_QUERY_PARAM="_id={}".format(FHIR_PATIENT_ID_SYNTHETIC_EXIST)
+V1_FHIR_RS_PATH='/v1/fhir/{}'
+FHIR_URL_PATTERN=FHIR_URL+'{}/'
+APP_JSON_FMT="_format=application%2Fjson%2Bfhir"
 
-EXPECTED_REQUEST2 = {
-    'method': 'GET',
-    'url': FHIR_URL+'Patient/-20140000008325/?_format=json',
-    'headers': {
-        'User-Agent': 'python-requests/2.20.0',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept': '*/*',
-        'Connection': 'keep-alive',
-        'BlueButton-OriginalQueryCounter': '1',
-        'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-        'BlueButton-Application': 'John_Smith_test',
-        'BlueButton-OriginatingIpAddress': '127.0.0.1',
-        'keep-alive': 'timeout=120, max=10',
-        'BlueButton-OriginalUrl': '/v1/fhir/Patient',
-        'BlueButton-BackendCall': FHIR_URL+'Patient/',
-    }
-}
+def get_req_expected(req_method, base_url, v1_fhir_path, fhir_rs, id, is_read=False):
+    return requests.Request(
+        req_method,
+        '{}{}/?_format=json'.format(base_url.format(fhir_rs), id),
+        headers = {
+            'User-Agent': 'python-requests/2.20.0',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept': '*/*',
+            'Connection': 'keep-alive',
+            'BlueButton-OriginalQueryCounter': '1',
+            'BlueButton-BeneficiaryId': 'patientId:{}'.format(id),
+            'BlueButton-Application': 'John_Smith_test',
+            'BlueButton-OriginatingIpAddress': '127.0.0.1',
+            'keep-alive': 'timeout=120, max=10',
+            'BlueButton-OriginalUrl': v1_fhir_path.format(FhirResources.Patient.name)+'{suffix}'.format(suffix='/{}'.format(id) if is_read else ''),
+            'BlueButton-BackendCall': base_url.format(fhir_rs)+'{suffix}'.format(suffix='{}/'.format(id) if is_read else ''),
+        }
+    )
+
+READ_REQ_EXPECTED=get_req_expected(
+    'GET', 
+    FHIR_URL_PATTERN, 
+    V1_FHIR_RS_PATH, 
+    FhirResources.Patient.name, 
+    FHIR_PATIENT_ID_SYNTHETIC_EXIST, 
+    True)
+
+SEARCH_REQ_EXPECTED=get_req_expected(
+    'GET', 
+    FHIR_URL_PATTERN, 
+    V1_FHIR_RS_PATH, 
+    FhirResources.Patient.name, 
+    FHIR_PATIENT_ID_SYNTHETIC_EXIST, 
+    False)
+
 
 class ConformanceReadRequestTest(TestCase):
     """ Check the BlueButton API call  """
@@ -114,7 +128,7 @@ class ThrottleReadRequestTest(BaseApiTest):
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        self._create_capability('patient', [
+        self._create_capability(FhirResources.Patient.name, [
             ["GET", r"\/v1\/fhir\/Patient\/\-\d+"],
             ["GET", "/v1/fhir/Patient"],
         ])
@@ -132,7 +146,47 @@ class ThrottleReadRequestTest(BaseApiTest):
         def catchall(url, req):
             return {
                 'status_code': 200,
-                'content':{"resourceType":"Patient","id":"-20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"-20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+                'content':
+                {
+                    "resourceType":FhirResources.Patient.name,
+                    "id":FHIR_PATIENT_ID_SYNTHETIC_EXIST,
+                    "extension":[
+                        {
+                            "url":"https://bluebutton.cms.gov/resources/variables/race",
+                            "valueCoding":{
+                                "system":"https://bluebutton.cms.gov/resources/variables/race",
+                                "code":"1",
+                                "display":"White"}
+                        }
+                        ],
+                    "identifier":[
+                            {
+                                "system":"https://bluebutton.cms.gov/resources/variables/bene_id",
+                                "value":FHIR_PATIENT_ID_SYNTHETIC_EXIST
+                            },
+                            {
+                                "system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash",
+                                "value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"
+                            }
+                        ],
+                        "name":[
+                            {
+                                "use":"usual",
+                                "family":"Doe",
+                                "given":[
+                                    "Jane","X"
+                                    ]
+                            }],
+                        "gender":"unknown",
+                        "birthDate":"2014-06-01",
+                        "address":[
+                                {
+                                    "district":"999",
+                                    "state":"15",
+                                    "postalCode":"99999"
+                                }
+                            ]
+                } # noqa
             }
 
         with HTTMock(catchall):
@@ -141,8 +195,8 @@ class ThrottleReadRequestTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
                     kwargs={
-                        'resource_type': 'Patient',
-                        'resource_id': -20140000008325}),
+                        'resource_type': FhirResources.Patient.name,
+                        'resource_id': FHIR_PATIENT_ID_SYNTHETIC_EXIST_INT}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -161,8 +215,8 @@ class ThrottleReadRequestTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
                     kwargs={
-                        'resource_type': 'Patient',
-                        'resource_id': -20140000008325}),
+                        'resource_type': FhirResources.Patient.name,
+                        'resource_id': FHIR_PATIENT_ID_SYNTHETIC_EXIST_INT}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 429)
@@ -185,7 +239,7 @@ class ThrottleReadRequestTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_search',
                     kwargs={
-                        'resource_type': 'Patient'}),
+                        'resource_type': FhirResources.Patient.name}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 429)
@@ -198,8 +252,8 @@ class ThrottleReadRequestTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
                     kwargs={
-                        'resource_type': 'Patient',
-                        'resource_id': -20140000008325}),
+                        'resource_type': FhirResources.Patient.name,
+                        'resource_id': FHIR_PATIENT_ID_SYNTHETIC_EXIST_INT}),
                 Authorization="Bearer %s" % (second_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -213,7 +267,7 @@ class BackendConnectionTest(BaseApiTest):
         # create read and write capabilities
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
-        self._create_capability('patient', [
+        self._create_capability(FhirResources.Patient.name, [
             ["GET", r"\/v1\/fhir\/Patient\/\-\d+"],
             ["GET", r"\/v1\/fhir\/Patient\/\d+"],
             ["GET", "/v1/fhir/Patient"],
@@ -235,14 +289,14 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(FHIR_URL+"Patient/", req.url)
-            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
-            self.assertIn("_id=-20140000008325", req.url)
+            self.assertIn(FHIR_URL_PATTERN.format(FhirResources.Patient.name), req.url)
+            self.assertIn(APP_JSON_FMT, req.url)
+            self.assertIn(ID_QUERY_PARAM, req.url)
             self.assertIn("startIndex=0", req.url)
             self.assertIn("_count=5", req.url)
             self.assertNotIn("hello", req.url)
-            self.assertEqual(EXPECTED_REQUEST2['method'], req.method)
-            self.assertDictContainsSubset(EXPECTED_REQUEST2['headers'], req.headers)
+            self.assertEqual(SEARCH_REQ_EXPECTED.method, req.method)
+            self.assertDictContainsSubset(SEARCH_REQ_EXPECTED.headers, req.headers)
 
             return {
                 'status_code': 200,
@@ -254,7 +308,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                    kwargs={'resource_type': FhirResources.Patient.name}),
                 {'count': 5, 'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
@@ -268,7 +322,7 @@ class BackendConnectionTest(BaseApiTest):
         response = self.client.get(
             reverse(
                 'bb_oauth_fhir_search',
-                kwargs={'resource_type': 'Patient'}),
+                kwargs={'resource_type': FhirResources.Patient.name}),
             Authorization="Bearer bogus")
 
         self.assertEqual(response.status_code, 401)
@@ -279,11 +333,11 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(FHIR_URL+"Patient/", req.url)
-            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
-            self.assertIn("_id=-20140000008325", req.url)
-            self.assertEqual(EXPECTED_REQUEST2['method'], req.method)
-            self.assertDictContainsSubset(EXPECTED_REQUEST2['headers'], req.headers)
+            self.assertIn(FHIR_URL_PATTERN.format(FhirResources.Patient.name), req.url)
+            self.assertIn(APP_JSON_FMT, req.url)
+            self.assertIn(ID_QUERY_PARAM, req.url)
+            self.assertEqual(SEARCH_REQ_EXPECTED.method, req.method)
+            self.assertDictContainsSubset(SEARCH_REQ_EXPECTED.headers, req.headers)
 
             return {
                 'status_code': 404,
@@ -294,7 +348,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                    kwargs={'resource_type': FhirResources.Patient.name}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 404)
@@ -328,7 +382,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                    kwargs={'resource_type': FhirResources.ExplanationOfBenefit.name}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -339,11 +393,11 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(FHIR_URL+"Patient/", req.url)
-            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
-            self.assertIn("_id=-20140000008325", req.url)
-            self.assertEqual(EXPECTED_REQUEST2['method'], req.method)
-            self.assertDictContainsSubset(EXPECTED_REQUEST2['headers'], req.headers)
+            self.assertIn(FHIR_URL_PATTERN.format(FhirResources.Patient.name), req.url)
+            self.assertIn(APP_JSON_FMT, req.url)
+            self.assertIn(ID_QUERY_PARAM, req.url)
+            self.assertEqual(SEARCH_REQ_EXPECTED.method, req.method)
+            self.assertDictContainsSubset(SEARCH_REQ_EXPECTED.headers, req.headers)
 
             return {
                 'status_code': 500,
@@ -354,7 +408,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                    kwargs={'resource_type': FhirResources.Patient.name}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 502)
@@ -379,11 +433,11 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(FHIR_URL+"Patient/", req.url)
-            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
-            self.assertIn("_id=-20140000008325", req.url)
-            self.assertEqual(EXPECTED_REQUEST2['method'], req.method)
-            self.assertDictContainsSubset(EXPECTED_REQUEST2['headers'], req.headers)
+            self.assertIn(FHIR_URL_PATTERN.format(FhirResources.Patient.name), req.url)
+            self.assertIn(APP_JSON_FMT, req.url)
+            self.assertIn(ID_QUERY_PARAM, req.url)
+            self.assertEqual(SEARCH_REQ_EXPECTED.method, req.method)
+            self.assertDictContainsSubset(SEARCH_REQ_EXPECTED.headers, req.headers)
 
             return {
                 'status_code': 500,
@@ -394,7 +448,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                    kwargs={'resource_type': FhirResources.Patient.name}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 502)
@@ -405,14 +459,14 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertIn(FHIR_URL+"ExplanationOfBenefit/", req.url)
-            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
+            self.assertIn(FHIR_URL_PATTERN.format(FhirResources.ExplanationOfBenefit.name), req.url)
+            self.assertIn(APP_JSON_FMT, req.url)
 
             return {
                 'status_code': 200,
                 'content': {
-                    'resourceType': 'ExplanationOfBenefit',
-                    'patient': {
+                    'resourceType': FhirResources.ExplanationOfBenefit.name,
+                    str(FhirResources.Patient.name).lower(): {
                         'reference': 'stuff/-20140000008325',
                     },
                 },
@@ -423,7 +477,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                    kwargs={'resource_type': FhirResources.ExplanationOfBenefit.name}),
                 {'_lastUpdated': 'lt2019-11-22T14:00:00-05:00'},
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
@@ -433,7 +487,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                    kwargs={'resource_type': FhirResources.ExplanationOfBenefit.name}),
                 {'_lastUpdated': 'zz2020-11-22T14:00:00-05:00'},
                 Authorization="Bearer %s" % (first_access_token))
 
@@ -446,7 +500,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                    kwargs={'resource_type': FhirResources.ExplanationOfBenefit.name}),
                 {'type': 'pde'},
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
@@ -456,7 +510,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                    kwargs={'resource_type': FhirResources.ExplanationOfBenefit.name}),
                 {'type': 'carrier,'
                          'pde,'
                          'dme,'
@@ -481,7 +535,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                    kwargs={'resource_type': FhirResources.ExplanationOfBenefit.name}),
                 {'type': 'carrier,'
                          'INVALID-TYPE,'
                          'dme,'},
@@ -503,7 +557,7 @@ class BackendConnectionTest(BaseApiTest):
                     'total': 1,
                     'entry': [{
                         'resource': {
-                            'id': 20140000008324,
+                            'id': FHIR_PATIENT_ID_SYNTHETIC_NON_EXIST_INT,
                         },
                     }],
                 },
@@ -520,7 +574,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Patient', 'resource_id': '-20140000008325'}),
+                    kwargs={'resource_type': FhirResources.Patient.name, 'resource_id': '-20140000008325'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 403)
@@ -531,20 +585,20 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertEqual(EXPECTED_REQUEST['url'], req.url)
-            self.assertEqual(EXPECTED_REQUEST['method'], req.method)
-            self.assertDictContainsSubset(EXPECTED_REQUEST['headers'], req.headers)
+            self.assertEqual(READ_REQ_EXPECTED.url, req.url)
+            self.assertEqual(READ_REQ_EXPECTED.method, req.method)
+            self.assertDictContainsSubset(READ_REQ_EXPECTED.headers, req.headers)
 
             return {
                 'status_code': 200,
-                'content':{"resourceType":"Patient","id":"-20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"-20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+                'content':{"resourceType":FhirResources.Patient.name,"id":FHIR_PATIENT_ID_SYNTHETIC_EXIST,"extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":FHIR_PATIENT_ID_SYNTHETIC_EXIST},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
             }
 
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Patient', 'resource_id': '-20140000008325'}),
+                    kwargs={'resource_type': FhirResources.Patient.name, 'resource_id': FHIR_PATIENT_ID_SYNTHETIC_EXIST}),
                 {'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
@@ -559,8 +613,8 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
-                    'resourceType': 'ExplanationOfBenefit',
-                    'patient': {
+                    'resourceType': FhirResources.ExplanationOfBenefit.name,
+                    str(FhirResources.Patient.name).lower(): {
                         'reference': 'stuff/-20140000008325',
                     },
                 },
@@ -570,7 +624,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'ExplanationOfBenefit', 'resource_id': 'eob_id'}),
+                    kwargs={'resource_type': FhirResources.ExplanationOfBenefit.name, 'resource_id': 'eob_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -584,7 +638,7 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
-                    'resourceType': 'Coverage',
+                    'resourceType': FhirResources.Coverage.name,
                     'beneficiary': {
                         'reference': 'stuff/-20140000008325',
                     },
@@ -595,7 +649,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                    kwargs={'resource_type': FhirResources.Coverage.name, 'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -616,7 +670,7 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
-                    'resourceType': 'Coverage',
+                    'resourceType': FhirResources.Coverage.name,
                     'beneficiary': {
                         'reference': 'stuff/-20140000008325',
                     },
@@ -627,7 +681,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                    kwargs={'resource_type': FhirResources.Coverage.name, 'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -648,7 +702,7 @@ class BackendConnectionTest(BaseApiTest):
             return {
                 'status_code': 200,
                 'content': {
-                    'resourceType': 'Coverage',
+                    'resourceType': FhirResources.Coverage.name,
                     'beneficiary': {
                         'reference': 'stuff/-20140000008325',
                     },
@@ -659,7 +713,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                    kwargs={'resource_type': FhirResources.Coverage.name, 'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
