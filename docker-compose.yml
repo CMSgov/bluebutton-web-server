@@ -1,4 +1,4 @@
-version: '3'
+version: '3.6'
 
 services:
   db:
@@ -17,6 +17,8 @@ services:
             - OAUTHLIB_INSECURE_TRANSPORT=true
             - DJANGO_DEFAULT_SAMPLE_FHIR_ID="-20140000008325"
             - DJANGO_SECURE_SESSION=False
+            - FHIR_URL="https://prod-sbx.bfdcloud.net/v1/fhir/"
+            - DJANGO_FHIR_CERTSTORE=/code/docker-compose/certstore/
     volumes:
       - .:/code
     ports:
