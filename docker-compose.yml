@@ -1,6 +1,13 @@
-version: '3.6'
+version: '3'
 
 services:
+  msls:
+    build:
+      context: ./dev-local/msls
+      dockerfile: Dockerfile
+    command: msls
+    ports:
+      - "8080:8080"
   db:
     image: postgres
     environment:
@@ -19,9 +26,13 @@ services:
             - DJANGO_SECURE_SESSION=False
             - FHIR_URL="https://prod-sbx.bfdcloud.net/v1/fhir/"
             - DJANGO_FHIR_CERTSTORE=/code/docker-compose/certstore/
+            - DJANGO_MEDICARE_LOGIN_URI=http://127.0.0.1:8080?scope=openid%20profile&client_id=bluebutton
+            - DJANGO_SLS_USERINFO_ENDPOINT=http://msls:8080/userinfo
+            - DJANGO_SLS_TOKEN_ENDPOINT=http://msls:8080/token
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     depends_on:
       - db
+      - msls
