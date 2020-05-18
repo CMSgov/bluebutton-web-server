@@ -48,6 +48,23 @@ git config --global core.autocrlf true
 and in .env add below hint:
 COMPOSE_CONVERT_WINDOWS_PATHS=1
 
+
+## Test and verification
+
+After containers are up and running, go to localhost:8000 (default) and you will see CMS Blue Button landing page,
+follow documentation to create account, register applications, etc., note, on a local development environment, email might not be properly set, so confirmation email might not be received, and hence account activation needs to
+be done manually by going to localhost:8000/admin and activate it.
+
+Test from clients:
+
+
+* Test from in browser testclient - from top of developer sandbox click link 'testclient'
+* Test from CMS Blue Button Sample Clients:
+  * Ruby on Rails Sample Client: [Blue Button Sample Client Rails](https://github.com/CMSgov/bluebutton-sample-client-rails) 
+  * Django Sample Client: [Blue Button Sample Client Django](https://github.com/CMSgov/bluebutton-sample-client-django)
+
+Make changes to configurations following sample clients instructions and test the end to end scenarios.
+
 ## Remote debugging blue button server
 ## add to .env below environment variable for bb20 container
 
@@ -62,6 +79,7 @@ docker-compose up -d bb20
 ```
 ## After bb20 is up and running, ptvsd is listening on port 5678,
 ## attach to bb20 from IDE, e.g. VSCode and put break points on execution path, and debugging.
+
 
 ## Remote debugging blue button server unit tests
 
