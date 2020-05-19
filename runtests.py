@@ -8,9 +8,9 @@ from django.test.utils import get_runner
 
 
 # Unset ENV variables so that tests use default values.
-for env_var in [ 'FHIR_URL', 'DJANGO_MEDICARE_LOGIN_URI',
-                 'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
-                 'DJANGO_FHIR_CERTSTORE']:
+for env_var in ['FHIR_URL', 'DJANGO_MEDICARE_LOGIN_URI',
+                'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
+                'DJANGO_FHIR_CERTSTORE']:
     if env_var in os.environ:
         del os.environ[env_var]
 
