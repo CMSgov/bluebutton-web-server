@@ -16,6 +16,7 @@ docker-compose up -d web
 docker-compose logs -f | grep web
 
 ```
+press Ctrl C will stop monitor logging.
 
 If you're working with a fresh db image
 the migrations have to be run.
