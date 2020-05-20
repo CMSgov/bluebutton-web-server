@@ -82,3 +82,27 @@ Test from clients:
   * Django Sample Client: [Blue Button Sample Client Django](https://github.com/CMSgov/bluebutton-sample-client-django)
 
 Make changes to configurations following sample clients instructions and test the end to end scenarios.
+
+## Test with Sample Beneficiary
+
+```
+export ACCESS_TOKEN="sample-token-string"
+export BENE_ID="-20140000008325"
+export HOST="http://localhost:8000"
+
+```
+
+Get Pateint FHIR Resource json
+
+
+```
+curl --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/Patient/${BENE_ID}
+
+```
+
+Get ExplanationOfBenefit FHIR Resource json
+
+```
+curl -k -v --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/ExplanationOfBenefit/?Patient=${BENE_ID}"
+
+```
