@@ -14,9 +14,9 @@ docker-compose exec web docker-compose/migrate.sh
 
 ```
 
-## if any permissions errors are thrown try
-## docker-compose exec web chmod +x docker-compose/migrate.sh
-## then run the migrate script again
+if any permissions errors are thrown try
+docker-compose exec web chmod +x docker-compose/migrate.sh
+then run the migrate script again
 
 ## Running tests from your host
 
@@ -57,7 +57,7 @@ After blue button server is up, ptvsd is listening on port 5678,
 Attach to blue button server from IDE, e.g. VSCode and put break 
 points on execution path, and start debugging.
 
-## Remote debugging blue button server unit tests
+## Remote debugging blue button unit tests
 
 Run below docker compose command to start unittests with ptvsd wait on port 6789 for debugger to attach,
 Attach to unittests from IDE, e.g. VSCode and put break points in test cases, and debugging.
@@ -67,7 +67,7 @@ docker-compose up -d unittests
 
 ```
 
-## Test and verification Using Sample Clients
+## Test and Verify Using Sample Clients
 
 After container is up, go to localhost:8000 (default) and you will see CMS Blue Button landing page,
 follow documentation to create account, register applications, etc., note, on a local development environment, email might not be properly set, so confirmation email might not be received, and hence account activation needs to
