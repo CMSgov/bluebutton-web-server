@@ -1,6 +1,8 @@
 # Put Blue Button Web Server's 
 # Cert & Key here for TLS/SSL communication 
 # with BFD Data server
-# ca.cert.pem 
-# ca.key.nocrypt.pem
+# ca.cert.pem - certificate
+# ca.key.nocrypt.pem - private key
+# Ask for cert and key that works with the
+# targeted back end data server.
 
