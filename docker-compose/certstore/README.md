@@ -1,8 +1,8 @@
-# Put Blue Button Web Server's 
-# Cert & Key here for TLS/SSL communication 
-# with BFD Data server
-# ca.cert.pem - certificate
-# ca.key.nocrypt.pem - private key
-# Ask for cert and key that works with the
-# targeted back end data server.
+# Put BB2 server's cert & key for secured connection with BFD FHIR server
+
+ca.cert.pem - certificate
+ca.key.nocrypt.pem - private key
+
+Ask for cert and key that works with the
+targeted BFD FHIR server.
 

@@ -2,10 +2,19 @@
 
 To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker-compose/certstore` location to support the connection to the BFD FHIR server.
 
-To startup the Docker containerized Blue Button 2.0 server run the following command: 
+To startup the Docker containerized BB2 server, run the following command: 
 
 ```
 docker-compose up web
+
+```
+
+Alternatively, to monitor BB2 server logging:
+
+```
+docker-compose up -d web
+docker-compose logs -f | grep web
+
 ```
 
 If you're working with a fresh db image
@@ -51,17 +60,17 @@ change it accordingly.
 COMPOSE_CONVERT_WINDOWS_PATHS=1
 ```
 
-## Remote debugging Blue Button server
+## Remote debugging BB2 server
 
 Add the line below to the .env file to enable remote PTVSD debugging
-of Blue Button server in a docker container:
+of BB2 server in a docker container:
 
 ```
 BB20_ENABLE_REMOTE_DEBUG=true
 ```
 
-After the Blue Button server is up, ptvsd is listening on port 5678.
-Afterward, attach to server from your IDE (e.g. VSCode) and put break 
+After BB2 server is up, ptvsd is listening on port 5678.
+Afterward, attach to it from your IDE (e.g. VSCode) and put break 
 points on the execution path. You can now start debugging.
 
 ## Remote debugging Blue Button unit tests
@@ -81,7 +90,7 @@ Follow the documentation to create accounts, register applications, and other ta
 
 You are also able to manually modify Django model objects when needed by using the Django ADMIN at: http://localhost:8000/admin.
 
-To test if there is connectivity to the back end FHIR database server, go to the following URL at: http://localhost:8000/health/external.
+To test if there is connectivity to the back end BFD FHIR server, go to the following URL at: http://localhost:8000/health/external.
 
 ###Test from clients:
 
