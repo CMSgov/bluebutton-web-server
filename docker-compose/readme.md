@@ -51,6 +51,8 @@ convertion using the following command:
 git config --global core.autocrlf true
 
 ```
+in case, with above git core.autocrlf setting, some steps e.g. migrate.sh still chokes (file not found etc.),
+fix script manually, e.g. using dos2unix.
 
 If needing to pass the docker compose environment variable, make a copy of the .env.example and
 change it accordingly.
