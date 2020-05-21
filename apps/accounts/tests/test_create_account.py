@@ -13,8 +13,6 @@ class CreateDeveloperAccountTestCase(TestCase):
     Test Developer Account Creation
     """
 
-    fixtures = ['testfixture']
-
     @override_switch('signup', active=True)
     def setUp(self):
         Group.objects.create(name='BlueButton')

@@ -247,9 +247,11 @@ class TestTokenView(BaseApiTest):
             application=application,
         ).exists())
 
-        response = self.client.get('/v1/fhir/Patient',
-                                   HTTP_AUTHORIZATION="Bearer " + tkn.token)
-        self.assertEqual(response.status_code, 403)
+        # Post Django 2.2:  An OSError exception is expected when trying to reach the
+        #                   backend FHIR server and proves authentication worked.
+        with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):
+            response = self.client.get('/v1/fhir/Patient',
+                                       HTTP_AUTHORIZATION="Bearer " + tkn.token)
 
         bob_tkn = self._create_test_token(bob, other_application)
         self.assertTrue(DataAccessGrant.objects.filter(
@@ -282,15 +284,20 @@ class TestTokenView(BaseApiTest):
             application=application,
         ).exists())
 
-        response = self.client.get('/v1/fhir/Patient',
-                                   HTTP_AUTHORIZATION="Bearer " + bob_tkn.token)
-        # 403 is an expected response if the token is ok but the test can't reach the data server (which it shouldn't)
-        self.assertEqual(response.status_code, 403)
+        # Post Django 2.2:  An OSError exception is expected when trying to reach the
+        #                   backend FHIR server and proves authentication worked.
+        with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):
+            response = self.client.get('/v1/fhir/Patient',
+                                       HTTP_AUTHORIZATION="Bearer " + bob_tkn.token)
 
         next_tkn = self._create_test_token(anna, application)
-        response = self.client.get('/v1/fhir/Patient',
-                                   HTTP_AUTHORIZATION="Bearer " + next_tkn.token)
-        self.assertEqual(response.status_code, 403)
+
+        # Post Django 2.2:  An OSError exception is expected when trying to reach the
+        #                   backend FHIR server and proves authentication worked.
+        with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):
+            response = self.client.get('/v1/fhir/Patient',
+                                       HTTP_AUTHORIZATION="Bearer " + next_tkn.token)
+
         # self.assertEqual(next_tkn.token, tkn.token)
         self.assertTrue(DataAccessGrant.objects.filter(
             beneficiary=anna,
