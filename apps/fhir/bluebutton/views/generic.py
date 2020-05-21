@@ -6,6 +6,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
 
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
@@ -24,6 +25,27 @@ from ..utils import (build_fhir_response,
                      get_resourcerouter)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+FHIR_RS_TYPE="resourceType"
+FHIR_OP_OUTCOME="OperationOutcome"
+FHIR_OP_OUTCOME_ISSUE="issue"
+FHIR_OP_OUTCOME_DIAGNOSTICS="diagnostics"
+
+BAD_REQ_ERRORS = [
+    "Unsupported ID pattern",
+]
+
+def is_bad_request(json_data):
+    if type(json_data) is dict and \
+        json_data.get(FHIR_RS_TYPE) == FHIR_OP_OUTCOME:
+            for issue in json_data.get(FHIR_OP_OUTCOME_ISSUE):
+                if match_bad_req_err(issue.get(FHIR_OP_OUTCOME_DIAGNOSTICS)):
+                    return True
+
+def match_bad_req_err(msg):
+    for e in BAD_REQ_ERRORS:
+        if e in msg:
+            return True
 
 
 class FhirDataView(APIView):
@@ -123,7 +145,23 @@ class FhirDataView(APIView):
             raise exceptions.NotFound(detail='The requested resource does not exist')
 
         # TODO: This should be more specific
+        #
+        # BB2-128: map BFD coarse grained 500 error on FHIR read / search etc. with malformed
+        # parameters, e.g. an invalid regex pattern etc., to a FHIR compliant http code.
+        # this mapping is desirable since back end fhir server may not always response with
+        # FHIR compliant http error code.
+        #  
         if response.status_code >= 300:
+            if response.status_code == 500:
+                json_data = None
+                try:
+                    json_data = r.json()
+                except Exception as ex:
+                    pass
+
+                if is_bad_request(json_data):
+                    raise ValidationError(json_data)
+            ## catch rest                    
             raise UpstreamServerException(detail='An error occurred contacting the upstream server')
 
         self.validate_response(response)
