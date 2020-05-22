@@ -17,7 +17,7 @@ services:
             - "5432:5432"
   web:
     build: .
-    command: bash -c "if [ '${BB20_ENABLE_REMOTE_DEBUG}' = true ] ; then python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload ; else python3 manage.py runserver 0.0.0.0:8000; fi"
+    command: bash -c "if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi ; if [ '${BB20_ENABLE_REMOTE_DEBUG}' = true ] ; then python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload ; else python3 manage.py runserver 0.0.0.0:8000; fi"
     environment:
             - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
             - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton

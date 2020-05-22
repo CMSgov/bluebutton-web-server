@@ -10,12 +10,6 @@ DEVELOPER_SIGNUP_ROLE_CHOICES = [
     (6, 'Other', 'other'),
 ]
 
-## I am a developer working on behalf of my organization
-## I am a developer checking out Blue Button for fun
-## I am a student
-## I am part of an organization but am not a developer
-## I am a Medicare beneficiary
-## Other
 
 def create_user_identification_label():
     UserIdentificationLabel.objects.all().delete()
