@@ -18,7 +18,7 @@ from ..signals import (
 from apps.authorization.permissions import DataAccessGrantPermission
 from ..authentication import OAuth2ResourceOwner
 from ..permissions import (HasCrosswalk, ResourcePermission)
-from ..exceptions import UpstreamServerException, filter_backend_response
+from ..exceptions import filter_backend_response
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
@@ -121,7 +121,7 @@ class FhirDataView(APIView):
 
         # BB2-128
         error = filter_backend_response(response)
-        
+
         if error is not None:
             raise error
 
