@@ -88,11 +88,10 @@ def create_test_token(user, application):
                                    scope=' '.join(scope))
     return t
 
+
 class Command(BaseCommand):
 
-
     help = 'Create a test user and application for the test client'
-
 
     def handle(self, *args, **options):
         g = create_group()
