@@ -2,7 +2,6 @@ from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from apps.accounts.models import UserProfile
-from apps.accounts.models import UserIdentificationLabel
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Application
 from apps.capabilities.models import ProtectedCapability
@@ -90,7 +89,10 @@ def create_test_token(user, application):
     return t
 
 class Command(BaseCommand):
+
+
     help = 'Create a test user and application for the test client'
+
 
     def handle(self, *args, **options):
         g = create_group()
