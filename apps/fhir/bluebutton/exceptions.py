@@ -1,9 +1,11 @@
 from rest_framework.exceptions import NotFound, ValidationError, APIException
 from rest_framework import status
+from requests import Response
 from .models import Fhir_Response
 
 BAD_REQ_ERRORS = [
     "Unsupported ID pattern",
+    "IllegalArgumentException",
 ]
 
 FHIR_RS_TYPE = "resourceType"
@@ -12,23 +14,13 @@ FHIR_OP_OUTCOME_ISSUE = "issue"
 FHIR_OP_OUTCOME_DIAGNOSTICS = "diagnostics"
 
 
-def is_bad_request(json_data):
-    """
-    helper to determine nature of backend error, hueristcally.
-    """
-    if type(json_data) is dict and json_data.get(FHIR_RS_TYPE) == FHIR_OP_OUTCOME:
-        for issue in json_data.get(FHIR_OP_OUTCOME_ISSUE):
-            if match_bad_req_err(issue.get(FHIR_OP_OUTCOME_DIAGNOSTICS)):
-                return True
-
-
-def match_bad_req_err(msg):
+def match_bad_req_err_msg(msg):
     for e in BAD_REQ_ERRORS:
-        if e in msg:
+        if e.lower() in msg.lower():
             return True
 
 
-def filter_backend_response(response: Fhir_Response) -> APIException:
+def process_error_response(response: Fhir_Response) -> APIException:
     """
     TODO: This should be more specific (original comment before BB2-128)
     BB2-128: map BFD coarse grained 500 error on FHIR read / search etc. with malformed
@@ -37,19 +29,34 @@ def filter_backend_response(response: Fhir_Response) -> APIException:
     FHIR compliant http error code.
 
     """
-    err_ret: APIException = None
-
+    err: APIException = None
     if response.status_code == 404:
-        err_ret = NotFound(detail='The requested resource does not exist')
+        err = NotFound(detail='The requested resource does not exist')
     else:
+        r: Response = response.backend_response
+        json_data = None
         if response.status_code >= 300:
             if response.status_code == 500:
-                if is_bad_request(response.json):
-                    err_ret = ValidationError(response.json)
-            ## catch rest (>=300 but not 500)                
-            err_ret = UpstreamServerException(detail='An error occurred contacting the upstream server')
+                if r is not None:
+                    try:
+                        json_data = r.json()
+                    except ValueError as ve:
+                        pass
 
-    return err_ret
+                    if type(json_data) is dict and json_data.get(FHIR_RS_TYPE) == FHIR_OP_OUTCOME:
+                        for issue in json_data.get(FHIR_OP_OUTCOME_ISSUE):
+                            if match_bad_req_err_msg(issue.get(FHIR_OP_OUTCOME_DIAGNOSTICS)):
+                                bfd_err = {'fhir server status code': response.status_code}
+                                err = ValidationError({**bfd_err, **json_data})
+
+            # catch rest (>=300 and 500 except those treated as 400 bad request)
+            if err is None:
+                bb2_err = {'status_code': response.status_code, 'message': 'An error occurred contacting the upstream server'}
+                bfd_err = {'fhir server status code': response.status_code}
+                if json_data is not None:
+                    bfd_err.update(json_data)
+                err = UpstreamServerException(detail={**bb2_err, **bfd_err})
+    return err
 
 
 class UpstreamServerException(APIException):

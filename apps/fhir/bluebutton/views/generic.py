@@ -18,7 +18,7 @@ from ..signals import (
 from apps.authorization.permissions import DataAccessGrantPermission
 from ..authentication import OAuth2ResourceOwner
 from ..permissions import (HasCrosswalk, ResourcePermission)
-from ..exceptions import filter_backend_response
+from ..exceptions import process_error_response
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
@@ -120,7 +120,7 @@ class FhirDataView(APIView):
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128
-        error = filter_backend_response(response)
+        error = process_error_response(response)
 
         if error is not None:
             raise error
