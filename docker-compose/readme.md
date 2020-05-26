@@ -5,14 +5,14 @@ To begin developing locally, internal software engineers will need to obtain and
 To startup the Docker containerized BB2 server, run the following command: 
 
 ```
-docker-compose up web
+docker-compose up -d
 
 ```
 
 Alternatively, to monitor BB2 server logging:
 
 ```
-docker-compose up -d web
+docker-compose up -d
 docker-compose logs -f | grep web
 
 ```
