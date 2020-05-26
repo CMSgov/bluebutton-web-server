@@ -40,7 +40,7 @@ def process_error_response(response: Fhir_Response) -> APIException:
                 if r is not None:
                     try:
                         json_data = r.json()
-                    except ValueError as ve:
+                    except ValueError:
                         pass
 
                     if type(json_data) is dict and json_data.get(FHIR_RS_TYPE) == FHIR_OP_OUTCOME:
