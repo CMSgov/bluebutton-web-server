@@ -19,6 +19,8 @@ for more details.
 The information below outlines setting up the server for development or your own environment.
 For general information on deploying Django see https://docs.djangoproject.com/en/1.11/howto/deployment/.
 
+NOTE:  Internal software engineers or other interested parties should follow the documentation for running a Dockerized local development enviornment. For more information see https://github.com/CMSgov/bluebutton-web-server/blob/master/docker-compose/readme.md.
+
 Setup
 -----
 

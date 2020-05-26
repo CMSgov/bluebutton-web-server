@@ -1,6 +1,13 @@
 version: '3'
 
 services:
+  msls:
+    build:
+      context: ./dev-local/msls
+      dockerfile: Dockerfile
+    command: msls
+    ports:
+      - "8080:8080"
   db:
     image: postgres
     environment:
@@ -10,16 +17,37 @@ services:
             - "5432:5432"
   web:
     build: .
-    command: python3 manage.py runserver 0.0.0.0:8000
+    command: bash -c "if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi ; if [ '${BB20_ENABLE_REMOTE_DEBUG}' = true ] ; then python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload ; else python3 manage.py runserver 0.0.0.0:8000; fi"
     environment:
             - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
             - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton
             - OAUTHLIB_INSECURE_TRANSPORT=true
             - DJANGO_DEFAULT_SAMPLE_FHIR_ID="-20140000008325"
             - DJANGO_SECURE_SESSION=False
+            - FHIR_URL="https://prod-sbx.bfdcloud.net/v1/fhir/"
+            - DJANGO_FHIR_CERTSTORE=/code/docker-compose/certstore/
+            - DJANGO_MEDICARE_LOGIN_URI=http://127.0.0.1:8080?scope=openid%20profile&client_id=bluebutton
+            - DJANGO_SLS_USERINFO_ENDPOINT=http://msls:8080/userinfo
+            - DJANGO_SLS_TOKEN_ENDPOINT=http://msls:8080/token
     volumes:
       - .:/code
     ports:
       - "8000:8000"
+      - "5678:5678"
     depends_on:
       - db
+      - msls
+  unittests:
+    build: .
+    command: python3 -m ptvsd --host 0.0.0.0 --port 6789 --wait runtests.py
+    environment:
+            - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
+            - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton
+            - OAUTHLIB_INSECURE_TRANSPORT=true
+            - DJANGO_DEFAULT_SAMPLE_FHIR_ID="-20140000008325"
+            - DJANGO_SECURE_SESSION=False
+    ports:
+      - "6789:6789"
+    volumes:
+      - .:/code
+    
