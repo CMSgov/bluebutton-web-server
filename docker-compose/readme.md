@@ -121,7 +121,7 @@ Get Pateint FHIR Resource json
 
 
 ```
-curl --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/Patient/${BENE_ID}
+curl --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/Patient/${BENE_ID}"
 
 ```
 

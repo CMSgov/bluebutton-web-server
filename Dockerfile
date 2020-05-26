@@ -6,4 +6,3 @@ WORKDIR /code
 RUN make reqs-install-dev
 RUN pip install pip-tools
 RUN pip install psycopg2
-
