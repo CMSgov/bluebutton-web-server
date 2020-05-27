@@ -128,6 +128,7 @@ class Fhir_Response(Response):
     """
 
     def __init__(self, req_response=Response):
+        self.backend_response = req_response
         if req_response is None:
             req_response = Response
 
