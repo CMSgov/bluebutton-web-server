@@ -626,6 +626,38 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 200)
 
+    def test_read_eob_request_unsupported_id_pattern(self):
+        '''
+        BB2-128: BUGFIX Result code 500 for invalid pattern Coverage/EOB read requests
+        '''
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 500,
+                'content': {
+                    "resourceType": "OperationOutcome",
+                    "issue": [
+                        { 
+                            "severity": "error", 
+                            "code": "processing",
+                            "diagnostics": "Failed to call access method: java.lang.IllegalArgumentException: Unsupported ID pattern: ppp-art-a-20140000008325"
+                        }
+                    ]
+                },
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={'resource_type': 'ExplanationOfBenefit', 'resource_id': 'ppp-art-a-20140000008325'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 400)
+
     def test_read_coverage_request(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')

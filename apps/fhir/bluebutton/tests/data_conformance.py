@@ -3,7 +3,6 @@ hhs_oauth_server
 FILE: data_conformance
 Created: 7/19/16 6:37 PM
 
-<<<<<<< HEAD
 File created by: Mark Scirmshire @ekivemark
 
 """
