@@ -25,17 +25,25 @@ class SynthCrosswalkManager(models.Manager):
         return super().get_queryset().filter(Q(_fhir_id__startswith='-'))
 
 
-def hash_hicn(hicn):
+def hash_id_value(hicn):
     """
-    Hashes a hicn to match fhir server logic:
+    Hashes an MBI or HICN to match fhir server logic:
+    Both currently use the same hash salt ENV values.
     https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-pipeline/bfd-pipeline-rif-load/src/main/java/gov/cms/bfd/pipeline/rif/load/RifLoader.java#L665-L706
-
     """
-    assert hicn != "", "HICN cannot be the empty string"
-
     return binascii.hexlify(pbkdf2(hicn,
                             get_user_id_salt(),
                             settings.USER_ID_ITERATIONS)).decode("ascii")
+
+def hash_hicn(hicn):
+    assert hicn != "", "HICN cannot be the empty string"
+
+    return hash_id_value(hicn)
+
+def hash_mbi(mbi):
+    assert mbi != "", "MBI cannot be the empty string"
+
+    return hash_id_value(mbi)
 
 
 class Crosswalk(models.Model):
