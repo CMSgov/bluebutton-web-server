@@ -18,7 +18,7 @@ from ..signals import (
 from apps.authorization.permissions import DataAccessGrantPermission
 from ..authentication import OAuth2ResourceOwner
 from ..permissions import (HasCrosswalk, ResourcePermission)
-from ..exceptions import UpstreamServerException
+from ..exceptions import process_error_response
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
@@ -119,12 +119,11 @@ class FhirDataView(APIView):
         post_fetch.send_robust(self.__class__, request=prepped, response=r)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
-        if response.status_code == 404:
-            raise exceptions.NotFound(detail='The requested resource does not exist')
+        # BB2-128
+        error = process_error_response(response)
 
-        # TODO: This should be more specific
-        if response.status_code >= 300:
-            raise UpstreamServerException(detail='An error occurred contacting the upstream server')
+        if error is not None:
+            raise error
 
         self.validate_response(response)
 
