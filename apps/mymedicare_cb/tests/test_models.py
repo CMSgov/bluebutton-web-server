@@ -12,7 +12,7 @@ class BeneficiaryLoginTest(TestCase):
     def test_create_beneficiary_record(self):
         args = {
             "username": "00112233-4455-6677-8899-aabbccddeeff",
-            "user_id_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+            "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
             "fhir_id": "-20000000002346",
             "first_name": "Hello",
             "last_name": "World",
@@ -21,7 +21,7 @@ class BeneficiaryLoginTest(TestCase):
         bene = create_beneficiary_record(**args)
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args["username"])
-        self.assertEqual(bene.crosswalk.user_id_hash, args["user_id_hash"])
+        self.assertEqual(bene.crosswalk.user_hicn_hash, args["user_hicn_hash"])
         self.assertEqual(bene.crosswalk.fhir_id, args["fhir_id"])
         self.assertEqual(bene.userprofile.user_type, 'BEN')
 
@@ -29,7 +29,7 @@ class BeneficiaryLoginTest(TestCase):
         cases = {
             "missing username": {
                 "args": {
-                    "user_id_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                     "first_name": "Hello",
                     "last_name": "World",
                     "email": "fu@bar.bar",
@@ -56,12 +56,12 @@ class BeneficiaryLoginTest(TestCase):
                 "args": [
                     {
                         "username": "00112233-4455-6677-8899-aabbccddeeff",
-                        "user_id_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                         "fhir_id": "-19990000000001",
                     },
                     {
                         "username": "00112233-4455-6677-8899-aabbccddeeff",
-                        "user_id_hash": "60ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "user_hicn_hash": "60ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                         "fhir_id": "-19990000000002",
                     },
                 ],
@@ -71,12 +71,12 @@ class BeneficiaryLoginTest(TestCase):
                 "args": [
                     {
                         "username": "10112233-4455-6677-8899-aabbccddeeff",
-                        "user_id_hash": "70ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "user_hicn_hash": "70ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                         "fhir_id": "-19990000000003",
                     },
                     {
                         "username": "20112233-4455-6677-8899-aabbccddeeff",
-                        "user_id_hash": "70ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "user_hicn_hash": "70ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                         "fhir_id": "-19990000000004",
                     },
                 ],
@@ -86,12 +86,12 @@ class BeneficiaryLoginTest(TestCase):
                 "args": [
                     {
                         "username": "30112233-4455-6677-8899-aabbccddeeff",
-                        "user_id_hash": "80ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "user_hicn_hash": "80ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                         "fhir_id": "-19990000000005",
                     },
                     {
                         "username": "40112233-4455-6677-8899-aabbccddeeff",
-                        "user_id_hash": "90ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                        "user_hicn_hash": "90ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                         "fhir_id": "-19990000000005",
                     },
                 ],

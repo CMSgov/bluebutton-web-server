@@ -75,7 +75,7 @@ def authenticate(request):
             "username": user.username,
             "crosswalk": {
                 "id": user.crosswalk.id,
-                "user_id_hash": user.crosswalk.user_id_hash,
+                "user_hicn_hash": user.crosswalk.user_hicn_hash,
                 "fhir_id": user.crosswalk.fhir_id,
             },
         },
