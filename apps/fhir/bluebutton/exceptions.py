@@ -1,4 +1,4 @@
-from rest_framework.exceptions import NotFound, ValidationError, APIException
+from rest_framework.exceptions import NotFound, APIException
 from rest_framework import status
 from requests import Response
 from .models import Fhir_Response
