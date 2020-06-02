@@ -13,26 +13,14 @@ def process_error_response(response: Fhir_Response) -> APIException:
     """
     err: APIException = None
     r: Response = response.backend_response
-    if response.status_code == 404:
-        bb2_err = {'Error': 404, 'message': 'The requested resource does not exist'}
+    if response.status_code >= 300:
         bfd_err = {'FHIR response status_code': response.status_code}
         bfd_err.update({'fhir response content': r.content})
-        err = NotFound(detail={**bb2_err, **bfd_err})
-    else:
-        json_data = None
-        if response.status_code >= 300:
-            if r is not None:
-                try:
-                    json_data = r.json()
-                except ValueError:
-                    pass
-
+        if response.status_code == 404:
+            bb2_err = {'Error': response.status_code, 'message': 'The requested resource does not exist'}
+            err = NotFound(detail={**bb2_err, **bfd_err})
+        else:
             bb2_err = {'Error': 502, 'message': 'An error occurred contacting the upstream server'}
-            bfd_err = {'FHIR response status_code': response.status_code}
-            if json_data is not None:
-                bfd_err.update(json_data)
-            else:
-                bfd_err.update({'fhir response content': r.content})
             err = UpstreamServerException(detail={**bb2_err, **bfd_err})
     return err
 
