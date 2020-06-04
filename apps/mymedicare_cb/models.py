@@ -33,8 +33,12 @@ def get_and_update_user(user_info):
     hicn_hash = hash_hicn(hicn)
     mbi_hash = hash_mbi(mbi)
 
+    # TODO: Add return for ID type used for FHIR_ID match.
     # raises exceptions.NotFound:
     fhir_id, backend_data = match_hicn_hash(hicn_hash)
+
+    # HICN was used to match the user.
+    user_id_type = 'H'
 
     try:
         user = User.objects.get(username=subject)
@@ -43,6 +47,8 @@ def get_and_update_user(user_info):
         return user
     except User.DoesNotExist:
         pass
+
+    
 
     first_name = user_info.get('given_name', "")
     last_name = user_info.get('family_name', "")
@@ -53,7 +59,8 @@ def get_and_update_user(user_info):
                                      fhir_id=fhir_id,
                                      first_name=first_name,
                                      last_name=last_name,
-                                     email=email)
+                                     email=email,
+                                     user_id_type=user_id_type)
     return user
 
 
@@ -63,7 +70,9 @@ def create_beneficiary_record(username=None,
                               fhir_id=None,
                               first_name="",
                               last_name="",
-                              email=""):
+                              email="",
+                              user_id_type="H"):
+
     assert username is not None
     assert username != ""
     assert user_hicn_hash is not None
@@ -89,7 +98,8 @@ def create_beneficiary_record(username=None,
         user.save()
         Crosswalk.objects.create(user=user,
                                  user_hicn_hash=user_hicn_hash,
-                                 fhir_id=fhir_id)
+                                 fhir_id=fhir_id,
+                                 user_id_type=user_id_type)
 
         # Extra user information
         # TODO: remvoe the idea of UserProfile

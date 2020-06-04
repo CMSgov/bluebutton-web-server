@@ -61,12 +61,14 @@ def authenticate(request):
 
     # Get the userinfo response object
     user_info = response.json()
+
     logger.info({
         "type": "Authentication:start",
         "sub": user_info["sub"],
     })
 
     user = get_and_update_user(user_info)
+
     logger.info({
         "type": "Authentication:success",
         "sub": user_info["sub"],
@@ -77,6 +79,7 @@ def authenticate(request):
                 "id": user.crosswalk.id,
                 "user_hicn_hash": user.crosswalk.user_hicn_hash,
                 "fhir_id": user.crosswalk.fhir_id,
+                "user_id_type": user.crosswalk.user_id_type,
             },
         },
     })
