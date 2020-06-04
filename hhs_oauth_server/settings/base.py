@@ -468,8 +468,7 @@ USER_ID_SALT = env('DJANGO_USER_ID_SALT', "6E6F747468657265616C706570706572")
 USER_ID_ITERATIONS = int(env("DJANGO_USER_ID_ITERATIONS", "2"))
 
 USER_ID_TYPE_CHOICES = (('H', 'HICN'),
-                        ('M', 'MBI'),
-                        ('S', 'SSN'))
+                        ('M', 'MBI'))
 
 USER_ID_TYPE_DEFAULT = "H"
 DEFAULT_SAMPLE_FHIR_ID = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID", "-20140000008325")
