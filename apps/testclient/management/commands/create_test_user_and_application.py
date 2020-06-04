@@ -23,9 +23,16 @@ def create_group(name="BlueButton"):
 
 
 def create_user(group):
-
+    '''
+    per current 30k synthetic beneficiary records:
+    user fred has mbi hash - BENE_ID = -20140000008325
+    user jane has hicn hash - BENE_ID = -19990000000001
+    '''
     if User.objects.filter(username="fred").exists():
         User.objects.filter(username="fred").delete()
+
+    if User.objects.filter(username="jane").exists():
+        User.objects.filter(username="jane").delete()
 
     u = User.objects.create_user(username="fred",
                                  first_name="Fred",
@@ -44,9 +51,31 @@ def create_user(group):
 
     u.groups.add(group)
     c, g_o_c = Crosswalk.objects.get_or_create(user=u,
-                                               _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                               _user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130")
-    return u
+                                                user_id_type='M',
+                                                _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                                _user_id_hash="0b2b0f53d207a7b5867e834277490fdacf2642fafb51fe40030cc890a73a188f")
+
+    u2 = User.objects.create_user(username="jane",
+                                 first_name="Jane",
+                                 last_name="Doe",
+                                 email='jane@example.com',
+                                 password="foobarfoobarfoobar",)
+    UserProfile.objects.create(user=u2,
+                               user_type="BEN",
+                               create_applications=True,
+                               password_reset_question_1='1',
+                               password_reset_answer_1='green',
+                               password_reset_question_2='2',
+                               password_reset_answer_2='Bryan',
+                               password_reset_question_3='3',
+                               password_reset_answer_3='Honda')
+
+    u2.groups.add(group)
+    c1, g_o_c1 = Crosswalk.objects.get_or_create(user=u2,
+                                                user_id_type='H',
+                                                _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID_HICN,
+                                                _user_id_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7")
+    return u, u2
 
 
 def create_application(user, group):
@@ -90,16 +119,25 @@ def create_test_token(user, application):
 
 
 class Command(BaseCommand):
-    help = 'Create a test user and application for the test client'
+    help = 'Create test user(s) and application for the test client'
 
     def handle(self, *args, **options):
         g = create_group()
-        u = create_user(g)
+        u, u2 = create_user(g)
         a = create_application(u, g)
+        a2 = create_application(u2, g)
         t = create_test_token(u, a)
+        t2 = create_test_token(u2, a2)
         update_grants()
+        print("------------ sample user #1 : fred ------------")
         print("Name:", a.name)
         print("client_id:", a.client_id)
         print("client_secret:", a.client_secret)
         print("access_token:", t.token)
         print("redirect_uri:", a.redirect_uris)
+        print("------------ sample user #2 : jane ------------")
+        print("Name:", a2.name)
+        print("client_id:", a2.client_id)
+        print("client_secret:", a2.client_secret)
+        print("access_token:", t2.token)
+        print("redirect_uri:", a2.redirect_uris)

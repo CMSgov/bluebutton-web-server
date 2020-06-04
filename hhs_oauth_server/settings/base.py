@@ -377,6 +377,10 @@ DEFAULT_DISCLOSURE_TEXT = """
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
+# HOSTNAME_URL = env('HOSTNAME_URL', 'http://192.168.0.187:8000')
+# note: if localhost is used instead of IP, run into session overriden issue (don't know why),
+# the sympton is KeyError when get client_id from session;
+# use IP instead works fine
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
@@ -473,6 +477,13 @@ USER_ID_TYPE_CHOICES = (('H', 'HICN'),
 
 USER_ID_TYPE_DEFAULT = "H"
 DEFAULT_SAMPLE_FHIR_ID = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID", "-20140000008325")
+
+DEFAULT_SAMPLE_FHIR_ID_HICN = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID_HICN", "-19990000000001")
+
+FHIR_PAT_ID_SYS_URI = "https://bluebutton.cms.gov/resources/identifier/"
+FHIR_PAT_ID_SEARCH_PARAM_HICN = "hicn-hash"
+FHIR_PAT_ID_SEARCH_PARAM_MBI = "mbi-hash"
+FHIR_PAT_ID_SEARCH_PARAM_BEN = "bene-id"
 
 OFFLINE = False
 EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'

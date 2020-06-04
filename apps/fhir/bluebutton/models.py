@@ -25,15 +25,16 @@ class SynthCrosswalkManager(models.Manager):
         return super().get_queryset().filter(Q(_fhir_id__startswith='-'))
 
 
-def hash_hicn(hicn):
+# def hash_hicn(hicn):
+def hash_pt_identity(pt_identity):
     """
     Hashes a hicn to match fhir server logic:
     https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-pipeline/bfd-pipeline-rif-load/src/main/java/gov/cms/bfd/pipeline/rif/load/RifLoader.java#L665-L706
 
     """
-    assert hicn != "", "HICN cannot be the empty string"
+    assert pt_identity != "", "patient identity cannot be the empty string"
 
-    return binascii.hexlify(pbkdf2(hicn,
+    return binascii.hexlify(pbkdf2(pt_identity,
                             get_user_id_salt(),
                             settings.USER_ID_ITERATIONS)).decode("ascii")
 
@@ -104,7 +105,8 @@ class Crosswalk(models.Model):
     def set_hicn(self, hicn):
         if self.pk:
             raise ValidationError("this value cannot be modified.")
-        self.user_id_hash = hash_hicn(hicn)
+        self.user_id_hash = hash_pt_identity(hicn)
+
 
     def get_fhir_resource_url(self, resource_type):
         # Return the fhir server url

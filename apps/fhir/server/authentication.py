@@ -1,5 +1,7 @@
 import requests
 import logging
+from django.conf import settings
+import urllib.parse
 from rest_framework import exceptions
 from ..bluebutton.exceptions import UpstreamServerException
 from ..bluebutton.utils import (FhirServerAuth,
@@ -7,15 +9,25 @@ from ..bluebutton.utils import (FhirServerAuth,
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+# FHIR_PAT_ID_SYS_URI = "https://bluebutton.cms.gov/resources/identifier/"
+# FHIR_PAT_ID_SEARCH_PARAM_HICN = "hicn-hash"
+# FHIR_PAT_ID_SEARCH_PARAM_MBI = "mbi-hash"
+FHIR_URL_FORMATTER = "{}Patient/?{}|{}&_format=application/json+fhir"
 
-def match_hicn_hash(hicn_hash):
+def match_pt_id_hash(id_hash, id_type):
     auth_state = FhirServerAuth(None)
     certs = (auth_state['cert_file'], auth_state['key_file'])
     # URL for patient ID.
-    url = get_resourcerouter().fhir_url + \
-        "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
-        hicn_hash + \
-        "&_format=json"
+    id_hash_type = settings.FHIR_PAT_ID_SEARCH_PARAM_MBI
+    if id_type == 'H':
+        id_param_type = settings.FHIR_PAT_ID_SEARCH_PARAM_HICN
+    elif id_type == 'M':
+        id_param_type = settings.FHIR_PAT_ID_SEARCH_PARAM_MBI
+    else:
+        id_param_type = settings.FHIR_PAT_ID_SEARCH_PARAM_BEN
+
+    sys_uri = settings.FHIR_PAT_ID_SYS_URI + id_param_type
+    url = FHIR_URL_FORMATTER.format(get_resourcerouter().fhir_url, urllib.parse.urlencode({'identifier': sys_uri}, doseq=True), id_hash)
     response = requests.get(url, cert=certs, verify=False)
     response.raise_for_status()
     backend_data = response.json()
@@ -33,6 +45,7 @@ def match_hicn_hash(hicn_hash):
 
     logger.info({
         "type": "FhirIDNotFound",
-        "hicn_hash": hicn_hash,
+        "bene_id/hicn_hash/mbi_hash": id_hash,
+        "id_hash_type": id_param_type,
     })
     raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")

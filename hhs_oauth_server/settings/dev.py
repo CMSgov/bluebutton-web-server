@@ -6,6 +6,11 @@ SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
+# HOSTNAME_URL = env('HOSTNAME_URL', 'http://192.168.0.187:8000')
+# HOSTNAME_URL = env('HOSTNAME_URL', 'http://192.168.0.187:8000')
+# note: if localhost is used instead of IP, run into session overriden issue (don't know why),
+# the sympton is KeyError when get client_id from session;
+# use IP instead works fine
 
 DEV_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------

@@ -3,8 +3,8 @@ from django.db import models, transaction
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from apps.accounts.models import UserProfile
-from apps.fhir.server.authentication import match_hicn_hash
-from apps.fhir.bluebutton.models import Crosswalk, hash_hicn
+from apps.fhir.server.authentication import match_pt_id_hash
+from apps.fhir.bluebutton.models import Crosswalk, hash_pt_identity
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -26,15 +26,22 @@ def get_and_update_user(user_info):
         AssertionError: If a user is matched but not all identifiers match.
     """
     subject = user_info['sub']
-    hicn = user_info['hicn']
-    hicn_hash = hash_hicn(hicn)
+    # if userinfo from msls local simulation, then hicn is hicn hash
+    # mbi is mbihash, check length to determine if need to calculate hash
+    id_type = user_info['identity_type']
+    pt_identity = user_info['pt_identity']
+    assert pt_identity != "", "Patient identity required either HICN or MBI."
+    if len(pt_identity) < 64:
+        pt_identity = hash_pt_identity(pt_identity)
 
     # raises exceptions.NotFound:
-    fhir_id, backend_data = match_hicn_hash(hicn_hash)
+    #fhir_id, backend_data = match_hicn_hash(hicn_hash)
+    fhir_id, backend_data = match_pt_id_hash(pt_identity, id_type)
 
     try:
         user = User.objects.get(username=subject)
-        assert user.crosswalk.user_id_hash == hicn_hash, "Found user's hicn did not match"
+        assert user.crosswalk.user_id_type == id_type, "Found user's identity type did not match"
+        assert user.crosswalk.user_id_hash == pt_identity, "Found user's identity (hicn/mbi) did not match"
         assert user.crosswalk.fhir_id == fhir_id, "Found user's fhir_id did not match"
         return user
     except User.DoesNotExist:
@@ -45,7 +52,7 @@ def get_and_update_user(user_info):
     email = user_info.get('email', "")
 
     user = create_beneficiary_record(username=subject,
-                                     user_id_hash=hicn_hash,
+                                     user_id_hash=pt_identity,
                                      fhir_id=fhir_id,
                                      first_name=first_name,
                                      last_name=last_name,
