@@ -56,6 +56,7 @@ def get_and_update_user(user_info):
 
     user = create_beneficiary_record(username=subject,
                                      user_hicn_hash=hicn_hash,
+                                     user_mbi_hash=mbi_hash,
                                      fhir_id=fhir_id,
                                      first_name=first_name,
                                      last_name=last_name,
@@ -67,6 +68,7 @@ def get_and_update_user(user_info):
 # TODO default empty strings to null, requires non-null constraints to be fixed
 def create_beneficiary_record(username=None,
                               user_hicn_hash=None,
+                              user_mbi_hash=None,
                               fhir_id=None,
                               first_name="",
                               last_name="",
@@ -98,6 +100,7 @@ def create_beneficiary_record(username=None,
         user.save()
         Crosswalk.objects.create(user=user,
                                  user_hicn_hash=user_hicn_hash,
+                                 user_mbi_hash=user_mbi_hash,
                                  fhir_id=fhir_id,
                                  user_id_type=user_id_type)
 
