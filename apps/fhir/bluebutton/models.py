@@ -107,7 +107,6 @@ class Crosswalk(models.Model):
             raise ValidationError("this value cannot be modified.")
         self.user_id_hash = hash_pt_identity(hicn)
 
-
     def get_fhir_resource_url(self, resource_type):
         # Return the fhir server url
         full_url = self.fhir_source.fhir_url

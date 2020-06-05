@@ -35,7 +35,6 @@ def get_and_update_user(user_info):
         pt_identity = hash_pt_identity(pt_identity)
 
     # raises exceptions.NotFound:
-    #fhir_id, backend_data = match_hicn_hash(hicn_hash)
     fhir_id, backend_data = match_pt_id_hash(pt_identity, id_type)
 
     try:

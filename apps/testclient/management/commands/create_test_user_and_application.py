@@ -51,15 +51,16 @@ def create_user(group):
 
     u.groups.add(group)
     c, g_o_c = Crosswalk.objects.get_or_create(user=u,
-                                                user_id_type='M',
-                                                _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                                _user_id_hash="0b2b0f53d207a7b5867e834277490fdacf2642fafb51fe40030cc890a73a188f")
+                                               user_id_type='M',
+                                               _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                               _user_id_hash="0b2b0f53d207a7b5867e834277490fdacf2642fafb51fe40030cc890a73a188f")
 
     u2 = User.objects.create_user(username="jane",
-                                 first_name="Jane",
-                                 last_name="Doe",
-                                 email='jane@example.com',
-                                 password="foobarfoobarfoobar",)
+                                  first_name="Jane",
+                                  last_name="Doe",
+                                  email='jane@example.com',
+                                  password="foobarfoobarfoobar",)
+
     UserProfile.objects.create(user=u2,
                                user_type="BEN",
                                create_applications=True,
@@ -72,9 +73,9 @@ def create_user(group):
 
     u2.groups.add(group)
     c1, g_o_c1 = Crosswalk.objects.get_or_create(user=u2,
-                                                user_id_type='H',
-                                                _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID_HICN,
-                                                _user_id_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7")
+                                                 user_id_type='H',
+                                                 _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID_HICN,
+                                                 _user_id_hash="96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7")
     return u, u2
 
 
