@@ -14,6 +14,7 @@ from .models import (
     AnonUserState,
     get_and_update_user,
 )
+from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 import logging
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import NotFound
@@ -62,9 +63,16 @@ def authenticate(request):
     # Get the userinfo response object
     user_info = response.json()
 
+    # Add MBI validation info for logging.
+    sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(user_info['mbi'])
+    sls_mbi_format_synthetic = is_mbi_format_synthetic(user_info['mbi'])
+
     logger.info({
         "type": "Authentication:start",
         "sub": user_info["sub"],
+        "sls_mbi_format_valid": sls_mbi_format_valid,
+        "sls_mbi_format_msg": sls_mbi_format_msg,
+        "sls_mbi_format_synthetic": sls_mbi_format_synthetic,
     })
 
     user = get_and_update_user(user_info)
