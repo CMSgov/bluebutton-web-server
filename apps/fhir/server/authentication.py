@@ -24,8 +24,8 @@ def match_pt_id_hash(id_hash, id_type):
         id_param_type = settings.FHIR_PAT_ID_SEARCH_PARAM_BEN
 
     sys_uri = settings.FHIR_PAT_ID_SYS_URI + id_param_type
-    url = FHIR_URL_FORMATTER.format(get_resourcerouter().fhir_url, 
-        urllib.parse.urlencode({'identifier': sys_uri}, doseq=True), id_hash)
+    url = FHIR_URL_FORMATTER.format(get_resourcerouter().fhir_url,
+                                    urllib.parse.urlencode({'identifier': sys_uri}, doseq=True), id_hash)
     response = requests.get(url, cert=certs, verify=False)
     response.raise_for_status()
     backend_data = response.json()
