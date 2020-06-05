@@ -79,12 +79,12 @@ def create_user(group):
     return u, u2
 
 
-def create_application(user, group):
-    Application.objects.filter(name="TestApp").delete()
+def create_application(user, group, appName):
+    Application.objects.filter(name=appName).delete()
     redirect_uri = "%s/testclient/callback" % (settings.HOSTNAME_URL)
     if not(redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
         redirect_uri = "https://" + redirect_uri
-    a = Application.objects.create(name="TestApp",
+    a = Application.objects.create(name=appName,
                                    redirect_uris=redirect_uri,
                                    user=user,
                                    client_type="confidential",
@@ -102,7 +102,7 @@ def create_application(user, group):
     return a
 
 
-def create_test_token(user, application):
+def create_test_token(user, application, tk):
 
     now = timezone.now()
     expires = now + timedelta(days=1)
@@ -113,7 +113,7 @@ def create_test_token(user, application):
         scope.append(s.slug)
 
     t = AccessToken.objects.create(user=user, application=application,
-                                   token="sample-token-string",
+                                   token=tk,
                                    expires=expires,
                                    scope=' '.join(scope))
     return t
@@ -125,10 +125,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         g = create_group()
         u, u2 = create_user(g)
-        a = create_application(u, g)
-        a2 = create_application(u2, g)
-        t = create_test_token(u, a)
-        t2 = create_test_token(u2, a2)
+        a = create_application(u, g, "TestApp")
+        a2 = create_application(u2, g, "TestApp2")
+        t = create_test_token(u, a, "sample-token-string")
+        t2 = create_test_token(u2, a2, "sample-token-string2")
         update_grants()
         print("------------ sample user #1 : fred ------------")
         print("Name:", a.name)
