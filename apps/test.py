@@ -18,9 +18,14 @@ class BaseApiTest(TestCase):
     protected with oauth2 using DOT.
     """
 
-    test_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
+    test_hicn_hash = "96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7"
+    test_mbi_hash = "98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321"
 
-    def _create_user(self, username, password, fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID, user_hicn_hash=test_hash, **extra_fields):
+    def _create_user(self, username, password,
+                     fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                     user_hicn_hash=test_hicn_hash,
+                     user_mbi_hash=test_mbi_hash,
+                     **extra_fields):
         """
         Helper method that creates a user instance
         with `username` and `password` set.
@@ -31,7 +36,8 @@ class BaseApiTest(TestCase):
 
         cw, _ = Crosswalk.objects.get_or_create(user=user,
                                                 _fhir_id=fhir_id,
-                                                _user_id_hash=user_hicn_hash)
+                                                _user_id_hash=user_hicn_hash,
+                                                _user_mbi_hash=user_mbi_hash)
         cw.save()
         return user
 
@@ -112,7 +118,8 @@ class BaseApiTest(TestCase):
             Crosswalk.objects.filter(_fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).delete()
         Crosswalk.objects.create(user=user,
                                  fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                 user_hicn_hash=self.test_hash)
+                                 user_hicn_hash=self.test_hicn_hash,
+                                 user_mbi_hash=self.test_mbi_hash)
 
         # create a oauth2 application and add capabilities
         application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)
