@@ -45,7 +45,7 @@ def hash_hicn(hicn):
 def hash_mbi(mbi):
     assert mbi != "", "MBI cannot be the empty string"
     # NOTE: mbi value can be None here.
-    if mbi == None:
+    if mbi is None:
         return None
     else:
         return hash_id_value(mbi)
