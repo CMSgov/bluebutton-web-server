@@ -1,44 +1,39 @@
-from django.db import transaction
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from apps.test import BaseApiTest
 
 from ..models import Crosswalk, check_crosswalks
 
-from django.contrib.auth.models import User
-
 
 class TestModels(BaseApiTest):
 
     def test_require_fhir_id(self):
-        user = self._create_user('john', 'password',
-                                 first_name='John',
-                                 last_name='Smith',
-                                 email='john@smith.net')
-        with self.assertRaisesRegexp(IntegrityError, "fhir_id"):
-            Crosswalk.objects.create(user=user, 
-                                     user_hicn_hash=self.test_hicn_hash,
-                                     user_mbi_hash=self.test_mbi_hash)
+        with self.assertRaisesRegexp(IntegrityError, "NOT NULL constraint.*fhir_id"):
+            self._create_user('john', 'password',
+                              first_name='John',
+                              last_name='Smith',
+                              email='john@smith.net',
+                              fhir_id=None)
 
     def test_require_user_hicn_hash(self):
-        # NOTE: The user_hicn_hash's DB field name is still user_id_hash below.
-        user = self._create_user('john', 'password',
-                                 first_name='John',
-                                 last_name='Smith',
-                                 email='john@smith.net')
-        with self.assertRaisesRegexp(IntegrityError, "user_id_hash.*violates not-null"):
-            Crosswalk.objects.create(user=user, fhir_id="-20000000000001")
+        # NOTE: The user_hicn_hash's DB field name is still user_id_hash in regex below.
+        with self.assertRaisesRegexp(IntegrityError, "NOT NULL constraint.*user_id_hash"):
+            self._create_user('john', 'password',
+                              first_name='John',
+                              last_name='Smith',
+                              email='john@smith.net',
+                              fhir_id="-20000000000001",
+                              user_hicn_hash=None)
 
     def test_not_require_user_mbi_hash(self):
         # user_mbi_hash can be null for backward compatability,
         #   so passes thru on save with duplicate user error.
-        user = self._create_user('john', 'password',
-                                 first_name='John',
-                                 last_name='Smith',
-                                 email='john@smith.net')
-        with self.assertRaisesRegexp(IntegrityError, "duplicate.*bluebutton_crosswalk_user_id_key"):
-            Crosswalk.objects.create(user=user, fhir_id="-20000000000001",
-                                     user_hicn_hash=self.test_hicn_hash)
+        self._create_user('john', 'password',
+                          first_name='John',
+                          last_name='Smith',
+                          email='john@smith.net',
+                          fhir_id="-20000000000001",
+                          user_hicn_hash=self.test_hicn_hash)
 
     def test_immutable_fhir_id(self):
         user = self._create_user('john', 'password',
