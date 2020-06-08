@@ -29,6 +29,10 @@ def get_and_update_user(user_info):
     hicn = user_info['hicn']
     mbi = user_info['mbi']
 
+    # If mbi is empty set to None
+    if mbi == "":
+        mbi = None
+
     # Create hashed values.
     hicn_hash = hash_hicn(hicn)
     mbi_hash = hash_mbi(mbi)

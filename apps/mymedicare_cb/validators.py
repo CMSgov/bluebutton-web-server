@@ -64,4 +64,4 @@ def is_mbi_format_synthetic(mbi):
     This is the case where there is an "S" in the 2nd position
     denoting a synthetic MBI value.
     """
-    return mbi[1] == "S"
+    return len(mbi) == 11 and mbi[1] == "S"

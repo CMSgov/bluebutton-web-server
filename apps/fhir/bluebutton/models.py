@@ -44,8 +44,11 @@ def hash_hicn(hicn):
 
 def hash_mbi(mbi):
     assert mbi != "", "MBI cannot be the empty string"
-
-    return hash_id_value(mbi)
+    # NOTE: mbi value can be None here.
+    if mbi == None:
+        return None
+    else:
+        return hash_id_value(mbi)
 
 
 class Crosswalk(models.Model):
