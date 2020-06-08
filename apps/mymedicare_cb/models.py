@@ -48,8 +48,6 @@ def get_and_update_user(user_info):
     except User.DoesNotExist:
         pass
 
-    
-
     first_name = user_info.get('given_name', "")
     last_name = user_info.get('family_name', "")
     email = user_info.get('email', "")

@@ -35,10 +35,12 @@ def hash_id_value(hicn):
                             get_user_id_salt(),
                             settings.USER_ID_ITERATIONS)).decode("ascii")
 
+
 def hash_hicn(hicn):
     assert hicn != "", "HICN cannot be the empty string"
 
     return hash_id_value(hicn)
+
 
 def hash_mbi(mbi):
     assert mbi != "", "MBI cannot be the empty string"
@@ -83,12 +85,12 @@ class Crosswalk(models.Model):
     # This stores the MBI hash value.
     #     Can be null for backwards migration compatibility.
     _user_mbi_hash = models.CharField(max_length=64,
-                                     verbose_name="HASH of User MBI ID",
-                                     unique=True,
-                                     null=True,
-                                     default=None,
-                                     db_column="user_mbi_hash",
-                                     db_index=True)
+                                      verbose_name="HASH of User MBI ID",
+                                      unique=True,
+                                      null=True,
+                                      default=None,
+                                      db_column="user_mbi_hash",
+                                      db_index=True)
 
     objects = models.Manager()  # Default manager
     real_objects = RealCrosswalkManager()  # Real bene manager
