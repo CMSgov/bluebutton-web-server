@@ -6,3 +6,4 @@ tox
 flake8
 django-debug-toolbar
 httmock
+ptvsd
