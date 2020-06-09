@@ -1,4 +1,4 @@
--r requirements.txt
+-r requirements.in
 # test and development
 coverage
 python-coveralls
