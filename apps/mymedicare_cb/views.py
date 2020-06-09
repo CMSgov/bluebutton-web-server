@@ -25,6 +25,7 @@ from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+authenticate_logger = logging.getLogger('audit.authenticate.sls')
 
 
 # For SLS auth workflow info, see apps/mymedicare_db/README.md
@@ -67,7 +68,7 @@ def authenticate(request):
     sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(user_info['mbi'])
     sls_mbi_format_synthetic = is_mbi_format_synthetic(user_info['mbi'])
 
-    logger.info({
+    authenticate_logger.info({
         "type": "Authentication:start",
         "sub": user_info["sub"],
         "sls_mbi_format_valid": sls_mbi_format_valid,
@@ -77,7 +78,7 @@ def authenticate(request):
 
     user = get_and_update_user(user_info)
 
-    logger.info({
+    authenticate_logger.info({
         "type": "Authentication:success",
         "sub": user_info["sub"],
         "user": {
