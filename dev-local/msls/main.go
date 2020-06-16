@@ -38,11 +38,10 @@ const (
 	GIVEN_NAME_FIELD  = "given_name"
 	FAMILY_NAME_FIELD = "family_name"
 	EMAIL_FIELD       = "email"
-	IDENTITY_FIELD    = "usr_identity"
-	IDENTITY_TYPE     = "identity_type"
+	HICN_FIELD        = "hicn"
+	MBI_FIELD         = "mbi"
 	CODE_KEY          = "code"
 	AUTH_HEADER       = "Authorization"
-	BENE_IDENTITY     = "beneficiary_identity"
 )
 
 func logRequest(w http.Handler) http.Handler {
@@ -122,10 +121,10 @@ func login(r *http.Request) code {
 	given_name := r.FormValue(GIVEN_NAME_FIELD)
 	family_name := r.FormValue(FAMILY_NAME_FIELD)
 	email := r.FormValue(EMAIL_FIELD)
-	usr_identity := r.FormValue(IDENTITY_FIELD)
-	identity_type := r.FormValue(BENE_IDENTITY)
+	hicn := r.FormValue(HICN_FIELD)
+	mbi := r.FormValue(MBI_FIELD)
 
-	return encode(usr, name, given_name, family_name, email, usr_identity, identity_type)
+	return encode(usr, name, given_name, family_name, email, hicn, mbi)
 }
 
 type code string
@@ -155,20 +154,14 @@ func decode(c string) (string, string, string, string, string, string, string) {
 	       string(d_email), string(d_hicn), string(d_mbi)
 }
 
-func encode(usr,name, given_name, family_name, email, usr_identity, identity_type string) code {
+func encode(usr,name, given_name, family_name, email, hicn, mbi string) code {
 	e_usr := base64.RawURLEncoding.EncodeToString([]byte(usr))
 	e_name := base64.RawURLEncoding.EncodeToString([]byte(name))
 	e_given_name := base64.RawURLEncoding.EncodeToString([]byte(given_name))
 	e_family_name := base64.RawURLEncoding.EncodeToString([]byte(family_name))
 	e_email := base64.RawURLEncoding.EncodeToString([]byte(email))
-	e_hicn := ""
-	if identity_type == "H" {
-		e_hicn = base64.RawURLEncoding.EncodeToString([]byte(usr_identity))
-	}
-	e_mbi := ""
-	if identity_type == "M" {
-		e_mbi = base64.RawURLEncoding.EncodeToString([]byte(usr_identity))
-	}
+	e_hicn := base64.RawURLEncoding.EncodeToString([]byte(hicn))
+	e_mbi := base64.RawURLEncoding.EncodeToString([]byte(mbi))
 	return code(fmt.Sprintf("%s.%s.%s.%s.%s.%s.%s", e_usr, e_name, e_given_name,
 				e_family_name, e_email, e_hicn, e_mbi))
 }

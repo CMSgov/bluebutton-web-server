@@ -45,13 +45,10 @@ submit{
     <label>SUB(username): </label> <input type="text" name="username" size=50></input>
     <br>
     <h3>Enter Identity:</h3>
-    <label>BENE Id, HICN, MBI Accepted</label> <input type="text" name="usr_identity" size=64></input>
+    <label>HICN</label> <input type="text" name="hicn" size=64></input>
     <br>
     <br>
-    <p><b>Select Identity Type:</b></p>
-    <input type="radio" id="is_hicn" name="beneficiary_identity" value="H" checked="checked">HICN</input>
-    <br>
-    <input type="radio" id="is_mbi" name="beneficiary_identity" value="M">MBI</input>
+    <label>MBI</label> <input type="text" name="mbi" size=64></input>
     <br>
     <br>
     <label>name</label> <input type="text" name="name" size=30></input>
