@@ -1,4 +1,4 @@
--r requirements.txt
+-r requirements.in
 # test and development
 coverage
 python-coveralls
@@ -6,3 +6,4 @@ tox
 flake8
 django-debug-toolbar
 httmock
+ptvsd
