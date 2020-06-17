@@ -33,10 +33,15 @@ SLS_TOKEN_ENDPOINT = env(
 */
 
 const (
-	USERNAME_FIELD = "username"
-	PASSWORD_FIELD = "password"
-	CODE_KEY       = "code"
-	AUTH_HEADER    = "Authorization"
+	USERNAME_FIELD    = "username"
+	NAME_FIELD        = "name"
+	GIVEN_NAME_FIELD  = "given_name"
+	FAMILY_NAME_FIELD = "family_name"
+	EMAIL_FIELD       = "email"
+	HICN_FIELD        = "hicn"
+	MBI_FIELD         = "mbi"
+	CODE_KEY          = "code"
+	AUTH_HEADER       = "Authorization"
 )
 
 func logRequest(w http.Handler) http.Handler {
@@ -112,37 +117,61 @@ func handleLogin(rw http.ResponseWriter, r *http.Request) {
 
 func login(r *http.Request) code {
 	usr := r.FormValue(USERNAME_FIELD)
-	pwd := r.FormValue(PASSWORD_FIELD)
+	name := r.FormValue(NAME_FIELD)
+	given_name := r.FormValue(GIVEN_NAME_FIELD)
+	family_name := r.FormValue(FAMILY_NAME_FIELD)
+	email := r.FormValue(EMAIL_FIELD)
+	hicn := r.FormValue(HICN_FIELD)
+	mbi := r.FormValue(MBI_FIELD)
 
-	return encode(usr, pwd)
+	return encode(usr, name, given_name, family_name, email, hicn, mbi)
 }
 
 type code string
 
 func (c code) userinfo() *userinfo {
-	u, p := decode(string(c))
+	usr, name, given_name, family_name, email, hicn, mbi := decode(string(c))
 	return &userinfo{
-		Sub:  u,
-		Hicn: p,
+		Sub:  usr,
+		Name: name,
+		Given_name: given_name,
+		Family_name: family_name,
+		Email: email,
+		Hicn: hicn,
+		Mbi: mbi,
 	}
 }
 
-func decode(c string) (string, string) {
-	u, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[0])
-	p, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[1])
-	return string(u), string(p)
+func decode(c string) (string, string, string, string, string, string, string) {
+	d_usr, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[0])
+	d_name, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[1])
+	d_given_name, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[2])
+	d_family_name, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[3])
+	d_email, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[4])
+	d_hicn, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[5])
+	d_mbi, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[6])
+	return string(d_usr), string(d_name), string(d_given_name), string(d_family_name),
+	       string(d_email), string(d_hicn), string(d_mbi)
 }
 
-func encode(usr, pwd string) code {
-	u := base64.RawURLEncoding.EncodeToString([]byte(usr))
-	p := base64.RawURLEncoding.EncodeToString([]byte(pwd))
-	return code(fmt.Sprintf("%s.%s", u, p))
+func encode(usr,name, given_name, family_name, email, hicn, mbi string) code {
+	e_usr := base64.RawURLEncoding.EncodeToString([]byte(usr))
+	e_name := base64.RawURLEncoding.EncodeToString([]byte(name))
+	e_given_name := base64.RawURLEncoding.EncodeToString([]byte(given_name))
+	e_family_name := base64.RawURLEncoding.EncodeToString([]byte(family_name))
+	e_email := base64.RawURLEncoding.EncodeToString([]byte(email))
+	e_hicn := base64.RawURLEncoding.EncodeToString([]byte(hicn))
+	e_mbi := base64.RawURLEncoding.EncodeToString([]byte(mbi))
+	return code(fmt.Sprintf("%s.%s.%s.%s.%s.%s.%s", e_usr, e_name, e_given_name,
+				e_family_name, e_email, e_hicn, e_mbi))
 }
 
 type userinfo struct {
-	Sub        string `json:"sub"`
-	Hicn       string `json:"hicn"`
-	GivenName  string `json:"given_name"`
-	FamilyName string `json:"family_name"`
-	Email      string `json:"email"`
+	Sub         	string `json:"sub"`
+	Name        	string `json:"name"`
+	Given_name  	string `json:"given_name"`
+	Family_name 	string `json:"family_name"`
+	Email       	string `json:"email"`
+	Hicn   			string `json:"hicn"`
+	Mbi   			string `json:"mbi"`
 }
