@@ -21,13 +21,13 @@ def process_error_response(response: Fhir_Response) -> APIException:
                 json = None
                 try:
                     json = r.json()
-                except Exception as e:
+                except Exception:
                     pass
                 if json is not None:
                     issues = json.get('issue')
                     issue = issues[0] if issues else None
                     diagnostics = issue.get('diagnostics') if issue else None
-                    if "Unsupported ID pattern" in diagnostics:
+                    if diagnostics is not None and "Unsupported ID pattern" in diagnostics:
                         detail = detail + ": " + diagnostics
             err = UpstreamServerException(detail)
     return err
