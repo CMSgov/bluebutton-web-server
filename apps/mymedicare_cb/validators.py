@@ -34,22 +34,25 @@ def is_mbi_format_valid(mbi):
     # Iterate over character positions:
     for pos in range(0, len(mbi)):
         # Validate type C
-        if pos in CHAR_POSITION_C and not mbi[pos] in CHAR_TYPE_C:
+        if pos in CHAR_POSITION_C and mbi[pos] not in CHAR_TYPE_C:
             msg = "Invalid char in pos = {}".format(pos)
             return False, msg
 
         # Validate type N
-        if pos in CHAR_POSITION_N and not mbi[pos] in CHAR_TYPE_N:
+        if pos in CHAR_POSITION_N and mbi[pos] not in CHAR_TYPE_N:
             msg = "Invalid char in pos = {}".format(pos)
             return False, msg
 
         # Validate type A (exception for 2nd position = "S")
-        if (pos in CHAR_POSITION_A and not mbi[pos] in CHAR_TYPE_A) and (pos == 1 and mbi[pos] != "S"):
-            msg = "Invalid char in pos = {}".format(pos)
-            return False, msg
+        if (pos in CHAR_POSITION_A and mbi[pos] not in CHAR_TYPE_A):
+            if pos == 1 and mbi[pos] == "S":
+                pass
+            else:
+                msg = "Invalid char in pos = {}".format(pos)
+                return False, msg
 
         # Validate type AN
-        if pos in CHAR_POSITION_AN and (not mbi[pos] in CHAR_TYPE_A + CHAR_TYPE_N):
+        if pos in CHAR_POSITION_AN and (mbi[pos] not in CHAR_TYPE_A + CHAR_TYPE_N):
             msg = "Invalid char in pos = {}".format(pos)
             return False, msg
 
