@@ -65,8 +65,9 @@ def authenticate(request):
     user_info = response.json()
 
     # Add MBI validation info for logging.
-    sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(user_info['mbi'])
-    sls_mbi_format_synthetic = is_mbi_format_synthetic(user_info['mbi'])
+    sls_mbi = user_info.get("mbi","").upper()
+    sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
+    sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
 
     authenticate_logger.info({
         "type": "Authentication:start",

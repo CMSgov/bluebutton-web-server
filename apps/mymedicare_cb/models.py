@@ -27,7 +27,8 @@ def get_and_update_user(user_info):
     """
     subject = user_info['sub']
     hicn = user_info['hicn']
-    mbi = user_info['mbi']
+    # Convert SLS's mbi to UPPER case.
+    mbi = user_info['mbi'].upper()
 
     # If mbi is empty set to None
     if mbi == "":
