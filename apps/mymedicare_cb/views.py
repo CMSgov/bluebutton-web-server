@@ -23,6 +23,8 @@ from .authorization import OAuth2Config
 from .signals import response_hook
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 authenticate_logger = logging.getLogger('audit.authenticate.sls')
@@ -65,7 +67,7 @@ def authenticate(request):
     user_info = response.json()
 
     # Add MBI validation info for logging.
-    sls_mbi = user_info.get("mbi","").upper()
+    sls_mbi = user_info.get("mbi", "").upper()
     sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
     sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
 
@@ -75,6 +77,8 @@ def authenticate(request):
         "sls_mbi_format_valid": sls_mbi_format_valid,
         "sls_mbi_format_msg": sls_mbi_format_msg,
         "sls_mbi_format_synthetic": sls_mbi_format_synthetic,
+        "sls_hicn_hash": hash_hicn(user_info['hicn']),
+        "sls_mbi_hash": hash_mbi(sls_mbi),
     })
 
     user = get_and_update_user(user_info)
