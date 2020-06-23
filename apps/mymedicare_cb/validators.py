@@ -21,17 +21,17 @@ def is_mbi_format_valid(mbi):
     CHAR_TYPE_AN = CHAR_TYPE_A + CHAR_TYPE_N
 
     # Position mapping list[0 thru 10]:
-    VALID_VALUES_BY_POS = [ CHAR_TYPE_C,
-                            CHAR_TYPE_A + "S",
-                            CHAR_TYPE_AN,
-                            CHAR_TYPE_N,
-                            CHAR_TYPE_A,
-                            CHAR_TYPE_AN,
-                            CHAR_TYPE_N,
-                            CHAR_TYPE_A,
-                            CHAR_TYPE_A,
-                            CHAR_TYPE_N,
-                            CHAR_TYPE_N]
+    VALID_VALUES_BY_POS = [CHAR_TYPE_C,
+                           CHAR_TYPE_A + "S",
+                           CHAR_TYPE_AN,
+                           CHAR_TYPE_N,
+                           CHAR_TYPE_A,
+                           CHAR_TYPE_AN,
+                           CHAR_TYPE_N,
+                           CHAR_TYPE_A,
+                           CHAR_TYPE_A,
+                           CHAR_TYPE_N,
+                           CHAR_TYPE_N]
     msg = ""
     # Check length
     if len(mbi) != 11:
