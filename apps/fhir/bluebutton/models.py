@@ -25,27 +25,40 @@ class SynthCrosswalkManager(models.Manager):
         return super().get_queryset().filter(Q(_fhir_id__startswith='-'))
 
 
-def hash_hicn(hicn):
+def hash_id_value(hicn):
     """
-    Hashes a hicn to match fhir server logic:
+    Hashes an MBI or HICN to match fhir server logic:
+    Both currently use the same hash salt ENV values.
     https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-pipeline/bfd-pipeline-rif-load/src/main/java/gov/cms/bfd/pipeline/rif/load/RifLoader.java#L665-L706
-
     """
-    assert hicn != "", "HICN cannot be the empty string"
-
     return binascii.hexlify(pbkdf2(hicn,
                             get_user_id_salt(),
                             settings.USER_ID_ITERATIONS)).decode("ascii")
 
 
+def hash_hicn(hicn):
+    assert hicn != "", "HICN cannot be the empty string"
+
+    return hash_id_value(hicn)
+
+
+def hash_mbi(mbi):
+    assert mbi != "", "MBI cannot be the empty string"
+    # NOTE: mbi value can be None here.
+    if mbi is None:
+        return None
+    else:
+        return hash_id_value(mbi)
+
+
 class Crosswalk(models.Model):
     """
-    HICN/BeneID to User to FHIR Source Crosswalk and back.
+    (MBI or HICN)/BeneID to User to FHIR Source Crosswalk and back.
     Linked to User Account
     Use fhir_url_id for id
     use fhir for resource.identifier
     BlueButton Text is moved to file keyed on user.
-    HICN and BeneID added
+    MBI, HICN and BeneID added
     """
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
@@ -57,16 +70,30 @@ class Crosswalk(models.Model):
                                 db_index=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
+    # This value is to be set to the type of lookup used MBI or HICN
     user_id_type = models.CharField(max_length=1,
+                                    verbose_name="Hash ID type last used for FHIR_ID lookup",
                                     default=settings.USER_ID_TYPE_DEFAULT,
                                     choices=settings.USER_ID_TYPE_CHOICES)
+    # This stores the HICN hash value.
+    # TODO: Maybe rename this to _user_hicn_hash in future.
+    #   Keeping the same to not break backwards migration compatibility.
     _user_id_hash = models.CharField(max_length=64,
-                                     verbose_name="PBKDF2 of User ID",
+                                     verbose_name="HASH of User HICN ID",
                                      unique=True,
                                      null=False,
                                      default=None,
                                      db_column="user_id_hash",
                                      db_index=True)
+    # This stores the MBI hash value.
+    #     Can be null for backwards migration compatibility.
+    _user_mbi_hash = models.CharField(max_length=64,
+                                      verbose_name="HASH of User MBI ID",
+                                      unique=True,
+                                      null=True,
+                                      default=None,
+                                      db_column="user_mbi_hash",
+                                      db_index=True)
 
     objects = models.Manager()  # Default manager
     real_objects = RealCrosswalkManager()  # Real bene manager
@@ -90,21 +117,38 @@ class Crosswalk(models.Model):
         self._fhir_id = value
 
     @property
-    def user_id_hash(self):
+    def user_hicn_hash(self):
         return self._user_id_hash
 
-    @user_id_hash.setter
-    def user_id_hash(self, value):
+    @property
+    def user_mbi_hash(self):
+        return self._user_mbi_hash
+
+    @user_hicn_hash.setter
+    def user_hicn_hash(self, value):
         if self.pk:
             raise ValidationError("this value cannot be modified.")
         if self._user_id_hash:
             raise ValidationError("this value cannot be modified.")
         self._user_id_hash = value
 
+    @user_mbi_hash.setter
+    def user_mbi_hash(self, value):
+        if self.pk:
+            raise ValidationError("this value cannot be modified.")
+        if self._user_mbi_hash:
+            raise ValidationError("this value cannot be modified.")
+        self._user_mbi_hash = value
+
     def set_hicn(self, hicn):
         if self.pk:
             raise ValidationError("this value cannot be modified.")
-        self.user_id_hash = hash_hicn(hicn)
+        self.user_hicn_hash = hash_hicn(hicn)
+
+    def set_mbi(self, mbi):
+        if self.pk:
+            raise ValidationError("this value cannot be modified.")
+        self.user_mbi_hash = hash_mbi(mbi)
 
     def get_fhir_resource_url(self, resource_type):
         # Return the fhir server url

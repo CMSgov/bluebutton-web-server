@@ -14,6 +14,7 @@ from .models import (
     AnonUserState,
     get_and_update_user,
 )
+from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 import logging
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import NotFound
@@ -22,8 +23,11 @@ from .authorization import OAuth2Config
 from .signals import response_hook
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+authenticate_logger = logging.getLogger('audit.authenticate.sls')
 
 
 # For SLS auth workflow info, see apps/mymedicare_db/README.md
@@ -61,13 +65,25 @@ def authenticate(request):
 
     # Get the userinfo response object
     user_info = response.json()
-    logger.info({
+
+    # Add MBI validation info for logging.
+    sls_mbi = user_info.get("mbi", "").upper()
+    sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
+    sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
+
+    authenticate_logger.info({
         "type": "Authentication:start",
         "sub": user_info["sub"],
+        "sls_mbi_format_valid": sls_mbi_format_valid,
+        "sls_mbi_format_msg": sls_mbi_format_msg,
+        "sls_mbi_format_synthetic": sls_mbi_format_synthetic,
+        "sls_hicn_hash": hash_hicn(user_info['hicn']),
+        "sls_mbi_hash": hash_mbi(sls_mbi),
     })
 
     user = get_and_update_user(user_info)
-    logger.info({
+
+    authenticate_logger.info({
         "type": "Authentication:success",
         "sub": user_info["sub"],
         "user": {
@@ -75,8 +91,10 @@ def authenticate(request):
             "username": user.username,
             "crosswalk": {
                 "id": user.crosswalk.id,
-                "user_id_hash": user.crosswalk.user_id_hash,
+                "user_hicn_hash": user.crosswalk.user_hicn_hash,
+                "user_mbi_hash": user.crosswalk.user_mbi_hash,
                 "fhir_id": user.crosswalk.fhir_id,
+                "user_id_type": user.crosswalk.user_id_type,
             },
         },
     })

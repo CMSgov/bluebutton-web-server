@@ -35,8 +35,10 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
             "username": user.username,
             "crosswalk": {
                 "id": user.crosswalk.id,
-                "user_id_hash": user.crosswalk.user_id_hash,
+                "user_hicn_hash": user.crosswalk.user_hicn_hash,
+                "user_mbi_hash": user.crosswalk.user_mbi_hash,
                 "fhir_id": user.crosswalk.fhir_id,
+                "user_id_type": user.crosswalk.user_id_type,
             },
         },
         "application": {
