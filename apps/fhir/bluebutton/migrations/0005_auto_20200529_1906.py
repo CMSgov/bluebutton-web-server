@@ -23,6 +23,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='crosswalk',
             name='user_id_type',
-            field=models.CharField(choices=[('H', 'HICN'), ('M', 'MBI')], default='H', max_length=1, verbose_name='Hash ID type used for FHIR_ID lookup'),
+            field=models.CharField(choices=[('H', 'HICN'), ('M', 'MBI')], default='H', max_length=1, verbose_name='Hash ID type last used for FHIR_ID lookup'),
         ),
     ]

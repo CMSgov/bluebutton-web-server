@@ -72,7 +72,7 @@ class Crosswalk(models.Model):
 
     # This value is to be set to the type of lookup used MBI or HICN
     user_id_type = models.CharField(max_length=1,
-                                    verbose_name="Hash ID type used for FHIR_ID lookup",
+                                    verbose_name="Hash ID type last used for FHIR_ID lookup",
                                     default=settings.USER_ID_TYPE_DEFAULT,
                                     choices=settings.USER_ID_TYPE_CHOICES)
     # This stores the HICN hash value.
