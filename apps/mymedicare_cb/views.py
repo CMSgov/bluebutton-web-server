@@ -71,6 +71,10 @@ def authenticate(request):
     sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
     sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
 
+    # If MBI returned from SLS is blank, set to None for hash logging
+    if sls_mbi == "":
+        sls_mbi = None
+
     authenticate_logger.info({
         "type": "Authentication:start",
         "sub": user_info["sub"],
