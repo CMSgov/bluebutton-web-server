@@ -76,6 +76,15 @@
                   <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Callback URLS / {% trans "Redirect Uris" %}</p>
                   <pre>{{ application.redirect_uris }}</pre>
                 </div>
+
+								<!-- Demographic Filter -->
+								<div class="ds-u-margin-bottom--2">
+                  <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Does my application need to collect beneficary demographic data?</p>
+									<p class="ds-u-margin-bottom--1">
+										<i>(Name, address, date of birth, race, and gender)</i>
+									</p>
+									<pre>Yes</pre>
+								</div>
                       
               </div>
             
@@ -94,7 +103,7 @@
                   <img src="{% static 'img/default-app-avatar.png' %}" alt="{{ application.name }}" />
                   {% endif %}
             
-                  <!-- App TOS/PP-->
+gtgtgt
                   <div class="terms-container">
                     <!-- Privacy Policy -->
                     {% if application.policy_uri %}

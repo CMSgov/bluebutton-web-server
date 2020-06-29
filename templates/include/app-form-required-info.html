@@ -23,3 +23,18 @@
 <!-- App Redirect URIs -->
 <label for="id_redirect_uris">Callback URLs / Redirect URIs</label>
 <textarea name="redirect_uris" cols="40" rows="10" id="id_redirect_uris">{{ application.redirect_uris }}</textarea>
+
+<!-- Demographic Filter -->
+<fieldset class="ds-c-fieldset">
+	<legend class="ds-u-font-weight--bold">
+		Does your application need to collect beneficary demographic information (Name, address, date of birth, race, and gender)?
+	</legend>
+	<input class="ds-c-choice" id="id_demographic_filter_on" type="radio" name="demographic-filter" value="id_demographic_filter_on" checked="">
+	<label for="id_demographic_filter_on">
+		Yes
+	</label>
+	<input class="ds-c-choice" id="id_demographic_filter_off" type="radio" name="demographic-filter" value="id_demographic_filter_off">
+	<label for="id_demographic_filter_off">
+		No
+	</label>
+</fieldset>
