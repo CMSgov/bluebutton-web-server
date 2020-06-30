@@ -142,6 +142,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                                                  app.name)
             logger.info(logmsg)
         app = super().save(*args, **kwargs)
+        app.save()
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None), "logo.jpg")
         if uri:
             app.logo_uri = uri
