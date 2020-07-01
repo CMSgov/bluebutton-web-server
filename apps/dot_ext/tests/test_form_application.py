@@ -194,17 +194,13 @@ class TestRegisterApplicationForm(BaseApiTest):
         user = self._create_user('hello.world', '123hello456')
         user.groups.add(greetings_group)
         
-        user.save()
-
         # create APP1 and APP2 with logo_image and other required and optional fields
         # persist application object through CustomRegisterApplicationForm
         form_app1 = self.create_app_form_with_logo(app_name='BB2-66-APP-1', user=user, file_name='test_app1_logo.jpg', color='red')
         self.assertFalse(form_app1.errors, "There are error(s) in the new app register form.")
-        form_app1.save()
 
         form_app2 = self.create_app_form_with_logo(app_name='BB2-66-APP-2', user=user, file_name='test_app2_logo.jpg', color='blue')
         self.assertFalse(form_app2.errors, "There are error(s) in the new app register form.")
-        form_app2.save()
 
         # check APP1 and APP2 are saved in django and have correct path pointing to 
         # logo image files, no image overriden 
