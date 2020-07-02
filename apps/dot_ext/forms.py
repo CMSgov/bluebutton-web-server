@@ -7,7 +7,6 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.dot_ext.validators import validate_logo_image, validate_notags
 
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 

@@ -248,5 +248,8 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, app_fields, files)
         app_model = form.instance
         app_model.user = user
-        form.save()
+        # to simulate the context in BB2 runtime when  
+        # a new CustomRegisterApplicationForm instance is saved
+        # as BB2 admin user added a new app with logo
+        form.save(commit=False)
         return form    
