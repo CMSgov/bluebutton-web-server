@@ -183,27 +183,26 @@ class TestRegisterApplicationForm(BaseApiTest):
         form.is_valid()
         self.assertNotEqual(form.errors.get('logo_image'), None)
 
-
     def test_create_applications_with_logo(self):
         """
         regression test: BB2-66
         """
         greetings_group = self._create_group('Greetings')
-        capability = self._create_capability('Say-Hello-World', [], greetings_group)
         # create user and add it to the read group
         user = self._create_user('hello.world', '123hello456')
         user.groups.add(greetings_group)
-        
         # create APP1 and APP2 with logo_image and other required and optional fields
         # persist application object through CustomRegisterApplicationForm
-        form_app1 = self.create_app_form_with_logo(app_name='BB2-66-APP-1', user=user, file_name='test_app1_logo.jpg', color='red')
+        form_app1 = self.create_app_form_with_logo(app_name='BB2-66-APP-1', user=user,
+                                                   file_name='test_app1_logo.jpg', color='red')
         self.assertFalse(form_app1.errors, "There are error(s) in the new app register form.")
 
-        form_app2 = self.create_app_form_with_logo(app_name='BB2-66-APP-2', user=user, file_name='test_app2_logo.jpg', color='blue')
+        form_app2 = self.create_app_form_with_logo(app_name='BB2-66-APP-2', user=user,
+                                                   file_name='test_app2_logo.jpg', color='blue')
         self.assertFalse(form_app2.errors, "There are error(s) in the new app register form.")
 
-        # check APP1 and APP2 are saved in django and have correct path pointing to 
-        # logo image files, no image overriden 
+        # check APP1 and APP2 are saved in django and have correct path pointing to
+        # logo image files, no image overriden
         app_obj1 = self._get_user_application(user.username, 'BB2-66-APP-1')
         app_obj2 = self._get_user_application(user.username, 'BB2-66-APP-2')
         self.assertIsNotNone(app_obj1.logo_uri)
@@ -211,7 +210,6 @@ class TestRegisterApplicationForm(BaseApiTest):
         self.assertIsNotNone(app_obj2.logo_uri)
         self.assertTrue(app_obj2.logo_uri)
         self.assertNotEqual(app_obj1.logo_uri, app_obj2.logo_uri)
-
 
     def create_app_form_with_logo(self, app_name=None, user=None, file_name=None, color=None):
         """
@@ -230,26 +228,25 @@ class TestRegisterApplicationForm(BaseApiTest):
             logo_file, None, file_name, 'image/jpeg', len(logo_file.getvalue()), None
         )
         app_fields = {'name': app_name,
-            'client_type': 'confidential',
-            'authorization_grant_type': 'authorization-code',
-            'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
-            'logo_uri': '',
-            'logo_image': image,
-            'website_uri': '',
-            'description': 'User:' + user.username + ', registered app: ' + app_name,
-            'policy_uri': '',
-            'tos_uri': '',
-            'support_email': '',
-            'support_phone_number': '',
-            'contacts': '',
-            'agree': True
-        }
+                      'client_type': 'confidential',
+                      'authorization_grant_type': 'authorization-code',
+                      'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
+                      'logo_uri': '',
+                      'logo_image': image,
+                      'website_uri': '',
+                      'description': 'User:' + user.username + ', registered app: ' + app_name,
+                      'policy_uri': '',
+                      'tos_uri': '',
+                      'support_email': '',
+                      'support_phone_number': '',
+                      'contacts': '',
+                      'agree': True}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, app_fields, files)
         app_model = form.instance
         app_model.user = user
-        # to simulate the context in BB2 runtime when  
+        # to simulate the context in BB2 runtime when
         # a new CustomRegisterApplicationForm instance is saved
         # as BB2 admin user added a new app with logo
         form.save(commit=False)
-        return form    
+        return form
