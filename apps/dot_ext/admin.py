@@ -42,6 +42,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             'name',
             'skip_authorization',
             'scope',
+            'require_demographic_scopes',
             'agree',
             'op_tos_uri',
             'op_policy_uri',
