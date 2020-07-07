@@ -107,6 +107,13 @@ class BaseApiTest(TestCase):
         content = json.loads(response.content.decode("utf-8"))
         return content['access_token']
 
+    def _get_user_application(self, username, app_name):
+        """
+        Helper method that retrieve application with given user and app name.
+        """
+        apps_qs = Application.objects.filter(name__exact=app_name).filter(user__username=username)
+        return apps_qs.first()
+
     def create_token(self, first_name, last_name):
         passwd = '123456'
         user = self._create_user(first_name,

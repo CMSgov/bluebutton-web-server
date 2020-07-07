@@ -8,7 +8,7 @@ from ..models import Crosswalk, check_crosswalks
 class TestModels(BaseApiTest):
 
     def test_require_fhir_id(self):
-        with self.assertRaisesRegexp(IntegrityError, "NOT NULL constraint.*fhir_id"):
+        with self.assertRaisesRegexp(IntegrityError, "[NOT NULL constraint|null value in column].*fhir_id.*"):
             self._create_user('john', 'password',
                               first_name='John',
                               last_name='Smith',
@@ -17,7 +17,7 @@ class TestModels(BaseApiTest):
 
     def test_require_user_hicn_hash(self):
         # NOTE: The user_hicn_hash's DB field name is still user_id_hash in regex below.
-        with self.assertRaisesRegexp(IntegrityError, "NOT NULL constraint.*user_id_hash"):
+        with self.assertRaisesRegexp(IntegrityError, "[NOT NULL constraint|null value in column].*user_id_hash.*"):
             self._create_user('john', 'password',
                               first_name='John',
                               last_name='Smith',

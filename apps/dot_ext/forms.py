@@ -7,7 +7,6 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.dot_ext.validators import validate_logo_image, validate_notags
 
-
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
@@ -142,6 +141,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                                                  app.name)
             logger.info(logmsg)
         app = super().save(*args, **kwargs)
+        app.save()
         uri = app.store_media_file(self.cleaned_data.pop('logo_image', None), "logo.jpg")
         if uri:
             app.logo_uri = uri
