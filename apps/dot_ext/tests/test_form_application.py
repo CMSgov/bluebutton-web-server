@@ -185,7 +185,7 @@ class TestRegisterApplicationForm(BaseApiTest):
 
     def test_create_applications_with_logo(self):
         """
-        regression test: BB2-66
+        regression test: BB2-66: Fix-logo-display-in-Published-Applications-API
         """
         greetings_group = self._create_group('Greetings')
         # create user and add it to the read group
