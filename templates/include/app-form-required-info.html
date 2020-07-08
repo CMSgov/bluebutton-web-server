@@ -29,11 +29,19 @@
 	<legend class="ds-u-font-weight--bold">
 		Does your application need to collect beneficary demographic information (Name, address, date of birth, race, and gender)?
 	</legend>
-	<input class="ds-c-choice" id="id_demographic_filter_on" type="radio" name="demographic-filter" value="id_demographic_filter_on" checked="">
+	<input class="ds-c-choice" id="id_demographic_filter_on" type="radio" name="require_demographic_scopes" value="True" 
+            {% if application.require_demographic_scopes == True %} 
+                checked
+            {% endif %} 
+        >
 	<label for="id_demographic_filter_on">
 		Yes
 	</label>
-	<input class="ds-c-choice" id="id_demographic_filter_off" type="radio" name="demographic-filter" value="id_demographic_filter_off">
+	<input class="ds-c-choice" id="id_demographic_filter_off" type="radio" name="require_demographic_scopes" value="False"
+            {% if application.require_demographic_scopes == False %} 
+                checked
+            {% endif %} 
+        >
 	<label for="id_demographic_filter_off">
 		No
 	</label>
