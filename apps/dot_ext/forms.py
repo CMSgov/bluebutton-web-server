@@ -55,6 +55,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'support_phone_number',
             'contacts',
             'agree',
+            'require_demographic_scopes',
         )
 
     required_css_class = 'required'
@@ -132,6 +133,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         if getattr(logo_image, 'name', False):
             validate_logo_image(logo_image)
         return logo_image
+
+    def clean_require_demographic_scopes(self):
+        require_demographic_scopes = self.cleaned_data.get('require_demographic_scopes')
+        if type(require_demographic_scopes) != bool:
+            msg = _('Does your application need to collect beneficary demographic information must be (Yes/No).')
+            raise forms.ValidationError(msg)
+        return require_demographic_scopes
 
     def save(self, *args, **kwargs):
         app = self.instance

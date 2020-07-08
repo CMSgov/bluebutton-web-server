@@ -83,7 +83,11 @@
 									<p class="ds-u-margin-bottom--1">
 										<i>(Name, address, date of birth, race, and gender)</i>
 									</p>
-									<pre>Yes</pre>
+                                                                        {% if application.require_demographic_scopes is False %}
+										<pre>No</pre>
+									{% else %}
+										<pre>Yes</pre>
+									{% endif %}
 								</div>
                       
               </div>
