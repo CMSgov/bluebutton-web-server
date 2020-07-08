@@ -183,6 +183,24 @@ class TestRegisterApplicationForm(BaseApiTest):
         form.is_valid()
         self.assertNotEqual(form.errors.get('logo_image'), None)
 
+        # Test require_demographic_scopes value True
+        data = {'require_demographic_scopes': True}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('require_demographic_scopes'), None)
+
+        # Test require_demographic_scopes value False
+        data = {'require_demographic_scopes': False}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('require_demographic_scopes'), None)
+
+        # Test require_demographic_scopes invalid value
+        data = {'require_demographic_scopes': None}
+        form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('require_demographic_scopes'), None)
+
     def test_create_applications_with_logo(self):
         """
         regression test: BB2-66: Fix-logo-display-in-Published-Applications-API
