@@ -24,7 +24,7 @@ class CapabilitiesScopes(BaseScopes):
             ProtectedCapability.objects.filter(Q(default=True) | Q(application=application))
                                        .values_list('slug', flat=True).distinct())
 
-        if application.require_demographic_scopes is False:
+        if getattr(application, 'require_demographic_scopes', True) is False:
             # Remove personal information scopes, if requested by application
             app_scopes = []
             for s in app_scopes_avail:
@@ -44,7 +44,7 @@ class CapabilitiesScopes(BaseScopes):
         app_scopes_default = list(ProtectedCapability.objects.filter(default=True)
                                                              .values_list('slug', flat=True))
 
-        if application.require_demographic_scopes is False:
+        if getattr(application, 'require_demographic_scopes', True) is False:
             # Remove personal information scopes, if requested by application
             app_scopes = []
             for s in app_scopes_default:
