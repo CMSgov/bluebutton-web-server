@@ -73,9 +73,10 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
 class MyApplicationAdmin(admin.ModelAdmin):
     form = CustomAdminApplicationForm
     list_display = ("name", "user", "authorization_grant_type", "client_id",
-                    "skip_authorization", "scopes", "created", "updated")
+                    "require_demographic_scopes", "scopes", 
+                    "created", "updated", "skip_authorization")
     list_filter = ("name", "user", "client_type", "authorization_grant_type",
-                   "skip_authorization")
+                   "require_demographic_scopes", "skip_authorization")
     radio_fields = {
         "client_type": admin.HORIZONTAL,
         "authorization_grant_type": admin.VERTICAL,
