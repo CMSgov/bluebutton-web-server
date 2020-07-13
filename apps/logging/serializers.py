@@ -1,6 +1,7 @@
 import json
 import hashlib
 
+
 class DataAccessGrantSerializer:
     tkn = None
     action = None
@@ -139,6 +140,7 @@ class Response:
     request_class = None
     resp = None
     sender = None
+
     def __init__(self, response, sender):
         self.resp = response
         self.sender = sender
