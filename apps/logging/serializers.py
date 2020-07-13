@@ -1,7 +1,6 @@
 import json
 import hashlib
 
-
 class DataAccessGrantSerializer:
     tkn = None
     action = None
@@ -109,7 +108,7 @@ class SLSRequest(Request):
         return None
 
     def path(self):
-        return self.req.path
+        return self.req.path_url if self.req.path_url else None
 
 
 class FHIRRequest(Request):
@@ -139,9 +138,10 @@ class FHIRRequest(Request):
 class Response:
     request_class = None
     resp = None
-
-    def __init__(self, response):
+    sender = None
+    def __init__(self, response, sender):
         self.resp = response
+        self.sender = sender
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
         self.req = self.request_class(response.request).to_dict() if response.request else {}
 
@@ -155,15 +155,36 @@ class Response:
         return self.resp.elapsed.total_seconds()
 
     def to_dict(self):
-        return {
+        resp_dict = {
             "code": self.code(),
             "size": self.size(),
             "elapsed": self.elapsed(),
         }
+        return resp_dict
 
     def __str__(self):
+        resp_dict = None
+        if self.sender == 'token_endpoint':
+            resp_dict = {'type': 'SLS_token'}
+            resp_dict.update(json.loads(self.resp.text))
+        elif self.sender == 'userinfo_endpoint':
+            # mask out mbi and hicn
+            resp_dict = {'type': 'SLS_userinfo'}
+            d = json.loads(self.resp.text)
+            if 'mbi' in d:
+                d['mbi'] = '***********'
+            else:
+                d['mbi'] = None
+            if 'hicn' in d:
+                d['hicn'] = '***********'
+            else:
+                d['hicn'] = None
+            resp_dict.update(d)
+        else:
+            resp_dict.update({'error': 'Unexpected sender: {}'.format(self.sender)})
         result = self.to_dict().copy()
         result.update(self.req)
+        result.update(resp_dict)
         return json.dumps(result)
 
 

@@ -20,7 +20,7 @@ from django.core.exceptions import ValidationError
 from rest_framework.exceptions import NotFound
 from django.views.decorators.cache import never_cache
 from .authorization import OAuth2Config
-from .signals import response_hook
+from .signals import response_hook_wrapper
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
@@ -54,7 +54,7 @@ def authenticate(request):
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,
-                            hooks={'response': response_hook})
+                            hooks={'response': [response_hook_wrapper(sender='userinfo_endpoint')]})
 
     try:
         response.raise_for_status()
