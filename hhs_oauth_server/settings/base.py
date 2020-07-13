@@ -85,8 +85,8 @@ INSTALLED_APPS = [
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
     'axes',
-
-    'apps.logging',
+    # BB2-218 need to register LoggingConfig to get sls token signal handler registered
+    'apps.logging.LoggingConfig',
     'apps.openapi',
 ]
 if env('ENV_SPECIFIC_APPS', False):
