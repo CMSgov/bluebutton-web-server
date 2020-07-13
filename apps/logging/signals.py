@@ -1,4 +1,6 @@
 import logging
+import sys, traceback
+import json
 from oauth2_provider.signals import app_authorized
 from django.db.models.signals import (
     post_delete,
@@ -24,11 +26,11 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 
 def handle_token_created(sender, request, token, **kwargs):
-    token_logger.info(Token(token, action="authorized"))
+    token_logger.info(get_event(Token(token, action="authorized")))
 
 
 def handle_app_authorized(sender, request, user, application, **kwargs):
-    token_logger.info({
+    result = {
         "type": "Authorization",
         "user": {
             "id": user.id,
@@ -45,27 +47,40 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
             "id": application.id,
             "name": application.name,
         },
-    })
-
+    }
+    token_logger.info(get_event(json.dumps(result)))
 
 def token_removed(sender, instance=None, **kwargs):
-    token_logger.info(Token(instance, action="revoked"))
+    token_logger.info(get_event(Token(instance, action="revoked")))
 
 
 def log_grant_removed(sender, instance=None, **kwargs):
-    token_logger.info(DataAccessGrantSerializer(instance, action="revoked"))
+    token_logger.info(get_event(DataAccessGrantSerializer(instance, action="revoked")))
 
 
 def fetching_data(sender, request=None, **kwargs):
-    fhir_logger.info(FHIRRequest(request))
+    fhir_logger.info(get_event(FHIRRequest(request)))
 
 
 def fetched_data(sender, request=None, response=None, **kwargs):
-    fhir_logger.info(FHIRResponse(response))
+    fhir_logger.info(get_event(FHIRResponse(response)))
 
 
-def sls_hook(sender, response=None, **kwargs):
-    sls_logger.info(SLSResponse(response))
+def sls_hook(sender, response=None, caller=None, **kwargs):
+    sls_logger.info(get_event(SLSResponse(response, sender)))
+
+
+def get_event(event):
+    '''
+    helper to evaluate event and supress any error
+    '''
+    event_str = None
+    try:
+        event_str = str(event)
+    except:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        event_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+    return event_str
 
 
 app_authorized.connect(handle_token_created)
