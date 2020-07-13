@@ -1,5 +1,6 @@
 import logging
-import sys, traceback
+import sys
+import traceback
 import json
 from oauth2_provider.signals import app_authorized
 from django.db.models.signals import (
@@ -50,6 +51,7 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
     }
     token_logger.info(get_event(json.dumps(result)))
 
+
 def token_removed(sender, instance=None, **kwargs):
     token_logger.info(get_event(Token(instance, action="revoked")))
 
@@ -77,7 +79,7 @@ def get_event(event):
     event_str = None
     try:
         event_str = str(event)
-    except:
+    except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         event_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
     return event_str
