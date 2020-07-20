@@ -168,7 +168,7 @@ class SimpleAllowForm(DotAllowForm):
 
         if scope is None:
             cleaned_data['scope'] = ""
-            scope = "" 
+            scope = ""
 
         # Remove personal information scopes, if requested by bene
         if cleaned_data.get("block_personal_choice"):
