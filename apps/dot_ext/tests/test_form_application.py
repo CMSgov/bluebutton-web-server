@@ -258,6 +258,7 @@ class TestRegisterApplicationForm(BaseApiTest):
                       'support_email': '',
                       'support_phone_number': '',
                       'contacts': '',
+                      'require_demographic_scopes': True,
                       'agree': True}
         files = {'logo_image': image}
         form = CustomRegisterApplicationForm(user, app_fields, files)
