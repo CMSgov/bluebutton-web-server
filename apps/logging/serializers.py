@@ -54,6 +54,7 @@ class Token:
             "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(
                 str(getattr(self.tkn, 'token', None)).encode('utf-8')).hexdigest(),
+            "scope": getattr(self.tkn, 'scope', None),
             "application": {
                 "id": getattr(app, 'id', None),
                 "name": getattr(app, 'name', None),
