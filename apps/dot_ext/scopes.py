@@ -20,6 +20,10 @@ class CapabilitiesScopes(BaseScopes):
         Returns a list that contains all the capabilities related
         to the current application.
         """
+        # Return empty scopes list, if application is none
+        if application is None:
+            return []
+
         app_scopes_avail = list(
             ProtectedCapability.objects.filter(Q(default=True) | Q(application=application))
                                        .values_list('slug', flat=True).distinct())
@@ -40,6 +44,10 @@ class CapabilitiesScopes(BaseScopes):
         Returns a list that contains all the capabilities related
         to the current application.
         """
+        # Return empty scopes list, if application is none
+        if application is None:
+            return []
+
         # at the moment we assume that the default scopes are all those availables
         app_scopes_default = list(ProtectedCapability.objects.filter(default=True)
                                                              .values_list('slug', flat=True))
