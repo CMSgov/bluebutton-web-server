@@ -1,15 +1,19 @@
 import json
 import base64
+
+from apps.authorization.models import DataAccessGrant
+from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
+from apps.test import BaseApiTest
 from django.conf import settings
 from django.urls import reverse
+from httmock import HTTMock, urlmatch
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import AccessToken
-
-from apps.test import BaseApiTest
+from rest_framework.test import APIClient
+from waffle.testutils import override_switch
 from ..models import Application
-from apps.authorization.models import DataAccessGrant
-from apps.dot_ext.scopes import CapabilitiesScopes
-from apps.capabilities.models import ProtectedCapability
+from .demographic_scopes_test_cases import (VIEW_OAUTH2_SCOPES_TEST_CASES,
+                                            SCOPES_TO_URL_BASE_PATH)
 
 
 class TestApplicationUpdateView(BaseApiTest):
@@ -35,6 +39,33 @@ class TestApplicationUpdateView(BaseApiTest):
 class TestAuthorizationView(BaseApiTest):
     fixtures = ['scopes.json']
 
+    MOCK_FHIR_URL = "fhir.backend.bluebutton.hhsdevcloud.us"
+    MOCK_FHIR_PATIENT_READVIEW_PATH = r'/v1/fhir/Patient/[-]?\d+[/]?'
+    MOCK_FHIR_PATIENT_SEARCHVIEW_PATH = r'/v1/fhir/Patient[/]?'
+    MOCK_FHIR_EOB_PATH = r'/v1/fhir/ExplanationOfBenefit[/]?'
+    MOCK_FHIR_COVERAGE_PATH = r'/v1/fhir/Coverage[/]?'
+
+    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_READVIEW_PATH)
+    def fhir_request_patient_readview_success_mock(self, url, request):
+        # Return successful respose for Patient FHIR requests
+        return mock_fhir_responses['success_patient_readview']
+
+    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATIENT_SEARCHVIEW_PATH)
+    def fhir_request_patient_searchview_success_mock(self, url, request):
+        # Return successful respose for Patient FHIR requests
+        return mock_fhir_responses['success_patient_searchview']
+
+    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_EOB_PATH)
+    def fhir_request_eob_success_mock(self, url, request):
+        # Return successful respose for EOB FHIR requests
+        return mock_fhir_responses['success_eob']
+
+    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_COVERAGE_PATH)
+    def fhir_request_coverage_success_mock(self, url, request):
+        # Return successful respose for coverage FHIR requests
+        return mock_fhir_responses['success_coverage']
+
+    @override_switch('require-scopes', active=True)
     def _authorize_and_request_token(self, payload, application):
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 302)
@@ -48,6 +79,15 @@ class TestAuthorizationView(BaseApiTest):
             'client_id': application.client_id,
         }
         return self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+
+    def _assertScopeResponse(self, scope, scopes_granted_access_token, response, content):
+        # Assert expected response and content for scope vs. what is granted.
+        if scope in scopes_granted_access_token:
+            # Path is allowed by scopes.
+            self.assertEqual(response.status_code, 200)
+        else:
+            # Path is NOT allowed by scopes.
+            self.assertEqual(response.status_code, 403)
 
     def test_post_with_restricted_scopes_issues_token_with_same_scopes(self):
         """
@@ -81,60 +121,133 @@ class TestAuthorizationView(BaseApiTest):
         # and here we test that only the capability-a scope has been issued
         self.assertEqual(content['scope'], "capability-a")
 
-    def test_post_with_block_personal_choice(self):
+    @override_switch('require-scopes', active=True)
+    def test_post_with_demographic_scope_choices(self):
         """
-        Test that when user chooses the block_personal_choice on
-        the BENE consent form, that the correct scopes are blocked
-        with the require-scopes feature switch DISABLED.
-        """
-        full_scopes_list = CapabilitiesScopes().get_default_scopes()
-        non_personal_scopes_list = list(set(full_scopes_list) - set(settings.BENE_PERSONAL_INFO_SCOPES))
+        Test authorization related to different, beneficiary "block_personal_choice",
+        application.require_demographic_scopes, and requested scopes values.
 
+        The "VIEW_OAUTH2_SCOPES_TEST_CASES" dictionary of test cases
+            for the different values is used.
+        """
         # create a user
         self._create_user('anna', '123456')
 
-        # create an application and add capabilities
+        # create an application and add some extra capabilities
         application = self._create_application(
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris='http://example.it')
-        for s in full_scopes_list:
-            capability = ProtectedCapability.objects.get(slug=s)
-            application.scope.add(capability)
+
+        # Give the app some additional scopes.
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        application.scope.add(capability_a, capability_b)
 
         # user logs in
         self.client.login(username='anna', password='123456')
 
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': 'http://example.it',
-            'scope': ' '.join(full_scopes_list),
-            'expires_in': 86400,
-            'allow': True,
-        }
+        # Loop through test cases in dictionary
+        cases = VIEW_OAUTH2_SCOPES_TEST_CASES
+        for case in cases:
+            # Setup request parameters for test case
+            request_bene_block_personal_choice = cases[case]["request_bene_block_personal_choice"]
+            request_app_requires_demographic = cases[case]["request_app_requires_demographic"]
+            request_scopes = cases[case]["request_scopes"]
 
-        # 1. Test the authorization with block_personal_choice = None.
-        response = self._authorize_and_request_token(payload, application)
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content.decode("utf-8"))
-        # and here we test that the full scopes have been issued
-        self.assertEqual(sorted(content['scope'].split()), sorted(full_scopes_list))
+            # Setup expected results for test case
+            result_has_error = cases[case]["result_has_error"]
+            result_raises_exception = cases[case].get("result_raises_exception", None)
+            result_exception_mesg = cases[case].get("result_exception_mesg", None)
+            result_token_scopes_granted = cases[case].get("result_token_scopes_granted", None)
 
-        # 2. Test the authorization with block_personal_choice = False.
-        payload['block_personal_choice'] = 'False'
-        response = self._authorize_and_request_token(payload, application)
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content.decode("utf-8"))
-        # and here we test that the full scopes have been issued
-        self.assertEqual(sorted(content['scope'].split()), sorted(full_scopes_list))
+            payload = {
+                'client_id': application.client_id,
+                'response_type': 'code',
+                'redirect_uri': 'http://example.it',
+                'expires_in': 86400,
+                'allow': True,
+            }
 
-        # 3. Test the authorization with block_personal_choice = True.
-        payload['block_personal_choice'] = 'True'
-        response = self._authorize_and_request_token(payload, application)
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content.decode("utf-8"))
-        # and here we test that non-personal scopes have been issued
-        self.assertEqual(sorted(content['scope'].split()), sorted(non_personal_scopes_list))
+            # Does the application choose to require demographic info?
+            application.require_demographic_scopes = request_app_requires_demographic
+            application.save()
+
+            # Does the beneficiary choose to block demographic info?
+            if request_bene_block_personal_choice is not None:
+                payload['block_personal_choice'] = request_bene_block_personal_choice
+
+            # Scopes to be requested in the authorization request
+            if request_scopes is not None:
+                payload['scope'] = ' '.join(request_scopes)
+
+            # Perform authorization request
+            if result_has_error:
+                # Expecting an error with request
+                with self.assertRaisesRegexp(result_raises_exception, result_exception_mesg):
+                    response = self._authorize_and_request_token(payload, application)
+                # Continue to next test case
+                continue
+            else:
+                # Expecting no errors with request
+                response = self._authorize_and_request_token(payload, application)
+
+            # Assert auth request was successful
+            self.assertEqual(response.status_code, 200)
+            content = json.loads(response.content.decode("utf-8"))
+
+            # Test scope in response content
+            self.assertEqual(sorted(content['scope'].split()), sorted(result_token_scopes_granted))
+
+            # Test scope in access_token
+            at = AccessToken.objects.get(token=content['access_token'])
+            scopes_granted_access_token = sorted(at.scope.split())
+            self.assertEqual(scopes_granted_access_token, sorted(result_token_scopes_granted))
+
+            # Test end points with APIClient
+            # Test that resource end points are limited by scopes
+            # Loop through all scope paths.
+            for scope in SCOPES_TO_URL_BASE_PATH:
+                base_path = SCOPES_TO_URL_BASE_PATH[scope]["base_path"]
+                is_fhir_url = SCOPES_TO_URL_BASE_PATH[scope]["is_fhir_url"]
+                test_readview = SCOPES_TO_URL_BASE_PATH[scope].get("test_readview", False)
+
+                # Setup token in APIClient
+                client = APIClient()
+                client.credentials(HTTP_AUTHORIZATION="Bearer " + at.token)
+
+                # Mock back end FHIR resource calls
+                with HTTMock(self.fhir_request_patient_readview_success_mock,
+                             self.fhir_request_patient_searchview_success_mock,
+                             self.fhir_request_eob_success_mock,
+                             self.fhir_request_coverage_success_mock):
+
+                    # Is this a FHIR type URL?
+                    if is_fhir_url:
+                        # Test SearchView for base path
+                        response = client.get(base_path)
+                        content = json.loads(response.content)
+                        self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
+
+                        # Test Searchiew for base path with ending "/"
+                        response = client.get(base_path + "/")
+                        content = json.loads(response.content)
+                        self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
+
+                        # Test ReadView for base path with FHIR_ID
+                        if test_readview:
+                            response = client.get(base_path + "/" + settings.DEFAULT_SAMPLE_FHIR_ID)
+                            content = json.loads(response.content)
+                            self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
+
+                        # Test SearchView for base path with FHIR_ID
+                        response = client.get(base_path + "?" + settings.DEFAULT_SAMPLE_FHIR_ID)
+                        content = json.loads(response.content)
+                        self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
+                    else:
+                        # Test base path.
+                        response = client.get(base_path)
+                        content = json.loads(response.content)
+                        self._assertScopeResponse(scope, scopes_granted_access_token, response, content)
 
 
 class TestTokenView(BaseApiTest):
