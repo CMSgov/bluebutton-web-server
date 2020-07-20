@@ -3,6 +3,7 @@ import waffle
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
+from apps.dot_ext.scopes import CapabilitiesScopes
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
 from ..models import Approval
@@ -49,6 +50,12 @@ class AuthorizationView(DotAuthorizationView):
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
 
+        # Get scopes list available to the application
+        application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
+
+        # Set scopes to those available to application and beneficiary block choice in form
+        scopes = ' '.join([s for s in scopes.split(" ")
+                          if s in application_available_scopes])
         try:
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
