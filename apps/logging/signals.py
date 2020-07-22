@@ -51,11 +51,13 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
         },
     })
 
+
 # BB2-218 also capture delete MyAccessToken
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
     token_logger.info(Token(instance, action="revoked"))
+
 
 @receiver(post_delete, sender=DataAccessGrant)
 def log_grant_removed(sender, instance=None, **kwargs):
