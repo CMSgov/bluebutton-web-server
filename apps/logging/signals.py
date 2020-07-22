@@ -1,5 +1,7 @@
 import logging
 from oauth2_provider.signals import app_authorized
+from oauth2_provider.models import AccessToken
+from django.dispatch import receiver
 from django.db.models.signals import (
     post_delete,
 )
@@ -9,6 +11,8 @@ from apps.fhir.bluebutton.signals import (
 )
 from apps.mymedicare_cb.signals import post_sls
 from apps.dot_ext.signals import beneficiary_authorized_application
+from apps.dot_ext.admin import MyAccessToken
+from apps.authorization.models import DataAccessGrant
 
 from .serializers import (
     Token,
@@ -47,11 +51,13 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
         },
     })
 
-
+# BB2-218 also capture delete MyAccessToken
+@receiver(post_delete, sender=MyAccessToken)
+@receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
     token_logger.info(Token(instance, action="revoked"))
 
-
+@receiver(post_delete, sender=DataAccessGrant)
 def log_grant_removed(sender, instance=None, **kwargs):
     token_logger.info(DataAccessGrantSerializer(instance, action="revoked"))
 
@@ -70,8 +76,8 @@ def sls_hook(sender, response=None, **kwargs):
 
 app_authorized.connect(handle_token_created)
 beneficiary_authorized_application.connect(handle_app_authorized)
-post_delete.connect(token_removed, sender='oauth2_provider.AccessToken')
-post_delete.connect(log_grant_removed, sender='authorization.DataAccessGrant')
+# post_delete.connect(token_removed, sender='oauth2_provider.AccessToken')
+# post_delete.connect(log_grant_removed, sender='authorization.DataAccessGrant')
 pre_fetch.connect(fetching_data)
 post_fetch.connect(fetched_data)
 post_sls.connect(sls_hook)
