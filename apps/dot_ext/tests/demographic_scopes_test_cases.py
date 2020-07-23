@@ -56,8 +56,8 @@ SCOPES_TO_URL_BASE_PATH = {
     REQUEST PARAMETERS:
       These are used to setup the authorization request.
 
-      - request_bene_block_personal_choice = [None, True, False]
-            Did the beneficiary choose to block demographic info?
+      - request_bene_share_demographic_scopes = [None, True, False]
+            Did the beneficiary choose to share demographic info?
       - request_scopes = The scopes being requested in the authorization request.
 
     EXPECTED RESULTS:
@@ -69,81 +69,81 @@ SCOPES_TO_URL_BASE_PATH = {
             to be assigned to the resulting access token.
 """
 FORM_OAUTH2_SCOPES_TEST_CASES = {
-    "test 1: block_personal_choice = None": {
+    "test 1: share_demographic_scopes = None": {
         # Request:
-        "request_bene_block_personal_choice": None,
+        "request_bene_share_demographic_scopes": None,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
     },
-    "test 2: block_personal_choice = True": {
+    "test 2: share_demographic_scopes = False": {
         # Request:
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
     },
-    "test 3: block_personal_choice = False": {
+    "test 3: share_demographic_scopes = True": {
         # Request:
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
     },
-    "test 4: block = False request just EOB and B": {
+    "test 4: share = True request just EOB and B": {
         # Request:
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_EOB_AND_B,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": SCOPES_JUST_EOB_AND_B,
     },
-    "test 5: block = False request just PATIENT and A": {
+    "test 5: share = True request just PATIENT and A": {
         # Request:
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_PATIENT_AND_A,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": SCOPES_JUST_PATIENT_AND_A,
     },
-    "test 6: block = True request just EOB and B": {
+    "test 6: share = False request just EOB and B": {
         # Request:
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": SCOPES_JUST_EOB_AND_B,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": SCOPES_JUST_EOB_AND_B,
     },
-    "test 7: block = True request just PATIENT and A": {
+    "test 7: share = False request just PATIENT and A": {
         # Request:
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": SCOPES_JUST_PATIENT_AND_A,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": SCOPES_JUST_A,
     },
-    "test 8: block = False request just PATIENT": {
+    "test 8: share = True request just PATIENT": {
         # Request:
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_PATIENT,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": SCOPES_JUST_PATIENT,
     },
-    "test 9: block = True request just PATIENT": {
+    "test 9: share = False request just PATIENT": {
         # Request:
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": SCOPES_JUST_PATIENT,
         # Result:
         "result_form_is_valid": True,
         "result_token_scopes_granted": SCOPES_JUST_EMPTY,
     },
-    "test 10: block = False request just EMPTY": {
+    "test 10: share = True request just EMPTY": {
         # Request:
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_EMPTY,
         # Result:
         "result_form_is_valid": False,
@@ -157,15 +157,15 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
 
     USED in the following test:
       apps.dot_ext.tests.test_views
-                        .TestAuthorizationView.test_post_with_request_block_personal_choice()
+                        .TestAuthorizationView.test_post_with_post_with_demographic_scope_choices()
 
     Test case dictionary key and value meanings:
 
     REQUEST PARAMETERS:
       These are used to setup the authorization request.
 
-      - request_bene_block_personal_choice = [None, True, False]
-            Does the beneficiary choose to block demographic info?
+      - request_bene_share_demographic_scopes = [None, True, False]
+            Does the beneficiary choose to share demographic info?
       - request_app_requires_demographic = [None, True, False]
             Does the application choose to require demographic info?
       - request_scopes = The scopes being requested in the authorization request.
@@ -182,139 +182,139 @@ FORM_OAUTH2_SCOPES_TEST_CASES = {
 """
 VIEW_OAUTH2_SCOPES_TEST_CASES = {
     # Tests for app_require_demographic_scopes = None
-    "test 1: app_requires = None bene_block = None": {
+    "test 1: app_requires = None bene_share = None": {
         # Request:
         "request_app_requires_demographic": None,
-        "request_bene_block_personal_choice": None,
+        "request_bene_share_demographic_scopes": None,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
     },
-    "test 2: app_requires = None bene_block = True": {
+    "test 2: app_requires = None bene_share = False": {
         # Request:
         "request_app_requires_demographic": None,
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
     },
-    "test 3: app_requires = None bene_block = False": {
+    "test 3: app_requires = None bene_share = True": {
         # Request:
         "request_app_requires_demographic": None,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
     },
     # Tests for request_app_requires_demographic = True
-    "test 4: app_requires = True bene_block = None": {
+    "test 4: app_requires = True bene_share = None": {
         # Request:
         "request_app_requires_demographic": True,
-        "request_bene_block_personal_choice": None,
+        "request_bene_share_demographic_scopes": None,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
     },
-    "test 5: app_requires = True bene_block = True": {
+    "test 5: app_requires = True bene_share = False": {
         # Request:
         "request_app_requires_demographic": True,
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
     },
-    "test 6: app_requires = True bene_block = False": {
+    "test 6: app_requires = True bene_share = True": {
         # Request:
         "request_app_requires_demographic": True,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_FULL,
     },
     # Tests for request_app_requires_demographic = False
-    "test 7: app_requires = False bene_block = None": {
+    "test 7: app_requires = False bene_share = None": {
         # Request:
         "request_app_requires_demographic": False,
-        "request_bene_block_personal_choice": None,
+        "request_bene_share_demographic_scopes": None,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
     },
-    "test 8: app_requires = False bene_block = True": {
+    "test 8: app_requires = False bene_share = False": {
         # Request:
         "request_app_requires_demographic": False,
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
     },
-    "test 9: app_requires = False bene_block = False": {
+    "test 9: app_requires = False bene_share = True": {
         # Request:
         "request_app_requires_demographic": False,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": APPLICATION_SCOPES_FULL,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": APPLICATION_SCOPES_NON_DEMOGRAPHIC,
     },
     # Misc tests where only partial scopes are requested for authorization
-    "test 10: app_requires = True bene_block = False request just EOB and B": {
+    "test 10: app_requires = True bene_share = True request just EOB and B": {
         # Request:
         "request_app_requires_demographic": True,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_EOB_AND_B,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": SCOPES_JUST_EOB_AND_B,
     },
-    "test 11: app_requires = None bene_block = None request just PATIENT and A": {
+    "test 11: app_requires = None bene_share = None request just PATIENT and A": {
         # Request:
         "request_app_requires_demographic": None,
-        "request_bene_block_personal_choice": None,
+        "request_bene_share_demographic_scopes": None,
         "request_scopes": SCOPES_JUST_PATIENT_AND_A,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": SCOPES_JUST_PATIENT_AND_A,
     },
-    "test 12: app_requires = True bene_block = False request just PATIENT and A": {
+    "test 12: app_requires = True bene_share = True request just PATIENT and A": {
         # Request:
         "request_app_requires_demographic": True,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_PATIENT_AND_A,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": SCOPES_JUST_PATIENT_AND_A,
     },
-    "test 13: app_requires = False bene_block = False request just PATIENT and A": {
+    "test 13: app_requires = False bene_share = True request just PATIENT and A": {
         # Request:
         "request_app_requires_demographic": False,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_PATIENT_AND_A,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": SCOPES_JUST_A,
     },
-    "test 14: app_requires = True bene_block = True request just PATIENT and A": {
+    "test 14: app_requires = True bene_share = False request just PATIENT and A": {
         # Request:
         "request_app_requires_demographic": True,
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": SCOPES_JUST_PATIENT_AND_A,
         # Result:
         "result_has_error": False,
         "result_token_scopes_granted": SCOPES_JUST_A,
     },
-    "test 15: app_requires = None bene_block = True request just PATIENT and A": {
+    "test 15: app_requires = None bene_share = False request just PATIENT and A": {
         # Request:
         "request_app_requires_demographic": None,
-        "request_bene_block_personal_choice": True,
+        "request_bene_share_demographic_scopes": False,
         "request_scopes": SCOPES_JUST_PATIENT_AND_A,
         # Result:
         "result_has_error": False,
@@ -322,20 +322,20 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
     },
     # Testing initial auth request has request_scopes = None
     #   The POST to oauth2_provider:authorize must have scope in the payload.
-    "test 16: app_requires = True bene_block = False request scopes = None": {
+    "test 16: app_requires = True bene_share = True request scopes = None": {
         # Request:
         "request_app_requires_demographic": True,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": None,
         # Result:  NOTE: This case has empty scopes on POST!
         "result_has_error": True,
         "result_raises_exception": AssertionError,
     },
     # Testing case that produce ValueError exception
-    "test 17: app_requires = False bene_block = False request just PATIENT error=True": {
+    "test 17: app_requires = False bene_share = True request just PATIENT error=True": {
         # Request:
         "request_app_requires_demographic": False,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_PATIENT,
         # Result:  NOTE: Since Patient is not allowed,
         #                this case results in having empty scopes on post auth!
@@ -344,10 +344,10 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         "result_exception_mesg": "Scopes must be set on post auth.",
     },
     # Testing cases that produces AssertionError in _authorize_and_request_token()
-    "test 18: app_requires = True bene_block = False request just empty scopes error=True": {
+    "test 18: app_requires = True bene_share = True request just empty scopes error=True": {
         # Request:
         "request_app_requires_demographic": True,
-        "request_bene_block_personal_choice": False,
+        "request_bene_share_demographic_scopes": True,
         "request_scopes": SCOPES_JUST_EMPTY,
         # Result:  NOTE: This case has an empty List in POST request payload!
         "result_has_error": True,

@@ -124,7 +124,7 @@ class TestAuthorizationView(BaseApiTest):
     @override_switch('require-scopes', active=True)
     def test_post_with_demographic_scope_choices(self):
         """
-        Test authorization related to different, beneficiary "block_personal_choice",
+        Test authorization related to different, beneficiary "share_demographic_scopes",
         application.require_demographic_scopes, and requested scopes values.
 
         The "VIEW_OAUTH2_SCOPES_TEST_CASES" dictionary of test cases
@@ -150,7 +150,7 @@ class TestAuthorizationView(BaseApiTest):
         cases = VIEW_OAUTH2_SCOPES_TEST_CASES
         for case in cases:
             # Setup request parameters for test case
-            request_bene_block_personal_choice = cases[case]["request_bene_block_personal_choice"]
+            request_bene_share_demographic_scopes = cases[case]["request_bene_share_demographic_scopes"]
             request_app_requires_demographic = cases[case]["request_app_requires_demographic"]
             request_scopes = cases[case]["request_scopes"]
 
@@ -173,8 +173,8 @@ class TestAuthorizationView(BaseApiTest):
             application.save()
 
             # Does the beneficiary choose to block demographic info?
-            if request_bene_block_personal_choice is not None:
-                payload['block_personal_choice'] = request_bene_block_personal_choice
+            if request_bene_share_demographic_scopes is not None:
+                payload['share_demographic_scopes'] = request_bene_share_demographic_scopes
 
             # Scopes to be requested in the authorization request
             if request_scopes is not None:

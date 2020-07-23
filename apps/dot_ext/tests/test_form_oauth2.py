@@ -9,7 +9,7 @@ class TestSimpleAllowFormForm(BaseApiTest):
 
     def test_form(self):
         """
-            Test FORM related to beneficiary "block_personal_choice" values.
+            Test FORM related to beneficiary "share_demographic_scopes" values.
 
             The "FORM_OAUTH2_SCOPES_TEST_CASES" dictionary of test cases
             for the different values is used.
@@ -32,7 +32,7 @@ class TestSimpleAllowFormForm(BaseApiTest):
         cases = FORM_OAUTH2_SCOPES_TEST_CASES
         for case in cases:
             # Setup request parameters for test case.
-            request_bene_block_personal_choice = cases[case]["request_bene_block_personal_choice"]
+            request_bene_share_demographic_scopes = cases[case]["request_bene_share_demographic_scopes"]
             request_scopes = cases[case]["request_scopes"]
 
             # Setup expected results for test case.
@@ -50,9 +50,9 @@ class TestSimpleAllowFormForm(BaseApiTest):
             # Scopes requested in the form.
             data['scope'] = ' '.join(request_scopes)
 
-            # Does the beneficiary block personal info in the form?
-            if cases[case]["request_bene_block_personal_choice"] is not None:
-                data['block_personal_choice'] = request_bene_block_personal_choice
+            # Does the beneficiary share demographic info in the form?
+            if cases[case]["request_bene_share_demographic_scopes"] is not None:
+                data['share_demographic_scopes'] = request_bene_share_demographic_scopes
 
             form = SimpleAllowForm(data)
 
