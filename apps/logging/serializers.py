@@ -169,6 +169,10 @@ class Response:
         if self.sender == 'token_endpoint':
             resp_dict = {'type': 'SLS_token'}
             resp_dict.update(json.loads(self.resp.text))
+            access_token = resp_dict.get('access_token')
+            if access_token is not None:
+                # replace token with hash
+                resp_dict['access_token'] = hashlib.sha256(access_token.encode('utf-8')).hexdigest()
         elif self.sender == 'userinfo_endpoint':
             # mask out mbi and hicn
             resp_dict = {'type': 'SLS_userinfo'}
