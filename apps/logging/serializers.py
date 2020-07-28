@@ -173,14 +173,12 @@ class Response:
             # mask out mbi and hicn
             resp_dict = {'type': 'SLS_userinfo'}
             d = json.loads(self.resp.text)
-            if 'mbi' in d:
-                d['mbi'] = '***********'
-            else:
-                d['mbi'] = None
-            if 'hicn' in d:
-                d['hicn'] = '***********'
-            else:
-                d['hicn'] = None
+            pii_list = ['mbi', 'hicn', 'name', 'given_name', 'family_name', 'email']
+            for i in pii_list:
+                if i in d:
+                    d[i] = '************'
+                else:
+                    d[i] = None
             resp_dict.update(d)
         else:
             resp_dict.update({'error': 'Unexpected sender: {}'.format(self.sender)})
