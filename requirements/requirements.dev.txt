@@ -4,6 +4,11 @@
 #
 #    pip-compile --generate-hashes --output-file=requirements/requirements.dev.txt requirements/requirements.dev.in
 #
+beautifulsoup4==4.9.1 \
+    --hash=sha256:73cc4d115b96f79c7d77c1c7f7a0a8d4c57860d1041df407dd1aae7f07a77fd7 \
+    --hash=sha256:a6237df3c32ccfaee4fd201c8f5f9d9df619b93121d01353a64a73ce8c6ef9a8 \
+    --hash=sha256:e718f2342e2e099b640a34ab782407b7b676f47ee272d6739e60b8ea23829f2c \
+    # via -r requirements/requirements.dev.in
 boto3==1.9.86 \
     --hash=sha256:63cd957ba663f5c10ff48ed904575eaa701314f79f18dbc59bd050311cd5f809 \
     --hash=sha256:d1338582bc58741f54bd6b43488de6097a82ea45cebed0a3fd936981eadbb3a5 \
@@ -319,6 +324,10 @@ six==1.14.0 \
     --hash=sha256:236bdbdce46e6e6a3d61a337c0f8b763ca1e8717c03b369e87a7ec7ce1319c0a \
     --hash=sha256:8f3cd2e254d8f793e7f3d6d9df77b92252b52637291d0f0da013c76ea2724b6c \
     # via django-waffle, djangorestframework-csv, python-coveralls, python-dateutil, tox
+soupsieve==2.0.1 \
+    --hash=sha256:1634eea42ab371d3d346309b93df7870a88610f0725d47528be902a0d95ecc55 \
+    --hash=sha256:a59dc181727e95d25f781f0eb4fd1825ff45590ec8ff49eadfd7f1a537cc0232 \
+    # via beautifulsoup4
 sqlparse==0.2.4 \
     --hash=sha256:ce028444cfab83be538752a2ffdb56bc417b7784ff35bb9a3062413717807dec \
     --hash=sha256:d9cf190f51cbb26da0412247dfe4fb5f4098edb73db84e02f9fc21fdca31fed4 \
