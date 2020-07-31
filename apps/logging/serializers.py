@@ -1,10 +1,12 @@
 import json
 import hashlib
+import random
 from enum import Enum, unique
 
 
 def mask_value(value):
-    return '*******' if value is not None else ''
+    mask_str = '*' * random.randrange(5, 20)
+    return mask_str if value is not None else ''
 
 
 def hash_value(value):
