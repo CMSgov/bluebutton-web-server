@@ -55,7 +55,8 @@ def authenticate(request):
     # keep using deprecated conv - no conflict issue
     headers.update({"X-SLS-starttime": str(datetime.datetime.utcnow())})
     if request is not None:
-        headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None) if hasattr(request, '_logging_uuid') else '')})
+        headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
+                        if hasattr(request, '_logging_uuid') else '')})
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,

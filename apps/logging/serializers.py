@@ -2,8 +2,10 @@ import json
 import hashlib
 from enum import Enum, unique
 
+
 def mask_value(value):
     return '*******' if value is not None else ''
+
 
 def hash_value(value):
     return hashlib.sha256(value.encode('utf-8')).hexdigest()
@@ -224,6 +226,7 @@ class Response:
 class FHIRResponse(Response):
     request_class = FHIRRequest
 
+
 class SLSResponse(Response):
     def get_type(self):
         pass
@@ -245,6 +248,7 @@ class SLSResponse(Response):
                     result[e.value] = attr
         return result
 
+
 class SLSTokenResponse(SLSResponse):
     obfuscation_mapper = {
         SLSToken.ACCESS_TOKEN: hash_value,
@@ -265,11 +269,12 @@ class SLSTokenResponse(SLSResponse):
         event_dict = super().to_dict().copy()
         event_dict.update(json.loads(self.resp.text))
         return event_dict
-    
+
     def __str__(self):
         result = self.to_dict()
         result.update(self.req)
         return json.dumps(self.extract_and_obfuscate(result))
+
 
 class SLSUserInfoResponse(SLSResponse):
     obfuscation_mapper = {
@@ -296,7 +301,7 @@ class SLSUserInfoResponse(SLSResponse):
         event_dict = super().to_dict().copy()
         event_dict.update(json.loads(self.resp.text))
         return event_dict
-    
+
     def __str__(self):
         result = self.to_dict()
         result.update(self.req)
