@@ -117,6 +117,15 @@ class FHIRRequest(Request):
     def uuid(self):
         return self.req.headers.get('BlueButton-OriginalQueryId')
 
+    def fhir_id(self):
+        # BB2-135 add event field 'fhir_id' per requirement of BFD Insights
+        fhir_id = ''
+        bid = self.req.headers.get('BlueButton-BeneficiaryId')
+        fhir_id = str(bid) if bid is not None else ''
+        if fhir_id is not None and fhir_id.startswith('patientId:'):
+            fhir_id = fhir_id.split(':')[1]
+        return fhir_id
+
     def user(self):
         return self.req.headers.get('BlueButton-BeneficiaryId')
 
@@ -134,6 +143,17 @@ class FHIRRequest(Request):
 
     def path(self):
         return self.req.headers.get('BlueButton-OriginalUrl')
+
+    def to_dict(self):
+        result = {
+            "uuid": self.uuid(),
+            "fhir_id": self.fhir_id(),
+            "user": self.user(),
+            "start_time": self.start_time(),
+            "application": self.application(),
+            "path": self.path(),
+        }
+        return result
 
 
 class Response:
