@@ -40,6 +40,24 @@ To run the Django unit tests, run the following command:
 docker-compose exec web python runtests.py
 ```
 
+You can run individual applications tests or tests with in a specific area as well.
+
+The following are a few examples (drilling down to a single test):
+```bash
+docker-compose exec web python runtests.py apps.dot_ext.tests
+```
+```bash
+docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates
+```
+```bash
+docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
+```
+Multiple arguments can be provided too:
+```bash
+docker-compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
+```
+
+
 # Work on Windows
 
 This requires the use of a linux sub system. This includes a choice of Cygwin, WSL, or VirtualBox + Linux.
