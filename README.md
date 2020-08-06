@@ -130,12 +130,26 @@ Running Tests
 -------------
 
 Run the following:
-
+```bash
     python runtests.py
+```
 
-You can run individual applications tests as well.
-See https://docs.djangoproject.com/en/1.11/topics/testing/overview/#running-tests
-for more information.
+You can run individual applications tests or tests with in a specific area as well.
+
+The following are a few examples (drilling down to a single test):
+```bash
+python runtests.py apps.dot_ext.tests
+```
+```bash
+python runtests.py apps.dot_ext.tests.test_templates
+```
+```bash
+python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
+```
+Multiple arguments can be provided too:
+```bash
+python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login 
+```
 
 
 Using this Project
