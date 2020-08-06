@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     'apps.logging',
     'apps.openapi',
 ]
+
 if env('ENV_SPECIFIC_APPS', False):
     INSTALLED_APPS += env('ENV_SPECIFIC_APPS')
 
