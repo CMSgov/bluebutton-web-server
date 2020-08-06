@@ -10,6 +10,7 @@ from urllib.parse import (
     urlunsplit,
 )
 import random
+import uuid
 from .models import (
     AnonUserState,
     get_and_update_user,
@@ -32,6 +33,10 @@ authenticate_logger = logging.getLogger('audit.authenticate.sls')
 
 # For SLS auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
+    # Create authorization flow trace UUID, if not existing from dispatch()
+    if request.session.get('auth_uuid', None) is None:
+        request.session['auth_uuid'] = str(uuid.uuid4())
+
     code = request.GET.get('code')
     if not code:
         raise ValidationError('The code parameter is required')
@@ -75,8 +80,10 @@ def authenticate(request):
     if sls_mbi == "":
         sls_mbi = None
 
+    # TODO: when rebasing with BB2-132 change '' for auth_uuid to None
     authenticate_logger.info({
         "type": "Authentication:start",
+        "auth_uuid": request.session.get('auth_uuid', ''),
         "sub": user_info["sub"],
         "sls_mbi_format_valid": sls_mbi_format_valid,
         "sls_mbi_format_msg": sls_mbi_format_msg,
@@ -87,8 +94,10 @@ def authenticate(request):
 
     user = get_and_update_user(user_info)
 
+    # TODO: when rebasing with BB2-132 change '' for auth_uuid to None
     authenticate_logger.info({
         "type": "Authentication:success",
+        "auth_uuid": request.session.get('auth_uuid', ''),
         "sub": user_info["sub"],
         "user": {
             "id": user.id,

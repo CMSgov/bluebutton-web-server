@@ -152,6 +152,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
+    auth_uuid = forms.CharField(required=False, widget=forms.HiddenInput())
     block_personal_choice = forms.BooleanField(required=False)
 
     def clean(self):

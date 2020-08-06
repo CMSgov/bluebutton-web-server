@@ -1,11 +1,15 @@
+import inspect
 import logging
+import uuid
 import waffle
+from django.db.utils import IntegrityError
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
+from urllib.parse import urlparse, parse_qs
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
-from ..models import Approval
+from ..models import Approval, AuthFlowUuid
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -18,6 +22,24 @@ class AuthorizationView(DotAuthorizationView):
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Override the base authorization view from dot to
+        initially create a auth_uuid for authorization
+        flow auth_uuid tracing in logs.
+        """
+        # Determine the calling method.
+        current_frame = inspect.currentframe()
+        calling_frame = inspect.getouterframes(current_frame, 2)
+        calling_method = calling_frame[1][3]
+
+        # If caller is "view" (instead of "dispatch"), reset the session auth_uuid.
+        if calling_method == "view":
+            # Create authorization flow trace UUID
+            request.session['auth_uuid'] = str(uuid.uuid4())
+
+        return super().dispatch(request, *args, **kwargs)
+
     def get_template_names(self):
         if waffle.switch_is_active('require-scopes'):
             return ["design_system/authorize_v2.html"]
@@ -28,6 +50,7 @@ class AuthorizationView(DotAuthorizationView):
         initial_data = super().get_initial()
         initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
         initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
+        initial_data["auth_uuid"] = self.request.session.get('auth_uuid', None)
         return initial_data
 
     def get(self, request, *args, **kwargs):
@@ -64,6 +87,32 @@ class AuthorizationView(DotAuthorizationView):
 
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))
+
+        # Extract code/state from url
+        url_query = parse_qs(urlparse(self.success_url).query)
+        code = url_query.get('code', [None])[0]
+        state = url_query.get('state', [None])[0]
+
+        # Get auth uuid from request session
+        auth_uuid = self.request.session.get('auth_uuid', None)
+
+        # Create AuthFlowUuid instance to pass auth_uuid for token related logging
+        try:
+            # Remove if already existing
+            auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
+            auth_flow_uuid.remove()
+        except AuthFlowUuid.DoesNotExist:
+            pass
+
+        try:
+            if code is not None:
+                auth_flow_uuid = AuthFlowUuid.objects.create(code=code)
+                auth_flow_uuid.state = state
+                auth_flow_uuid.auth_uuid = auth_uuid
+                auth_flow_uuid.save()
+        except IntegrityError:
+            pass
+
         return self.redirect(self.success_url, application)
 
 

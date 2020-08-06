@@ -4,6 +4,8 @@ import traceback
 from oauth2_provider.signals import app_authorized
 from oauth2_provider.models import AccessToken
 from django.dispatch import receiver
+from urllib.parse import parse_qs
+
 from django.db.models.signals import (
     post_delete,
 )
@@ -12,6 +14,7 @@ from apps.fhir.bluebutton.signals import (
     post_fetch
 )
 from apps.mymedicare_cb.signals import post_sls
+from apps.dot_ext.models import AuthFlowUuid
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.admin import MyAccessToken
 from apps.authorization.models import DataAccessGrant
@@ -30,12 +33,27 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 
 def handle_token_created(sender, request, token, **kwargs):
-    token_logger.info(get_event(Token(token, action="authorized")))
+    content = parse_qs(request.body.decode("utf-8"))
+    code = content.get('code', [None])[0]
+
+    try:
+        # Get value previously stored in AuthorizationView.form_valid()
+        auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
+        auth_uuid = str(auth_flow_uuid.auth_uuid)
+
+        # Delete the no longer needed instance
+        auth_flow_uuid.delete()
+    except AuthFlowUuid.DoesNotExist:
+        auth_uuid = None
+
+    token_logger.info(Token(token, action="authorized", auth_uuid=auth_uuid))
 
 
 def handle_app_authorized(sender, request, user, application, **kwargs):
+    # TODO: use json.dumps when rebasing with BB2-132
     token_logger.info({
         "type": "Authorization",
+        "auth_uuid": request.session.get('auth_uuid', None),
         "user": {
             "id": user.id,
             "username": user.username,
@@ -58,7 +76,7 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
-    token_logger.info(get_event(Token(instance, action="revoked")))
+    token_logger.info(Token(instance, action="revoked", auth_uuid=None))
 
 
 @receiver(post_delete, sender=DataAccessGrant)
