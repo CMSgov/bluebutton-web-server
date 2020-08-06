@@ -20,6 +20,7 @@ class RequestResponseLog(object):
         - start_time = Unix Epoch format time of the request processed.
         - end_time = Unix Epoch format time of the response processed.
         - request_uuid = The UUID identifying the request.
+        - auth_uuid = The UUID identifying the auth flow session.
         - path = The request.path.
         - response_code = The response status code.
         - size = Size in bytes of the response.content
@@ -46,6 +47,7 @@ class RequestResponseLog(object):
         log_msg['start_time'] = self.request._logging_start_dt.timestamp()
         log_msg['end_time'] = datetime.datetime.utcnow().timestamp()
         log_msg['request_uuid'] = str(self.request._logging_uuid)
+        log_msg['auth_uuid'] = self.request.session.get('auth_uuid', None)
         log_msg['path'] = self.request.path
         log_msg['response_code'] = getattr(self.response, 'status_code', 0)
         log_msg['size'] = ""
