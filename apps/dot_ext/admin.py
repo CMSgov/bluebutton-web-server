@@ -3,7 +3,7 @@ from django.contrib import admin
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 from .forms import CustomRegisterApplicationForm
-from .models import ApplicationLabel
+from .models import ApplicationLabel, Approval, AuthFlowUuid
 
 
 Application = get_application_model()
@@ -16,6 +16,18 @@ class MyAccessToken(AccessToken):
 
 
 class MyApplication(Application):
+    class Meta:
+        proxy = True
+        app_label = "bluebutton"
+
+
+class MyApproval(Approval):
+    class Meta:
+        proxy = True
+        app_label = "bluebutton"
+
+
+class MyAuthFlowUuid(AuthFlowUuid):
     class Meta:
         proxy = True
         app_label = "bluebutton"
@@ -93,6 +105,24 @@ class MyAccessTokenAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MyAccessToken, MyAccessTokenAdmin)
+
+
+class MyApprovalAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'user', 'application', 'created_at')
+    search_fields = ('uuid', 'user__username', 'application__name')
+    list_filter = ('uuid', 'user', 'application')
+    raw_id_fields = ('user', 'application')
+
+
+admin.site.register(MyApproval, MyApprovalAdmin)
+
+
+class MyAuthFlowUuidAdmin(admin.ModelAdmin):
+    list_display = ('code', 'auth_uuid', 'state')
+    search_fields = ('code', 'auth_uuid', 'state')
+
+
+admin.site.register(MyAuthFlowUuid, MyAuthFlowUuidAdmin)
 
 
 class ApplicationLabelAdmin(admin.ModelAdmin):
