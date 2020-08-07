@@ -92,7 +92,7 @@ def authenticate(request):
         "sls_mbi_hash": hash_mbi(sls_mbi),
     })
 
-    user = get_and_update_user(user_info)
+    user = get_and_update_user(request, user_info)
 
     # TODO: when rebasing with BB2-132 change '' for auth_uuid to None
     authenticate_logger.info({
