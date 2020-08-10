@@ -9,13 +9,16 @@ from ..bluebutton.utils import (FhirServerAuth,
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-def match_hicn_hash(request, hicn_hash):
+def match_hicn_hash(hicn_hash, request=None):
     auth_state = FhirServerAuth(None)
     certs = (auth_state['cert_file'], auth_state['key_file'])
 
     # Add auth flow UUID to headers
-    headers = generate_info_headers(request)
-    headers['BlueButton-AuthUuid'] = request.session.get('auth_uuid', '')
+    if request:
+        headers = generate_info_headers(request)
+        headers['BlueButton-AuthUuid'] = request.session.get('auth_uuid', '')
+    else:
+        headers = None
 
     # URL for patient ID.
     url = get_resourcerouter().fhir_url + \

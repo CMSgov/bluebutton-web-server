@@ -9,14 +9,14 @@ from apps.fhir.bluebutton.models import Crosswalk, hash_hicn, hash_mbi
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-def get_and_update_user(request, user_info):
+def get_and_update_user(user_info, request=None):
     """
     Find or create the user associated
     with the identity information from the ID provider.
 
     Args:
-        request - request from caller to pass along for logging info.
         user_info: Identity response from the userinfo endpoint of the ID provider.
+        request - request from caller to pass along for logging info.
 
     Returns:
         A User
@@ -41,7 +41,7 @@ def get_and_update_user(request, user_info):
 
     # TODO: Add return for ID type used for FHIR_ID match.
     # raises exceptions.NotFound:
-    fhir_id, backend_data = match_hicn_hash(request, hicn_hash)
+    fhir_id, backend_data = match_hicn_hash(hicn_hash, request)
 
     # HICN was used to match the user.
     user_id_type = 'H'
