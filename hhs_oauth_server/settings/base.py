@@ -85,10 +85,10 @@ INSTALLED_APPS = [
     # DOT must be installed after apps.dot_ext in order to override templates
     'oauth2_provider',
     'axes',
-
     'apps.logging',
     'apps.openapi',
 ]
+
 if env('ENV_SPECIFIC_APPS', False):
     INSTALLED_APPS += env('ENV_SPECIFIC_APPS')
 
