@@ -88,10 +88,9 @@ class AuthorizationView(DotAuthorizationView):
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))
 
-        # Extract code/state from url
+        # Extract code from url
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
-        state = url_query.get('state', [None])[0]
 
         # Get auth uuid from request session
         auth_uuid = self.request.session.get('auth_uuid', None)
@@ -107,7 +106,6 @@ class AuthorizationView(DotAuthorizationView):
         try:
             if code is not None:
                 auth_flow_uuid = AuthFlowUuid.objects.create(code=code)
-                auth_flow_uuid.state = state
                 auth_flow_uuid.auth_uuid = auth_uuid
                 auth_flow_uuid.save()
         except IntegrityError:

@@ -118,8 +118,8 @@ admin.site.register(MyApproval, MyApprovalAdmin)
 
 
 class MyAuthFlowUuidAdmin(admin.ModelAdmin):
-    list_display = ('code', 'auth_uuid', 'state')
-    search_fields = ('code', 'auth_uuid', 'state')
+    list_display = ('code', 'auth_uuid')
+    search_fields = ('code', 'auth_uuid')
 
 
 admin.site.register(MyAuthFlowUuid, MyAuthFlowUuidAdmin)

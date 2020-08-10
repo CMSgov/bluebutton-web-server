@@ -15,7 +15,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('code', models.CharField(max_length=255, primary_key=True, serialize=False, unique=True)),
                 ('auth_uuid', models.UUIDField(editable=False, null=True)),
-                ('state', models.CharField(default='', max_length=64, null=True)),
             ],
         ),
     ]
