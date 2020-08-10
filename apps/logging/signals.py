@@ -9,6 +9,7 @@ from urllib.parse import parse_qs
 from django.db.models.signals import (
     post_delete,
 )
+from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
@@ -33,18 +34,8 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 
 def handle_token_created(sender, request, token, **kwargs):
-    content = parse_qs(request.body.decode("utf-8"))
-    code = content.get('code', [None])[0]
-
-    try:
-        # Get value previously stored in AuthorizationView.form_valid()
-        auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
-        auth_uuid = str(auth_flow_uuid.auth_uuid)
-
-        # Delete the no longer needed instance
-        auth_flow_uuid.delete()
-    except AuthFlowUuid.DoesNotExist:
-        auth_uuid = None
+    # Get auth flow uuid from session for logging
+    auth_uuid = request.session.get('auth_uuid', None)
 
     token_logger.info(Token(token, action="authorized", auth_uuid=auth_uuid))
 
