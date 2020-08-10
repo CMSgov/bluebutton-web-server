@@ -26,7 +26,7 @@ class AuthorizationView(DotAuthorizationView):
         """
         Override the base authorization view from dot to
         initially create a auth_uuid for authorization
-        flow auth_uuid tracing in logs.
+        flow tracing in logs.
         """
         # Determine the calling method.
         current_frame = inspect.currentframe()

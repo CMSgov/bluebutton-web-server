@@ -13,7 +13,7 @@ def match_hicn_hash(hicn_hash, request=None):
     auth_state = FhirServerAuth(None)
     certs = (auth_state['cert_file'], auth_state['key_file'])
 
-    # Add auth flow UUID to headers
+    # Add headers for FHIR backend logging, including auth_uuid
     if request:
         headers = generate_info_headers(request)
         headers['BlueButton-AuthUuid'] = request.session.get('auth_uuid', '')
