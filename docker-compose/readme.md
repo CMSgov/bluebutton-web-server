@@ -18,6 +18,31 @@ docker-compose logs -f | grep web
 ```
 press Ctrl C will stop monitor logging.
 
+## Blue Button DB image migrations
+
+DB image migrations is done in docker container before blue button server is started.
+this is enabled by adding below line to .env:
+
+```
+DB_MIGRATIONS=true
+```
+
+the migration creates a super user with below attributes, can be customized in .env:
+
+```
+SUPER_USER_NAME=root
+SUPER_USER_PASSWORD=blue123
+SUPER_USER_EMAIL=bluebutton@example.com
+```
+
+if chose not to do db image migrations automatically, follow below steps:
+
+set the flag to false before run docker-compose up:
+
+```
+DB_MIGRATIONS=false
+```
+
 If you're working with a fresh db image
 the migrations have to be run.
 
@@ -93,6 +118,13 @@ BB20_ENABLE_REMOTE_DEBUG=true
 After BB2 server is up, ptvsd is listening on port 5678.
 Afterward, attach to it from your IDE (e.g. VSCode) and put break 
 points on the execution path. You can now start debugging.
+
+Add the line below to the .env file to make ptvsd agent wait on attaching, before execute
+bluebutton server, this is needed when debugging logic during bluebutton server bootstrap.
+
+```
+BB2_REMOTE_DEBUG_WAIT_ATTACH=true
+```
 
 ## Remote debugging Blue Button unit tests
 
