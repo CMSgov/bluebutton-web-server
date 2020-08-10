@@ -1,24 +1,19 @@
 import logging
-import sys
-import traceback
-from oauth2_provider.signals import app_authorized
-from oauth2_provider.models import AccessToken
-from django.dispatch import receiver
-from urllib.parse import parse_qs
-
 from django.db.models.signals import (
     post_delete,
 )
+from django.dispatch import receiver
+from oauth2_provider.models import AccessToken
+from oauth2_provider.signals import app_authorized
+
+from apps.authorization.models import DataAccessGrant
+from apps.dot_ext.admin import MyAccessToken
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
 )
 from apps.mymedicare_cb.signals import post_sls
-from apps.dot_ext.models import AuthFlowUuid
-from apps.dot_ext.signals import beneficiary_authorized_application
-from apps.dot_ext.admin import MyAccessToken
-from apps.authorization.models import DataAccessGrant
 
 from .serializers import (
     Token,
@@ -33,6 +28,7 @@ sls_logger = logging.getLogger('audit.authorization.sls')
 fhir_logger = logging.getLogger('audit.data.fhir')
 
 
+@receiver(app_authorized)
 def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow uuid from session for logging
     auth_uuid = request.session.get('auth_uuid', None)
@@ -40,6 +36,7 @@ def handle_token_created(sender, request, token, **kwargs):
     token_logger.info(Token(token, action="authorized", auth_uuid=auth_uuid))
 
 
+@receiver(beneficiary_authorized_application)
 def handle_app_authorized(sender, request, user, application, **kwargs):
     # TODO: use json.dumps when rebasing with BB2-132
     token_logger.info({
@@ -100,8 +97,6 @@ def get_event(event):
     return event_str
 
 
-app_authorized.connect(handle_token_created)
-beneficiary_authorized_application.connect(handle_app_authorized)
 pre_fetch.connect(fetching_data)
 post_fetch.connect(fetched_data)
 post_sls.connect(sls_hook)
