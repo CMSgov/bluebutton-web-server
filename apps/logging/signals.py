@@ -1,4 +1,6 @@
 import logging
+import sys
+import traceback
 from oauth2_provider.signals import app_authorized
 from oauth2_provider.models import AccessToken
 from django.dispatch import receiver
@@ -28,7 +30,7 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 
 def handle_token_created(sender, request, token, **kwargs):
-    token_logger.info(Token(token, action="authorized"))
+    token_logger.info(get_event(Token(token, action="authorized")))
 
 
 def handle_app_authorized(sender, request, user, application, **kwargs):
@@ -56,30 +58,41 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
-    token_logger.info(Token(instance, action="revoked"))
+    token_logger.info(get_event(Token(instance, action="revoked")))
 
 
 @receiver(post_delete, sender=DataAccessGrant)
 def log_grant_removed(sender, instance=None, **kwargs):
-    token_logger.info(DataAccessGrantSerializer(instance, action="revoked"))
+    token_logger.info(get_event(DataAccessGrantSerializer(instance, action="revoked")))
 
 
 def fetching_data(sender, request=None, **kwargs):
-    fhir_logger.info(FHIRRequest(request))
+    fhir_logger.info(get_event(FHIRRequest(request)))
 
 
 def fetched_data(sender, request=None, response=None, **kwargs):
-    fhir_logger.info(FHIRResponse(response))
+    fhir_logger.info(get_event(FHIRResponse(response)))
 
 
 def sls_hook(sender, response=None, **kwargs):
-    sls_logger.info(SLSResponse(response))
+    sls_logger.info(get_event(SLSResponse(response)))
+
+
+def get_event(event):
+    '''
+    helper to evaluate event and supress any error
+    '''
+    event_str = None
+    try:
+        event_str = str(event)
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        event_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+    return event_str
 
 
 app_authorized.connect(handle_token_created)
 beneficiary_authorized_application.connect(handle_app_authorized)
-# post_delete.connect(token_removed, sender='oauth2_provider.AccessToken')
-# post_delete.connect(log_grant_removed, sender='authorization.DataAccessGrant')
 pre_fetch.connect(fetching_data)
 post_fetch.connect(fetched_data)
 post_sls.connect(sls_hook)

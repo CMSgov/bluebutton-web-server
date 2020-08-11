@@ -119,9 +119,7 @@ class FHIRRequest(Request):
 
     def fhir_id(self):
         # BB2-135 add event field 'fhir_id' per requirement of BFD Insights
-        fhir_id = ''
-        bid = self.req.headers.get('BlueButton-BeneficiaryId')
-        fhir_id = str(bid) if bid is not None else ''
+        fhir_id = self.req.headers.get('BlueButton-BeneficiaryId', '')
         if fhir_id is not None and fhir_id.startswith('patientId:'):
             fhir_id = fhir_id.split(':')[1]
         return fhir_id
