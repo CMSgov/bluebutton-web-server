@@ -79,10 +79,6 @@ class AppFormTemplateTestCase(BaseApiTest):
         '''
         form_fields = get_form_fields(frm)
         ref_fields = self.get_ref_flds_from_template(tmplt, ctx_prefix)
-        # temp = get_template(tmplt)
-        # nodes = temp.template.nodelist.get_nodes_by_type(VariableNode)
-        # prefix_len = len(ctx_prefix)
-        # ref_fields = [n.token.contents[prefix_len + 1:] for n in nodes]
         diff_flds = set(ref_fields) - set(form_fields)
         self.assertTrue(set(ref_fields).issubset(set(form_fields)),
                         "template {} referenced fields {} not in application context.".format(tmplt, diff_flds))
