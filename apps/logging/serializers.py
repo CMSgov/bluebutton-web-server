@@ -1,5 +1,62 @@
 import json
 import hashlib
+import random
+from enum import Enum, unique
+
+
+def mask_value(value):
+    mask_str = '*' * random.randrange(5, 20)
+    return mask_str if value is not None else ''
+
+
+def hash_value(value):
+    return hashlib.sha256(value.encode('utf-8')).hexdigest()
+
+
+@unique
+class SLSEventType(Enum):
+    SLS_TOKEN = 'SLS_token'
+    SLS_USERINFO = 'SLS_userinfo'
+
+
+@unique
+class SLSEventSender(Enum):
+    SLS_TOKEN_EP = 'token_endpoint'
+    SLS_USERINFO_EP = 'userinfo_endpoint'
+
+
+@unique
+class SLSToken(Enum):
+    TYPE = 'type'
+    CODE = 'code'
+    SIZE = 'size'
+    START_TIME = 'start_time'
+    ELAPSED = 'elapsed'
+    UUID = 'uuid'
+    USER = 'user'
+    APPLICATION = 'application'
+    PATH = 'path'
+    ACCESS_TOKEN = 'access_token'
+
+
+@unique
+class SLSUserInfo(Enum):
+    TYPE = 'type'
+    CODE = 'code'
+    SIZE = 'size'
+    START_TIME = 'start_time'
+    ELAPSED = 'elapsed'
+    UUID = 'uuid'
+    USER = 'user'
+    APPLICATION = 'application'
+    PATH = 'path'
+    SUB = 'sub'
+    NAME = 'name'
+    GIVEN_NAME = 'given_name'
+    FAMILY_NAME = 'family_name'
+    EMAIL = 'email'
+    HICN = 'hicn'
+    MBI = 'mbi'
 
 
 class DataAccessGrantSerializer:
@@ -100,16 +157,16 @@ class SLSRequest(Request):
         return self.req.headers.get('X-Request-ID')
 
     def user(self):
-        return None
+        return 'Unavailable'
 
     def start_time(self):
-        return None
+        return self.req.headers.get('X-SLS-starttime')
 
     def application(self):
-        return None
+        return 'Unavailable'
 
     def path(self):
-        return self.req.path
+        return self.req.path_url if self.req.path_url else None
 
 
 class FHIRRequest(Request):
@@ -155,11 +212,12 @@ class Response:
         return self.resp.elapsed.total_seconds()
 
     def to_dict(self):
-        return {
+        resp_dict = {
             "code": self.code(),
             "size": self.size(),
             "elapsed": self.elapsed(),
         }
+        return resp_dict
 
     def __str__(self):
         result = self.to_dict().copy()
@@ -172,4 +230,81 @@ class FHIRResponse(Response):
 
 
 class SLSResponse(Response):
+    def get_type(self):
+        pass
+
+    def get_obfuscation_mapper(self):
+        pass
+
+    def extract_and_obfuscate(self, event):
+        result = {'type': self.get_type()}
+        event_schema = self.get_event_schema()
+        obfuscation_mapper = self.get_obfuscation_mapper()
+        if event is not None:
+            for e in event_schema:
+                if e.value in event:
+                    attr = event[e.value]
+                    if e in obfuscation_mapper:
+                        f = obfuscation_mapper[e]
+                        attr = f(attr)
+                    result[e.value] = attr
+        return result
+
+
+class SLSTokenResponse(SLSResponse):
+    obfuscation_mapper = {
+        SLSToken.ACCESS_TOKEN: hash_value,
+    }
+
     request_class = SLSRequest
+
+    def get_type(self):
+        return SLSEventType.SLS_TOKEN.value
+
+    def get_event_schema(self):
+        return SLSToken
+
+    def get_obfuscation_mapper(self):
+        return SLSTokenResponse.obfuscation_mapper
+
+    def to_dict(self):
+        event_dict = super().to_dict().copy()
+        event_dict.update(json.loads(self.resp.text))
+        return event_dict
+
+    def __str__(self):
+        result = self.to_dict()
+        result.update(self.req)
+        return json.dumps(self.extract_and_obfuscate(result))
+
+
+class SLSUserInfoResponse(SLSResponse):
+    obfuscation_mapper = {
+        SLSUserInfo.NAME: mask_value,
+        SLSUserInfo.GIVEN_NAME: mask_value,
+        SLSUserInfo.FAMILY_NAME: mask_value,
+        SLSUserInfo.EMAIL: mask_value,
+        SLSUserInfo.HICN: mask_value,
+        SLSUserInfo.MBI: mask_value,
+    }
+
+    request_class = SLSRequest
+
+    def get_type(self):
+        return SLSEventType.SLS_USERINFO.value
+
+    def get_event_schema(self):
+        return SLSUserInfo
+
+    def get_obfuscation_mapper(self):
+        return SLSUserInfoResponse.obfuscation_mapper
+
+    def to_dict(self):
+        event_dict = super().to_dict().copy()
+        event_dict.update(json.loads(self.resp.text))
+        return event_dict
+
+    def __str__(self):
+        result = self.to_dict()
+        result.update(self.req)
+        return json.dumps(self.extract_and_obfuscate(result))

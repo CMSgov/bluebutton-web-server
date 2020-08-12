@@ -1,4 +1,7 @@
 import logging
+import sys
+import traceback
+import json
 from oauth2_provider.signals import app_authorized
 from oauth2_provider.models import AccessToken
 from django.dispatch import receiver
@@ -13,13 +16,11 @@ from apps.mymedicare_cb.signals import post_sls
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.dot_ext.admin import MyAccessToken
 from apps.authorization.models import DataAccessGrant
-
 from .serializers import (
     Token,
     DataAccessGrantSerializer,
     FHIRRequest,
     FHIRResponse,
-    SLSResponse,
 )
 
 token_logger = logging.getLogger('audit.authorization.token')
@@ -28,11 +29,11 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 
 def handle_token_created(sender, request, token, **kwargs):
-    token_logger.info(Token(token, action="authorized"))
+    token_logger.info(get_event(Token(token, action="authorized")))
 
 
 def handle_app_authorized(sender, request, user, application, **kwargs):
-    token_logger.info({
+    result = {
         "type": "Authorization",
         "user": {
             "id": user.id,
@@ -49,37 +50,48 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
             "id": application.id,
             "name": application.name,
         },
-    })
+    }
+    token_logger.info(get_event(json.dumps(result)))
 
 
-# BB2-218 also capture delete MyAccessToken
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
-    token_logger.info(Token(instance, action="revoked"))
+    token_logger.info(get_event(Token(instance, action="revoked")))
 
 
 @receiver(post_delete, sender=DataAccessGrant)
 def log_grant_removed(sender, instance=None, **kwargs):
-    token_logger.info(DataAccessGrantSerializer(instance, action="revoked"))
+    token_logger.info(get_event(DataAccessGrantSerializer(instance, action="revoked")))
 
 
 def fetching_data(sender, request=None, **kwargs):
-    fhir_logger.info(FHIRRequest(request))
+    fhir_logger.info(get_event(FHIRRequest(request)))
 
 
 def fetched_data(sender, request=None, response=None, **kwargs):
-    fhir_logger.info(FHIRResponse(response))
+    fhir_logger.info(get_event(FHIRResponse(response)))
 
 
-def sls_hook(sender, response=None, **kwargs):
-    sls_logger.info(SLSResponse(response))
+def sls_hook(sender, response=None, caller=None, **kwargs):
+    sls_logger.info(get_event(sender(response)))
+
+
+def get_event(event):
+    '''
+    helper to evaluate event and supress any error
+    '''
+    event_str = None
+    try:
+        event_str = str(event)
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        event_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
+    return event_str
 
 
 app_authorized.connect(handle_token_created)
 beneficiary_authorized_application.connect(handle_app_authorized)
-# post_delete.connect(token_removed, sender='oauth2_provider.AccessToken')
-# post_delete.connect(log_grant_removed, sender='authorization.DataAccessGrant')
 pre_fetch.connect(fetching_data)
 post_fetch.connect(fetched_data)
 post_sls.connect(sls_hook)
