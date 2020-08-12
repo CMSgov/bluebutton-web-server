@@ -1,4 +1,3 @@
-import inspect
 import logging
 import uuid
 import waffle
@@ -28,16 +27,8 @@ class AuthorizationView(DotAuthorizationView):
         initially create a auth_uuid for authorization
         flow tracing in logs.
         """
-        # Determine the calling method.
-        current_frame = inspect.currentframe()
-        calling_frame = inspect.getouterframes(current_frame, 2)
-        calling_method = calling_frame[1][3]
-
-        # If caller is "view" (instead of "dispatch"), reset the session auth_uuid.
-        if calling_method == "view":
-            # Create authorization flow trace UUID
-            request.session['auth_uuid'] = str(uuid.uuid4())
-
+        # Create authorization flow trace UUID
+        request.session['auth_uuid'] = str(uuid.uuid4())
         return super().dispatch(request, *args, **kwargs)
 
     def get_template_names(self):
@@ -136,7 +127,8 @@ class ApprovalView(AuthorizationView):
         except Approval.DoesNotExist:
             pass
 
-        result = super(ApprovalView, self).dispatch(request, *args, **kwargs)
+        # Call DOT super instead of Authorization view, so auth_uuid doesn't get reset.
+        result = super(DotAuthorizationView, self).dispatch(request, *args, **kwargs)
 
         application = self.oauth2_data.get('application', None)
         if application is not None:
