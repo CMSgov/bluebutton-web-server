@@ -1,14 +1,11 @@
-import logging
 import random
 import requests
+import logging
+import datetime
 import urllib.request as urllib_request
-import uuid
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
-from django.http import JsonResponse, HttpResponseRedirect
-from django.template.response import TemplateResponse
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework.exceptions import NotFound
@@ -23,6 +20,15 @@ from .loggers import log_authenticate_start, log_authenticate_success
 from .models import AnonUserState, get_and_update_user
 from .signals import response_hook
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
+from django.core.exceptions import ValidationError
+from rest_framework.exceptions import NotFound
+from django.views.decorators.cache import never_cache
+from .authorization import OAuth2Config
+from .signals import response_hook_wrapper
+from apps.dot_ext.models import Approval
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+from apps.logging.serializers import SLSUserInfoResponse
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -57,7 +63,7 @@ def authenticate(request):
     sls_client = OAuth2Config()
 
     try:
-        sls_client.exchange(code)
+        sls_client.exchange(code, request)
     except requests.exceptions.HTTPError as e:
         logger.error("Token request response error {reason}".format(reason=e))
         # Log also for info
@@ -71,11 +77,15 @@ def authenticate(request):
         'https://test.accounts.cms.gov/v1/oauth/userinfo')
 
     headers = sls_client.auth_header()
-    headers.update({"X-Request-ID": getattr(request, '__logging_uuid', None)})
+    # keep using deprecated conv - no conflict issue
+    headers.update({"X-SLS-starttime": str(datetime.datetime.utcnow())})
+    if request is not None:
+        headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
+                        if hasattr(request, '_logging_uuid') else '')})
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,
-                            hooks={'response': response_hook})
+                            hooks={'response': [response_hook_wrapper(sender=SLSUserInfoResponse)]})
 
     try:
         response.raise_for_status()
