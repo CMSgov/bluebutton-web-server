@@ -27,8 +27,10 @@ class AuthorizationView(DotAuthorizationView):
         initially create a auth_uuid for authorization
         flow tracing in logs.
         """
-        # Create authorization flow trace UUID
-        request.session['auth_uuid'] = str(uuid.uuid4())
+        if not kwargs.get('is_subclass_approvalview', False):
+            # Create authorization flow trace UUID, if subclass is not ApprovalView
+            request.session['auth_uuid'] = str(uuid.uuid4())
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_template_names(self):
@@ -127,8 +129,10 @@ class ApprovalView(AuthorizationView):
         except Approval.DoesNotExist:
             pass
 
-        # Call DOT super instead of Authorization view, so auth_uuid doesn't get reset.
-        result = super(DotAuthorizationView, self).dispatch(request, *args, **kwargs)
+        # Set flag to let super method know who's calling, so auth_uuid doesn't get reset.
+        kwargs['is_subclass_approvalview'] = True
+
+        result = super().dispatch(request, *args, **kwargs)
 
         application = self.oauth2_data.get('application', None)
         if application is not None:
