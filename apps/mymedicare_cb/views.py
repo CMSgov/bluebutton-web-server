@@ -7,28 +7,27 @@ import urllib.request as urllib_request
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.views.decorators.cache import never_cache
-from rest_framework.exceptions import NotFound
-from urllib.parse import urlsplit, urlunsplit
-
-from apps.dot_ext.models import Approval, AuthFlowUuid
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
-
-from .authorization import OAuth2Config
-from .loggers import log_authenticate_start, log_authenticate_success
-from .models import AnonUserState, get_and_update_user
-from .signals import response_hook
+from django.http import JsonResponse
+from django.template.response import TemplateResponse
+from urllib.parse import (
+    urlsplit,
+    urlunsplit,
+)
+from .models import (
+    AnonUserState,
+    get_and_update_user,
+)
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import NotFound
 from django.views.decorators.cache import never_cache
 from .authorization import OAuth2Config
 from .signals import response_hook_wrapper
-from apps.dot_ext.models import Approval
+from apps.dot_ext.models import Approval, AuthFlowUuid
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from apps.logging.serializers import SLSUserInfoResponse
+from .loggers import log_authenticate_start, log_authenticate_success
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 

@@ -17,6 +17,9 @@ from apps.fhir.bluebutton.signals import (
     post_fetch
 )
 from apps.mymedicare_cb.signals import post_sls
+from apps.dot_ext.signals import beneficiary_authorized_application
+from apps.dot_ext.admin import MyAccessToken
+from apps.authorization.models import DataAccessGrant
 from .serializers import (
     Token,
     DataAccessGrantSerializer,
@@ -94,6 +97,8 @@ def get_event(event):
     return event_str
 
 
+app_authorized.connect(handle_token_created)
+beneficiary_authorized_application.connect(handle_app_authorized)
 pre_fetch.connect(fetching_data)
 post_fetch.connect(fetched_data)
 post_sls.connect(sls_hook)
