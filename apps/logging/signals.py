@@ -17,13 +17,11 @@ from apps.fhir.bluebutton.signals import (
     post_fetch
 )
 from apps.mymedicare_cb.signals import post_sls
-
 from .serializers import (
     Token,
     DataAccessGrantSerializer,
     FHIRRequest,
     FHIRResponse,
-    SLSResponse,
 )
 
 token_logger = logging.getLogger('audit.authorization.token')
@@ -33,15 +31,12 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 @receiver(app_authorized)
 def handle_token_created(sender, request, token, **kwargs):
-    # Get auth flow uuid from session for logging
-    auth_uuid = request.session.get('auth_uuid', None)
-
-    token_logger.info(get_event(Token(token, action="authorized", auth_uuid=auth_uuid)))
+    token_logger.info(get_event(Token(token, action="authorized")))
 
 
 @receiver(beneficiary_authorized_application)
 def handle_app_authorized(sender, request, user, application, **kwargs):
-    token_logger.info(json.dumps({
+    result = {
         "type": "Authorization",
         "auth_uuid": request.session.get('auth_uuid', None),
         "user": {
@@ -59,10 +54,10 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
             "id": application.id,
             "name": application.name,
         },
-    }))
+    }
+    token_logger.info(get_event(json.dumps(result)))
 
 
-# BB2-218 also capture delete MyAccessToken
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
@@ -82,8 +77,8 @@ def fetched_data(sender, request=None, response=None, **kwargs):
     fhir_logger.info(get_event(FHIRResponse(response)))
 
 
-def sls_hook(sender, response=None, **kwargs):
-    sls_logger.info(get_event(SLSResponse(response)))
+def sls_hook(sender, response=None, caller=None, **kwargs):
+    sls_logger.info(get_event(sender(response)))
 
 
 def get_event(event):
