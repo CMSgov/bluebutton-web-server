@@ -24,7 +24,7 @@ pyjwt
 newrelic
 psycopg2
 sqlparse
-Pillow==6.2.2
+Pillow==7.1.0
 boto3
 djangorestframework-yaml
 voluptuous
