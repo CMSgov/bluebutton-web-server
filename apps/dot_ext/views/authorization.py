@@ -85,21 +85,11 @@ class AuthorizationView(DotAuthorizationView):
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
 
-        # Get auth uuid from request session
-        auth_uuid = self.request.session.get('auth_uuid', None)
-
-        # Create AuthFlowUuid instance to pass auth_uuid for token related logging
-        try:
-            # Remove if already existing
-            auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
-            auth_flow_uuid.remove()
-        except AuthFlowUuid.DoesNotExist:
-            pass
-
         try:
             if code is not None:
                 auth_flow_uuid = AuthFlowUuid.objects.create(code=code)
-                auth_flow_uuid.auth_uuid = auth_uuid
+                # Set auth uuid from request session
+                auth_flow_uuid.auth_uuid = self.request.session.get('auth_uuid', None)
                 auth_flow_uuid.save()
         except IntegrityError:
             pass
