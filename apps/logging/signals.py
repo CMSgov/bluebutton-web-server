@@ -1,4 +1,7 @@
+import json
 import logging
+import sys
+import traceback
 from django.db.models.signals import (
     post_delete,
 )
@@ -33,13 +36,12 @@ def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow uuid from session for logging
     auth_uuid = request.session.get('auth_uuid', None)
 
-    token_logger.info(Token(token, action="authorized", auth_uuid=auth_uuid))
+    token_logger.info(get_event(Token(token, action="authorized", auth_uuid=auth_uuid)))
 
 
 @receiver(beneficiary_authorized_application)
 def handle_app_authorized(sender, request, user, application, **kwargs):
-    # TODO: use json.dumps when rebasing with BB2-132
-    token_logger.info({
+    token_logger.info(json.dumps({
         "type": "Authorization",
         "auth_uuid": request.session.get('auth_uuid', None),
         "user": {
@@ -57,14 +59,14 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
             "id": application.id,
             "name": application.name,
         },
-    })
+    }))
 
 
 # BB2-218 also capture delete MyAccessToken
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
-    token_logger.info(Token(instance, action="revoked", auth_uuid=None))
+    token_logger.info(get_event(Token(instance, action="revoked", auth_uuid=None)))
 
 
 @receiver(post_delete, sender=DataAccessGrant)
@@ -94,7 +96,7 @@ def get_event(event):
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         event_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
-    return event_str
+    return json.dumps(event_str)
 
 
 pre_fetch.connect(fetching_data)
