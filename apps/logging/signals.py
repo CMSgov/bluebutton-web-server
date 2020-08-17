@@ -96,7 +96,7 @@ def get_event(event):
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         event_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
-    return json.dumps(event_str)
+    return event_str
 
 
 pre_fetch.connect(fetching_data)
