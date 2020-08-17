@@ -13,8 +13,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AuthFlowUuid',
             fields=[
-                ('code', models.CharField(max_length=255, primary_key=True, serialize=False, unique=True)),
-                ('auth_uuid', models.UUIDField(editable=False, null=True)),
+                ('auth_uuid', models.UUIDField(primary_key=True, unique=True)),
+                ('state', models.CharField(max_length=64, null=True, unique=True, db_index=True)),
+                ('code', models.CharField(max_length=255, null=True, unique=True, db_index=True)),
             ],
         ),
     ]

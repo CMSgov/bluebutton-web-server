@@ -102,8 +102,8 @@ admin.site.register(MyAccessToken, MyAccessTokenAdmin)
 
 
 class MyAuthFlowUuidAdmin(admin.ModelAdmin):
-    list_display = ('code', 'auth_uuid')
-    search_fields = ('code', 'auth_uuid')
+    list_display = ('auth_uuid', 'state', 'code')
+    search_fields = ('auth_uuid', 'state', 'code')
 
 
 admin.site.register(MyAuthFlowUuid, MyAuthFlowUuidAdmin)
