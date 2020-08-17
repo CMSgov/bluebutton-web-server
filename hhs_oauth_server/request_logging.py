@@ -47,7 +47,6 @@ class RequestResponseLog(object):
         log_msg['start_time'] = self.request._logging_start_dt.timestamp()
         log_msg['end_time'] = datetime.datetime.utcnow().timestamp()
         log_msg['request_uuid'] = str(self.request._logging_uuid)
-        log_msg['auth_uuid'] = self.request.session.get('auth_uuid', None)
         log_msg['path'] = self.request.path
         log_msg['response_code'] = getattr(self.response, 'status_code', 0)
         log_msg['size'] = ""
@@ -57,6 +56,9 @@ class RequestResponseLog(object):
         log_msg['dev_id'] = ""
         log_msg['dev_name'] = ""
         log_msg['access_token_hash'] = ""
+
+        if self.request.session.get('auth_uuid', None):
+            log_msg['auth_uuid'] = self.request.session.get('auth_uuid', None)
 
         if log_msg['response_code'] in (300, 301, 302, 307):
             log_msg['location'] = self.response.get('Location', '?')

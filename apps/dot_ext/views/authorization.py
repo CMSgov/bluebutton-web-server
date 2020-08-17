@@ -28,7 +28,7 @@ class AuthorizationView(DotAuthorizationView):
         flow tracing in logs.
         """
         if not kwargs.get('is_subclass_approvalview', False):
-            # Create authorization flow trace UUID, if subclass is not ApprovalView
+            # Create authorization flow trace UUID in session, if subclass is not ApprovalView
             request.session['auth_uuid'] = str(uuid.uuid4())
 
         return super().dispatch(request, *args, **kwargs)
@@ -85,14 +85,21 @@ class AuthorizationView(DotAuthorizationView):
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
 
-        try:
-            if code is not None:
-                auth_flow_uuid = AuthFlowUuid.objects.create(code=code)
-                # Set auth uuid from request session
-                auth_flow_uuid.auth_uuid = self.request.session.get('auth_uuid', None)
+        if code:
+            try:
+                # Get and update previously created AuthFlowUuid instance with code.
+                auth_uuid = self.request.session.get('auth_uuid', None)
+                auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
+                # Set code.
+                auth_flow_uuid.code = code
                 auth_flow_uuid.save()
-        except IntegrityError:
-            pass
+            except AuthFlowUuid.DoesNotExist:
+                # Create AuthFlowUuid instance, if it doesn't exist.
+                if auth_uuid:
+                    try:
+                        auth_flow_uuid = AuthFlowUuid.objects.create(auth_uuid=auth_uuid, code=code, state=None)
+                    except IntegrityError:
+                        pass
 
         return self.redirect(self.success_url, application)
 
