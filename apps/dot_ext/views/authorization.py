@@ -97,7 +97,7 @@ class AuthorizationView(DotAuthorizationView):
                 # Create AuthFlowUuid instance, if it doesn't exist.
                 if auth_uuid:
                     try:
-                        auth_flow_uuid = AuthFlowUuid.objects.create(auth_uuid=auth_uuid, code=code, state=None)
+                        AuthFlowUuid.objects.create(auth_uuid=auth_uuid, code=code, state=None)
                     except IntegrityError:
                         pass
 
