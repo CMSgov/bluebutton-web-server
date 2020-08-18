@@ -4,9 +4,6 @@ import requests
 import urllib.request as urllib_request
 import uuid
 
-from apps.dot_ext.models import Approval
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
@@ -22,12 +19,8 @@ from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 
 from .authorization import OAuth2Config
-from .loggers import (log_authenticate_start, log_authenticate_success)
-
-from .models import (
-    AnonUserState,
-    get_and_update_user,
-)
+from .loggers import log_authenticate_start, log_authenticate_success
+from .models import AnonUserState, get_and_update_user
 from .signals import response_hook
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 
@@ -148,7 +141,7 @@ def authenticate(request):
                                hicn_hash=sls_hicn_hash,
                                first_name=sls_first_name,
                                last_name=sls_last_name,
-                               email=sls_email, request)
+                               email=sls_email, request=request)
 
     # Log successful authentication with beneficiary when we return back here.
     log_authenticate_success(authenticate_logger, sls_subject, user)
