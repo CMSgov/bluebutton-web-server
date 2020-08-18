@@ -1,6 +1,7 @@
 import requests
 import logging
 from rest_framework import exceptions
+from apps.fhir.bluebutton.utils import generate_info_headers
 from ..bluebutton.exceptions import UpstreamServerException
 from ..bluebutton.utils import (FhirServerAuth,
                                 get_resourcerouter)
@@ -8,15 +9,23 @@ from ..bluebutton.utils import (FhirServerAuth,
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-def match_hicn_hash(hicn_hash):
+def match_hicn_hash(hicn_hash, request=None):
     auth_state = FhirServerAuth(None)
     certs = (auth_state['cert_file'], auth_state['key_file'])
+
+    # Add headers for FHIR backend logging, including auth_uuid
+    if request:
+        headers = generate_info_headers(request)
+        headers['BlueButton-AuthUuid'] = request.session.get('auth_uuid', '')
+    else:
+        headers = None
+
     # URL for patient ID.
     url = get_resourcerouter().fhir_url + \
         "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
         hicn_hash + \
         "&_format=json"
-    response = requests.get(url, cert=certs, verify=False)
+    response = requests.get(url, cert=certs, headers=headers, verify=False)
     response.raise_for_status()
     backend_data = response.json()
 

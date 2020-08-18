@@ -1,11 +1,14 @@
 import logging
+import uuid
 import waffle
+from django.db.utils import IntegrityError
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
+from urllib.parse import urlparse, parse_qs
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
-from ..models import Approval
+from ..models import Approval, AuthFlowUuid
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -18,6 +21,18 @@ class AuthorizationView(DotAuthorizationView):
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Override the base authorization view from dot to
+        initially create a auth_uuid for authorization
+        flow tracing in logs.
+        """
+        if not kwargs.get('is_subclass_approvalview', False):
+            # Create authorization flow trace UUID in session, if subclass is not ApprovalView
+            request.session['auth_uuid'] = str(uuid.uuid4())
+
+        return super().dispatch(request, *args, **kwargs)
+
     def get_template_names(self):
         if waffle.switch_is_active('require-scopes'):
             return ["design_system/authorize_v2.html"]
@@ -28,6 +43,7 @@ class AuthorizationView(DotAuthorizationView):
         initial_data = super().get_initial()
         initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
         initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
+        initial_data["auth_uuid"] = self.request.session.get('auth_uuid', None)
         return initial_data
 
     def get(self, request, *args, **kwargs):
@@ -64,6 +80,27 @@ class AuthorizationView(DotAuthorizationView):
 
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))
+
+        # Extract code from url
+        url_query = parse_qs(urlparse(self.success_url).query)
+        code = url_query.get('code', [None])[0]
+
+        if code:
+            try:
+                # Get and update previously created AuthFlowUuid instance with code.
+                auth_uuid = self.request.session.get('auth_uuid', None)
+                auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
+                # Set code.
+                auth_flow_uuid.code = code
+                auth_flow_uuid.save()
+            except AuthFlowUuid.DoesNotExist:
+                # Create AuthFlowUuid instance, if it doesn't exist.
+                if auth_uuid:
+                    try:
+                        AuthFlowUuid.objects.create(auth_uuid=auth_uuid, code=code, state=None)
+                    except IntegrityError:
+                        pass
+
         return self.redirect(self.success_url, application)
 
 
@@ -89,7 +126,10 @@ class ApprovalView(AuthorizationView):
         except Approval.DoesNotExist:
             pass
 
-        result = super(ApprovalView, self).dispatch(request, *args, **kwargs)
+        # Set flag to let super method know who's calling, so auth_uuid doesn't get reset.
+        kwargs['is_subclass_approvalview'] = True
+
+        result = super().dispatch(request, *args, **kwargs)
 
         application = self.oauth2_data.get('application', None)
         if application is not None:

@@ -1,30 +1,30 @@
-from django.conf import settings
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+import logging
 import requests
-from django.http import JsonResponse
-from django.template.response import TemplateResponse
+import random
 import urllib.request as urllib_request
+import uuid
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
+from django.http import JsonResponse, HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from rest_framework.exceptions import NotFound
 from urllib.parse import (
     urlsplit,
     urlunsplit,
 )
-import random
+from apps.dot_ext.models import Approval, AuthFlowUuid
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+from .authorization import OAuth2Config
 from .models import (
     AnonUserState,
     get_and_update_user,
 )
-from .validators import is_mbi_format_valid, is_mbi_format_synthetic
-import logging
-from django.core.exceptions import ValidationError
-from rest_framework.exceptions import NotFound
-from django.views.decorators.cache import never_cache
-from .authorization import OAuth2Config
 from .signals import response_hook
-from apps.dot_ext.models import Approval
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
-
+from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 authenticate_logger = logging.getLogger('audit.authenticate.sls')
@@ -32,6 +32,19 @@ authenticate_logger = logging.getLogger('audit.authenticate.sls')
 
 # For SLS auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
+    # Get auth_uuid from AuthFlowUuid instance via state, if available.
+    state = request.GET.get('state', None)
+    if state:
+        try:
+            auth_flow_uuid = AuthFlowUuid.objects.get(state=state)
+            request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
+        except AuthFlowUuid.DoesNotExist:
+            pass
+
+    # Create authorization flow trace UUID, if not existing from dispatch()
+    if request.session.get('auth_uuid', None) is None:
+        request.session['auth_uuid'] = str(uuid.uuid4())
+
     code = request.GET.get('code')
     if not code:
         raise ValidationError('The code parameter is required')
@@ -75,8 +88,10 @@ def authenticate(request):
     if sls_mbi == "":
         sls_mbi = None
 
+    # TODO: when rebasing with BB2-132 change '' for auth_uuid to None
     authenticate_logger.info({
         "type": "Authentication:start",
+        "auth_uuid": request.session.get('auth_uuid', ''),
         "sub": user_info["sub"],
         "sls_mbi_format_valid": sls_mbi_format_valid,
         "sls_mbi_format_msg": sls_mbi_format_msg,
@@ -85,10 +100,12 @@ def authenticate(request):
         "sls_mbi_hash": hash_mbi(sls_mbi),
     })
 
-    user = get_and_update_user(user_info)
+    user = get_and_update_user(user_info, request)
 
+    # TODO: when rebasing with BB2-132 change '' for auth_uuid to None
     authenticate_logger.info({
         "type": "Authentication:success",
+        "auth_uuid": request.session.get('auth_uuid', ''),
         "sub": user_info["sub"],
         "user": {
             "id": user.id,
@@ -168,5 +185,13 @@ def mymedicare_login(request):
     next_uri = request.GET.get('next', "")
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
+
+    # Create AuthFlowUuid instance to pass along auth_uuid using state.
+    auth_uuid = request.session.get('auth_uuid', None)
+    if auth_uuid:
+        try:
+            AuthFlowUuid.objects.create(state=state, auth_uuid=auth_uuid, code=None)
+        except IntegrityError:
+            pass
 
     return HttpResponseRedirect(mymedicare_login_url)

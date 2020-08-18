@@ -38,10 +38,12 @@ class DataAccessGrantSerializer:
 class Token:
     tkn = None
     action = None
+    auth_uuid = None
 
-    def __init__(self, obj, action=None):
+    def __init__(self, obj, action=None, auth_uuid=None):
         self.tkn = obj
         self.action = action
+        self.auth_uuid = auth_uuid
 
     def __str__(self):
         # seems like this should be a serializer
@@ -50,6 +52,7 @@ class Token:
         user = getattr(self.tkn, 'user', None)
         result = {
             "type": "AccessToken",
+            "auth_uuid": self.auth_uuid,
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(

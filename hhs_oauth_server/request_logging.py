@@ -20,6 +20,7 @@ class RequestResponseLog(object):
         - start_time = Unix Epoch format time of the request processed.
         - end_time = Unix Epoch format time of the response processed.
         - request_uuid = The UUID identifying the request.
+        - auth_uuid = The UUID identifying the auth flow session.
         - path = The request.path.
         - response_code = The response status code.
         - size = Size in bytes of the response.content
@@ -55,6 +56,9 @@ class RequestResponseLog(object):
         log_msg['dev_id'] = ""
         log_msg['dev_name'] = ""
         log_msg['access_token_hash'] = ""
+
+        if self.request.session.get('auth_uuid', None):
+            log_msg['auth_uuid'] = self.request.session.get('auth_uuid', None)
 
         if log_msg['response_code'] in (300, 301, 302, 307):
             log_msg['location'] = self.response.get('Location', '?')
