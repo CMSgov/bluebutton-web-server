@@ -1,8 +1,12 @@
 import logging
-import requests
 import random
+import requests
 import urllib.request as urllib_request
 import uuid
+
+from apps.dot_ext.models import Approval
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
@@ -11,14 +15,15 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework.exceptions import NotFound
-from urllib.parse import (
-    urlsplit,
-    urlunsplit,
-)
+from urllib.parse import urlsplit, urlunsplit
+
 from apps.dot_ext.models import Approval, AuthFlowUuid
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+
 from .authorization import OAuth2Config
+from .loggers import (log_authenticate_start, log_authenticate_success)
+
 from .models import (
     AnonUserState,
     get_and_update_user,
@@ -47,6 +52,9 @@ def authenticate(request):
 
     code = request.GET.get('code')
     if not code:
+        # Log for info
+        log_authenticate_start(authenticate_logger, "FAIL",
+                               "The code parameter is required")
         raise ValidationError('The code parameter is required')
 
     sls_client = OAuth2Config()
@@ -55,6 +63,9 @@ def authenticate(request):
         sls_client.exchange(code)
     except requests.exceptions.HTTPError as e:
         logger.error("Token request response error {reason}".format(reason=e))
+        # Log also for info
+        log_authenticate_start(authenticate_logger, "FAIL",
+                               "Token request response error {reason}".format(reason=e))
         raise UpstreamServerException('An error occurred connecting to account.mymedicare.gov')
 
     userinfo_endpoint = getattr(
@@ -73,52 +84,76 @@ def authenticate(request):
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         logger.error("User info request response error {reason}".format(reason=e))
+        # Log also for info
+        log_authenticate_start(authenticate_logger, "FAIL",
+                               "User info request response error {reason}".format(reason=e))
         raise UpstreamServerException(
             'An error occurred connecting to account.mymedicare.gov')
 
     # Get the userinfo response object
     user_info = response.json()
 
-    # Add MBI validation info for logging.
-    sls_mbi = user_info.get("mbi", "").upper()
-    sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
-    sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
+    # Set identity values from userinfo response.
+    sls_subject = user_info.get("sub", None).strip()
+    sls_hicn = user_info.get("hicn", "").strip()
+    #     Convert SLS's mbi to UPPER case.
+    sls_mbi = user_info.get("mbi", "").strip().upper()
+    sls_first_name = user_info.get('given_name', "")
+    sls_last_name = user_info.get('family_name', "")
+    sls_email = user_info.get('email', "")
 
     # If MBI returned from SLS is blank, set to None for hash logging
     if sls_mbi == "":
         sls_mbi = None
 
-    # TODO: when rebasing with BB2-132 change '' for auth_uuid to None
-    authenticate_logger.info({
-        "type": "Authentication:start",
-        "auth_uuid": request.session.get('auth_uuid', ''),
-        "sub": user_info["sub"],
-        "sls_mbi_format_valid": sls_mbi_format_valid,
-        "sls_mbi_format_msg": sls_mbi_format_msg,
-        "sls_mbi_format_synthetic": sls_mbi_format_synthetic,
-        "sls_hicn_hash": hash_hicn(user_info['hicn']),
-        "sls_mbi_hash": hash_mbi(sls_mbi),
-    })
+    # Validate: sls_subject cannot be empty. TODO: Validate format too.
+    if sls_subject == "":
+        mesg = "User info sub cannot be empty"
+        log_authenticate_start(authenticate_logger, "FAIL", mesg)
+        raise UpstreamServerException(
+            "An error occurred validating identity information from provider." + mesg)
 
-    user = get_and_update_user(user_info, request)
+    # Validate: sls_hicn cannot be empty.
+    if sls_hicn == "":
+        mesg = "User info HICN cannot be empty."
+        log_authenticate_start(authenticate_logger, "FAIL", mesg, sls_subject)
+        raise UpstreamServerException(
+            "An error occurred validating identity information from provider." + mesg)
 
-    # TODO: when rebasing with BB2-132 change '' for auth_uuid to None
-    authenticate_logger.info({
-        "type": "Authentication:success",
-        "auth_uuid": request.session.get('auth_uuid', ''),
-        "sub": user_info["sub"],
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "crosswalk": {
-                "id": user.crosswalk.id,
-                "user_hicn_hash": user.crosswalk.user_hicn_hash,
-                "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                "fhir_id": user.crosswalk.fhir_id,
-                "user_id_type": user.crosswalk.user_id_type,
-            },
-        },
-    })
+    # Set Hash values once here for performance and logging.
+    sls_hicn_hash = hash_hicn(sls_hicn)
+    sls_mbi_hash = hash_mbi(sls_mbi)
+
+    # Validate: sls_mbi format.
+    #    NOTE: mbi return from SLS can be empty/None (so can use hicn for matching later)
+    sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
+    sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
+    if not sls_mbi_format_valid and sls_mbi is not None:
+        mesg = "User info MBI format is not valid. "
+        log_authenticate_start(authenticate_logger, "FAIL", mesg,
+                               sls_subject, sls_mbi_format_valid,
+                               sls_mbi_format_msg, sls_mbi_format_synthetic,
+                               sls_hicn_hash, sls_mbi_hash)
+        raise UpstreamServerException(
+            "An error occurred validating identity information from provider." + mesg + sls_mbi_format_msg)
+
+    # Log successful identity information gathered.
+    log_authenticate_start(authenticate_logger, "OK", None, sls_subject,
+                           sls_mbi_format_valid, sls_mbi_format_msg,
+                           sls_mbi_format_synthetic, sls_hicn_hash, sls_mbi_hash)
+
+    # Find or create the user associated with the identity information from SLS.
+    user = get_and_update_user(subject=sls_subject,
+                               mbi_hash=sls_mbi_hash,
+                               hicn_hash=sls_hicn_hash,
+                               first_name=sls_first_name,
+                               last_name=sls_last_name,
+                               email=sls_email, request)
+
+    # Log successful authentication with beneficiary when we return back here.
+    log_authenticate_success(authenticate_logger, sls_subject, user)
+
+    # Update request user.
     request.user = user
 
 

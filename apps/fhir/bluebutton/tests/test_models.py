@@ -1,3 +1,4 @@
+import uuid
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from apps.test import BaseApiTest
@@ -6,6 +7,30 @@ from ..models import Crosswalk, check_crosswalks
 
 
 class TestModels(BaseApiTest):
+
+    def test_crosswalk_setter_properties(self):
+        '''
+          Test the Crosswalk setters
+          and that they can not be modified once set.
+        '''
+        user = self._create_user('john', 'password',
+                                 first_name='John',
+                                 last_name='Smith',
+                                 email='john@smith.net',
+                                 fhir_id="-20000000000001",
+                                 user_hicn_hash=self.test_hicn_hash,
+                                 user_mbi_hash=self.test_mbi_hash)
+
+        cw = Crosswalk.objects.get(user=user)
+
+        with self.assertRaisesRegexp(ValidationError, "this value cannot be modified."):
+            cw.fhir_id = "-20000000000002"
+
+        with self.assertRaisesRegexp(ValidationError, "this value cannot be modified."):
+            cw.user_hicn_hash = uuid.uuid4()
+
+        with self.assertRaisesRegexp(ValidationError, "this value cannot be modified."):
+            cw.user_mbi_hash = uuid.uuid4()
 
     def test_require_fhir_id(self):
         with self.assertRaisesRegexp(IntegrityError, "[NOT NULL constraint|null value in column].*fhir_id.*"):
@@ -26,14 +51,20 @@ class TestModels(BaseApiTest):
                               user_hicn_hash=None)
 
     def test_not_require_user_mbi_hash(self):
-        # user_mbi_hash can be null for backward compatability,
-        #   so passes thru on save with duplicate user error.
-        self._create_user('john', 'password',
-                          first_name='John',
-                          last_name='Smith',
-                          email='john@smith.net',
-                          fhir_id="-20000000000001",
-                          user_hicn_hash=self.test_hicn_hash)
+        '''
+            user_mbi_hash can be null for backward compatability
+            and also an empty string return value from SLS.
+        '''
+        user = self._create_user('john', 'password',
+                                 first_name='John',
+                                 last_name='Smith',
+                                 email='john@smith.net',
+                                 fhir_id="-20000000000001",
+                                 user_hicn_hash=self.test_hicn_hash,
+                                 user_mbi_hash=None)
+
+        cw = Crosswalk.objects.get(user=user)
+        self.assertEqual(cw.user_mbi_hash, None)
 
     def test_immutable_fhir_id(self):
         user = self._create_user('john', 'password',
@@ -67,9 +98,31 @@ class TestModels(BaseApiTest):
         with self.assertRaises(ValidationError):
             cw.user_mbi_hash = "239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130"
 
+    def test_mutable_user_mbi_hash_when_null(self):
+        '''
+            Test replacing Null mbi_hash value in crosswalk.
+            Unlike hich_hash, this case is OK if past value was Null/None.
+        '''
+        user = self._create_user('john', 'password',
+                                 first_name='John',
+                                 last_name='Smith',
+                                 email='john@smith.net',
+                                 user_mbi_hash=None)
+
+        cw = Crosswalk.objects.get(user=user)
+        self.assertEqual(cw.user_mbi_hash, None)
+
+        cw.user_mbi_hash = "239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130"
+        cw.save()
+
+        cw = Crosswalk.objects.get(user=user)
+        self.assertEqual(cw.user_mbi_hash, "239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130")
+
     def test_crosswalk_real_synth_query_managers(self):
-        # Test the RealCrosswalkManager and SynthCrosswalkManager queryset managers using
-        # the check_crosswalks method.
+        '''
+            Test the RealCrosswalkManager and SynthCrosswalkManager queryset managers using
+            the check_crosswalks method.
+        '''
 
         # Create 5x Real (positive FHIR_ID) users
         for cnt in range(5):

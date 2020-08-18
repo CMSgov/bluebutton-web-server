@@ -1,17 +1,48 @@
 import requests
-import logging
+from django.conf import settings
 from rest_framework import exceptions
 from apps.fhir.bluebutton.utils import generate_info_headers
 from ..bluebutton.exceptions import UpstreamServerException
 from ..bluebutton.utils import (FhirServerAuth,
                                 get_resourcerouter)
+from .loggers import log_match_fhir_id
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+
+def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
+    """
+        Search the backend FHIR server's patient resource
+        using the mbi_hash identifier.
+    """
+    search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_MBI_HASH \
+        + "%7C" + mbi_hash
+
+    return search_fhir_id_by_identifier(search_identifier, request)
 
 
-def match_hicn_hash(hicn_hash, request=None):
-    auth_state = FhirServerAuth(None)
-    certs = (auth_state['cert_file'], auth_state['key_file'])
+def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None):
+    """
+        Search the backend FHIR server's patient resource
+        using the hicn_hash identifier.
+    """
+    search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_HICN_HASH \
+        + "%7C" + hicn_hash
+
+    return search_fhir_id_by_identifier(search_identifier, request)
+
+
+def search_fhir_id_by_identifier(search_identifier, request=None):
+    """
+        Search the backend FHIR server's patient resource
+        using the specified identifier.
+
+        Return:  fhir_id = matched ID (or None for no match).
+
+        Raises exception:
+            UpstreamServerException: For backend response issues.
+    """
+    # Get certs from FHIR server settings
+    auth_settings = FhirServerAuth(None)
+    certs = (auth_settings['cert_file'], auth_settings['key_file'])
 
     # Add headers for FHIR backend logging, including auth_uuid
     if request:
@@ -20,28 +51,99 @@ def match_hicn_hash(hicn_hash, request=None):
     else:
         headers = None
 
-    # URL for patient ID.
-    url = get_resourcerouter().fhir_url + \
-        "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
-        hicn_hash + \
-        "&_format=json"
+    # Build URL with patient ID search by identifier.
+    url = get_resourcerouter().fhir_url \
+        + "Patient/?identifier=" + search_identifier \
+        + "&_format=" + settings.FHIR_PARAM_FORMAT
+
+    # Get FHIR service backend response.
+    #   TODO: Should work with verify=True
     response = requests.get(url, cert=certs, headers=headers, verify=False)
     response.raise_for_status()
     backend_data = response.json()
 
-    if backend_data.get('total', 0) > 1:
-        # Don't return a 404 because retrying later will not fix this.
-        raise UpstreamServerException("Duplicate beneficiaries found")
-
-    if 'entry' in backend_data and len(backend_data['entry']) > 1:
-        raise UpstreamServerException("Duplicate beneficiaries found")
-
-    if 'entry' in backend_data and backend_data['total'] == 1:
+    # Parse and validate backend_data response.
+    if (
+        'total' in backend_data
+            and backend_data.get('total', 0) == 1
+            and 'entry' in backend_data
+            and isinstance(backend_data.get('entry', False), list)
+            and len(backend_data.get('entry', '')) == 1
+            and isinstance(backend_data['entry'][0].get('resource', False), dict)
+            and isinstance(backend_data['entry'][0]['resource'].get('resourceType', False), str)
+            and backend_data['entry'][0]['resource']['resourceType'] == "Patient"
+            and isinstance(backend_data['entry'][0]['resource'].get('id', False), str)
+            and len(backend_data['entry'][0]['resource']['id']) > 0
+    ):
+        # Found a single matching ID.
         fhir_id = backend_data['entry'][0]['resource']['id']
-        return fhir_id, backend_data
+        return fhir_id
+    elif (
+        'total' in backend_data
+            and 'entry' in backend_data
+            and (backend_data.get('total', 0) > 1 or len(backend_data.get('entry', '')) > 1)
+    ):
+        # Has duplicate beneficiary IDs.
+        raise UpstreamServerException("Duplicate beneficiaries found in Patient resource bundle")
+    elif (
+        'total' in backend_data
+            and 'entry' not in backend_data
+            and backend_data.get('total', -1) == 0
+    ):
+        # Not found.
+        return None
+    else:
+        # Unexpected result! Something weird is happening?
+        raise UpstreamServerException("Unexpected result found in the Patient resource bundle")
 
-    logger.info({
-        "type": "FhirIDNotFound",
-        "hicn_hash": hicn_hash,
-    })
-    raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
+
+def match_fhir_id(mbi_hash, hicn_hash, request=None):
+    """
+      Matches a patient identifier via the backend FHIR server
+      using an MBI or HICN hash.
+
+      Summary:
+        - Perform primary lookup using mbi_hash.
+        - If there is an mbi_hash lookup issue, raise exception.
+        - Perform secondary lookup using HICN_HASH
+        - If there is a hicn_hash lookup issue, raise exception.
+        - A NotFound exception is raised, if no match was found.
+      Returns:
+        fhir_id = Matched patient identifier.
+        hash_lookup_type = The type used for the successful lookup (M or H).
+      Raises exceptions:
+        UpstreamServerException: If hicn_hash or mbi_hash search found duplicates.
+        NotFound: If both searches did not match a fhir_id.
+    """
+    # Perform primary lookup using MBI_HASH
+    if mbi_hash:
+        try:
+            fhir_id = search_fhir_id_by_identifier_mbi_hash(mbi_hash, request)
+        except UpstreamServerException as err:
+            log_match_fhir_id(None, mbi_hash, hicn_hash, False, "M", str(err))
+            # Don't return a 404 because retrying later will not fix this.
+            raise UpstreamServerException(str(err))
+
+        if fhir_id:
+            # Found beneficiary!
+            log_match_fhir_id(fhir_id, mbi_hash, hicn_hash, True, "M",
+                              "FOUND beneficiary via mbi_hash")
+            return fhir_id, "M"
+
+    # Perform secondary lookup using HICN_HASH
+    try:
+        fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request)
+    except UpstreamServerException as err:
+        log_match_fhir_id(None, mbi_hash, hicn_hash, False, "H", str(err))
+        # Don't return a 404 because retrying later will not fix this.
+        raise UpstreamServerException(str(err))
+
+    if fhir_id:
+        # Found beneficiary!
+        log_match_fhir_id(fhir_id, mbi_hash, hicn_hash, True, "H",
+                          "FOUND beneficiary via hicn_hash")
+        return fhir_id, "H"
+    else:
+        log_match_fhir_id(fhir_id, mbi_hash, hicn_hash, False, None,
+                          "FHIR ID NOT FOUND for both mbi_hash and hicn_hash")
+        raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")
