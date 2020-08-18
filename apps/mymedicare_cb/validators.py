@@ -33,7 +33,11 @@ def is_mbi_format_valid(mbi):
                            CHAR_TYPE_N,
                            CHAR_TYPE_N]
     msg = ""
-    # Check length
+    # Check if NoneType.
+    if mbi is None:
+        return False, "Empty"
+
+    # Check length.
     if len(mbi) != 11:
         msg = "Invalid length = {}".format(len(mbi))
         return False, msg
@@ -55,4 +59,8 @@ def is_mbi_format_synthetic(mbi):
     This is the case where there is an "S" in the 2nd position
     denoting a synthetic MBI value.
     """
-    return len(mbi) == 11 and mbi[1] == "S"
+    # Check if NoneType.
+    if mbi is None:
+        return None
+    else:
+        return len(mbi) == 11 and mbi[1] == "S"
