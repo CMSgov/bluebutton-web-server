@@ -25,11 +25,13 @@ from .signals import response_hook
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-authenticate_logger = logging.getLogger('audit.authenticate.sls')
 
 
 # For SLS auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
+    # Standard error message returned to end user.
+    ERROR_MSG_MYMEDICARE = "An error occurred connecting to account.mymedicare.gov"
+
     # Get auth_uuid from AuthFlowUuid instance via state, if available.
     state = request.GET.get('state', None)
     if state:
@@ -43,12 +45,14 @@ def authenticate(request):
     if request.session.get('auth_uuid', None) is None:
         request.session['auth_uuid'] = str(uuid.uuid4())
 
+    auth_uuid = request.session.get('auth_uuid', None)
+
     code = request.GET.get('code')
     if not code:
         # Log for info
-        log_authenticate_start(authenticate_logger, "FAIL",
-                               "The code parameter is required")
-        raise ValidationError('The code parameter is required')
+        err_msg = "The code parameter is required"
+        log_authenticate_start(auth_uuid, "FAIL", err_msg)
+        raise ValidationError(err_msg)
 
     sls_client = OAuth2Config()
 
@@ -57,9 +61,9 @@ def authenticate(request):
     except requests.exceptions.HTTPError as e:
         logger.error("Token request response error {reason}".format(reason=e))
         # Log also for info
-        log_authenticate_start(authenticate_logger, "FAIL",
+        log_authenticate_start(auth_uuid, "FAIL",
                                "Token request response error {reason}".format(reason=e))
-        raise UpstreamServerException('An error occurred connecting to account.mymedicare.gov')
+        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
     userinfo_endpoint = getattr(
         settings,
@@ -78,10 +82,9 @@ def authenticate(request):
     except requests.exceptions.HTTPError as e:
         logger.error("User info request response error {reason}".format(reason=e))
         # Log also for info
-        log_authenticate_start(authenticate_logger, "FAIL",
+        log_authenticate_start(auth_uuid, "FAIL",
                                "User info request response error {reason}".format(reason=e))
-        raise UpstreamServerException(
-            'An error occurred connecting to account.mymedicare.gov')
+        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
     # Get the userinfo response object
     user_info = response.json()
@@ -101,17 +104,15 @@ def authenticate(request):
 
     # Validate: sls_subject cannot be empty. TODO: Validate format too.
     if sls_subject == "":
-        mesg = "User info sub cannot be empty"
-        log_authenticate_start(authenticate_logger, "FAIL", mesg)
-        raise UpstreamServerException(
-            "An error occurred validating identity information from provider." + mesg)
+        err_msg = "User info sub cannot be empty"
+        log_authenticate_start(auth_uuid, "FAIL", err_msg)
+        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
     # Validate: sls_hicn cannot be empty.
     if sls_hicn == "":
-        mesg = "User info HICN cannot be empty."
-        log_authenticate_start(authenticate_logger, "FAIL", mesg, sls_subject)
-        raise UpstreamServerException(
-            "An error occurred validating identity information from provider." + mesg)
+        err_msg = "User info HICN cannot be empty."
+        log_authenticate_start(auth_uuid, "FAIL", err_msg, sls_subject)
+        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
     # Set Hash values once here for performance and logging.
     sls_hicn_hash = hash_hicn(sls_hicn)
@@ -122,16 +123,15 @@ def authenticate(request):
     sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
     sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
     if not sls_mbi_format_valid and sls_mbi is not None:
-        mesg = "User info MBI format is not valid. "
-        log_authenticate_start(authenticate_logger, "FAIL", mesg,
+        err_msg = "User info MBI format is not valid. "
+        log_authenticate_start(auth_uuid, "FAIL", err_msg,
                                sls_subject, sls_mbi_format_valid,
                                sls_mbi_format_msg, sls_mbi_format_synthetic,
                                sls_hicn_hash, sls_mbi_hash)
-        raise UpstreamServerException(
-            "An error occurred validating identity information from provider." + mesg + sls_mbi_format_msg)
+        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
     # Log successful identity information gathered.
-    log_authenticate_start(authenticate_logger, "OK", None, sls_subject,
+    log_authenticate_start(auth_uuid, "OK", None, sls_subject,
                            sls_mbi_format_valid, sls_mbi_format_msg,
                            sls_mbi_format_synthetic, sls_hicn_hash, sls_mbi_hash)
 
@@ -144,7 +144,7 @@ def authenticate(request):
                                email=sls_email, request=request)
 
     # Log successful authentication with beneficiary when we return back here.
-    log_authenticate_success(authenticate_logger, sls_subject, user)
+    log_authenticate_success(auth_uuid, sls_subject, user)
 
     # Update request user.
     request.user = user
