@@ -20,12 +20,15 @@ def match_hicn_hash(hicn_hash, request=None):
     else:
         headers = None
 
+    resource_router = get_resourcerouter()
     # URL for patient ID.
-    url = get_resourcerouter().fhir_url + \
+    url = resource_router.fhir_url + \
         "Patient/?identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C" + \
         hicn_hash + \
         "&_format=json"
-    response = requests.get(url, cert=certs, headers=headers, verify=False)
+    
+    response = requests.get(url, cert=certs, headers=headers, 
+                verify=resource_router.ca_bundle if resource_router.verify_server else False)
     response.raise_for_status()
     backend_data = response.json()
 
