@@ -22,6 +22,7 @@ DEFAULTS = {
     "SERVER_VERIFY": False,
     "WAIT_TIME": 30,
     "VERIFY_SERVER": False,
+    "CA_BUNDLE": None,
 }
 
 # List of settings that cannot be empty

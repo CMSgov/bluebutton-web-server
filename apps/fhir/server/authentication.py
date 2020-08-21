@@ -58,14 +58,14 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     else:
         headers = None
 
+    resource_router = get_resourcerouter()
     # Build URL with patient ID search by identifier.
-    url = get_resourcerouter().fhir_url \
+    url = resource_router.fhir_url \
         + "Patient/?identifier=" + search_identifier \
         + "&_format=" + settings.FHIR_PARAM_FORMAT
-
-    # Get FHIR service backend response.
-    #   TODO: Should work with verify=True
-    response = requests.get(url, cert=certs, headers=headers, verify=False)
+    
+    response = requests.get(url, cert=certs, headers=headers, 
+                verify=resource_router.ca_bundle if resource_router.verify_server else False)
     response.raise_for_status()
     backend_data = response.json()
 
