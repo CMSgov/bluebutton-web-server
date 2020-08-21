@@ -1,31 +1,31 @@
-import random
-import requests
 import logging
-import datetime
+import requests
+import random
 import urllib.request as urllib_request
-
+import uuid
+import datetime
 from django.conf import settings
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.http import JsonResponse
+from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
+from django.http import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from rest_framework.exceptions import NotFound
 from urllib.parse import (
     urlsplit,
     urlunsplit,
 )
+from apps.dot_ext.models import Approval, AuthFlowUuid
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+from .authorization import OAuth2Config
 from .models import (
     AnonUserState,
     get_and_update_user,
 )
-from .validators import is_mbi_format_valid, is_mbi_format_synthetic
-from django.core.exceptions import ValidationError
-from rest_framework.exceptions import NotFound
-from django.views.decorators.cache import never_cache
-from .authorization import OAuth2Config
 from .signals import response_hook_wrapper
-from apps.dot_ext.models import Approval
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
-from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 from apps.logging.serializers import SLSUserInfoResponse
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
