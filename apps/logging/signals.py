@@ -23,7 +23,6 @@ from .serializers import (
     DataAccessGrantSerializer,
     FHIRRequest,
     FHIRResponse,
-    SLSResponse,
 )
 
 token_logger = logging.getLogger('audit.authorization.token')
