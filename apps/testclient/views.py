@@ -13,7 +13,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def callback(request):
-
     response = OrderedDict()
     if 'error' in request.GET:
         return render(request, "access-denied.html", {"error": request.GET.get("error")})
@@ -59,6 +58,14 @@ def callback(request):
         reverse('fhir_conformance_metadata')
 
     response['test_page'] = host + reverse('test_links')
+
+    # We are done using auth_uuid, clear it from the testclient session.
+    if request.session.get('auth_uuid', None):
+        try:
+            del request.session['auth_uuid']
+        except KeyError:
+            pass
+
     return success(request, response)
 
 
