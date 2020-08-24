@@ -36,12 +36,6 @@ def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow uuid from session for logging
     auth_uuid = request.session.get('auth_uuid', None)
 
-    # We are done using auth_uuid, clear it from the session.
-    try:
-        del request.session['auth_uuid']
-    except KeyError:
-        pass
-
     token_logger.info(get_event(Token(token, action="authorized", auth_uuid=auth_uuid)))
 
 

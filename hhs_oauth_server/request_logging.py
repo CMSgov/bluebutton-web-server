@@ -7,6 +7,7 @@ from apps.fhir.bluebutton.utils import (get_ip_from_request,
                                         get_user_from_request,
                                         get_access_token_from_request)
 from oauth2_provider.models import AccessToken
+from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
 
 
@@ -59,6 +60,12 @@ class RequestResponseLog(object):
 
         if self.request.session.get('auth_uuid', None):
             log_msg['auth_uuid'] = self.request.session.get('auth_uuid', None)
+            if self.request.path == reverse("oauth2_provider:token"):
+                # We are done using auth_uuid, clear it from the session.
+                try:
+                    del self.request.session['auth_uuid']
+                except KeyError:
+                    pass
 
         if log_msg['response_code'] in (300, 301, 302, 307):
             log_msg['location'] = self.response.get('Location', '?')
