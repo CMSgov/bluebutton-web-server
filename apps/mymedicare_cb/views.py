@@ -73,7 +73,10 @@ def authenticate(request):
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,
-                            hooks={'response': [response_hook_wrapper(sender=SLSUserInfoResponse)]})
+                            hooks={'response': [response_hook_wrapper(
+                                sender=SLSUserInfoResponse,
+                                auth_uuid=request.session.get('auth_uuid', None)
+                                )]})
 
     try:
         response.raise_for_status()

@@ -35,6 +35,12 @@ def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow uuid from session for logging
     auth_uuid = request.session.get('auth_uuid', None)
 
+    # We are done using auth_uuid, clear it from the session.
+    try:
+        del request.session['auth_uuid']
+    except KeyError:
+        pass
+    
     token_logger.info(get_event(Token(token, action="authorized", auth_uuid=auth_uuid)))
 
 
@@ -82,8 +88,8 @@ def fetched_data(sender, request=None, response=None, **kwargs):
     fhir_logger.info(get_event(FHIRResponse(response)))
 
 
-def sls_hook(sender, response=None, caller=None, **kwargs):
-    sls_logger.info(get_event(sender(response)))
+def sls_hook(sender, response=None, auth_uuid=None, **kwargs):
+    sls_logger.info(get_event(sender(response, auth_uuid)))
 
 
 def get_event(event):
