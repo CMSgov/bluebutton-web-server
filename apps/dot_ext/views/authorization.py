@@ -85,10 +85,18 @@ class AuthorizationView(DotAuthorizationView):
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
 
+        auth_uuid = self.request.session.get('auth_uuid', None)
+
+        # We are done using auth_uuid, clear it from the session.
+        if auth_uuid:
+            try:
+                del self.request.session['auth_uuid']
+            except KeyError:
+                pass
+
         if code:
             try:
                 # Get and update previously created AuthFlowUuid instance with code.
-                auth_uuid = self.request.session.get('auth_uuid', None)
                 auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
                 # Set code.
                 auth_flow_uuid.code = code
