@@ -33,6 +33,7 @@ class SLSToken(Enum):
     START_TIME = 'start_time'
     ELAPSED = 'elapsed'
     UUID = 'uuid'
+    AUTH_UUID = 'auth_uuid'
     USER = 'user'
     APPLICATION = 'application'
     PATH = 'path'
@@ -47,6 +48,7 @@ class SLSUserInfo(Enum):
     START_TIME = 'start_time'
     ELAPSED = 'elapsed'
     UUID = 'uuid'
+    AUTH_UUID = 'auth_uuid'
     USER = 'user'
     APPLICATION = 'application'
     PATH = 'path'
@@ -217,8 +219,10 @@ class FHIRRequest(Request):
 class Response:
     request_class = None
     resp = None
+    auth_uuid = None
 
-    def __init__(self, response):
+    def __init__(self, response, auth_uuid):
+        self.auth_uuid
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
         self.req = self.request_class(response.request).to_dict() if response.request else {}
@@ -258,7 +262,11 @@ class SLSResponse(Response):
         pass
 
     def extract_and_obfuscate(self, event):
-        result = {'type': self.get_type()}
+        result = {
+            'type': self.get_type(),
+            'auth_uuid': self.audit_uuid,
+        }
+
         event_schema = self.get_event_schema()
         obfuscation_mapper = self.get_obfuscation_mapper()
         if event is not None:

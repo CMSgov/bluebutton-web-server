@@ -48,7 +48,8 @@ class OAuth2Config(object):
                                  json=token_dict,
                                  headers=headers,
                                  verify=self.verify_ssl,
-                                 hooks={'response': [response_hook_wrapper(sender=SLSTokenResponse)]})
+                                 hooks={'response': [response_hook_wrapper(sender=SLSTokenResponse,
+                                 auth_uuid=request.session.get('auth_uuid', None))]})
 
         response.raise_for_status()
 
