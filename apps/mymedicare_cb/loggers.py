@@ -10,7 +10,7 @@ mymedicare_cb_logger = logging.getLogger('audit.authenticate.mymedicare_cb')
 
 
 # For use in models.get_and_update_user()
-def log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, mesg):
+def log_get_and_update_user(auth_uuid, status, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, mesg):
     '''
         Logging for info or issue
         used in get_and_update_user()
@@ -19,6 +19,7 @@ def log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_
     mymedicare_cb_logger.info(json.dumps({
         "type": "mymedicare_cb:get_and_update_user",
         "auth_uuid": auth_uuid,
+        "status": status,
         "fhir_id": fhir_id,
         "mbi_hash": mbi_hash,
         "hicn_hash": hicn_hash,
@@ -36,7 +37,7 @@ def log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_
 
 
 # For use in models.create_beneficiary_record()
-def log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, mesg):
+def log_create_beneficiary_record(auth_uuid, status, username, fhir_id, user_mbi_hash, user_hicn_hash, mesg):
     '''
         Logging for info or issue
         used in create_beneficiary_record()
@@ -45,6 +46,7 @@ def log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, u
     mymedicare_cb_logger.info(json.dumps({
         "type": "mymedicare_cb:create_beneficiary_record",
         "auth_uuid": auth_uuid,
+        "status": status,
         "username": username,
         "fhir_id": fhir_id,
         "user_mbi_hash": user_mbi_hash,

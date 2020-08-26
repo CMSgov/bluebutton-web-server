@@ -48,24 +48,24 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
         # TODO: Replace asserts with exception handling.
         if user.crosswalk.user_hicn_hash != hicn_hash:
             err_msg = "Found user's hicn did not match"
-            log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
+            log_get_and_update_user(auth_uuid, "FAIL", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
         assert user.crosswalk.user_hicn_hash == hicn_hash, "Found user's hicn did not match"
 
         if user.crosswalk.fhir_id != fhir_id:
             err_msg = "Found user's fhir_id did not match"
-            log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
+            log_get_and_update_user(auth_uuid, "FAIL", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
         assert user.crosswalk.fhir_id == fhir_id, "Found user's fhir_id did not match"
 
         if user.crosswalk.user_mbi_hash is not None:
             if user.crosswalk.user_mbi_hash != mbi_hash:
                 err_msg = "Found user's mbi did not match"
-                log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
+                log_get_and_update_user(auth_uuid, "FAIL", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
             assert user.crosswalk.user_mbi_hash == mbi_hash, "Found user's mbi did not match"
         else:
             # Previously stored value was None/Null and mbi_hash != None, update just the mbi hash.
             if mbi_hash is not None:
                 err_msg = "UPDATE mbi_hash since previous value was NULL"
-                log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
+                log_get_and_update_user(auth_uuid, "OK", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
                 user.crosswalk.user_mbi_hash = mbi_hash
                 user.crosswalk.user_id_type = hash_lookup_type
                 user.crosswalk.save()
@@ -73,12 +73,12 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
         # Update hash type used for lookup, if it has changed from last match.
         if user.crosswalk.user_id_type != hash_lookup_type:
             err_msg = "UPDATE user_id_type as it has changed from the previous lookup value"
-            log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
+            log_get_and_update_user(auth_uuid, "OK", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
             user.crosswalk.user_id_type = hash_lookup_type
             user.crosswalk.save()
 
         err_msg = "RETURN existing beneficiary record"
-        log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
+        log_get_and_update_user(auth_uuid, "OK", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
         return user
     except User.DoesNotExist:
         pass
@@ -94,7 +94,7 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
                                      auth_uuid=auth_uuid)
 
     err_msg = "CREATE beneficiary record"
-    log_get_and_update_user(auth_uuid, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
+    log_get_and_update_user(auth_uuid, "OK", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
     return user
 
 
@@ -112,61 +112,61 @@ def create_beneficiary_record(username=None,
     # Validate argument values. TODO: Replace asserts with exception handling.
     if username is None:
         err_msg = "username can not be None"
-        log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+        log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
     assert username is not None
 
     if username == "":
         err_msg = "username can not be an empty string"
-        log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+        log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
     assert username != ""
 
     if user_hicn_hash is None:
         err_msg = "user_hicn_hash can not be None"
-        log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+        log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
         assert user_hicn_hash is not None
     else:
         if len(user_hicn_hash) != 64:
             err_msg = "incorrect user HICN hash format"
-            log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+            log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
         assert len(user_hicn_hash) == 64, "incorrect user HICN hash format"
 
     # If mbi_hash is not NULL, perform length check.
     if user_mbi_hash is not None:
         if len(user_mbi_hash) != 64:
             err_msg = "incorrect user MBI hash format"
-            log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+            log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
         assert len(user_mbi_hash) == 64, "incorrect user MBI hash format"
 
     if fhir_id is None:
         err_msg = "fhir_id can not be None"
-        log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+        log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
     assert fhir_id is not None
 
     if fhir_id == "":
         err_msg = "fhir_id can not be an empty string"
-        log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+        log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
     assert fhir_id != ""
 
     if User.objects.filter(username=username).exists():
         err_msg = "user already exists"
-        log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+        log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
         raise ValidationError(err_msg, username)
 
     if Crosswalk.objects.filter(_user_id_hash=user_hicn_hash).exists():
         err_msg = "user_hicn_hash already exists"
-        log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+        log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
         raise ValidationError(err_msg, user_hicn_hash)
 
     # If mbi_hash is not NULL, perform check for duplicate
     if user_mbi_hash is not None:
         if Crosswalk.objects.filter(_user_mbi_hash=user_mbi_hash).exists():
             err_msg = "user_mbi_hash already exists"
-            log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+            log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
             raise ValidationError(err_msg, user_hicn_hash)
 
     if fhir_id and Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
         err_msg = "fhir_id already exists"
-        log_create_beneficiary_record(auth_uuid, username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
+        log_create_beneficiary_record(auth_uuid, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
         raise ValidationError(err_msg, fhir_id)
 
     with transaction.atomic():
@@ -188,6 +188,9 @@ def create_beneficiary_record(username=None,
         # TODO: magic strings are bad
         group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
         user.groups.add(group)
+
+        log_create_beneficiary_record(auth_uuid, "OK", username, fhir_id,
+                                      user_mbi_hash, user_hicn_hash, "CREATE beneficiary record")
     return user
 
 
