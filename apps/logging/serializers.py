@@ -222,7 +222,7 @@ class Response:
     auth_uuid = None
 
     def __init__(self, response, auth_uuid):
-        self.auth_uuid
+        self.auth_uuid = auth_uuid
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
         self.req = self.request_class(response.request).to_dict() if response.request else {}
@@ -264,7 +264,7 @@ class SLSResponse(Response):
     def extract_and_obfuscate(self, event):
         result = {
             'type': self.get_type(),
-            'auth_uuid': self.audit_uuid,
+            'auth_uuid': self.auth_uuid,
         }
 
         event_schema = self.get_event_schema()
