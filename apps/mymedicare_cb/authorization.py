@@ -1,7 +1,10 @@
 import logging
 import requests
+import datetime
+
 from django.conf import settings
-from .signals import response_hook
+from .signals import response_hook_wrapper
+from apps.logging.serializers import SLSTokenResponse
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -25,7 +28,7 @@ class OAuth2Config(object):
             return (self.client_id, self.client_secret)
         return None
 
-    def exchange(self, code):
+    def exchange(self, code, request):
         logger.debug("token_endpoint %s" % (self.token_endpoint))
         logger.debug("redirect_uri %s" % (self.redirect_uri))
 
@@ -35,11 +38,18 @@ class OAuth2Config(object):
             "redirect_uri": self.redirect_uri,
         }
 
+        # keep using deprecated conv - no conflict issue
+        headers = {"X-SLS-starttime": str(datetime.datetime.utcnow())}
+        if request is not None:
+            headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
+                            if hasattr(request, '_logging_uuid') else '')})
         response = requests.post(self.token_endpoint,
                                  auth=self.basic_auth(),
                                  json=token_dict,
+                                 headers=headers,
                                  verify=self.verify_ssl,
-                                 hooks={'response': response_hook})
+                                 hooks={'response': [response_hook_wrapper(sender=SLSTokenResponse,
+                                 auth_uuid=request.session.get('auth_uuid', None))]})
 
         response.raise_for_status()
 
