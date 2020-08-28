@@ -33,7 +33,10 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 @receiver(app_authorized)
 def handle_token_created(sender, request, token, **kwargs):
-    token_logger.info(get_event(Token(token, action="authorized")))
+    # Get auth flow uuid from session for logging
+    auth_uuid = request.session.get('auth_uuid', None)
+
+    token_logger.info(get_event(Token(token, action="authorized", auth_uuid=auth_uuid)))
 
 
 @receiver(beneficiary_authorized_application)
