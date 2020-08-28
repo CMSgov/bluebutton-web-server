@@ -201,7 +201,7 @@ class SLSResponse(Response):
             'type': self.get_type(),
             'auth_uuid': self.auth_uuid,
         })
-        return resp_dict 
+        return resp_dict
 
 
 class SLSTokenResponse(SLSResponse):
