@@ -40,16 +40,30 @@ class OAuth2Config(object):
 
         # keep using deprecated conv - no conflict issue
         headers = {"X-SLS-starttime": str(datetime.datetime.utcnow())}
+        auth_uuid, application, organization = None, None, None
+        application_id, organization_id = None, None
         if request is not None:
+            auth_uuid = request.session.get('auth_uuid', None)
+            application = request.session.get('application', None)
+            application_id = request.session.get('application_id', None)
+            organization = request.session.get('organization', None)
+            organization_id = request.session.get('organization_id', None)
             headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                             if hasattr(request, '_logging_uuid') else '')})
-        response = requests.post(self.token_endpoint,
-                                 auth=self.basic_auth(),
-                                 json=token_dict,
-                                 headers=headers,
-                                 verify=self.verify_ssl,
-                                 hooks={'response': [response_hook_wrapper(sender=SLSTokenResponse,
-                                 auth_uuid=request.session.get('auth_uuid', None))]})
+        response = requests.post(
+            self.token_endpoint,
+            auth=self.basic_auth(),
+            json=token_dict,
+            headers=headers,
+            verify=self.verify_ssl,
+            hooks={
+                'response': [
+                    response_hook_wrapper(sender=SLSTokenResponse,
+                                          auth_uuid=auth_uuid,
+                                          application=application,
+                                          application_id=application_id,
+                                          organization=organization,
+                                          organization_id=organization_id)]})
 
         response.raise_for_status()
 

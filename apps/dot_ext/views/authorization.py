@@ -10,7 +10,7 @@ from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
                        update_instance_auth_flow_trace_with_code)
-
+from ..utils import get_app_and_org
 log = logging.getLogger('hhs_server.%s' % __name__)
 
 
@@ -33,6 +33,16 @@ class AuthorizationView(DotAuthorizationView):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
             create_session_auth_flow_trace(request)
 
+        app, user = get_app_and_org(request)
+
+        if app:
+            request.session['application'] = str(app.name)
+            request.session['application_id'] = str(app.pk)
+
+        if user:
+            request.session['organization'] = str(user.username)
+            request.session['organization_id'] = str(user.pk)
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_template_names(self):
@@ -46,6 +56,10 @@ class AuthorizationView(DotAuthorizationView):
         initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
         initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
         initial_data["auth_uuid"] = self.request.session.get('auth_uuid', None)
+        initial_data["application"] = self.request.session.get('application', None)
+        initial_data["application_id"] = self.request.session.get('application_id', None)
+        initial_data["organization"] = self.request.session.get('organization', None)
+        initial_data["organization_id"] = self.request.session.get('organization_id', None)
         return initial_data
 
     def get(self, request, *args, **kwargs):

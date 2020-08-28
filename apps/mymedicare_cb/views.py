@@ -68,16 +68,27 @@ def authenticate(request):
     headers = sls_client.auth_header()
     # keep using deprecated conv - no conflict issue
     headers.update({"X-SLS-starttime": str(datetime.datetime.utcnow())})
+    auth_uuid, application, organization = None, None, None
+    application_id, organization_id = None, None
     if request is not None:
+        auth_uuid = request.session.get('auth_uuid', None)
+        application = request.session.get('application', None)
+        application_id = request.session.get('application_id', None)
+        organization = request.session.get('organization', None)
+        organization_id = request.session.get('organization_id', None)
         headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                         if hasattr(request, '_logging_uuid') else '')})
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,
-                            hooks={'response': [response_hook_wrapper(
-                                sender=SLSUserInfoResponse,
-                                auth_uuid=request.session.get('auth_uuid', None)
-                                )]})
+                            hooks={
+                                'response': [
+                                    response_hook_wrapper(sender=SLSUserInfoResponse,
+                                                          auth_uuid=auth_uuid,
+                                                          application=application,
+                                                          application_id=application_id,
+                                                          organization=organization,
+                                                          organization_id=organization_id)]})
 
     try:
         response.raise_for_status()
