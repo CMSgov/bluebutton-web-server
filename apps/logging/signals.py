@@ -33,10 +33,7 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 @receiver(app_authorized)
 def handle_token_created(sender, request, token, **kwargs):
-    # Get auth flow uuid from session for logging
-    auth_uuid = request.session.get('auth_uuid', None)
-
-    token_logger.info(get_event(Token(token, action="authorized", auth_uuid=auth_uuid)))
+    token_logger.info(get_event(Token(token, action="authorized")))
 
 
 @receiver(beneficiary_authorized_application)
@@ -82,8 +79,8 @@ def fetched_data(sender, request=None, response=None, **kwargs):
     fhir_logger.info(get_event(FHIRResponse(response)))
 
 
-def sls_hook(sender, response=None, **kwargs):
-    sls_logger.info(get_event(SLSResponse(response)))
+def sls_hook(sender, response=None, auth_uuid=None, **kwargs):
+    sls_logger.info(get_event(sender(response, auth_uuid)))
 
 
 def get_event(event):
