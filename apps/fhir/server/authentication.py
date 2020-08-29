@@ -63,9 +63,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     url = resource_router.fhir_url \
         + "Patient/?identifier=" + search_identifier \
         + "&_format=" + settings.FHIR_PARAM_FORMAT
-    
-    response = requests.get(url, cert=certs, headers=headers, 
-                verify=resource_router.ca_bundle if resource_router.verify_server else False)
+
+    response = requests.get(url, cert=certs, headers=headers,
+                            verify=resource_router.ca_bundle if resource_router.verify_server else False)
     response.raise_for_status()
     backend_data = response.json()
 
