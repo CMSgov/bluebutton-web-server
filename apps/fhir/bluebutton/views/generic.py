@@ -6,6 +6,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth import get_user_model
 
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
@@ -22,6 +23,8 @@ from ..exceptions import process_error_response
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
+
+User = get_user_model()
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -72,6 +75,13 @@ class FhirDataView(APIView):
         logger.debug("resource_type: %s" % resource_type)
         logger.debug("Interaction: read")
         logger.debug("Request.path: %s" % request.path)
+
+        if not request.auth.application.active:
+            raise exceptions.PermissionDenied("Application is not active")
+
+        user = User.objects.get(pk=request.auth.application.user_id)
+        if user and not user.is_active:
+            raise exceptions.PermissionDenied("Organization is not active")
 
         request.resource_type = resource_type
 
