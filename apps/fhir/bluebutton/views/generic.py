@@ -76,12 +76,14 @@ class FhirDataView(APIView):
         logger.debug("Interaction: read")
         logger.debug("Request.path: %s" % request.path)
 
-        if not request.auth.application.active:
+        if request.auth and not request.auth.application.active:
             raise exceptions.PermissionDenied("Application is not active")
-
-        user = User.objects.get(pk=request.auth.application.user_id)
-        if user and not user.is_active:
-            raise exceptions.PermissionDenied("Organization is not active")
+        
+        user = None
+        if request.auth:
+            User.objects.get(pk=request.auth.application.user_id)
+            if user and not user.is_active:
+                raise exceptions.PermissionDenied("Organization is not active")
 
         request.resource_type = resource_type
 
