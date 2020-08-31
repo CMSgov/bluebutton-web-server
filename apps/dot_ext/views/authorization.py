@@ -6,9 +6,11 @@ from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from urllib.parse import urlparse, parse_qs
+from rest_framework.exceptions import PermissionDenied
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
 from ..models import Approval, AuthFlowUuid
+from ..utils import get_app_and_org
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -31,6 +33,14 @@ class AuthorizationView(DotAuthorizationView):
             # Create authorization flow trace UUID in session, if subclass is not ApprovalView
             request.session['auth_uuid'] = str(uuid.uuid4())
 
+        app, user = get_app_and_org(request)
+
+        if app and not app.active:
+            raise PermissionDenied("Application is not active")
+
+        if user and not user.is_active:
+            raise PermissionDenied("Organization is not active")
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_template_names(self):
@@ -44,6 +54,10 @@ class AuthorizationView(DotAuthorizationView):
         initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
         initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
         initial_data["auth_uuid"] = self.request.session.get('auth_uuid', None)
+        initial_data["application"] = self.request.session.get('application', None)
+        initial_data["application_id"] = self.request.session.get('application_id', None)
+        initial_data["organization"] = self.request.session.get('organization', None)
+        initial_data["organization_id"] = self.request.session.get('organization_id', None)
         return initial_data
 
     def get(self, request, *args, **kwargs):
