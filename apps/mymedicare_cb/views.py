@@ -64,7 +64,7 @@ def authenticate(request):
         'https://test.accounts.cms.gov/v1/oauth/userinfo')
 
     headers = sls_client.auth_header()
-    headers.update({"X-Request-ID": getattr(request, '__logging_uuid', None)})
+    headers.update({"includeAddressFields": 'False', "X-Request-ID": getattr(request, '__logging_uuid', None)})
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,
