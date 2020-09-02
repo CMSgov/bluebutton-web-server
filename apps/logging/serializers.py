@@ -117,6 +117,9 @@ class SLSRequest(Request):
 
 class FHIRRequest(Request):
 
+    def includeAddressFields(self):
+        return self.req.headers.get('includeAddressFields')
+
     def uuid(self):
         return self.req.headers.get('BlueButton-OriginalQueryId')
 
@@ -149,6 +152,7 @@ class FHIRRequest(Request):
         result = {
             "uuid": self.uuid(),
             "fhir_id": self.fhir_id(),
+            "includeAddressFields": self.includeAddressFields(),
             "user": self.user(),
             "start_time": self.start_time(),
             "application": self.application(),
