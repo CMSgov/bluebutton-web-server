@@ -38,12 +38,15 @@ class DataAccessGrantSerializer:
 class Token:
     tkn = None
     action = None
-    auth_uuid = None
+    auth_flow_dict = {}
 
-    def __init__(self, obj, action=None, auth_uuid=None):
+    def __init__(self, obj, action=None, auth_flow_dict=None):
         self.tkn = obj
         self.action = action
-        self.auth_uuid = auth_uuid
+        if auth_flow_dict:
+            self.auth_flow_dict = auth_flow_dict
+        else:
+            self.auth_flow_dict = {}
 
     def __str__(self):
         # seems like this should be a serializer
@@ -52,7 +55,10 @@ class Token:
         user = getattr(self.tkn, 'user', None)
         result = {
             "type": "AccessToken",
-            "auth_uuid": self.auth_uuid,
+            "auth_uuid": self.auth_flow_dict.get('auth_uuid', None),
+            "app_id": self.auth_flow_dict.get('app_id', None),
+            "app_name": self.auth_flow_dict.get('app_name', None),
+            "client_id": self.auth_flow_dict.get('client_id', None),
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(

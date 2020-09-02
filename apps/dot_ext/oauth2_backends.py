@@ -1,8 +1,8 @@
 import json
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.models import AccessToken
-from apps.dot_ext.models import AuthFlowUuid
 from ..fhir.bluebutton.models import Crosswalk
+from .loggers import update_session_auth_flow_trace
 
 
 class OAuthLibSMARTonFHIR(OAuthLibCore):
@@ -16,22 +16,9 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         # Get auth_uuid from authorization flow AuthFlowUuid instance for logging
         body = dict(self.extract_body(request))
         code = body.get('code', None)
-        if code:
-            try:
-                # Get value previously stored in AuthorizationView.form_valid()
-                auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
-                auth_uuid = str(auth_flow_uuid.auth_uuid)
 
-                # Delete the no longer needed instance
-                auth_flow_uuid.delete()
-            except AuthFlowUuid.DoesNotExist:
-                auth_uuid = None
-        else:
-            auth_uuid = None
-
-        # Add value to session for use in apps.logging.signals.handle_token_created()
-        if auth_uuid:
-            request.session['auth_uuid'] = auth_uuid
+        # Get value previously stored in AuthorizationView.form_valid()
+        update_session_auth_flow_trace(request=request, code=code)
 
         uri, headers, body, status = super(OAuthLibSMARTonFHIR, self).create_token_response(request)
 

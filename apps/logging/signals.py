@@ -11,6 +11,7 @@ from oauth2_provider.signals import app_authorized
 
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.admin import MyAccessToken
+from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.fhir.bluebutton.signals import (
     pre_fetch,
@@ -33,17 +34,23 @@ fhir_logger = logging.getLogger('audit.data.fhir')
 
 @receiver(app_authorized)
 def handle_token_created(sender, request, token, **kwargs):
-    # Get auth flow uuid from session for logging
-    auth_uuid = request.session.get('auth_uuid', None)
+    # Get auth flow dict from session for logging
+    auth_flow_dict = get_session_auth_flow_trace(request)
 
-    token_logger.info(get_event(Token(token, action="authorized", auth_uuid=auth_uuid)))
+    token_logger.info(get_event(Token(token, action="authorized", auth_flow_dict=auth_flow_dict)))
 
 
 @receiver(beneficiary_authorized_application)
 def handle_app_authorized(sender, request, user, application, **kwargs):
+    # Get auth flow dict from session for logging
+    auth_flow_dict = get_session_auth_flow_trace(request)
+
     token_logger.info(json.dumps({
         "type": "Authorization",
-        "auth_uuid": request.session.get('auth_uuid', None),
+        "auth_uuid": auth_flow_dict.get('auth_uuid', None),
+        "app_id": auth_flow_dict.get('app_id', None),
+        "app_name": auth_flow_dict.get('app_name', None),
+        "client_id": auth_flow_dict.get('client_id', None),
         "user": {
             "id": user.id,
             "username": user.username,
@@ -66,7 +73,7 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
-    token_logger.info(get_event(Token(instance, action="revoked", auth_uuid=None)))
+    token_logger.info(get_event(Token(instance, action="revoked", auth_flow_dict=None)))
 
 
 @receiver(post_delete, sender=DataAccessGrant)
