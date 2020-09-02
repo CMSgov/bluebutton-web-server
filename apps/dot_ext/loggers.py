@@ -134,12 +134,7 @@ def update_session_auth_flow_trace(request=None, auth_uuid=None, state=None, cod
     - code =  Get session values from AuthFlowUuid via code.
     - auth_uuid = Get session values from AuthFlowUuid.
     - state = Update or set state in session.
-
-    Returns an AuthFlowUuid instance or None.
-
     '''
-    auth_flow_uuid = None
-
     if auth_uuid and code:
         # Get and update previously created AuthFlowUuid instance with code.
         try:
@@ -198,5 +193,3 @@ def update_session_auth_flow_trace(request=None, auth_uuid=None, state=None, cod
                 set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
             except AuthFlowUuid.DoesNotExist:
                 pass
-
-    return auth_flow_uuid
