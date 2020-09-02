@@ -48,9 +48,9 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
     token_logger.info(json.dumps({
         "type": "Authorization",
         "auth_uuid": auth_flow_dict.get('auth_uuid', None),
-        "app_id": auth_flow_dict.get('app_id', None),
-        "app_name": auth_flow_dict.get('app_name', None),
-        "client_id": auth_flow_dict.get('client_id', None),
+        "auth_app_id": auth_flow_dict.get('auth_app_id', None),
+        "auth_app_name": auth_flow_dict.get('auth_app_name', None),
+        "auth_client_id": auth_flow_dict.get('auth_client_id', None),
         "user": {
             "id": user.id,
             "username": user.username,

@@ -56,9 +56,9 @@ class Token:
         result = {
             "type": "AccessToken",
             "auth_uuid": self.auth_flow_dict.get('auth_uuid', None),
-            "app_id": self.auth_flow_dict.get('app_id', None),
-            "app_name": self.auth_flow_dict.get('app_name', None),
-            "client_id": self.auth_flow_dict.get('client_id', None),
+            "auth_app_id": self.auth_flow_dict.get('auth_app_id', None),
+            "auth_app_name": self.auth_flow_dict.get('auth_app_name', None),
+            "auth_client_id": self.auth_flow_dict.get('auth_client_id', None),
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(

@@ -52,9 +52,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
         headers = generate_info_headers(request)
         headers['BlueButton-AuthUuid'] = auth_flow_dict.get('auth_uuid', '')
-        headers['BlueButton-AuthAppId'] = auth_flow_dict.get('app_id', '')
-        headers['BlueButton-AuthAppName'] = auth_flow_dict.get('app_name', '')
-        headers['BlueButton-AuthClientId'] = auth_flow_dict.get('client_id', '')
+        headers['BlueButton-AuthAppId'] = auth_flow_dict.get('auth_app_id', '')
+        headers['BlueButton-AuthAppName'] = auth_flow_dict.get('auth_app_name', '')
+        headers['BlueButton-AuthClientId'] = auth_flow_dict.get('auth_client_id', '')
     else:
         headers = None
 

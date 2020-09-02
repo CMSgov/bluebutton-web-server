@@ -22,7 +22,10 @@ class RequestResponseLog(object):
         - start_time = Unix Epoch format time of the request processed.
         - end_time = Unix Epoch format time of the response processed.
         - request_uuid = The UUID identifying the request.
-        - auth_uuid = The UUID identifying the auth flow session.
+        - auth_uuid = The UUID identifying the auth flow session when available.
+        - auth_app_id = Application id for auth flow session when available.
+        - auth_app_name = Application name for auth flow session when available.
+        - auth_client_id = Client ID for auth flow session when available.
         - path = The request.path.
         - response_code = The response status code.
         - size = Size in bytes of the response.content

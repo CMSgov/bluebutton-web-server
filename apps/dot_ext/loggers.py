@@ -7,7 +7,7 @@ from .models import AuthFlowUuid
   Logger related functions for dot_ext/mymedicare_cb modules and auth flow trace logging.
 """
 
-SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'client_id', 'app_id', 'app_name']
+SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_app_id', 'auth_app_name']
 
 
 def cleanup_session_auth_flow_trace(request=None):
@@ -52,17 +52,17 @@ def create_session_auth_flow_trace(request):
 
                 # Set values in session.
                 auth_flow_dict = {"auth_uuid": new_auth_uuid,
-                                  "app_id": str(application.id),
-                                  "app_name": str(application.name),
-                                  "client_id": str(application.client_id),
+                                  "auth_app_id": str(application.id),
+                                  "auth_app_name": str(application.name),
+                                  "auth_client_id": str(application.client_id),
                                   }
                 set_session_auth_flow_trace(request, auth_flow_dict)
             except Application.DoesNotExist:
                 # Clear values in session. Set to empty value to denote not found.
                 auth_flow_dict = {"auth_uuid": new_auth_uuid,
-                                  "app_id": "",
-                                  "app_name": "",
-                                  "client_id": "",
+                                  "auth_app_id": "",
+                                  "auth_app_name": "",
+                                  "auth_client_id": "",
                                   }
                 set_session_auth_flow_trace(request, auth_flow_dict)
                 application = None
@@ -118,9 +118,9 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
 
     if application:
         # Set values in session.
-        request.session['app_id'] = str(application.id)
-        request.session['app_name'] = str(application.name)
-        request.session['client_id'] = str(application.client_id)
+        request.session['auth_app_id'] = str(application.id)
+        request.session['auth_app_name'] = str(application.name)
+        request.session['auth_client_id'] = str(application.client_id)
 
 
 def update_session_auth_flow_trace(request=None, auth_uuid=None, state=None, code=None):
