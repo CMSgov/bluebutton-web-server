@@ -102,7 +102,7 @@ admin.site.register(MyAccessToken, MyAccessTokenAdmin)
 
 
 class MyAuthFlowUuidAdmin(admin.ModelAdmin):
-    list_display = ('auth_uuid', 'state', 'code', 'client_id')
+    list_display = ('created', 'auth_uuid', 'state', 'code', 'client_id', 'auth_pkce_method')
     search_fields = ('auth_uuid', 'state', 'code')
 
 
