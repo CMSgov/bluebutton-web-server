@@ -259,6 +259,7 @@ class AuthFlowUuid(models.Model):
     state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
     client_id = models.CharField(max_length=100, null=True)
+    auth_pkce_method = models.CharField(max_length=16, null=True)
 
     def __str__(self):
         return str(self.auth_uuid)

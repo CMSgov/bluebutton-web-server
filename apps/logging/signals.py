@@ -51,6 +51,7 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
         "auth_app_id": auth_flow_dict.get('auth_app_id', None),
         "auth_app_name": auth_flow_dict.get('auth_app_name', None),
         "auth_client_id": auth_flow_dict.get('auth_client_id', None),
+        "auth_pkce_method": auth_flow_dict.get('auth_pkce_method', None),
         "user": {
             "id": user.id,
             "username": user.username,

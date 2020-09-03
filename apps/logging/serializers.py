@@ -59,6 +59,7 @@ class Token:
             "auth_app_id": self.auth_flow_dict.get('auth_app_id', None),
             "auth_app_name": self.auth_flow_dict.get('auth_app_name', None),
             "auth_client_id": self.auth_flow_dict.get('auth_client_id', None),
+            "auth_pkce_method": self.auth_flow_dict.get('auth_pkce_method', None),
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(

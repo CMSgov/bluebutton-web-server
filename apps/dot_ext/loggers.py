@@ -7,7 +7,7 @@ from .models import AuthFlowUuid
   Logger related functions for dot_ext/mymedicare_cb modules and auth flow trace logging.
 """
 
-SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_app_id', 'auth_app_name']
+SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_app_id', 'auth_app_name', 'auth_pkce_method']
 
 
 def cleanup_session_auth_flow_trace(request=None):
@@ -43,6 +43,7 @@ def create_session_auth_flow_trace(request):
         request.session['auth_uuid'] = new_auth_uuid
 
         client_id_param = request.GET.get("client_id", None)
+        auth_pkce_method = request.GET.get("code_challenge_method", None)
 
         if client_id_param:
             # Get the application.
@@ -55,6 +56,7 @@ def create_session_auth_flow_trace(request):
                                   "auth_app_id": str(application.id),
                                   "auth_app_name": str(application.name),
                                   "auth_client_id": str(application.client_id),
+                                  "auth_pkce_method": str(auth_pkce_method),
                                   }
                 set_session_auth_flow_trace(request, auth_flow_dict)
             except Application.DoesNotExist:
@@ -63,13 +65,16 @@ def create_session_auth_flow_trace(request):
                                   "auth_app_id": "",
                                   "auth_app_name": "",
                                   "auth_client_id": "",
+                                  "auth_pkce_method": "",
                                   }
                 set_session_auth_flow_trace(request, auth_flow_dict)
                 application = None
 
         if application:
             # Create and return AuthFlowUuid instance for tracking.
-            auth_flow_uuid = AuthFlowUuid.objects.create(auth_uuid=new_auth_uuid, client_id=application.client_id)
+            auth_flow_uuid = AuthFlowUuid.objects.create(auth_uuid=new_auth_uuid,
+                                                         client_id=application.client_id,
+                                                         auth_pkce_method=auth_pkce_method)
 
     return auth_flow_uuid
 
@@ -108,6 +113,7 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
     application = None
     if auth_flow_uuid:
         request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
+        request.session['auth_pkce_method'] = str(auth_flow_uuid.auth_pkce_method)
 
         # Get the application.
         Application = get_application_model()
@@ -135,6 +141,9 @@ def update_session_auth_flow_trace(request=None, auth_uuid=None, state=None, cod
     - auth_uuid = Get session values from AuthFlowUuid.
     - state = Update or set state in session.
     '''
+    # Set to None for Unit tests to work.
+    auth_flow_uuid = None
+
     if auth_uuid and code:
         # Get and update previously created AuthFlowUuid instance with code.
         try:
