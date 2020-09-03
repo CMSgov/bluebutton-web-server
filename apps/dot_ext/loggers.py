@@ -155,7 +155,7 @@ def update_session_auth_flow_trace(request=None, auth_uuid=None, state=None, cod
             # Create AuthFlowUuid instance, if it doesn't exist.
             if auth_uuid:
                 try:
-                    auth_flow_uuid = AuthFlowUuid.objects.create(auth_uuid=auth_uuid, code=code, state=None)
+                    AuthFlowUuid.objects.create(auth_uuid=auth_uuid, code=code, state=None)
                 except IntegrityError:
                     pass
 
@@ -168,7 +168,6 @@ def update_session_auth_flow_trace(request=None, auth_uuid=None, state=None, cod
 
             # Delete the no longer needed instance
             auth_flow_uuid.delete()
-            auth_flow_uuid = None
         except AuthFlowUuid.DoesNotExist:
             pass
 
