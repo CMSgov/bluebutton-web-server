@@ -34,7 +34,6 @@ def create_session_auth_flow_trace(request):
     Returns an AuthFlowUuid instance or None.
     '''
     if request:
-        auth_flow_uuid = None
         application = None
 
         # Create new authorization flow trace UUID.
@@ -72,11 +71,9 @@ def create_session_auth_flow_trace(request):
 
         if application:
             # Create and return AuthFlowUuid instance for tracking.
-            auth_flow_uuid = AuthFlowUuid.objects.create(auth_uuid=new_auth_uuid,
-                                                         client_id=application.client_id,
-                                                         auth_pkce_method=auth_pkce_method)
-
-    return auth_flow_uuid
+            AuthFlowUuid.objects.create(auth_uuid=new_auth_uuid,
+                                        client_id=application.client_id,
+                                        auth_pkce_method=auth_pkce_method)
 
 
 def get_session_auth_flow_trace(request):
