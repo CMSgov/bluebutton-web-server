@@ -116,14 +116,13 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
         Application = get_application_model()
         try:
             application = Application.objects.get(client_id=auth_flow_uuid.client_id)
+
+            # Set values in session.
+            request.session['auth_app_id'] = str(application.id)
+            request.session['auth_app_name'] = str(application.name)
+            request.session['auth_client_id'] = str(application.client_id)
         except Application.DoesNotExist:
             pass
-
-    if application:
-        # Set values in session.
-        request.session['auth_app_id'] = str(application.id)
-        request.session['auth_app_name'] = str(application.name)
-        request.session['auth_client_id'] = str(application.client_id)
 
 
 def update_session_auth_flow_trace(request=None, auth_uuid=None, state=None, code=None):
