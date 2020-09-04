@@ -4,9 +4,10 @@ import uuid
 import hashlib
 import json
 from oauth2_provider.models import AccessToken
-from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
-from apps.dot_ext.loggers import SESSION_AUTH_FLOW_TRACE_KEYS, cleanup_session_auth_flow_trace, get_session_auth_flow_trace
+from apps.dot_ext.loggers import (SESSION_AUTH_FLOW_TRACE_KEYS,
+                                  get_session_auth_flow_trace,
+                                  is_path_part_of_auth_flow_trace)
 from apps.fhir.bluebutton.utils import (get_ip_from_request,
                                         get_user_from_request,
                                         get_access_token_from_request)
@@ -84,16 +85,13 @@ class RequestResponseLog(object):
                 pass
             log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
 
-        # Auth flow trace logging and cleanup.
+        # Auth flow trace logging.
         if self.request.session.get('auth_uuid', None):
-            auth_flow_dict = get_session_auth_flow_trace(self.request)
+            if is_path_part_of_auth_flow_trace(self.request.path):
+                auth_flow_dict = get_session_auth_flow_trace(self.request)
 
-            for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-                log_msg[k] = auth_flow_dict.get(k, None)
-
-            if self.request.path == reverse("oauth2_provider:token"):
-                # We are done using auth trace session values, clear them from the session.
-                cleanup_session_auth_flow_trace(self.request)
+                for k in SESSION_AUTH_FLOW_TRACE_KEYS:
+                    log_msg[k] = auth_flow_dict.get(k, None)
 
         return(json.dumps(log_msg))
 

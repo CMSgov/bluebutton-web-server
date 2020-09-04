@@ -1,9 +1,9 @@
+import re
 import uuid
+from django.db import transaction
 from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
 from .models import AuthFlowUuid
-
-from django.db import transaction
 
 
 """
@@ -15,17 +15,28 @@ from django.db import transaction
   Values are retrieved/updated in the request.session.
 """
 
+# List of value keys that are being tracked via request.session
 SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_app_id', 'auth_app_name', 'auth_pkce_method']
+
+# REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
+AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = "(^/v1/o/authorize/.*|^/mymedicare/login$|^/mymedicare/sls-callback$|^/v1/o/token/$)"
+
+
+def is_path_part_of_auth_flow_trace(path):
+    '''
+    Check if provided path is related to the authorization flow logging.
+
+    CALLED FROM: hhs_oauth_server.request_logging.RequestResponseLog.__str__()
+    '''
+    return re.match(AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX, path)
 
 
 def cleanup_session_auth_flow_trace(request):
     '''
-    Function for cleaning up auth flow related items
-    in a session.
+    Clean up auth flow related items in a session.
 
     CALLED FROM:  apps.testclient.views.callback()
                   apps.dot_ext.views.authorization.AuthorizationView.form_valid()
-                  hhs_oauth_server.request_logging.RequestResponseLog.__str__()
     '''
     for k in SESSION_AUTH_FLOW_TRACE_KEYS:
         try:
@@ -36,10 +47,10 @@ def cleanup_session_auth_flow_trace(request):
 
 def create_session_auth_flow_trace(request):
     '''
-    Function for creating auth flow log tracing related items.
+    Create auth flow log tracing related items.
 
-    - Creates a new AuthFlowUuid instance.
-    - Sets new auth flow values in session.
+    - Create a new AuthFlowUuid instance.
+    - Set new auth flow values in session.
 
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.dispatch()
     '''
@@ -87,8 +98,7 @@ def create_session_auth_flow_trace(request):
 
 def get_session_auth_flow_trace(request):
     '''
-    Function to get auth flow related items from the
-    session.
+    Get auth flow related items from the session.
 
     Returns a auth_flow_dict type DICT of values for logging.
     '''
@@ -104,8 +114,7 @@ def get_session_auth_flow_trace(request):
 
 def set_session_auth_flow_trace(request, auth_flow_dict):
     '''
-    Function to set auth flow related items in the
-    session from a dictionary.
+    Set auth flow related items in the session from a dictionary.
     '''
     for k in SESSION_AUTH_FLOW_TRACE_KEYS:
         request.session[k] = auth_flow_dict.get(k, None)
@@ -113,8 +122,7 @@ def set_session_auth_flow_trace(request, auth_flow_dict):
 
 def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
     '''
-    Function to set auth flow related items in the
-    session given an AuthFlowUuid instance.
+    Set auth flow related items in the session given an AuthFlowUuid instance.
     '''
     if auth_flow_uuid:
         request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
