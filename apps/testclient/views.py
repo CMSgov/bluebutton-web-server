@@ -61,7 +61,7 @@ def callback(request):
     response['test_page'] = host + reverse('test_links')
 
     # We are done using auth flow trace, clear from the session.
-    cleanup_session_auth_flow_trace(request=request)
+    cleanup_session_auth_flow_trace(request)
 
     return success(request, response)
 

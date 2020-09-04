@@ -2,7 +2,7 @@ import json
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.models import AccessToken
 from ..fhir.bluebutton.models import Crosswalk
-from .loggers import update_session_auth_flow_trace
+from .loggers import update_session_auth_flow_trace_from_code
 
 
 class OAuthLibSMARTonFHIR(OAuthLibCore):
@@ -13,12 +13,10 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         SMART on FHIR Authorization
         http://docs.smarthealthit.org/authorization/
         """
-        # Get auth_uuid from authorization flow AuthFlowUuid instance for logging
+        # Get session values previously stored in AuthFlowUuid from AuthorizationView.form_valid() from code.
         body = dict(self.extract_body(request))
         code = body.get('code', None)
-
-        # Get value previously stored in AuthorizationView.form_valid()
-        update_session_auth_flow_trace(request=request, code=code)
+        update_session_auth_flow_trace_from_code(request, code)
 
         uri, headers, body, status = super(OAuthLibSMARTonFHIR, self).create_token_response(request)
 

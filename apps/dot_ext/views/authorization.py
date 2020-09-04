@@ -8,7 +8,8 @@ from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
 from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
-                       get_session_auth_flow_trace, set_session_auth_flow_trace, update_session_auth_flow_trace)
+                       get_session_auth_flow_trace, set_session_auth_flow_trace,
+                       update_instance_auth_flow_trace_with_code)
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -27,9 +28,10 @@ class AuthorizationView(DotAuthorizationView):
         initially create an AuthFlowUuid object for authorization
         flow tracing in logs.
         """
+        # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
-            create_session_auth_flow_trace(request=request)
+            create_session_auth_flow_trace(request)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -90,10 +92,10 @@ class AuthorizationView(DotAuthorizationView):
         auth_uuid = auth_dict.get('auth_uuid', None)
 
         # We are done using auth_uuid, clear it from the session.
-        cleanup_session_auth_flow_trace(request=self.request)
+        cleanup_session_auth_flow_trace(self.request)
 
-        # Update previously created AuthFlowUuid instance with code.
-        update_session_auth_flow_trace(request=self.request, auth_uuid=auth_uuid, code=code)
+        # Update AuthFlowUuid instance with code.
+        update_instance_auth_flow_trace_with_code(auth_uuid, code)
 
         return self.redirect(self.success_url, application)
 
@@ -108,7 +110,7 @@ class ApprovalView(AuthorizationView):
 
     def dispatch(self, request, uuid, *args, **kwargs):
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
-        auth_flow_dict = get_session_auth_flow_trace(request=request)
+        auth_flow_dict = get_session_auth_flow_trace(request)
 
         # trows DoesNotExist
         try:

@@ -3,25 +3,35 @@ from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
 from .models import AuthFlowUuid
 
+from django.db import transaction
+
+
 """
-  Logger related functions for dot_ext/mymedicare_cb modules and auth flow trace logging.
+  Logger related functions for dot_ext/mymedicare_cb modules.
+
+  The AuthFlowUuid tracking object is used to track the
+  auth flow between beneficiary and 3rd party application sessions.
+
+  Values are retrieved/updated in the request.session.
 """
 
 SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_app_id', 'auth_app_name', 'auth_pkce_method']
 
 
-def cleanup_session_auth_flow_trace(request=None):
+def cleanup_session_auth_flow_trace(request):
     '''
     Function for cleaning up auth flow related items
-    in session.
+    in a session.
+
+    CALLED FROM:  apps.testclient.views.callback()
+                  apps.dot_ext.views.authorization.AuthorizationView.form_valid()
+                  hhs_oauth_server.request_logging.RequestResponseLog.__str__()
     '''
-    if request:
-        # We are done using auth flow trace values, clear them from the session.
-        for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-            try:
-                del request.session[k]
-            except KeyError:
-                pass
+    for k in SESSION_AUTH_FLOW_TRACE_KEYS:
+        try:
+            del request.session[k]
+        except KeyError:
+            pass
 
 
 def create_session_auth_flow_trace(request):
@@ -31,49 +41,48 @@ def create_session_auth_flow_trace(request):
     - Creates a new AuthFlowUuid instance.
     - Sets new auth flow values in session.
 
-    Returns an AuthFlowUuid instance or None.
+    CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.dispatch()
     '''
-    if request:
-        application = None
+    # Create new authorization flow trace UUID.
+    new_auth_uuid = str(uuid.uuid4())
 
-        # Create new authorization flow trace UUID.
-        new_auth_uuid = str(uuid.uuid4())
+    request.session['auth_uuid'] = new_auth_uuid
 
-        request.session['auth_uuid'] = new_auth_uuid
+    client_id_param = request.GET.get("client_id", None)
+    auth_pkce_method = request.GET.get("code_challenge_method", None)
 
-        client_id_param = request.GET.get("client_id", None)
-        auth_pkce_method = request.GET.get("code_challenge_method", None)
+    if client_id_param:
+        # Get the application.
+        Application = get_application_model()
+        try:
+            application = get_application_model().objects.get(client_id=client_id_param)
 
-        if client_id_param:
-            # Get the application.
-            Application = get_application_model()
+            # Set values in session.
+            auth_flow_dict = {"auth_uuid": new_auth_uuid,
+                              "auth_app_id": str(application.id),
+                              "auth_app_name": application.name,
+                              "auth_client_id": application.client_id,
+                              "auth_pkce_method": auth_pkce_method,
+                              }
+            set_session_auth_flow_trace(request, auth_flow_dict)
+
             try:
-                application = get_application_model().objects.get(client_id=client_id_param)
-
-                # Set values in session.
-                auth_flow_dict = {"auth_uuid": new_auth_uuid,
-                                  "auth_app_id": str(application.id),
-                                  "auth_app_name": str(application.name),
-                                  "auth_client_id": str(application.client_id),
-                                  "auth_pkce_method": str(auth_pkce_method),
-                                  }
-                set_session_auth_flow_trace(request, auth_flow_dict)
-            except Application.DoesNotExist:
-                # Clear values in session. Set to empty value to denote not found.
-                auth_flow_dict = {"auth_uuid": new_auth_uuid,
-                                  "auth_app_id": "",
-                                  "auth_app_name": "",
-                                  "auth_client_id": "",
-                                  "auth_pkce_method": "",
-                                  }
-                set_session_auth_flow_trace(request, auth_flow_dict)
-                application = None
-
-        if application:
-            # Create and return AuthFlowUuid instance for tracking.
-            AuthFlowUuid.objects.create(auth_uuid=new_auth_uuid,
-                                        client_id=application.client_id,
-                                        auth_pkce_method=auth_pkce_method)
+                # Create and return AuthFlowUuid instance for tracking.
+                with transaction.atomic():
+                    AuthFlowUuid.objects.create(auth_uuid=new_auth_uuid,
+                                                client_id=application.client_id,
+                                                auth_pkce_method=auth_pkce_method)
+            except IntegrityError:
+                pass
+        except Application.DoesNotExist:
+            # Clear values in session. Set to empty value to denote not found.
+            auth_flow_dict = {"auth_uuid": new_auth_uuid,
+                              "auth_app_id": "",
+                              "auth_app_name": "",
+                              "auth_client_id": "",
+                              "auth_pkce_method": "",
+                              }
+            set_session_auth_flow_trace(request, auth_flow_dict)
 
 
 def get_session_auth_flow_trace(request):
@@ -89,6 +98,7 @@ def get_session_auth_flow_trace(request):
             auth_flow_dict[k] = request.session.get(k, None)
         return auth_flow_dict
     else:
+        # Some unit test calls to this have request=None, so return empty dict.
         return {}
 
 
@@ -97,9 +107,8 @@ def set_session_auth_flow_trace(request, auth_flow_dict):
     Function to set auth flow related items in the
     session from a dictionary.
     '''
-    if request:
-        for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-            request.session[k] = auth_flow_dict.get(k, None)
+    for k in SESSION_AUTH_FLOW_TRACE_KEYS:
+        request.session[k] = auth_flow_dict.get(k, None)
 
 
 def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
@@ -107,10 +116,9 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
     Function to set auth flow related items in the
     session given an AuthFlowUuid instance.
     '''
-    application = None
     if auth_flow_uuid:
         request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
-        request.session['auth_pkce_method'] = str(auth_flow_uuid.auth_pkce_method)
+        request.session['auth_pkce_method'] = auth_flow_uuid.auth_pkce_method
 
         # Get the application.
         Application = get_application_model()
@@ -119,81 +127,77 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
 
             # Set values in session.
             request.session['auth_app_id'] = str(application.id)
-            request.session['auth_app_name'] = str(application.name)
-            request.session['auth_client_id'] = str(application.client_id)
+            request.session['auth_app_name'] = application.name
+            request.session['auth_client_id'] = application.client_id
         except Application.DoesNotExist:
             pass
 
 
-def update_session_auth_flow_trace(request=None, auth_uuid=None, state=None, code=None):
+def update_instance_auth_flow_trace_with_code(auth_uuid, code):
     '''
-    Function for updating auth flow related items in the
-    AuthFlowUuid tracking object and session.
+    Update AuthFlowUuid instance with code value.
 
-    Summary of cases based on arguments passed in:
-
-    - auth_uuid and code = Update previously created AuthFlowUuid instance with code.
-    - code =  Get session values from AuthFlowUuid via code.
-    - auth_uuid = Get session values from AuthFlowUuid.
-    - state = Update or set state in session.
+    CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.form_valid()
     '''
-    # Set to None for Unit tests to work.
-    auth_flow_uuid = None
+    try:
+        auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
+        # Set code.
+        auth_flow_uuid.code = code
+        auth_flow_uuid.save()
+    except AuthFlowUuid.DoesNotExist:
+        pass
+    except IntegrityError:
+        pass
 
-    if auth_uuid and code:
-        # Get and update previously created AuthFlowUuid instance with code.
+
+def update_session_auth_flow_trace_from_code(request, code):
+    '''
+    Update session values from AuthFlowUuid instance from code.
+
+    CALLED FROM:  apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR.create_token_response()
+    '''
+    # Get session values from AuthFlowUuid via code.
+    try:
+        # Get previously created AuthFlowUuid with code.
+        auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
+        set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
+
+        # Delete the no longer needed instance
+        auth_flow_uuid.delete()
+    except AuthFlowUuid.DoesNotExist:
+        pass
+
+
+def update_instance_auth_flow_trace_with_state(request, state):
+    '''
+    Update AuthFlowUuid instance with state value.
+
+    CALLED FROM:  apps.mymedicare_cb.views.mymedicare_login()
+    '''
+    # Update AuthFlowUuid instance to pass along auth_uuid using state.
+    auth_uuid = request.session.get('auth_uuid', None)
+
+    if auth_uuid:
+        # Store state in AuthFlowUuid.
         try:
             auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-            # Set code.
-            auth_flow_uuid.code = code
+            auth_flow_uuid.state = state
             auth_flow_uuid.save()
         except AuthFlowUuid.DoesNotExist:
-            # Create AuthFlowUuid instance, if it doesn't exist.
-            if auth_uuid:
-                try:
-                    AuthFlowUuid.objects.create(auth_uuid=auth_uuid, code=code, state=None)
-                except IntegrityError:
-                    pass
-
-    elif code:
-        # Get session values from AuthFlowUuid via code.
-        try:
-            # Get previously created AuthFlowUuid with code.
-            auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
-            set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
-
-            # Delete the no longer needed instance
-            auth_flow_uuid.delete()
-        except AuthFlowUuid.DoesNotExist:
+            pass
+        except IntegrityError:
             pass
 
-    elif auth_uuid:
-        # Get session values from AuthFlowUuid.
-        request.session['auth_uuid'] = str(auth_uuid)
 
-        try:
-            auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-            set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
-        except AuthFlowUuid.DoesNotExist:
-            pass
+def update_session_auth_flow_trace_from_state(request, state):
+    '''
+    Update session values from AuthFlowUuid instance from state.
 
-    elif state:
-        # Update AuthFlowUuid instance to pass along auth_uuid using state.
-        auth_uuid = request.session.get('auth_uuid', None)
-
-        if auth_uuid:
-            # Store state in AuthFlowUuid if auth_uuid exists.
-            try:
-                auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-                auth_flow_uuid.state = state
-                auth_flow_uuid.save()
-            except AuthFlowUuid.DoesNotExist:
-                auth_flow_uuid = None
-
-        if not auth_flow_uuid:
-            # Retreive auth flow session values using previous state in AuthFlowUuid.
-            try:
-                auth_flow_uuid = AuthFlowUuid.objects.get(state=state)
-                set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
-            except AuthFlowUuid.DoesNotExist:
-                pass
+    CALLED FROM:  apps.mymedicare_cb.views.authenticate()
+    '''
+    # Retreive auth flow session values using previous state in AuthFlowUuid.
+    try:
+        auth_flow_uuid = AuthFlowUuid.objects.get(state=state)
+        set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
+    except AuthFlowUuid.DoesNotExist:
+        pass

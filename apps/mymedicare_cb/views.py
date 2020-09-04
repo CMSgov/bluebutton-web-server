@@ -12,7 +12,9 @@ from django.views.decorators.cache import never_cache
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
 
-from apps.dot_ext.loggers import get_session_auth_flow_trace, update_session_auth_flow_trace
+from apps.dot_ext.loggers import (get_session_auth_flow_trace,
+                                  update_session_auth_flow_trace_from_state,
+                                  update_instance_auth_flow_trace_with_state)
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
@@ -31,9 +33,9 @@ def authenticate(request):
     # Standard error message returned to end user.
     ERROR_MSG_MYMEDICARE = "An error occurred connecting to account.mymedicare.gov"
 
-    # Update authorization flow from state in AuthFlowUuid instance.
+    # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('state', None)
-    update_session_auth_flow_trace(request=request, state=request_state)
+    update_session_auth_flow_trace_from_state(request, request_state)
 
     # Get auth flow session values.
     auth_flow_dict = get_session_auth_flow_trace(request)
@@ -205,7 +207,7 @@ def mymedicare_login(request):
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
 
-    # Update authorization flow trace AuthFlowUuid with state.
-    update_session_auth_flow_trace(request=request, state=state)
+    # Update authorization flow trace AuthFlowUuid with state for pickup in authenticate().
+    update_instance_auth_flow_trace_with_state(request, state)
 
     return HttpResponseRedirect(mymedicare_login_url)
