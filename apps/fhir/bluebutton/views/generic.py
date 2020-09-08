@@ -6,7 +6,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.contrib.auth import get_user_model
 
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
@@ -18,13 +17,11 @@ from ..signals import (
 )
 from apps.authorization.permissions import DataAccessGrantPermission
 from ..authentication import OAuth2ResourceOwner
-from ..permissions import (HasCrosswalk, ResourcePermission)
+from ..permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
 from ..exceptions import process_error_response
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
-
-User = get_user_model()
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -35,7 +32,12 @@ class FhirDataView(APIView):
     renderer_classes = [JSONRenderer, FHIRRenderer]
     throttle_classes = [TokenRateThrottle]
     authentication_classes = [OAuth2ResourceOwner]
-    permission_classes = [permissions.IsAuthenticated, HasCrosswalk, ResourcePermission, DataAccessGrantPermission]
+    permission_classes = [
+        ApplicationActivePermission,
+        permissions.IsAuthenticated,
+        HasCrosswalk,
+        ResourcePermission,
+        DataAccessGrantPermission]
 
     # Must return a Crosswalk
     def check_resource_permission(self, request, **kwargs):
@@ -75,15 +77,6 @@ class FhirDataView(APIView):
         logger.debug("resource_type: %s" % resource_type)
         logger.debug("Interaction: read")
         logger.debug("Request.path: %s" % request.path)
-
-        if request.auth and not request.auth.application.active:
-            raise exceptions.PermissionDenied("Application is not active")
-        
-        user = None
-        if request.auth:
-            User.objects.get(pk=request.auth.application.user_id)
-            if user and not user.is_active:
-                raise exceptions.PermissionDenied("Organization is not active")
 
         request.resource_type = resource_type
 

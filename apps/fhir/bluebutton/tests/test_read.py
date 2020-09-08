@@ -722,3 +722,68 @@ class BackendConnectionTest(BaseApiTest):
         self.assertEqual(application.first_active, prev_first_active)
         # Check that application last_active was updated
         self.assertNotEqual(application.last_active, prev_last_active)
+
+    def test_permission_deny_fhir_request_on_disabled_app_org(self):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        access_token_obj = AccessToken.objects.get(token=first_access_token)
+        application = access_token_obj.application
+        user = access_token_obj.user
+
+        application.active = False
+        application.save()
+
+        self.assertEqual(application.active, False)
+        self.assertEqual(user.is_active, True)
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    'resourceType': 'Coverage',
+                    'beneficiary': {
+                        'reference': 'stuff/-20140000008325',
+                    },
+                },
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                Authorization="Bearer %s" % (first_access_token))
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(response.json().get("detail"), "Permission denied, Application or organization is not active.")
+
+        application.active = True
+        application.save()
+        user.is_active = False
+        user.save()
+
+        self.assertEqual(application.active, True)
+        self.assertEqual(user.is_active, False)
+
+        # 2nd resource call
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': {
+                    'resourceType': 'Coverage',
+                    'beneficiary': {
+                        'reference': 'stuff/-20140000008325',
+                    },
+                },
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_read_or_update_or_delete',
+                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                Authorization="Bearer %s" % (first_access_token))
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(response.json().get("detail"), "Permission denied, Application or organization is not active.")
