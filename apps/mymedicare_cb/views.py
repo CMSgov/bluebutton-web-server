@@ -2,11 +2,9 @@ import logging
 import random
 import requests
 import urllib.request as urllib_request
-import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
 from django.http import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -14,7 +12,10 @@ from django.views.decorators.cache import never_cache
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
 
-from apps.dot_ext.models import Approval, AuthFlowUuid
+from apps.dot_ext.loggers import (get_session_auth_flow_trace,
+                                  update_session_auth_flow_trace_from_state,
+                                  update_instance_auth_flow_trace_with_state)
+from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 
@@ -32,26 +33,18 @@ def authenticate(request):
     # Standard error message returned to end user.
     ERROR_MSG_MYMEDICARE = "An error occurred connecting to account.mymedicare.gov"
 
-    # Get auth_uuid from AuthFlowUuid instance via state, if available.
-    state = request.GET.get('state', None)
-    if state:
-        try:
-            auth_flow_uuid = AuthFlowUuid.objects.get(state=state)
-            request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
-        except AuthFlowUuid.DoesNotExist:
-            pass
+    # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
+    request_state = request.GET.get('state', None)
+    update_session_auth_flow_trace_from_state(request, request_state)
 
-    # Create authorization flow trace UUID, if not existing from dispatch()
-    if request.session.get('auth_uuid', None) is None:
-        request.session['auth_uuid'] = str(uuid.uuid4())
-
-    auth_uuid = request.session.get('auth_uuid', None)
+    # Get auth flow session values.
+    auth_flow_dict = get_session_auth_flow_trace(request)
 
     code = request.GET.get('code')
     if not code:
         # Log for info
         err_msg = "The code parameter is required"
-        log_authenticate_start(auth_uuid, "FAIL", err_msg)
+        log_authenticate_start(auth_flow_dict, "FAIL", err_msg)
         raise ValidationError(err_msg)
 
     sls_client = OAuth2Config()
@@ -61,7 +54,7 @@ def authenticate(request):
     except requests.exceptions.HTTPError as e:
         logger.error("Token request response error {reason}".format(reason=e))
         # Log also for info
-        log_authenticate_start(auth_uuid, "FAIL",
+        log_authenticate_start(auth_flow_dict, "FAIL",
                                "Token request response error {reason}".format(reason=e))
         raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
@@ -82,7 +75,7 @@ def authenticate(request):
     except requests.exceptions.HTTPError as e:
         logger.error("User info request response error {reason}".format(reason=e))
         # Log also for info
-        log_authenticate_start(auth_uuid, "FAIL",
+        log_authenticate_start(auth_flow_dict, "FAIL",
                                "User info request response error {reason}".format(reason=e))
         raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
@@ -105,13 +98,13 @@ def authenticate(request):
     # Validate: sls_subject cannot be empty. TODO: Validate format too.
     if sls_subject == "":
         err_msg = "User info sub cannot be empty"
-        log_authenticate_start(auth_uuid, "FAIL", err_msg)
+        log_authenticate_start(auth_flow_dict, "FAIL", err_msg)
         raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
     # Validate: sls_hicn cannot be empty.
     if sls_hicn == "":
         err_msg = "User info HICN cannot be empty."
-        log_authenticate_start(auth_uuid, "FAIL", err_msg, sls_subject)
+        log_authenticate_start(auth_flow_dict, "FAIL", err_msg, sls_subject)
         raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
     # Set Hash values once here for performance and logging.
@@ -124,14 +117,14 @@ def authenticate(request):
     sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
     if not sls_mbi_format_valid and sls_mbi is not None:
         err_msg = "User info MBI format is not valid. "
-        log_authenticate_start(auth_uuid, "FAIL", err_msg,
+        log_authenticate_start(auth_flow_dict, "FAIL", err_msg,
                                sls_subject, sls_mbi_format_valid,
                                sls_mbi_format_msg, sls_mbi_format_synthetic,
                                sls_hicn_hash, sls_mbi_hash)
         raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
 
     # Log successful identity information gathered.
-    log_authenticate_start(auth_uuid, "OK", None, sls_subject,
+    log_authenticate_start(auth_flow_dict, "OK", None, sls_subject,
                            sls_mbi_format_valid, sls_mbi_format_msg,
                            sls_mbi_format_synthetic, sls_hicn_hash, sls_mbi_hash)
 
@@ -144,7 +137,7 @@ def authenticate(request):
                                email=sls_email, request=request)
 
     # Log successful authentication with beneficiary when we return back here.
-    log_authenticate_success(auth_uuid, sls_subject, user)
+    log_authenticate_success(auth_flow_dict, sls_subject, user)
 
     # Update request user.
     request.user = user
@@ -214,12 +207,7 @@ def mymedicare_login(request):
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
 
-    # Create AuthFlowUuid instance to pass along auth_uuid using state.
-    auth_uuid = request.session.get('auth_uuid', None)
-    if auth_uuid:
-        try:
-            AuthFlowUuid.objects.create(state=state, auth_uuid=auth_uuid, code=None)
-        except IntegrityError:
-            pass
+    # Update authorization flow trace AuthFlowUuid with state for pickup in authenticate().
+    update_instance_auth_flow_trace_with_state(request, state)
 
     return HttpResponseRedirect(mymedicare_login_url)

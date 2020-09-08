@@ -8,6 +8,7 @@ from .utils import test_setup, get_client_secret
 import logging
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 from django.views.decorators.cache import never_cache
+from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -59,12 +60,8 @@ def callback(request):
 
     response['test_page'] = host + reverse('test_links')
 
-    # We are done using auth_uuid, clear it from the testclient session.
-    if request.session.get('auth_uuid', None):
-        try:
-            del request.session['auth_uuid']
-        except KeyError:
-            pass
+    # We are done using auth flow trace, clear from the session.
+    cleanup_session_auth_flow_trace(request)
 
     return success(request, response)
 

@@ -1,14 +1,15 @@
 import logging
-import uuid
 import waffle
-from django.db.utils import IntegrityError
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from urllib.parse import urlparse, parse_qs
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
-from ..models import Approval, AuthFlowUuid
+from ..models import Approval
+from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
+                       get_session_auth_flow_trace, set_session_auth_flow_trace,
+                       update_instance_auth_flow_trace_with_code)
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -24,12 +25,13 @@ class AuthorizationView(DotAuthorizationView):
     def dispatch(self, request, *args, **kwargs):
         """
         Override the base authorization view from dot to
-        initially create a auth_uuid for authorization
+        initially create an AuthFlowUuid object for authorization
         flow tracing in logs.
         """
+        # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
         if not kwargs.get('is_subclass_approvalview', False):
-            # Create authorization flow trace UUID in session, if subclass is not ApprovalView
-            request.session['auth_uuid'] = str(uuid.uuid4())
+            # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
+            create_session_auth_flow_trace(request)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -85,29 +87,15 @@ class AuthorizationView(DotAuthorizationView):
         url_query = parse_qs(urlparse(self.success_url).query)
         code = url_query.get('code', [None])[0]
 
-        auth_uuid = self.request.session.get('auth_uuid', None)
+        # Get auth flow trace session values dict.
+        auth_dict = get_session_auth_flow_trace(self.request)
+        auth_uuid = auth_dict.get('auth_uuid', None)
 
         # We are done using auth_uuid, clear it from the session.
-        if auth_uuid:
-            try:
-                del self.request.session['auth_uuid']
-            except KeyError:
-                pass
+        cleanup_session_auth_flow_trace(self.request)
 
-        if code:
-            try:
-                # Get and update previously created AuthFlowUuid instance with code.
-                auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-                # Set code.
-                auth_flow_uuid.code = code
-                auth_flow_uuid.save()
-            except AuthFlowUuid.DoesNotExist:
-                # Create AuthFlowUuid instance, if it doesn't exist.
-                if auth_uuid:
-                    try:
-                        AuthFlowUuid.objects.create(auth_uuid=auth_uuid, code=code, state=None)
-                    except IntegrityError:
-                        pass
+        # Update AuthFlowUuid instance with code.
+        update_instance_auth_flow_trace_with_code(auth_uuid, code)
 
         return self.redirect(self.success_url, application)
 
@@ -121,6 +109,9 @@ class ApprovalView(AuthorizationView):
     login_url = "/mymedicare/login"
 
     def dispatch(self, request, uuid, *args, **kwargs):
+        # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
+        auth_flow_dict = get_session_auth_flow_trace(request)
+
         # trows DoesNotExist
         try:
             approval = Approval.objects.get(uuid=uuid)
@@ -143,5 +134,9 @@ class ApprovalView(AuthorizationView):
         if application is not None:
             approval.application = self.oauth2_data.get('application', None)
             approval.save()
+
+        # Set auth_uuid after super() return
+        if auth_flow_dict:
+            set_session_auth_flow_trace(request, auth_flow_dict)
 
         return result

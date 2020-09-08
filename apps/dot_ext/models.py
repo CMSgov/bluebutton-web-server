@@ -258,6 +258,12 @@ class AuthFlowUuid(models.Model):
     auth_uuid = models.UUIDField(primary_key=True, unique=True)
     state = models.CharField(max_length=64, null=True, unique=True, db_index=True)
     code = models.CharField(max_length=255, null=True, unique=True, db_index=True)  # code comes from oauthlib
+    client_id = models.CharField(max_length=100, null=True)
+    auth_pkce_method = models.CharField(max_length=16, null=True)
+    created = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return str(self.auth_uuid)
 
 
 post_delete.connect(archive_token, sender='oauth2_provider.AccessToken')

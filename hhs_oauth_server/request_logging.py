@@ -3,12 +3,14 @@ import datetime
 import uuid
 import hashlib
 import json
+from oauth2_provider.models import AccessToken
+from django.utils.deprecation import MiddlewareMixin
+from apps.dot_ext.loggers import (SESSION_AUTH_FLOW_TRACE_KEYS,
+                                  get_session_auth_flow_trace,
+                                  is_path_part_of_auth_flow_trace)
 from apps.fhir.bluebutton.utils import (get_ip_from_request,
                                         get_user_from_request,
                                         get_access_token_from_request)
-from oauth2_provider.models import AccessToken
-from django.urls import reverse
-from django.utils.deprecation import MiddlewareMixin
 
 
 audit = logging.getLogger('audit.%s' % __name__)
@@ -21,7 +23,10 @@ class RequestResponseLog(object):
         - start_time = Unix Epoch format time of the request processed.
         - end_time = Unix Epoch format time of the response processed.
         - request_uuid = The UUID identifying the request.
-        - auth_uuid = The UUID identifying the auth flow session.
+        - auth_uuid = The UUID identifying the auth flow session when available.
+        - auth_app_id = Application id for auth flow session when available.
+        - auth_app_name = Application name for auth flow session when available.
+        - auth_client_id = Client ID for auth flow session when available.
         - path = The request.path.
         - response_code = The response status code.
         - size = Size in bytes of the response.content
@@ -58,15 +63,6 @@ class RequestResponseLog(object):
         log_msg['dev_name'] = ""
         log_msg['access_token_hash'] = ""
 
-        if self.request.session.get('auth_uuid', None):
-            log_msg['auth_uuid'] = self.request.session.get('auth_uuid', None)
-            if self.request.path == reverse("oauth2_provider:token"):
-                # We are done using auth_uuid, clear it from the session.
-                try:
-                    del self.request.session['auth_uuid']
-                except KeyError:
-                    pass
-
         if log_msg['response_code'] in (300, 301, 302, 307):
             log_msg['location'] = self.response.get('Location', '?')
         elif getattr(self.response, 'content', False):
@@ -88,6 +84,14 @@ class RequestResponseLog(object):
             except Exception:
                 pass
             log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
+
+        # Auth flow trace logging.
+        if self.request.session.get('auth_uuid', None):
+            if is_path_part_of_auth_flow_trace(self.request.path):
+                auth_flow_dict = get_session_auth_flow_trace(self.request)
+
+                for k in SESSION_AUTH_FLOW_TRACE_KEYS:
+                    log_msg[k] = auth_flow_dict.get(k, None)
 
         return(json.dumps(log_msg))
 

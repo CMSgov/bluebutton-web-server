@@ -1,0 +1,2015 @@
+<?xml version="1.0"?>
+<form>
+  <label>BB2 Authorization Flow Dashboard</label>
+  <description>Dashboard panels related to the authorization flow log tracing</description>
+  <fieldset submitButton="false"/>
+  <row>
+    <panel>
+      <input type="dropdown" token="bbEnvLabel" searchWhenChanged="true">
+        <label>Select Environment (by Label)</label>
+        <default>impl</default>
+        <choice value="dev">Dev env=dev</choice>
+        <choice value="test">Test env=test</choice>
+        <choice value="impl">Sandbox env=impl</choice>
+        <choice value="prod">Prod env=prod</choice>
+        <choice value="*">ALL env=*</choice>
+        <initialValue>prod</initialValue>
+      </input>
+    </panel>
+    <panel>
+      <input type="dropdown" token="bbEnv" searchWhenChanged="true">
+        <label>Select Environment (by IP Range)</label>
+        <default>ALL</default>
+        <choice value="*">ALL</choice>
+        <choice value="ip-10-224-78-*">Dev</choice>
+        <choice value="ip-10-224-90-*">Test</choice>
+        <choice value="ip-10-246-44-*">Sandbox</choice>
+        <choice value="ip-10-244-140-*">Prod</choice>
+        <initialValue>ALL</initialValue>
+      </input>
+    </panel>
+    <panel>
+      <input type="time" token="t_local" searchWhenChanged="true">
+        <label>Select Time Range</label>
+        <default>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+        </default>
+      </input>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>Authorization Flow Logging Event Counts -  Start to Completed</b>
+            <h2>Event Ordering:</h2>
+            <h3>
+              <table>
+                <tr>
+                  <td>1. Initial Authorization</td>
+                  <td>2. MyMedicare Login Redirect</td>
+                  <td>3. Authentication Start</td>
+                  <td>4. FHIR_ID Matched</td>
+                </tr>
+                <tr>
+                  <td>5. Beneficiary User/Crosswalk Retreive/Update</td>
+                  <td>6. Beneficiary User/Crosswalk Created New Record</td>
+                  <td>7. Authentication Success - SLS-to-FHIR_ID Matched</td>
+                  <td>8. MyMedicare SLS-Callback END</td>
+                </tr>
+                <tr>
+                  <td>9.  Authorization ApprovalView</td>
+                  <td>10. Authorization ApprovalView (redirect to bene consent form)</td>
+                  <td>11. Beneficiary Authorized Application - via consent form</td>
+                  <td>12. Authorized Application Receives Access Token</td>
+                </tr>
+              </table>
+            </h3>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>1. Initial Authorization</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokEpCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v1/o/authorize/" |  search "message.response_code"!="200" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>2. MyMedicare Login Redirect</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/login" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>3. Authentication Start</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:start" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>4. FHIR_ID Matched</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>5. Beneficiary User/Crosswalk Retreive/Update</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>6. Beneficiary User/Crosswalk Created New Record</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>7. Authentication Success - SLS-to-FHIR_ID Matched</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:success" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>8. MyMedicare SLS-Callback END</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>9. Authorization ApprovalView</title>
+      <single>
+        <search>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | stats count ]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>10. Authorization ApprovalView (redirect to bene consent form)</title>
+      <single>
+        <search>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | stats count ]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>11. Beneficiary Authorized Application - via consent form</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authorization" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>12. Authorized Application Receives Token</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokTcCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="AccessToken" | search message.auth_uuid!=null | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Initial Authorization Request / Authorization Completed %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Initial Authorization Request Events TIME-CHART</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v1/o/authorize/" | timechart count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
+        <option name="height">199</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Authorized Application Receives Token Events TIME-CHART</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="AccessToken" | search message.auth_uuid!=null | timechart count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="height">199</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>1. Initial Authorization Request Events: Events for the iniital link given to the beneficiary to authroze an application by making a request to the /v1/o/authorize/ end point. This is the start of the authorization flow. The built-in testclient events are excluded (response_code=200)</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokInitTotalCount">$result.count$</set>
+          </done>
+          <query>| makeresults | eval Total1=$tokEpCount$ | table Total1</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (response_code == "302")</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokInitOkCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v1/o/authorize/" |  search "message.response_code"="302" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokInitOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by response_code</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/$" | search "message.response_code"!="200" | stats count by message.response_code</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/$" | search "message.response_code"!="200" | table time message.auth_uuid message.ip_addr message.response_code message.path</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>2. MyMedicare Login Redirect Events: Events from the apps.mymedicare_cb.views.mymedicare_login() request used to redirect the beneficiary to the MyMedicare login page</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokMyMedTotalCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/login" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (response_code == "302")</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokMyMedOkCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/login" | search "message.response_code"="302" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokMyMedTotalCount$, Total2=$tokMyMedOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by response_code</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/login" | stats count by message.response_code</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/login" | table time message.auth_uuid message.ip_addr message.response_code message.location</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>3. Authentication Start Events: After beneficiary MyMedicare login. Events from the apps.mymedicare_cb.views.authenticate() function AFTER receiving a response from the SLS userinfo end point and BEFORE the beneficiary has been matched to a FHIR_ID with the BFD back end.</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokStartTotalCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:start" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (sls_status == "OK")</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokStartOkCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:start" | search message.sls_status="OK" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokStartTotalCount$, Total2=$tokStartOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events with SLS MBI FORMAT VALID (true vs. false)</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:start" | stats count by message.sls_mbi_format_valid</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events with SLS MBI FORMAT SYNTHETIC (true vs. false)</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:start" | stats count by message.sls_mbi_format_synthetic</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by sls_mbi_format_msg</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:start" | stats count by message.sls_mbi_format_msg</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:start" | table time message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>4. FHIR_ID Matched Events: Events from the match_fhir_id() function used to match either MBI or HICN hash to a FHIR_ID via the BFD backend.</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokFhirMatchTotalCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (match_found == "true")</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokFhirMatchOkCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokFhirMatchTotalCount$, Total2=$tokFhirMatchOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by match_found</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.match_found</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by hash_lookup_type</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.hash_lookup_type</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by hash_lookup_mesg</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.hash_lookup_mesg</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | table time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.hash_lookup_mesg message.mbi_hash message.hicn_hash</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>5. Beneficiary User/Crosswalk Retreive and Update Events: Events from the get_and_update_user() function used to find and update User/Crosswalk associated with the identity information from the ID provider (SLS). NOTE: This can have TWO events per auth_uuid (both RETURN and UPDATE messages)</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokGetUpTotalCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (NOTE: Update this later with new logging field!)</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokGetUpOkCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokGetUpTotalCount$, Total2=$tokGetUpOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by user_id_type (Previously stored crosswalk type)</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | stats count by message.crosswalk.user_id_type</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by hash_lookup_type (type used to match FHIR_ID)</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | stats count by message.hash_lookup_type</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by mesg</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | stats count by message.mesg</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | table time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.mesg message.mbi_hash message.hicn_hash</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>6. Beneficiary User/Crosswalk Created New Record Events: Events from the create_beneficiary_record() function used to create a new User/Crosswalk associated with the identity information from the ID provider (SLS). NOTE: Currently has a bug and is only logging errors and not SUCCESS.  NOTE:  This only has events for newly created User/Crosswalk records.</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokCreateBeneTotalCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (NOTE: Update later for new logging field)</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokCreateBeneOkCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokCreateBeneTotalCount$, Total2=$tokCreateBeneOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by  by message.mesg</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count by message.mesg</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | table time message.auth_uuid message.fhir_id message.username message.mesg mesg message.mbi_hash message.hicn_hash</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>7. Authentication Success - SLS-to-FHIR_ID Matched Events: Events from the apps.mymedicare_cb.views.authenticate() function AFTER the beneficiary has been successfully matched and a User/Crosswalk instance has been retreived or created.</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokAuthSuccTotalCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:success" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (NOTE: Update later with new logging field)</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokAuthSuccOkCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:success" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokAuthSuccTotalCount$, Total2=$tokAuthSuccOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by user_id_type (hash type used to match FHIR_ID)</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:success" | stats count by message.user.crosswalk.user_id_type</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authentication:success" | table time message.auth_uuid message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>8. MyMedicare SLS-Callback END Request Events: Events for calls to the apps.mymedicare_cb.views.callback() view at completion. To reach this part of the flow, the beneficiary successfully authenticated with SLS after logging in to the MyMedicare site.  PATH=/mymedicare/sls-callback</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokSlsCbTotalCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (response_code=302)</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokSlsCbOkCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | search "message.response_code"="302" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokSlsCbTotalCount$, Total2=$tokSlsCbOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by response_code</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | stats count by message.response_code</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | table time message.auth_uuid message.ip_addr message.response_code message.location</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>9. Authorization ApprovalView Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView()</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokApprovalVaTotalCount">$result.count$</set>
+          </done>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | stats count]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (response_code=200)</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokApprovalVaOkCount">$result.count$</set>
+          </done>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" |  search "message.location"="" | search "message.response_code"="200" | stats count]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokApprovalVaTotalCount$, Total2=$tokApprovalVaOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by response_code</title>
+        <search>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | stats count by message.response_code]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | table time message.auth_uuid message.ip_addr message.response_code message.user]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>10. Authorization ApprovalView (redirect to bene consent form) Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView(). After this step the beneficiary is presented with the consent form web page. </b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokAuthVbTotalCount">$result.count$</set>
+          </done>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | stats count]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>SUCCESSFUL Events (response_code=302)</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokAuthVbOkCount">$result.count$</set>
+          </done>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | search "message.response_code"="302" | stats count]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokAuthVbTotalCount$, Total2=$tokAuthVbOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by response_code</title>
+        <search>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | stats count by message.response_code]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | table time message.auth_uuid message.ip_addr message.response_code message.user message.location]]></query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>11. Beneficiary Authorized Application Events: Events from the apps.dot_ext.views.authorization.AuthorizationView.form_valid() method. A signal is sent to the beneficiary_authorized_application handler after the beneficiary has interacted with the consent form page. At this step the beneficiary has POSTed the consent form response to BB2.</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TOTAL Events (ALL SUCCESSFUL)</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokAuthAppTotalCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authorization" | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by match_found</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.match_found</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by user_id_type (hash type used for FHIR_ID match)</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authorization" | stats count by message.user.crosswalk.user_id_type</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="Authorization" | table time message.auth_uuid message.application.name message.user.username message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <u1>
+          <h1>
+            <b>12. Authorized Application Receives Access Token Events: Events from the oauth2_provider.signals.app_authorized signal handler when a app_authorized signal is sent. This is the final step in the authorization flow.</b>
+          </h1>
+        </u1>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Authorized Application Receives Token TOTAL Events</title>
+      <single>
+        <search>
+          <query>| makeresults | eval Total1=$tokTcCount$ | table Total1</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>1. Initial Authorization TOTAL Events</title>
+      <single>
+        <search>
+          <query>| makeresults | eval Total1=$tokEpCount$ | table Total1</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>Initial Authorization Request / Authorization Completed %</title>
+        <search>
+          <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.type" | search "message.type"="AccessToken" | search message.auth_uuid!=null | table time message.auth_uuid message.application.name message.user.username</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>
