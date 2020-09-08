@@ -22,7 +22,7 @@ class SimpleRequest(object):
 
 
 @override_switch('require-scopes', active=True)
-class TestTokenHasProtectedCapability(TestCase):
+class TestTokenHasProtectedCapabilityScopesSwitchTrue(TestCase):
     def setUp(self):
         g = Group.objects.create(name="test")
         ProtectedCapability.objects.create(
@@ -61,3 +61,47 @@ class TestTokenHasProtectedCapability(TestCase):
 
         perm = TokenHasProtectedCapability()
         self.assertFalse(perm.has_permission(request, None))
+
+
+@override_switch('require-scopes', active=False)
+class TestTokenHasProtectedCapabilityScopesSwitchFalse(TestCase):
+    def setUp(self):
+        g = Group.objects.create(name="test")
+        ProtectedCapability.objects.create(
+            title="test capability",
+            slug="scope",
+            group=g,
+            protected_resources=json.dumps([["GET", "/path"]]),
+        )
+        ProtectedCapability.objects.create(
+            title="unused capability",
+            slug="unused",
+            group=g,
+            protected_resources=json.dumps([["POST", "/path"]]),
+        )
+
+    def test_request_is_protected(self):
+        request = SimpleRequest("scope")
+        request.method = "GET"
+        request.path = "/path"
+
+        perm = TokenHasProtectedCapability()
+        self.assertTrue(perm.has_permission(request, None))
+
+    def test_protected_path_not_allowed(self):
+        request = SimpleRequest("unused")
+        request.method = "GET"
+        request.path = "/path"
+
+        perm = TokenHasProtectedCapability()
+        # Note that this is allowed with the scopes switch False/Off
+        self.assertTrue(perm.has_permission(request, None))
+
+    def test_protected_path_no_scopes(self):
+        request = SimpleRequest()
+        request.method = "GET"
+        request.path = "/path"
+
+        perm = TokenHasProtectedCapability()
+        # Note that this is allowed with the scopes switch False/Off
+        self.assertTrue(perm.has_permission(request, None))
