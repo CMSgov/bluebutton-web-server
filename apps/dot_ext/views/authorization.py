@@ -66,6 +66,7 @@ class AuthorizationView(DotAuthorizationView):
         }
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
+        share_demographic_scopes = form.cleaned_data.get("share_demographic_scopes")
 
         try:
             uri, headers, body, status = self.create_authorization_response(
@@ -78,7 +79,9 @@ class AuthorizationView(DotAuthorizationView):
             sender=self,
             request=self.request,
             user=self.request.user,
-            application=application)
+            application=application,
+            share_demographic_scopes=share_demographic_scopes,
+            scopes=scopes)
 
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))

@@ -41,7 +41,9 @@ def handle_token_created(sender, request, token, **kwargs):
 
 
 @receiver(beneficiary_authorized_application)
-def handle_app_authorized(sender, request, user, application, **kwargs):
+def handle_app_authorized(sender, request, user, application,
+                          share_demographic_scopes, scopes, **kwargs):
+
     # Get auth flow dict from session for logging
     auth_flow_dict = get_session_auth_flow_trace(request)
 
@@ -67,6 +69,8 @@ def handle_app_authorized(sender, request, user, application, **kwargs):
             "id": application.id,
             "name": application.name,
         },
+        "share_demographic_scopes": share_demographic_scopes,
+        "scopes": scopes,
     }))
 
 

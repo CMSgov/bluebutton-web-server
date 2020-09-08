@@ -53,6 +53,14 @@ class Token:
         app = getattr(self.tkn, 'application', None)
         app_user = getattr(app, 'user', None)
         user = getattr(self.tkn, 'user', None)
+        scopes_dict = getattr(self.tkn, 'scopes', None)
+
+        if scopes_dict:
+            # Convert dict keys list to str
+            scopes = " ".join(scopes_dict.keys())
+        else:
+            scopes = ""
+
         result = {
             "type": "AccessToken",
             "auth_uuid": self.auth_flow_dict.get('auth_uuid', None),
@@ -64,6 +72,7 @@ class Token:
             "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(
                 str(getattr(self.tkn, 'token', None)).encode('utf-8')).hexdigest(),
+            "scopes": scopes,
             "application": {
                 "id": getattr(app, 'id', None),
                 "name": getattr(app, 'name', None),
