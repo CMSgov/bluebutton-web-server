@@ -9,7 +9,7 @@ class TestSimpleAllowFormForm(BaseApiTest):
 
     def test_form(self):
         """
-            Test form related to scopes and BENE block_personal_choice.
+        Test form related to scopes and BENE share_demographic_scopes.
         """
         full_scopes_list = CapabilitiesScopes().get_default_scopes()
         non_personal_scopes_list = list(set(full_scopes_list) - set(settings.BENE_PERSONAL_INFO_SCOPES))
@@ -23,9 +23,10 @@ class TestSimpleAllowFormForm(BaseApiTest):
                 'code_challenge_method': '',
                 'allow': 'Allow'}
 
-        # 1. Test with block_personal_choice = False
+        # 1. Test with share_demographic_scopes = True
         #        Should have full scopes list.
-        data['block_personal_choice'] = 'False'
+        data['share_demographic_scopes'] = 'True'
+
         form = SimpleAllowForm(data)
         self.assertTrue(form.is_valid())
         cleaned_data = form.cleaned_data
@@ -34,9 +35,20 @@ class TestSimpleAllowFormForm(BaseApiTest):
         self.assertEqual(sorted(full_scopes_list),
                          sorted(cleaned_data['scope'].split()))
 
-        # 2. Test with block_personal_choice = True
+        # 2. Test with share_demographic_scopes = None (missing/empty)
+        #        Should have full scopes list.
+        del data['share_demographic_scopes']
+        form = SimpleAllowForm(data)
+        self.assertTrue(form.is_valid())
+        cleaned_data = form.cleaned_data
+
+        self.assertNotEqual(cleaned_data['scope'].split(), None)
+        self.assertEqual(sorted(full_scopes_list),
+                         sorted(cleaned_data['scope'].split()))
+
+        # 3. Test with share_demographic_scopes = False
         #        Should have non personal scopes list.
-        data['block_personal_choice'] = 'True'
+        data['share_demographic_scopes'] = 'False'
         form = SimpleAllowForm(data)
         self.assertTrue(form.is_valid())
         cleaned_data = form.cleaned_data

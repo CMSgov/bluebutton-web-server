@@ -153,14 +153,24 @@ class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
     auth_uuid = forms.CharField(required=False, widget=forms.HiddenInput())
-    block_personal_choice = forms.BooleanField(required=False)
+    share_demographic_scopes = forms.CharField(required=False)
 
     def clean(self):
         cleaned_data = super().clean()
-        scope = cleaned_data.get("scope")
+        scope = cleaned_data.get("scope", None)
 
-        # Remove personal information scopes, if requested by bene
-        if cleaned_data.get("block_personal_choice"):
+        if scope is None:
+            cleaned_data['scope'] = ""
+            scope = ""
+
+        # Default is True for any non "false" value.
+        if cleaned_data.get("share_demographic_scopes").lower() == "false":
+            share_demographic_scopes = False
+        else:
+            share_demographic_scopes = True
+
+        # Remove demographic information scopes, if beneficiary is not sharing
+        if not share_demographic_scopes:
             cleaned_data['scope'] = ' '.join([s for s in scope.split(" ")
                                              if s not in settings.BENE_PERSONAL_INFO_SCOPES])
 
