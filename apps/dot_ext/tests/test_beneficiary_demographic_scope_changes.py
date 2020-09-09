@@ -2,7 +2,7 @@ import json
 from apps.test import BaseApiTest
 from django.urls import reverse
 from oauth2_provider.compat import parse_qs, urlparse
-from oauth2_provider.models import AccessToken
+from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 from ..models import Application
@@ -139,6 +139,12 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         content = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
 
+        # Verify token counts expected.
+        access_token_count = AccessToken.objects.count()
+        refresh_token_count = RefreshToken.objects.count()
+        self.assertEqual(access_token_count, 2)
+        self.assertEqual(refresh_token_count, 2)
+
         # ------ TEST #3:  3nd authorization: Beneficary authorizes NOT to share demographic data. ------
         payload['share_demographic_scopes'] = False
 
@@ -165,6 +171,12 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         content = json.loads(response.content)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(content.get('detail', None), "You do not have permission to perform this action.")
+
+        # Verify token counts expected.
+        access_token_count = AccessToken.objects.count()
+        refresh_token_count = RefreshToken.objects.count()
+        self.assertEqual(access_token_count, 1)
+        self.assertEqual(refresh_token_count, 1)
 
         # ------ TEST #4:  Test token_1 from TEST #1 access to userinfo? Does it still have access? ------
         # Setup token in APIClient
@@ -226,3 +238,9 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         content = json.loads(response.content)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(content.get('detail', None), "You do not have permission to perform this action.")
+
+        # Verify token counts expected.
+        access_token_count = AccessToken.objects.count()
+        refresh_token_count = RefreshToken.objects.count()
+        self.assertEqual(access_token_count, 2)
+        self.assertEqual(refresh_token_count, 2)
