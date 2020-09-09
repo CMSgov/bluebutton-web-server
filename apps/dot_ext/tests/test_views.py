@@ -81,9 +81,9 @@ class TestAuthorizationView(BaseApiTest):
         # and here we test that only the capability-a scope has been issued
         self.assertEqual(content['scope'], "capability-a")
 
-    def test_post_with_block_personal_choice(self):
+    def test_post_with_share_demographic_scopes(self):
         """
-        Test that when user chooses the block_personal_choice on
+        Test that when user chooses the share_demographic_scopes on
         the BENE consent form, that the correct scopes are blocked
         with the require-scopes feature switch DISABLED.
         """
@@ -113,23 +113,23 @@ class TestAuthorizationView(BaseApiTest):
             'allow': True,
         }
 
-        # 1. Test the authorization with block_personal_choice = None.
+        # 1. Test the authorization with share_demographic_scopes = None.
         response = self._authorize_and_request_token(payload, application)
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content.decode("utf-8"))
         # and here we test that the full scopes have been issued
         self.assertEqual(sorted(content['scope'].split()), sorted(full_scopes_list))
 
-        # 2. Test the authorization with block_personal_choice = False.
-        payload['block_personal_choice'] = 'False'
+        # 2. Test the authorization with share_demographic_scopes = True.
+        payload['share_demographic_scopes'] = 'True'
         response = self._authorize_and_request_token(payload, application)
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content.decode("utf-8"))
         # and here we test that the full scopes have been issued
         self.assertEqual(sorted(content['scope'].split()), sorted(full_scopes_list))
 
-        # 3. Test the authorization with block_personal_choice = True.
-        payload['block_personal_choice'] = 'True'
+        # 3. Test the authorization with share_demographic_scopes = False.
+        payload['share_demographic_scopes'] = 'False'
         response = self._authorize_and_request_token(payload, application)
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content.decode("utf-8"))

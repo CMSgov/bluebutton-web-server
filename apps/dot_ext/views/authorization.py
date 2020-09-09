@@ -66,19 +66,36 @@ class AuthorizationView(DotAuthorizationView):
         }
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
+        share_demographic_scopes = form.cleaned_data.get("share_demographic_scopes")
 
         try:
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
             )
         except OAuthToolkitError as error:
-            return self.error_response(error, application)
+            response = self.error_response(error, application)
+            beneficiary_authorized_application.send(
+                sender=self,
+                request=self.request,
+                auth_status="FAIL",
+                auth_status_code=response.status_code,
+                user=self.request.user,
+                application=application,
+                share_demographic_scopes=share_demographic_scopes,
+                scopes=scopes,
+                allow=allow)
+            return response
 
         beneficiary_authorized_application.send(
             sender=self,
             request=self.request,
+            auth_status="OK",
+            auth_status_code=None,
             user=self.request.user,
-            application=application)
+            application=application,
+            share_demographic_scopes=share_demographic_scopes,
+            scopes=scopes,
+            allow=allow)
 
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))
