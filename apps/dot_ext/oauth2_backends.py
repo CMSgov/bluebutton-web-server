@@ -1,6 +1,7 @@
 import json
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.models import AccessToken, RefreshToken
 from ..fhir.bluebutton.models import Crosswalk
@@ -42,14 +43,7 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
             # Does new token scope NOT contain BENE_PERSONAL_INFO_SCOPES?
             if not set(settings.BENE_PERSONAL_INFO_SCOPES).issubset(scope.split()):
                 with transaction.atomic():
-                    # Loop thru all AC's for app/user pair.
-                    for tkn in AccessToken.objects.filter(application=app, user=user):
-                        # If not the new token, delete.
-                        if tkn != token:
-                            # Delete related refresh tokens.
-                            for refresh_tkn in RefreshToken.objects.filter(access_token=tkn):
-                                refresh_tkn.delete()
-                            # Delete past token.
-                            tkn.delete()
+                    AccessToken.objects.filter(application=app, user=user).filter(~Q(id=token.id)).delete()
+                    RefreshToken.objects.filter(application=app, user=user).filter(~Q(access_token=token)).delete()
 
         return uri, headers, body, status
