@@ -19,7 +19,4 @@ def headers(request, url=None):
     header_info['BlueButton-OriginalUrl'] = request.path
     header_info['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
     header_info['BlueButton-BackendCall'] = url
-    # BB2-279 support BFD header "includeAddressFields" and always set to False
-    # NOT TO include addresss info in Patient resource (refer BFD-379)
-    header_info['includeAddressFields'] = 'False'
     return header_info

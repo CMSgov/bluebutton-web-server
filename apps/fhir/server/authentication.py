@@ -6,6 +6,10 @@ from ..bluebutton.exceptions import UpstreamServerException
 from ..bluebutton.utils import (FhirServerAuth,
                                 get_resourcerouter)
 from .loggers import log_match_fhir_id
+from apps.fhir.bluebutton.signals import (
+    pre_fetch,
+    post_fetch
+)
 
 
 def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
@@ -56,9 +60,17 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         + "Patient/?identifier=" + search_identifier \
         + "&_format=" + settings.FHIR_PARAM_FORMAT
 
+    s = requests.Session()
+
+    req = requests.Request('GET', url, headers=headers)
+    prepped = req.prepare()
+    # add fhir data audit logging
+    pre_fetch.send_robust(FhirServerAuth, request=req)
     # Get FHIR service backend response.
-    #   TODO: Should work with verify=True
-    response = requests.get(url, cert=certs, headers=headers, verify=False)
+    # TODO: Should work with verify=True
+    # response = requests.get(url, cert=certs, headers=headers, verify=False)
+    response = s.send(prepped, cert=certs, verify=False)
+    post_fetch.send_robust(FhirServerAuth, request=req, response=response)
     response.raise_for_status()
     backend_data = response.json()
 
