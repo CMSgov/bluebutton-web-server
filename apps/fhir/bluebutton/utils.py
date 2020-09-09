@@ -120,6 +120,9 @@ def get_query_counter(request):
 def generate_info_headers(request):
     """Returns a dict of headers to be sent to the backend"""
     result = {}
+    # BB2-279 support BFD header "includeAddressFields" and always set to False
+    # NOT TO include addresss info in Patient resource (refer BFD-379)
+    result['includeAddressFields'] = 'False'
     # get timestamp from request via Middleware, or get current time
     result['BlueButton-OriginalQueryTimestamp'] = str(get_timestamp(request))
 
