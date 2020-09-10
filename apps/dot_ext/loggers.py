@@ -1,5 +1,6 @@
 import re
 import uuid
+from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
 from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
@@ -148,10 +149,11 @@ def update_instance_auth_flow_trace_with_code(auth_uuid, code):
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.form_valid()
     '''
     try:
-        auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-        # Set code.
-        auth_flow_uuid.code = code
-        auth_flow_uuid.save()
+        if code and len(code.strip()) != 0:
+            auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
+            # Set code.
+            auth_flow_uuid.code = code
+            auth_flow_uuid.save()
     except AuthFlowUuid.DoesNotExist:
         pass
     except IntegrityError:
@@ -167,12 +169,14 @@ def update_session_auth_flow_trace_from_code(request, code):
     # Get session values from AuthFlowUuid via code.
     try:
         # Get previously created AuthFlowUuid with code.
-        auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
-        set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
-
-        # Delete the no longer needed instance
-        auth_flow_uuid.delete()
+        if code and len(code.strip()) != 0:
+            auth_flow_uuid = AuthFlowUuid.objects.get(code=code)
+            set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
+            # Delete the no longer needed instance
+            auth_flow_uuid.delete()
     except AuthFlowUuid.DoesNotExist:
+        pass
+    except MultipleObjectsReturned:
         pass
 
 
@@ -188,9 +192,10 @@ def update_instance_auth_flow_trace_with_state(request, state):
     if auth_uuid:
         # Store state in AuthFlowUuid.
         try:
-            auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-            auth_flow_uuid.state = state
-            auth_flow_uuid.save()
+            if state and len(state.strip()) != 0:
+                auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
+                auth_flow_uuid.state = state
+                auth_flow_uuid.save()
         except AuthFlowUuid.DoesNotExist:
             pass
         except IntegrityError:
@@ -205,7 +210,10 @@ def update_session_auth_flow_trace_from_state(request, state):
     '''
     # Retreive auth flow session values using previous state in AuthFlowUuid.
     try:
-        auth_flow_uuid = AuthFlowUuid.objects.get(state=state)
-        set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
+        if state and len(state.strip()) != 0:
+            auth_flow_uuid = AuthFlowUuid.objects.get(state=state)
+            set_session_values_from_auth_flow_uuid(request, auth_flow_uuid)
     except AuthFlowUuid.DoesNotExist:
+        pass
+    except MultipleObjectsReturned:
         pass
