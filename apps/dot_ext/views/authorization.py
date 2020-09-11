@@ -43,6 +43,16 @@ class AuthorizationView(DotAuthorizationView):
             request.session['organization'] = str(user.username)
             request.session['organization_id'] = str(user.pk)
 
+        app, user = get_app_and_org(request)
+
+        if app:
+            request.session['application'] = str(app.name)
+            request.session['application_id'] = str(app.pk)
+
+        if user:
+            request.session['organization'] = str(user.username)
+            request.session['organization_id'] = str(user.pk)
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_template_names(self):
