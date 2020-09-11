@@ -75,6 +75,15 @@ class MyMedicareBlueButtonClientBFDRequest(TestCase):
                      sls_user_info_mock,
                      fhir_patient_info_mock,
                      catchall):
+            # need to fake an auth flow context to pass
+            # validation of Request.prepare(...) in
+            # apps.fhir.server.authentication.py->search_fhir_id_by_identifier(...)
+            s = self.client.session
+            s.update({"auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
+                      "auth_app_id": "2",
+                      "auth_app_name": "TestApp-001",
+                      "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
+            s.save()
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
             # assert http redirect
             self.assertEqual(response.status_code, 302)
