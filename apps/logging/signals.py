@@ -24,7 +24,6 @@ from .serializers import (
     DataAccessGrantSerializer,
     FHIRRequest,
     FHIRResponse,
-    SLSResponse,
 )
 
 token_logger = logging.getLogger('audit.authorization.token')
@@ -97,8 +96,10 @@ def fetched_data(sender, request=None, response=None, **kwargs):
     fhir_logger.info(get_event(FHIRResponse(response)))
 
 
-def sls_hook(sender, response=None, auth_uuid=None, **kwargs):
-    sls_logger.info(get_event(sender(response, auth_uuid)))
+def sls_hook(sender, response=None, auth_uuid=None, application=None,
+             application_id=None, organization=None, organization_id=None, **kwargs):
+    sls_logger.info(get_event(sender(response, auth_uuid, application,
+                    application_id, organization, organization_id)))
 
 
 def get_event(event):
