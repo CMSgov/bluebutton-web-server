@@ -50,7 +50,6 @@ class OAuth2Config(object):
             organization_id = request.session.get('organization_id', None)
             headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                             if hasattr(request, '_logging_uuid') else '')})
-                            
         response = requests.post(
             self.token_endpoint,
             auth=self.basic_auth(),
