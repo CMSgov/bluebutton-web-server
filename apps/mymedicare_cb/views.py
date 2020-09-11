@@ -2,7 +2,6 @@ import logging
 import random
 import requests
 import urllib.request as urllib_request
-import uuid
 import datetime
 from django.conf import settings
 from django.core.exceptions import ValidationError

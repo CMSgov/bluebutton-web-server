@@ -118,13 +118,13 @@ class SLSRequest(Request):
         return self.req.headers.get('X-Request-ID')
 
     def user(self):
-        return 'Unavailable'
+        pass
 
     def start_time(self):
         return self.req.headers.get('X-SLS-starttime')
 
     def application(self):
-        return 'Unavailable'
+        pass
 
     def path(self):
         return self.req.path_url if self.req.path_url else None
