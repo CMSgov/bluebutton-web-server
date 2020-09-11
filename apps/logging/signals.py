@@ -97,8 +97,8 @@ def fetched_data(sender, request=None, response=None, **kwargs):
     fhir_logger.info(get_event(FHIRResponse(response)))
 
 
-def sls_hook(sender, response=None, **kwargs):
-    sls_logger.info(get_event(SLSResponse(response)))
+def sls_hook(sender, response=None, auth_uuid=None, **kwargs):
+    sls_logger.info(get_event(sender(response, auth_uuid)))
 
 
 def get_event(event):
