@@ -221,6 +221,7 @@ class TestTokenView(BaseApiTest):
         self.assertEqual(result, expected)
 
     def test_delete_token_success(self):
+        error_msg_regex = 'Could not find the TLS certificate file.*|Could not find a suitable TLS CA certificate bundle.*'
         anna = self._create_user(self.test_username, '123456', fhir_id='19990000000002')
         bob = self._create_user('bob',
                                 '123456',
@@ -250,7 +251,7 @@ class TestTokenView(BaseApiTest):
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(OSError, 'Could not find the TLS certificate file.*|Could not find a suitable TLS CA certificate bundle.*'):
+        with self.assertRaisesRegexp(OSError, error_msg_regex):
             response = self.client.get('/v1/fhir/Patient',
                                        HTTP_AUTHORIZATION="Bearer " + tkn.token)
 
@@ -287,7 +288,7 @@ class TestTokenView(BaseApiTest):
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(OSError, 'Could not find the TLS certificate file.*|Could not find a suitable TLS CA certificate bundle.*'):
+        with self.assertRaisesRegexp(OSError, error_msg_regex):
             response = self.client.get('/v1/fhir/Patient',
                                        HTTP_AUTHORIZATION="Bearer " + bob_tkn.token)
 
@@ -295,7 +296,7 @@ class TestTokenView(BaseApiTest):
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(OSError, 'Could not find the TLS certificate file.*|Could not find a suitable TLS CA certificate bundle.*'):
+        with self.assertRaisesRegexp(OSError, error_msg_regex):
             response = self.client.get('/v1/fhir/Patient',
                                        HTTP_AUTHORIZATION="Bearer " + next_tkn.token)
 
