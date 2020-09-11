@@ -419,7 +419,7 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
 
 # BB2-245 do ssl verify when access BFD services
 # Added Blue Button trusted store - a directory where CA certs (for production) / self-signed certs (for dev/test)
-# are stored, default to a sub directory 'trusted_certs' under FHIR_CLIENT_CERTSTORE 
+# are stored, default to a sub directory 'trusted_certs' under FHIR_CLIENT_CERTSTORE
 # Added flag verify_ssl, default to True
 FHIR_SERVER = {
     "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/"),
