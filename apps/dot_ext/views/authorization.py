@@ -44,6 +44,14 @@ class AuthorizationView(DotAuthorizationView):
         if user and not user.is_active:
             raise PermissionDenied("Organization is not active")
 
+        app, user = get_app_and_org(request)
+
+        if app and not app.active:
+            raise PermissionDenied("Application is not active")
+
+        if user and not user.is_active:
+            raise PermissionDenied("Organization is not active")
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_template_names(self):
