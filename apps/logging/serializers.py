@@ -99,14 +99,13 @@ class Request:
         return self.req
 
     def to_dict(self):
-        result = {
+        return {
             "uuid": self.uuid(),
             "user": self.user(),
             "start_time": self.start_time(),
             "application": self.application(),
             "path": self.path(),
         }
-        return result
 
     def __str__(self):
         return json.dumps(self.to_dict())
@@ -118,16 +117,16 @@ class SLSRequest(Request):
         return self.req.headers.get('X-Request-ID')
 
     def user(self):
-        return None
+        pass
 
     def start_time(self):
-        return None
+        return self.req.headers.get('X-SLS-starttime')
 
     def application(self):
-        return None
+        pass
 
     def path(self):
-        return self.req.path
+        return self.req.path_url if self.req.path_url else None
 
 
 class FHIRRequest(Request):
@@ -211,8 +210,18 @@ class FHIRRequestForAuth(Request):
 class Response:
     request_class = None
     resp = None
+    auth_uuid = None
+    application = None
+    application_id = None
+    organization = None
+    organization_id = None
 
-    def __init__(self, response):
+    def __init__(self, response, auth_uuid, application, application_id, organization, organization_id):
+        self.auth_uuid = auth_uuid
+        self.application = application
+        self.application_id = application_id
+        self.organization = organization
+        self.organization_id = organization_id
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
         self.req = self.request_class(response.request).to_dict() if response.request else {}
@@ -227,11 +236,13 @@ class Response:
         return self.resp.elapsed.total_seconds()
 
     def to_dict(self):
-        return {
+        resp_dict = {
             "code": self.code(),
             "size": self.size(),
             "elapsed": self.elapsed(),
         }
+        resp_dict.update(self.req)
+        return resp_dict
 
     def __str__(self):
         result = self.req.copy()
@@ -272,4 +283,77 @@ class FHIRResponseForAuth(Response):
 
 
 class SLSResponse(Response):
+    def to_dict(self):
+        resp_dict = super().to_dict().copy()
+        resp_dict.update({
+            'type': self.get_type(),
+            'auth_uuid': self.auth_uuid,
+            'application': self.application,
+            'application_id': self.application_id,
+            'organization': self.organization,
+            'organization_id': self.organization_id,
+        })
+        return resp_dict
+
+
+class SLSTokenResponse(SLSResponse):
     request_class = SLSRequest
+
+    def get_type(self):
+        return 'SLS_token'
+
+    def to_dict(self):
+        event_dict = json.loads(self.resp.text)
+        event_dict.update(super().to_dict().copy())
+        return {
+            "uuid": event_dict['uuid'],
+            "auth_uuid": event_dict['auth_uuid'],
+            "type": event_dict['type'],
+            "application": event_dict['application'],
+            "application_id": event_dict['application_id'],
+            "organization(user)": event_dict['organization'],
+            "organization(user)_id": event_dict['organization_id'],
+            "path": event_dict['path'],
+            "access_token": hashlib.sha256(
+                str(event_dict['access_token']).encode('utf-8')).hexdigest(),
+            "code": event_dict['code'],
+            "size": event_dict['size'],
+            "start_time": event_dict['start_time'],
+            "elapsed": event_dict['elapsed'],
+        }
+
+    def __str__(self):
+        # result = self.req
+        # result.update(self.to_dict())
+        return json.dumps(self.to_dict())
+
+
+class SLSUserInfoResponse(SLSResponse):
+    request_class = SLSRequest
+
+    def get_type(self):
+        return 'SLS_userinfo'
+
+    def to_dict(self):
+        event_dict = json.loads(self.resp.text)
+        event_dict.update(super().to_dict().copy())
+        return {
+            "uuid": event_dict['uuid'],
+            "auth_uuid": event_dict['auth_uuid'],
+            "type": event_dict['type'],
+            "application": event_dict['application'],
+            "application_id": event_dict['application_id'],
+            "organization(user)": event_dict['organization'],
+            "organization(user)_id": event_dict['organization_id'],
+            "path": event_dict['path'],
+            "sub": event_dict['sub'],
+            "code": event_dict['code'],
+            "size": event_dict['size'],
+            "start_time": event_dict['start_time'],
+            "elapsed": event_dict['elapsed'],
+        }
+
+    def __str__(self):
+        # result = self.req
+        # result.update(self.to_dict())
+        return json.dumps(self.to_dict())

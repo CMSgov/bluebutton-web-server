@@ -236,7 +236,7 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                 }
 
             with HTTMock(catchall):
-                tkn = sls_client.exchange("test_code")
+                tkn = sls_client.exchange("test_code", None)
                 self.assertEquals(tkn, "test_tkn")
 
     def test_failed_sls_token_exchange(self):
@@ -258,5 +258,5 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
 
             with HTTMock(catchall):
                 with self.assertRaises(requests.exceptions.HTTPError):
-                    tkn = sls_client.exchange("test_code")
+                    tkn = sls_client.exchange("test_code", None)
                     self.assertEquals(tkn, "test_tkn")
