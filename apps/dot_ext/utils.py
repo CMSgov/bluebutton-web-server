@@ -1,6 +1,11 @@
 from django.db import transaction
 from oauth2_provider.models import AccessToken, RefreshToken
 from apps.authorization.models import DataAccessGrant
+from oauth2_provider.models import get_application_model
+from django.contrib.auth import get_user_model
+
+Application = get_application_model()
+User = get_user_model()
 
 
 def remove_application_user_pair_tokens_data_access(application, user):
@@ -34,3 +39,19 @@ def remove_application_user_pair_tokens_data_access(application, user):
         refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
 
     return data_access_grant_delete_cnt, access_token_delete_cnt, refresh_token_delete_cnt
+
+
+
+def get_app_and_org(request):
+    client_id = request.GET.get('client_id', None)
+    app = None
+    user = None
+
+    if client_id is not None:
+        apps = Application.objects.filter(client_id=client_id)
+        if apps:
+            app = apps.first()
+            user = User.objects.get(pk=app.user_id)
+
+    return app, user
+
