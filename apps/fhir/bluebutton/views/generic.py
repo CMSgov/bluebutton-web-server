@@ -116,11 +116,13 @@ class FhirDataView(APIView):
         prepped = s.prepare_request(req)
         # Send signal
         pre_fetch.send_robust(FhirDataView, request=req)
+        verify_server = FhirServerVerify(crosswalk=request.crosswalk)
+        verify_server = resource_router.ca_bundle if verify_server else False
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
-            verify=FhirServerVerify(crosswalk=request.crosswalk))
+            verify=verify_server)
         # Send signal
         post_fetch.send_robust(FhirDataView, request=prepped, response=r)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
