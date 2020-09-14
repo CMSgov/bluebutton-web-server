@@ -1,6 +1,9 @@
 import logging
 from rest_framework import (permissions, exceptions)
+from django.contrib.auth import get_user_model
 from .constants import ALLOWED_RESOURCE_TYPES
+
+User = get_user_model()
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -63,3 +66,16 @@ class SearchCrosswalkPermission(HasCrosswalk):
         if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
             return False
         return True
+
+
+class ApplicationActivePermission(permissions.BasePermission):
+
+    message = 'Permission denied, Application or organization is not active.'
+
+    def has_permission(self, request, view):
+        app_is_active = request.auth and request.auth.application.active
+        user = None
+        if request.auth:
+            user = User.objects.get(pk=request.auth.application.user_id)
+        org_is_active = user and user.is_active
+        return (org_is_active and app_is_active)

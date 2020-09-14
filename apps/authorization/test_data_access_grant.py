@@ -6,6 +6,7 @@ from oauth2_provider.models import (
     get_access_token_model,
 )
 from django.urls import reverse
+from rest_framework.exceptions import PermissionDenied
 
 from apps.test import BaseApiTest
 
@@ -207,3 +208,55 @@ class TestDataAccessGrant(BaseApiTest):
             checks['unique_tokens'],
             checks['grants'],
         )
+
+    def test_permission_deny_on_app_or_org_disabled(self):
+        '''
+        BB2-149 leverage application.active, user.is_active to deny permission
+        to an application or applications under a user (organization)
+        '''
+        redirect_uri = 'http://localhost'
+        # create a user
+        user = self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            user=user,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a)
+        application.active = False
+        application.save()
+        # user logs in
+        self.client.login(username='anna', password='123456')
+
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+        }
+        response = self.client.get('/v1/o/authorize', data=payload)
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+        }
+
+        try:
+            self.client.post(response['Location'], data=payload)
+        except PermissionDenied as permErr:
+            self.assertEqual(str(permErr), "Application is not active")
+
+        application.active = True
+        application.save()
+
+        user.is_active = False
+        user.save()
+
+        try:
+            self.client.post(response['Location'], data=payload)
+        except PermissionDenied as permErr:
+            self.assertEqual(str(permErr), "Organization is not active")

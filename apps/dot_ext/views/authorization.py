@@ -4,12 +4,14 @@ from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from urllib.parse import urlparse, parse_qs
+from rest_framework.exceptions import PermissionDenied
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
 from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
                        set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
+from ..utils import get_app_and_org
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -32,6 +34,22 @@ class AuthorizationView(DotAuthorizationView):
         if not kwargs.get('is_subclass_approvalview', False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
             create_session_auth_flow_trace(request)
+
+        app, user = get_app_and_org(request)
+
+        if app and not app.active:
+            raise PermissionDenied("Application is not active")
+
+        if user and not user.is_active:
+            raise PermissionDenied("Organization is not active")
+
+        app, user = get_app_and_org(request)
+
+        if app and not app.active:
+            raise PermissionDenied("Application is not active")
+
+        if user and not user.is_active:
+            raise PermissionDenied("Organization is not active")
 
         return super().dispatch(request, *args, **kwargs)
 
