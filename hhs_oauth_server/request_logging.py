@@ -38,6 +38,7 @@ class RequestResponseLog(object):
         - app_id = Application id.
         - dev_name = Developer user name.
         - dev_id = Developer user id.
+        - fhir_id = Bene patient id.
     """
 
     request = None
@@ -68,7 +69,6 @@ class RequestResponseLog(object):
         elif getattr(self.response, 'content', False):
             log_msg['size'] = len(self.response.content)
 
-        log_msg['user'] = str(get_user_from_request(self.request))
         log_msg['ip_addr'] = get_ip_from_request(self.request)
 
         access_token = getattr(self.request, 'auth', get_access_token_from_request(self.request))
@@ -92,6 +92,12 @@ class RequestResponseLog(object):
 
                 for k in SESSION_AUTH_FLOW_TRACE_KEYS:
                     log_msg[k] = auth_flow_dict.get(k, None)
+
+        # Get FHIR_ID if available.
+        user = get_user_from_request(self.request)
+        if user:
+            log_msg['user'] = str(user)
+            log_msg['fhir_id'] = str(user.crosswalk.fhir_id)
 
         return(json.dumps(log_msg))
 
