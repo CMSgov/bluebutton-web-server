@@ -417,11 +417,17 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, env('DJANGO_FHIR_CERTSTORE_REL', '../certstore')))
 
+# BB2-245 do ssl verify when access BFD services
+# Added Blue Button trusted store - a directory where CA certs (for production) / self-signed certs (for dev/test)
+# are stored, default to a sub directory 'trusted_certs' under FHIR_CLIENT_CERTSTORE
+# Added flag verify_ssl, default to True
 FHIR_SERVER = {
     "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/"),
     "CERT_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", "ca.cert.pem")),
     "KEY_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_KEY_FILE", "ca.key.nocrypt.pem")),
+    "CA_BUNDLE": os.path.join(FHIR_CLIENT_CERTSTORE, env("CA_BUNDLE", "ca_bundle.pem")),
     "CLIENT_AUTH": True,
+    "VERIFY_SERVER": True,
 }
 
 '''
