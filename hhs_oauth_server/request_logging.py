@@ -97,7 +97,9 @@ class RequestResponseLog(object):
         user = get_user_from_request(self.request)
         if user:
             log_msg['user'] = str(user)
-            log_msg['fhir_id'] = str(user.crosswalk.fhir_id)
+            if getattr(user, 'crosswalk', None):
+                if getattr(user.crosswalk, 'fhir_id', None):
+                    log_msg['fhir_id'] = str(user.crosswalk.fhir_id)
 
         return(json.dumps(log_msg))
 
