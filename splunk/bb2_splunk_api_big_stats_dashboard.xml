@@ -612,4 +612,112 @@
       </table>
     </panel>
   </row>
+
+  <row>
+    <panel>
+      <html>
+       <u1> <h1>
+            <b>API Result Codes = 403-forbidden for the /v1/fhir/Coverage/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</b>
+          </h1>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title></title>
+      <chart>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ | search "message.app_name"="$bbAppName$" AND "message.ip_addr"="$bbIpAddr$" AND "message.path"="/v1/fhir/coverage*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-90</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">1</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisEnd</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>API Result Codes = 403-forbidden for the /v1/fhir/Coverage/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</title>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ | search "message.app_name"="$bbAppName$" AND "message.ip_addr"="$bbIpAddr$" AND "message.path"="/v1/fhir/coverage*" | search message.response_code=403 |  stats count by message.app_name</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
+
+  <row>
+    <panel>
+      <html>
+       <u1> <h1>
+            <b>API Result Codes = 403-forbidden for the /v1/fhir/ExplanationOfBenefit/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</b>
+          </h1>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title></title>
+      <chart>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ | search "message.app_name"="$bbAppName$" AND "message.ip_addr"="$bbIpAddr$" AND "message.path"="/v1/fhir/explanationofbenefit*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-90</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">1</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisEnd</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>API Result Codes = 403-forbidden for the /v1/fhir/ExplanationOfBenefit/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</title>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ | search "message.app_name"="$bbAppName$" AND "message.ip_addr"="$bbIpAddr$" AND "message.path"="/v1/fhir/explanationofbenefit*" | search message.response_code=403 |  stats count by message.app_name</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+
 </form>
