@@ -210,18 +210,13 @@ class FHIRRequestForAuth(Request):
 class Response:
     request_class = None
     resp = None
-    auth_uuid = None
-    application = None
-    application_id = None
-    organization = None
-    organization_id = None
 
-    def __init__(self, response, auth_uuid, application, application_id, organization, organization_id):
+    def __init__(self, response, auth_uuid, auth_app_name, auth_app_id, auth_organization_name, auth_organization_id):
         self.auth_uuid = auth_uuid
-        self.application = application
-        self.application_id = application_id
-        self.organization = organization
-        self.organization_id = organization_id
+        self.auth_app_name = auth_app_name
+        self.auth_app_id = auth_app_id
+        self.auth_organization_name = auth_organization_name
+        self.auth_organization_id = auth_organization_id
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
         self.req = self.request_class(response.request).to_dict() if response.request else {}
@@ -288,10 +283,10 @@ class SLSResponse(Response):
         resp_dict.update({
             'type': self.get_type(),
             'auth_uuid': self.auth_uuid,
-            'auth_app_name': self.application,
-            'auth_app_id': self.application_id,
-            'auth_organization_name': self.organization,
-            'auth_organization_id': self.organization_id,
+            'auth_app_name': self.auth_app_name,
+            'auth_app_id': self.auth_app_id,
+            'auth_organization_name': self.auth_organization_name,
+            'auth_organization_id': self.auth_organization_id,
         })
         return resp_dict
 
@@ -309,10 +304,10 @@ class SLSTokenResponse(SLSResponse):
             "uuid": event_dict['uuid'],
             "auth_uuid": event_dict['auth_uuid'],
             "type": event_dict['type'],
-            "auth_app_name": event_dict['application'],
-            "auth_app_id": event_dict['application_id'],
-            "auth_organization_name": event_dict['organization'],
-            "auth_organization_id": event_dict['organization_id'],
+            "auth_app_name": event_dict['auth_app_name'],
+            "auth_app_id": event_dict['auth_app_id'],
+            "auth_organization_name": event_dict['auth_organization_name'],
+            "auth_organization_id": event_dict['auth_organization_id'],
             "path": event_dict['path'],
             "access_token": hashlib.sha256(
                 str(event_dict['access_token']).encode('utf-8')).hexdigest(),
@@ -341,10 +336,10 @@ class SLSUserInfoResponse(SLSResponse):
             "uuid": event_dict['uuid'],
             "auth_uuid": event_dict['auth_uuid'],
             "type": event_dict['type'],
-            "auth_app_name": event_dict['application'],
-            "auth_app_id": event_dict['application_id'],
-            "auth_organization_name": event_dict['organization'],
-            "auth_organization_id": event_dict['organization_id'],
+            "auth_app_name": event_dict['auth_app_name'],
+            "auth_app_id": event_dict['auth_app_id'],
+            "auth_organization_name": event_dict['auth_organization_name'],
+            "auth_organization_id": event_dict['auth_organization_id'],
             "path": event_dict['path'],
             "sub": event_dict['sub'],
             "code": event_dict['code'],

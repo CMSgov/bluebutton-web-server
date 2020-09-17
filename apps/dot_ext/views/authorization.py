@@ -40,22 +40,12 @@ class AuthorizationView(DotAuthorizationView):
         app, user = get_app_and_org(request)
 
         if app:
-            request.session['application'] = str(app.name)
-            request.session['application_id'] = str(app.pk)
+            request.session['auth_app_name'] = str(app.name)
+            request.session['auth_app_id'] = str(app.pk)
 
         if user:
-            request.session['organization'] = str(user.username)
-            request.session['organization_id'] = str(user.pk)
-
-        app, user = get_app_and_org(request)
-
-        if app:
-            request.session['application'] = str(app.name)
-            request.session['application_id'] = str(app.pk)
-
-        if user:
-            request.session['organization'] = str(user.username)
-            request.session['organization_id'] = str(user.pk)
+            request.session['auth_organization_name'] = str(user.username)
+            request.session['auth_organization_id'] = str(user.pk)
 
         return super().dispatch(request, *args, **kwargs)
 

@@ -14,6 +14,16 @@ def get_app_and_org(request):
     user = None
 
     if client_id is not None:
+        app, user = get_app_and_org_by_client_id(client_id)
+
+    return app, user
+
+
+def get_app_and_org_by_client_id(client_id):
+    app = None
+    user = None
+
+    if client_id is not None:
         apps = Application.objects.filter(client_id=client_id)
         if apps:
             app = apps.first()
