@@ -26,7 +26,9 @@ from .serializers import (
     Token,
     DataAccessGrantSerializer,
     FHIRRequest,
+    FHIRRequestForAuth,
     FHIRResponse,
+    FHIRResponseForAuth,
     SLSResponse,
 )
 
@@ -95,13 +97,13 @@ def log_grant_removed(sender, instance=None, **kwargs):
 @receiver(pre_fetch, sender=FhirDataView)
 @receiver(pre_fetch, sender=FhirServerAuth)
 def fetching_data(sender, request=None, **kwargs):
-    fhir_logger.info(get_event(FHIRRequest(request)))
+    fhir_logger.info(get_event(FHIRRequest(request) if sender == FhirDataView else FHIRRequestForAuth(request)))
 
 
 @receiver(post_fetch, sender=FhirDataView)
 @receiver(post_fetch, sender=FhirServerAuth)
 def fetched_data(sender, request=None, response=None, **kwargs):
-    fhir_logger.info(get_event(FHIRResponse(response)))
+    fhir_logger.info(get_event(FHIRResponse(response) if sender == FhirDataView else FHIRResponseForAuth(response)))
 
 
 def sls_hook(sender, response=None, **kwargs):
