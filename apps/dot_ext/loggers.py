@@ -17,7 +17,8 @@ from .models import AuthFlowUuid
 """
 
 # List of value keys that are being tracked via request.session
-SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_app_id', 'auth_app_name', 'auth_pkce_method']
+SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type',
+                                'auth_app_id', 'auth_app_name', 'auth_pkce_method']
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
 AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = "(^/v1/o/authorize/.*|^/mymedicare/login$|^/mymedicare/sls-callback$|^/v1/o/token/$)"
@@ -140,6 +141,14 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
             request.session['auth_client_id'] = application.client_id
         except Application.DoesNotExist:
             pass
+
+
+def set_session_auth_flow_trace_grant_type(request, grant_type):
+    '''
+    Set auth flow auth_grant_type item in the session.
+    '''
+    if request.session:
+        request.session['auth_grant_type'] = grant_type
 
 
 def update_instance_auth_flow_trace_with_code(auth_uuid, code):

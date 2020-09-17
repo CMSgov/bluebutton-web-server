@@ -86,12 +86,13 @@ class RequestResponseLog(object):
             log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
 
         # Auth flow trace logging.
-        if self.request.session.get('auth_uuid', None):
+        if self.request.session:
             if is_path_part_of_auth_flow_trace(self.request.path):
                 auth_flow_dict = get_session_auth_flow_trace(self.request)
 
                 for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-                    log_msg[k] = auth_flow_dict.get(k, None)
+                    if auth_flow_dict.get(k, None):
+                        log_msg[k] = auth_flow_dict.get(k, None)
 
         # Get FHIR_ID if available.
         user = get_user_from_request(self.request)
