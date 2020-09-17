@@ -46,14 +46,6 @@ class AuthorizationView(DotAuthorizationView):
         if user and not user.is_active:
             raise PermissionDenied("Organization is not active")
 
-        app, user = get_app_and_org(request)
-
-        if app and not app.active:
-            raise PermissionDenied("Application is not active")
-
-        if user and not user.is_active:
-            raise PermissionDenied("Organization is not active")
-
         return super().dispatch(request, *args, **kwargs)
 
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
