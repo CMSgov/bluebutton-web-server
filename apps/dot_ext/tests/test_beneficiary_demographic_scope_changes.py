@@ -24,7 +24,17 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
             'redirect_uri': 'http://example.it',
             'client_id': application.client_id,
         }
-        return self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+
+        response.status_code
+        content = json.loads(response.content.decode("utf-8"))
+        token = AccessToken.objects.get(token=content['access_token'])
+        refresh_token = content['refresh_token']
+        response_scopes = sorted(content['scope'].split())
+        access_token_scopes = sorted(token.scope.split())
+
+        return token, refresh_token, response.status_code, response_scopes, access_token_scopes
 
     def _assertScopeResponse(self, scope, scopes_granted_access_token, response, content):
         # Assert expected response and content for scope vs. what is granted.
@@ -88,89 +98,77 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         payload['share_demographic_scopes'] = True
 
         # Perform authorization request
-        response = self._authorize_and_request_token(payload, application)
+        token_1, refresh_token_1, status_code, \
+            response_scopes, access_token_scopes = self._authorize_and_request_token(payload, application)
 
         # Assert auth request was successful
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(status_code, 200)
 
-        # Test scope in response content
-        self.assertEqual(sorted(content['scope'].split()), sorted(APPLICATION_SCOPES_FULL))
+        # Assert scope in response content
+        self.assertEqual(response_scopes, sorted(APPLICATION_SCOPES_FULL))
 
-        # Test scope in access_token
-        token_1 = AccessToken.objects.get(token=content['access_token'])
-        refresh_token_1 = content['refresh_token']
+        # Assert scope in access token instance
+        self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_FULL))
 
-        scopes_granted_access_token = sorted(token_1.scope.split())
-        self.assertEqual(scopes_granted_access_token, sorted(APPLICATION_SCOPES_FULL))
-
-        # Setup token_1 in APIClient
+        # Assert access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_1.token)
-
-        # Test access to userinfo end point?
         response = client.get("/v1/connect/userinfo")
-        content = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
 
-        # ------ TEST #2: SAME authorization: Beneficary authorizes to share FULL demographic data. ------
-        payload['share_demographic_scopes'] = True
-
-        # Perform authorization request
-        response = self._authorize_and_request_token(payload, application)
-
-        # Assert auth request was successful
-        self.assertEqual(response.status_code, 200)
+        # ------ TEST #2:  Test refresh of token_1
+        refresh_request_data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token_1,
+            'redirect_uri': 'http://example.it',
+            'client_id': application.client_id,
+            'client_secret': application.client_secret,
+        }
+        response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         content = json.loads(response.content.decode("utf-8"))
 
-        # Test scope in response content
-        self.assertEqual(sorted(content['scope'].split()), sorted(APPLICATION_SCOPES_FULL))
+        # Assert successful
+        self.assertEqual(response.status_code, 200)
 
-        # Test scope in access_token
-        token_2 = AccessToken.objects.get(token=content['access_token'])
+        # Assert response scopes
+        response_scopes = sorted(content['scope'].split())
+        self.assertEqual(response_scopes, sorted(APPLICATION_SCOPES_FULL))
 
-        scopes_granted_access_token = sorted(token_2.scope.split())
-        self.assertEqual(scopes_granted_access_token, sorted(APPLICATION_SCOPES_FULL))
+        # Assert token scopes
+        token = AccessToken.objects.get(token=content['access_token'])
+        access_token_scopes = sorted(token.scope.split())
+        self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_FULL))
 
-        # Setup token_2 in APIClient
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_2.token)
-
-        # Test access to userinfo end point?
+        # Assert access to userinfo end point?
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + token.token)
         response = client.get("/v1/connect/userinfo")
-        content = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
 
         # Verify token counts expected.
         access_token_count = AccessToken.objects.count()
         refresh_token_count = RefreshToken.objects.count()
-        self.assertEqual(access_token_count, 2)
+        self.assertEqual(access_token_count, 1)
         self.assertEqual(refresh_token_count, 2)
 
         # ------ TEST #3:  3nd authorization: Beneficary authorizes NOT to share demographic data. ------
         payload['share_demographic_scopes'] = False
 
         # Perform authorization request
-        response = self._authorize_and_request_token(payload, application)
+        token_3, refresh_token_3, status_code, \
+            response_scopes, access_token_scopes = self._authorize_and_request_token(payload, application)
 
         # Assert auth request was successful
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(status_code, 200)
 
-        # Test scope in response content
-        self.assertEqual(sorted(content['scope'].split()), sorted(APPLICATION_SCOPES_NON_DEMOGRAPHIC))
+        # Assert scope in response content
+        self.assertEqual(response_scopes, sorted(APPLICATION_SCOPES_NON_DEMOGRAPHIC))
 
-        # Test scope in access_token
-        token_3 = AccessToken.objects.get(token=content['access_token'])
-        scopes_granted_access_token = sorted(token_3.scope.split())
-        self.assertEqual(scopes_granted_access_token, sorted(APPLICATION_SCOPES_NON_DEMOGRAPHIC))
+        # Assert scope in access token instance
+        self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_NON_DEMOGRAPHIC))
 
-        # Setup token_3 in APIClient
+        # Assert NO access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_3.token)
-
-        # Test access to userinfo end point? NO PERMISSION!
         response = client.get("/v1/connect/userinfo")
-        content = json.loads(response.content)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(content.get('detail', None), "You do not have permission to perform this action.")
 
         # Verify token counts expected.
         access_token_count = AccessToken.objects.count()
@@ -198,6 +196,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         content = json.loads(response.content)
+
         self.assertEqual(response.status_code, 401)
         self.assertEqual(content.get('error', None), "invalid_grant")
 
@@ -205,27 +204,21 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         payload['share_demographic_scopes'] = True
 
         # Perform authorization request
-        response = self._authorize_and_request_token(payload, application)
+        token_6, refresh_token_6, status_code, \
+            response_scopes, access_token_scopes = self._authorize_and_request_token(payload, application)
 
         # Assert auth request was successful
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(status_code, 200)
 
-        # Test scope in response content
-        self.assertEqual(sorted(content['scope'].split()), sorted(APPLICATION_SCOPES_FULL))
+        # Assert scope in response content
+        self.assertEqual(response_scopes, sorted(APPLICATION_SCOPES_FULL))
 
-        # Test scope in access_token
-        token_6 = AccessToken.objects.get(token=content['access_token'])
+        # Assert scope in access token instance
+        self.assertEqual(access_token_scopes, sorted(APPLICATION_SCOPES_FULL))
 
-        scopes_granted_access_token = sorted(token_6.scope.split())
-        self.assertEqual(scopes_granted_access_token, sorted(APPLICATION_SCOPES_FULL))
-
-        # Setup token_6 in APIClient
+        # Assert access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_6.token)
-
-        # Test access to userinfo end point?
         response = client.get("/v1/connect/userinfo")
-        content = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
 
         # ------ TEST #7: Test token_3 from TEST #3 again. It should still have access, but no permission with status=403.
