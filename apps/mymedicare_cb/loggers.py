@@ -94,6 +94,7 @@ def log_authenticate_success(auth_flow_dict, sls_subject, user):
         "auth_app_name": auth_flow_dict.get('auth_app_name', None),
         "auth_client_id": auth_flow_dict.get('auth_client_id', None),
         "auth_pkce_method": auth_flow_dict.get('auth_pkce_method', None),
+        "auth_crosswalk_type": auth_flow_dict.get('auth_crosswalk_type', None),
         "sub": sls_subject,
         "user": {
             "id": user.id,

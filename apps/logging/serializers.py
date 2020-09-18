@@ -63,12 +63,6 @@ class Token:
 
         result = {
             "type": "AccessToken",
-            "auth_uuid": self.auth_flow_dict.get('auth_uuid', None),
-            "auth_app_id": self.auth_flow_dict.get('auth_app_id', None),
-            "auth_app_name": self.auth_flow_dict.get('auth_app_name', None),
-            "auth_client_id": self.auth_flow_dict.get('auth_client_id', None),
-            "auth_grant_type": self.auth_flow_dict.get('auth_grant_type', None),
-            "auth_pkce_method": self.auth_flow_dict.get('auth_pkce_method', None),
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(
@@ -87,6 +81,10 @@ class Token:
                 "username": getattr(user, 'username', None),
             }
         }
+
+        # Update with auth flow session info
+        result.update(self.auth_flow_dict)
+
         return json.dumps(result)
 
 

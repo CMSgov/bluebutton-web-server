@@ -17,8 +17,8 @@ from .models import AuthFlowUuid
 """
 
 # List of value keys that are being tracked via request.session
-SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type',
-                                'auth_app_id', 'auth_app_name', 'auth_pkce_method']
+SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type', 'auth_app_id',
+                                'auth_app_name', 'auth_pkce_method', 'auth_crosswalk_type']
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
 AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = "(^/v1/o/authorize/.*|^/mymedicare/login$|^/mymedicare/sls-callback$|^/v1/o/token/$)"
@@ -68,7 +68,7 @@ def create_session_auth_flow_trace(request):
         # Get the application.
         Application = get_application_model()
         try:
-            application = get_application_model().objects.get(client_id=client_id_param)
+            application = Application.objects.get(client_id=client_id_param)
 
             # Set values in session.
             auth_flow_dict = {"auth_uuid": new_auth_uuid,
@@ -129,6 +129,7 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
     if auth_flow_uuid:
         request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
         request.session['auth_pkce_method'] = auth_flow_uuid.auth_pkce_method
+        request.session['auth_crosswalk_type'] = auth_flow_uuid.auth_crosswalk_type
 
         # Get the application.
         Application = get_application_model()
@@ -151,17 +152,34 @@ def set_session_auth_flow_trace_grant_type(request, grant_type):
         request.session['auth_grant_type'] = grant_type
 
 
-def update_instance_auth_flow_trace_with_code(auth_uuid, code):
+def set_session_auth_flow_trace_crosswalk_type(request, crosswalk_type):
     '''
-    Update AuthFlowUuid instance with code value.
+    Set auth flow auth_grant_type item in the session.
+    '''
+    if request.session:
+        request.session['auth_crosswalk_type'] = crosswalk_type
+
+
+def update_instance_auth_flow_trace_with_code(auth_dict, code):
+    '''
+    Update AuthFlowUuid instance with code and crosswalk_type values.
 
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.form_valid()
     '''
+    auth_uuid = auth_dict.get('auth_uuid', None)
+    auth_crosswalk_type = auth_dict.get('auth_crosswalk_type', None)
+
     try:
-        if code and len(code.strip()) != 0:
+        if auth_uuid:
             auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-            # Set code.
-            auth_flow_uuid.code = code
+
+        if auth_flow_uuid:
+            if code and len(code.strip()) != 0:
+                auth_flow_uuid.code = code
+
+            if auth_crosswalk_type:
+                auth_flow_uuid.auth_crosswalk_type = auth_crosswalk_type
+
             auth_flow_uuid.save()
     except AuthFlowUuid.DoesNotExist:
         pass

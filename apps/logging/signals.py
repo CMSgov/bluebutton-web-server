@@ -52,14 +52,8 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
     # Get auth flow dict from session for logging
     auth_flow_dict = get_session_auth_flow_trace(request)
 
-    token_logger.info(get_event(json.dumps({
+    log_dict = {
         "type": "Authorization",
-        "auth_uuid": auth_flow_dict.get('auth_uuid', None),
-        "auth_app_id": auth_flow_dict.get('auth_app_id', None),
-        "auth_app_name": auth_flow_dict.get('auth_app_name', None),
-        "auth_client_id": auth_flow_dict.get('auth_client_id', None),
-        "auth_grant_type": auth_flow_dict.get('grant_type', None),
-        "auth_pkce_method": auth_flow_dict.get('auth_pkce_method', None),
         "auth_status": auth_status,
         "auth_status_code": auth_status_code,
         "user": {
@@ -80,7 +74,12 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "share_demographic_scopes": share_demographic_scopes,
         "scopes": scopes,
         "allow": allow,
-    })))
+    }
+
+    # Update with auth flow session info
+    if auth_flow_dict:
+        log_dict.update(auth_flow_dict)
+    token_logger.info(get_event(json.dumps(log_dict)))
 
 
 # BB2-218 also capture delete MyAccessToken

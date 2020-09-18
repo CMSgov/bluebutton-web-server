@@ -105,13 +105,12 @@ class AuthorizationView(DotAuthorizationView):
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
-        auth_uuid = auth_dict.get('auth_uuid', None)
 
         # We are done using auth_uuid, clear it from the session.
         cleanup_session_auth_flow_trace(self.request)
 
         # Update AuthFlowUuid instance with code.
-        update_instance_auth_flow_trace_with_code(auth_uuid, code)
+        update_instance_auth_flow_trace_with_code(auth_dict, code)
 
         return self.redirect(self.success_url, application)
 
