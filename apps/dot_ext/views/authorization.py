@@ -45,7 +45,6 @@ class AuthorizationView(DotAuthorizationView):
         initial_data = super().get_initial()
         initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
         initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
-        initial_data["auth_uuid"] = self.request.session.get('auth_uuid', None)
         return initial_data
 
     def get(self, request, *args, **kwargs):

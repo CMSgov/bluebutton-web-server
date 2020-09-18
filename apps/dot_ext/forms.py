@@ -152,7 +152,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 class SimpleAllowForm(DotAllowForm):
     code_challenge = forms.CharField(required=False, widget=forms.HiddenInput())
     code_challenge_method = forms.CharField(required=False, widget=forms.HiddenInput())
-    auth_uuid = forms.CharField(required=False, widget=forms.HiddenInput())
     share_demographic_scopes = forms.CharField(required=False)
 
     def clean(self):
