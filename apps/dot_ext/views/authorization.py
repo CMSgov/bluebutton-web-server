@@ -9,7 +9,7 @@ from ..forms import SimpleAllowForm
 from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
-                       update_instance_auth_flow_trace_with_code)
+                       set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -66,6 +66,8 @@ class AuthorizationView(DotAuthorizationView):
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
         share_demographic_scopes = form.cleaned_data.get("share_demographic_scopes")
+
+        set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
         try:
             uri, headers, body, status = self.create_authorization_response(

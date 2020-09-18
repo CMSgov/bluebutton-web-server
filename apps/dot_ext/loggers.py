@@ -17,8 +17,8 @@ from .models import AuthFlowUuid
 """
 
 # List of value keys that are being tracked via request.session
-SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type', 'auth_app_id',
-                                'auth_app_name', 'auth_pkce_method', 'auth_crosswalk_type']
+SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type', 'auth_app_id', 'auth_app_name',
+                                'auth_pkce_method', 'auth_crosswalk_type', 'auth_share_demographic_scopes']
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
 AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = "(^/v1/o/authorize/.*|^/mymedicare/login$|^/mymedicare/sls-callback$|^/v1/o/token/$)"
@@ -131,6 +131,9 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
         request.session['auth_pkce_method'] = auth_flow_uuid.auth_pkce_method
         request.session['auth_crosswalk_type'] = auth_flow_uuid.auth_crosswalk_type
 
+        if auth_flow_uuid.auth_share_demographic_scopes is not None:
+            request.session['auth_share_demographic_scopes'] = str(auth_flow_uuid.auth_share_demographic_scopes)
+
         # Get the application.
         Application = get_application_model()
         try:
@@ -144,30 +147,23 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
             pass
 
 
-def set_session_auth_flow_trace_grant_type(request, grant_type):
+def set_session_auth_flow_trace_value(request, key, value):
     '''
-    Set auth flow auth_grant_type item in the session.
-    '''
-    if request.session:
-        request.session['auth_grant_type'] = grant_type
-
-
-def set_session_auth_flow_trace_crosswalk_type(request, crosswalk_type):
-    '''
-    Set auth flow auth_grant_type item in the session.
+    Set auth flow key value in the session.
     '''
     if request.session:
-        request.session['auth_crosswalk_type'] = crosswalk_type
+        request.session[key] = value
 
 
 def update_instance_auth_flow_trace_with_code(auth_dict, code):
     '''
-    Update AuthFlowUuid instance with code and crosswalk_type values.
+    Update AuthFlowUuid instance with code, crosswalk_type and share_demographic_scopes values.
 
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.form_valid()
     '''
     auth_uuid = auth_dict.get('auth_uuid', None)
     auth_crosswalk_type = auth_dict.get('auth_crosswalk_type', None)
+    auth_share_demographic_scopes = auth_dict.get('auth_share_demographic_scopes', None)
 
     try:
         if auth_uuid:
@@ -179,6 +175,12 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
 
             if auth_crosswalk_type:
                 auth_flow_uuid.auth_crosswalk_type = auth_crosswalk_type
+
+            if auth_share_demographic_scopes:
+                if auth_share_demographic_scopes == "True":
+                    auth_flow_uuid.auth_share_demographic_scopes = True
+                elif auth_share_demographic_scopes == "False":
+                    auth_flow_uuid.auth_share_demographic_scopes = False
 
             auth_flow_uuid.save()
     except AuthFlowUuid.DoesNotExist:

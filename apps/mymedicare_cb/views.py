@@ -12,7 +12,7 @@ from django.views.decorators.cache import never_cache
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
 from apps.dot_ext.loggers import (get_session_auth_flow_trace,
-                                  set_session_auth_flow_trace_crosswalk_type,
+                                  set_session_auth_flow_trace_value,
                                   update_session_auth_flow_trace_from_state,
                                   update_instance_auth_flow_trace_with_state)
 from apps.dot_ext.models import Approval
@@ -137,7 +137,7 @@ def authenticate(request):
                                                email=sls_email, request=request)
 
     # Set crosswalk_type and get auth flow session values.
-    set_session_auth_flow_trace_crosswalk_type(request, crosswalk_type)
+    set_session_auth_flow_trace_value(request, 'auth_crosswalk_type', crosswalk_type)
     auth_flow_dict = get_session_auth_flow_trace(request)
 
     # Log successful authentication with beneficiary when we return back here.

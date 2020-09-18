@@ -262,6 +262,7 @@ class AuthFlowUuid(models.Model):
     auth_pkce_method = models.CharField(max_length=16, null=True)
     created = models.DateTimeField(auto_now_add=True, null=True)
     auth_crosswalk_type = models.CharField(max_length=1, null=True)
+    auth_share_demographic_scopes = models.BooleanField(null=True)
 
     def __str__(self):
         return str(self.auth_uuid)
