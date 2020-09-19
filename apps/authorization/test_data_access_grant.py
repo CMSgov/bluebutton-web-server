@@ -7,9 +7,8 @@ from oauth2_provider.models import (
 )
 from django.urls import reverse
 from rest_framework.exceptions import PermissionDenied
-
 from apps.test import BaseApiTest
-
+from apps.messages import APPLICATION_TEMPORARILY_INACTIVE
 from .models import (
     DataAccessGrant,
     check_grants,
@@ -248,7 +247,13 @@ class TestDataAccessGrant(BaseApiTest):
         try:
             self.client.post(response['Location'], data=payload)
         except PermissionDenied as permErr:
-            self.assertEqual(str(permErr), "Application is not active")
+            errStr = str(permErr)
+            errwords = errStr.split()
+            packedErrStr = "-".join(errwords)
+            msgwords = APPLICATION_TEMPORARILY_INACTIVE.split()
+            packedMsg = "-".join(msgwords)
+            packedMsg = packedMsg.format("an-app")
+            self.assertEqual(packedErrStr, packedMsg)
 
         application.active = True
         application.save()
@@ -259,4 +264,15 @@ class TestDataAccessGrant(BaseApiTest):
         try:
             self.client.post(response['Location'], data=payload)
         except PermissionDenied as permErr:
-            self.assertEqual(str(permErr), "Organization is not active")
+            errStr = str(permErr)
+            errwords = errStr.split()
+            packedErrStr = "-".join(errwords)
+            msgwords = APPLICATION_TEMPORARILY_INACTIVE.split()
+            packedMsg = "-".join(msgwords)
+            packedMsg = packedMsg.format("an-app")
+            self.assertEqual(packedErrStr, packedMsg)
+        # set back app and user to active - not to affect other tests
+        application.active = True
+        application.save()
+        user.is_active = True
+        user.save()

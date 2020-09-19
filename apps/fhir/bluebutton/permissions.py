@@ -1,7 +1,9 @@
 import logging
 from rest_framework import (permissions, exceptions)
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import PermissionDenied
 from .constants import ALLOWED_RESOURCE_TYPES
+from apps.messages import APPLICATION_TEMPORARILY_INACTIVE
 
 User = get_user_model()
 
@@ -70,12 +72,19 @@ class SearchCrosswalkPermission(HasCrosswalk):
 
 class ApplicationActivePermission(permissions.BasePermission):
 
-    message = 'Permission denied, Application or organization is not active.'
-
     def has_permission(self, request, view):
         app_is_active = request.auth and request.auth.application.active
+        app_name = request.auth.application.name if request.auth and request.auth.application.name else "Unknown"
+        # can also add user name, but since bb2 app name is unique, will not do it for now
+        # it is possible to pull in more app owner info e.g. contact, phone, email etc.
+        # if is needed
         user = None
         if request.auth:
             user = User.objects.get(pk=request.auth.application.user_id)
         org_is_active = user and user.is_active
-        return (org_is_active and app_is_active)
+        perm_ok = (org_is_active and app_is_active)
+        if not perm_ok:
+            # in order to generate application specific message, short circuit base
+            # permission's error raise flow
+            raise PermissionDenied(APPLICATION_TEMPORARILY_INACTIVE.format(app_name))
+        return perm_ok
