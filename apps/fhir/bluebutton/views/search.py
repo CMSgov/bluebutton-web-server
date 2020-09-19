@@ -19,9 +19,10 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class SearchView(FhirDataView):
+    # BB2-149 note, check authenticated first, then app active etc.
     permission_classes = [
-        ApplicationActivePermission,
         permissions.IsAuthenticated,
+        ApplicationActivePermission,
         ResourcePermission,
         SearchCrosswalkPermission,
         DataAccessGrantPermission,

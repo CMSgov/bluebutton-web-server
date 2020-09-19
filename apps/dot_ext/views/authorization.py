@@ -5,6 +5,7 @@ from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from urllib.parse import urlparse, parse_qs
 from rest_framework.exceptions import PermissionDenied
+from apps.messages import APPLICATION_TEMPORARILY_INACTIVE
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
 from ..models import Approval
@@ -38,10 +39,10 @@ class AuthorizationView(DotAuthorizationView):
         app, user = get_app_and_org(request)
 
         if app and not app.active:
-            raise PermissionDenied("Application is not active")
+            raise PermissionDenied(APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
 
         if user and not user.is_active:
-            raise PermissionDenied("Organization is not active")
+            raise PermissionDenied(APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
 
         return super().dispatch(request, *args, **kwargs)
 

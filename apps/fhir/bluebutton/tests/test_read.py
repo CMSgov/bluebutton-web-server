@@ -7,6 +7,8 @@ import apps.fhir.bluebutton.views.home
 from apps.fhir.bluebutton.views.home import (conformance_filter)
 from django.test import TestCase, RequestFactory
 from apps.test import BaseApiTest
+from apps.messages import APPLICATION_TEMPORARILY_INACTIVE
+
 from django.test.client import Client
 from oauth2_provider.models import get_access_token_model
 from django.urls import reverse
@@ -756,7 +758,14 @@ class BackendConnectionTest(BaseApiTest):
                     kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 403)
-            self.assertEqual(response.json().get("detail"), "Permission denied, Application or organization is not active.")
+            errStr = str(response.json().get("detail"))
+            errwords = errStr.split()
+            packedErrStr = "-".join(errwords)
+            print(packedErrStr)
+            msgwords = APPLICATION_TEMPORARILY_INACTIVE.split()
+            packedMsg = "-".join(msgwords)
+            print(packedMsg)
+            self.assertEqual(packedErrStr, packedMsg.format(application.name))
 
         application.active = True
         application.save()
@@ -786,4 +795,16 @@ class BackendConnectionTest(BaseApiTest):
                     kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 403)
-            self.assertEqual(response.json().get("detail"), "Permission denied, Application or organization is not active.")
+            errStr = str(response.json().get("detail"))
+            errwords = errStr.split()
+            packedErrStr = "-".join(errwords)
+            print(packedErrStr)
+            msgwords = APPLICATION_TEMPORARILY_INACTIVE.split()
+            packedMsg = "-".join(msgwords)
+            print(packedMsg)
+            self.assertEqual(packedErrStr, packedMsg.format(application.name))
+        # set app user back to active - not to affect subsequent tests
+        application.active = True
+        application.save()
+        user.is_active = True
+        user.save()

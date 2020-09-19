@@ -32,9 +32,10 @@ class FhirDataView(APIView):
     renderer_classes = [JSONRenderer, FHIRRenderer]
     throttle_classes = [TokenRateThrottle]
     authentication_classes = [OAuth2ResourceOwner]
+    # BB2-149 note, check authenticated first, then app active etc.
     permission_classes = [
-        ApplicationActivePermission,
         permissions.IsAuthenticated,
+        ApplicationActivePermission,
         HasCrosswalk,
         ResourcePermission,
         DataAccessGrantPermission]
