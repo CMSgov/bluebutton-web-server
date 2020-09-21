@@ -30,7 +30,7 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
     Returns:
         user = The user that was existing or newly created
         crosswalk_type =  Type of crosswalk activity:
-            "R" = Return existing crosswalk"exist"
+            "R" = Returned existing crosswalk record
             "C" = Created new crosswalk record
     Raises:
         KeyError: If an expected key is missing from user_info.
