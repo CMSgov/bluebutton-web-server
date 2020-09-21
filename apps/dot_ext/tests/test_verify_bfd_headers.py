@@ -5,6 +5,7 @@ from apps.authorization.models import DataAccessGrant
 from ..models import Application
 from apps.fhir.bluebutton.signals import pre_fetch
 from apps.fhir.bluebutton.views.search import SearchView
+from httmock import all_requests, HTTMock
 
 
 class TestBFDHeaders(BaseApiTest):
@@ -75,10 +76,14 @@ class TestBFDHeaders(BaseApiTest):
             beneficiary=anna,
             application=application,
         ).exists())
-        # request fhir resource and verify header presents
-        # this will signal reveiver - fetching_data - where header is asserted
-        # Post Django 2.2:  An OSError exception is expected when trying to reach the
-        #                   backend FHIR server and proves authentication worked.
-        with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content':{"resourceType":"Patient","id":"-20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"-20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+            }
+
+        with HTTMock(catchall):
             self.client.get('/v1/fhir/Patient',
                             HTTP_AUTHORIZATION="Bearer " + tkn.token)

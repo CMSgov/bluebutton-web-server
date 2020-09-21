@@ -1,7 +1,5 @@
 import requests
 from django.conf import settings
-from oauth2_provider.models import get_application_model
-from django.contrib.auth import get_user_model
 from rest_framework import exceptions
 from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.fhir.bluebutton.utils import generate_info_headers
@@ -13,23 +11,6 @@ from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
 )
-
-
-def get_app_and_org(client_id):
-    app = None
-    user = None
-    if client_id is not None:
-        try:
-            apps = get_application_model().objects.filter(client_id=client_id)
-        except Exception:
-            pass
-        if apps:
-            try:
-                app = apps.first()
-                user = get_user_model().objects.get(pk=app.user_id)
-            except Exception:
-                pass
-    return app, user
 
 
 def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
@@ -71,7 +52,6 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     # Add headers for FHIR backend logging, including auth_flow_dict
     if request:
         # Get auth flow session values.
-        # pull in the user who owns the app (organization)
         auth_flow_dict = get_session_auth_flow_trace(request)
         headers = generate_info_headers(request)
         # may be part of the contract with BFD
@@ -79,17 +59,6 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         headers['BlueButton-AuthAppId'] = auth_flow_dict.get('auth_app_id', '')
         headers['BlueButton-AuthAppName'] = auth_flow_dict.get('auth_app_name', '')
         headers['BlueButton-AuthClientId'] = auth_flow_dict.get('auth_client_id', '')
-
-        app, user = get_app_and_org(auth_flow_dict.get('auth_client_id', None))
-
-        headers['auth_uuid'] = auth_flow_dict.get('auth_uuid', '')
-        headers['auth_app_id'] = auth_flow_dict.get('auth_app_id', '')
-        headers['auth_app_name'] = auth_flow_dict.get('auth_app_name', '')
-        headers['auth_client_id'] = auth_flow_dict.get('auth_client_id', '')
-        headers['auth_app_active'] = "true" if app and app.active else "false"
-        headers['auth_organization_id'] = str(user.id) if user else ""
-        headers['auth_organization_name'] = user.username if user else ""
-        headers['auth_organization_active'] = "true" if user and user.is_active else "false"
     else:
         headers = None
 
@@ -102,11 +71,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     req = requests.Request('GET', url, headers=headers)
     prepped = req.prepare()
-    # add fhir data audit logging
     pre_fetch.send_robust(FhirServerAuth, request=req)
-    # Get FHIR service backend response.
-    # TODO: Should work with verify=True
-    # response = requests.get(url, cert=certs, headers=headers, verify=False)
     response = s.send(prepped, cert=certs, verify=False)
     post_fetch.send_robust(FhirServerAuth, request=req, response=response)
     response.raise_for_status()
