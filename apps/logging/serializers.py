@@ -168,6 +168,7 @@ class FHIRRequest(Request):
 
     def to_dict(self):
         return {
+            "type": "fhir_pre_fetch",
             "uuid": self.uuid(),
             "fhir_id": self.fhir_id(),
             "includeAddressFields": self.includeAddressFields(),
@@ -193,7 +194,7 @@ class FHIRRequestForAuth(Request):
 
     def to_dict(self):
         return {
-            "type": "fhir_pre_fetch",
+            "type": "fhir_auth_pre_fetch",
             "uuid": self.uuid(),
             "includeAddressFields": self.includeAddressFields(),
             "path": "patient search",
@@ -239,7 +240,10 @@ class FHIRResponse(Response):
         super().__init__(response)
 
     def to_dict(self):
-        return super().to_dict()
+        super_dict = super().to_dict()
+        # over write type
+        super_dict.update({"type": "fhir_post_fetch"})
+        return super_dict
 
 
 class FHIRResponseForAuth(Response):
@@ -251,7 +255,7 @@ class FHIRResponseForAuth(Response):
     def to_dict(self):
         super_dict = super().to_dict()
         # over write type
-        super_dict.update({"type": "fhir_post_fetch"})
+        super_dict.update({"type": "fhir_auth_post_fetch"})
         return super_dict
 
 
