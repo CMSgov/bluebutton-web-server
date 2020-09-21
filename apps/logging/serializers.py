@@ -132,6 +132,11 @@ class SLSRequest(Request):
 
 
 class FHIRRequest(Request):
+    def __init__(self, request):
+        super().__init__(request)
+
+    def includeAddressFields(self):
+        return self.req.headers.get('includeAddressFields')
 
     def uuid(self):
         return self.req.headers.get('BlueButton-OriginalQueryId')
@@ -162,15 +167,39 @@ class FHIRRequest(Request):
         return self.req.headers.get('BlueButton-OriginalUrl')
 
     def to_dict(self):
-        result = {
+        return {
+            "type": "fhir_pre_fetch",
             "uuid": self.uuid(),
             "fhir_id": self.fhir_id(),
+            "includeAddressFields": self.includeAddressFields(),
             "user": self.user(),
-            "start_time": self.start_time(),
             "application": self.application(),
             "path": self.path(),
+            "start_time": self.start_time(),
         }
-        return result
+
+
+class FHIRRequestForAuth(Request):
+    def __init__(self, request):
+        super().__init__(request)
+
+    def includeAddressFields(self):
+        return self.req.headers.get('includeAddressFields')
+
+    def uuid(self):
+        return self.req.headers.get('BlueButton-OriginalQueryId')
+
+    def start_time(self):
+        return self.req.headers.get('BlueButton-OriginalQueryTimestamp')
+
+    def to_dict(self):
+        return {
+            "type": "fhir_auth_pre_fetch",
+            "uuid": self.uuid(),
+            "includeAddressFields": self.includeAddressFields(),
+            "path": "patient search",
+            "start_time": self.start_time(),
+        }
 
 
 class Response:
@@ -199,13 +228,35 @@ class Response:
         }
 
     def __str__(self):
-        result = self.to_dict().copy()
-        result.update(self.req)
+        result = self.req.copy()
+        result.update(self.to_dict())
         return json.dumps(result)
 
 
 class FHIRResponse(Response):
     request_class = FHIRRequest
+
+    def __init__(self, response):
+        super().__init__(response)
+
+    def to_dict(self):
+        super_dict = super().to_dict()
+        # over write type
+        super_dict.update({"type": "fhir_post_fetch"})
+        return super_dict
+
+
+class FHIRResponseForAuth(Response):
+    request_class = FHIRRequestForAuth
+
+    def __init__(self, response):
+        super().__init__(response)
+
+    def to_dict(self):
+        super_dict = super().to_dict()
+        # over write type
+        super_dict.update({"type": "fhir_auth_post_fetch"})
+        return super_dict
 
 
 class SLSResponse(Response):

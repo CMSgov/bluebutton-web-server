@@ -7,6 +7,10 @@ from ..bluebutton.exceptions import UpstreamServerException
 from ..bluebutton.utils import (FhirServerAuth,
                                 get_resourcerouter)
 from .loggers import log_match_fhir_id
+from apps.fhir.bluebutton.signals import (
+    pre_fetch,
+    post_fetch
+)
 
 
 def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
@@ -49,8 +53,8 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     if request:
         # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
-
         headers = generate_info_headers(request)
+        # may be part of the contract with BFD
         headers['BlueButton-AuthUuid'] = auth_flow_dict.get('auth_uuid', '')
         headers['BlueButton-AuthAppId'] = auth_flow_dict.get('auth_app_id', '')
         headers['BlueButton-AuthAppName'] = auth_flow_dict.get('auth_app_name', '')
@@ -63,9 +67,13 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         + "Patient/?identifier=" + search_identifier \
         + "&_format=" + settings.FHIR_PARAM_FORMAT
 
-    # Get FHIR service backend response.
-    #   TODO: Should work with verify=True
-    response = requests.get(url, cert=certs, headers=headers, verify=False)
+    s = requests.Session()
+
+    req = requests.Request('GET', url, headers=headers)
+    prepped = req.prepare()
+    pre_fetch.send_robust(FhirServerAuth, request=req)
+    response = s.send(prepped, cert=certs, verify=False)
+    post_fetch.send_robust(FhirServerAuth, request=req, response=response)
     response.raise_for_status()
     backend_data = response.json()
 

@@ -17,13 +17,18 @@ from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
 )
+
+from apps.fhir.bluebutton.views.generic import FhirDataView
 from apps.mymedicare_cb.signals import post_sls
+from apps.fhir.bluebutton.utils import FhirServerAuth
 
 from .serializers import (
     Token,
     DataAccessGrantSerializer,
     FHIRRequest,
+    FHIRRequestForAuth,
     FHIRResponse,
+    FHIRResponseForAuth,
     SLSResponse,
 )
 
@@ -89,12 +94,16 @@ def log_grant_removed(sender, instance=None, **kwargs):
     token_logger.info(get_event(DataAccessGrantSerializer(instance, action="revoked")))
 
 
+@receiver(pre_fetch, sender=FhirDataView)
+@receiver(pre_fetch, sender=FhirServerAuth)
 def fetching_data(sender, request=None, **kwargs):
-    fhir_logger.info(get_event(FHIRRequest(request)))
+    fhir_logger.info(get_event(FHIRRequest(request) if sender == FhirDataView else FHIRRequestForAuth(request)))
 
 
+@receiver(post_fetch, sender=FhirDataView)
+@receiver(post_fetch, sender=FhirServerAuth)
 def fetched_data(sender, request=None, response=None, **kwargs):
-    fhir_logger.info(get_event(FHIRResponse(response)))
+    fhir_logger.info(get_event(FHIRResponse(response) if sender == FhirDataView else FHIRResponseForAuth(response)))
 
 
 def sls_hook(sender, response=None, **kwargs):
@@ -114,6 +123,4 @@ def get_event(event):
     return event_str
 
 
-pre_fetch.connect(fetching_data)
-post_fetch.connect(fetched_data)
 post_sls.connect(sls_hook)
