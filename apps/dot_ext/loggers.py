@@ -184,10 +184,7 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
     try:
         if auth_uuid:
             auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-        else:
-            auth_flow_uuid = None
 
-        if auth_flow_uuid:
             if code and len(code.strip()) != 0:
                 auth_flow_uuid.code = code
 
