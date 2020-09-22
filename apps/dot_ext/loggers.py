@@ -18,7 +18,7 @@ from .models import AuthFlowUuid
 
 # List of value keys that are being tracked via request.session
 SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type', 'auth_app_id', 'auth_app_name',
-                                'auth_pkce_method', 'auth_crosswalk_type', 'auth_share_demographic_scopes']
+                                'auth_pkce_method', 'auth_crosswalk_action', 'auth_share_demographic_scopes']
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
 AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = "(^/v1/o/authorize/.*|^/mymedicare/login$|^/mymedicare/sls-callback$|^/v1/o/token/$)"
@@ -145,8 +145,8 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
         request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
         if auth_flow_uuid.auth_pkce_method is not None:
             request.session['auth_pkce_method'] = auth_flow_uuid.auth_pkce_method
-        if auth_flow_uuid.auth_crosswalk_type is not None:
-            request.session['auth_crosswalk_type'] = auth_flow_uuid.auth_crosswalk_type
+        if auth_flow_uuid.auth_crosswalk_action is not None:
+            request.session['auth_crosswalk_action'] = auth_flow_uuid.auth_crosswalk_action
         if auth_flow_uuid.auth_share_demographic_scopes is not None:
             request.session['auth_share_demographic_scopes'] = str(auth_flow_uuid.auth_share_demographic_scopes)
 
@@ -173,12 +173,12 @@ def set_session_auth_flow_trace_value(request, key, value):
 
 def update_instance_auth_flow_trace_with_code(auth_dict, code):
     '''
-    Update AuthFlowUuid instance with code, crosswalk_type and share_demographic_scopes values.
+    Update AuthFlowUuid instance with code, crosswalk_action and share_demographic_scopes values.
 
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.form_valid()
     '''
     auth_uuid = auth_dict.get('auth_uuid', None)
-    auth_crosswalk_type = auth_dict.get('auth_crosswalk_type', None)
+    auth_crosswalk_action = auth_dict.get('auth_crosswalk_action', None)
     auth_share_demographic_scopes = auth_dict.get('auth_share_demographic_scopes', None)
 
     try:
@@ -189,8 +189,8 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
                 if code and len(code.strip()) != 0:
                     auth_flow_uuid.code = code
 
-                if auth_crosswalk_type:
-                    auth_flow_uuid.auth_crosswalk_type = auth_crosswalk_type
+                if auth_crosswalk_action:
+                    auth_flow_uuid.auth_crosswalk_action = auth_crosswalk_action
 
                 if auth_share_demographic_scopes:
                     if auth_share_demographic_scopes == "True":

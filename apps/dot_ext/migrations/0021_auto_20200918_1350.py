@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='authflowuuid',
-            name='auth_crosswalk_type',
+            name='auth_crosswalk_action',
             field=models.CharField(max_length=1, null=True),
         ),
     ]
