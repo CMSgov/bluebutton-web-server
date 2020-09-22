@@ -125,7 +125,7 @@ def set_session_auth_flow_trace(request, auth_flow_dict):
     if request.session:
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
             if k in auth_flow_dict:
-                request.session[k] = auth_flow_dict.get(k, None)
+                request.session[k] = auth_flow_dict.get(k)
 
 
 def clear_session_auth_flow_trace(request):
