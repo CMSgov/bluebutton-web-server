@@ -61,6 +61,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         headers['BlueButton-AuthClientId'] = auth_flow_dict.get('auth_client_id', '')
     else:
         headers = None
+        auth_flow_dict = None
 
     # Build URL with patient ID search by identifier.
     url = get_resourcerouter().fhir_url \
@@ -71,9 +72,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     req = requests.Request('GET', url, headers=headers)
     prepped = req.prepare()
-    pre_fetch.send_robust(FhirServerAuth, request=req)
+    pre_fetch.send_robust(FhirServerAuth, request=req, auth_flow_dict=auth_flow_dict)
     response = s.send(prepped, cert=certs, verify=False)
-    post_fetch.send_robust(FhirServerAuth, request=req, response=response)
+    post_fetch.send_robust(FhirServerAuth, request=req, response=response, auth_flow_dict=auth_flow_dict)
     response.raise_for_status()
     backend_data = response.json()
 

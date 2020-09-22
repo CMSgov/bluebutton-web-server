@@ -107,7 +107,8 @@ def get_session_auth_flow_trace(request):
     if request:
         auth_flow_dict = {}
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-            auth_flow_dict[k] = request.session.get(k, None)
+            if request.session.get(k, None):
+                auth_flow_dict[k] = request.session.get(k)
         return auth_flow_dict
     else:
         # Some unit test calls to this have request=None, so return empty dict.
@@ -118,8 +119,9 @@ def set_session_auth_flow_trace(request, auth_flow_dict):
     '''
     Set auth flow related items in the session from a dictionary.
     '''
-    for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-        request.session[k] = auth_flow_dict.get(k, None)
+    if request.session:
+        for k in SESSION_AUTH_FLOW_TRACE_KEYS:
+            request.session[k] = auth_flow_dict.get(k, None)
 
 
 def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):

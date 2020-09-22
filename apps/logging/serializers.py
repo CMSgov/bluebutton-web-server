@@ -179,7 +179,11 @@ class FHIRRequest(Request):
 
 
 class FHIRRequestForAuth(Request):
-    def __init__(self, request):
+    def __init__(self, request, auth_flow_dict=None):
+        if auth_flow_dict:
+            self.auth_flow_dict = auth_flow_dict
+        else:
+            self.auth_flow_dict = {}
         super().__init__(request)
 
     def includeAddressFields(self):
@@ -192,13 +196,16 @@ class FHIRRequestForAuth(Request):
         return self.req.headers.get('BlueButton-OriginalQueryTimestamp')
 
     def to_dict(self):
-        return {
+        result = {
             "type": "fhir_auth_pre_fetch",
             "uuid": self.uuid(),
             "includeAddressFields": self.includeAddressFields(),
             "path": "patient search",
             "start_time": self.start_time(),
         }
+        # Update with auth flow session info
+        result.update(self.auth_flow_dict)
+        return result
 
 
 class Response:
@@ -248,13 +255,19 @@ class FHIRResponse(Response):
 class FHIRResponseForAuth(Response):
     request_class = FHIRRequestForAuth
 
-    def __init__(self, response):
+    def __init__(self, response, auth_flow_dict=None):
+        if auth_flow_dict:
+            self.auth_flow_dict = auth_flow_dict
+        else:
+            self.auth_flow_dict = {}
         super().__init__(response)
 
     def to_dict(self):
         super_dict = super().to_dict()
         # over write type
         super_dict.update({"type": "fhir_auth_post_fetch"})
+        # Update with auth flow session info
+        super_dict.update(self.auth_flow_dict)
         return super_dict
 
 
