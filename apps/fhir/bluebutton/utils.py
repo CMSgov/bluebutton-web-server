@@ -50,9 +50,16 @@ def get_access_token_from_request(request):
     """Returns a user or None with login or OAuth2 API"""
     token = ""
     if 'HTTP_AUTHORIZATION' in request.META:
-        bearer, token = request.META['HTTP_AUTHORIZATION'].split(' ')
-    if 'Authorization' in request.META:
-        bearer, token = request.META['Authorization'].split(' ')
+        auth_list = request.META['HTTP_AUTHORIZATION'].split(' ')
+    elif 'Authorization' in request.META:
+        auth_list = request.META['Authorization'].split(' ')
+    else:
+        auth_list = []
+
+    # Get bearer token from str split list
+    if len(auth_list) == 2:
+        token = auth_list[1]
+
     return token
 
 
