@@ -16,13 +16,8 @@ def log_get_and_update_user(auth_flow_dict, status, user, fhir_id, mbi_hash, hic
         used in get_and_update_user()
         mesg = Description text.
     '''
-    mymedicare_cb_logger.info(json.dumps({
+    log_dict = {
         "type": "mymedicare_cb:get_and_update_user",
-        "auth_uuid": auth_flow_dict.get('auth_uuid', None),
-        "auth_app_id": auth_flow_dict.get('auth_app_id', None),
-        "auth_app_name": auth_flow_dict.get('auth_app_name', None),
-        "auth_client_id": auth_flow_dict.get('auth_client_id', None),
-        "auth_pkce_method": auth_flow_dict.get('auth_pkce_method', None),
         "status": status,
         "fhir_id": fhir_id,
         "mbi_hash": mbi_hash,
@@ -36,7 +31,12 @@ def log_get_and_update_user(auth_flow_dict, status, user, fhir_id, mbi_hash, hic
             "user_id_type": user.crosswalk.user_id_type,
         },
         "mesg": mesg,
-    }))
+    }
+    # Update with auth flow session info
+    if auth_flow_dict:
+        log_dict.update(auth_flow_dict)
+
+    mymedicare_cb_logger.info(json.dumps(log_dict))
 
 
 # For use in models.create_beneficiary_record()
@@ -46,20 +46,20 @@ def log_create_beneficiary_record(auth_flow_dict, status, username, fhir_id, use
         used in create_beneficiary_record()
         mesg = Description text.
     '''
-    mymedicare_cb_logger.info(json.dumps({
+    log_dict = {
         "type": "mymedicare_cb:create_beneficiary_record",
-        "auth_uuid": auth_flow_dict.get('auth_uuid', None),
-        "auth_app_id": auth_flow_dict.get('auth_app_id', None),
-        "auth_app_name": auth_flow_dict.get('auth_app_name', None),
-        "auth_client_id": auth_flow_dict.get('auth_client_id', None),
-        "auth_pkce_method": auth_flow_dict.get('auth_pkce_method', None),
         "status": status,
         "username": username,
         "fhir_id": fhir_id,
         "user_mbi_hash": user_mbi_hash,
         "user_hicn_hash": user_hicn_hash,
         "mesg": mesg,
-    }))
+    }
+    # Update with auth flow session info
+    if auth_flow_dict:
+        log_dict.update(auth_flow_dict)
+
+    mymedicare_cb_logger.info(json.dumps(log_dict))
 
 
 # For use in views.authenticate()
@@ -67,13 +67,8 @@ def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subj
                            sls_mbi_format_valid=None, sls_mbi_format_msg=None,
                            sls_mbi_format_synthetic=None, sls_hicn_hash=None, sls_mbi_hash=None):
 
-    authenticate_logger.info(json.dumps({
+    log_dict = {
         "type": "Authentication:start",
-        "auth_uuid": auth_flow_dict.get('auth_uuid', None),
-        "auth_app_id": auth_flow_dict.get('auth_app_id', None),
-        "auth_app_name": auth_flow_dict.get('auth_app_name', None),
-        "auth_client_id": auth_flow_dict.get('auth_client_id', None),
-        "auth_pkce_method": auth_flow_dict.get('auth_pkce_method', None),
         "sls_status": sls_status,
         "sls_status_mesg": sls_status_mesg,
         "sub": sls_subject,
@@ -82,19 +77,18 @@ def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subj
         "sls_mbi_format_synthetic": sls_mbi_format_synthetic,
         "sls_hicn_hash": sls_hicn_hash,
         "sls_mbi_hash": sls_mbi_hash,
-    }))
+    }
+    # Update with auth flow session info
+    if auth_flow_dict:
+        log_dict.update(auth_flow_dict)
+
+    authenticate_logger.info(json.dumps(log_dict))
 
 
 # For use in views.authenticate()
 def log_authenticate_success(auth_flow_dict, sls_subject, user):
-    authenticate_logger.info(json.dumps({
+    log_dict = {
         "type": "Authentication:success",
-        "auth_uuid": auth_flow_dict.get('auth_uuid', None),
-        "auth_app_id": auth_flow_dict.get('auth_app_id', None),
-        "auth_app_name": auth_flow_dict.get('auth_app_name', None),
-        "auth_client_id": auth_flow_dict.get('auth_client_id', None),
-        "auth_pkce_method": auth_flow_dict.get('auth_pkce_method', None),
-        "auth_crosswalk_type": auth_flow_dict.get('auth_crosswalk_type', None),
         "sub": sls_subject,
         "user": {
             "id": user.id,
@@ -107,4 +101,9 @@ def log_authenticate_success(auth_flow_dict, sls_subject, user):
                 "user_id_type": user.crosswalk.user_id_type,
             },
         },
-    }))
+    }
+    # Update with auth flow session info
+    if auth_flow_dict:
+        log_dict.update(auth_flow_dict)
+
+    authenticate_logger.info(json.dumps(log_dict))

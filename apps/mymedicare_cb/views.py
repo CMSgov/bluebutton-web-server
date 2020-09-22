@@ -11,7 +11,8 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
-from apps.dot_ext.loggers import (get_session_auth_flow_trace,
+from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
+                                  get_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
                                   update_session_auth_flow_trace_from_state,
                                   update_instance_auth_flow_trace_with_state)
@@ -35,6 +36,7 @@ def authenticate(request):
 
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('state', None)
+    clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
 
     # Get auth flow session values.

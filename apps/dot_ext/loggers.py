@@ -59,6 +59,9 @@ def create_session_auth_flow_trace(request):
     # Create new authorization flow trace UUID.
     new_auth_uuid = str(uuid.uuid4())
 
+    # Clear out session keys in case existing from another auth flow.
+    clear_session_auth_flow_trace(request)
+
     request.session['auth_uuid'] = new_auth_uuid
 
     client_id_param = request.GET.get("client_id", None)
@@ -107,7 +110,7 @@ def get_session_auth_flow_trace(request):
     if request:
         auth_flow_dict = {}
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-            if request.session.get(k, None):
+            if k in request.session:
                 auth_flow_dict[k] = request.session.get(k)
         return auth_flow_dict
     else:
@@ -121,7 +124,17 @@ def set_session_auth_flow_trace(request, auth_flow_dict):
     '''
     if request.session:
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-            request.session[k] = auth_flow_dict.get(k, None)
+            if k in auth_flow_dict:
+                request.session[k] = auth_flow_dict.get(k, None)
+
+
+def clear_session_auth_flow_trace(request):
+    '''
+    Clear auth flow related keys from the session.
+    '''
+    if request.session:
+        for k in SESSION_AUTH_FLOW_TRACE_KEYS:
+            request.session.pop(k, None)
 
 
 def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
@@ -130,9 +143,10 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
     '''
     if auth_flow_uuid:
         request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
-        request.session['auth_pkce_method'] = auth_flow_uuid.auth_pkce_method
-        request.session['auth_crosswalk_type'] = auth_flow_uuid.auth_crosswalk_type
-
+        if auth_flow_uuid.auth_pkce_method is not None:
+            request.session['auth_pkce_method'] = auth_flow_uuid.auth_pkce_method
+        if auth_flow_uuid.auth_crosswalk_type is not None:
+            request.session['auth_crosswalk_type'] = auth_flow_uuid.auth_crosswalk_type
         if auth_flow_uuid.auth_share_demographic_scopes is not None:
             request.session['auth_share_demographic_scopes'] = str(auth_flow_uuid.auth_share_demographic_scopes)
 
