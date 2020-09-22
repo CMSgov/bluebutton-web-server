@@ -183,21 +183,21 @@ def update_instance_auth_flow_trace_with_code(auth_dict, code):
 
     try:
         if auth_uuid:
-            auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
+            with transaction.atomic():
+                auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
 
-            if code and len(code.strip()) != 0:
-                auth_flow_uuid.code = code
+                if code and len(code.strip()) != 0:
+                    auth_flow_uuid.code = code
 
-            if auth_crosswalk_type:
-                auth_flow_uuid.auth_crosswalk_type = auth_crosswalk_type
+                if auth_crosswalk_type:
+                    auth_flow_uuid.auth_crosswalk_type = auth_crosswalk_type
 
-            if auth_share_demographic_scopes:
-                if auth_share_demographic_scopes == "True":
-                    auth_flow_uuid.auth_share_demographic_scopes = True
-                elif auth_share_demographic_scopes == "False":
-                    auth_flow_uuid.auth_share_demographic_scopes = False
-
-            auth_flow_uuid.save()
+                if auth_share_demographic_scopes:
+                    if auth_share_demographic_scopes == "True":
+                        auth_flow_uuid.auth_share_demographic_scopes = True
+                    elif auth_share_demographic_scopes == "False":
+                        auth_flow_uuid.auth_share_demographic_scopes = False
+                auth_flow_uuid.save()
     except AuthFlowUuid.DoesNotExist:
         pass
     except IntegrityError:
@@ -237,9 +237,10 @@ def update_instance_auth_flow_trace_with_state(request, state):
         # Store state in AuthFlowUuid.
         try:
             if state and len(state.strip()) != 0:
-                auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
-                auth_flow_uuid.state = state
-                auth_flow_uuid.save()
+                with transaction.atomic():
+                    auth_flow_uuid = AuthFlowUuid.objects.get(auth_uuid=auth_uuid)
+                    auth_flow_uuid.state = state
+                    auth_flow_uuid.save()
         except AuthFlowUuid.DoesNotExist:
             pass
         except IntegrityError:
