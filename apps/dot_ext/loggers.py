@@ -6,7 +6,6 @@ from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
 from .models import AuthFlowUuid
 
-Application = get_application_model()
 
 """
   Logger related functions for dot_ext/mymedicare_cb modules.
@@ -57,6 +56,8 @@ def create_session_auth_flow_trace(request):
 
     CALLED FROM:  apps.dot_ext.views.authorization.AuthorizationView.dispatch()
     '''
+    Application = get_application_model()
+
     # Create new authorization flow trace UUID.
     new_auth_uuid = str(uuid.uuid4())
 
@@ -140,6 +141,8 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
     '''
     Set auth flow related items in the session given an AuthFlowUuid instance.
     '''
+    Application = get_application_model()
+
     if auth_flow_uuid:
         request.session['auth_uuid'] = str(auth_flow_uuid.auth_uuid)
         if auth_flow_uuid.auth_pkce_method is not None:
