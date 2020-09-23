@@ -3,8 +3,9 @@ import datetime
 import uuid
 import hashlib
 import json
-from oauth2_provider.models import AccessToken
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
+from oauth2_provider.models import AccessToken
 from apps.dot_ext.loggers import (SESSION_AUTH_FLOW_TRACE_KEYS,
                                   get_session_auth_flow_trace,
                                   is_path_part_of_auth_flow_trace)
@@ -75,15 +76,14 @@ class RequestResponseLog(object):
 
         if AccessToken.objects.filter(token=access_token).exists():
             at = AccessToken.objects.get(token=access_token)
-            log_msg['app_name'] = at.application.name
-            log_msg['app_id'] = at.application.id
-            log_msg['dev_id'] = at.application.user.id
-            log_msg['dev_name'] = str(at.application.user)
             try:
-                log_msg['org_name'] = at.application.user.user_profile.organization_name
-            except Exception:
+                log_msg['app_name'] = at.application.name
+                log_msg['app_id'] = at.application.id
+                log_msg['dev_id'] = at.application.user.id
+                log_msg['dev_name'] = str(at.application.user)
+                log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
+            except ObjectDoesNotExist:
                 pass
-            log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
 
         # Auth flow trace logging.
         if self.request.session:
@@ -97,10 +97,10 @@ class RequestResponseLog(object):
         # Get FHIR_ID if available.
         user = get_user_from_request(self.request)
         if user:
-            log_msg['user'] = str(user)
-            if getattr(user, 'crosswalk', None):
-                if getattr(user.crosswalk, 'fhir_id', None):
-                    log_msg['fhir_id'] = str(user.crosswalk.fhir_id)
+            try:
+                log_msg['fhir_id'] = str(user.crosswalk.fhir_id)
+            except ObjectDoesNotExist:
+                pass
 
         return(json.dumps(log_msg))
 
