@@ -5,7 +5,7 @@ from apps.capabilities.permissions import TokenHasProtectedCapability
 from oauth2_provider.decorators import protected_resource
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from collections import OrderedDict
-
+from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
 def get_userinfo(user):
     """
@@ -29,7 +29,7 @@ def get_userinfo(user):
 
 @api_view(["GET"])
 @authentication_classes([OAuth2Authentication])
-@permission_classes([TokenHasProtectedCapability])
+@permission_classes([ApplicationActivePermission, TokenHasProtectedCapability])
 @protected_resource()
 def openidconnect_userinfo(request):
     user = request.resource_owner
