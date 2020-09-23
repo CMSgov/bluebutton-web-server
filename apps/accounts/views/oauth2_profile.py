@@ -7,6 +7,7 @@ from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from collections import OrderedDict
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
+
 def get_userinfo(user):
     """
     OIDC-style userinfo

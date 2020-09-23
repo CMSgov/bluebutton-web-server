@@ -82,9 +82,8 @@ class ApplicationActivePermission(permissions.BasePermission):
         if request.auth:
             user = User.objects.get(pk=request.auth.application.user_id)
         org_is_active = user and user.is_active
-        perm_ok = (org_is_active and app_is_active)
-        if not perm_ok:
+        if org_is_active is False or app_is_active is False:
             # in order to generate application specific message, short circuit base
             # permission's error raise flow
             raise PermissionDenied(APPLICATION_TEMPORARILY_INACTIVE.format(app_name))
-        return perm_ok
+        return True
