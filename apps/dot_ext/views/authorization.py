@@ -1,18 +1,23 @@
 import logging
 import waffle
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
+from oauth2_provider.views.base import TokenView as DotTokenView
+from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
+
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.debug import sensitive_post_parameters
+
 from urllib.parse import urlparse, parse_qs
-from rest_framework.exceptions import PermissionDenied
-from apps.messages import APPLICATION_TEMPORARILY_INACTIVE
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
 from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
                        set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
-from ..utils import get_app_and_org
+from ..utils import validate_app_and_org
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -36,13 +41,7 @@ class AuthorizationView(DotAuthorizationView):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
             create_session_auth_flow_trace(request)
 
-        app, user = get_app_and_org(request)
-
-        if app and not app.active:
-            raise PermissionDenied(APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
-
-        if user and not user.is_active:
-            raise PermissionDenied(APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
+        validate_app_and_org(request)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -168,3 +167,25 @@ class ApprovalView(AuthorizationView):
             set_session_auth_flow_trace(request, auth_flow_dict)
 
         return result
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class TokenView(DotTokenView):
+
+    @method_decorator(sensitive_post_parameters("password"))
+    def post(self, request, *args, **kwargs):
+
+        validate_app_and_org(request)
+
+        return super().post(request, args, kwargs)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RevokeTokenView(DotRevokeTokenView):
+
+    @method_decorator(sensitive_post_parameters("password"))
+    def post(self, request, *args, **kwargs):
+
+        validate_app_and_org(request)
+
+        return super().post(request, args, kwargs)
