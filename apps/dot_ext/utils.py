@@ -48,7 +48,7 @@ def validate_app_and_org(request):
     if request.GET is not None:
         client_id = request.GET.get('client_id', None)
 
-    if request.POST is not None:
+    if client_id is None and request.POST is not None:
         client_id = request.POST.get('client_id', None)
 
     app = None

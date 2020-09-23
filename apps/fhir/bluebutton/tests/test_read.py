@@ -761,10 +761,8 @@ class BackendConnectionTest(BaseApiTest):
             errStr = str(response.json().get("detail"))
             errwords = errStr.split()
             packedErrStr = "-".join(errwords)
-            print(packedErrStr)
             msgwords = APPLICATION_TEMPORARILY_INACTIVE.split()
             packedMsg = "-".join(msgwords)
-            print(packedMsg)
             self.assertEqual(packedErrStr, packedMsg.format(application.name))
 
         application.active = True
@@ -798,10 +796,8 @@ class BackendConnectionTest(BaseApiTest):
             errStr = str(response.json().get("detail"))
             errwords = errStr.split()
             packedErrStr = "-".join(errwords)
-            print(packedErrStr)
             msgwords = APPLICATION_TEMPORARILY_INACTIVE.split()
             packedMsg = "-".join(msgwords)
-            print(packedMsg)
             self.assertEqual(packedErrStr, packedMsg.format(application.name))
         # set app user back to active - not to affect subsequent tests
         application.active = True
