@@ -30,8 +30,8 @@ class CapabilitiesScopes(BaseScopes):
                                        .values_list('slug', flat=True).distinct())
 
         # Set scopes based on application choice. Default is True, if field does not exist yet.
-        if getattr(application, 'require_demographic_scopes', True):
-            # Return all available scopes
+        if getattr(application, 'require_demographic_scopes', True) is not False:
+            # Return all scopes for any value other than False
             return app_scopes_avail
         else:
             # Remove personal information scopes
@@ -55,8 +55,8 @@ class CapabilitiesScopes(BaseScopes):
                                                              .values_list('slug', flat=True))
 
         # Set scopes based on application choice. Default is True, if field does not exist yet.
-        if getattr(application, 'require_demographic_scopes', True):
-            # Return all available scopes
+        if getattr(application, 'require_demographic_scopes', True) is not False:
+            # Return all scopes for any value other than False
             return app_scopes_default
         else:
             # Remove personal information scopes
