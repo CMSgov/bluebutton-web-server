@@ -78,6 +78,10 @@ class Application(AbstractApplication):
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)
 
+    # Does this application need to collect beneficary demographic information? YES = True/Null NO = False
+    require_demographic_scopes = models.BooleanField(default=True, null=True,
+                                                     verbose_name="Are demographic scopes required?")
+
     def scopes(self):
         scope_list = []
         for s in self.scope.all():
