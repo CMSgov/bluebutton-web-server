@@ -36,6 +36,7 @@ class RequestResponseLog(object):
         - user = Login user (or None) or OAuth2 API.
         - ip_addr = IP address of the request, account for the possibility of being behind a proxy.
         - access_token_hash = A hash of the access token.
+        - access_token_scopes =  Access token scopes when available
         - app_name = Application name.
         - app_id = Application id.
         - app_require_demographic_scopes = Application required scopes choice when available.
@@ -85,6 +86,7 @@ class RequestResponseLog(object):
                 log_msg['dev_id'] = at.application.user.id
                 log_msg['dev_name'] = str(at.application.user)
                 log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
+                log_msg['access_token_scopes'] = ' '.join([s for s in at.scopes])
             except ObjectDoesNotExist:
                 pass
 
