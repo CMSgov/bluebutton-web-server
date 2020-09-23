@@ -9,10 +9,10 @@ class TestSimpleAllowFormForm(BaseApiTest):
 
     def test_form(self):
         """
-            Test FORM related to beneficiary "share_demographic_scopes" values.
+        Test FORM related to beneficiary "share_demographic_scopes" values.
 
-            The "FORM_OAUTH2_SCOPES_TEST_CASES" dictionary of test cases
-            for the different values is used.
+        The "FORM_OAUTH2_SCOPES_TEST_CASES" dictionary of test cases
+        for the different values is used.
         """
         # Create a test application with require_demographic_scopes = None
         redirect_uri = 'com.custom.bluebutton://example.it'
