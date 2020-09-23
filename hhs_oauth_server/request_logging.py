@@ -97,6 +97,7 @@ class RequestResponseLog(object):
         # Get FHIR_ID if available.
         user = get_user_from_request(self.request)
         if user:
+            log_msg['user'] = str(user)
             try:
                 log_msg['fhir_id'] = str(user.crosswalk.fhir_id)
             except ObjectDoesNotExist:
