@@ -11,8 +11,9 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
-
-from apps.dot_ext.loggers import (get_session_auth_flow_trace,
+from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
+                                  get_session_auth_flow_trace,
+                                  set_session_auth_flow_trace_value,
                                   update_session_auth_flow_trace_from_state,
                                   update_instance_auth_flow_trace_with_state)
 from apps.dot_ext.models import Approval
@@ -35,6 +36,7 @@ def authenticate(request):
 
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('state', None)
+    clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
 
     # Get auth flow session values.
@@ -129,12 +131,16 @@ def authenticate(request):
                            sls_mbi_format_synthetic, sls_hicn_hash, sls_mbi_hash)
 
     # Find or create the user associated with the identity information from SLS.
-    user = get_and_update_user(subject=sls_subject,
-                               mbi_hash=sls_mbi_hash,
-                               hicn_hash=sls_hicn_hash,
-                               first_name=sls_first_name,
-                               last_name=sls_last_name,
-                               email=sls_email, request=request)
+    user, crosswalk_action = get_and_update_user(subject=sls_subject,
+                                                 mbi_hash=sls_mbi_hash,
+                                                 hicn_hash=sls_hicn_hash,
+                                                 first_name=sls_first_name,
+                                                 last_name=sls_last_name,
+                                                 email=sls_email, request=request)
+
+    # Set crosswalk_action and get auth flow session values.
+    set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
+    auth_flow_dict = get_session_auth_flow_trace(request)
 
     # Log successful authentication with beneficiary when we return back here.
     log_authenticate_success(auth_flow_dict, sls_subject, user)

@@ -9,7 +9,7 @@ from ..forms import SimpleAllowForm
 from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
-                       update_instance_auth_flow_trace_with_code)
+                       set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -45,7 +45,6 @@ class AuthorizationView(DotAuthorizationView):
         initial_data = super().get_initial()
         initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
         initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
-        initial_data["auth_uuid"] = self.request.session.get('auth_uuid', None)
         return initial_data
 
     def get(self, request, *args, **kwargs):
@@ -67,6 +66,8 @@ class AuthorizationView(DotAuthorizationView):
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
         share_demographic_scopes = form.cleaned_data.get("share_demographic_scopes")
+
+        set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
         try:
             uri, headers, body, status = self.create_authorization_response(
@@ -106,13 +107,12 @@ class AuthorizationView(DotAuthorizationView):
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
-        auth_uuid = auth_dict.get('auth_uuid', None)
 
         # We are done using auth_uuid, clear it from the session.
         cleanup_session_auth_flow_trace(self.request)
 
         # Update AuthFlowUuid instance with code.
-        update_instance_auth_flow_trace_with_code(auth_uuid, code)
+        update_instance_auth_flow_trace_with_code(auth_dict, code)
 
         return self.redirect(self.success_url, application)
 

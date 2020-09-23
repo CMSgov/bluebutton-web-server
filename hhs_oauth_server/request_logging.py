@@ -3,8 +3,9 @@ import datetime
 import uuid
 import hashlib
 import json
-from oauth2_provider.models import AccessToken
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
+from oauth2_provider.models import AccessToken
 from apps.dot_ext.loggers import (SESSION_AUTH_FLOW_TRACE_KEYS,
                                   get_session_auth_flow_trace,
                                   is_path_part_of_auth_flow_trace)
@@ -38,6 +39,7 @@ class RequestResponseLog(object):
         - app_id = Application id.
         - dev_name = Developer user name.
         - dev_id = Developer user id.
+        - fhir_id = Bene patient id.
     """
 
     request = None
@@ -68,30 +70,38 @@ class RequestResponseLog(object):
         elif getattr(self.response, 'content', False):
             log_msg['size'] = len(self.response.content)
 
-        log_msg['user'] = str(get_user_from_request(self.request))
         log_msg['ip_addr'] = get_ip_from_request(self.request)
 
         access_token = getattr(self.request, 'auth', get_access_token_from_request(self.request))
 
         if AccessToken.objects.filter(token=access_token).exists():
             at = AccessToken.objects.get(token=access_token)
-            log_msg['app_name'] = at.application.name
-            log_msg['app_id'] = at.application.id
-            log_msg['dev_id'] = at.application.user.id
-            log_msg['dev_name'] = str(at.application.user)
             try:
-                log_msg['org_name'] = at.application.user.user_profile.organization_name
-            except Exception:
+                log_msg['app_name'] = at.application.name
+                log_msg['app_id'] = at.application.id
+                log_msg['dev_id'] = at.application.user.id
+                log_msg['dev_name'] = str(at.application.user)
+                log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
+            except ObjectDoesNotExist:
                 pass
-            log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
 
         # Auth flow trace logging.
-        if self.request.session.get('auth_uuid', None):
+        if self.request.session:
             if is_path_part_of_auth_flow_trace(self.request.path):
                 auth_flow_dict = get_session_auth_flow_trace(self.request)
 
                 for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-                    log_msg[k] = auth_flow_dict.get(k, None)
+                    if auth_flow_dict.get(k, None):
+                        log_msg[k] = auth_flow_dict.get(k, None)
+
+        # Get FHIR_ID if available.
+        user = get_user_from_request(self.request)
+        if user:
+            log_msg['user'] = str(user)
+            try:
+                log_msg['fhir_id'] = str(user.crosswalk.fhir_id)
+            except ObjectDoesNotExist:
+                pass
 
         return(json.dumps(log_msg))
 

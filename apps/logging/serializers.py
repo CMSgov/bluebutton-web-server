@@ -63,11 +63,6 @@ class Token:
 
         result = {
             "type": "AccessToken",
-            "auth_uuid": self.auth_flow_dict.get('auth_uuid', None),
-            "auth_app_id": self.auth_flow_dict.get('auth_app_id', None),
-            "auth_app_name": self.auth_flow_dict.get('auth_app_name', None),
-            "auth_client_id": self.auth_flow_dict.get('auth_client_id', None),
-            "auth_pkce_method": self.auth_flow_dict.get('auth_pkce_method', None),
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
             "access_token": hashlib.sha256(
@@ -86,6 +81,10 @@ class Token:
                 "username": getattr(user, 'username', None),
             }
         }
+
+        # Update with auth flow session info
+        result.update(self.auth_flow_dict)
+
         return json.dumps(result)
 
 
@@ -180,7 +179,11 @@ class FHIRRequest(Request):
 
 
 class FHIRRequestForAuth(Request):
-    def __init__(self, request):
+    def __init__(self, request, auth_flow_dict=None):
+        if auth_flow_dict:
+            self.auth_flow_dict = auth_flow_dict
+        else:
+            self.auth_flow_dict = {}
         super().__init__(request)
 
     def includeAddressFields(self):
@@ -193,13 +196,16 @@ class FHIRRequestForAuth(Request):
         return self.req.headers.get('BlueButton-OriginalQueryTimestamp')
 
     def to_dict(self):
-        return {
+        result = {
             "type": "fhir_auth_pre_fetch",
             "uuid": self.uuid(),
             "includeAddressFields": self.includeAddressFields(),
             "path": "patient search",
             "start_time": self.start_time(),
         }
+        # Update with auth flow session info
+        result.update(self.auth_flow_dict)
+        return result
 
 
 class Response:
@@ -249,13 +255,19 @@ class FHIRResponse(Response):
 class FHIRResponseForAuth(Response):
     request_class = FHIRRequestForAuth
 
-    def __init__(self, response):
+    def __init__(self, response, auth_flow_dict=None):
+        if auth_flow_dict:
+            self.auth_flow_dict = auth_flow_dict
+        else:
+            self.auth_flow_dict = {}
         super().__init__(response)
 
     def to_dict(self):
         super_dict = super().to_dict()
         # over write type
         super_dict.update({"type": "fhir_auth_post_fetch"})
+        # Update with auth flow session info
+        super_dict.update(self.auth_flow_dict)
         return super_dict
 
 

@@ -26,9 +26,12 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
         first_name
         last_name
         email
-        request - request from caller to pass along for logging info.
+        request = request from caller to pass along for logging info.
     Returns:
-        A User
+        user = The user that was existing or newly created
+        crosswalk_type =  Type of crosswalk activity:
+            "R" = Returned existing crosswalk record
+            "C" = Created new crosswalk record
     Raises:
         KeyError: If an expected key is missing from user_info.
         KeyError: If response from fhir server is malformed.
@@ -78,7 +81,7 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
 
         err_msg = "RETURN existing beneficiary record"
         log_get_and_update_user(auth_flow_dict, "OK", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
-        return user
+        return user, "R"
     except User.DoesNotExist:
         pass
 
@@ -94,7 +97,7 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
 
     err_msg = "CREATE beneficiary record"
     log_get_and_update_user(auth_flow_dict, "OK", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
-    return user
+    return user, "C"
 
 
 # TODO default empty strings to null, requires non-null constraints to be fixed

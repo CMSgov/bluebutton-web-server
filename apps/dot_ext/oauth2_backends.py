@@ -4,7 +4,8 @@ from django.db import transaction
 from oauth2_provider.oauth2_backends import OAuthLibCore
 from oauth2_provider.models import AccessToken, RefreshToken
 from ..fhir.bluebutton.models import Crosswalk
-from .loggers import update_session_auth_flow_trace_from_code
+from .loggers import (clear_session_auth_flow_trace, update_session_auth_flow_trace_from_code,
+                      set_session_auth_flow_trace_value)
 
 
 class OAuthLibSMARTonFHIR(OAuthLibCore):
@@ -17,8 +18,9 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
         """
         # Get session values previously stored in AuthFlowUuid from AuthorizationView.form_valid() from code.
         body = dict(self.extract_body(request))
-        code = body.get('code', None)
-        update_session_auth_flow_trace_from_code(request, code)
+        clear_session_auth_flow_trace(request)
+        update_session_auth_flow_trace_from_code(request, body.get('code', None))
+        set_session_auth_flow_trace_value(request, 'auth_grant_type', body.get('grant_type', None))
 
         uri, headers, body, status = super(OAuthLibSMARTonFHIR, self).create_token_response(request)
 
