@@ -237,3 +237,26 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         refresh_token_count = RefreshToken.objects.count()
         self.assertEqual(access_token_count, 2)
         self.assertEqual(refresh_token_count, 2)
+
+        # ------ TEST #8:  Beneficary authorizes NOT to share demographic data, but application
+        #                  does not exchange code for access_token. Test that token_3 has been removed.
+        payload['share_demographic_scopes'] = False
+
+        # Perform partial authorization request, with out application getting an access token.
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.assertEqual(response.status_code, 302)
+
+        # Setup token_3 in APIClient from previous step. It should be removed now?
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + token_3.token)
+
+        # Test access to userinfo end point?
+        response = client.get("/v1/connect/userinfo")
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(content.get('detail', None), "Authentication credentials were not provided.")
+
+        # Verify token counts expected.
+        access_token_count = AccessToken.objects.count()
+        refresh_token_count = RefreshToken.objects.count()
+        self.assertEqual(access_token_count, 0)
+        self.assertEqual(refresh_token_count, 0)
