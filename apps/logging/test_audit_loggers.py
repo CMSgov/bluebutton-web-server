@@ -173,13 +173,9 @@ class TestAuditEventLoggers(BaseApiTest):
             sls_token_dict = json.loads(quoted_strings[0])
             sls_userinfo_dict = json.loads(quoted_strings[1])
             self.assertEqual(sls_token_dict["type"], "SLS_token")
-            self.assertEqual(sls_token_dict["auth_uuid"], "84b4afdc-d85d-4ea4-b44c-7bde77634429")
-            self.assertEqual(sls_token_dict["auth_app_name"], "TestApp-001")
             self.assertIsNotNone(sls_token_dict["access_token"])
 
             self.assertEqual(sls_userinfo_dict["type"], "SLS_userinfo")
-            self.assertEqual(sls_userinfo_dict["auth_uuid"], "84b4afdc-d85d-4ea4-b44c-7bde77634429")
-            self.assertEqual(sls_userinfo_dict["auth_app_name"], "TestApp-001")
             self.assertEqual(sls_userinfo_dict["sub"], "00112233-4455-6677-8899-aabbccddeeff")
 
     def test_creation_on_approval_token_logger(self):

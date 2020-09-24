@@ -29,7 +29,6 @@ from .serializers import (
     FHIRRequestForAuth,
     FHIRResponse,
     FHIRResponseForAuth,
-    SLSResponse,
 )
 
 token_logger = logging.getLogger('audit.authorization.token')
