@@ -1,8 +1,6 @@
 import json
-from django.conf import settings
-from django.db import transaction
 from oauth2_provider.oauth2_backends import OAuthLibCore
-from oauth2_provider.models import AccessToken, RefreshToken
+from oauth2_provider.models import AccessToken
 from ..fhir.bluebutton.models import Crosswalk
 from .loggers import (clear_session_auth_flow_trace, update_session_auth_flow_trace_from_code,
                       set_session_auth_flow_trace_value)
@@ -35,16 +33,5 @@ class OAuthLibSMARTonFHIR(OAuthLibCore):
                 cw = Crosswalk.objects.get(user=token.user)
                 fhir_body["patient"] = cw.fhir_id
                 body = json.dumps(fhir_body)
-
-            # When BENE chooses NOT to share demographic scopes, clean up previous access/refresh tokens.
-            app = token.application
-            user = token.user
-            scope = token.scope
-
-            # Does new token scope NOT contain BENE_PERSONAL_INFO_SCOPES?
-            if not set(settings.BENE_PERSONAL_INFO_SCOPES).issubset(scope.split()):
-                with transaction.atomic():
-                    AccessToken.objects.filter(application=app, user=user).exclude(id=token.id).delete()
-                    RefreshToken.objects.filter(application=app, user=user).exclude(access_token=token).delete()
 
         return uri, headers, body, status

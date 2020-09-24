@@ -5,12 +5,14 @@ from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.dot_ext.scopes import CapabilitiesScopes
 from urllib.parse import urlparse, parse_qs
-from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
-from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
                        set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
+from ..models import Approval
+from ..signals import beneficiary_authorized_application
+from ..utils import remove_application_user_pair_tokens
+
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -78,12 +80,22 @@ class AuthorizationView(DotAuthorizationView):
         scopes = ' '.join([s for s in scopes.split(" ")
                           if s in application_available_scopes])
 
+        # Init deleted counts
+        access_token_delete_cnt = 0
+        refresh_token_delete_cnt = 0
+
         try:
             uri, headers, body, status = self.create_authorization_response(
                 request=self.request, scopes=scopes, credentials=credentials, allow=allow
             )
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
+
+            if allow is False:
+                access_token_delete_cnt, refresh_token_delete_cnt = remove_application_user_pair_tokens(application,
+                                                                                                        self.request.user)
+                remove_application_user_pair_tokens(application, self.request.user)
+
             beneficiary_authorized_application.send(
                 sender=self,
                 request=self.request,
@@ -93,8 +105,15 @@ class AuthorizationView(DotAuthorizationView):
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
                 scopes=scopes,
-                allow=allow)
+                allow=allow,
+                access_token_delete_cnt=access_token_delete_cnt,
+                refresh_token_delete_cnt=refresh_token_delete_cnt)
             return response
+
+        # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
+        if share_demographic_scopes == "False" or (allow is True and application.require_demographic_scopes is False):
+            access_token_delete_cnt, refresh_token_delete_cnt = remove_application_user_pair_tokens(application,
+                                                                                                    self.request.user)
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -105,7 +124,9 @@ class AuthorizationView(DotAuthorizationView):
             application=application,
             share_demographic_scopes=share_demographic_scopes,
             scopes=scopes,
-            allow=allow)
+            allow=allow,
+            access_token_delete_cnt=access_token_delete_cnt,
+            refresh_token_delete_cnt=refresh_token_delete_cnt)
 
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))
