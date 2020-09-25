@@ -38,6 +38,7 @@ class AuthorizationView(DotAuthorizationView):
 
         return super().dispatch(request, *args, **kwargs)
 
+    # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
         if waffle.switch_is_active('require-scopes'):
             return ["design_system/authorize_v2.html"]

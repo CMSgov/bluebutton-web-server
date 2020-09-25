@@ -5,6 +5,8 @@
         VIEW_OAUTH2_SCOPES_TEST_CASES - For testing OAUTH2 authorization views
 """
 # Scopes lists for testing
+#   Note that additional scopes, like capability-a/b (not actually used for BB2), are included
+#   to test that the limiting of the resource related endpoints don't affect them.
 APPLICATION_SCOPES_FULL = ['patient/Patient.read', 'profile',
                            'patient/ExplanationOfBenefit.read', 'patient/Coverage.read',
                            'capability-a', 'capability-b']
