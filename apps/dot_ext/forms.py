@@ -170,14 +170,8 @@ class SimpleAllowForm(DotAllowForm):
             cleaned_data['scope'] = ""
             scope = ""
 
-        # Default is True for any non "false" value.
-        if cleaned_data.get("share_demographic_scopes").lower() == "false":
-            share_demographic_scopes = False
-        else:
-            share_demographic_scopes = True
-
         # Remove demographic information scopes, if beneficiary is not sharing
-        if not share_demographic_scopes:
+        if cleaned_data.get("share_demographic_scopes").lower() == "false":
             cleaned_data['scope'] = ' '.join([s for s in scope.split(" ")
                                              if s not in settings.BENE_PERSONAL_INFO_SCOPES])
 
