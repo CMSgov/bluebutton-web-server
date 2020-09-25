@@ -4,7 +4,7 @@ from django.conf import settings
 from django.urls import reverse
 from httmock import HTTMock, urlmatch
 from oauth2_provider.compat import parse_qs, urlparse
-from oauth2_provider.models import AccessToken
+from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
 from apps.authorization.models import DataAccessGrant
@@ -158,6 +158,8 @@ class TestAuthorizationView(BaseApiTest):
             result_raises_exception = cases[case].get("result_raises_exception", None)
             result_exception_mesg = cases[case].get("result_exception_mesg", None)
             result_token_scopes_granted = cases[case].get("result_token_scopes_granted", None)
+            result_access_token_count = cases[case].get("result_access_token_count", None)
+            result_refresh_token_count = cases[case].get("result_refresh_token_count", None)
 
             payload = {
                 'client_id': application.client_id,
@@ -201,6 +203,12 @@ class TestAuthorizationView(BaseApiTest):
             at = AccessToken.objects.get(token=content['access_token'])
             scopes_granted_access_token = sorted(at.scope.split())
             self.assertEqual(scopes_granted_access_token, sorted(result_token_scopes_granted))
+
+            # Verify token counts expected.
+            if result_access_token_count:
+                self.assertEqual(AccessToken.objects.count(), result_access_token_count)
+            if result_refresh_token_count:
+                self.assertEqual(RefreshToken.objects.count(), result_refresh_token_count)
 
             # Test end points with APIClient
             # Test that resource end points are limited by scopes
