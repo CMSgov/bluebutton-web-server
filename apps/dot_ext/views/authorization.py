@@ -95,7 +95,6 @@ class AuthorizationView(DotAuthorizationView):
             if allow is False:
                 access_token_delete_cnt, refresh_token_delete_cnt = remove_application_user_pair_tokens(application,
                                                                                                         self.request.user)
-                remove_application_user_pair_tokens(application, self.request.user)
 
             beneficiary_authorized_application.send(
                 sender=self,
