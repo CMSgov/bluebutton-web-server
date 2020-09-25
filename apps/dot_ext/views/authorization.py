@@ -17,7 +17,7 @@ from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
                        set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
-from ..utils import validate_app_and_org
+from ..utils import validate_app_is_active
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -41,7 +41,7 @@ class AuthorizationView(DotAuthorizationView):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
             create_session_auth_flow_trace(request)
 
-        validate_app_and_org(request)
+        validate_app_is_active(request)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -175,7 +175,7 @@ class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
 
-        validate_app_and_org(request)
+        validate_app_is_active(request)
 
         return super().post(request, args, kwargs)
 
@@ -186,6 +186,6 @@ class RevokeTokenView(DotRevokeTokenView):
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
 
-        validate_app_and_org(request)
+        validate_app_is_active(request)
 
         return super().post(request, args, kwargs)
