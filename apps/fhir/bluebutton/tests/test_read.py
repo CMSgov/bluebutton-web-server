@@ -7,8 +7,7 @@ import apps.fhir.bluebutton.views.home
 from apps.fhir.bluebutton.views.home import (conformance_filter)
 from django.test import TestCase, RequestFactory
 from apps.test import BaseApiTest
-from apps.messages import APPLICATION_TEMPORARILY_INACTIVE
-
+from django.conf import settings
 from django.test.client import Client
 from oauth2_provider.models import get_access_token_model
 from django.urls import reverse
@@ -761,17 +760,9 @@ class BackendConnectionTest(BaseApiTest):
             errStr = str(response.json().get("detail"))
             errwords = errStr.split()
             packedErrStr = "-".join(errwords)
-            msgwords = APPLICATION_TEMPORARILY_INACTIVE.split()
+            msgwords = settings.APPLICATION_TEMPORARILY_INACTIVE.split()
             packedMsg = "-".join(msgwords)
             self.assertEqual(packedErrStr, packedMsg.format(application.name))
-
-        application.active = True
-        application.save()
-        user.is_active = False
-        user.save()
-
-        self.assertEqual(application.active, True)
-        self.assertEqual(user.is_active, False)
 
         # 2nd resource call
         @all_requests
@@ -796,11 +787,9 @@ class BackendConnectionTest(BaseApiTest):
             errStr = str(response.json().get("detail"))
             errwords = errStr.split()
             packedErrStr = "-".join(errwords)
-            msgwords = APPLICATION_TEMPORARILY_INACTIVE.split()
+            msgwords = settings.APPLICATION_TEMPORARILY_INACTIVE.split()
             packedMsg = "-".join(msgwords)
             self.assertEqual(packedErrStr, packedMsg.format(application.name))
         # set app user back to active - not to affect subsequent tests
         application.active = True
         application.save()
-        user.is_active = True
-        user.save()
