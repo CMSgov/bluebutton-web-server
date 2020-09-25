@@ -29,9 +29,9 @@ class CapabilitiesScopes(BaseScopes):
             ProtectedCapability.objects.filter(Q(default=True) | Q(application=application))
                                        .values_list('slug', flat=True).distinct())
 
-        # Set scopes based on application choice. Default is True, if field does not exist yet.
-        if getattr(application, 'require_demographic_scopes', True) is not False:
-            # Return all scopes for any value other than False
+        # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
+        if application.require_demographic_scopes in [True, None]:
+            # Return all scopes
             return app_scopes_avail
         else:
             # Remove personal information scopes
@@ -54,9 +54,9 @@ class CapabilitiesScopes(BaseScopes):
         app_scopes_default = list(ProtectedCapability.objects.filter(default=True)
                                                              .values_list('slug', flat=True))
 
-        # Set scopes based on application choice. Default is True, if field does not exist yet.
-        if getattr(application, 'require_demographic_scopes', True) is not False:
-            # Return all scopes for any value other than False
+        # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
+        if application.require_demographic_scopes in [True, None]:
+            # Return all scopes
             return app_scopes_default
         else:
             # Remove personal information scopes
