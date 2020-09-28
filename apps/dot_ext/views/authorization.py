@@ -82,9 +82,9 @@ class AuthorizationView(DotAuthorizationView):
                           if s in application_available_scopes])
 
         # Init deleted counts
+        data_access_grant_delete_cnt = 0
         access_token_delete_cnt = 0
         refresh_token_delete_cnt = 0
-        data_access_grant_delete_cnt = 0
 
         try:
             uri, headers, body, status = self.create_authorization_response(
@@ -94,9 +94,9 @@ class AuthorizationView(DotAuthorizationView):
             response = self.error_response(error, application)
 
             if allow is False:
-                data_access_grant_delete_cnt,
-                access_token_delete_cnt,
-                refresh_token_delete_cnt = remove_application_user_pair_tokens_data_access(application, self.request.user)
+                (data_access_grant_delete_cnt,
+                 access_token_delete_cnt,
+                 refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -115,9 +115,9 @@ class AuthorizationView(DotAuthorizationView):
 
         # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
         if share_demographic_scopes == "False" or (allow is True and application.require_demographic_scopes is False):
-            data_access_grant_delete_cnt,
-            access_token_delete_cnt,
-            refresh_token_delete_cnt = remove_application_user_pair_tokens_data_access(application, self.request.user)
+            (data_access_grant_delete_cnt,
+             access_token_delete_cnt,
+             refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
         beneficiary_authorized_application.send(
             sender=self,
