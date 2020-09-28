@@ -9,10 +9,12 @@ AccessToken = get_access_token_model()
 
 
 def app_authorized_record_grant(sender, request, user, application, **kwargs):
-    DataAccessGrant.objects.get_or_create(
-        beneficiary=user,
-        application=application,
-    )
+    auth_status = kwargs.get('auth_status', None)
+    if auth_status == "OK":
+        DataAccessGrant.objects.get_or_create(
+            beneficiary=user,
+            application=application,
+        )
 
 
 beneficiary_authorized_application.connect(app_authorized_record_grant)
