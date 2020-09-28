@@ -5,6 +5,8 @@ from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
+from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
+from apps.dot_ext.models import ArchivedToken
 from ..models import Application
 
 
@@ -146,6 +148,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 1)
         self.assertEqual(RefreshToken.objects.count(), 2)
+        self.assertEqual(ArchivedToken.objects.count(), 1)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 0)
 
         # ------ TEST #3:  3nd authorization: Beneficary authorizes NOT to share demographic data. ------
         payload['share_demographic_scopes'] = False
@@ -171,6 +178,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 1)
         self.assertEqual(RefreshToken.objects.count(), 1)
+        self.assertEqual(ArchivedToken.objects.count(), 2)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 1)
 
         # ------ TEST #4:  Test token_1 from TEST #1 access to userinfo? Does it still have access? ------
         # Setup token in APIClient
@@ -231,6 +243,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 2)
         self.assertEqual(RefreshToken.objects.count(), 2)
+        self.assertEqual(ArchivedToken.objects.count(), 2)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 1)
 
         # ------ TEST #8:  Beneficary authorizes NOT to share demographic data, but application
         #                  does not exchange code for access_token. Test that token_3 has been removed.
@@ -252,6 +269,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 0)
         self.assertEqual(RefreshToken.objects.count(), 0)
+        self.assertEqual(ArchivedToken.objects.count(), 4)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 2)
 
         # ------ TEST #9: Beneficary authorizes to share FULL demographic data, then chooses DENY on consent page ------
         payload['share_demographic_scopes'] = True
@@ -266,6 +288,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 1)
         self.assertEqual(RefreshToken.objects.count(), 1)
+        self.assertEqual(ArchivedToken.objects.count(), 4)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 2)
 
         # Assert access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_9.token)
@@ -282,6 +309,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 0)
         self.assertEqual(RefreshToken.objects.count(), 0)
+        self.assertEqual(ArchivedToken.objects.count(), 5)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 0)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 3)
 
         # Assert access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_9.token)
@@ -305,6 +337,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 1)
         self.assertEqual(RefreshToken.objects.count(), 1)
+        self.assertEqual(ArchivedToken.objects.count(), 5)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 3)
 
         # Assert access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_10.token)
@@ -322,6 +359,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 0)
         self.assertEqual(RefreshToken.objects.count(), 0)
+        self.assertEqual(ArchivedToken.objects.count(), 6)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 4)
 
         # Perform partial authorization request, with out application getting an access token.
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
@@ -330,6 +372,11 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Verify token counts expected.
         self.assertEqual(AccessToken.objects.count(), 0)
         self.assertEqual(RefreshToken.objects.count(), 0)
+        self.assertEqual(ArchivedToken.objects.count(), 6)
+
+        # Verify grant counts expected.
+        self.assertEqual(DataAccessGrant.objects.count(), 1)
+        self.assertEqual(ArchivedDataAccessGrant.objects.count(), 5)
 
         # Assert access to userinfo end point?
         client.credentials(HTTP_AUTHORIZATION="Bearer " + token_10.token)

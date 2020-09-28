@@ -11,7 +11,7 @@ from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow
                        set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
 from ..models import Approval
 from ..signals import beneficiary_authorized_application
-from ..utils import remove_application_user_pair_tokens
+from ..utils import remove_application_user_pair_tokens_data_access
 
 
 log = logging.getLogger('hhs_server.%s' % __name__)
@@ -84,6 +84,7 @@ class AuthorizationView(DotAuthorizationView):
         # Init deleted counts
         access_token_delete_cnt = 0
         refresh_token_delete_cnt = 0
+        data_access_grant_delete_cnt = 0
 
         try:
             uri, headers, body, status = self.create_authorization_response(
@@ -93,8 +94,9 @@ class AuthorizationView(DotAuthorizationView):
             response = self.error_response(error, application)
 
             if allow is False:
-                access_token_delete_cnt, refresh_token_delete_cnt = remove_application_user_pair_tokens(application,
-                                                                                                        self.request.user)
+                data_access_grant_delete_cnt,
+                access_token_delete_cnt,
+                refresh_token_delete_cnt = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -107,13 +109,15 @@ class AuthorizationView(DotAuthorizationView):
                 scopes=scopes,
                 allow=allow,
                 access_token_delete_cnt=access_token_delete_cnt,
-                refresh_token_delete_cnt=refresh_token_delete_cnt)
+                refresh_token_delete_cnt=refresh_token_delete_cnt,
+                data_access_grant_delete_cnt=data_access_grant_delete_cnt)
             return response
 
         # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
         if share_demographic_scopes == "False" or (allow is True and application.require_demographic_scopes is False):
-            access_token_delete_cnt, refresh_token_delete_cnt = remove_application_user_pair_tokens(application,
-                                                                                                    self.request.user)
+            data_access_grant_delete_cnt,
+            access_token_delete_cnt,
+            refresh_token_delete_cnt = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -126,7 +130,8 @@ class AuthorizationView(DotAuthorizationView):
             scopes=scopes,
             allow=allow,
             access_token_delete_cnt=access_token_delete_cnt,
-            refresh_token_delete_cnt=refresh_token_delete_cnt)
+            refresh_token_delete_cnt=refresh_token_delete_cnt,
+            data_access_grant_delete_cnt=data_access_grant_delete_cnt)
 
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))

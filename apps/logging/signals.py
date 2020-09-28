@@ -48,7 +48,7 @@ def handle_token_created(sender, request, token, **kwargs):
 @receiver(beneficiary_authorized_application)
 def handle_app_authorized(sender, request, auth_status, auth_status_code, user, application,
                           share_demographic_scopes, scopes, allow, access_token_delete_cnt,
-                          refresh_token_delete_cnt, **kwargs):
+                          refresh_token_delete_cnt, data_access_grant_delete_cnt, **kwargs):
 
     # Get auth flow dict from session for logging
     auth_flow_dict = get_session_auth_flow_trace(request)
@@ -77,6 +77,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "allow": allow,
         "access_token_delete_cnt": access_token_delete_cnt,
         "refresh_token_delete_cnt": access_token_delete_cnt,
+        "data_access_grant_delete_cnt": data_access_grant_delete_cnt,
     }
 
     # Update with auth flow session info

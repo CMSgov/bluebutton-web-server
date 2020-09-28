@@ -7,7 +7,8 @@ from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
-from apps.authorization.models import DataAccessGrant
+from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
+from apps.dot_ext.models import ArchivedToken
 from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
 from apps.test import BaseApiTest
 from ..models import Application
@@ -160,6 +161,8 @@ class TestAuthorizationView(BaseApiTest):
             result_token_scopes_granted = cases[case].get("result_token_scopes_granted", None)
             result_access_token_count = cases[case].get("result_access_token_count", None)
             result_refresh_token_count = cases[case].get("result_refresh_token_count", None)
+            result_archived_token_count = cases[case].get("result_archived_token_count", None)
+            result_archived_data_access_grant_count = cases[case].get("result_archived_data_access_grant_count", None)
 
             payload = {
                 'client_id': application.client_id,
@@ -209,6 +212,13 @@ class TestAuthorizationView(BaseApiTest):
                 self.assertEqual(AccessToken.objects.count(), result_access_token_count)
             if result_refresh_token_count:
                 self.assertEqual(RefreshToken.objects.count(), result_refresh_token_count)
+            if result_archived_token_count:
+                self.assertEqual(ArchivedToken.objects.count(), result_archived_token_count)
+            if result_archived_data_access_grant_count:
+                self.assertEqual(ArchivedDataAccessGrant.objects.count(), result_archived_data_access_grant_count)
+            # Verify DataAccessGrant count is always = 1
+            if result_archived_data_access_grant_count:
+                self.assertEqual(DataAccessGrant.objects.count(), 1)
 
             # Test end points with APIClient
             # Test that resource end points are limited by scopes
