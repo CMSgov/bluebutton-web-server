@@ -3,13 +3,16 @@ import waffle
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
+from apps.dot_ext.scopes import CapabilitiesScopes
 from urllib.parse import urlparse, parse_qs
-from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
-from ..models import Approval
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
                        set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
+from ..models import Approval
+from ..signals import beneficiary_authorized_application
+from ..utils import remove_application_user_pair_tokens_data_access
+
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -35,6 +38,7 @@ class AuthorizationView(DotAuthorizationView):
 
         return super().dispatch(request, *args, **kwargs)
 
+    # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
         if waffle.switch_is_active('require-scopes'):
             return ["design_system/authorize_v2.html"]
@@ -65,9 +69,22 @@ class AuthorizationView(DotAuthorizationView):
         }
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
-        share_demographic_scopes = form.cleaned_data.get("share_demographic_scopes")
 
+        # Get beneficiary demographic scopes sharing choice
+        share_demographic_scopes = form.cleaned_data.get("share_demographic_scopes")
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
+
+        # Get scopes list available to the application
+        application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
+
+        # Set scopes to those available to application and beneficiary demographic info choices
+        scopes = ' '.join([s for s in scopes.split(" ")
+                          if s in application_available_scopes])
+
+        # Init deleted counts
+        data_access_grant_delete_cnt = 0
+        access_token_delete_cnt = 0
+        refresh_token_delete_cnt = 0
 
         try:
             uri, headers, body, status = self.create_authorization_response(
@@ -75,6 +92,12 @@ class AuthorizationView(DotAuthorizationView):
             )
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
+
+            if allow is False:
+                (data_access_grant_delete_cnt,
+                 access_token_delete_cnt,
+                 refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+
             beneficiary_authorized_application.send(
                 sender=self,
                 request=self.request,
@@ -84,8 +107,17 @@ class AuthorizationView(DotAuthorizationView):
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
                 scopes=scopes,
-                allow=allow)
+                allow=allow,
+                access_token_delete_cnt=access_token_delete_cnt,
+                refresh_token_delete_cnt=refresh_token_delete_cnt,
+                data_access_grant_delete_cnt=data_access_grant_delete_cnt)
             return response
+
+        # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
+        if share_demographic_scopes == "False" or (allow is True and application.require_demographic_scopes is False):
+            (data_access_grant_delete_cnt,
+             access_token_delete_cnt,
+             refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -96,7 +128,10 @@ class AuthorizationView(DotAuthorizationView):
             application=application,
             share_demographic_scopes=share_demographic_scopes,
             scopes=scopes,
-            allow=allow)
+            allow=allow,
+            access_token_delete_cnt=access_token_delete_cnt,
+            refresh_token_delete_cnt=refresh_token_delete_cnt,
+            data_access_grant_delete_cnt=data_access_grant_delete_cnt)
 
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))

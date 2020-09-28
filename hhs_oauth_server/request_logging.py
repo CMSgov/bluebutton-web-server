@@ -27,6 +27,7 @@ class RequestResponseLog(object):
         - auth_uuid = The UUID identifying the auth flow session when available.
         - auth_app_id = Application id for auth flow session when available.
         - auth_app_name = Application name for auth flow session when available.
+        - auth_require_demographic_scopes = Application required scopes choice when available.
         - auth_client_id = Client ID for auth flow session when available.
         - path = The request.path.
         - response_code = The response status code.
@@ -35,8 +36,10 @@ class RequestResponseLog(object):
         - user = Login user (or None) or OAuth2 API.
         - ip_addr = IP address of the request, account for the possibility of being behind a proxy.
         - access_token_hash = A hash of the access token.
+        - access_token_scopes =  Access token scopes when available
         - app_name = Application name.
         - app_id = Application id.
+        - app_require_demographic_scopes = Application required scopes choice when available.
         - dev_name = Developer user name.
         - dev_id = Developer user id.
         - fhir_id = Bene patient id.
@@ -79,9 +82,11 @@ class RequestResponseLog(object):
             try:
                 log_msg['app_name'] = at.application.name
                 log_msg['app_id'] = at.application.id
+                log_msg['app_require_demographic_scopes'] = str(getattr(at.application, 'require_demographic_scopes', ""))
                 log_msg['dev_id'] = at.application.user.id
                 log_msg['dev_name'] = str(at.application.user)
                 log_msg['access_token_hash'] = hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()
+                log_msg['access_token_scopes'] = ' '.join([s for s in at.scopes])
             except ObjectDoesNotExist:
                 pass
 

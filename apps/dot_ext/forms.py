@@ -55,6 +55,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             'support_phone_number',
             'contacts',
             'agree',
+            'require_demographic_scopes',
         )
 
     required_css_class = 'required'
@@ -133,6 +134,13 @@ class CustomRegisterApplicationForm(forms.ModelForm):
             validate_logo_image(logo_image)
         return logo_image
 
+    def clean_require_demographic_scopes(self):
+        require_demographic_scopes = self.cleaned_data.get('require_demographic_scopes')
+        if type(require_demographic_scopes) != bool:
+            msg = _('Does your application need to collect beneficary demographic information must be (Yes/No).')
+            raise forms.ValidationError(msg)
+        return require_demographic_scopes
+
     def save(self, *args, **kwargs):
         app = self.instance
         # Only log agreement from a Register form
@@ -162,14 +170,8 @@ class SimpleAllowForm(DotAllowForm):
             cleaned_data['scope'] = ""
             scope = ""
 
-        # Default is True for any non "false" value.
-        if cleaned_data.get("share_demographic_scopes").lower() == "false":
-            share_demographic_scopes = False
-        else:
-            share_demographic_scopes = True
-
         # Remove demographic information scopes, if beneficiary is not sharing
-        if not share_demographic_scopes:
+        if cleaned_data.get("share_demographic_scopes") == "False":
             cleaned_data['scope'] = ' '.join([s for s in scope.split(" ")
                                              if s not in settings.BENE_PERSONAL_INFO_SCOPES])
 
