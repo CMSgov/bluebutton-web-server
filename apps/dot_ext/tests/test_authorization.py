@@ -2,6 +2,7 @@ from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.urls import reverse
 from django.test import Client
+from rest_framework.exceptions import PermissionDenied
 
 from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
@@ -375,3 +376,64 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         self.assertFalse(RefreshToken.objects.filter(token=refresh_tkn).exists())
         self.assertFalse(DataAccessGrant.objects.filter(beneficiary__pk=user_pk).exists())
         self.assertTrue(ArchivedDataAccessGrant.objects.filter(beneficiary__pk=user_pk).exists())
+
+    def test_revoked_token_on_inactive_app(self):
+        ''' adapted from existing token revoke test
+        to test revoke on an inactive app
+        '''
+        redirect_uri = 'http://localhost'
+        # create a user
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+        # user logs in
+        self.client.login(username='anna', password='123456')
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.client.logout()
+        self.assertEqual(response.status_code, 302)
+        # now extract the authorization code and use it to request an access_token
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret,
+        }
+        c = Client()
+        response = c.post('/v1/o/token/', data=token_request_data)
+        self.assertEqual(response.status_code, 200)
+        # Now we have a token and refresh token
+        tkn = response.json()['access_token']
+        revoke_request_data = {
+            'token': tkn,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret,
+        }
+        # set app to inactive before revoke
+        application.active = False
+        application.save()
+
+        with self.assertRaises(PermissionDenied):
+            c.post('/v1/o/revoke_token/', data=revoke_request_data)
+
+        # revert app to active in case not to impact other tests
+        application.active = True
+        application.save()

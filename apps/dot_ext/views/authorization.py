@@ -1,9 +1,14 @@
 import logging
 import waffle
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
+from oauth2_provider.views.base import TokenView as DotTokenView
+from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
 from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.dot_ext.scopes import CapabilitiesScopes
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.debug import sensitive_post_parameters
 from urllib.parse import urlparse, parse_qs
 from ..forms import SimpleAllowForm
 from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
@@ -12,6 +17,7 @@ from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow
 from ..models import Approval
 from ..signals import beneficiary_authorized_application
 from ..utils import remove_application_user_pair_tokens_data_access
+from ..utils import validate_app_is_active
 
 
 log = logging.getLogger('hhs_server.%s' % __name__)
@@ -35,6 +41,8 @@ class AuthorizationView(DotAuthorizationView):
         if not kwargs.get('is_subclass_approvalview', False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
             create_session_auth_flow_trace(request)
+
+        validate_app_is_active(request)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -192,3 +200,25 @@ class ApprovalView(AuthorizationView):
             set_session_auth_flow_trace(request, auth_flow_dict)
 
         return result
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class TokenView(DotTokenView):
+
+    @method_decorator(sensitive_post_parameters("password"))
+    def post(self, request, *args, **kwargs):
+
+        validate_app_is_active(request)
+
+        return super().post(request, args, kwargs)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RevokeTokenView(DotRevokeTokenView):
+
+    @method_decorator(sensitive_post_parameters("password"))
+    def post(self, request, *args, **kwargs):
+
+        validate_app_is_active(request)
+
+        return super().post(request, args, kwargs)
