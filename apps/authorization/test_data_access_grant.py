@@ -208,7 +208,7 @@ class TestDataAccessGrant(BaseApiTest):
             checks['grants'],
         )
 
-    def test_permission_deny_on_app_or_org_disabled(self):
+    def test_permission_deny_on_app_that_is_disabled(self):
         '''
         BB2-149 leverage application.active, user.is_active to deny permission
         to an application or applications under a user (organization)

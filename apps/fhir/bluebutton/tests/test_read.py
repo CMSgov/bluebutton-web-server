@@ -724,7 +724,7 @@ class BackendConnectionTest(BaseApiTest):
         # Check that application last_active was updated
         self.assertNotEqual(application.last_active, prev_last_active)
 
-    def test_permission_deny_fhir_request_on_disabled_app_org(self):
+    def test_permission_deny_fhir_request_on_disabled_app(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
