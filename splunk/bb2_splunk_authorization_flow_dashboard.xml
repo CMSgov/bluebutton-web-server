@@ -52,9 +52,6 @@
       </input>
     </panel>
   </row>
-
-
-
   <row>
     <panel>
       <html>
@@ -89,19 +86,94 @@
      </html>
     </panel>
   </row>
-
+  <!-- Setup of BASE searches to be used in panels -->
+  <search id="baseSearch1">
+    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/v1/o/authorize/" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch2">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch3">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch4">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | fields time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch5">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch6a">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch6b">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch7">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:success" | fields time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch8">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | fields time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch9">
+     <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method ]]></query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch10">
+     <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location]]> </query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch11">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch12">
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes</query>
+     <earliest>$t_local.earliest$</earliest>
+     <latest>$t_local.latest$</latest>
+     <sampleRatio>1</sampleRatio>
+  </search>
   <row>
     <panel>
       <title>1. Initial Authorization</title>
       <single>
-        <search>
+        <search base="baseSearch1">
           <done>
             <set token="tokEpCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/v1/o/authorize/" |  search "message.response_code"!="200" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.response_code"!="200" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -111,11 +183,8 @@
     <panel>
       <title>2. MyMedicare Login Redirect</title>
       <single>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch2">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -125,11 +194,8 @@
     <panel>
       <title>3. Authentication Start</title>
       <single>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch3">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -139,11 +205,8 @@
     <panel>
       <title>4. FHIR_ID Matched</title>
       <single>
-        <search>
-<query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch4">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -151,16 +214,12 @@
       </single>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>5. Beneficiary User/Crosswalk Retreivals</title>
       <single>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch5">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -170,11 +229,8 @@
     <panel>
       <title>6a. Existing Beneficiary record FOUND in BB2 User/Crosswalk</title>
       <single>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6a">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -184,26 +240,19 @@
     <panel>
       <title>6b. New Beneficiary record CREATED in BB2 User/Crosswalk</title>
       <single>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6b">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
         <option name="refresh.display">progressbar</option>
       </single>
     </panel>
-
     <panel>
       <title>7. Authentication Success - SLS-to-FHIR_ID Matched</title>
       <single>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:success" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch7">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -213,11 +262,8 @@
     <panel>
       <title>8. MyMedicare SLS-Callback COMPLETE</title>
       <single>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch8">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -225,16 +271,12 @@
       </single>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>9. Authorization ApprovalView</title>
       <single>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | stats count ]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch9">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -244,11 +286,8 @@
     <panel>
       <title>10. Authorization ApprovalView (redirect to bene consent form)</title>
       <single>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | stats count ]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch10">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -258,11 +297,8 @@
     <panel>
       <title>11. Beneficiary Authorized Application - via consent form</title>
       <single>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch11">
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -272,14 +308,11 @@
     <panel>
       <title>12. Authorized Application Receives Token</title>
       <single>
-        <search>
+        <search base="baseSearch12">
           <done>
             <set token="tokTcCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.auth_uuid!=null | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -304,16 +337,12 @@
       </chart>
     </panel>
   </row>
-
   <row>
     <panel>
       <chart>
-        <title>Initial Authorization Request Events TIME-CHART</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/v1/o/authorize/" | timechart count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>1. Initial Authorization Request Events TIME-CHART</title>
+        <search base="baseSearch1">
+          <query>timechart count</query>
         </search>
         <option name="charting.chart">column</option>
         <option name="charting.drilldown">all</option>
@@ -323,16 +352,12 @@
       </chart>
     </panel>
   </row>
-
   <row>
     <panel>
       <chart>
-        <title>Authorized Application Receives Token Events TIME-CHART</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.auth_uuid!=null | timechart count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>12. Authorized Application Receives Token Events TIME-CHART</title>
+        <search base="baseSearch12">
+          <query>timechart count</query>
         </search>
         <option name="charting.chart">column</option>
         <option name="height">199</option>
@@ -341,7 +366,6 @@
       </chart>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -352,7 +376,6 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
@@ -374,14 +397,11 @@
     <panel>
       <title>SUCCESSFUL Events (response_code == "302")</title>
       <single>
-        <search>
+        <search base="baseSearch1">
           <done>
             <set token="tokInitOkCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/v1/o/authorize/" |  search "message.response_code"="302" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -403,31 +423,22 @@
       </chart>
     </panel>
   </row>
-
   <row>
     <panel>
       <chart>
         <title>Events by response_code</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/$" | search "message.response_code"!="200" | stats count by message.response_code</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch1">
+          <query>stats count by message.response_code</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
-
-
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/$" | search "message.response_code"!="200" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch1">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -436,28 +447,19 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/$" | search "message.response_code"!="200" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch1">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
   </row>
-
-
-
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/$" | search "message.response_code"!="200" | table time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch1">
+          <query>table time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -470,7 +472,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -481,19 +482,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch2">
           <done>
             <set token="tokMyMedTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -503,14 +500,11 @@
     <panel>
       <title>SUCCESSFUL Events (response_code == "302")</title>
       <single>
-        <search>
+        <search base="baseSearch2">
           <done>
             <set token="tokMyMedOkCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | search "message.response_code"="302" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.response_code"="302" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -532,16 +526,12 @@
       </chart>
     </panel>
   </row>
-
   <row>
     <panel>
       <chart>
         <title>Events by response_code</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | stats count by message.response_code</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch2">
+          <query>stats count by message.response_code</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -549,12 +539,9 @@
     </panel>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch2">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -563,11 +550,8 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch2">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -577,11 +561,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | table time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch2">
+          <query>table time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -594,7 +575,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -605,19 +585,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch3">
           <done>
             <set token="tokStartTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -627,14 +603,11 @@
     <panel>
       <title>SUCCESSFUL Events (sls_status == "OK")</title>
       <single>
-        <search>
+        <search base="baseSearch3">
           <done>
             <set token="tokStartOkCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | search message.sls_status="OK" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search message.sls_status="OK" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -656,16 +629,12 @@
       </chart>
     </panel>
   </row>
-
   <row>
     <panel>
       <chart>
         <title>Events with SLS MBI FORMAT VALID (true vs. false)</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | stats count by message.sls_mbi_format_valid</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch3">
+          <query>stats count by message.sls_mbi_format_valid</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -674,11 +643,8 @@
     <panel>
       <chart>
         <title>Events with SLS MBI FORMAT SYNTHETIC (true vs. false)</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | stats count by message.sls_mbi_format_synthetic</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch3">
+          <query>stats count by message.sls_mbi_format_synthetic</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -687,28 +653,20 @@
     <panel>
       <chart>
         <title>Events by sls_mbi_format_msg</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | stats count by message.sls_mbi_format_msg</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch3">
+          <query>stats count by message.sls_mbi_format_msg</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
   </row>
-
-
   <row>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch3">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -717,27 +675,19 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch3">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
   </row>
-
-
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | table time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch3">
+          <query>table time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -750,7 +700,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -761,19 +710,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch4">
           <done>
             <set token="tokFhirMatchTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -783,14 +728,11 @@
     <panel>
       <title>SUCCESSFUL Events (match_found == "true")</title>
       <single>
-        <search>
+        <search base="baseSearch4">
           <done>
             <set token="tokFhirMatchOkCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.match_found"="true" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -816,11 +758,8 @@
     <panel>
       <chart>
         <title>Events by match_found</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.match_found</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch4">
+          <query>search "message.match_found"="true" | stats count by message.match_found</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -829,11 +768,8 @@
     <panel>
       <chart>
         <title>Events by hash_lookup_type</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.hash_lookup_type</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch4">
+          <query>search "message.match_found"="true" | stats count by message.hash_lookup_type</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -842,11 +778,8 @@
     <panel>
       <chart>
         <title>Events by hash_lookup_mesg</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.hash_lookup_mesg</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch4">
+          <query>search "message.match_found"="true" | stats count by message.hash_lookup_mesg</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -856,12 +789,9 @@
   <row>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch4">
+          <query>search "message.match_found"="true" | eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -870,11 +800,8 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch4">
+          <query>search "message.match_found"="true" | stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -884,11 +811,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | table time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch4">
+          <query>table time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -901,7 +825,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -912,19 +835,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch5">
           <done>
             <set token="tokGetUpdateTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -934,14 +853,11 @@
     <panel>
       <title>SUCCESSFUL Events (status="OK")</title>
       <single>
-        <search>
+        <search base="baseSearch5">
           <done>
             <set token="tokGetUpdateOkCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | search "message.status"="OK" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.status"="OK" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -967,11 +883,9 @@
     <panel>
       <chart>
         <title>Events by user_id_type (Previously stored crosswalk type)</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | stats count by message.crosswalk.user_id_type</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch5">
+          <query>
+stats count by message.crosswalk.user_id_type</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -980,11 +894,8 @@
     <panel>
       <chart>
         <title>Events by hash_lookup_type (type used to match FHIR_ID)</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | stats count by message.hash_lookup_type</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch5">
+          <query>stats count by message.hash_lookup_type</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -993,11 +904,8 @@
     <panel>
       <chart>
         <title>Events by mesg</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | stats count by message.mesg</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch5">
+          <query>stats count by message.mesg</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1007,12 +915,9 @@
   <row>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch5">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1021,11 +926,8 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch5">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1035,11 +937,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | table time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch5">
+          <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -1052,8 +951,6 @@
       </table>
     </panel>
   </row>
-
-
   <row>
     <panel>
       <html>
@@ -1064,19 +961,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch6a">
           <done>
             <set token="tokGetExistingTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1086,14 +979,11 @@
     <panel>
       <title>SUCCESSFUL Events (status="OK"))</title>
       <single>
-        <search>
+        <search base="baseSearch6a">
           <done>
-            <set token="tokGetUpOkCount">$result.count$</set>
+            <set token="tokGetExistingOkCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | search "message.status"="OK" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.status"="OK" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1104,7 +994,7 @@
       <chart>
         <title>SUCCESSFUL vs. TOTAL Percentage %</title>
         <search>
-          <query>| makeresults | eval Total1=$tokGetUpTotalCount$, Total2=$tokGetUpOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+          <query>| makeresults | eval Total1=$tokGetExistingTotalCount$, Total2=$tokGetExistingOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="charting.chart">radialGauge</option>
@@ -1119,11 +1009,8 @@
     <panel>
       <chart>
         <title>Events by user_id_type (BEFORE: Previously stored crosswalk type)</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="UPDATE mbi_hash since previous value was NULL" OR "message.mesg"="UPDATE user_id_type as it has changed from the previous lookup value" | stats count by message.crosswalk.user_id_type</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6a">
+          <query>stats count by message.crosswalk.user_id_type</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1132,11 +1019,8 @@
     <panel>
       <chart>
         <title>Events by hash_lookup_type (AFTER: type used to match FHIR_ID)</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="UPDATE mbi_hash since previous value was NULL" OR "message.mesg"="UPDATE user_id_type as it has changed from the previous lookup value" | stats count by message.hash_lookup_type</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6a">
+          <query>stats count by message.hash_lookup_type</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1145,11 +1029,8 @@
     <panel>
       <chart>
         <title>Events by mesg</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="UPDATE mbi_hash since previous value was NULL" OR "message.mesg"="UPDATE user_id_type as it has changed from the previous lookup value" | stats count by message.mesg</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6a">
+          <query>stats count by message.mesg</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1159,12 +1040,9 @@
   <row>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="UPDATE mbi_hash since previous value was NULL" OR "message.mesg"="UPDATE user_id_type as it has changed from the previous lookup value" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch6a">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1173,11 +1051,8 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="UPDATE mbi_hash since previous value was NULL" OR "message.mesg"="UPDATE user_id_type as it has changed from the previous lookup value" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6a">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1187,11 +1062,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="UPDATE mbi_hash since previous value was NULL" OR "message.mesg"="UPDATE user_id_type as it has changed from the previous lookup value" | table time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6a">
+          <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -1218,14 +1090,11 @@
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch6b">
           <done>
             <set token="tokCreateBeneTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1235,14 +1104,11 @@
     <panel>
       <title>SUCCESSFUL Events (status="OK")</title>
       <single>
-        <search>
+        <search base="baseSearch6b">
           <done>
             <set token="tokCreateBeneOkCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | search "message.status"="OK" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.status"="OK" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1268,11 +1134,8 @@
     <panel>
       <chart>
         <title>Events by  by message.mesg</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count by message.mesg</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6b">
+          <query>stats count by message.mesg</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1280,12 +1143,9 @@
     </panel>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count by message.auth_pkce_medthod</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch6b">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1294,11 +1154,8 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6b">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1308,11 +1165,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | table time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch6b">
+          <query>table time message.auth_uuid message.status message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -1325,7 +1179,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -1336,19 +1189,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch7">
           <done>
             <set token="tokAuthSuccTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:success" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1358,11 +1207,8 @@
     <panel>
       <chart>
         <title>Events by user_id_type (hash type used to match FHIR_ID)</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:success" | stats count by message.user.crosswalk.user_id_type</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch7">
+          <query>stats count by message.user.crosswalk.user_id_type</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1370,12 +1216,9 @@
     </panel>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:success" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch7">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1385,12 +1228,19 @@
   <row>
     <panel>
       <chart>
+        <title>Events by Crosswalk Action (R = Returning/Existing in BB2, C = Created/New to BB2).</title>
+        <search base="baseSearch7">
+          <query>stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:success" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch7">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1400,11 +1250,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:success" | table time message.auth_uuid message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch7">
+          <query>table time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -1417,7 +1264,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -1428,19 +1274,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch8">
           <done>
             <set token="tokSlsCbTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1450,14 +1292,11 @@
     <panel>
       <title>SUCCESSFUL Events (response_code=302)</title>
       <single>
-        <search>
+        <search base="baseSearch8">
           <done>
             <set token="tokSlsCbOkCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | search "message.response_code"="302" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.response_code"="302" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1483,11 +1322,8 @@
     <panel>
       <chart>
         <title>Events by response_code</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | stats count by message.response_code</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch8">
+          <query>stats count by message.response_code</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1495,12 +1331,9 @@
     </panel>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch8">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1509,11 +1342,8 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch8">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1523,11 +1353,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | table time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch8">
+          <query>table time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -1540,7 +1367,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -1551,19 +1377,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch9">
           <done>
             <set token="tokApprovalVaTotalCount">$result.count$</set>
           </done>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | stats count]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1573,14 +1395,11 @@
     <panel>
       <title>SUCCESSFUL Events (response_code=200)</title>
       <single>
-        <search>
+        <search base="baseSearch9">
           <done>
             <set token="tokApprovalVaOkCount">$result.count$</set>
           </done>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" |  search "message.location"="" | search "message.response_code"="200" | stats count]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.response_code"="200" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1606,25 +1425,18 @@
     <panel>
       <chart>
         <title>Events by response_code</title>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | stats count by message.response_code]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch9">
+          <query>stats count by message.response_code</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
-
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | stats count by message.auth_pkce_method]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch9">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1633,11 +1445,8 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | stats count by message.auth_app_name]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch9">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1647,11 +1456,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | table time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch9">
+          <query>table time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -1664,7 +1470,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -1675,19 +1480,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch10">
           <done>
             <set token="tokAuthVbTotalCount">$result.count$</set>
           </done>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | stats count]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1697,14 +1498,11 @@
     <panel>
       <title>SUCCESSFUL Events (response_code=302)</title>
       <single>
-        <search>
+        <search base="baseSearch10">
           <done>
             <set token="tokAuthVbOkCount">$result.count$</set>
           </done>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | search "message.response_code"="302" | stats count]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.response_code"="302" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1730,25 +1528,18 @@
     <panel>
       <chart>
         <title>Events by response_code</title>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | stats count by message.response_code]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch10">
+          <query>stats count by message.response_code</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
-
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | stats count by message.auth_pkce_method]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch10">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1757,11 +1548,8 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | stats count by message.auth_app_name]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch10">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1771,11 +1559,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | table time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location]]></query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch10">
+          <query>table time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -1788,7 +1573,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -1799,19 +1583,15 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
-      <title>TOTAL Events (ALL SUCCESSFUL)</title>
+      <title>TOTAL Events</title>
       <single>
-        <search>
+        <search base="baseSearch11">
           <done>
             <set token="tokAuthAppTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1820,12 +1600,9 @@
     </panel>
     <panel>
       <chart>
-        <title>Events by match_found</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | search "message.match_found"="true" | stats count by message.match_found</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by auth_status (OK/FAIL)</title>
+        <search base="baseSearch11">
+          <query>stats count by message.auth_status</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1834,11 +1611,8 @@
     <panel>
       <chart>
         <title>Events by user_id_type (hash type used for FHIR_ID match)</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | stats count by message.user.crosswalk.user_id_type</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch11">
+          <query>stats count by message.user.crosswalk.user_id_type</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1848,12 +1622,9 @@
   <row>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch11">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1862,30 +1633,23 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch11">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>Beneficiary ALLOW total</title>
       <single>
-        <search>
+        <search base="baseSearch11">
           <done>
             <set token="tokAllowTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | search "message.allow"="true" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.allow"="true" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1895,14 +1659,11 @@
     <panel>
       <title>Beneficiary DENY total</title>
       <single>
-        <search>
+        <search base="baseSearch11">
           <done>
             <set token="tokDenyTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | search "message.allow"="false" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.allow"="false" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1912,31 +1673,23 @@
     <panel>
       <chart>
         <title>Events by Beneficiary Allow/Deny</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | stats count by message.allow</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch11">
+          <query>stats count by message.allow</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
   </row>
-
-
   <row>
     <panel>
       <title>Beneficiary SHARE_DEMOGRAPHIC_SCOPES = TRUE choice total</title>
       <single>
-        <search>
+        <search base="baseSearch11">
           <done>
             <set token="tokDemoScopesTrueTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | search "message.allow"="True" | search "message.share_demographic_scopes"="True" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.allow"="True" | search "message.auth_share_demographic_scopes"="True" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1946,14 +1699,11 @@
     <panel>
       <title>Beneficiary SHARE_DEMOGRAPHIC_SCOPES = FALSE choice total</title>
       <single>
-        <search>
+        <search base="baseSearch11">
           <done>
             <set token="tokDemoScopesFalseTotalCount">$result.count$</set>
           </done>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | search "message.allow"="True" | search "message.share_demographic_scopes"="False" | stats count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+          <query>search "message.allow"="True" | search "message.auth_share_demographic_scopes"="False" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -1963,27 +1713,19 @@
     <panel>
       <chart>
         <title>Events by Beneficiary SHARE_DEMOGRAPHIC_SCOPES</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | search "message.allow"="True" | stats count by message.share_demographic_scopes</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch11">
+          <query>search "message.allow"="True" | stats count by message.auth_share_demographic_scopes</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
   </row>
-
-
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | table time message.auth_uuid message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.share_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch11">
+          <query>table time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -1996,7 +1738,6 @@
       </table>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
@@ -2007,16 +1748,12 @@
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
       <title>Authorized Application Receives Token TOTAL Events</title>
       <single>
         <search>
           <query>| makeresults | eval Total1=$tokTcCount$ | table Total1</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -2028,9 +1765,6 @@
       <single>
         <search>
           <query>| makeresults | eval Total1=$tokEpCount$ | table Total1</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -2055,12 +1789,9 @@
   <row>
     <panel>
       <chart>
-        <title>Events by PKCE method.  S256 = Mobile App</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.auth_uuid!=null | stats count by message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>Events by PKCE method (MOBILE vs. WEB).</title>
+        <search base="baseSearch12">
+          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -2069,26 +1800,41 @@
     <panel>
       <chart>
         <title>Events by Application</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.auth_uuid!=null | stats count by message.auth_app_name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch12">
+          <query>stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
       </chart>
     </panel>
   </row>
-
+  <row>
+    <panel>
+      <chart>
+        <title>Events by Crosswalk Action (R = Returning/Existing in BB2, C = Created/New to BB2).</title>
+        <search base="baseSearch12">
+          <query>stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by Grant Type</title>
+        <search base="baseSearch12">
+          <query>stats count by message.auth_grant_type</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+  </row>
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.auth_uuid!=null | table time message.auth_uuid message.application.name message.user.username message.auth_app_name message.auth_pkce_method</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch12">
+          <query>table time message.auth_uuid message.application.name message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -2105,7 +1851,7 @@
     <panel>
       <html>
        <u1> <h1>
-            <b>DEMOGRAPHIC SCOPES STATISTICS - By Beneficiary Consent Page/Form Choices</b>
+            <b>DEMOGRAPHIC SCOPES STATISTICS - By Beneficiary and Application Consent Page Choices</b>
           </h1>
         </u1>
      </html>
@@ -2114,23 +1860,29 @@
   <row>
     <panel>
       <html>
-       <u1> <h2>
+       <u1> <h1>
             <b>Beneficiary Consent Form ALLOW/DENY Choices</b>
+          </h1>
+        </u1>
+     </html>
+    </panel>
+  </row> 
+  <row>
+    <panel>
+      <html>
+       <u1> <h2>
+            <b>ALL - Beneficiary Consent Form ALLOW/DENY Choices</b>
           </h2>
         </u1>
      </html>
     </panel>
-  </row>
-
+  </row> 
   <row>
     <panel>
       <title>ALLOW total</title>
       <single>
         <search>
           <query>| makeresults | eval Total1=$tokAllowTotalCount$ | table Total1</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -2138,18 +1890,35 @@
       </single>
     </panel>
     <panel>
+      <chart>
+        <title>ALLOW by New vs. Returning Bene</title>
+        <search base="baseSearch11">
+          <query>search message.allow="True" | stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+    <panel>
       <title>DENY total</title>
       <single>
         <search>
           <query>| makeresults | eval Total1=$tokDenyTotalCount$ | table Total1</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
         <option name="refresh.display">progressbar</option>
       </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>DENY by New vs. Returning Bene</title>
+        <search base="baseSearch11">
+          <query>search message.allow="False" | stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
     </panel>
     <panel>
       <chart>
@@ -2165,41 +1934,25 @@
       </chart>
     </panel>
   </row>
-
   <row>
     <panel>
       <html>
        <u1> <h2>
-            <b>Beneficiary Consent Form SHARE_DEMOGRAPHIC_SCOPES (True/False) Choices</b>
+            <b>Application Requires Demographic -  Beneficiary Consent Form ALLOW/DENY Choices</b>
           </h2>
         </u1>
      </html>
     </panel>
   </row>
-
   <row>
     <panel>
-      <title>SHARE_DEMOGRAPHIC_SCOPES = TRUE total</title>
+      <title>Beneficiary ALLOW total</title>
       <single>
-        <search>
-          <query>| makeresults | eval Total1=$tokDemoScopesTrueTotalCount$ | table Total1</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SHARE_DEMOGRAPHIC_SCOPES = FALSE total</title>
-      <single>
-        <search>
-          <query>| makeresults | eval Total1=$tokDemoScopesFalseTotalCount$ | table Total1</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch11">
+          <done>
+            <set token="tokAppTrueAllowTotalCount">$result.count$</set>
+          </done>
+          <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="true" | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -2208,12 +1961,43 @@
     </panel>
     <panel>
       <chart>
-        <title>Percentage by SHARE_DEMOGRAPHIC_SCOPES (True/False)</title>
-        <search>
-          <query>| makeresults | eval totalTrue=$tokDemoScopesTrueTotalCount$, totalFalse=$tokDemoScopesFalseTotalCount$ | table totalDemographicScopesChoices totalTrue totalFalse | transpose header_field="totalDemographicScopesChoices" column_name="DemographicScopesChoices"</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <title>ALLOW by New vs. Returning Bene</title>
+        <search base="baseSearch11">
+          <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="true" | stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Beneficiary DENY total</title>
+      <single>
+        <search base="baseSearch11">
+          <done>
+            <set token="tokAppTrueDenyTotalCount">$result.count$</set>
+          </done>
+          <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="false" | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>DENY by New vs. Returning Bene</title>
+        <search base="baseSearch11">
+          <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="false" | stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by Beneficiary Allow/Deny</title>
+        <search base="baseSearch11">
+          <query>search message.auth_require_demographic_scopes="True" | stats count by message.allow</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -2224,7 +2008,164 @@
     <panel>
       <html>
        <u1> <h2>
-            <b>Beneficiary NOT SHARING via Consent Form (SHARE_DEMOGRAPHIC_SCOPES="False") By APPLICATION breakdown</b>
+            <b>Application DOES NOT Require Demographic - Beneficiary Consent Form ALLOW/DENY Choices</b>
+          </h2>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Beneficiary ALLOW total</title>
+      <single>
+        <search base="baseSearch11">
+          <done>
+            <set token="tokAppFalseAllowTotalCount">$result.count$</set>
+          </done>
+          <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="True" | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>ALLOW by New vs. Returning Bene</title>
+        <search base="baseSearch11">
+          <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="True" | stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Beneficiary DENY total</title>
+      <single>
+        <search base="baseSearch11">
+          <done>
+            <set token="tokAppFalseDenyTotalCount">$result.count$</set>
+          </done>
+          <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="False" | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>DENY by New vs. Returning Bene</title>
+        <search base="baseSearch11">
+          <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="False" | stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by Beneficiary Allow/Deny</title>
+        <search base="baseSearch11">
+          <query>search message.auth_require_demographic_scopes="False" | stats count by message.allow</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h1>
+            <b>Beneficiary Consent Form SHARE_DEMOGRAPHC Information Choices</b>
+          </h1>
+        </u1>
+     </html>
+    </panel>
+  </row> 
+  <row>
+    <panel>
+      <html>
+       <u1> <h2>
+            <b>Beneficiary Consent Form SHARE_DEMOGRAPHIC_SCOPES (True/False) Choices (NOTE: Only when Application require_demographic_scopes = "True")</b>
+          </h2>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Beneficiary SHARE=True</title>
+      <single>
+        <search base="baseSearch11">
+          <query>search message.auth_share_demographic_scopes="True" | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SHARE=True by New vs. Returning Bene</title>
+        <search base="baseSearch11">
+          <query>search message.auth_share_demographic_scopes="True" | stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Beneficiary SHARE=False</title>
+      <single>
+        <search base="baseSearch11">
+          <query>search message.auth_share_demographic_scopes="False" | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>SHARE=False by New vs. Returning Bene</title>
+        <search base="baseSearch11">
+          <query>search message.auth_share_demographic_scopes="False" | stats count by message.auth_crosswalk_action</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Total Events</title>
+      <single>
+        <search base="baseSearch11">
+          <query>search (message.auth_share_demographic_scopes="True" OR message.auth_share_demographic_scopes="False") | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>Percentage by SHARE_DEMOGRAPHIC_SCOPES (True/False)</title>
+        <search base="baseSearch11">
+          <query>search (message.auth_share_demographic_scopes="True" OR message.auth_share_demographic_scopes="False") | stats count by message.auth_share_demographic_scopes</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h2>
+            <b>Application Breakdown of Beneficiary NOT SHARING via Consent Form</b>
           </h2>
         </u1>
      </html>
@@ -2233,11 +2174,8 @@
   <row>
     <panel>
       <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | search "message.share_demographic_scopes"="False" | stats count by "message.auth_app_name" | table message.auth_app_name count</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
+        <search base="baseSearch11">
+          <query>search message.auth_share_demographic_scopes="False" | stats count by "message.auth_app_name" | table message.auth_app_name count</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
