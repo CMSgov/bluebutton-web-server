@@ -209,14 +209,8 @@ class FHIRRequestForAuth(Request):
 
 class Response:
     request_class = None
-    resp = None
 
-    def __init__(self, response, auth_uuid, auth_app_name, auth_app_id, auth_organization_name, auth_organization_id):
-        self.auth_uuid = auth_uuid
-        self.auth_app_name = auth_app_name
-        self.auth_app_id = auth_app_id
-        self.auth_organization_name = auth_organization_name
-        self.auth_organization_id = auth_organization_id
+    def __init__(self, response, **kwargs):
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
         self.req = self.request_class(response.request).to_dict() if response.request else {}
@@ -278,15 +272,18 @@ class FHIRResponseForAuth(Response):
 
 
 class SLSResponse(Response):
+
+    def __init__(self, response, auth_flow_dict=None):
+        if auth_flow_dict:
+            self.auth_flow_dict = auth_flow_dict
+        else:
+            self.auth_flow_dict = {}
+        super().__init__(response)
+
     def to_dict(self):
         resp_dict = super().to_dict().copy()
         resp_dict.update({
             'type': self.get_type(),
-            'auth_uuid': self.auth_uuid,
-            'auth_app_name': self.auth_app_name,
-            'auth_app_id': self.auth_app_id,
-            'auth_organization_name': self.auth_organization_name,
-            'auth_organization_id': self.auth_organization_id,
         })
         return resp_dict
 
@@ -300,14 +297,9 @@ class SLSTokenResponse(SLSResponse):
     def to_dict(self):
         event_dict = json.loads(self.resp.text)
         event_dict.update(super().to_dict().copy())
-        return {
+        resp_dict = {
             "uuid": event_dict['uuid'],
-            "auth_uuid": event_dict['auth_uuid'],
             "type": event_dict['type'],
-            "auth_app_name": event_dict['auth_app_name'],
-            "auth_app_id": event_dict['auth_app_id'],
-            "auth_organization_name": event_dict['auth_organization_name'],
-            "auth_organization_id": event_dict['auth_organization_id'],
             "path": event_dict['path'],
             "access_token": hashlib.sha256(
                 str(event_dict['access_token']).encode('utf-8')).hexdigest(),
@@ -316,10 +308,12 @@ class SLSTokenResponse(SLSResponse):
             "start_time": event_dict['start_time'],
             "elapsed": event_dict['elapsed'],
         }
+        # Update with auth flow session info
+        resp_dict.update(self.auth_flow_dict)
+
+        return resp_dict
 
     def __str__(self):
-        # result = self.req
-        # result.update(self.to_dict())
         return json.dumps(self.to_dict())
 
 
@@ -332,14 +326,9 @@ class SLSUserInfoResponse(SLSResponse):
     def to_dict(self):
         event_dict = json.loads(self.resp.text)
         event_dict.update(super().to_dict().copy())
-        return {
+        resp_dict = {
             "uuid": event_dict['uuid'],
-            "auth_uuid": event_dict['auth_uuid'],
             "type": event_dict['type'],
-            "auth_app_name": event_dict['auth_app_name'],
-            "auth_app_id": event_dict['auth_app_id'],
-            "auth_organization_name": event_dict['auth_organization_name'],
-            "auth_organization_id": event_dict['auth_organization_id'],
             "path": event_dict['path'],
             "sub": event_dict['sub'],
             "code": event_dict['code'],
@@ -347,8 +336,10 @@ class SLSUserInfoResponse(SLSResponse):
             "start_time": event_dict['start_time'],
             "elapsed": event_dict['elapsed'],
         }
+        # Update with auth flow session info
+        resp_dict.update(self.auth_flow_dict)
+
+        return resp_dict
 
     def __str__(self):
-        # result = self.req
-        # result.update(self.to_dict())
         return json.dumps(self.to_dict())

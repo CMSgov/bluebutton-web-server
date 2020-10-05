@@ -19,8 +19,6 @@ from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
-from apps.dot_ext.utils import get_app_and_org_by_client_id
-
 from .authorization import OAuth2Config
 from .loggers import log_authenticate_start, log_authenticate_success
 from .models import AnonUserState, get_and_update_user
@@ -70,28 +68,17 @@ def authenticate(request):
     headers = sls_client.auth_header()
     # keep using deprecated conv - no conflict issue
     headers.update({"X-SLS-starttime": str(datetime.datetime.utcnow())})
-    auth_uuid, auth_app_name, auth_organization_name = None, None, None
-    auth_app_id, auth_organization_id = None, None
     if request is not None:
-        auth_uuid = request.session.get('auth_uuid', None)
-        auth_app_name = request.session.get('auth_app_name', None)
-        auth_app_id = request.session.get('auth_app_id', None)
-        app, user = get_app_and_org_by_client_id(request.session.get('auth_client_id', None))
-        auth_organization_name = user.username if user else ""
-        auth_organization_id = str(user.id) if user else ""
         headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                         if hasattr(request, '_logging_uuid') else '')})
+
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,
                             hooks={
                                 'response': [
                                     response_hook_wrapper(sender=SLSUserInfoResponse,
-                                                          auth_uuid=auth_uuid,
-                                                          auth_app_name=auth_app_name,
-                                                          auth_app_id=auth_app_id,
-                                                          auth_organization_name=auth_organization_name,
-                                                          auth_organization_id=auth_organization_id)]})
+                                                          auth_flow_dict=auth_flow_dict)]})
 
     try:
         response.raise_for_status()

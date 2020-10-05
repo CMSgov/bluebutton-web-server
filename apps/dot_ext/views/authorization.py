@@ -12,8 +12,6 @@ from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow
 from ..models import Approval
 from ..signals import beneficiary_authorized_application
 from ..utils import remove_application_user_pair_tokens_data_access
-from ..utils import get_app_and_org
-
 
 log = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -36,16 +34,6 @@ class AuthorizationView(DotAuthorizationView):
         if not kwargs.get('is_subclass_approvalview', False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
             create_session_auth_flow_trace(request)
-
-        app, user = get_app_and_org(request)
-
-        if app:
-            request.session['auth_app_name'] = str(app.name)
-            request.session['auth_app_id'] = str(app.pk)
-
-        if user:
-            request.session['auth_organization_name'] = str(user.username)
-            request.session['auth_organization_id'] = str(user.pk)
 
         return super().dispatch(request, *args, **kwargs)
 

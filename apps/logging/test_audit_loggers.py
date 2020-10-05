@@ -108,7 +108,8 @@ class TestAuditEventLoggers(BaseApiTest):
             # check fhir log content
             fhir_log_content = self.log_buffer_fhir.getvalue()
             self.assertIsNotNone(fhir_log_content)
-            log_entry_dict = json.loads(fhir_log_content)
+            log_entries = fhir_log_content.splitlines()
+            log_entry_dict = json.loads(log_entries[0])
             self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
             self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
             self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")

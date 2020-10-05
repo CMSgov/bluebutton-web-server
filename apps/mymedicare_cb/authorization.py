@@ -1,11 +1,10 @@
 import logging
 import requests
 import datetime
-
 from django.conf import settings
-from .signals import response_hook_wrapper
+from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.logging.serializers import SLSTokenResponse
-from apps.dot_ext.utils import get_app_and_org_by_client_id
+from .signals import response_hook_wrapper
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -41,17 +40,13 @@ class OAuth2Config(object):
 
         # keep using deprecated conv - no conflict issue
         headers = {"X-SLS-starttime": str(datetime.datetime.utcnow())}
-        auth_uuid, auth_app_name, auth_organization_name = None, None, None
-        auth_app_id, auth_organization_id = None, None
         if request is not None:
-            auth_uuid = request.session.get('auth_uuid', None)
-            auth_app_name = request.session.get('auth_app_name', None)
-            auth_app_id = request.session.get('auth_app_id', None)
-            app, user = get_app_and_org_by_client_id(request.session.get('auth_client_id', None))
-            auth_organization_name = user.username if user else ""
-            auth_organization_id = str(user.id) if user else ""
             headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                             if hasattr(request, '_logging_uuid') else '')})
+
+        # Get auth flow trace session values dict.
+        auth_flow_dict = get_session_auth_flow_trace(request)
+
         response = requests.post(
             self.token_endpoint,
             auth=self.basic_auth(),
@@ -61,11 +56,7 @@ class OAuth2Config(object):
             hooks={
                 'response': [
                     response_hook_wrapper(sender=SLSTokenResponse,
-                                          auth_uuid=auth_uuid,
-                                          auth_app_name=auth_app_name,
-                                          auth_app_id=auth_app_id,
-                                          auth_organization_name=auth_organization_name,
-                                          auth_organization_id=auth_organization_id)]})
+                                          auth_flow_dict=auth_flow_dict)]})
 
         response.raise_for_status()
 

@@ -110,10 +110,9 @@ def fetched_data(sender, request=None, response=None, auth_flow_dict=None, **kwa
                                                                                                          auth_flow_dict)))
 
 
-def sls_hook(sender, response=None, auth_uuid=None, auth_app_name=None,
-             auth_app_id=None, auth_organization_name=None, auth_organization_id=None, **kwargs):
-    sls_logger.info(get_event(sender(response, auth_uuid, auth_app_name,
-                    auth_app_id, auth_organization_name, auth_organization_id)))
+def sls_hook(sender, response=None, auth_flow_dict=None, **kwargs):
+    # Handles sender for SLSUserInfoResponse or SLSTokenResponse
+    sls_logger.info(get_event(sender(response, auth_flow_dict)))
 
 
 def get_event(event):
