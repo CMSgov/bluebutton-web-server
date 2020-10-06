@@ -210,7 +210,7 @@ class FHIRRequestForAuth(Request):
 class Response:
     request_class = None
 
-    def __init__(self, response, **kwargs):
+    def __init__(self, response):
         self.resp = response
         # http://docs.python-requests.org/en/master/api/#requests.Response.request
         self.req = self.request_class(response.request).to_dict() if response.request else {}
