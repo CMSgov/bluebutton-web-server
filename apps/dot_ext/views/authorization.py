@@ -20,7 +20,6 @@ from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow
 from ..models import Approval
 from ..signals import beneficiary_authorized_application
 from ..utils import remove_application_user_pair_tokens_data_access
-from ..utils import validate_app_and_org
 from ..utils import validate_app_is_active
 
 log = logging.getLogger('hhs_server.%s' % __name__)
