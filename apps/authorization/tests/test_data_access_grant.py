@@ -9,7 +9,7 @@ from django.urls import reverse
 from rest_framework.exceptions import PermissionDenied
 from apps.test import BaseApiTest
 from django.conf import settings
-from .models import (
+from apps.authorization.models import (
     DataAccessGrant,
     check_grants,
     update_grants,
@@ -244,27 +244,10 @@ class TestDataAccessGrant(BaseApiTest):
             'allow': True,
         }
 
-        try:
+        msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
+        with self.assertRaises(PermissionDenied) as cm:
             self.client.post(response['Location'], data=payload)
-        except PermissionDenied as permErr:
-            errStr = str(permErr)
-            errwords = errStr.split()
-            packedErrStr = "-".join(errwords)
-            msgwords = settings.APPLICATION_TEMPORARILY_INACTIVE.split()
-            packedMsg = "-".join(msgwords)
-            packedMsg = packedMsg.format("an-app")
-            self.assertEqual(packedErrStr, packedMsg)
-
-        try:
-            self.client.post(response['Location'], data=payload)
-        except PermissionDenied as permErr:
-            errStr = str(permErr)
-            errwords = errStr.split()
-            packedErrStr = "-".join(errwords)
-            msgwords = settings.APPLICATION_TEMPORARILY_INACTIVE.split()
-            packedMsg = "-".join(msgwords)
-            packedMsg = packedMsg.format("an-app")
-            self.assertEqual(packedErrStr, packedMsg)
+        self.assertEqual(str(cm.exception), msg_expected)
         # set back app and user to active - not to affect other tests
         application.active = True
         application.save()

@@ -47,10 +47,9 @@ def validate_app_is_active(request):
     
     client_id = None
 
-    if request.GET is not None:
+    if request.GET.get('client_id', None) is not None:
         client_id = request.GET.get('client_id', None)
-
-    if client_id is None and request.POST is not None:
+    elif request.POST.get('client_id', None):
         client_id = request.POST.get('client_id', None)
 
     app = None
