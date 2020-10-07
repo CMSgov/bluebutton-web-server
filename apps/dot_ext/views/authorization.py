@@ -18,7 +18,6 @@ from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow
                        get_session_auth_flow_trace, set_session_auth_flow_trace,
                        set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
 from ..models import Approval
-from ..signals import beneficiary_authorized_application
 from ..utils import remove_application_user_pair_tokens_data_access
 from ..utils import validate_app_is_active
 
