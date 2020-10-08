@@ -13,7 +13,6 @@ from ..models import Approval
 from ..signals import beneficiary_authorized_application
 from ..utils import remove_application_user_pair_tokens_data_access
 
-
 log = logging.getLogger('hhs_server.%s' % __name__)
 
 
