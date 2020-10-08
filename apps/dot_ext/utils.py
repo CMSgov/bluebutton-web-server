@@ -45,17 +45,25 @@ def remove_application_user_pair_tokens_data_access(application, user):
 
 def validate_app_is_active(request):
 
-    client_id = None
+    client_id, ac, app = None, None, None
 
     if request.GET.get('client_id', None) is not None:
         client_id = request.GET.get('client_id', None)
     elif request.POST.get('client_id', None):
         client_id = request.POST.get('client_id', None)
+    elif request.POST.get('token', None):
+        # introspect
+        ac = AccessToken.objects.get(token=request.POST.get('token', None))
 
-    if client_id is not None:
-        try:
+    try:
+
+        if client_id is not None:
             app = Application.objects.get(client_id=client_id)
-            if app and not app.active:
-                raise PermissionDenied(settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
-        except Application.DoesNotExist:
-            pass
+        elif ac is not None:
+            app = Application.objects.get(id=ac.application_id)
+
+        if app and not app.active:
+            raise PermissionDenied(settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
+
+    except Application.DoesNotExist:
+        pass

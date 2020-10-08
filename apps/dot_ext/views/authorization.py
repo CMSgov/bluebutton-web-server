@@ -1,5 +1,6 @@
 import logging
 import waffle
+from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
@@ -223,3 +224,15 @@ class RevokeTokenView(DotRevokeTokenView):
         validate_app_is_active(request)
 
         return super().post(request, args, kwargs)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class IntrospectTokenView(DotIntrospectTokenView):
+
+    def get(self, request, *args, **kwargs):
+        validate_app_is_active(request)
+        return super(IntrospectTokenView, self).get(request, args, kwargs)
+
+    def post(self, request, *args, **kwargs):
+        validate_app_is_active(request)
+        return super(IntrospectTokenView, self).post(request, args, kwargs)
