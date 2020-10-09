@@ -6,9 +6,7 @@ from oauth2_provider.models import (
     get_access_token_model,
 )
 from django.urls import reverse
-from rest_framework.exceptions import PermissionDenied
 from apps.test import BaseApiTest
-from django.conf import settings
 from apps.authorization.models import (
     DataAccessGrant,
     check_grants,
@@ -244,10 +242,10 @@ class TestDataAccessGrant(BaseApiTest):
             'allow': True,
         }
 
-        msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
-        with self.assertRaises(PermissionDenied) as cm:
-            self.client.post(response['Location'], data=payload)
-        self.assertEqual(str(cm.exception), msg_expected)
+        response = self.client.post(response['Location'], data=payload)
+        self.assertEqual(response.status_code, 403)
+        # pretty good evidence for in active app permission denied
+        self.assertEqual(response.template_name, "app_inactive_403.html")
         # set back app and user to active - not to affect other tests
         application.active = True
         application.save()

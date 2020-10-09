@@ -1,9 +1,9 @@
+import json
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.urls import reverse
 from django.conf import settings
 from django.test import Client
-from rest_framework.exceptions import PermissionDenied
 
 from apps.test import BaseApiTest
 from ..models import Application, ArchivedToken
@@ -434,8 +434,12 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.active = False
         application.save()
 
-        with self.assertRaises(PermissionDenied):
-            c.post('/v1/o/revoke_token/', data=revoke_request_data)
+        msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
+        response = c.post('/v1/o/revoke_token/', data=revoke_request_data)
+        # assert 403 and content json is expected message
+        self.assertEqual(response.status_code, 403)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content['detail'], msg_expected)
 
         # revert app to active in case not to impact other tests
         application.active = True
@@ -502,10 +506,11 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.save()
 
         msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
-        with self.assertRaises(PermissionDenied) as cm:
-            response = c.post('/v1/o/introspect/', data=introspect_request_data, **auth_headers)
-
-        self.assertEqual(str(cm.exception), msg_expected)
+        response = c.post('/v1/o/introspect/', data=introspect_request_data, **auth_headers)
+        # asssert 403 and content json message
+        self.assertEqual(response.status_code, 403)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content['detail'], msg_expected)
 
         # revert app to active in case not to impact other tests
         application.active = True

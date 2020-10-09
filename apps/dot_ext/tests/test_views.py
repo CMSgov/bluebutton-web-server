@@ -10,7 +10,6 @@ from waffle.testutils import override_switch
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import ArchivedToken
 from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
-from rest_framework.exceptions import PermissionDenied
 
 from apps.test import BaseApiTest
 from ..models import Application
@@ -364,8 +363,19 @@ class TestTokenView(BaseApiTest):
         application.active = False
         application.save()
         # create token in self._create_test_token will check app.active for access control
-        with self.assertRaises(PermissionDenied):
+        with self.assertRaises(Exception) as e:
             self._create_test_token(anna, application)
+
+        msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
+        err_msg = str(e.exception)
+        found = True
+        index = -1
+        try:
+            index = err_msg.index(msg_expected)
+        except ValueError:
+            found = False
+        self.assertTrue(index >= 0)
+        self.assertTrue(found)
 
         application.active = True
         application.save()

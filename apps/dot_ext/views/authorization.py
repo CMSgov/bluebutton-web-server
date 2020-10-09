@@ -1,3 +1,4 @@
+import json
 import logging
 import waffle
 from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
@@ -22,6 +23,11 @@ from ..models import Approval
 from ..utils import remove_application_user_pair_tokens_data_access
 from ..utils import validate_app_is_active
 
+from rest_framework.exceptions import PermissionDenied
+from django.template.response import TemplateResponse
+from django.shortcuts import HttpResponse
+
+
 log = logging.getLogger('hhs_server.%s' % __name__)
 
 
@@ -44,7 +50,16 @@ class AuthorizationView(DotAuthorizationView):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
             create_session_auth_flow_trace(request)
 
-        validate_app_is_active(request)
+        try:
+            validate_app_is_active(request)
+        except PermissionDenied as error:
+            return TemplateResponse(
+                request,
+                "app_inactive_403.html",
+                context={
+                    "detail": error.detail,
+                },
+                status=error.status_code)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -192,10 +207,11 @@ class ApprovalView(AuthorizationView):
 
         result = super().dispatch(request, *args, **kwargs)
 
-        application = self.oauth2_data.get('application', None)
-        if application is not None:
-            approval.application = self.oauth2_data.get('application', None)
-            approval.save()
+        if hasattr(self, 'oauth2_data'):
+            application = self.oauth2_data.get('application', None)
+            if application is not None:
+                approval.application = self.oauth2_data.get('application', None)
+                approval.save()
 
         # Set auth_uuid after super() return
         if auth_flow_dict:
@@ -209,8 +225,13 @@ class TokenView(DotTokenView):
 
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
-
-        validate_app_is_active(request)
+        try:
+            validate_app_is_active(request)
+        except PermissionDenied as error:
+            return HttpResponse(json.dumps({"status_code": error.status_code,
+                                            "detail": error.detail, }),
+                                status=error.status_code,
+                                content_type='application/json')
 
         return super().post(request, args, kwargs)
 
@@ -220,8 +241,13 @@ class RevokeTokenView(DotRevokeTokenView):
 
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
-
-        validate_app_is_active(request)
+        try:
+            validate_app_is_active(request)
+        except PermissionDenied as error:
+            return HttpResponse(json.dumps({"status_code": error.status_code,
+                                            "detail": error.detail, }),
+                                status=error.status_code,
+                                content_type='application/json')
 
         return super().post(request, args, kwargs)
 
@@ -230,9 +256,23 @@ class RevokeTokenView(DotRevokeTokenView):
 class IntrospectTokenView(DotIntrospectTokenView):
 
     def get(self, request, *args, **kwargs):
-        validate_app_is_active(request)
+        try:
+            validate_app_is_active(request)
+        except PermissionDenied as error:
+            return HttpResponse(json.dumps({"status_code": error.status_code,
+                                            "detail": error.detail, }),
+                                status=error.status_code,
+                                content_type='application/json')
+
         return super(IntrospectTokenView, self).get(request, args, kwargs)
 
     def post(self, request, *args, **kwargs):
-        validate_app_is_active(request)
+        try:
+            validate_app_is_active(request)
+        except PermissionDenied as error:
+            return HttpResponse(json.dumps({"status_code": error.status_code,
+                                            "detail": error.detail, }),
+                                status=error.status_code,
+                                content_type='application/json')
+
         return super(IntrospectTokenView, self).post(request, args, kwargs)
