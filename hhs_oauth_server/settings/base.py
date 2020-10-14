@@ -39,7 +39,25 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.'
                 'NumericPasswordValidator',
     },
+    {
+        'NAME': 'django_password_validators.password_history.password_validation.UniquePasswordsValidator',
+    },
+    {
+        'NAME': 'django_password_validators.password_character_requirements.password_validation.PasswordCharacterValidator',
+        'OPTIONS': {
+             'min_length_digit': 1,
+             'min_length_alpha': 1,
+             'min_length_special': 1,
+            #  'min_length_lower': 4,
+            #  'min_length_upper': 5,
+             'special_characters': "[~!@#$%^&*()_+{}\":;'[]"
+         }
+    }
 ]
+
+# django-user-accounts
+ACCOUNT_PASSWORD_EXPIRY = 60*60  # seconds until pw expires
+ACCOUNT_PASSWORD_USE_HISTORY = True
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
@@ -53,10 +71,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'rest_framework',
     'rest_framework_csv',
     'django_filters',
+    'django_password_validators',
+    'django_password_validators.password_history',
+    'account',
 
     # 1st Party (in-house) ----------
     'apps.accounts',
@@ -88,6 +110,9 @@ INSTALLED_APPS = [
     'apps.logging',
     'apps.openapi',
 ]
+
+# needed by django site package
+SITE_ID = 1
 
 if env('ENV_SPECIFIC_APPS', False):
     INSTALLED_APPS += env('ENV_SPECIFIC_APPS')
@@ -129,6 +154,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.dot_ext.throttling.ThrottleMiddleware',
+    'account.middleware.ExpiredPasswordMiddleware',
     'waffle.middleware.WaffleMiddleware',
 ]
 

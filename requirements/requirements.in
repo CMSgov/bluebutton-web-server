@@ -9,6 +9,8 @@ djangorestframework
 djangorestframework-csv
 django-filter
 django-axes
+django-password-validators
+django-user-accounts
 
 # support
 django-waffle
