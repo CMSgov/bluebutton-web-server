@@ -413,10 +413,10 @@ SESSION_COOKIE_AGE = 5400
 SESSION_COOKIE_SECURE = env('DJANGO_SECURE_SESSION', True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-APPLICATION_TEMPORARILY_INACTIVE = ("This application ({}) is temporarily inactive."
+APPLICATION_TEMPORARILY_INACTIVE = ("This application, {}, is temporarily inactive."
                                     " If you are the app maintainer, please contact the Blue Button 2.0 API team."
                                     " If you are a Medicare Beneficiary and need assistance,"
-                                    " please contact the application support or call 1-800-MEDICARE (1-800-633-4227)")
+                                    " please contact the application's support team or call 1-800-MEDICARE (1-800-633-4227)")
 
 FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, env('DJANGO_FHIR_CERTSTORE_REL', '../certstore')))
