@@ -73,6 +73,7 @@ def authenticate(request):
     if request is not None:
         headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                         if hasattr(request, '_logging_uuid') else '')})
+
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,
