@@ -1,8 +1,9 @@
+import datetime
 import logging
 import random
 import requests
 import urllib.request as urllib_request
-import datetime
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse, HttpResponseRedirect
@@ -11,6 +12,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
+
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   get_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
@@ -19,12 +21,12 @@ from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
 from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+from apps.logging.serializers import SLSUserInfoResponse
 from .authorization import OAuth2Config
 from .loggers import log_authenticate_start, log_authenticate_success
 from .models import AnonUserState, get_and_update_user
 from .signals import response_hook_wrapper
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
-from apps.logging.serializers import SLSUserInfoResponse
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -71,7 +73,6 @@ def authenticate(request):
     if request is not None:
         headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                         if hasattr(request, '_logging_uuid') else '')})
-
     response = requests.get(userinfo_endpoint,
                             headers=headers,
                             verify=sls_client.verify_ssl,
@@ -93,7 +94,7 @@ def authenticate(request):
     user_info = response.json()
 
     # Set identity values from userinfo response.
-    sls_subject = user_info.get("sub", None).strip()
+    sls_subject = user_info.get("sub", "").strip()
     sls_hicn = user_info.get("hicn", "").strip()
     #     Convert SLS's mbi to UPPER case.
     sls_mbi = user_info.get("mbi", "").strip().upper()

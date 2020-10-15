@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Group
+
+from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from ..models import create_beneficiary_record
 
 
@@ -74,8 +76,92 @@ class BeneficiaryLoginTest(TestCase):
 
     def test_fail_create_beneficiary_record(self):
         cases = {
+            "empty username": {
+                "args": {
+                    "username": "",
+                    "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "user_mbi_hash": "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "fhir_id": "-20140000008325",
+                    "user_id_type": "H",
+                    "first_name": "Hello",
+                    "last_name": "World",
+                    "email": "fu@bar.bar",
+                },
+                "exception": UpstreamServerException,
+                "exception_mesg": "username can not be an empty string",
+            },
             "missing username": {
                 "args": {
+                    "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "user_mbi_hash": "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "fhir_id": "-20140000008325",
+                    "user_id_type": "H",
+                    "first_name": "Hello",
+                    "last_name": "World",
+                    "email": "fu@bar.bar",
+                },
+                "exception": UpstreamServerException,
+                "exception_mesg": "username can not be None",
+            },
+            "missing hash": {
+                "args": {
+                    "username": "00112233-4455-6677-8899-aabbccddeeff",
+                    "user_mbi_hash": "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "fhir_id": "-20140000008325",
+                    "user_id_type": "H",
+                    "first_name": "Hello",
+                    "last_name": "World",
+                    "email": "fu@bar.bar",
+                },
+                "exception": UpstreamServerException,
+                "exception_mesg": "user_hicn_hash can not be None",
+            },
+            "invalid_hicn_hash": {
+                "args": {
+                    "username": "00112233-4455-6677-8899-aabbccddeeff",
+                    "user_mbi_hash": "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "user_hicn_hash": "71f16b70b1b4fbdad76b",
+                    "fhir_id": "-20140000008325",
+                    "user_id_type": "H",
+                    "first_name": "Hello",
+                    "last_name": "World",
+                    "email": "fu@bar.bar",
+                },
+                "exception": UpstreamServerException,
+                "exception_mesg": "incorrect user HICN hash format",
+            },
+            "invalid_mbi_hash": {
+                "args": {
+                    "username": "00112233-4455-6677-8899-aabbccddeeff",
+                    "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "user_mbi_hash": "71f16b70b1b4fbdad76b",
+                    "fhir_id": "-20140000008325",
+                    "user_id_type": "H",
+                    "first_name": "Hello",
+                    "last_name": "World",
+                    "email": "fu@bar.bar",
+                },
+                "exception": UpstreamServerException,
+                "exception_mesg": "incorrect user MBI hash format",
+            },
+
+            "empty string mbi_hash": {
+                "args": {
+                    "username": "00112233-4455-6677-8899-aabbccddeeff",
+                    "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "user_mbi_hash": "",
+                    "fhir_id": "-20140000008325",
+                    "user_id_type": "H",
+                    "first_name": "Hello",
+                    "last_name": "World",
+                    "email": "fu@bar.bar",
+                },
+                "exception": UpstreamServerException,
+                "exception_mesg": "incorrect user MBI hash format",
+            },
+            "missing_fhir_id": {
+                "args": {
+                    "username": "00112233-4455-6677-8899-aabbccddeeff",
                     "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                     "user_mbi_hash": "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                     "user_id_type": "H",
@@ -83,33 +169,26 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": AssertionError,
+                "exception": UpstreamServerException,
+                "exception_mesg": "fhir_id can not be None",
             },
-            "missing hash": {
+            "empty_fhir_id": {
                 "args": {
                     "username": "00112233-4455-6677-8899-aabbccddeeff",
+                    "user_hicn_hash": "50ad63a61f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
                     "user_mbi_hash": "987654321f6bdf977f9796985d8d286a3d10476e5f7d71f16b70b1b4fbdad76b",
+                    "fhir_id": "",
                     "user_id_type": "H",
                     "first_name": "Hello",
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": AssertionError,
-            },
-            "empty string mbi_hash": {
-                "args": {
-                    "username": "00112233-4455-6677-8899-aabbccddeeff",
-                    "user_mbi_hash": "",
-                    "user_id_type": "H",
-                    "first_name": "Hello",
-                    "last_name": "World",
-                    "email": "fu@bar.bar",
-                },
-                "exception": AssertionError,
+                "exception": UpstreamServerException,
+                "exception_mesg": "fhir_id can not be an empty string",
             },
         }
         for name, case in cases.items():
-            with self.assertRaises(case["exception"]):
+            with self.assertRaisesRegex(case["exception"], case["exception_mesg"]):
                 create_beneficiary_record(**case["args"])
 
     def test_fail_create_multiple_beneficiary_record(self):
@@ -132,6 +211,7 @@ class BeneficiaryLoginTest(TestCase):
                     },
                 ],
                 "exception": ValidationError,
+                "exception_mesg": "user already exists",
             },
             "colliding hicn_hash": {
                 "args": [
@@ -151,6 +231,7 @@ class BeneficiaryLoginTest(TestCase):
                     },
                 ],
                 "exception": ValidationError,
+                "exception_mesg": "user_hicn_hash already exists",
             },
             "colliding mbi_hash": {
                 "args": [
@@ -170,6 +251,7 @@ class BeneficiaryLoginTest(TestCase):
                     },
                 ],
                 "exception": ValidationError,
+                "exception_mesg": "user_mbi_hash already exists",
             },
             "colliding fhir_id": {
                 "args": [
@@ -187,9 +269,10 @@ class BeneficiaryLoginTest(TestCase):
                     },
                 ],
                 "exception": ValidationError,
+                "exception_mesg": "fhir_id already exists",
             },
         }
         for name, case in cases.items():
             create_beneficiary_record(**case["args"][0])
-            with self.assertRaises(case["exception"], msg=name):
+            with self.assertRaisesRegex(case["exception"], case["exception_mesg"]):
                 create_beneficiary_record(**case["args"][1])
