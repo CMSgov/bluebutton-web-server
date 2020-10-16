@@ -10,6 +10,7 @@ from waffle.testutils import override_switch
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import ArchivedToken
 from apps.fhir.server.tests.mock_fhir_responses import mock_fhir_responses
+
 from apps.test import BaseApiTest
 from ..models import Application
 from .demographic_scopes_test_cases import (VIEW_OAUTH2_SCOPES_TEST_CASES,
@@ -349,6 +350,35 @@ class TestTokenView(BaseApiTest):
             },
         }]
         self.assertEqual(result, expected)
+
+    def test_get_tokens_on_inactive_app(self):
+        anna = self._create_user(self.test_username, '123456')
+        # create a couple of capabilities
+        capability_a = self._create_capability('token_management', [['GET', '/v1/o/tokens/']], default=False)
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris='http://example.it')
+        application.scope.add(capability_a)
+        application.active = False
+        application.save()
+        # create token in self._create_test_token will check app.active for access control
+        with self.assertRaises(Exception) as e:
+            self._create_test_token(anna, application)
+
+        msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
+        err_msg = str(e.exception)
+        found = True
+        index = -1
+        try:
+            index = err_msg.index(msg_expected)
+        except ValueError:
+            found = False
+        self.assertTrue(index >= 0)
+        self.assertTrue(found)
+
+        application.active = True
+        application.save()
 
     def test_delete_token_success(self):
         anna = self._create_user(self.test_username, '123456', fhir_id='19990000000002')

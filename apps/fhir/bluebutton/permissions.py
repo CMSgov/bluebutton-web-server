@@ -1,6 +1,11 @@
 import logging
 from rest_framework import (permissions, exceptions)
+from django.contrib.auth import get_user_model
+from rest_framework.exceptions import PermissionDenied
 from .constants import ALLOWED_RESOURCE_TYPES
+from django.conf import settings
+
+User = get_user_model()
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -62,4 +67,16 @@ class SearchCrosswalkPermission(HasCrosswalk):
 
         if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
             return False
+        return True
+
+
+class ApplicationActivePermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        app_is_active = request.auth and request.auth.application.active
+        app_name = request.auth.application.name if request.auth and request.auth.application.name else "Unknown"
+        if app_is_active is False:
+            # in order to generate application specific message, short circuit base
+            # permission's error raise flow
+            raise PermissionDenied(settings.APPLICATION_TEMPORARILY_INACTIVE.format(app_name))
         return True
