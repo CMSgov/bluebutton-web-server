@@ -39,6 +39,30 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.'
                 'NumericPasswordValidator',
     },
+    {
+        'NAME': 'apps.accounts.validators.'
+                'UniqueAndMinAgedPasswordsValidator',
+        'OPTIONS': {
+                # password minimum age in seconds (1 day)
+                'password_min_age': 60 * 60 * 24,
+                # password reuse interval in seconds (120 day)
+                'password_reuse_interval': 60 * 60 * 24 * 120,
+                # password expire in seconds (30 day)
+                'password_expire': 60 * 60 * 24 * 30,
+        }
+    },
+    {
+        'NAME': 'django_password_validators.password_character_requirements.password_validation.'
+                'PasswordCharacterValidator',
+        'OPTIONS': {
+                'min_length_digit': 1,
+                'min_length_alpha': 1,
+                'min_length_special': 1,
+                'min_length_lower': 2,
+                'min_length_upper': 2,
+                'special_characters': "[~!@#$%^&*()_+{}\":;'[]"
+        }
+    }
 ]
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
@@ -57,6 +81,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_csv',
     'django_filters',
+    'django_password_validators',
+    'django_password_validators.password_history',
 
     # 1st Party (in-house) ----------
     'apps.accounts',
