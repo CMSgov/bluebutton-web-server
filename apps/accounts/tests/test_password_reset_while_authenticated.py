@@ -1,9 +1,11 @@
+import time
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import Client
-from django.contrib.auth.models import User
 from django.urls import reverse
-from ..models import UserProfile
 from waffle.testutils import override_switch
+
+from ..models import UserProfile
 
 
 class ResetPasswordWhileAuthenticatedTestCase(TestCase):
@@ -46,9 +48,88 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         self.client.login(username="fred", password="foobarfoobarfoobar")
         url = reverse('password_change')
         form_data = {'old_password': 'foobarfoobarfoobar',
-                     'new_password1': 'ichangedthepassword',
-                     'new_password2': 'ichangedthepassword'}
+                     'new_password1': 'IchangedTHEpassword#123',
+                     'new_password2': 'IchangedTHEpassword#123'}
+        self.user = User.objects.get(username="fred")
+        # sleep 4 sec to let min password age of 3 sec elapse
+        time.sleep(4)
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
         self.user = User.objects.get(username="fred")  # get user again so that you can see updated password
-        self.assertEquals(self.user.check_password("ichangedthepassword"), True)
+        self.assertEquals(self.user.check_password("IchangedTHEpassword#123"), True)
+
+    @override_switch('login', active=True)
+    def test_password_change_complexity_and_min_age_validation(self):
+        self.client.login(username="fred", password="foobarfoobarfoobar")
+        url = reverse('password_change')
+        # current password has not reached min password age
+        # new password does not have >= 2 upper case
+        form_data = {'old_password': 'foobarfoobarfoobar',
+                     'new_password1': 'Ichangedthepassword#123',
+                     'new_password2': 'Ichangedthepassword#123'}
+        response = self.client.post(url, form_data, follow=True)
+        self.assertContains(response, "You can not change password that does not satisfy minimum password age")
+        self.assertContains(response, "This password must contain at least 2 upper case letters")
+        self.user = User.objects.get(username="fred")  # get user again so that you can see password not updated
+        self.assertEquals(self.user.check_password("foobarfoobarfoobar"), True)
+
+    @override_switch('login', active=True)
+    def test_password_change_reuse_validation(self):
+        self.client.login(username="fred", password="foobarfoobarfoobar")
+        url = reverse('password_change')
+
+        # first password change
+        form_data = {'old_password': 'foobarfoobarfoobar',
+                     'new_password1': 'IchangedTHEpassword#123',
+                     'new_password2': 'IchangedTHEpassword#123'}
+        # sleep 3 sec to let min password age of 3 sec elapse
+        time.sleep(3)
+        response = self.client.post(url, form_data, follow=True)
+        self.assertContains(response, "Your password was updated.")
+        self.user = User.objects.get(username="fred")  # get user again so that you can see password changed
+        self.assertEquals(self.user.check_password("IchangedTHEpassword#123"), True)
+
+        # 2nd password change
+        form_data = {'old_password': 'IchangedTHEpassword#123',
+                     'new_password1': '2ndChange#Pass',
+                     'new_password2': '2ndChange#Pass'}
+        # sleep 3 sec to let min password age of 3 sec elapse
+        time.sleep(3)
+        response = self.client.post(url, form_data, follow=True)
+        self.assertContains(response, "Your password was updated.")
+        self.user = User.objects.get(username="fred")  # get user again so that you can see password changed
+        self.assertEquals(self.user.check_password("2ndChange#Pass"), True)
+
+        # 3rd password change - re-use password used in 1st
+        form_data = {'old_password': '2ndChange#Pass',
+                     'new_password1': 'IchangedTHEpassword#123',
+                     'new_password2': 'IchangedTHEpassword#123'}
+        # sleep 3 sec to let min password age of 3 sec elapse
+        time.sleep(3)
+        response = self.client.post(url, form_data, follow=True)
+        self.assertContains(response,
+                            ("You can not use a password that is already used"
+                             " in this application within password re-use interval"))
+        self.user = User.objects.get(username="fred")  # get user again so that you can see password unchanged
+        self.assertEquals(self.user.check_password("2ndChange#Pass"), True)
+
+        # 4th password change - re-use password used in 1st
+        form_data = {'old_password': '2ndChange#Pass',
+                     'new_password1': 'IchangedTHEpassword#123',
+                     'new_password2': 'IchangedTHEpassword#123'}
+        # sleep 4 sec to let min password age of 3 sec elapse
+        time.sleep(4)
+        response = self.client.post(url, form_data, follow=True)
+        self.assertContains(response, "Your password was updated.")
+        self.user = User.objects.get(username="fred")  # get user again so that you can see password changed
+        self.assertEquals(self.user.check_password("IchangedTHEpassword#123"), True)
+
+        # now sleep 10 sec to check password expire
+        time.sleep(10)
+        self.client.logout()
+        form_data = {'username': 'fred',
+                     'password': 'IchangedTHEpassword#123'}
+        response = self.client.post(reverse('login'), form_data, follow=True)
+        self.assertContains(response,
+                            ("Reset your password below."
+                             " Please enter your new password twice so we can verify you typed it in correctly."))

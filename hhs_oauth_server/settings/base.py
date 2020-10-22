@@ -48,7 +48,7 @@ AUTH_PASSWORD_VALIDATORS = [
                 # password reuse interval in seconds (120 day)
                 'password_reuse_interval': 60 * 60 * 24 * 120,
                 # password expire in seconds (30 day)
-                'password_expire': 60 * 60 * 24 * 30,
+                'password_expire': 60 * 60 * 30,
         }
     },
     {

@@ -36,8 +36,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         form_data = {
             'email': 'BamBam@Example.com',
             'organization_name': 'transhealth',
-            'password1': 'bedrocks',
-            'password2': 'bedrocks',
+            'password1': 'BEDrocks@123',
+            'password2': 'BEDrocks@123',
             'first_name': 'BamBam',
             'last_name': 'Rubble',
             'identification_choice': str(ident_choice.pk),
@@ -70,8 +70,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         form_data = {
             'email': 'BamBam@Example.com',
             'organization_name': 'transhealth',
-            'password1': 'bedrocks',
-            'password2': 'bedrocks',
+            'password1': 'BEDrocks@123',
+            'password2': 'BEDrocks@123',
             'first_name': 'BamBam',
             'last_name': 'Rubble',
             'identification_choice': str(ident_choice.pk),
@@ -80,7 +80,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     @override_switch('signup', active=True)
-    def test_account_create_shold_fail_when_password_too_short(self):
+    def test_account_create_should_fail_when_password_too_short(self):
         """
         Create account should fail if password is too short
         """
@@ -100,7 +100,7 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertContains(response, 'too short')
 
     @override_switch('signup', active=True)
-    def test_account_create_shold_fail_when_password_too_common(self):
+    def test_account_create_should_fail_when_password_too_common(self):
         """
         Create account should fail if password is too common
         """
@@ -129,8 +129,8 @@ class CreateDeveloperAccountTestCase(TestCase):
             'invitation_code': '1234',
             'email': 'hank@example.com',
             'organization_name': 'transhealth',
-            'password1': 'bedrocks',
-            'password2': 'bedrocks',
+            'password1': 'BEDrocks@123',
+            'password2': 'BEDrocks@123',
             'first_name': 'Hank',
             'last_name': 'Flinstone',
             'identification_choice': str(ident_choice.pk),
