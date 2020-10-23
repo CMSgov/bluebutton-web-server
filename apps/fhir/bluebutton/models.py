@@ -16,6 +16,11 @@ from apps.fhir.server.settings import fhir_settings
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+class BBFhirBluebuttonModelException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
 # Real fhir_id Manager subclass
 class RealCrosswalkManager(models.Manager):
     def get_queryset(self):
@@ -26,11 +31,6 @@ class RealCrosswalkManager(models.Manager):
 class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(Q(_fhir_id__startswith='-'))
-
-
-class UpstreamServerException(APIException):
-    # BB2-237: Duped from .exceptions due to import error.
-    status_code = status.HTTP_502_BAD_GATEWAY
 
 
 def hash_id_value(hicn):
@@ -47,7 +47,7 @@ def hash_id_value(hicn):
 def hash_hicn(hicn):
     # BB2-237: Replaces ASSERT with exception. We should never reach this condition.
     if hicn == "":
-        raise UpstreamServerException("HICN cannot be the empty string")
+        raise BBFhirBluebuttonModelException("HICN cannot be the empty string")
 
     return hash_id_value(hicn)
 
@@ -55,7 +55,7 @@ def hash_hicn(hicn):
 def hash_mbi(mbi):
     # BB2-237: Replaces ASSERT with exception. We should never reach this condition.
     if mbi == "":
-        raise UpstreamServerException("MBI cannot be the empty string")
+        raise BBFhirBluebuttonModelException("MBI cannot be the empty string")
 
     # NOTE: mbi value can be None here.
     if mbi is None:

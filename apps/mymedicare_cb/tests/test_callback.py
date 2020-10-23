@@ -271,14 +271,19 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         AnonUserState.objects.create(
             state=state,
             next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
-        # mock sls token endpoint
 
+        # mock sls token endpoint
         @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/token')
         def sls_token_mock(url, request):
             return {
                 'status_code': 200,
                 'content': {'access_token': 'works'},
             }
+
+        # mock sls token endpoint with http error
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/token')
+        def sls_token_http_error_mock(url, request):
+            raise requests.exceptions.HTTPError
 
         # mock sls user info endpoint
         @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
@@ -291,6 +296,11 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                     'mbi': '1SA0A00AA00',
                 },
             }
+
+        # mock sls user info endpoint with http error
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        def sls_user_info_http_error_mock(url, request):
+            raise requests.exceptions.HTTPError
 
         # mock sls user info endpoint with out a sub/username
         @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
@@ -361,8 +371,8 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                      catchall):
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
 
-            # assert 502 exception
-            self.assertEqual(response.status_code, 502)
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
             content = json.loads(response.content)
             self.assertEqual(content['error'], "Found user's hicn did not match")
 
@@ -378,8 +388,8 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                      catchall):
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
 
-            # assert 502 exception
-            self.assertEqual(response.status_code, 502)
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
             content = json.loads(response.content)
             self.assertEqual(content['error'], "Found user's mbi did not match")
 
@@ -395,8 +405,8 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                      catchall):
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
 
-            # assert 502 exception
-            self.assertEqual(response.status_code, 502)
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
             content = json.loads(response.content)
             self.assertEqual(content['error'], "Found user's fhir_id did not match")
 
@@ -412,8 +422,8 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                      catchall):
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
 
-            # assert 502 exception
-            self.assertEqual(response.status_code, 502)
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
@@ -424,14 +434,38 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                      catchall):
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
 
-            # assert 502 exception
-            self.assertEqual(response.status_code, 502)
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
         # With HTTMock sls_user_info_invalid_mbi_mock test User info HICN cannot be empty.
         with HTTMock(sls_token_mock,
                      sls_user_info_invalid_mbi_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
+
+        # With HTTMock sls_token_http_error_mock to test BBMyMedicareCallbackAuthenticateSlsClientException
+        with HTTMock(sls_token_http_error_mock,
+                     sls_user_info_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 502 exception
+            self.assertEqual(response.status_code, 502)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
+
+        # With HTTMock sls_user_info_http_error_mock to test BBMyMedicareCallbackAuthenticateSlsClientException
+        with HTTMock(sls_token_mock,
+                     sls_user_info_http_error_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})

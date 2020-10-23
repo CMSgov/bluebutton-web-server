@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Group
 
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
 from ..models import create_beneficiary_record
 
 
@@ -87,7 +87,7 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": UpstreamServerException,
+                "exception": BBMyMedicareCallbackCrosswalkCreateException,
                 "exception_mesg": "username can not be an empty string",
             },
             "missing username": {
@@ -100,7 +100,7 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": UpstreamServerException,
+                "exception": BBMyMedicareCallbackCrosswalkCreateException,
                 "exception_mesg": "username can not be None",
             },
             "missing hash": {
@@ -113,7 +113,7 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": UpstreamServerException,
+                "exception": BBMyMedicareCallbackCrosswalkCreateException,
                 "exception_mesg": "user_hicn_hash can not be None",
             },
             "invalid_hicn_hash": {
@@ -127,7 +127,7 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": UpstreamServerException,
+                "exception": BBMyMedicareCallbackCrosswalkCreateException,
                 "exception_mesg": "incorrect user HICN hash format",
             },
             "invalid_mbi_hash": {
@@ -141,7 +141,7 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": UpstreamServerException,
+                "exception": BBMyMedicareCallbackCrosswalkCreateException,
                 "exception_mesg": "incorrect user MBI hash format",
             },
 
@@ -156,7 +156,7 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": UpstreamServerException,
+                "exception": BBMyMedicareCallbackCrosswalkCreateException,
                 "exception_mesg": "incorrect user MBI hash format",
             },
             "missing_fhir_id": {
@@ -169,7 +169,7 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": UpstreamServerException,
+                "exception": BBMyMedicareCallbackCrosswalkCreateException,
                 "exception_mesg": "fhir_id can not be None",
             },
             "empty_fhir_id": {
@@ -183,7 +183,7 @@ class BeneficiaryLoginTest(TestCase):
                     "last_name": "World",
                     "email": "fu@bar.bar",
                 },
-                "exception": UpstreamServerException,
+                "exception": BBMyMedicareCallbackCrosswalkCreateException,
                 "exception_mesg": "fhir_id can not be an empty string",
             },
         }

@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from django.test import TestCase
 from waffle.testutils import override_switch
 
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
+from apps.capabilities.permissions import BBCapabilitiesPermissionTokenScopeMissingException
 from .models import ProtectedCapability
 from .permissions import TokenHasProtectedCapability
 
@@ -78,7 +78,7 @@ class TestTokenHasProtectedCapabilityScopesSwitchTrue(TestCase):
         request = FakeRequest(FakeAuth("testing"))
 
         perm = TokenHasProtectedCapability()
-        with self.assertRaisesRegexp(UpstreamServerException, "TokenHasScope requires.*"):
+        with self.assertRaisesRegexp(BBCapabilitiesPermissionTokenScopeMissingException, "TokenHasScope requires.*"):
             perm.has_permission(request, None)
 
 

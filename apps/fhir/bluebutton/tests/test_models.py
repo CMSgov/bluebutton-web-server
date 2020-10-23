@@ -3,7 +3,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
-from apps.fhir.bluebutton.models import UpstreamServerException
+from apps.fhir.bluebutton.models import BBFhirBluebuttonModelException
 from apps.test import BaseApiTest
 from ..models import Crosswalk, check_crosswalks, hash_hicn, hash_mbi
 
@@ -156,7 +156,7 @@ class TestModels(BaseApiTest):
         hash_hicn("1234567890A")
 
         # Test empty value
-        with self.assertRaisesRegexp(UpstreamServerException, "HICN cannot be the empty string.*"):
+        with self.assertRaisesRegexp(BBFhirBluebuttonModelException, "HICN cannot be the empty string.*"):
             hash_hicn("")
 
     def test_hash_mbi_empty_string(self):
@@ -167,5 +167,5 @@ class TestModels(BaseApiTest):
         hash_mbi("1SA0A00AA00")
 
         # Test empty value
-        with self.assertRaisesRegexp(UpstreamServerException, "MBI cannot be the empty string.*"):
+        with self.assertRaisesRegexp(BBFhirBluebuttonModelException, "MBI cannot be the empty string.*"):
             hash_mbi("")
