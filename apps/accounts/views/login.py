@@ -45,7 +45,7 @@ class PasswordChangeView(PasswordChangeView):
     """
     @method_decorator(axes_dispatch)
     def dispatch(self, request, *args, **kwargs):
-        if "expired-password-change" in request.path: 
+        if "expired-password-change" in request.path:
             messages.warning(self.request, 'Your password has expired, change password strongly recommended.')
         return super().dispatch(request, *args, **kwargs)
 
