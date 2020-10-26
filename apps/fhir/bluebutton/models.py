@@ -1,16 +1,24 @@
+import binascii
 import logging
-from requests import Response
+
 from django.conf import settings
-from django.db import models
 from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models import (CASCADE, Q)
+from django.utils.crypto import pbkdf2
+from requests import Response
+from rest_framework import status
+from rest_framework.exceptions import APIException
+
 from apps.accounts.models import get_user_id_salt
 from apps.fhir.server.settings import fhir_settings
-from django.utils.crypto import pbkdf2
-import binascii
-from django.db.models import (CASCADE, Q)
-
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+class BBFhirBluebuttonModelException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 # Real fhir_id Manager subclass
@@ -37,13 +45,18 @@ def hash_id_value(hicn):
 
 
 def hash_hicn(hicn):
-    assert hicn != "", "HICN cannot be the empty string"
+    # BB2-237: Replaces ASSERT with exception. We should never reach this condition.
+    if hicn == "":
+        raise BBFhirBluebuttonModelException("HICN cannot be the empty string")
 
     return hash_id_value(hicn)
 
 
 def hash_mbi(mbi):
-    assert mbi != "", "MBI cannot be the empty string"
+    # BB2-237: Replaces ASSERT with exception. We should never reach this condition.
+    if mbi == "":
+        raise BBFhirBluebuttonModelException("MBI cannot be the empty string")
+
     # NOTE: mbi value can be None here.
     if mbi is None:
         return None

@@ -1,22 +1,22 @@
+import json
 import requests
 import uuid
-import json
+
 from datetime import datetime
+from django.contrib.auth.models import Group, User
 from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
 from django.urls import reverse
-from django.contrib.auth.models import User
 from django.test import TestCase
-from urllib.parse import urlparse, parse_qs
-from apps.mymedicare_cb.views import generate_nonce
-from apps.mymedicare_cb.models import AnonUserState
-from apps.mymedicare_cb.authorization import OAuth2Config
-from apps.capabilities.models import ProtectedCapability
 from httmock import urlmatch, all_requests, HTTMock
-from django.contrib.auth.models import Group
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.dot_ext.models import Approval, Application
+from urllib.parse import urlparse, parse_qs
 
+from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.models import Approval, Application
+from apps.fhir.bluebutton.models import Crosswalk
+from apps.mymedicare_cb.authorization import OAuth2Config
+from apps.mymedicare_cb.models import AnonUserState
+from apps.mymedicare_cb.views import generate_nonce
 from .responses import patient_response
 
 
@@ -260,3 +260,217 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                 with self.assertRaises(requests.exceptions.HTTPError):
                     tkn = sls_client.exchange("test_code", None)
                     self.assertEquals(tkn, "test_tkn")
+
+    def test_callback_exceptions(self):
+        # BB2-237: Added to test ASSERTS replaced with exceptions.
+        #          These are typically for conditions that should never be reached, so generate a 500.
+        ERROR_MSG_MYMEDICARE = "An error occurred connecting to account.mymedicare.gov"
+
+        # create a state
+        state = generate_nonce()
+        AnonUserState.objects.create(
+            state=state,
+            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
+
+        # mock sls token endpoint
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/token')
+        def sls_token_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {'access_token': 'works'},
+            }
+
+        # mock sls token endpoint with http error
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/token')
+        def sls_token_http_error_mock(url, request):
+            raise requests.exceptions.HTTPError
+
+        # mock sls user info endpoint
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        def sls_user_info_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {
+                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                    'hicn': '1234567890A',
+                    'mbi': '1SA0A00AA00',
+                },
+            }
+
+        # mock sls user info endpoint with http error
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        def sls_user_info_http_error_mock(url, request):
+            raise requests.exceptions.HTTPError
+
+        # mock sls user info endpoint with out a sub/username
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        def sls_user_info_no_sub_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {
+                    'hicn': '1234567890A',
+                    'mbi': '1SA0A00AA00',
+                },
+            }
+
+        # mock sls user info endpoint with empty hicn
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        def sls_user_info_empty_hicn_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {
+                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                    'hicn': '',
+                    'mbi': '1SA0A00AA00',
+                },
+            }
+
+        # mock sls user info endpoint
+        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
+        def sls_user_info_invalid_mbi_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': {
+                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                    'hicn': '1234567890A',
+                    'mbi': '1SA0A00SS00',
+                },
+            }
+
+        # mock fhir user info endpoint
+        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
+        def fhir_patient_info_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': patient_response,
+            }
+
+        @all_requests
+        def catchall(url, request):
+            raise Exception(url)
+
+        with HTTMock(sls_token_mock,
+                     sls_user_info_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            # assert http redirect
+            self.assertEqual(response.status_code, 302)
+
+        # Change existing hash prior to test
+        cw = Crosswalk.objects.get(id=1)
+        saved_hicn_hash = cw._user_id_hash
+        saved_mbi_hash = cw._user_mbi_hash
+        saved_fhir_id = cw.fhir_id
+        cw._user_id_hash = "XXX"
+        cw.save()
+
+        with HTTMock(sls_token_mock,
+                     sls_user_info_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], "Found user's hicn did not match")
+
+        # Restore hicn hash and change existing mbi hash prior to next test
+        cw = Crosswalk.objects.get(id=1)
+        cw._user_id_hash = saved_hicn_hash
+        cw._user_mbi_hash = "XXX"
+        cw.save()
+
+        with HTTMock(sls_token_mock,
+                     sls_user_info_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], "Found user's mbi did not match")
+
+        # Restore mbi hash and change existing fhir_id prior to next test
+        cw = Crosswalk.objects.get(id=1)
+        cw._user_mbi_hash = saved_mbi_hash
+        cw._fhir_id = "XXX"
+        cw.save()
+
+        with HTTMock(sls_token_mock,
+                     sls_user_info_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], "Found user's fhir_id did not match")
+
+        # Restore fhir_id
+        cw = Crosswalk.objects.get(id=1)
+        cw._fhir_id = saved_fhir_id
+        cw.save()
+
+        # With HTTMock sls_user_info_no_sub_mock that has no sub/username
+        with HTTMock(sls_token_mock,
+                     sls_user_info_no_sub_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
+
+        # With HTTMock sls_user_info_empty_hicn_mock test User info HICN cannot be empty.
+        with HTTMock(sls_token_mock,
+                     sls_user_info_empty_hicn_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
+
+        # With HTTMock sls_user_info_invalid_mbi_mock test User info HICN cannot be empty.
+        with HTTMock(sls_token_mock,
+                     sls_user_info_invalid_mbi_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 500 exception
+            self.assertEqual(response.status_code, 500)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
+
+        # With HTTMock sls_token_http_error_mock to test BBMyMedicareCallbackAuthenticateSlsClientException
+        with HTTMock(sls_token_http_error_mock,
+                     sls_user_info_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 502 exception
+            self.assertEqual(response.status_code, 502)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
+
+        # With HTTMock sls_user_info_http_error_mock to test BBMyMedicareCallbackAuthenticateSlsClientException
+        with HTTMock(sls_token_mock,
+                     sls_user_info_http_error_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+
+            # assert 502 exception
+            self.assertEqual(response.status_code, 502)
+            content = json.loads(response.content)
+            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)

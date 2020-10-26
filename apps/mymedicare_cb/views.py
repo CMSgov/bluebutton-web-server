@@ -1,32 +1,46 @@
+import datetime
 import logging
 import random
 import requests
 import urllib.request as urllib_request
-import datetime
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from rest_framework.exceptions import NotFound
+from rest_framework import status
+from rest_framework.exceptions import NotFound, APIException
 from urllib.parse import urlsplit, urlunsplit
+
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   get_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
                                   update_session_auth_flow_trace_from_state,
                                   update_instance_auth_flow_trace_with_state)
 from apps.dot_ext.models import Approval
-from apps.fhir.bluebutton.exceptions import UpstreamServerException
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
+from apps.logging.serializers import SLSUserInfoResponse
+from apps.mymedicare_cb.models import (BBMyMedicareCallbackCrosswalkCreateException,
+                                       BBMyMedicareCallbackCrosswalkUpdateException)
 from .authorization import OAuth2Config
 from .loggers import log_authenticate_start, log_authenticate_success
 from .models import AnonUserState, get_and_update_user
 from .signals import response_hook_wrapper
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
-from apps.logging.serializers import SLSUserInfoResponse
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+class BBMyMedicareCallbackAuthenticateSlsClientException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_502_BAD_GATEWAY
+
+
+class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 # For SLS auth workflow info, see apps/mymedicare_db/README.md
@@ -58,7 +72,7 @@ def authenticate(request):
         # Log also for info
         log_authenticate_start(auth_flow_dict, "FAIL",
                                "Token request response error {reason}".format(reason=e))
-        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
+        raise BBMyMedicareCallbackAuthenticateSlsClientException(ERROR_MSG_MYMEDICARE)
 
     userinfo_endpoint = getattr(
         settings,
@@ -72,28 +86,27 @@ def authenticate(request):
         headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                         if hasattr(request, '_logging_uuid') else '')})
 
-    response = requests.get(userinfo_endpoint,
-                            headers=headers,
-                            verify=sls_client.verify_ssl,
-                            hooks={
-                                'response': [
-                                    response_hook_wrapper(sender=SLSUserInfoResponse,
-                                                          auth_flow_dict=auth_flow_dict)]})
-
     try:
+        response = requests.get(userinfo_endpoint,
+                                headers=headers,
+                                verify=sls_client.verify_ssl,
+                                hooks={
+                                    'response': [
+                                        response_hook_wrapper(sender=SLSUserInfoResponse,
+                                                              auth_flow_dict=auth_flow_dict)]})
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         logger.error("User info request response error {reason}".format(reason=e))
         # Log also for info
         log_authenticate_start(auth_flow_dict, "FAIL",
                                "User info request response error {reason}".format(reason=e))
-        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
+        raise BBMyMedicareCallbackAuthenticateSlsClientException(ERROR_MSG_MYMEDICARE)
 
     # Get the userinfo response object
     user_info = response.json()
 
     # Set identity values from userinfo response.
-    sls_subject = user_info.get("sub", None).strip()
+    sls_subject = user_info.get("sub", "").strip()
     sls_hicn = user_info.get("hicn", "").strip()
     #     Convert SLS's mbi to UPPER case.
     sls_mbi = user_info.get("mbi", "").strip().upper()
@@ -109,13 +122,13 @@ def authenticate(request):
     if sls_subject == "":
         err_msg = "User info sub cannot be empty"
         log_authenticate_start(auth_flow_dict, "FAIL", err_msg)
-        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
+        raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(ERROR_MSG_MYMEDICARE)
 
     # Validate: sls_hicn cannot be empty.
     if sls_hicn == "":
         err_msg = "User info HICN cannot be empty."
         log_authenticate_start(auth_flow_dict, "FAIL", err_msg, sls_subject)
-        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
+        raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(ERROR_MSG_MYMEDICARE)
 
     # Set Hash values once here for performance and logging.
     sls_hicn_hash = hash_hicn(sls_hicn)
@@ -131,7 +144,7 @@ def authenticate(request):
                                sls_subject, sls_mbi_format_valid,
                                sls_mbi_format_msg, sls_mbi_format_synthetic,
                                sls_hicn_hash, sls_mbi_hash)
-        raise UpstreamServerException(ERROR_MSG_MYMEDICARE)
+        raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(ERROR_MSG_MYMEDICARE)
 
     # Log successful identity information gathered.
     log_authenticate_start(auth_flow_dict, "OK", None, sls_subject,
@@ -164,7 +177,7 @@ def callback(request):
     except ValidationError as e:
         return JsonResponse({
             "error": e.message,
-        }, status=400)
+        }, status=status.HTTP_400_BAD_REQUEST)
     except NotFound as e:
         return TemplateResponse(
             request,
@@ -172,22 +185,34 @@ def callback(request):
             context={
                 "error": e.detail,
             },
-            status=404)
-    except UpstreamServerException as e:
+            status=status.HTTP_404_NOT_FOUND)
+    except BBMyMedicareCallbackAuthenticateSlsClientException as e:
         return JsonResponse({
             "error": e.detail,
-        }, status=502)
+        }, status=status.HTTP_502_BAD_GATEWAY)
+    except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
+        return JsonResponse({
+            "error": e.detail,
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except BBMyMedicareCallbackCrosswalkCreateException as e:
+        return JsonResponse({
+            "error": e.detail,
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except BBMyMedicareCallbackCrosswalkUpdateException as e:
+        return JsonResponse({
+            "error": e.detail,
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     state = request.GET.get('state')
     if not state:
         return JsonResponse({
             "error": 'The state parameter is required'
-        }, status=400)
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         anon_user_state = AnonUserState.objects.get(state=state)
     except AnonUserState.DoesNotExist:
-        return JsonResponse({"error": 'The requested state was not found'}, status=400)
+        return JsonResponse({"error": 'The requested state was not found'}, status=status.HTTP_400_BAD_REQUEST)
     next_uri = anon_user_state.next_uri
 
     scheme, netloc, path, query_string, fragment = urlsplit(next_uri)

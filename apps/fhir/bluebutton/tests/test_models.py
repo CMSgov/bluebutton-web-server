@@ -1,9 +1,11 @@
 import uuid
-from django.db.utils import IntegrityError
-from django.core.exceptions import ValidationError
-from apps.test import BaseApiTest
 
-from ..models import Crosswalk, check_crosswalks
+from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
+
+from apps.fhir.bluebutton.models import BBFhirBluebuttonModelException
+from apps.test import BaseApiTest
+from ..models import Crosswalk, check_crosswalks, hash_hicn, hash_mbi
 
 
 class TestModels(BaseApiTest):
@@ -145,3 +147,25 @@ class TestModels(BaseApiTest):
                               user_mbi_hash='987654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
 
         self.assertEqual("{'synthetic': 7, 'real': 5}", str(check_crosswalks()))
+
+    def test_hash_hicn_empty_string(self):
+        '''
+            BB2-237: Test the hash_hicn(hicn) function for empty string produces exception instead of assert
+        '''
+        # Test non-empty value first
+        hash_hicn("1234567890A")
+
+        # Test empty value
+        with self.assertRaisesRegexp(BBFhirBluebuttonModelException, "HICN cannot be the empty string.*"):
+            hash_hicn("")
+
+    def test_hash_mbi_empty_string(self):
+        '''
+            BB2-237: Test the hash_mbi(mbi) function for empty string produces exception instead of assert
+        '''
+        # Test non-empty value first
+        hash_mbi("1SA0A00AA00")
+
+        # Test empty value
+        with self.assertRaisesRegexp(BBFhirBluebuttonModelException, "MBI cannot be the empty string.*"):
+            hash_mbi("")

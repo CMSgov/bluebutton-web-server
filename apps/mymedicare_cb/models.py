@@ -1,15 +1,29 @@
 import logging
+
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from rest_framework import status
+from rest_framework.exceptions import APIException
+
 from apps.accounts.models import UserProfile
 from apps.dot_ext.loggers import get_session_auth_flow_trace
-from apps.fhir.server.authentication import match_fhir_id
 from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.server.authentication import match_fhir_id
 from .loggers import log_get_and_update_user, log_create_beneficiary_record
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
+
+
+class BBMyMedicareCallbackCrosswalkCreateException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, email, request=None):
@@ -47,22 +61,21 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
         # Does an existing user and crosswalk exist for SLS username?
         user = User.objects.get(username=subject)
 
-        # TODO: Replace asserts with exception handling.
         if user.crosswalk.user_hicn_hash != hicn_hash:
             err_msg = "Found user's hicn did not match"
             log_get_and_update_user(auth_flow_dict, "FAIL", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
-        assert user.crosswalk.user_hicn_hash == hicn_hash, "Found user's hicn did not match"
+            raise BBMyMedicareCallbackCrosswalkUpdateException(err_msg)
 
         if user.crosswalk.fhir_id != fhir_id:
             err_msg = "Found user's fhir_id did not match"
             log_get_and_update_user(auth_flow_dict, "FAIL", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
-        assert user.crosswalk.fhir_id == fhir_id, "Found user's fhir_id did not match"
+            raise BBMyMedicareCallbackCrosswalkUpdateException(err_msg)
 
         if user.crosswalk.user_mbi_hash is not None:
             if user.crosswalk.user_mbi_hash != mbi_hash:
                 err_msg = "Found user's mbi did not match"
                 log_get_and_update_user(auth_flow_dict, "FAIL", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, err_msg)
-            assert user.crosswalk.user_mbi_hash == mbi_hash, "Found user's mbi did not match"
+                raise BBMyMedicareCallbackCrosswalkUpdateException(err_msg)
         else:
             # Previously stored value was None/Null and mbi_hash != None, update just the mbi hash.
             if mbi_hash is not None:
@@ -115,43 +128,42 @@ def create_beneficiary_record(username=None,
         # If None, set empty dictionary.
         auth_flow_dict = {}
 
-    # Validate argument values. TODO: Replace asserts with exception handling.
     if username is None:
         err_msg = "username can not be None"
         log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
-    assert username is not None
+        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
 
     if username == "":
         err_msg = "username can not be an empty string"
         log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
-    assert username != ""
+        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
 
     if user_hicn_hash is None:
         err_msg = "user_hicn_hash can not be None"
         log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
-        assert user_hicn_hash is not None
+        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
     else:
         if len(user_hicn_hash) != 64:
             err_msg = "incorrect user HICN hash format"
             log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
-        assert len(user_hicn_hash) == 64, "incorrect user HICN hash format"
+            raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
 
     # If mbi_hash is not NULL, perform length check.
     if user_mbi_hash is not None:
         if len(user_mbi_hash) != 64:
             err_msg = "incorrect user MBI hash format"
             log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
-        assert len(user_mbi_hash) == 64, "incorrect user MBI hash format"
+            raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
 
     if fhir_id is None:
         err_msg = "fhir_id can not be None"
         log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
-    assert fhir_id is not None
+        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
 
     if fhir_id == "":
         err_msg = "fhir_id can not be an empty string"
         log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, err_msg)
-    assert fhir_id != ""
+        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
 
     if User.objects.filter(username=username).exists():
         err_msg = "user already exists"
