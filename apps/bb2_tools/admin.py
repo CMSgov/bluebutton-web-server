@@ -1,6 +1,14 @@
+from django.conf import settings
 from django.contrib import admin
-from apps.bb2_tools.models import BeneficiaryDashboard, MyAccessTokenViewer, MyRefreshTokenViewer, MyArchivedTokenViewer
 from django.utils.html import format_html
+
+from apps.bb2_tools.models import (
+    BeneficiaryDashboard,
+    MyAccessTokenViewer,
+    MyRefreshTokenViewer,
+    MyArchivedTokenViewer,
+    DummyAdminObject,
+)
 
 BB2_TOOLS_PATH = "/admin/bb2_tools/"
 LINK_REF_FMT = "<a  href='{0}{1}?q={2}'>{3}</a>"
@@ -31,6 +39,24 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(DummyAdminObject)
+class BlueButtonAPISplunkLauncherAdmin(ReadOnlyAdmin):
+    change_list_template = 'admin/bb2_splunk_dashboards_change_list.html'
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+        try:
+            qs = response.context_data['cl'].queryset
+        except (AttributeError, KeyError):
+            return response
+        
+        response.context_data["splunk_dashboards"] = settings.SPLUNK_DASHBOARDS
+        return response
 
 
 @admin.register(BeneficiaryDashboard)

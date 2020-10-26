@@ -4,6 +4,15 @@ from oauth2_provider.models import AccessToken, RefreshToken
 from apps.dot_ext.models import ArchivedToken
 
 
+class DummyAdminObject(AccessToken):
+    
+    class Meta:
+        proxy = True
+        app_label = "bb2_tools"
+        verbose_name = "Splunk Dashboard"
+        verbose_name_plural = "Splunk Dashboards"
+
+
 class BeneficiaryDashboard(Crosswalk):
 
     class Meta:
