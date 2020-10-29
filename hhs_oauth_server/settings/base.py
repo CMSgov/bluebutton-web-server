@@ -39,6 +39,30 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.'
                 'NumericPasswordValidator',
     },
+    {
+        'NAME': 'apps.accounts.validators.'
+                'PasswordReuseAndMinAgeValidator',
+        'OPTIONS': {
+                # password minimum age in seconds (1 day)
+                'password_min_age': 60 * 60 * 24,
+                # password reuse interval in seconds (120 day)
+                'password_reuse_interval': 60 * 60 * 24 * 120,
+                # password expire in seconds (30 day)
+                'password_expire': 60 * 60 * 30,
+        }
+    },
+    {
+        'NAME': 'apps.accounts.validators.'
+                'PasswordComplexityValidator',
+        'OPTIONS': {
+                'min_length_digit': 1,
+                'min_length_alpha': 1,
+                'min_length_special': 1,
+                'min_length_lower': 1,
+                'min_length_upper': 1,
+                'special_characters': "[~!{}@#$%^&*_+\":;()'[]"
+        }
+    }
 ]
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
@@ -376,7 +400,8 @@ DEFAULT_DISCLOSURE_TEXT = """
 
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
-HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
+#HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
+HOSTNAME_URL = env('HOSTNAME_URL', 'http://192.168.0.109:8000')
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
