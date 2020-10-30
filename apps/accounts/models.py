@@ -381,7 +381,7 @@ class PastPassword(models.Model):
     class Meta:
         verbose_name = 'Past Password'
         verbose_name_plural = 'Past Passwords'
-        unique_together = (("userpassword_desc", "password",),)
+        unique_together = (("userpassword_desc", "password", "date_created"),)
         ordering = ['-userpassword_desc', 'password', ]
 
     def __str__(self):

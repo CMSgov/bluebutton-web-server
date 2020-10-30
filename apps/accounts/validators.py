@@ -144,21 +144,25 @@ class PasswordReuseAndMinAgeValidator(object):
                  password_expire=60 * 60 * 24 * 30):
 
         msg1 = "Invalid OPTIONS, password_min_age < password_reuse_interval expected, " \
-               "but having password_min_age({}) < password_reuse_interval({})"
+               "but having password_min_age({}) >= password_reuse_interval({})"
         msg2 = "Invalid OPTIONS, password_expire < password_reuse_interval expected, " \
-               "but having password_expire({}) < password_reuse_interval({})"
+               "but having password_expire({}) >= password_reuse_interval({})"
         msg3 = "Invalid OPTIONS, password_min_age < password_expire expected, " \
-               "but having password_expire({}) < password_reuse_interval({})"
+               "but having password_expire({}) >= password_reuse_interval({})"
 
-        if password_min_age > 0 and password_reuse_interval > 0:
-            assert password_min_age <= password_reuse_interval, \
-                msg1.format(password_min_age, password_reuse_interval)
-        if password_expire > 0 and password_reuse_interval > 0:
-            assert password_expire <= password_reuse_interval, \
-                msg2.format(password_expire, password_reuse_interval)
-        if password_min_age > 0 and password_expire > 0:
-            assert password_min_age <= password_expire, \
-                msg3.format(password_min_age, password_expire)
+        check_opt_err = []
+        if password_min_age > 0 and password_reuse_interval > 0 \
+                and password_min_age > password_reuse_interval:
+            check_opt_err.append(msg1.format(password_min_age, password_reuse_interval))
+        if password_expire > 0 and password_reuse_interval > 0 \
+                and password_expire > password_reuse_interval:
+            check_opt_err.append(msg2.format(password_expire, password_reuse_interval))
+        if password_min_age > 0 and password_expire > 0 \
+                and password_min_age > password_expire:
+            check_opt_err.append(msg3.format(password_min_age, password_expire))
+        if len(check_opt_err) > 0:
+            raise ValueError(check_opt_err)
+
         self.password_min_age = password_min_age
         self.password_reuse_interval = password_reuse_interval
         self.password_expire = password_expire
@@ -205,7 +209,7 @@ class PasswordReuseAndMinAgeValidator(object):
                         # check invalid re-use (colide) within password reuse interval
                         raise ValidationError(
                             ("You can not use a password that is already"
-                             " used in this application within password re-use interval: {}.")
+                             " used in this application within password re-use interval [days hh:mm:ss]: {}.")
                             .format(str(datetime.timedelta(seconds=self.password_reuse_interval))),
                             code='password_used'
                         )
@@ -217,7 +221,7 @@ class PasswordReuseAndMinAgeValidator(object):
                         - passwds.first().date_created).total_seconds() <= self.password_min_age:
                     # change password too soon
                     raise ValidationError(
-                        "You can not change password that does not satisfy minimum password age: {}."
+                        "You can not change password that does not satisfy minimum password age [days hh:mm:ss]: {}."
                         .format(str(datetime.timedelta(seconds=self.password_min_age))),
                         code='password_used'
                     )
@@ -254,9 +258,9 @@ class PasswordReuseAndMinAgeValidator(object):
             past_password.save()
 
     def get_help_text(self):
-        help_msg = ('Change password not allowed within mimimum password age: {}, and'
+        help_msg = ('Change password not allowed within mimimum password age [days hh:mm:ss]: {}, and'
                     ' your new password can not be identical to any of the '
-                    'previously entered in the past {}').format(
+                    'previously entered in the past [days hh:mm:ss] {}').format(
             str(datetime.timedelta(seconds=self.password_min_age)),
             str(datetime.timedelta(seconds=self.password_reuse_interval)))
         return help_msg

@@ -6,7 +6,10 @@ from .models import (
     ValidPasswordResetKey,
     UserProfile,
     ActivationKey,
-    UserIdentificationLabel)
+    UserIdentificationLabel,
+    UserPasswordDescriptor,
+    PastPassword,
+)
 
 
 admin.site.register(ActivationKey)
@@ -53,6 +56,7 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 
+@admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
 
     def get_user_email(self, obj):
@@ -76,9 +80,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     raw_id_fields = ("user", )
 
 
-admin.site.register(UserProfile, UserProfileAdmin)
-
-
+@admin.register(UserIdentificationLabel)
 class UserIdentificationLabelAdmin(admin.ModelAdmin):
     model = UserIdentificationLabel
     filter_horizontal = ('users',)
@@ -87,4 +89,17 @@ class UserIdentificationLabelAdmin(admin.ModelAdmin):
     ordering = ("weight", )
 
 
-admin.site.register(UserIdentificationLabel, UserIdentificationLabelAdmin)
+@admin.register(UserPasswordDescriptor)
+class UserPasswordDescriptorAdmin(admin.ModelAdmin):
+
+    list_display = ('user', 'date', 'salt', 'iterations')
+    list_filter = ('date', )
+    ordering = ('date', )
+
+
+@admin.register(PastPassword)
+class PastPasswordAdmin(admin.ModelAdmin):
+
+    list_display = ('userpassword_desc', 'password', 'date_created', )
+    list_filter = ('date_created', )
+    ordering = ('date_created', )

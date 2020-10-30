@@ -6,6 +6,7 @@ from django.urls import reverse
 from waffle.testutils import override_switch
 
 from ..models import UserProfile
+from ..validators import PasswordReuseAndMinAgeValidator
 
 
 class ResetPasswordWhileAuthenticatedTestCase(TestCase):
@@ -28,6 +29,23 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                                    password_reset_answer_2='Frank',
                                    password_reset_question_3='3',
                                    password_reset_answer_3='Bentley')
+
+        u_staff = User.objects.create_user(username="staff",
+                                           first_name="staff",
+                                           last_name="staff",
+                                           email='staff@example.com',
+                                           password="foobarfoobarfoobar",)
+        UserProfile.objects.create(user=u_staff,
+                                   user_type="DEV",
+                                   create_applications=True,
+                                   password_reset_question_1='1',
+                                   password_reset_answer_1='blue',
+                                   password_reset_question_2='2',
+                                   password_reset_answer_2='Frank',
+                                   password_reset_question_3='3',
+                                   password_reset_answer_3='Bentley')
+        u_staff.is_staff = True
+        u_staff.save()
         self.client = Client()
 
     @override_switch('login', active=True)
@@ -131,5 +149,25 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                      'password': 'IchangedTHEpassword#123'}
         response = self.client.post(reverse('login'), form_data, follow=True)
         self.assertContains(response,
-                            ("Reset your password below."
-                             " Please enter your new password twice so we can verify you typed it in correctly."))
+                            ("Your password has expired, change password strongly recommended."))
+
+    @override_switch('login', active=True)
+    def test_password_expire_not_affect_staff(self):
+        self.client.logout()
+        # now sleep 10 sec to check password expire
+        time.sleep(10)
+        form_data = {'username': 'staff',
+                     'password': 'foobarfoobarfoobar'}
+        response = self.client.post(reverse('login'), form_data, follow=True)
+        # assert account dashboard page
+        self.assertContains(response,
+                            ("My Sandbox Apps"))
+        self.assertContains(response,
+                            ("The Developer Sandbox lets you register applications to get credentials"))
+
+    def test_password_reuse_min_age_validator_args_check(self):
+        with self.assertRaisesRegex(ValueError,
+                                    (".*password_min_age < password_reuse_interval expected.*"
+                                     "password_expire < password_reuse_interval expected.*"
+                                     "password_min_age < password_expire expected.*")):
+            PasswordReuseAndMinAgeValidator(60 * 60 * 24 * 30, 60 * 60 * 24 * 10, 60 * 60 * 24 * 20)

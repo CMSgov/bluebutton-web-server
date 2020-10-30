@@ -51,5 +51,9 @@ class PasswordChangeView(PasswordChangeView):
 
     @method_decorator(login_required)
     def form_valid(self, form):
+        # remove password expired warning
+        cur_messages = messages.get_messages(self.request)
+        for m in cur_messages:
+            pass
         messages.success(self.request, 'Your password was updated.')
         return super().form_valid(form)

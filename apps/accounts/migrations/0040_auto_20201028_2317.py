@@ -49,6 +49,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='pastpassword',
-            unique_together={('userpassword_desc', 'password')},
+            unique_together={('userpassword_desc', 'password', 'date_created')},
         ),
     ]
