@@ -1,13 +1,51 @@
 import datetime
+import re
 import warnings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.utils.translation import ugettext as _, ungettext
 from .models import (
     UserPasswordDescriptor,
     PastPassword,
     PasswordHasher,
 )
+
+PASSWORD_RULES = [
+    {
+        "name": "min_length_digit",
+        "regex": "[0-9]",
+        "msg": "Password must contain at least {} digit(s).",
+        "help": "{} digit(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_alpha",
+        "regex": "[a-zA-Z]",
+        "msg": "Password must contain at least {} letter(s).",
+        "help": "{} letter(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_special",
+        "regex": "[~!{}@#$%^&*_+\":;()'[]",
+        "msg": "Password must contain at least {} special character(s).",
+        "help": "{} special char(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_lower",
+        "regex": "[a-z]",
+        "msg": "Password must contain at least {} lower case letter(s)",
+        "help": "{} lower case char(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_upper",
+        "regex": "[A-Z]",
+        "msg": "Password must contain at least {} upper case letter(s).",
+        "help": "{} upper case char(s)",
+        "min_len": 1,
+    },
+]
 
 
 class PasswordComplexityValidator():
@@ -32,104 +70,43 @@ class PasswordComplexityValidator():
         self.min_length_upper = min_length_upper
         self.special_characters = special_characters
 
+        PASSWORD_RULES[2]['regex'] = self.special_characters
+
+        self.actaul_params = [
+            self.min_length_digit,
+            self.min_length_alpha,
+            self.min_length_special,
+            self.min_length_lower,
+            self.min_length_upper,
+        ]
+
+        password_requirements = []
+
+        for rule in zip(PASSWORD_RULES, self.actaul_params):
+            if rule[1]:
+                password_requirements.append(rule[0]['help'].format(rule[1]))
+
+        self.help_txt = "Your password must contaion at least {}.".format(', '.join(password_requirements))
+
     def validate(self, password, user=None):
         validation_errors = []
-        if len([char for char in password if char.isdigit()]) < self.min_length_digit:
-            validation_errors.append(ValidationError(
-                ungettext(
-                    'This password must contain at least %(min_length)d digit.',
-                    'This password must contain at least %(min_length)d digits.',
-                    self.min_length_digit
-                ),
-                params={'min_length': self.min_length_digit},
-                code='min_length_digit',
-            ))
-        if len([char for char in password if char.isalpha()]) < self.min_length_alpha:
-            validation_errors.append(ValidationError(
-                ungettext(
-                    'This password must contain at least %(min_length)d letter.',
-                    'This password must contain at least %(min_length)d letters.',
-                    self.min_length_alpha
-                ),
-                params={'min_length': self.min_length_alpha},
-                code='min_length_alpha',
-            ))
-        if len([char for char in password if char.isupper()]) < self.min_length_upper:
-            validation_errors.append(ValidationError(
-                ungettext(
-                    'This password must contain at least %(min_length)d upper case letter.',
-                    'This password must contain at least %(min_length)d upper case letters.',
-                    self.min_length_upper
-                ),
-                params={'min_length': self.min_length_upper},
-                code='min_length_upper_characters',
-            ))
-        if len([char for char in password if char.islower()]) < self.min_length_lower:
-            validation_errors.append(ValidationError(
-                ungettext(
-                    'This password must contain at least %(min_length)d lower case letter.',
-                    'This password must contain at least %(min_length)d lower case letters.',
-                    self.min_length_lower
-                ),
-                params={'min_length': self.min_length_lower},
-                code='min_length_lower_characters',
-            ))
-        if len([char for char in password if char in self.special_characters]) < self.min_length_special:
-            validation_errors.append(ValidationError(
-                ungettext(
-                    'This password must contain at least %(min_length)d special character.',
-                    'This password must contain at least %(min_length)d special characters.',
-                    self.min_length_special
-                ),
-                params={'min_length': self.min_length_special},
-                code='min_length_special_characters',
-            ))
+        for tuple in zip(PASSWORD_RULES, self.actaul_params):
+            rule = tuple[0]
+            min_len_required = tuple[1]
+            p = re.compile(rule['regex'])
+            actual_cnt = len(p.findall(password))
+            if actual_cnt < min_len_required:
+                validation_errors.append(ValidationError(
+                    rule['msg'].format(min_len_required),
+                    params={'min_length': min_len_required},
+                    code=rule['name'],
+                ))
+
         if validation_errors:
             raise ValidationError(validation_errors)
 
     def get_help_text(self):
-        validation_req = []
-        if self.min_length_alpha:
-            validation_req.append(
-                ungettext(
-                    "%(min_length)s letter",
-                    "%(min_length)s letters",
-                    self.min_length_alpha
-                ) % {'min_length': self.min_length_alpha}
-            )
-        if self.min_length_digit:
-            validation_req.append(
-                ungettext(
-                    "%(min_length)s digit",
-                    "%(min_length)s digits",
-                    self.min_length_digit
-                ) % {'min_length': self.min_length_digit}
-            )
-        if self.min_length_lower:
-            validation_req.append(
-                ungettext(
-                    "%(min_length)s lower case letter",
-                    "%(min_length)s lower case letters",
-                    self.min_length_lower
-                ) % {'min_length': self.min_length_lower}
-            )
-        if self.min_length_upper:
-            validation_req.append(
-                ungettext(
-                    "%(min_length)s upper case letter",
-                    "%(min_length)s upper case letters",
-                    self.min_length_upper
-                ) % {'min_length': self.min_length_upper}
-            )
-        if self.special_characters:
-            validation_req.append(
-                ungettext(
-                    "%(min_length_alpha)s special character, such as %(special_characters)s",
-                    "%(min_length_alpha)s special characters, such as %(special_characters)s",
-                    self.min_length_alpha
-                ) % {'min_length_alpha': str(self.min_length_alpha), 'special_characters': self.special_characters}
-            )
-        return _("This password must contaion at least") + ' ' + ', '.join(validation_req) + '.'
+        return self.help_txt
 
 
 class PasswordReuseAndMinAgeValidator(object):

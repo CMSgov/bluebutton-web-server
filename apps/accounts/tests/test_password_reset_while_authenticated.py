@@ -80,14 +80,15 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
     def test_password_change_complexity_and_min_age_validation(self):
         self.client.login(username="fred", password="foobarfoobarfoobar")
         url = reverse('password_change')
+        # sleep 3 sec to let min password age of 3 sec elapse
+        time.sleep(3)
         # current password has not reached min password age
         # new password does not have >= 2 upper case
         form_data = {'old_password': 'foobarfoobarfoobar',
                      'new_password1': 'Ichangedthepassword#123',
                      'new_password2': 'Ichangedthepassword#123'}
         response = self.client.post(url, form_data, follow=True)
-        self.assertContains(response, "You can not change password that does not satisfy minimum password age")
-        self.assertContains(response, "This password must contain at least 2 upper case letters")
+        self.assertContains(response, "Password must contain at least 2 upper case letter(s)")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password not updated
         self.assertEquals(self.user.check_password("foobarfoobarfoobar"), True)
 
