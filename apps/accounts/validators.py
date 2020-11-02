@@ -223,10 +223,15 @@ class PasswordReuseAndMinAgeValidator(object):
         password_hash = userpassword_desc.create_hash(password)
 
         # We are looking hash password in the database
+        tz_now = datetime.datetime.now(datetime.timezone.utc)
         try:
+            # with the timestamp now() this look up will certainly not able to get an entry
+            # this is expected for new entry and re-use password (same user + password hash)
+            # note, re use of user + password hash will satisfy re use interval first.
             PastPassword.objects.get(
                 userpassword_desc=userpassword_desc,
-                password=password_hash
+                password=password_hash,
+                date_created=tz_now
             )
         except PastPassword.DoesNotExist:
             past_password = PastPassword()
