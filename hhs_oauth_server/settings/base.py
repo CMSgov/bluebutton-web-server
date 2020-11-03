@@ -400,8 +400,7 @@ DEFAULT_DISCLOSURE_TEXT = """
 
 DISCLOSURE_TEXT = env('DJANGO_PRIVACY_POLICY_URI', DEFAULT_DISCLOSURE_TEXT)
 
-#HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
-HOSTNAME_URL = env('HOSTNAME_URL', 'http://192.168.0.109:8000')
+HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = 'utf-8'
