@@ -14,7 +14,8 @@ RefreshToken = get_refresh_token_model()
 
 
 class TestAuthorizeWithCustomScheme(BaseApiTest):
-    def test_post_with_valid_non_standard_scheme(self):
+    def test_post_with_valid_non_standard_scheme_granttype_authcode_clienttype_public(self):
+        # Test with application setup as grant_type=authorization_code and client_type=public
         redirect_uri = 'com.custom.bluebutton://example.it'
         # create a user
         self._create_user('anna', '123456')
@@ -24,6 +25,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application = self._create_application(
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_PUBLIC,
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
 
@@ -62,12 +64,18 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'code_verifier': 'test123456789123456789123456789123456789123456789',
         }
+        # Test that using a BAD code_verifier has a bad request response
+        token_request_data.update({'code_verifier': 'test1234567bad9verifier23456789123456789123456789'})
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+        self.assertEqual(response.status_code, 400)
+
+        # Test that using a GOOD code_verifier is successful
+        token_request_data.update({'code_verifier': 'test123456789123456789123456789123456789123456789'})
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         self.assertEqual(response.status_code, 200)
 
-    def test_post_with_invalid_non_standard_scheme(self):
+    def test_post_with_invalid_non_standard_scheme_granttype_authcode_clienttype_public(self):
         redirect_uri = 'com.custom.bluebutton://example.it'
         bad_redirect_uri = 'com.custom.bad://example.it'
         # create a user
@@ -78,6 +86,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application = self._create_application(
             'an app',
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_PUBLIC,
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
@@ -92,7 +101,108 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'allow': True,
         }
         response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
+        self.assertEqual(response.status_code, 400)
 
+    def test_post_with_valid_non_standard_scheme_granttype_authcode_clienttype_confidential(self):
+        # Test with application setup as grant_type=authorization_code and client_type=confidential
+        redirect_uri = 'com.custom.bluebutton://example.it'
+        # create a user
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+
+        # user logs in
+        self.client.login(username='anna', password='123456')
+
+        code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
+
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
+        }
+        response = self.client.get('/v1/o/authorize', data=payload)
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
+        }
+        response = self.client.post(response['Location'], data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        # now extract the authorization code and use it to request an access_token
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+        }
+        # Test that request is unauthorized WITH OUT the client_secret.
+        token_request_data.update({'code_verifier': 'test123456789123456789123456789123456789123456789'})
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+        self.assertEqual(response.status_code, 401)
+
+        # Setup application's client_secret
+        token_request_data.update({'client_secret': application.client_secret})
+
+        # Test that using a BAD code_verifier has a bad request response
+        token_request_data.update({'code_verifier': 'test1234567bad9verifier23456789123456789123456789'})
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+        self.assertEqual(response.status_code, 400)
+
+        # Test that request is successful WITH the client_secret and GOOD code_verifier
+        token_request_data.update({'code_verifier': 'test123456789123456789123456789123456789123456789'})
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+        self.assertEqual(response.status_code, 200)
+
+        # Test 2nd access token request is unauthorized
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+        self.assertEqual(response.status_code, 401)
+
+    def test_post_with_invalid_non_standard_scheme_granttype_authcode_clienttype_confidential(self):
+        # Test with application setup as grant_type=authorization_code and client_type=confidential
+        redirect_uri = 'com.custom.bluebutton://example.it'
+        bad_redirect_uri = 'com.custom.bad://example.it'
+        # create a user
+        self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+        # user logs in
+        self.client.login(username='anna', password='123456')
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': bad_redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+        }
+        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
         self.assertEqual(response.status_code, 400)
 
     def test_refresh_token(self):
