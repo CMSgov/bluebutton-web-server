@@ -1,4 +1,3 @@
-
 import logging
 import binascii
 import pytz
@@ -395,4 +394,4 @@ class PasswordHasher(PBKDF2PasswordHasher):
     (or configuration change) hashes have not changed.
     Therefore, special hasher.
     """
-    iterations = 20000 * 10
+    iterations = settings.PASSWORD_HASH_ITERATIONS

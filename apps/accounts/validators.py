@@ -1,6 +1,8 @@
 import datetime
 import re
 import warnings
+
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from .models import (
@@ -8,44 +10,6 @@ from .models import (
     PastPassword,
     PasswordHasher,
 )
-
-PASSWORD_RULES = [
-    {
-        "name": "min_length_digit",
-        "regex": "[0-9]",
-        "msg": "Password must contain at least {} digit(s).",
-        "help": "{} digit(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_alpha",
-        "regex": "[a-zA-Z]",
-        "msg": "Password must contain at least {} letter(s).",
-        "help": "{} letter(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_special",
-        "regex": "[~!{}@#$%^&*_+\":;()'[]",
-        "msg": "Password must contain at least {} special character(s).",
-        "help": "{} special char(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_lower",
-        "regex": "[a-z]",
-        "msg": "Password must contain at least {} lower case letter(s)",
-        "help": "{} lower case char(s)",
-        "min_len": 1,
-    },
-    {
-        "name": "min_length_upper",
-        "regex": "[A-Z]",
-        "msg": "Password must contain at least {} upper case letter(s).",
-        "help": "{} upper case char(s)",
-        "min_len": 1,
-    },
-]
 
 
 class PasswordComplexityValidator():
@@ -70,7 +34,7 @@ class PasswordComplexityValidator():
         self.min_length_upper = min_length_upper
         self.special_characters = special_characters
 
-        PASSWORD_RULES[2]['regex'] = self.special_characters
+        settings.PASSWORD_RULES[2]['regex'] = self.special_characters
 
         self.actaul_params = [
             self.min_length_digit,
@@ -82,7 +46,7 @@ class PasswordComplexityValidator():
 
         password_requirements = []
 
-        for rule in zip(PASSWORD_RULES, self.actaul_params):
+        for rule in zip(settings.PASSWORD_RULES, self.actaul_params):
             if rule[1]:
                 password_requirements.append(rule[0]['help'].format(rule[1]))
 
@@ -90,7 +54,7 @@ class PasswordComplexityValidator():
 
     def validate(self, password, user=None):
         validation_errors = []
-        for tuple in zip(PASSWORD_RULES, self.actaul_params):
+        for tuple in zip(settings.PASSWORD_RULES, self.actaul_params):
             rule = tuple[0]
             min_len_required = tuple[1]
             p = re.compile(rule['regex'])

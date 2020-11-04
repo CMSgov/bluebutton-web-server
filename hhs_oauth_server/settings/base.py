@@ -65,6 +65,48 @@ AUTH_PASSWORD_VALIDATORS = [
     }
 ]
 
+# password rules used by validator: PasswordComplexityValidator,
+# this is part of the validation logic, exercise caution when make changes
+PASSWORD_RULES = [
+    {
+        "name": "min_length_digit",
+        "regex": "[0-9]",
+        "msg": "Password must contain at least {} digit(s).",
+        "help": "{} digit(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_alpha",
+        "regex": "[a-zA-Z]",
+        "msg": "Password must contain at least {} letter(s).",
+        "help": "{} letter(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_special",
+        "regex": "[~!{}@#$%^&*_+\":;()'[]",
+        "msg": "Password must contain at least {} special character(s).",
+        "help": "{} special char(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_lower",
+        "regex": "[a-z]",
+        "msg": "Password must contain at least {} lower case letter(s)",
+        "help": "{} lower case char(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_upper",
+        "regex": "[A-Z]",
+        "msg": "Password must contain at least {} upper case letter(s).",
+        "help": "{} upper case char(s)",
+        "min_len": 1,
+    },
+]
+
+PASSWORD_HASH_ITERATIONS = int(env("DJANGO_PASSWORD_HASH_ITERATIONS", "200000"))
+
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 
 DEBUG = env('DEBUG', True)
