@@ -36,7 +36,7 @@ class PasswordComplexityValidator():
 
         settings.PASSWORD_RULES[2]['regex'] = self.special_characters
 
-        self.actaul_params = [
+        self.actual_params = [
             self.min_length_digit,
             self.min_length_alpha,
             self.min_length_special,
@@ -46,7 +46,7 @@ class PasswordComplexityValidator():
 
         password_requirements = []
 
-        for rule in zip(settings.PASSWORD_RULES, self.actaul_params):
+        for rule in zip(settings.PASSWORD_RULES, self.actual_params):
             if rule[1]:
                 password_requirements.append(rule[0]['help'].format(rule[1]))
 
@@ -54,7 +54,7 @@ class PasswordComplexityValidator():
 
     def validate(self, password, user=None):
         validation_errors = []
-        for tuple in zip(settings.PASSWORD_RULES, self.actaul_params):
+        for tuple in zip(settings.PASSWORD_RULES, self.actual_params):
             rule = tuple[0]
             min_len_required = tuple[1]
             p = re.compile(rule['regex'])
@@ -204,7 +204,7 @@ class PasswordReuseAndMinAgeValidator(object):
             past_password.save()
 
     def get_help_text(self):
-        help_msg = ('Change password not allowed within mimimum password age [days hh:mm:ss]: {}, and'
+        help_msg = ('For security, you can not change your password again for [days hh:mm:ss]: {}, and'
                     ' your new password can not be identical to any of the '
                     'previously entered in the past [days hh:mm:ss] {}').format(
             str(datetime.timedelta(seconds=self.password_min_age)),
