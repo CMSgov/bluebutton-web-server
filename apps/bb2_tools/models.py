@@ -5,7 +5,7 @@ from apps.dot_ext.models import ArchivedToken
 
 
 class DummyAdminObject(AccessToken):
-    
+
     class Meta:
         proxy = True
         app_label = "bb2_tools"
@@ -32,13 +32,49 @@ class MyAccessTokenViewer(AccessToken):
         app_label = "bb2_tools"
 
 
+class AccessTokenStats(AccessToken):
+
+    class Meta:
+        proxy = True
+        app_label = "bb2_tools"
+        verbose_name = "Access Token (Connected Beneficiaries) Count By Apps"
+        verbose_name_plural = "Access Token (Connected Beneficiaries) Count By Apps"
+
+
 class MyRefreshTokenViewer(RefreshToken):
+
     class Meta:
         proxy = True
         app_label = "bb2_tools"
 
 
+class RefreshTokenStats(RefreshToken):
+
+    class Meta:
+        proxy = True
+        app_label = "bb2_tools"
+        verbose_name = "Refresh Token Count By Apps"
+        verbose_name_plural = "Refresh Token Count By Apps"
+
+
 class MyArchivedTokenViewer(ArchivedToken):
+
+    class Meta:
+        proxy = True
+        app_label = "bb2_tools"
+
+
+class ArchivedTokenStats(ArchivedToken):
+
+    class Meta:
+        proxy = True
+        app_label = "bb2_tools"
+        verbose_name = "Archived Token Count By Apps"
+        verbose_name_plural = "Archived Token Count By Apps"
+
+
+class MyConnectedApplicationViewer(Crosswalk):
+
     class Meta:
         proxy = True
         app_label = "bb2_tools"

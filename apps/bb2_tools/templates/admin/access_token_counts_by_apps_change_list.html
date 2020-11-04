@@ -1,0 +1,42 @@
+{% extends "admin/change_list.html" %}
+{% load humanize %}
+{% block content_title %}
+    <h1> Access Token Count By Apps </h1>
+{% endblock %}
+{% block result_list %}
+
+<div class="results">
+    <table>
+        
+    <thead>
+      <tr>
+        <th>
+          <div class="text">
+            <a href="#">Application</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">Developer User</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">Access Token (Connected Beneficiary) Count</a>
+          </div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in token_cnts_by_apps %}
+      <tr class="{% cycle 'row1' 'row2' %}">
+        <td> {{ row.application__name }} </td>
+        <td> {{ row.user__username }} </td>
+        <td> {{ row.tk_cnt | intcomma }} </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+{% block pagination %}{% endblock %}
