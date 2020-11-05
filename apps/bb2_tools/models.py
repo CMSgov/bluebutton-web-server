@@ -9,8 +9,8 @@ class DummyAdminObject(AccessToken):
     class Meta:
         proxy = True
         app_label = "bb2_tools"
-        verbose_name = "Splunk Dashboard"
-        verbose_name_plural = "Splunk Dashboards"
+        verbose_name = "Splunk dashboard"
+        verbose_name_plural = "Splunk dashboards"
 
 
 class BeneficiaryDashboard(Crosswalk):
@@ -37,8 +37,8 @@ class AccessTokenStats(AccessToken):
     class Meta:
         proxy = True
         app_label = "bb2_tools"
-        verbose_name = "Access Token (Connected Beneficiaries) Count By Apps"
-        verbose_name_plural = "Access Token (Connected Beneficiaries) Count By Apps"
+        verbose_name = "Access token (connected beneficiaries) count by apps"
+        verbose_name_plural = "Access token (connected beneficiaries) count by apps"
 
 
 class MyRefreshTokenViewer(RefreshToken):
@@ -53,8 +53,8 @@ class RefreshTokenStats(RefreshToken):
     class Meta:
         proxy = True
         app_label = "bb2_tools"
-        verbose_name = "Refresh Token Count By Apps"
-        verbose_name_plural = "Refresh Token Count By Apps"
+        verbose_name = "Refresh token count by apps"
+        verbose_name_plural = "Refresh token count by apps"
 
 
 class MyArchivedTokenViewer(ArchivedToken):
@@ -69,8 +69,8 @@ class ArchivedTokenStats(ArchivedToken):
     class Meta:
         proxy = True
         app_label = "bb2_tools"
-        verbose_name = "Archived Token Count By Apps"
-        verbose_name_plural = "Archived Token Count By Apps"
+        verbose_name = "Archived token count by apps"
+        verbose_name_plural = "Archived token count by apps"
 
 
 class MyConnectedApplicationViewer(Crosswalk):

@@ -1,42 +1,4 @@
-{% extends "admin/change_list.html" %}
-{% load humanize %}
+{% extends "admin/token_counts_by_apps_change_list.html" %}
 {% block content_title %}
     <h1> Archived Token Count By Apps </h1>
 {% endblock %}
-{% block result_list %}
-
-<div class="results">
-    <table>
-        
-    <thead>
-      <tr>
-        <th>
-          <div class="text">
-            <a href="#">Application</a>
-          </div>
-        </th>
-        <th>
-          <div class="text">
-            <a href="#">Developer User</a>
-          </div>
-        </th>
-        <th>
-          <div class="text">
-            <a href="#">Archived Token Count</a>
-          </div>
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in token_cnts_by_apps %}
-      <tr class="{% cycle 'row1' 'row2' %}">
-        <td> {{ row.application__name }} </td>
-        <td> {{ row.user__username }} </td>
-        <td> {{ row.tk_cnt | intcomma }} </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endblock %}
-{% block pagination %}{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "admin/change_list.html" %}
+{% load humanize %}
+{% block result_list %}
+
+<div class="results">
+    <table>
+        
+    <thead>
+      <tr>
+        <th>
+          <div class="text">
+            <a href="#">{{ page_desc.header_app_name }}</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">{{ page_desc.header_user_name }}</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">{{ page_desc.header_token_count }}</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">{{ page_desc.header_percentage }}</a>
+          </div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in token_cnts_by_apps %}
+      <tr class="{% cycle 'row1' 'row2' %}">
+        <td> {{ row.application__name }} </td>
+        <td> {{ row.user__username }} </td>
+        <td> {{ row.tk_cnt | intcomma }} </td>
+        <td>
+          {% if row.tk_cnt <= 0 and bene_total.tk_total <= 0 %}
+            <strong> {{ 0 }} </strong>
+          {% else %}
+            {% widthratio row.tk_cnt bene_total.tk_total 100 as pct %}
+            <strong> {{ pct }} </strong>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
+        <td> Total </td>
+        <td></td>
+        <td> {{ bene_total.tk_total | intcomma }} </td>
+        <td> 100% </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2> {{ page_desc.bar_chart_title }} </h2>
+  <style>
+  .bar-chart {
+    display: flex;
+    justify-content: space-around;
+    height: 160px;
+    padding-top: 60px;
+    overflow: hidden;
+  }
+  .bar-chart .bar {
+      flex: 100%;
+      align-self: flex-end;
+      margin-right: 2px;
+      position: relative;
+      background-color: #79aec8;
+  }
+  .bar-chart .bar:last-child {
+      margin: 0;
+  }
+  .bar-chart .bar:hover {
+      background-color: #417690;
+  }
+  .bar-chart .bar .bar-tooltip {
+      position: relative;
+      z-index: 999;
+  }
+  .bar-chart .bar .bar-tooltip {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-weight: bold;
+      opacity: 0;
+  }
+  .bar-chart .bar:hover .bar-tooltip {
+      opacity: 1;
+  }
+  
+  </style>
+  <div class="results">
+      <div class="bar-chart">
+      {% for x in bene_cnts_over_time %}
+          <div class="bar" style="height:{{x.pct}}%">
+              <div class="bar-tooltip">
+                  {{x.tk_cnt | default:0 | intcomma }}<br>
+                  {{x.period | date:"d/m/Y"}}
+              </div>
+          </div>
+      {% endfor %}
+      </div>
+  </div>  
+</div>
+{% endblock %}
+{% block pagination %}{% endblock %}

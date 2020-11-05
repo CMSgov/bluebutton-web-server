@@ -25,12 +25,12 @@ if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
 # splunk dashboards links:
 SPLUNK_DASHBOARDS = [
     {
-        "display_name" : "Blue Button API 2.0 Authorization Flow Dashboard",
-        "url" : "https://splunk.aws.healthcare.gov/en-US/app/cms_bbapi_landing_app/bb2_authorization_flow_dashboard",
+        "display_name": "Blue Button API 2.0 Authorization Flow Dashboard",
+        "url": "https://splunk.aws.healthcare.gov/en-US/app/cms_bbapi_landing_app/bb2_authorization_flow_dashboard",
     },
     {
-        "display_name" : "Blue Button API 2.0 Big Stats Dashboard",
-        "url" : "https://splunk.aws.healthcare.gov/en-US/app/cms_bbapi_landing_app/00_api_big_stats_dashboard__structured",
+        "display_name": "Blue Button API 2.0 Big Stats Dashboard",
+        "url": "https://splunk.aws.healthcare.gov/en-US/app/cms_bbapi_landing_app/00_api_big_stats_dashboard__structured",
     },
 ]
 
@@ -132,7 +132,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    
     'rest_framework',
     'rest_framework_csv',
     'django_filters',

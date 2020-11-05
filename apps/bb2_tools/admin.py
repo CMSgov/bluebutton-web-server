@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
-from django.db.models import Count
+from django.db.models import Count, Min, Max, DateTimeField
+from django.db.models.functions import Trunc
 from django.utils.html import format_html
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.models import get_application_model
@@ -19,15 +20,25 @@ from apps.bb2_tools.models import (
 )
 
 BB2_TOOLS_PATH = "/admin/bb2_tools/"
-LINK_REF_FMT = "<a  href='{0}{1}?q={2}'>{3}</a>"
+LINK_REF_FMT = "<a  href='{0}{1}?q={2}&user__id__exact={3}'>{4}</a>"
 TOKEN_VIEWERS = {MyAccessTokenViewer, MyRefreshTokenViewer, MyArchivedTokenViewer}
 
 
-def get_my_tokens_widget(u):
+def get_next_in_date_hierarchy(request, date_hierarchy):
+    if date_hierarchy + '__day' in request.GET:
+        return 'hour'
+    if date_hierarchy + '__month' in request.GET:
+        return 'day'
+    if date_hierarchy + '__year' in request.GET:
+        return 'week'
+    return 'month'
+
+
+def get_my_tokens_widget(u, id):
     widget_html = "<div><ul>"
     for v in TOKEN_VIEWERS:
         widget_html += "<li>"
-        widget_html += LINK_REF_FMT.format(BB2_TOOLS_PATH, v.__name__.lower(), u, str(v()._meta.verbose_name_plural))
+        widget_html += LINK_REF_FMT.format(BB2_TOOLS_PATH, v.__name__.lower(), u, id, str(v()._meta.verbose_name_plural))
         widget_html += "</li>"
 
     widget_html += "</ul></div>"
@@ -49,6 +60,56 @@ class ReadOnlyAdmin(admin.ModelAdmin):
         return False
 
 
+class TokenCountByAppsAdmin(ReadOnlyAdmin):
+    def get_model(self):
+        pass
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+
+        clazz_model = self.get_model()
+        bene_cnt_by_app = clazz_model.objects.all().values(
+            'application__name', 'user__username').annotate(
+                tk_cnt=Count('token')).order_by('tk_cnt')
+
+        bene_total = clazz_model.objects.all().aggregate(
+            tk_total=Count('token'))
+
+        response.context_data["token_cnts_by_apps"] = bene_cnt_by_app
+        response.context_data["bene_total"] = bene_total
+
+        # bene counts over time as bar chart
+        period = get_next_in_date_hierarchy(
+            request,
+            self.date_hierarchy,
+        )
+        response.context_data['period'] = period
+        bene_cnts_over_time = clazz_model.objects.all().annotate(
+            period=Trunc(
+                'created',
+                period,
+                output_field=DateTimeField(),
+            ),
+        ).values('period', 'application__name', 'user__username').annotate(tk_cnt=Count('token')).order_by('period')
+
+        bene_cnts_range = bene_cnts_over_time.aggregate(
+            low=Min('tk_cnt'),
+            high=Max('tk_cnt'),
+        )
+        high = bene_cnts_range.get('high', 0)
+        low = bene_cnts_range.get('low', 0)
+        response.context_data['bene_cnts_over_time'] = [{
+            'period': x['period'],
+            'tk_cnt': x['tk_cnt'] or 0,
+            'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0,
+        } for x in bene_cnts_over_time]
+
+        return response
+
+
 @admin.register(BeneficiaryDashboard)
 class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     list_display = ('get_user_username', 'get_identities', 'get_access_tokens', 'get_connected_applications', 'date_created')
@@ -68,7 +129,7 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
 
     def get_access_tokens(self, obj):
         # use relative URI in ref link to avoid re-login
-        return format_html(get_my_tokens_widget(obj.user.username))
+        return format_html(get_my_tokens_widget(obj.user.username, obj.user.id))
 
     get_access_tokens.admin_order_field = 'MyTokens'
     get_access_tokens.short_description = 'My Tokens'
@@ -127,7 +188,7 @@ class MyAccessTokenViewerAdmin(ReadOnlyAdmin):
 
     '''
     list_display = ('user', 'application', 'expires', 'scope', 'token', 'updated', 'created')
-    search_fields = ('user__username', 'application__name', 'token')
+    search_fields = ('user__username__exact', 'application__name', 'token')
     list_filter = ("user", "application")
     raw_id_fields = ("user", 'application')
 
@@ -146,7 +207,7 @@ class MyRefreshTokenViewerAdmin(ReadOnlyAdmin):
     revoked
     '''
     list_display = ('user', 'application', 'token', 'access_token_id', 'revoked', 'updated', 'created')
-    search_fields = ('user__username', 'application__name', 'token')
+    search_fields = ('user__username__exact', 'application__name', 'token')
     list_filter = ("user", "application")
     raw_id_fields = ("user", 'application')
 
@@ -213,75 +274,66 @@ class BlueButtonAPISplunkLauncherAdmin(ReadOnlyAdmin):
 
 
 @admin.register(AccessTokenStats)
-class ConnectedBeneficiaryCountByAppsAdmin(ReadOnlyAdmin):
+class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/access_token_counts_by_apps_change_list.html'
     date_hierarchy = 'created'
+
+    def get_model(self):
+        return AccessToken
 
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(
             request,
             extra_context=extra_context,
         )
-
-        # try:
-        #     qs = response.context_data['cl'].queryset
-        # except (AttributeError, KeyError):
-        #     return response
-
-        bene_cnt_by_app = AccessToken.objects.all().values(
-            'application__name', 'user__username').annotate(
-                tk_cnt=Count('token')).order_by('tk_cnt')
-
-        response.context_data["token_cnts_by_apps"] = bene_cnt_by_app
-
+        response.context_data["page_desc"] = {
+            "header_app_name": "Application",
+            "header_user_name": "User",
+            "header_token_count": "Token Count",
+            "header_percentage": "Percentage",
+        }
         return response
 
 
 @admin.register(RefreshTokenStats)
-class RefreshTokenCountByAppsAdmin(ReadOnlyAdmin):
+class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/refresh_token_counts_by_apps_change_list.html'
     date_hierarchy = 'created'
+
+    def get_model(self):
+        return RefreshToken
 
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(
             request,
             extra_context=extra_context,
         )
-
-        # try:
-        #     qs = response.context_data['cl'].queryset
-        # except (AttributeError, KeyError):
-        #     return response
-
-        refresh_token_cnt_by_app = RefreshToken.objects.all().values(
-            'application__name', 'user__username').annotate(
-                tk_cnt=Count('token')).order_by('tk_cnt')
-
-        response.context_data["token_cnts_by_apps"] = refresh_token_cnt_by_app
-
+        response.context_data["page_desc"] = {
+            "header_app_name": "Application",
+            "header_user_name": "User",
+            "header_token_count": "Token Count",
+            "header_percentage": "Percentage",
+        }
         return response
 
 
 @admin.register(ArchivedTokenStats)
-class ArchivedTokenStatsAdmin(ReadOnlyAdmin):
+class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/archived_token_counts_by_apps_change_list.html'
     date_hierarchy = 'created'
+
+    def get_model(self):
+        return ArchivedToken
 
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(
             request,
             extra_context=extra_context,
         )
-
-        # try:
-        #     response.context_data['cl'].queryset
-        # except (AttributeError, KeyError):
-        #     return response
-
-        archived_token_cnt_by_app = ArchivedToken.objects.all().values(
-            'application__name', 'user__username').annotate(
-                tk_cnt=Count('token')).order_by('tk_cnt')
-
-        response.context_data["token_cnts_by_apps"] = archived_token_cnt_by_app
-
+        response.context_data["page_desc"] = {
+            "header_app_name": "Application",
+            "header_user_name": "User",
+            "header_token_count": "Token Count",
+            "header_percentage": "Percentage",
+        }
         return response
