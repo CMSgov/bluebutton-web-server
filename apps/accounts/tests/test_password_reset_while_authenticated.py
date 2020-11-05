@@ -91,6 +91,27 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         self.assertContains(response, "Password must contain at least 2 upper case letter(s)")
         self.user = User.objects.get(username="fred")  # get user again so that you can see password not updated
         self.assertEquals(self.user.check_password("foobarfoobarfoobar"), True)
+        form_data = {'old_password': 'foobarfoobarfoobar',
+                     'new_password1': 'IchangedthePassword123',
+                     'new_password2': 'IchangedthePassword123'}
+        response = self.client.post(url, form_data, follow=True)
+        self.assertContains(response, "Password must contain at least 1 special character(s)")
+        self.user = User.objects.get(username="fred")  # get user again so that you can see password not updated
+        self.assertEquals(self.user.check_password("foobarfoobarfoobar"), True)
+        form_data = {'old_password': 'foobarfoobarfoobar',
+                     'new_password1': 'IchangedthePassword@123',
+                     'new_password2': 'IchangedthePassword@123'}
+        response = self.client.post(url, form_data, follow=True)
+        self.assertContains(response, "Your password was updated.")
+        self.user = User.objects.get(username="fred")  # get user again so that you can see password has been updated
+        self.assertEquals(self.user.check_password("IchangedthePassword@123"), True)
+        form_data = {'old_password': 'IchangedthePassword@123',
+                     'new_password1': 'ChangeP@ssw0rd2S00n',
+                     'new_password2': 'ChangeP@ssw0rd2S00n'}
+        response = self.client.post(url, form_data, follow=True)
+        self.assertContains(response, "You can not change password that does not satisfy minimum password age")
+        self.user = User.objects.get(username="fred")  # get user again so that you can see password not updated
+        self.assertEquals(self.user.check_password("IchangedthePassword@123"), True)
 
     @override_switch('login', active=True)
     def test_password_change_reuse_validation(self):
