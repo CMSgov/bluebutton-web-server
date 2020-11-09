@@ -99,10 +99,8 @@ class ThrottleReadRequestTest(BaseApiTest):
 
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={
-                        'resource_type': 'Patient',
-                        'resource_id': -20140000008325}),
+                    'bb_oauth_fhir_patient_read_or_update_or_delete',
+                    kwargs={'resource_id': -20140000008325}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -119,10 +117,8 @@ class ThrottleReadRequestTest(BaseApiTest):
 
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={
-                        'resource_type': 'Patient',
-                        'resource_id': -20140000008325}),
+                    'bb_oauth_fhir_patient_read_or_update_or_delete',
+                    kwargs={'resource_id': -20140000008325}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 429)
@@ -156,10 +152,8 @@ class ThrottleReadRequestTest(BaseApiTest):
 
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={
-                        'resource_type': 'Patient',
-                        'resource_id': -20140000008325}),
+                    'bb_oauth_fhir_patient_read_or_update_or_delete',
+                    kwargs={'resource_id': -20140000008325}),
                 Authorization="Bearer %s" % (second_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -553,8 +547,8 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(fhir_request, catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Patient', 'resource_id': '-20140000008325'}),
+                    'bb_oauth_fhir_patient_read_or_update_or_delete',
+                    kwargs={'resource_id': '-20140000008325'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 403)
@@ -595,8 +589,8 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Patient', 'resource_id': '-20140000008325'}),
+                    'bb_oauth_fhir_patient_read_or_update_or_delete',
+                    kwargs={'resource_id': '-20140000008325'}),
                 {'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
@@ -621,8 +615,8 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'ExplanationOfBenefit', 'resource_id': 'eob_id'}),
+                    'bb_oauth_fhir_eob_read_or_update_or_delete',
+                    kwargs={'resource_id': 'eob_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -646,8 +640,8 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                    'bb_oauth_fhir_coverage_read_or_update_or_delete',
+                    kwargs={'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -678,8 +672,8 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                    'bb_oauth_fhir_coverage_read_or_update_or_delete',
+                    kwargs={'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -710,8 +704,8 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                    'bb_oauth_fhir_coverage_read_or_update_or_delete',
+                    kwargs={'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -753,8 +747,8 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                    'bb_oauth_fhir_coverage_read_or_update_or_delete',
+                    kwargs={'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 403)
             errStr = str(response.json().get("detail"))
@@ -780,8 +774,8 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_read_or_update_or_delete',
-                    kwargs={'resource_type': 'Coverage', 'resource_id': 'coverage_id'}),
+                    'bb_oauth_fhir_coverage_read_or_update_or_delete',
+                    kwargs={'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 403)
             errStr = str(response.json().get("detail"))
