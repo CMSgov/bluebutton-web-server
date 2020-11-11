@@ -338,7 +338,7 @@ class UserPasswordDescriptor(models.Model):
     )
 
     class Meta:
-        verbose_name = _('Password Descritpor')
+        verbose_name = _('Password Descriptor')
         verbose_name_plural = _('Password Descriptors')
         unique_together = (("user", "iterations",),)
         ordering = ['-user', 'iterations', ]

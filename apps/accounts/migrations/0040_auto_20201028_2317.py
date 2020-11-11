@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': 'Password Descritpor',
+                'verbose_name': 'Password Descriptor',
                 'verbose_name_plural': 'Password Descriptors',
                 'ordering': ['-user', 'iterations'],
                 'unique_together': {('user', 'iterations')},

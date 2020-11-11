@@ -7,8 +7,6 @@ from .models import (
     UserProfile,
     ActivationKey,
     UserIdentificationLabel,
-    UserPasswordDescriptor,
-    PastPassword,
 )
 
 
@@ -87,19 +85,3 @@ class UserIdentificationLabelAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "weight")
     list_filter = ("name", "slug")
     ordering = ("weight", )
-
-
-@admin.register(UserPasswordDescriptor)
-class UserPasswordDescriptorAdmin(admin.ModelAdmin):
-
-    list_display = ('user', 'date', 'salt', 'iterations')
-    list_filter = ('date', )
-    ordering = ('date', )
-
-
-@admin.register(PastPassword)
-class PastPasswordAdmin(admin.ModelAdmin):
-
-    list_display = ('userpassword_desc', 'password', 'date_created', )
-    list_filter = ('date_created', )
-    ordering = ('date_created', )
