@@ -9,10 +9,10 @@ from oauth2_provider.models import get_application_model
 from apps.dot_ext.models import ArchivedToken
 from apps.bb2_tools.models import (
     BeneficiaryDashboard,
+    ApplicationStats,
     MyAccessTokenViewer,
     MyRefreshTokenViewer,
     MyArchivedTokenViewer,
-    MyConnectedApplicationViewer,
     AccessTokenStats,
     RefreshTokenStats,
     ArchivedTokenStats,
@@ -116,6 +116,14 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     search_fields = ('user__username', '_fhir_id', '_user_id_hash', '_user_mbi_hash')
     readonly_fields = ('date_created',)
     raw_id_fields = ("user", )
+    # actions = ['pull_hicn_mbi']
+    # def pull_hicn_mbi(self, request, queryset):
+    #     pass
+    # self.message_user(request, ngettext(
+    #     'Pulled hicn and mbi for the selected %d beneficiaries.',
+    #     'Pulled hicn and mbi for the selected %d beneficiaries.',
+    #     hicn_mbi_pulled,
+    # ) % hicn_mbi_pulled, messages.SUCCESS)
 
     def get_queryset(self, request):
         qs = super(BeneficiaryDashboardAdmin, self).get_queryset(request)
@@ -174,19 +182,6 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
 
 @admin.register(MyAccessTokenViewer)
 class MyAccessTokenViewerAdmin(ReadOnlyAdmin):
-    '''
-    oauth2_provider_accesstoken:
-    id
-    token
-    expires
-    scope
-    application_id
-    user_id
-    created
-    updated
-    source_refresh_token_id
-
-    '''
     list_display = ('user', 'application', 'expires', 'scope', 'token', 'updated', 'created')
     search_fields = ('user__username__exact', 'application__name', 'token')
     list_filter = ("user", "application")
@@ -195,17 +190,6 @@ class MyAccessTokenViewerAdmin(ReadOnlyAdmin):
 
 @admin.register(MyRefreshTokenViewer)
 class MyRefreshTokenViewerAdmin(ReadOnlyAdmin):
-    '''
-    oauth2_provider_refreshtoken:
-    id
-    token
-    access_token_id
-    application_id
-    user_id
-    created
-    updated
-    revoked
-    '''
     list_display = ('user', 'application', 'token', 'access_token_id', 'revoked', 'updated', 'created')
     search_fields = ('user__username__exact', 'application__name', 'token')
     list_filter = ("user", "application")
@@ -214,50 +198,10 @@ class MyRefreshTokenViewerAdmin(ReadOnlyAdmin):
 
 @admin.register(MyArchivedTokenViewer)
 class MyArchivedTokenViewerAdmin(ReadOnlyAdmin):
-    '''
-    dot_ext_archivedtoken:
-    id
-    token
-    expires
-    scope
-    created
-    updated
-    archived_at
-    application_id
-    user_id
-    '''
     list_display = ('user', 'application', 'expires', 'scope', 'token', 'archived_at', 'updated', 'created')
     search_fields = ('user__username', 'application__name', 'token')
     list_filter = ("user", "application")
     raw_id_fields = ("user", 'application')
-
-
-@admin.register(MyConnectedApplicationViewer)
-class MyConnectedApplicationViewerAdmin(ReadOnlyAdmin):
-    '''
-    oauth2_provider_accesstoken:
-    application_id
-    user_id
-    ...
-    dot_ext_archivedtoken:
-    application_id
-    user_id
-    ...
-    oauth2_provider_accesstoken:
-    application_id
-    user_id
-    '''
-    list_display = ('user', )
-    search_fields = ('user__username', 'application__name')
-    list_filter = ("user",)
-    raw_id_fields = ("user",)
-
-    def get_queryset(self, request):
-        qs_tokens = MyAccessTokenViewer.objects.filter(user=request.user)
-        qs_refreshtokens = MyRefreshTokenViewer.objects.filter(user=request.user)
-        qs_archivedtokens = MyArchivedTokenViewer.objects.filter(user=request.user)
-        # return qs.filter(author=request.user)
-        return (qs_tokens | qs_refreshtokens | qs_archivedtokens)
 
 
 @admin.register(DummyAdminObject)
@@ -270,6 +214,75 @@ class BlueButtonAPISplunkLauncherAdmin(ReadOnlyAdmin):
             extra_context=extra_context,
         )
         response.context_data["splunk_dashboards"] = settings.SPLUNK_DASHBOARDS
+        return response
+
+
+@admin.register(ApplicationStats)
+class ApplicationStatsAdmin(ReadOnlyAdmin):
+    list_display = ("name", "user", "authorization_grant_type", "client_id",
+                    "require_demographic_scopes", "scopes",
+                    "created", "updated", "skip_authorization")
+    # list_filter = ("name", "user", "client_type", "authorization_grant_type",
+    #                "require_demographic_scopes", "skip_authorization")
+    list_filter = ("client_type", "authorization_grant_type",
+                   "require_demographic_scopes", "skip_authorization")
+    radio_fields = {
+        "client_type": admin.HORIZONTAL,
+        "authorization_grant_type": admin.VERTICAL,
+    }
+    # raw_id_fields = ("user", )
+    change_list_template = 'admin/apps_stats_change_list.html'
+    date_hierarchy = 'created'
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+        # bar chart: apps sign up by date
+        # bar chart: apps opt in demo info vs apps opt out of demo info
+        clazz_model = ApplicationStats
+        apps_total = clazz_model.objects.all().annotate(apps_total=Count('name'))
+
+        response.context_data["apps_total"] = apps_total
+
+        # apps counts over signed up time as bar chart
+        period = get_next_in_date_hierarchy(
+            request,
+            self.date_hierarchy,
+        )
+
+        response.context_data['period'] = period
+
+        apps_total_by_signup_date = clazz_model.objects.all().annotate(
+            period=Trunc(
+                'created',
+                period,
+                output_field=DateTimeField(),
+            ),
+        ).values('period').annotate(apps_sub_total=Count('name')).order_by('period')
+
+        apps_sub_totals_range = apps_total_by_signup_date.aggregate(
+            low=Min('apps_sub_total'),
+            high=Max('apps_sub_total'),
+        )
+
+        high = apps_sub_totals_range.get('high', 0)
+        low = apps_sub_totals_range.get('low', 0)
+
+        response.context_data['apps_total_by_signup_date'] = [{
+            'period': x['period'],
+            'apps_sub_total': x['apps_sub_total'] or 0,
+            'pct': (x['apps_sub_total'] or 0) / high * 100 if high > low else 0,
+        } for x in apps_total_by_signup_date]
+
+        response.context_data["page_desc"] = {
+            "header_period": "Period",
+            "header_apps_count": "Apps Count",
+            "header_percentage": "Percentage",
+            "bar_chart_title": "Applications Count by Signup Date",
+        }
+
         return response
 
 
@@ -291,6 +304,7 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_user_name": "User",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
+            "bar_chart_title": "Access Token Count by Created Date",
         }
         return response
 

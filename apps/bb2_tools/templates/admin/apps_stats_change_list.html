@@ -46,10 +46,10 @@
   </style>
   <div class="results">
       <div class="bar-chart">
-      {% for x in bene_cnts_over_time %}
+      {% for x in apps_total_by_signup_date %}
           <div class="bar" style="height:{{x.pct}}%">
               <div class="bar-tooltip">
-                  {{x.tk_cnt | default:0 | intcomma }}<br>
+                  {{x.apps_sub_total | default:0 | intcomma }}<br>
                   {{x.period | date:"d/m/Y"}}
               </div>
           </div>
@@ -63,17 +63,12 @@
       <tr>
         <th>
           <div class="text">
-            <a href="#">{{ page_desc.header_app_name }}</a>
+            <a href="#">{{ page_desc.header_period }}</a>
           </div>
         </th>
         <th>
           <div class="text">
-            <a href="#">{{ page_desc.header_user_name }}</a>
-          </div>
-        </th>
-        <th>
-          <div class="text">
-            <a href="#">{{ page_desc.header_token_count }}</a>
+            <a href="#">{{ page_desc.header_apps_count }}</a>
           </div>
         </th>
         <th>
@@ -84,16 +79,15 @@
       </tr>
     </thead>
     <tbody>
-      {% for row in token_cnts_by_apps %}
+      {% for row in apps_total_by_signup_date %}
       <tr class="{% cycle 'row1' 'row2' %}">
-        <td> {{ row.application__name }} </td>
-        <td> {{ row.user__username }} </td>
-        <td> {{ row.tk_cnt | intcomma }} </td>
+        <td> {{ row.period }} </td>
+        <td> {{ row.apps_sub_total }} </td>
         <td>
-          {% if row.tk_cnt <= 0 and bene_total.tk_total <= 0 %}
+          {% if row.apps_sub_total <= 0 and apps_total.apps_total <= 0 %}
             <strong> {{ 0 }} </strong>
           {% else %}
-            {% widthratio row.tk_cnt bene_total.tk_total 100 as pct %}
+            {% widthratio row.apps_sub_total apps_total.apps_total 100 as pct %}
             <strong> {{ pct }} </strong>
           {% endif %}
         </td>
@@ -101,8 +95,7 @@
       {% endfor %}
       <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
         <td> Total </td>
-        <td></td>
-        <td> {{ bene_total.tk_total | intcomma }} </td>
+        <td> {{ apps_total.apps_total | intcomma }} </td>
         <td> 100% </td>
       </tr>
     </tbody>

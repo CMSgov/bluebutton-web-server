@@ -1,7 +1,6 @@
 from apps.fhir.bluebutton.models import Crosswalk
-from oauth2_provider.models import get_access_token_model
 from oauth2_provider.models import AccessToken, RefreshToken
-from apps.dot_ext.models import ArchivedToken
+from apps.dot_ext.models import Application, ArchivedToken
 
 
 class DummyAdminObject(AccessToken):
@@ -18,12 +17,6 @@ class BeneficiaryDashboard(Crosswalk):
     class Meta:
         proxy = True
         app_label = "bb2_tools"
-
-    @property
-    def access_tokens(self):
-        AccessToken = get_access_token_model()
-        tokens = AccessToken.objects.filter(user=self.user).all()
-        return tokens
 
 
 class MyAccessTokenViewer(AccessToken):
@@ -73,8 +66,10 @@ class ArchivedTokenStats(ArchivedToken):
         verbose_name_plural = "Archived token count by apps"
 
 
-class MyConnectedApplicationViewer(Crosswalk):
+class ApplicationStats(Application):
 
     class Meta:
         proxy = True
         app_label = "bb2_tools"
+        verbose_name = "Application stats"
+        verbose_name_plural = "Application stats"
