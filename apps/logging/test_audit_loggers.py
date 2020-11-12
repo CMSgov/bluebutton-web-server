@@ -100,9 +100,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         with HTTMock(catchall):
             self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                reverse('bb_oauth_fhir_patient_search'),
                 {'count': 5, 'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
             # check fhir log content

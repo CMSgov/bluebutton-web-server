@@ -139,9 +139,7 @@ class ThrottleReadRequestTest(BaseApiTest):
             # Assert that the search endpoint is also ratelimited
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={
-                        'resource_type': 'Patient'}),
+                    'bb_oauth_fhir_patient_search'),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 429)
@@ -224,8 +222,7 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                    'bb_oauth_fhir_patient_search'),
                 {'count': 5, 'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
@@ -237,9 +234,7 @@ class BackendConnectionTest(BaseApiTest):
 
     def test_search_request_unauthorized(self):
         response = self.client.get(
-            reverse(
-                'bb_oauth_fhir_search',
-                kwargs={'resource_type': 'Patient'}),
+            reverse('bb_oauth_fhir_patient_search'),
             Authorization="Bearer bogus")
 
         self.assertEqual(response.status_code, 401)
@@ -282,9 +277,7 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                reverse('bb_oauth_fhir_patient_search'),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 404)
@@ -316,9 +309,7 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                reverse('bb_oauth_fhir_eob_search'),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -361,9 +352,7 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                reverse('bb_oauth_fhir_patient_search'),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 502)
@@ -420,9 +409,7 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(fhir_request, catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'Patient'}),
+                reverse('bb_oauth_fhir_patient_search'),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 502)
@@ -449,9 +436,7 @@ class BackendConnectionTest(BaseApiTest):
         # Test _lastUpdated with valid parameter starting with "lt"
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                reverse('bb_oauth_fhir_eob_search'),
                 {'_lastUpdated': 'lt2019-11-22T14:00:00-05:00'},
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
@@ -459,9 +444,7 @@ class BackendConnectionTest(BaseApiTest):
         # Test _lastUpdated with invalid parameter starting with "zz"
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                reverse('bb_oauth_fhir_eob_search'),
                 {'_lastUpdated': 'zz2020-11-22T14:00:00-05:00'},
                 Authorization="Bearer %s" % (first_access_token))
 
@@ -473,8 +456,7 @@ class BackendConnectionTest(BaseApiTest):
         with HTTMock(catchall):
             response = self.client.get(
                 reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                    'bb_oauth_fhir_eob_search'),
                 {'type': 'pde'},
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
@@ -482,9 +464,7 @@ class BackendConnectionTest(BaseApiTest):
         # Test type= with multiple (all valid values)
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                reverse('bb_oauth_fhir_eob_search'),
                 {'type': 'carrier,'
                          'pde,'
                          'dme,'
@@ -507,9 +487,7 @@ class BackendConnectionTest(BaseApiTest):
         # Test type= with an invalid type
         with HTTMock(catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_search',
-                    kwargs={'resource_type': 'ExplanationOfBenefit'}),
+                reverse('bb_oauth_fhir_eob_search'),
                 {'type': 'carrier,'
                          'INVALID-TYPE,'
                          'dme,'},
