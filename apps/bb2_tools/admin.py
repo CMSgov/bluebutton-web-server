@@ -71,15 +71,14 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
         )
 
         clazz_model = self.get_model()
-        bene_cnt_by_app = clazz_model.objects.all().values(
-            'application__name', 'user__username').annotate(
+        token_cnts_by_app = clazz_model.objects.all().values(
+            'application__name').annotate(
                 tk_cnt=Count('token')).order_by('tk_cnt')
 
-        bene_total = clazz_model.objects.all().aggregate(
-            tk_total=Count('token'))
+        token_total = clazz_model.objects.all().count()
 
-        response.context_data["token_cnts_by_apps"] = bene_cnt_by_app
-        response.context_data["bene_total"] = bene_total
+        response.context_data["token_cnts_by_apps"] = token_cnts_by_app
+        response.context_data["token_total"] = {"tk_total": token_total}
 
         # bene counts over time as bar chart
         period = get_next_in_date_hierarchy(
@@ -87,25 +86,25 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
             self.date_hierarchy,
         )
         response.context_data['period'] = period
-        bene_cnts_over_time = clazz_model.objects.all().annotate(
+        token_cnts_over_time = clazz_model.objects.all().annotate(
             period=Trunc(
                 'created',
                 period,
                 output_field=DateTimeField(),
             ),
-        ).values('period', 'application__name', 'user__username').annotate(tk_cnt=Count('token')).order_by('period')
+        ).values('period', 'application__name').annotate(tk_cnt=Count('token')).order_by('period')
 
-        bene_cnts_range = bene_cnts_over_time.aggregate(
+        token_cnts_range = token_cnts_over_time.aggregate(
             low=Min('tk_cnt'),
             high=Max('tk_cnt'),
         )
-        high = bene_cnts_range.get('high', 0)
-        low = bene_cnts_range.get('low', 0)
-        response.context_data['bene_cnts_over_time'] = [{
+        high = token_cnts_range.get('high', 0)
+        low = token_cnts_range.get('low', 0)
+        response.context_data['token_cnts_over_time'] = [{
             'period': x['period'],
             'tk_cnt': x['tk_cnt'] or 0,
             'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0,
-        } for x in bene_cnts_over_time]
+        } for x in token_cnts_over_time]
 
         return response
 
@@ -219,6 +218,7 @@ class BlueButtonAPISplunkLauncherAdmin(ReadOnlyAdmin):
 
 @admin.register(ApplicationStats)
 class ApplicationStatsAdmin(ReadOnlyAdmin):
+    change_list_template = 'admin/apps_stats_change_list.html'
     list_display = ("name", "user", "authorization_grant_type", "client_id",
                     "require_demographic_scopes", "scopes",
                     "created", "updated", "skip_authorization")
@@ -231,7 +231,6 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
         "authorization_grant_type": admin.VERTICAL,
     }
     # raw_id_fields = ("user", )
-    change_list_template = 'admin/apps_stats_change_list.html'
     date_hierarchy = 'created'
 
     def changelist_view(self, request, extra_context=None):
@@ -242,9 +241,9 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
         # bar chart: apps sign up by date
         # bar chart: apps opt in demo info vs apps opt out of demo info
         clazz_model = ApplicationStats
-        apps_total = clazz_model.objects.all().annotate(apps_total=Count('name'))
+        apps_total = clazz_model.objects.all().count()
 
-        response.context_data["apps_total"] = apps_total
+        response.context_data["apps_total"] = {"apps_total": apps_total}
 
         # apps counts over signed up time as bar chart
         period = get_next_in_date_hierarchy(
@@ -301,7 +300,6 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
         )
         response.context_data["page_desc"] = {
             "header_app_name": "Application",
-            "header_user_name": "User",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
             "bar_chart_title": "Access Token Count by Created Date",
@@ -324,9 +322,9 @@ class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
         )
         response.context_data["page_desc"] = {
             "header_app_name": "Application",
-            "header_user_name": "User",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
+            "bar_chart_title": "Refresh Token Count by Created Date",
         }
         return response
 
@@ -346,8 +344,8 @@ class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
         )
         response.context_data["page_desc"] = {
             "header_app_name": "Application",
-            "header_user_name": "User",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
+            "bar_chart_title": "Archived Token Count by Created Date",
         }
         return response

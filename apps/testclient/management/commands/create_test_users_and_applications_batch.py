@@ -42,6 +42,7 @@ def create_dev_users_apps_and_bene_crosswalks(group):
     #
 
     # effectively turn off logging
+    mymedicare_cb_logger.setLevel(logging.CRITICAL)
     outreach_logger.setLevel(logging.CRITICAL)
 
     bene_pk_list = []
