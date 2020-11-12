@@ -75,6 +75,10 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         self.assertEqual(response.status_code, 200)
 
+        # Test 2nd access token request is unauthorized
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+        self.assertEqual(response.status_code, 401)
+
     def test_post_with_invalid_non_standard_scheme_granttype_authcode_clienttype_public(self):
         redirect_uri = 'com.custom.bluebutton://example.it'
         bad_redirect_uri = 'com.custom.bad://example.it'
