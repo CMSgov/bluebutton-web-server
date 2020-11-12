@@ -39,7 +39,73 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.'
                 'NumericPasswordValidator',
     },
+    {
+        'NAME': 'apps.accounts.validators.'
+                'PasswordReuseAndMinAgeValidator',
+        'OPTIONS': {
+                # password minimum age in seconds (5 min)
+                'password_min_age': 60 * 5,
+                # password reuse interval in seconds (120 day)
+                'password_reuse_interval': 60 * 60 * 24 * 120,
+                # password expire in seconds (30 day)
+                'password_expire': 60 * 60 * 30,
+        }
+    },
+    {
+        'NAME': 'apps.accounts.validators.'
+                'PasswordComplexityValidator',
+        'OPTIONS': {
+                'min_length_digit': 1,
+                'min_length_alpha': 1,
+                'min_length_special': 1,
+                'min_length_lower': 1,
+                'min_length_upper': 1,
+                'special_characters': "[~!{}@#$%^&*_+\":;()'[]"
+        }
+    }
 ]
+
+# password rules used by validator: PasswordComplexityValidator,
+# this is part of the validation logic, exercise caution when make changes
+PASSWORD_RULES = [
+    {
+        "name": "min_length_digit",
+        "regex": "[0-9]",
+        "msg": "Password must contain at least {} digit(s).",
+        "help": "{} digit(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_alpha",
+        "regex": "[a-zA-Z]",
+        "msg": "Password must contain at least {} letter(s).",
+        "help": "{} letter(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_special",
+        "regex": "[~!{}@#$%^&*_+\":;()'[]",
+        "msg": "Password must contain at least {} special character(s).",
+        "help": "{} special char(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_lower",
+        "regex": "[a-z]",
+        "msg": "Password must contain at least {} lower case letter(s)",
+        "help": "{} lower case char(s)",
+        "min_len": 1,
+    },
+    {
+        "name": "min_length_upper",
+        "regex": "[A-Z]",
+        "msg": "Password must contain at least {} upper case letter(s).",
+        "help": "{} upper case char(s)",
+        "min_len": 1,
+    },
+]
+
+PASSWORD_HASH_ITERATIONS = int(env("DJANGO_PASSWORD_HASH_ITERATIONS", "200000"))
 
 ALLOWED_HOSTS = env('DJANGO_ALLOWED_HOSTS', ['*', socket.gethostname()])
 

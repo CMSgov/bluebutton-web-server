@@ -1,20 +1,23 @@
+import logging
+import binascii
 import pytz
 import random
 import uuid
 from datetime import datetime, timedelta
-from django.contrib.admin.models import LogEntry
-from django.utils import timezone
-from django.db import models
+
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
-from .emails import send_activation_key_via_email
-import logging
-import binascii
-from django.utils.translation import ugettext
+from django.contrib.admin.models import LogEntry
+from django.contrib.auth.hashers import PBKDF2PasswordHasher
+from django.db import models
+from django.db.models import CASCADE
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.db.models import CASCADE
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext
 
+from .emails import send_activation_key_via_email
 
 ADDITION = 1
 CHANGE = 2
@@ -308,3 +311,87 @@ def get_user_id_salt(salt=settings.USER_ID_SALT):
     :return: bytes
     """
     return binascii.unhexlify(salt)
+
+
+class UserPasswordDescriptor(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        editable=False
+    )
+    date = models.DateTimeField(
+        _('Descriptor Created On'),
+        auto_now_add=True,
+        editable=False
+    )
+    salt = models.CharField(
+        verbose_name=_('Salt'),
+        max_length=120,
+        editable=False,
+    )
+    iterations = models.IntegerField(
+        _('Iterations'),
+        default=None,
+        editable=False,
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        verbose_name = _('Password Descriptor')
+        verbose_name_plural = _('Password Descriptors')
+        unique_together = (("user", "iterations",),)
+        ordering = ['-user', 'iterations', ]
+
+    def create_hash(self, password):
+        # use default password hasher, if not sufficient, can pull in stronger version
+        return PasswordHasher().encode(password, self.salt, self.iterations)
+
+    def _gen_salt(self):
+        self.salt = get_random_string(length=self._meta.get_field('salt').max_length)
+
+    def save(self, *args, **kwargs):
+        if not self.salt:
+            self._gen_salt()
+        if not self.iterations:
+            self.iterations = PasswordHasher.iterations
+        return super(UserPasswordDescriptor, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return '{} [{}]'.format(self.user, self.iterations)
+
+
+class PastPassword(models.Model):
+    userpassword_desc = models.ForeignKey(
+        UserPasswordDescriptor,
+        on_delete=models.CASCADE,
+        editable=False
+    )
+    password = models.CharField(
+        _('Password Hash'),
+        max_length=255,
+        editable=False
+    )
+    date_created = models.DateTimeField(
+        _('Date Created'),
+        auto_now_add=True,
+        editable=False
+    )
+
+    class Meta:
+        verbose_name = 'Past Password'
+        verbose_name_plural = 'Past Passwords'
+        unique_together = (("userpassword_desc", "password", "date_created"),)
+        ordering = ['-userpassword_desc', 'password', ]
+
+    def __str__(self):
+        return "{} [{}]".format(self.userpassword_desc, self.date_created)
+
+
+class PasswordHasher(PBKDF2PasswordHasher):
+    """
+    We need to keep the old password so that when you update django
+    (or configuration change) hashes have not changed.
+    Therefore, special hasher.
+    """
+    iterations = settings.PASSWORD_HASH_ITERATIONS

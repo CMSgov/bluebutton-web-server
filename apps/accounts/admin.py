@@ -6,7 +6,8 @@ from .models import (
     ValidPasswordResetKey,
     UserProfile,
     ActivationKey,
-    UserIdentificationLabel)
+    UserIdentificationLabel,
+)
 
 
 admin.site.register(ActivationKey)
@@ -53,6 +54,7 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 
+@admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
 
     def get_user_email(self, obj):
@@ -76,15 +78,10 @@ class UserProfileAdmin(admin.ModelAdmin):
     raw_id_fields = ("user", )
 
 
-admin.site.register(UserProfile, UserProfileAdmin)
-
-
+@admin.register(UserIdentificationLabel)
 class UserIdentificationLabelAdmin(admin.ModelAdmin):
     model = UserIdentificationLabel
     filter_horizontal = ('users',)
     list_display = ("name", "slug", "weight")
     list_filter = ("name", "slug")
     ordering = ("weight", )
-
-
-admin.site.register(UserIdentificationLabel, UserIdentificationLabelAdmin)

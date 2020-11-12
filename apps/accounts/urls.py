@@ -27,6 +27,12 @@ urlpatterns = [
                                success_url='settings')),
         name='password_change'),
 
+    url(r'^expired-password-change$',
+        waffle_switch('login')(PasswordChangeView.as_view(
+                               template_name='registration/passwd_change_form.html',
+                               success_url='settings')),
+        name='expired_password_change'),
+
     url(r'^forgot-password$',
         waffle_switch('login')(PasswordResetView.as_view(
                                template_name='registration/password_forgot_form.html',
