@@ -279,7 +279,8 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
             "header_period": "Period",
             "header_apps_count": "Apps Count",
             "header_percentage": "Percentage",
-            "bar_chart_title": "Applications Count by Signup Date",
+            "bar_chart_title": "Applications Count by Signup Date: Chart",
+            "table_view_title": "Applications Count by Signup Date: Table",
         }
 
         return response
@@ -287,7 +288,7 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
 
 @admin.register(AccessTokenStats)
 class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
-    change_list_template = 'admin/access_token_counts_by_apps_change_list.html'
+    change_list_template = 'admin/token_counts_by_apps_change_list.html'
     date_hierarchy = 'created'
 
     def get_model(self):
@@ -302,14 +303,15 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_app_name": "Application",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
-            "bar_chart_title": "Access Token Count by Created Date",
+            "bar_chart_title": "Access Token Count by Created Date: Chart",
+            "table_view_title": "Access Token Count by Created Date: Table",
         }
         return response
 
 
 @admin.register(RefreshTokenStats)
 class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
-    change_list_template = 'admin/refresh_token_counts_by_apps_change_list.html'
+    change_list_template = 'admin/token_counts_by_apps_change_list.html'
     date_hierarchy = 'created'
 
     def get_model(self):
@@ -324,14 +326,15 @@ class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_app_name": "Application",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
-            "bar_chart_title": "Refresh Token Count by Created Date",
+            "bar_chart_title": "Refresh Token Count by Created Date: Chart",
+            "table_view_title": "Refresh Token Count by Created Date: Table",
         }
         return response
 
 
 @admin.register(ArchivedTokenStats)
 class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
-    change_list_template = 'admin/archived_token_counts_by_apps_change_list.html'
+    change_list_template = 'admin/token_counts_by_apps_change_list.html'
     date_hierarchy = 'created'
 
     def get_model(self):
@@ -346,6 +349,7 @@ class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
             "header_app_name": "Application",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
-            "bar_chart_title": "Archived Token Count by Created Date",
+            "bar_chart_title": "Archived Token Count by Created Date: Chart",
+            "table_view_title": "Archived Token Count by Created Date: Table",
         }
         return response
