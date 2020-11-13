@@ -90,17 +90,18 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                     synthetic_bene_cnt += 1
                     print(".", end="", flush=True)
                     time.sleep(.05)
-                    if count > 1000:
+                    if count > 8000:
                         break
         bene_rif.close()
         file_cnt += 1
         print("RIF file processed = {}, synthetic bene generated = {}".format(file_cnt, synthetic_bene_cnt))
-        if file_cnt >= 1:
-            break
+        # if file_cnt >= 1:
+        #     break
 
     # create 100 dev users
     # generate access tokens + refresh tokens + archived tokens for random picked benes for each app
-    for i in range(100):
+    app_index = 0
+    for i in range(50):
         dev_u_fn = "DevUserFN{}".format(i)
         dev_u_ln = "DevUserLN{}".format(i)
         u = User.objects.create_user(username="{}.{}".format(dev_u_fn, dev_u_ln),
@@ -111,6 +112,7 @@ def create_dev_users_apps_and_bene_crosswalks(group):
         UserProfile.objects.create(user=u,
                                    user_type="DEV",
                                    create_applications=True,
+                                   organization_name=u.username + "ACME Inc.",
                                    password_reset_question_1='1',
                                    password_reset_answer_1='blue',
                                    password_reset_question_2='2',
@@ -122,13 +124,17 @@ def create_dev_users_apps_and_bene_crosswalks(group):
         app_cnt = randint(1, 5)
         print(">>>>generating apps for user={}".format(u.username))
         for i in range(app_cnt):
+            app_index += 1
             app_name = "app{}_{}".format(i, u)
             redirect_uri = "{}/testclient_{}/callback".format(settings.HOSTNAME_URL, app_name)
             if not(redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
                 redirect_uri = "https://" + redirect_uri
+            # 2% inactive, 5% opt out demo scopes
             a = Application.objects.create(name=app_name,
                                            redirect_uris=redirect_uri,
                                            user=u,
+                                           active=False if app_index % 50 == 0 else True,
+                                           require_demographic_scopes=False if app_index % 20 == 0 else True,
                                            client_type="confidential",
                                            authorization_grant_type="authorization-code")
             date_created = datetime.utcnow() - timedelta(days=randrange(700))

@@ -80,31 +80,31 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
         response.context_data["token_cnts_by_apps"] = token_cnts_by_app
         response.context_data["token_total"] = {"tk_total": token_total}
 
-        # bene counts over time as bar chart
-        period = get_next_in_date_hierarchy(
-            request,
-            self.date_hierarchy,
-        )
-        response.context_data['period'] = period
-        token_cnts_over_time = clazz_model.objects.all().annotate(
-            period=Trunc(
-                'created',
-                period,
-                output_field=DateTimeField(),
-            ),
-        ).values('period', 'application__name').annotate(tk_cnt=Count('token')).order_by('period')
+        # token counts by apps as bar chart
+        # period = get_next_in_date_hierarchy(
+        #     request,
+        #     self.date_hierarchy,
+        # )
+        # response.context_data['period'] = period
+        # token_cnts_over_time = clazz_model.objects.all().annotate(
+        #     period=Trunc(
+        #         'created',
+        #         period,
+        #         output_field=DateTimeField(),
+        #     ),
+        # ).values('period', 'application__name').annotate(tk_cnt=Count('token')).order_by('period')
 
-        token_cnts_range = token_cnts_over_time.aggregate(
+        token_cnts_range = token_cnts_by_app.aggregate(
             low=Min('tk_cnt'),
             high=Max('tk_cnt'),
         )
         high = token_cnts_range.get('high', 0)
         low = token_cnts_range.get('low', 0)
-        response.context_data['token_cnts_over_time'] = [{
-            'period': x['period'],
+        response.context_data['token_cnts_by_app_chart'] = [{
+            'application__name': x['application__name'],
             'tk_cnt': x['tk_cnt'] or 0,
             'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0,
-        } for x in token_cnts_over_time]
+        } for x in token_cnts_by_app]
 
         return response
 
@@ -224,8 +224,8 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
                     "created", "updated", "skip_authorization")
     # list_filter = ("name", "user", "client_type", "authorization_grant_type",
     #                "require_demographic_scopes", "skip_authorization")
-    list_filter = ("client_type", "authorization_grant_type",
-                   "require_demographic_scopes", "skip_authorization")
+    # list_filter = ("client_type", "authorization_grant_type",
+    #                "require_demographic_scopes", "skip_authorization")
     radio_fields = {
         "client_type": admin.HORIZONTAL,
         "authorization_grant_type": admin.VERTICAL,
@@ -289,7 +289,7 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
 @admin.register(AccessTokenStats)
 class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/token_counts_by_apps_change_list.html'
-    date_hierarchy = 'created'
+    # date_hierarchy = 'created'
 
     def get_model(self):
         return AccessToken
@@ -303,8 +303,8 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_app_name": "Application",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
-            "bar_chart_title": "Access Token Count by Created Date: Chart",
-            "table_view_title": "Access Token Count by Created Date: Table",
+            "bar_chart_title": "Access Token Count by Apps: Chart",
+            "table_view_title": "Access Token Count by Apps: Table",
         }
         return response
 
@@ -312,7 +312,7 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
 @admin.register(RefreshTokenStats)
 class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/token_counts_by_apps_change_list.html'
-    date_hierarchy = 'created'
+    # date_hierarchy = 'created'
 
     def get_model(self):
         return RefreshToken
@@ -326,8 +326,8 @@ class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_app_name": "Application",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
-            "bar_chart_title": "Refresh Token Count by Created Date: Chart",
-            "table_view_title": "Refresh Token Count by Created Date: Table",
+            "bar_chart_title": "Refresh Token Count by Apps: Chart",
+            "table_view_title": "Refresh Token Count by Apps: Table",
         }
         return response
 
@@ -335,7 +335,7 @@ class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
 @admin.register(ArchivedTokenStats)
 class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
     change_list_template = 'admin/token_counts_by_apps_change_list.html'
-    date_hierarchy = 'created'
+    # date_hierarchy = 'created'
 
     def get_model(self):
         return ArchivedToken
@@ -349,7 +349,7 @@ class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
             "header_app_name": "Application",
             "header_token_count": "Token Count",
             "header_percentage": "Percentage",
-            "bar_chart_title": "Archived Token Count by Created Date: Chart",
-            "table_view_title": "Archived Token Count by Created Date: Table",
+            "bar_chart_title": "Archived Token Count by Apps: Chart",
+            "table_view_title": "Archived Token Count by Apps: Table",
         }
         return response

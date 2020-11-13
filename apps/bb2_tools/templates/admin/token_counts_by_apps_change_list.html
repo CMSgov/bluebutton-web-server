@@ -45,11 +45,11 @@
   </style>
   <div class="results">
       <div class="bar-chart">
-      {% for x in token_cnts_over_time %}
+      {% for x in token_cnts_by_app_chart %}
           <div class="bar" style="height:{{x.pct}}%">
               <div class="bar-tooltip">
                   {{x.tk_cnt | default:0 | intcomma }}<br>
-                  {{x.period | date:"d/m/Y"}}
+                  {{ x.application__name }}
               </div>
           </div>
       {% endfor %}
