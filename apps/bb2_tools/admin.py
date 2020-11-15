@@ -1,3 +1,4 @@
+import json
 from django.conf import settings
 from django.contrib import admin
 from django.db.models import Count, Min, Max, DateTimeField
@@ -18,6 +19,7 @@ from apps.bb2_tools.models import (
     ArchivedTokenStats,
     DummyAdminObject,
 )
+from apps.fhir.bluebutton.utils import get_patient_by_id
 
 BB2_TOOLS_PATH = "/admin/bb2_tools/"
 LINK_REF_FMT = "<a  href='{0}{1}?q={2}&user__id__exact={3}'>{4}</a>"
@@ -80,20 +82,6 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
         response.context_data["token_cnts_by_apps"] = token_cnts_by_app
         response.context_data["token_total"] = {"tk_total": token_total}
 
-        # token counts by apps as bar chart
-        # period = get_next_in_date_hierarchy(
-        #     request,
-        #     self.date_hierarchy,
-        # )
-        # response.context_data['period'] = period
-        # token_cnts_over_time = clazz_model.objects.all().annotate(
-        #     period=Trunc(
-        #         'created',
-        #         period,
-        #         output_field=DateTimeField(),
-        #     ),
-        # ).values('period', 'application__name').annotate(tk_cnt=Count('token')).order_by('period')
-
         token_cnts_range = token_cnts_by_app.aggregate(
             low=Min('tk_cnt'),
             high=Max('tk_cnt'),
@@ -111,18 +99,11 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
 
 @admin.register(BeneficiaryDashboard)
 class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
+    change_form_template = 'admin/bb2_bene_dashboard_change_form.html'
     list_display = ('get_user_username', 'get_identities', 'get_access_tokens', 'get_connected_applications', 'date_created')
     search_fields = ('user__username', '_fhir_id', '_user_id_hash', '_user_mbi_hash')
     readonly_fields = ('date_created',)
     raw_id_fields = ("user", )
-    # actions = ['pull_hicn_mbi']
-    # def pull_hicn_mbi(self, request, queryset):
-    #     pass
-    # self.message_user(request, ngettext(
-    #     'Pulled hicn and mbi for the selected %d beneficiaries.',
-    #     'Pulled hicn and mbi for the selected %d beneficiaries.',
-    #     hicn_mbi_pulled,
-    # ) % hicn_mbi_pulled, messages.SUCCESS)
 
     def get_queryset(self, request):
         qs = super(BeneficiaryDashboardAdmin, self).get_queryset(request)
@@ -178,6 +159,26 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
     get_connected_applications.short_description = 'My Connected Apps'
     get_connected_applications.allow_tags = True
 
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        crosswalk = BeneficiaryDashboard.objects.get(pk=int(object_id))
+
+        json_resp = None
+
+        try:
+            json_resp = get_patient_by_id(crosswalk.fhir_id, request)
+        except Exception as e:
+            json_resp = {"backend_error": str(e)}
+
+        extra_context['warning_label'] = {
+            "pii_warning_text": ("This page might contain sensitive"
+                                 " identity information when deployed in production, "
+                                 "and is only for personnel with access permission.")}
+        extra_context['info_from_bfd'] = json.dumps(json_resp, sort_keys=True, indent=4)
+        return super(BeneficiaryDashboardAdmin, self).change_view(
+            request, object_id, form_url, extra_context=extra_context,
+        )
+
 
 @admin.register(MyAccessTokenViewer)
 class MyAccessTokenViewerAdmin(ReadOnlyAdmin):
@@ -222,15 +223,11 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
     list_display = ("name", "user", "authorization_grant_type", "client_id",
                     "require_demographic_scopes", "scopes",
                     "created", "updated", "skip_authorization")
-    # list_filter = ("name", "user", "client_type", "authorization_grant_type",
-    #                "require_demographic_scopes", "skip_authorization")
-    # list_filter = ("client_type", "authorization_grant_type",
-    #                "require_demographic_scopes", "skip_authorization")
     radio_fields = {
         "client_type": admin.HORIZONTAL,
         "authorization_grant_type": admin.VERTICAL,
     }
-    # raw_id_fields = ("user", )
+
     date_hierarchy = 'created'
 
     def changelist_view(self, request, extra_context=None):
@@ -238,12 +235,68 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
             request,
             extra_context=extra_context,
         )
-        # bar chart: apps sign up by date
-        # bar chart: apps opt in demo info vs apps opt out of demo info
+
         clazz_model = ApplicationStats
         apps_total = clazz_model.objects.all().count()
 
         response.context_data["apps_total"] = {"apps_total": apps_total}
+
+        # bar chart top: apps count by sign up date
+        # bar chart 2nd row left: apps count group be active field
+        # bar chart 2nd row center: apps opt in demo info vs apps opt out of demo info
+        # bar chart 2nd row right: apps counts group be grant_type + client_type
+        # table view bottom: apps count by sign up date
+        apps_cnts_by_active = clazz_model.objects.all().values(
+            'active').annotate(
+                app_cnt=Count('name')).order_by('app_cnt')
+
+        app_cnts_range = apps_cnts_by_active.aggregate(
+            low=Min('app_cnt'),
+            high=Max('app_cnt'),
+        )
+
+        high = app_cnts_range.get('high', 0)
+        low = app_cnts_range.get('low', 0)
+        response.context_data['apps_cnts_by_active'] = [{
+            'active': x['active'],
+            'app_cnt': x['app_cnt'] or 0,
+            'pct': (x['app_cnt'] or 0) / high * 100 if high > low else 0,
+        } for x in apps_cnts_by_active]
+
+        apps_cnts_by_require_demo_scopes = clazz_model.objects.all().values(
+            'require_demographic_scopes').annotate(
+                app_cnt=Count('name')).order_by('app_cnt')
+
+        app_cnts_range = apps_cnts_by_require_demo_scopes.aggregate(
+            low=Min('app_cnt'),
+            high=Max('app_cnt'),
+        )
+
+        high = app_cnts_range.get('high', 0)
+        low = app_cnts_range.get('low', 0)
+        response.context_data['apps_cnts_by_require_demo_scopes'] = [{
+            'require_demographic_scopes': x['require_demographic_scopes'],
+            'app_cnt': x['app_cnt'] or 0,
+            'pct': (x['app_cnt'] or 0) / high * 100 if high > low else 0,
+        } for x in apps_cnts_by_require_demo_scopes]
+
+        apps_cnts_by_client_type_grant_type = clazz_model.objects.all().values(
+            'client_type', 'authorization_grant_type').annotate(
+                app_cnt=Count('name')).order_by('app_cnt')
+
+        app_cnts_range = apps_cnts_by_client_type_grant_type.aggregate(
+            low=Min('app_cnt'),
+            high=Max('app_cnt'),
+        )
+
+        high = app_cnts_range.get('high', 0)
+        low = app_cnts_range.get('low', 0)
+        response.context_data['apps_cnts_by_client_type_grant_type'] = [{
+            'client_type': x['client_type'],
+            'authorization_grant_type': x['authorization_grant_type'],
+            'app_cnt': x['app_cnt'] or 0,
+            'pct': (x['app_cnt'] or 0) / high * 100 if high > low else 0,
+        } for x in apps_cnts_by_client_type_grant_type]
 
         # apps counts over signed up time as bar chart
         period = get_next_in_date_hierarchy(
@@ -279,8 +332,11 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
             "header_period": "Period",
             "header_apps_count": "Apps Count",
             "header_percentage": "Percentage",
-            "bar_chart_title": "Applications Count by Signup Date: Chart",
-            "table_view_title": "Applications Count by Signup Date: Table",
+            "bar_chart_title": "Apps Count by Signup Date: Chart",
+            "bar_chart_title_active": "Apps Count by Active Flag: Chart",
+            "bar_chart_title_demo_choice": "Apps Count by Demographic Choice: Chart",
+            "bar_chart_title_client_grant_type": "Apps Count by Client & Grant Type: Chart",
+            "table_view_title": "Apps Count by Signup Date: Table",
         }
 
         return response

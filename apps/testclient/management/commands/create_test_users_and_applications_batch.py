@@ -130,13 +130,22 @@ def create_dev_users_apps_and_bene_crosswalks(group):
             if not(redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
                 redirect_uri = "https://" + redirect_uri
             # 2% inactive, 5% opt out demo scopes
+            # 10% public/implicit 90% confidential/authorization-code
+
+            cl_type = "confidential"
+            auth_grant_type = "authorization-code"
+
+            if app_index % 10 == 0:
+                cl_type = "public"
+                auth_grant_type = "implicit"
+
             a = Application.objects.create(name=app_name,
                                            redirect_uris=redirect_uri,
                                            user=u,
                                            active=False if app_index % 50 == 0 else True,
                                            require_demographic_scopes=False if app_index % 20 == 0 else True,
-                                           client_type="confidential",
-                                           authorization_grant_type="authorization-code")
+                                           client_type=cl_type,
+                                           authorization_grant_type=auth_grant_type)
             date_created = datetime.utcnow() - timedelta(days=randrange(700))
             a.created = date_created.replace(tzinfo=pytz.utc)
             a.save()

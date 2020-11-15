@@ -20,6 +20,13 @@
       position: relative;
       background-color: #79aec8;
   }
+  .bar-chart .bar-red {
+      flex: 100%;
+      align-self: flex-end;
+      margin-right: 2px;
+      position: relative;
+      background-color: #A52A2A;
+  }
   .bar-chart .bar:last-child {
       margin: 0;
   }
@@ -43,6 +50,16 @@
       opacity: 1;
   }
   
+  .row {
+    display: table;
+    width: 100%; /*Optional*/
+    table-layout: fixed; /*Optional*/
+    border-spacing: 10px; /*Optional*/
+  }
+  .column {
+    display: table-cell;
+  }
+
   </style>
   <div class="results">
       <div class="bar-chart">
@@ -55,6 +72,85 @@
           </div>
       {% endfor %}
       </div>
+  </div>  
+
+  <hr>
+  <hr>
+  <hr>
+  <hr>
+  <hr>
+
+  <div class="results">
+    <div class="row">
+      <div class="column">
+        <h2> {{ page_desc.bar_chart_title_active }} </h2>
+        <div class="bar-chart">
+          {% for x in apps_cnts_by_active %}
+            {% if x.active %}
+              <div class="bar" style="height:{{x.pct}}%">
+                  <div class="bar-tooltip">
+                      {{ x.app_cnt | default:0 | intcomma }}<br>
+                      {{ "App is active" }}
+                  </div>
+              </div>
+            {% else %}
+              <div class="bar-red" style="height:{{x.pct}}%">
+                <div class="bar-tooltip">
+                    {{ x.app_cnt | default:0 | intcomma }}<br>
+                    {{ "App is not active" }}
+                </div>
+              </div>
+            {% endif  %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="column">
+        <h2> {{ page_desc.bar_chart_title_demo_choice }} </h2>
+        <div class="bar-chart">
+          {% for x in apps_cnts_by_require_demo_scopes %}
+            {% if x.require_demographic_scopes %}
+              <div class="bar" style="height:{{x.pct}}%">
+                  <div class="bar-tooltip">
+                      {{ x.app_cnt | default:0 | intcomma }}<br>
+                      {{ "App requires demographic_scopes" }}
+                  </div>
+              </div>
+            {% else %}
+              <div class="bar-red" style="height:{{x.pct}}%">
+                <div class="bar-tooltip">
+                    {{ x.app_cnt | default:0 | intcomma }}<br>
+                    {{ "App does not require demographic_scopes" }}
+                </div>
+              </div>
+            {% endif  %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="column">
+        <h2> {{ page_desc.bar_chart_title_client_grant_type }} </h2>
+        <div class="bar-chart">
+          {% for x in apps_cnts_by_client_type_grant_type %}
+            {% if x.client_type == 'public' %}
+              <div class="bar-red" style="height:{{x.pct}}%">
+                  <div class="bar-tooltip">
+                    {{x.app_cnt | default:0 | intcomma }}<br>
+                    {{"client_type:"|add:x.client_type}}<br>
+                    {{"authorization_grant_type"|add:x.authorization_grant_type}}
+                  </div>
+              </div>
+            {% else %}
+              <div class="bar" style="height:{{x.pct}}%">
+                <div class="bar-tooltip">
+                  {{x.app_cnt | default:0 | intcomma }}<br>
+                  {{"client_type:"|add:x.client_type}}<br>
+                  {{"authorization_grant_type"|add:x.authorization_grant_type}}
+                </div>
+              </div>
+            {% endif  %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
   </div>  
 
   <hr>
