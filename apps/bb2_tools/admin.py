@@ -1,7 +1,7 @@
 import json
 from django.conf import settings
 from django.contrib import admin
-from django.db.models import Count, Min, Max, DateTimeField
+from django.db.models import Q, Count, Min, Max, DateTimeField
 from django.db.models.functions import Trunc
 from django.utils.html import format_html
 from oauth2_provider.models import AccessToken, RefreshToken
@@ -73,26 +73,61 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
         )
 
         clazz_model = self.get_model()
+
+        # common aggregations for access token, refresh token, archived token
         token_cnts_by_app = clazz_model.objects.all().values(
             'application__name').annotate(
-                tk_cnt=Count('token')).order_by('tk_cnt')
+                tk_cnt=Count('token')).order_by('application__name')
 
         token_total = clazz_model.objects.all().count()
 
-        response.context_data["token_cnts_by_apps"] = token_cnts_by_app
-        response.context_data["token_total"] = {"tk_total": token_total}
+        response.context_data["token_total"] = token_total
 
         token_cnts_range = token_cnts_by_app.aggregate(
             low=Min('tk_cnt'),
             high=Max('tk_cnt'),
         )
+
         high = token_cnts_range.get('high', 0)
         low = token_cnts_range.get('low', 0)
-        response.context_data['token_cnts_by_app_chart'] = [{
-            'application__name': x['application__name'],
-            'tk_cnt': x['tk_cnt'] or 0,
-            'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0,
-        } for x in token_cnts_by_app]
+
+        token_no_demo_dict = {}
+        token_no_demo_total = 0
+        chart_list = []
+        table_list = []
+        if clazz_model == AccessToken or clazz_model == ArchivedToken:
+            # aggregations for access token and archived token only - without demographic scopes
+            token_no_demo_cnts_by_app = clazz_model.objects.filter(
+                ~Q(scope__icontains="patient/Patient.read")).values(
+                'application__name').annotate(
+                    tk_cnt=Count('token')).order_by('application__name')
+            token_no_demo_total = clazz_model.objects.filter(
+                ~Q(scope__icontains="patient/Patient.read")).count()
+            response.context_data['token_no_demo_total'] = token_no_demo_total
+            for t in token_no_demo_cnts_by_app:
+                token_no_demo_dict[t['application__name']] = t['tk_cnt']
+            response.context_data['has_demo_scope_cnts'] = True
+            for x in token_cnts_by_app:
+                no_demo_cnt = token_no_demo_dict.get(x['application__name'])
+                table_list.append({'application__name': x['application__name'],
+                                   'tk_cnt': x['tk_cnt'] or 0,
+                                   'no_demo_tk_cnt': no_demo_cnt or 0, })
+                chart_list.append({'application__name': x['application__name'],
+                                   'tk_cnt': x['tk_cnt'] or 0,
+                                   'no_demo_tk_cnt': no_demo_cnt or 0,
+                                   'no_demo_pct': (no_demo_cnt or 0) / high * 100 if high > low else 0,
+                                   'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0, })
+        else:
+            response.context_data['has_demo_scope_cnts'] = False
+            for x in token_cnts_by_app:
+                table_list.append({'application__name': x['application__name'],
+                                   'tk_cnt': x['tk_cnt'] or 0, })
+                chart_list.append({'application__name': x['application__name'],
+                                   'tk_cnt': x['tk_cnt'] or 0,
+                                   'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0, })
+
+        response.context_data["token_cnts_by_apps"] = table_list
+        response.context_data['token_cnts_by_app_chart'] = chart_list
 
         return response
 
@@ -351,15 +386,36 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
         return AccessToken
 
     def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        token_no_demo_cnts_by_app = AccessTokenStats.objects.filter(~Q(scope__icontains="patient/Patient.read")).values(
+            'application__name').annotate(
+                tk_cnt=Count('token')).order_by('application__name')
+
+        token_no_demo_cnts_range = token_no_demo_cnts_by_app.aggregate(
+            low=Min('tk_cnt'),
+            high=Max('tk_cnt'),
+        )
+        high = token_no_demo_cnts_range.get('high', 0)
+        low = token_no_demo_cnts_range.get('low', 0)
+        extra_context['token_no_demo_cnts_by_app_chart'] = [{
+            'application__name': x['application__name'],
+            'tk_cnt': x['tk_cnt'] or 0,
+            'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0,
+        } for x in token_no_demo_cnts_by_app]
+
         response = super().changelist_view(
             request,
             extra_context=extra_context,
         )
+
         response.context_data["page_desc"] = {
             "header_app_name": "Application",
             "header_token_count": "Token Count",
-            "header_percentage": "Percentage",
+            "header_percentage": "%",
+            "header_no_demo_token_count": "Token Count (No Demo Scopes)",
+            "header_no_demo_percentage": "%(No Demo Scopes)",
             "bar_chart_title": "Access Token Count by Apps: Chart",
+            "bar_chart_no_demo_title": "Access Token Count (No Demo Scope) by Apps: Chart",
             "table_view_title": "Access Token Count by Apps: Table",
         }
         return response
@@ -381,7 +437,7 @@ class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
         response.context_data["page_desc"] = {
             "header_app_name": "Application",
             "header_token_count": "Token Count",
-            "header_percentage": "Percentage",
+            "header_percentage": "%",
             "bar_chart_title": "Refresh Token Count by Apps: Chart",
             "table_view_title": "Refresh Token Count by Apps: Table",
         }
@@ -404,7 +460,9 @@ class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
         response.context_data["page_desc"] = {
             "header_app_name": "Application",
             "header_token_count": "Token Count",
-            "header_percentage": "Percentage",
+            "header_percentage": "%",
+            "header_no_demo_token_count": "Token Count (No Demo Scopes)",
+            "header_no_demo_percentage": "%(No Demo Scopes)",
             "bar_chart_title": "Archived Token Count by Apps: Chart",
             "table_view_title": "Archived Token Count by Apps: Table",
         }

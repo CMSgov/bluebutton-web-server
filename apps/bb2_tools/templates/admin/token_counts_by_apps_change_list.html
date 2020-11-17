@@ -6,31 +6,37 @@
 
   <h2> {{ page_desc.bar_chart_title }} </h2>
   <style>
-  .bar-chart {
+  .columns {
     display: flex;
-    justify-content: space-around;
-    height: 160px;
+    height: 180px;
     padding-top: 60px;
-    overflow: hidden;
+    max-height: 400px;
+    align-items: stretch;
+    border: 1px solid #CCC;
   }
-  .bar-chart .bar {
-      flex: 100%;
-      align-self: flex-end;
-      margin-right: 2px;
-      position: relative;
-      background-color: #79aec8;
+  .column-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
   }
-  .bar-chart .bar:last-child {
+  .column-bar {
+    border-right: 1px solid white;
+  }
+  .value-full { background: #79aec8 }
+  .value-partial { background: orange; }
+  .columns .column_bar:last-child {
       margin: 0;
   }
-  .bar-chart .bar:hover {
+  .columns .column-bar:hover {
       background-color: #417690;
   }
-  .bar-chart .bar .bar-tooltip {
+  .columns .column-bar .bar-tooltip {
       position: relative;
       z-index: 999;
   }
-  .bar-chart .bar .bar-tooltip {
+  .columns .column-bar .bar-tooltip {
       position: absolute;
       top: -60px;
       left: 50%;
@@ -39,33 +45,118 @@
       font-weight: bold;
       opacity: 0;
   }
-  .bar-chart .bar:hover .bar-tooltip {
+  .columns .column-bar:hover .bar-tooltip {
       opacity: 1;
   }
   </style>
   <div class="results">
-      <div class="bar-chart">
-      {% for x in token_cnts_by_app_chart %}
-          <div class="bar" style="height:{{x.pct}}%">
-              <div class="bar-tooltip">
-                  {{x.tk_cnt | default:0 | intcomma }}<br>
+    <div class="columns">
+      {% if has_demo_scope_cnts %}
+        {% for x in token_cnts_by_app_chart %}
+          <div class="column-container">
+            <div class="column-bar value-full" style="flex-basis:{{x.pct}}%">
+                <div class="bar-tooltip">
+                  {{x.tk_cnt | default:0 | intcomma | add:": granted demographic"}}<br>
+                  {{x.no_demo_tk_cnt | default:0 | intcomma | add:": denied demographic"}}<br>
                   {{ x.application__name }}
+                </div>
+            </div>
+            <div class="column-bar value-partial" style="flex-basis:{{x.no_demo_pct}}%">
+              <div class="bar-tooltip">
+                {{x.tk_cnt | default:0 | intcomma | add:": granted demographic"}}<br>
+                {{x.no_demo_tk_cnt | default:0 | intcomma | add:": denied demographic"}}<br>
+                {{ x.application__name }}
               </div>
+            </div>
           </div>
-      {% endfor %}
-      </div>
+        {% endfor %}
+      {% else %}
+        {% for x in token_cnts_by_app_chart %}
+          <div class="column-container">
+            <div class="column-bar value-full" style="flex-basis:{{x.pct}}%">
+                <div class="bar-tooltip">
+                    {{x.tk_cnt | default:0 | intcomma | add:": refresh token"}}<br>
+                    {{ x.application__name }}
+                </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
   </div>  
 
-  <hr>
-  <hr>
   <hr>
   <hr>
   <hr>
 
   <h2> {{ page_desc.table_view_title }} </h2>
 
+  {% if has_demo_scope_cnts %}
+    <table>
+      <thead>
+        <tr>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_app_name }}</a>
+            </div>
+          </th>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_token_count }}</a>
+            </div>
+          </th>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_percentage }}</a>
+            </div>
+          </th>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_no_demo_token_count }}</a>
+            </div>
+          </th>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_no_demo_percentage }}</a>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in token_cnts_by_apps %}
+          <tr class="{% cycle 'row1' 'row2' %}">
+            <td> {{ row.application__name }} </td>
+            <td> {{ row.tk_cnt | intcomma }} </td>
+            <td>
+              {% if row.tk_cnt <= 0 and token_total <= 0 %}
+                <strong> {{ 0 }} </strong>
+              {% else %}
+                {% widthratio row.tk_cnt token_total 100 as pct %}
+                <strong> {{ pct }} </strong>
+              {% endif %}
+            </td>
+            <td> {{ row.no_demo_tk_cnt | intcomma }} </td>
+            <td>
+              {% if row.no_demo_tk_cnt <= 0 and token_no_demo_total <= 0 %}
+                <strong> {{ 0 }} </strong>
+              {% else %}
+                {% widthratio row.no_demo_tk_cnt token_no_demo_total 100 as pct %}
+                <strong> {{ pct }} </strong>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
+          <td> Total </td>
+          <td> {{ token_total | intcomma }} </td>
+          <td> 100% </td>
+          <td> {{ token_no_demo_total | intcomma }} </td>
+          <td> 100% </td>
+        </tr>
+      </tbody>
+  </table>
+{% else %}
   <table>
-        
     <thead>
       <tr>
         <th>
@@ -87,27 +178,27 @@
     </thead>
     <tbody>
       {% for row in token_cnts_by_apps %}
-      <tr class="{% cycle 'row1' 'row2' %}">
-        <td> {{ row.application__name }} </td>
-        <td> {{ row.tk_cnt | intcomma }} </td>
-        <td>
-          {% if row.tk_cnt <= 0 and token_total.tk_total <= 0 %}
-            <strong> {{ 0 }} </strong>
-          {% else %}
-            {% widthratio row.tk_cnt token_total.tk_total 100 as pct %}
-            <strong> {{ pct }} </strong>
-          {% endif %}
-        </td>
-      </tr>
+        <tr class="{% cycle 'row1' 'row2' %}">
+          <td> {{ row.application__name }} </td>
+          <td> {{ row.tk_cnt | intcomma }} </td>
+          <td>
+            {% if row.tk_cnt <= 0 and token_total <= 0 %}
+              <strong> {{ 0 }} </strong>
+            {% else %}
+              {% widthratio row.tk_cnt token_total 100 as pct %}
+              <strong> {{ pct }} </strong>
+            {% endif %}
+          </td>
+        </tr>
       {% endfor %}
       <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
         <td> Total </td>
-        <td> {{ token_total.tk_total | intcomma }} </td>
+        <td> {{ token_total | intcomma }} </td>
         <td> 100% </td>
       </tr>
     </tbody>
   </table>
-
+{% endif %}
 </div>
 {% endblock %}
 {% block pagination %}{% endblock %}

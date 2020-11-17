@@ -43,7 +43,7 @@ class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException)
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-# For SLS auth workflow info, see apps/mymedicare_db/README.md
+# For SLS auth workflow info, see apps/mymedicare_cb/README.md
 def authenticate(request):
     # Standard error message returned to end user.
     ERROR_MSG_MYMEDICARE = "An error occurred connecting to account.mymedicare.gov"

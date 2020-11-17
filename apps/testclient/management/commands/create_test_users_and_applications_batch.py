@@ -23,6 +23,12 @@ from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 mymedicare_cb_logger = logging.getLogger('audit.authenticate.mymedicare_cb')
 outreach_logger = logging.getLogger('hhs_server.apps.dot_ext.signals')
 
+APPLICATION_SCOPES_FULL = ['patient/Patient.read', 'profile',
+                           'patient/ExplanationOfBenefit.read', 'patient/Coverage.read',
+                           'capability-a', 'capability-b']
+APPLICATION_SCOPES_NON_DEMOGRAPHIC = ['patient/ExplanationOfBenefit.read',
+                                      'patient/Coverage.read', 'capability-a', 'capability-b']
+
 
 def create_group(name="BlueButton"):
 
@@ -90,14 +96,16 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                     synthetic_bene_cnt += 1
                     print(".", end="", flush=True)
                     time.sleep(.05)
-                    if count > 8000:
-                        break
+                    # if count > 1000:
+                    #     break
         bene_rif.close()
         file_cnt += 1
         print("RIF file processed = {}, synthetic bene generated = {}".format(file_cnt, synthetic_bene_cnt))
         # if file_cnt >= 1:
         #     break
 
+    scope_all = ' '.join(APPLICATION_SCOPES_FULL)
+    scope_no_demo = ' '.join(APPLICATION_SCOPES_NON_DEMOGRAPHIC)
     # create 100 dev users
     # generate access tokens + refresh tokens + archived tokens for random picked benes for each app
     app_index = 0
@@ -163,24 +171,40 @@ def create_dev_users_apps_and_bene_crosswalks(group):
 
     # go through benes: each bene sign up to 1, 2, 3 apps
     # most 70% 1 app, 25% 2 apps, 5% 3 apps
+    # demo scope choice: 80% grant demo access, 20% deny demo access
     app_list = list(Application.objects.all())
     for bpk in bene_pk_list:
         seed = randint(1, 10)
         b = User.objects.get(pk=bpk)
+        tokens = []
         if seed <= 7:
             # sign up to 1 app
-            create_test_access_refresh_archived_tokens(b, choice(app_list))
+            tokens.append(create_test_access_refresh_archived_tokens(b, choice(app_list)))
         elif seed <= 9:
             # sign up to 2 apps
             a2 = sample(app_list, 2)
-            create_test_access_refresh_archived_tokens(b, a2[0])
-            create_test_access_refresh_archived_tokens(b, a2[1])
+            tokens.append(create_test_access_refresh_archived_tokens(b, a2[0],))
+            tokens.append(create_test_access_refresh_archived_tokens(b, a2[1]))
         else:
             # sign up to 3 apps
             a3 = sample(app_list, 3)
-            create_test_access_refresh_archived_tokens(b, a3[0])
-            create_test_access_refresh_archived_tokens(b, a3[1])
-            create_test_access_refresh_archived_tokens(b, a3[2])
+            tokens.append(create_test_access_refresh_archived_tokens(b, a3[0]))
+            tokens.append(create_test_access_refresh_archived_tokens(b, a3[1]))
+            tokens.append(create_test_access_refresh_archived_tokens(b, a3[2]))
+
+        # set scopes of at, ot: 80% grant demo info access, 20% deny
+        if seed <= 8:
+            for t in tokens:
+                t[0].scope = scope_all
+                t[0].save()
+                t[2].scope = scope_all
+                t[2].save()
+        else:
+            for t in tokens:
+                t[0].scope = scope_no_demo
+                t[0].save()
+                t[2].scope = scope_no_demo
+                t[2].save()
 
 
 def create_test_access_refresh_archived_tokens(user, application):
@@ -191,6 +215,7 @@ def create_test_access_refresh_archived_tokens(user, application):
     scope = []
     for s in scopes:
         scope.append(s.slug)
+
     # a.created
     # u.created
     # update dates etc on at, rt, ot
@@ -227,7 +252,7 @@ def create_test_access_refresh_archived_tokens(user, application):
     ot.archived_at = date_archived.replace(tzinfo=pytz.utc)
     ot.save()
 
-    return at, rt, ot
+    return (at, rt, ot)
 
 
 class Command(BaseCommand):
