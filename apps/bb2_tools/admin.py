@@ -109,6 +109,7 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
             response.context_data['has_demo_scope_cnts'] = True
             for x in token_cnts_by_app:
                 no_demo_cnt = token_no_demo_dict.get(x['application__name'])
+                demo_cnt = x['tk_cnt'] - (0 if no_demo_cnt is None else no_demo_cnt)
                 table_list.append({'application__name': x['application__name'],
                                    'tk_cnt': x['tk_cnt'] or 0,
                                    'no_demo_tk_cnt': no_demo_cnt or 0, })
@@ -116,7 +117,7 @@ class TokenCountByAppsAdmin(ReadOnlyAdmin):
                                    'tk_cnt': x['tk_cnt'] or 0,
                                    'no_demo_tk_cnt': no_demo_cnt or 0,
                                    'no_demo_pct': (no_demo_cnt or 0) / high * 100 if high > low else 0,
-                                   'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0, })
+                                   'pct': (demo_cnt or 0) / high * 100 if high > low else 0, })
         else:
             response.context_data['has_demo_scope_cnts'] = False
             for x in token_cnts_by_app:

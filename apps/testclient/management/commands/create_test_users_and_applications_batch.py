@@ -96,13 +96,13 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                     synthetic_bene_cnt += 1
                     print(".", end="", flush=True)
                     time.sleep(.05)
-                    # if count > 1000:
-                    #     break
+                    if count > 3000:
+                        break
         bene_rif.close()
         file_cnt += 1
         print("RIF file processed = {}, synthetic bene generated = {}".format(file_cnt, synthetic_bene_cnt))
-        # if file_cnt >= 1:
-        #     break
+        if file_cnt >= 1:
+            break
 
     scope_all = ' '.join(APPLICATION_SCOPES_FULL)
     scope_no_demo = ' '.join(APPLICATION_SCOPES_NON_DEMOGRAPHIC)
