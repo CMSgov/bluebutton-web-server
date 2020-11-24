@@ -19,6 +19,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class SearchView(FhirDataView):
+    # Base class for FHIR resource search views
+
     # BB2-149 note, check authenticated first, then app active etc.
     permission_classes = [
         permissions.IsAuthenticated,
@@ -29,8 +31,63 @@ class SearchView(FhirDataView):
         TokenHasProtectedCapability,
     ]
 
+    # Regex to match a valid _lastUpdated value that can begin with lt, le, gt and ge operators
+    REGEX_LASTUPDATED_VALUE = r'^((lt)|(le)|(gt)|(ge)).+'
+
+    QUERY_TRANSFORMS = {
+        'count': '_count',
+    }
+
+    QUERY_SCHEMA = {
+        Required('startIndex', default=0): Coerce(int),
+        Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
+        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")]
+    }
+
+    def __init__(self):
+        self.resource_type = None
+
+    def initial(self, request, *args, **kwargs):
+        return super().initial(request, self.resource_type, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        return super().get(request, self.resource_type, *args, **kwargs)
+
+    def build_url(self, resource_router, resource_type, *args, **kwargs):
+        return resource_router.fhir_url + resource_type + "/"
+
+
+class SearchViewPatient(SearchView):
+    # Class used for Patient resource search view
+
+    def __init__(self):
+        self.resource_type = "Patient"
+
+    def build_parameters(self, request, *args, **kwargs):
+        return {
+            '_format': 'application/json+fhir',
+            '_id': request.crosswalk.fhir_id,
+        }
+
+
+class SearchViewCoverage(SearchView):
+    # Class used for Coverage resource search view
+
+    def __init__(self):
+        self.resource_type = "Coverage"
+
+    def build_parameters(self, request, *args, **kwargs):
+        return {
+            '_format': 'application/json+fhir',
+            'beneficiary': 'Patient/' + request.crosswalk.fhir_id,
+        }
+
+
+class SearchViewExplanationOfBenefit(SearchView):
+    # Class used for ExplanationOfBenefit resource search view
+
     # Regex to match a valid type value
-    regex_type_value = r"(carrier)|" + \
+    REGEX_TYPE_VALUE = r"(carrier)|" + \
         r"(pde)|" + \
         r"(dme)|" + \
         r"(hha)|" + \
@@ -49,37 +106,17 @@ class SearchView(FhirDataView):
         r"(https://bluebutton.cms.gov/resources/codesystem/eob-type\|snf)"
 
     # Regex to match a list of comma separated type values with IGNORECASE
-    regex_type_values_list = r'(?i)^((' + regex_type_value + r')\s*,*\s*)+$'
+    REGEX_TYPE_VALUES_LIST = r'(?i)^((' + REGEX_TYPE_VALUE + r')\s*,*\s*)+$'
 
-    # Regex to match a valid _lastUpdated value that can begin with
-    # lt, le, gt and ge operators
-    regex_lastupdated_value = r'^((lt)|(le)|(gt)|(ge)).+'
+    # Add type parameter to schema only for EOB
+    QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
+                    'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid")}
 
-    query_transforms = {
-        'count': '_count',
-    }
-
-    query_schema = {
-        Required('startIndex', default=0): Coerce(int),
-        Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
-        'type': Match(regex_type_values_list, msg="the type parameter value is not valid"),
-        '_lastUpdated': [Match(regex_lastupdated_value, msg="the _lastUpdated operator is not valid")]
-    }
+    def __init__(self):
+        self.resource_type = "ExplanationOfBenefit"
 
     def build_parameters(self, request, *args, **kwargs):
-        patient_id = request.crosswalk.fhir_id
-        resource_type = request.resource_type
-        get_parameters = {
-            '_format': 'application/json+fhir'
+        return {
+            '_format': 'application/json+fhir',
+            'patient': request.crosswalk.fhir_id,
         }
-
-        if resource_type == 'ExplanationOfBenefit':
-            get_parameters['patient'] = patient_id
-        elif resource_type == 'Coverage':
-            get_parameters['beneficiary'] = 'Patient/' + patient_id
-        elif resource_type == 'Patient':
-            get_parameters['_id'] = patient_id
-        return get_parameters
-
-    def build_url(self, resource_router, resource_type, *args, **kwargs):
-        return resource_router.fhir_url + resource_type + "/"

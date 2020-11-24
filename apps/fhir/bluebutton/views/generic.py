@@ -48,7 +48,7 @@ class FhirDataView(APIView):
         raise NotImplementedError()
 
     def map_parameters(self, params):
-        transforms = getattr(self, "query_transforms", {})
+        transforms = getattr(self, "QUERY_TRANSFORMS", {})
         for key, correct in transforms.items():
             val = params.pop(key, None)
             if val is not None:
@@ -61,7 +61,7 @@ class FhirDataView(APIView):
         params['_lastUpdated'] = request.query_params.getlist('_lastUpdated')
 
         schema = voluptuous.Schema(
-            getattr(self, "query_schema", {}),
+            getattr(self, "QUERY_SCHEMA", {}),
             extra=voluptuous.REMOVE_EXTRA)
         return schema(params)
 

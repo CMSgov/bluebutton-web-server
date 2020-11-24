@@ -14,6 +14,8 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 #####################################################################
 
 class ReadView(FhirDataView):
+    # Base class for FHIR resource read views
+
     # BB2-149 note, check authenticated first, then app active etc.
     permission_classes = [
         permissions.IsAuthenticated,
@@ -24,6 +26,15 @@ class ReadView(FhirDataView):
         TokenHasProtectedCapability,
     ]
 
+    def __init__(self):
+        self.resource_type = None
+
+    def initial(self, request, *args, **kwargs):
+        return super().initial(request, self.resource_type, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        return super().get(request, self.resource_type, *args, **kwargs)
+
     def build_parameters(self, *args, **kwargs):
         return {
             "_format": "json"
@@ -31,3 +42,21 @@ class ReadView(FhirDataView):
 
     def build_url(self, resource_router, resource_type, resource_id, **kwargs):
         return resource_router.fhir_url + resource_type + "/" + resource_id + "/"
+
+
+class ReadViewPatient(ReadView):
+    # Class used for Patient resource
+    def __init__(self):
+        self.resource_type = "Patient"
+
+
+class ReadViewCoverage(ReadView):
+    # Class used for Patient resource
+    def __init__(self):
+        self.resource_type = "Coverage"
+
+
+class ReadViewExplanationOfBenefit(ReadView):
+    # Class used for Patient resource
+    def __init__(self):
+        self.resource_type = "ExplanationOfBenefit"
