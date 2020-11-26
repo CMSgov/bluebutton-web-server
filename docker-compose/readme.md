@@ -56,6 +56,34 @@ then run the migrate script again:
 ```
 docker-compose exec web chmod +x docker-compose/migrate.sh
 ```
+## Populate BB2 Django models with large number of records
+
+Run migrate.sh will in turn execute a django command among other things:
+
+python manage.py create_test_user_and_application
+
+this will populate BB2 Django models User, UserProfile, Application, Crosswalk, AccessToken with:
+
+one user 'fred', one app 'TestApp', one access token, and one corresponding crosswalk entry, which can be used for minimum test, for local tests that require large number of users, applications, etc. there
+is a command to help with that:
+
+python manage.py create_test_users_and_applications_batch
+
+which generates 50 dev users, each has 1-5 apps, and 30k bene users which have following relations:
+
+1. dev users and apps created date are spread over past 700 days randomly
+2. each bene sign up (grant access) with 1-3 apps by aproximately: 70% 1 app, 25% 2 apps, 5% 3 apps and
+3. among these sign up (access token grants): 80% with demographic scopes, 20% deny demo access
+4. benes sign up dates are randomized and set to a date approximately 10 days after apps created date
+5. apps' client type, grant type, opt in/out of demographic info access are also randomly generated per a percent distribution
+
+the data generation command assumes that the 30k synthetic beneficiary records in rif files are present
+under BB2 local repo base directory:
+
+<bb2_local_repo_base>/synthetic-data/
+
+for detailed info about the synthetic data and how to fetch them, refer to: https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-model/bfd-model-rif-samples/dev/design-sample-data-sets.md
+
 
 ## Running tests from your host
 
