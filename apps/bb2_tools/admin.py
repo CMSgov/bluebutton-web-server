@@ -218,22 +218,22 @@ class BeneficiaryDashboardAdmin(ReadOnlyAdmin):
 
 @admin.register(MyAccessTokenViewer)
 class MyAccessTokenViewerAdmin(ReadOnlyAdmin):
+    list_display = ('user', 'application', 'expires', 'scope', 'token', 'updated', 'created')
     search_fields = ('user__username__exact', 'application__name', 'token')
-    list_filter = ("user", "application")
     raw_id_fields = ("user", 'application')
 
 
 @admin.register(MyRefreshTokenViewer)
 class MyRefreshTokenViewerAdmin(ReadOnlyAdmin):
+    list_display = ('user', 'application', 'token', 'access_token_id', 'revoked', 'updated', 'created')
     search_fields = ('user__username__exact', 'application__name', 'token')
-    list_filter = ("user", "application")
     raw_id_fields = ("user", 'application')
 
 
 @admin.register(MyArchivedTokenViewer)
 class MyArchivedTokenViewerAdmin(ReadOnlyAdmin):
+    list_display = ('user', 'application', 'expires', 'scope', 'token', 'archived_at', 'updated', 'created')
     search_fields = ('user__username', 'application__name', 'token')
-    list_filter = ("user", "application")
     raw_id_fields = ("user", 'application')
 
 
