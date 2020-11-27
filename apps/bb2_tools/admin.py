@@ -26,6 +26,66 @@ LINK_REF_FMT = "<a  href='{0}{1}?q={2}&user__id__exact={3}'>{4}</a>"
 TOKEN_VIEWERS = {MyAccessTokenViewer, MyRefreshTokenViewer, MyArchivedTokenViewer}
 
 
+def gen_ctx_grp_by_date_fld(request, uniq_fld_name, date_fld_name, clazz_model, date_hierarchy):
+    period = get_next_in_date_hierarchy(
+        request,
+        date_hierarchy,
+    )
+    aggregate_by_period_ctx = {}
+    aggregate_by_period_ctx['period'] = period
+
+    total_by_date = clazz_model.objects.all().annotate(
+        period=Trunc(
+            date_fld_name,
+            period,
+            output_field=DateTimeField(),
+        ),
+    ).values('period').annotate(sub_total=Count(uniq_fld_name)).order_by('period')
+
+    sub_totals_range = total_by_date.aggregate(
+        low=Min('sub_total'),
+        high=Max('sub_total'),
+    )
+
+    high = sub_totals_range.get('high', 0)
+    low = sub_totals_range.get('low', 0)
+    chart_list = []
+    for e in total_by_date:
+        chart_list.append(
+            {'period': e['period'],
+             'sub_total': e['sub_total'] or 0,
+             'pct': (e['sub_total'] or 0) / high * 100 if high > low else 0, })
+    return chart_list
+
+
+def gen_ctx_grp_by_flds(clazz_model, grp_flds, uniq_fld, marked_fld_name, marked_fld_val):
+    row_cnts_grp_by = clazz_model.objects.all().values(
+        *grp_flds).annotate(
+            row_cnt=Count(uniq_fld)).order_by('row_cnt')
+
+    row_cnts_range = row_cnts_grp_by.aggregate(
+        low=Min('row_cnt'),
+        high=Max('row_cnt'),
+    )
+
+    high = row_cnts_range.get('high', 0)
+    low = row_cnts_range.get('low', 0)
+    chart_data_list = []
+    for x in row_cnts_grp_by:
+        item = {
+            'row_cnt': x['row_cnt'] or 0,
+            'pct': (x['row_cnt'] or 0) / high * 100 if high > low else 0,
+        }
+        if x[marked_fld_name] == marked_fld_val:
+            item['marked'] = True
+        grp_by_item = {}
+        for y in grp_flds:
+            grp_by_item[y] = x[y]
+        item.update(grp_by_item)
+        chart_data_list.append(item)
+    return chart_data_list
+
+
 def get_next_in_date_hierarchy(request, date_hierarchy):
     if date_hierarchy + '__day' in request.GET:
         return 'hour'
@@ -270,107 +330,65 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
         )
 
         clazz_model = ApplicationStats
-        apps_total = clazz_model.objects.all().count()
+        total = clazz_model.objects.all().count()
+        panels = []
 
-        response.context_data["apps_total"] = {"apps_total": apps_total}
+        # apps counts over signed up time as bar chart
+        app_grp_by_created_date_ctx = gen_ctx_grp_by_date_fld(request,
+                                                              'name',
+                                                              'created',
+                                                              clazz_model,
+                                                              self.date_hierarchy)
+        top_panel = {
+            'type': 'bar-chart',
+            'title': 'Apps Count by Signup Date: Bar Chart',
+            'body': app_grp_by_created_date_ctx,
+        }
 
         # bar chart top: apps count by sign up date
         # bar chart 2nd row left: apps count group be active field
         # bar chart 2nd row center: apps opt in demo info vs apps opt out of demo info
         # bar chart 2nd row right: apps counts group be grant_type + client_type
         # table view bottom: apps count by sign up date
-        apps_cnts_by_active = clazz_model.objects.all().values(
-            'active').annotate(
-                app_cnt=Count('name')).order_by('app_cnt')
+        panels.append(top_panel)
+        center_panel = []
+        center_panel.append({'body': gen_ctx_grp_by_flds(
+            clazz_model,
+            ['active'],
+            'name', 'active', False),
+            'tooltip_txt': ['active is False', 'active is True'],
+            'title': 'Apps Count by Active Flag',
+            'tooltip_label': 'App group by "active"'})
 
-        app_cnts_range = apps_cnts_by_active.aggregate(
-            low=Min('app_cnt'),
-            high=Max('app_cnt'),
-        )
+        center_panel.append({'body': gen_ctx_grp_by_flds(
+            clazz_model,
+            ['require_demographic_scopes'],
+            'name', 'require_demographic_scopes', False),
+            'tooltip_txt': ['require_demographic_scopes is False', 'require_demographic_scopes is True'],
+            'title': 'Apps Count by Demographic Choice',
+            'tooltip_label': 'App group by "require_demographic_scopes"'})
 
-        high = app_cnts_range.get('high', 0)
-        low = app_cnts_range.get('low', 0)
-        response.context_data['apps_cnts_by_active'] = [{
-            'active': x['active'],
-            'app_cnt': x['app_cnt'] or 0,
-            'pct': (x['app_cnt'] or 0) / high * 100 if high > low else 0,
-        } for x in apps_cnts_by_active]
+        center_panel.append({'body': gen_ctx_grp_by_flds(
+            clazz_model,
+            ['client_type', 'authorization_grant_type'],
+            'name', 'client_type', 'public'),
+            'tooltip_txt': ['client_type is public', 'client type is not public'],
+            'title': 'Apps Count by Client & Grant Type',
+            'tooltip_label': 'App group by client type, grant type'})
 
-        apps_cnts_by_require_demo_scopes = clazz_model.objects.all().values(
-            'require_demographic_scopes').annotate(
-                app_cnt=Count('name')).order_by('app_cnt')
+        panels.append({'type': 'horiz-charts', 'data': center_panel})
 
-        app_cnts_range = apps_cnts_by_require_demo_scopes.aggregate(
-            low=Min('app_cnt'),
-            high=Max('app_cnt'),
-        )
-
-        high = app_cnts_range.get('high', 0)
-        low = app_cnts_range.get('low', 0)
-        response.context_data['apps_cnts_by_require_demo_scopes'] = [{
-            'require_demographic_scopes': x['require_demographic_scopes'],
-            'app_cnt': x['app_cnt'] or 0,
-            'pct': (x['app_cnt'] or 0) / high * 100 if high > low else 0,
-        } for x in apps_cnts_by_require_demo_scopes]
-
-        apps_cnts_by_client_type_grant_type = clazz_model.objects.all().values(
-            'client_type', 'authorization_grant_type').annotate(
-                app_cnt=Count('name')).order_by('app_cnt')
-
-        app_cnts_range = apps_cnts_by_client_type_grant_type.aggregate(
-            low=Min('app_cnt'),
-            high=Max('app_cnt'),
-        )
-
-        high = app_cnts_range.get('high', 0)
-        low = app_cnts_range.get('low', 0)
-        response.context_data['apps_cnts_by_client_type_grant_type'] = [{
-            'client_type': x['client_type'],
-            'authorization_grant_type': x['authorization_grant_type'],
-            'app_cnt': x['app_cnt'] or 0,
-            'pct': (x['app_cnt'] or 0) / high * 100 if high > low else 0,
-        } for x in apps_cnts_by_client_type_grant_type]
-
-        # apps counts over signed up time as bar chart
-        period = get_next_in_date_hierarchy(
-            request,
-            self.date_hierarchy,
-        )
-
-        response.context_data['period'] = period
-
-        apps_total_by_signup_date = clazz_model.objects.all().annotate(
-            period=Trunc(
-                'created',
-                period,
-                output_field=DateTimeField(),
-            ),
-        ).values('period').annotate(apps_sub_total=Count('name')).order_by('period')
-
-        apps_sub_totals_range = apps_total_by_signup_date.aggregate(
-            low=Min('apps_sub_total'),
-            high=Max('apps_sub_total'),
-        )
-
-        high = apps_sub_totals_range.get('high', 0)
-        low = apps_sub_totals_range.get('low', 0)
-
-        response.context_data['apps_total_by_signup_date'] = [{
-            'period': x['period'],
-            'apps_sub_total': x['apps_sub_total'] or 0,
-            'pct': (x['apps_sub_total'] or 0) / high * 100 if high > low else 0,
-        } for x in apps_total_by_signup_date]
-
-        response.context_data["page_desc"] = {
-            "header_period": "Period",
-            "header_apps_count": "Apps Count",
-            "header_percentage": "Percentage",
-            "bar_chart_title": "Apps Count by Signup Date: Chart",
-            "bar_chart_title_active": "Apps Count by Active Flag: Chart",
-            "bar_chart_title_demo_choice": "Apps Count by Demographic Choice: Chart",
-            "bar_chart_title_client_grant_type": "Apps Count by Client & Grant Type: Chart",
-            "table_view_title": "Apps Count by Signup Date: Table",
+        bottom_panel = {
+            'type': 'table-view',
+            'title': 'Apps Count by Signup Date: Tabular View',
+            'header': ['Period', 'Apps Count', 'Percentage'],
+            'body': app_grp_by_created_date_ctx,
+            'total': total,
+            'footer': ['Total', total, '100%'],
         }
+
+        panels.append(bottom_panel)
+        response.context_data['panels'] = panels
 
         return response
 
@@ -384,22 +402,6 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
         return AccessToken
 
     def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        token_no_demo_cnts_by_app = AccessTokenStats.objects.filter(~Q(scope__icontains="patient/Patient.read")).values(
-            'application__name').annotate(
-                tk_cnt=Count('token')).order_by('application__name')
-
-        token_no_demo_cnts_range = token_no_demo_cnts_by_app.aggregate(
-            low=Min('tk_cnt'),
-            high=Max('tk_cnt'),
-        )
-        high = token_no_demo_cnts_range.get('high', 0)
-        low = token_no_demo_cnts_range.get('low', 0)
-        extra_context['token_no_demo_cnts_by_app_chart'] = [{
-            'application__name': x['application__name'],
-            'tk_cnt': x['tk_cnt'] or 0,
-            'pct': (x['tk_cnt'] or 0) / high * 100 if high > low else 0,
-        } for x in token_no_demo_cnts_by_app]
 
         response = super().changelist_view(
             request,
@@ -412,9 +414,9 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_percentage": "%",
             "header_no_demo_token_count": "Token Count (No Demo Scopes)",
             "header_no_demo_percentage": "%(No Demo Scopes)",
-            "bar_chart_title": "Access Token Count by Apps: Chart",
-            "bar_chart_no_demo_title": "Access Token Count (No Demo Scope) by Apps: Chart",
-            "table_view_title": "Access Token Count by Apps: Table",
+            "bar_chart_title": "Access Token Count by Apps: Bar Chart",
+            "bar_chart_no_demo_title": "Access Token Count (No Demo Scope) by Apps: Bar Chart",
+            "table_view_title": "Access Token Count by Apps: Tabular View",
         }
         return response
 
@@ -436,8 +438,8 @@ class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_app_name": "Application",
             "header_token_count": "Token Count",
             "header_percentage": "%",
-            "bar_chart_title": "Refresh Token Count by Apps: Chart",
-            "table_view_title": "Refresh Token Count by Apps: Table",
+            "bar_chart_title": "Refresh Token Count by Apps: Bar Chart",
+            "table_view_title": "Refresh Token Count by Apps: Tabular View",
         }
         return response
 
@@ -461,7 +463,7 @@ class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
             "header_percentage": "%",
             "header_no_demo_token_count": "Token Count (No Demo Scopes)",
             "header_no_demo_percentage": "%(No Demo Scopes)",
-            "bar_chart_title": "Archived Token Count by Apps: Chart",
-            "table_view_title": "Archived Token Count by Apps: Table",
+            "bar_chart_title": "Archived Token Count by Apps: Bar Chart",
+            "table_view_title": "Archived Token Count by Apps: Tabular View",
         }
         return response

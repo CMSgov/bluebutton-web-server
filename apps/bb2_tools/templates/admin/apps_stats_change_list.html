@@ -4,7 +4,6 @@
 
 <div class="results">
 
-  <h2> {{ page_desc.bar_chart_title }} </h2>
   <style>
   .bar-chart {
     display: flex;
@@ -54,143 +53,102 @@
   }
 
   </style>
-  <div class="results">
+
+{% for p in panels %}
+  {% if p.type == 'bar-chart' %}
+    <h2> {{ p.title }} </h2>
+    <div class="results">
       <div class="bar-chart">
-      {% for x in apps_total_by_signup_date %}
-          <div class="bar" style="height:{{x.pct}}%">
+      {% for e in p.body %}
+          <div class="bar" style="height:{{e.pct}}%">
               <div class="bar-tooltip">
-                  {{x.apps_sub_total | default:0 | intcomma }}<br>
-                  {{x.period | date:"m/d/Y"}}
+                  {{e.sub_total | default:0 | intcomma }}<br>
+                  {{e.period | date:"m/d/Y"}}
               </div>
           </div>
       {% endfor %}
       </div>
-  </div>  
+    </div>  
+  {% endif %}
 
-  <hr>
-  <hr>
-  <hr>
-  <hr>
-  <hr>
-
-  <div class="results">
-    <div class="row">
-      <div class="column">
-        <h2> {{ page_desc.bar_chart_title_active }} </h2>
-        <div class="bar-chart">
-          {% for x in apps_cnts_by_active %}
-            {% if x.active %}
-              <div class="bar" style="height:{{x.pct}}%">
-                <div class="bar-tooltip">
-                    {{ x.app_cnt | default:0 | intcomma }}<br>
-                    {{ "App is active" }}
-                </div>
-              </div>
-            {% else %}
-              <div class="bar" style="background-color:orange;height:{{x.pct}}%">
-                <div class="bar-tooltip">
-                    {{ x.app_cnt | default:0 | intcomma }}<br>
-                    {{ "App is not active" }}
-                </div>
-              </div>
-            {% endif  %}
-          {% endfor %}
-        </div>
-      </div>
-      <div class="column">
-        <h2> {{ page_desc.bar_chart_title_demo_choice }} </h2>
-        <div class="bar-chart">
-          {% for x in apps_cnts_by_require_demo_scopes %}
-            {% if x.require_demographic_scopes %}
-              <div class="bar" style="height:{{x.pct}}%">
-                  <div class="bar-tooltip">
-                      {{ x.app_cnt | default:0 | intcomma }}<br>
-                      {{ "App requires demographic_scopes" }}
+  {% if p.type == 'horiz-charts' %}
+    <div class="results">
+      <div class="row">
+        {% for c in p.data %}
+          <div class="column">
+            <h2> {{ c.title }} </h2>
+            <div class="bar-chart">
+              {% for b in c.body %}
+                {% if b.marked %}
+                  <div class="bar" style="background-color:orange;height:{{b.pct}}%">
+                    <div class="bar-tooltip">
+                      {{ b.row_cnt | default:0 | intcomma }}<br>
+                      {{ c.tooltip_label }}<br>
+                      {{ c.tooltip_txt.0 }}<br>
+                    </div>
                   </div>
-              </div>
-            {% else %}
-              <div class="bar" style="background-color:orange;height:{{x.pct}}%">
-                <div class="bar-tooltip">
-                    {{ x.app_cnt | default:0 | intcomma }}<br>
-                    {{ "App does not require demographic_scopes" }}
-                </div>
-              </div>
-            {% endif  %}
-          {% endfor %}
-        </div>
+                {% else %}
+                  <div class="bar" style="height:{{b.pct}}%">
+                    <div class="bar-tooltip">
+                      {{ b.row_cnt | default:0 | intcomma }}<br>
+                      {{ c.tooltip_label }}<br>
+                      {{ c.tooltip_txt.1 }}<br>
+                    </div>
+                  </div>
+                {% endif  %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
       </div>
-      <div class="column">
-        <h2> {{ page_desc.bar_chart_title_client_grant_type }} </h2>
-        <div class="bar-chart">
-          {% for x in apps_cnts_by_client_type_grant_type %}
-            {% if x.client_type == 'public' %}
-              <div class="bar" style="background-color:orange;height:{{x.pct}}%">
-            {% else %}
-              <div class="bar" style="height:{{x.pct}}%">
-            {% endif  %}
-                <div class="bar-tooltip">
-                  {{x.app_cnt | default:0 | intcomma }}<br>
-                  {{"client_type:"|add:x.client_type}}<br>
-                  {{"authorization_grant_type"|add:x.authorization_grant_type}}
+    </div>  
+  {% endif %}
+
+  {% if p.type == 'table-view' %}
+    <h2> {{ p.title }} </h2>
+    <div class="results">
+      <table>
+        <thead>
+          <tr>
+            {% for f in p.header %}
+              <th>
+                <div class="text">
+                  <a href="#">{{ f }}</a>
                 </div>
-              </div>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in p.body %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+              <td> {{ row.period }} </td>
+              <td> {{ row.sub_total }} </td>
+              <td>
+                {% if row.sub_total <= 0 and p.total <= 0 %}
+                  <strong> {{ 0 }} </strong>
+                {% else %}
+                  {% widthratio row.sub_total p.total 100 as pct %}
+                  <strong> {{ pct }} </strong>
+                {% endif %}
+              </td>
+            </tr>
           {% endfor %}
-        </div>
-      </div>
+          <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
+            {% for f in p.footer %}
+              <td> {{ f }} </td>
+            {% endfor %}
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </div>  
-
+  {% endif %}
   <hr>
   <hr>
   <hr>
   <hr>
   <hr>
-
-  <h2> {{ page_desc.table_view_title }} </h2>
-
-  <table>
-        
-    <thead>
-      <tr>
-        <th>
-          <div class="text">
-            <a href="#">{{ page_desc.header_period }}</a>
-          </div>
-        </th>
-        <th>
-          <div class="text">
-            <a href="#">{{ page_desc.header_apps_count }}</a>
-          </div>
-        </th>
-        <th>
-          <div class="text">
-            <a href="#">{{ page_desc.header_percentage }}</a>
-          </div>
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in apps_total_by_signup_date %}
-      <tr class="{% cycle 'row1' 'row2' %}">
-        <td> {{ row.period }} </td>
-        <td> {{ row.apps_sub_total }} </td>
-        <td>
-          {% if row.apps_sub_total <= 0 and apps_total.apps_total <= 0 %}
-            <strong> {{ 0 }} </strong>
-          {% else %}
-            {% widthratio row.apps_sub_total apps_total.apps_total 100 as pct %}
-            <strong> {{ pct }} </strong>
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-      <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
-        <td> Total </td>
-        <td> {{ apps_total.apps_total | intcomma }} </td>
-        <td> 100% </td>
-      </tr>
-    </tbody>
-  </table>
+{% endfor %}
 
 </div>
 {% endblock %}
