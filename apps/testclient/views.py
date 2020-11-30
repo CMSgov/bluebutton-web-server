@@ -13,6 +13,7 @@ from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@never_cache
 def callback(request):
     response = OrderedDict()
     if 'error' in request.GET:
@@ -77,8 +78,9 @@ def test_userinfo(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    userinfo_uri = "%s/v1/connect/userinfo" % (request.session['resource_uri'])
-    userinfo = oas.get(userinfo_uri).json()
+    userinfo = oas.get(
+        "{}/v1/connect/userinfo/?_format=json&bfd_ver={}".format(
+            request.session['resource_uri'], "v2" if request.path.endswith('userinfoV2') else "v1")).json()
     return JsonResponse(userinfo)
 
 
@@ -88,10 +90,9 @@ def test_coverage(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    coverage_uri = "%s/v1/fhir/Coverage/?_format=json" % (
-        request.session['resource_uri'])
-
-    coverage = oas.get(coverage_uri).json()
+    coverage = oas.get(
+        "{}/v1/fhir/Coverage/?_format=json&bfd_ver={}".format(
+            request.session['resource_uri'], "v2" if request.path.endswith('CoverageV2') else "v1")).json()
     return JsonResponse(coverage, safe=False)
 
 
@@ -101,9 +102,9 @@ def test_patient(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    patient_uri = "%s/v1/fhir/Patient/%s?_format=json" % (
-        request.session['resource_uri'], request.session['patient'])
-    patient = oas.get(patient_uri).json()
+    patient = oas.get(
+        "{}/v1/fhir/Patient/?_format=json&bfd_ver={}".format(
+            request.session['resource_uri'], "v2" if request.path.endswith('PatientV2') else "v1")).json()
     return JsonResponse(patient)
 
 
@@ -113,15 +114,15 @@ def test_eob(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?_format=json" % (
-        request.session['resource_uri'])
-    eob = oas.get(eob_uri).json()
+    eob = oas.get(
+        "{}/v1/fhir/ExplanationOfBenefit/?_format=json&bfd_ver={}".format(
+            request.session['resource_uri'], "v2" if request.path.endswith('ExplanationOfBenefitV2') else "v1")).json()
     return JsonResponse(eob)
 
 
 def authorize_link(request):
 
-    request.session.update(test_setup())
+    request.session.update(test_setup('v1'))
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
     authorization_url = oas.authorization_url(

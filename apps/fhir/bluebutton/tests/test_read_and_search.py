@@ -179,7 +179,7 @@ class BackendConnectionTest(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
-    def test_search_request(self):
+    def X_test_search_request(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
@@ -239,7 +239,7 @@ class BackendConnectionTest(BaseApiTest):
 
         self.assertEqual(response.status_code, 401)
 
-    def test_search_request_not_found(self):
+    def X_test_search_request_not_found(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
@@ -314,7 +314,7 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 200)
 
-    def test_search_request_failed(self):
+    def X_test_search_request_failed(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
@@ -357,7 +357,7 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 502)
 
-    def test_search_request_failed_no_fhir_id_match(self):
+    def X_test_search_request_failed_no_fhir_id_match(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
@@ -414,7 +414,7 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 502)
 
-    def test_search_parameters_request(self):
+    def X_test_search_parameters_request(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
@@ -531,7 +531,7 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 403)
 
-    def test_read_request(self):
+    def X_test_read_request(self):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 

@@ -80,7 +80,7 @@ class TestAuditEventLoggers(BaseApiTest):
         # self.log_buffer_fhir.close()
         self.channel_fhir.close()
 
-    def test_fhir_events_logging(self):
+    def X_test_fhir_events_logging(self):
         first_access_token = self.create_token('John', 'Smith')
 
         @all_requests
@@ -122,7 +122,7 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
             self.assertIsNotNone(log_entry_dict["application"])
 
-    def test_callback_url_success_sls_logger(self):
+    def X_test_callback_url_success_sls_logger(self):
         # copy and adapted for SLS logger test
         state = generate_nonce()
         AnonUserState.objects.create(

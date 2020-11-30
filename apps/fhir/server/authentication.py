@@ -67,7 +67,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     # Build URL with patient ID search by identifier.
     url = get_resourcerouter().fhir_url \
-        + "Patient/?identifier=" + search_identifier \
+        + "/v1/fhir/Patient/?identifier=" + search_identifier \
         + "&_format=" + settings.FHIR_PARAM_FORMAT
 
     s = requests.Session()

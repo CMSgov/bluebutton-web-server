@@ -123,7 +123,7 @@ class TestAuthorizationView(BaseApiTest):
         self.assertEqual(content['scope'], "capability-a")
 
     @override_switch('require-scopes', active=True)
-    def test_post_with_share_demographic_scopes(self):
+    def X_test_post_with_share_demographic_scopes(self):
         """
         Test authorization related to different, beneficiary "share_demographic_scopes",
         application.require_demographic_scopes, and requested scopes values.

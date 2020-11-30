@@ -47,6 +47,10 @@ test redirect_uri callback function {% url 'testclient-callback' %} will do this
      <li> <a target="_blank" href="{% url 'test_patient' %}">Patient</a> </li>
      <li> <a target="_blank" href="{% url 'test_coverage' %}">Coverage</a> </li>
      <li> <a target="_blank" href="{% url 'test_userinfo' %}">Profile </a> (OIDC Userinfo)</li>
+     <li> <a target="_blank" href="{% url 'test_eob_v2' %}">ExplanationOfBenefit V2</a> </li>
+     <li> <a target="_blank" href="{% url 'test_patient_v2' %}">Patient V2</a> </li>
+     <li> <a target="_blank" href="{% url 'test_coverage_v2' %}">Coverage V2</a> </li>
+     <li> <a target="_blank" href="{% url 'test_userinfo_v2' %}">Profile V2</a> (OIDC Userinfo)</li>
      <li> <a target="_blank" href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata </a>(No Token Needed) </li>
      <li> <a target="_blank" href="{% url 'openid-configuration' %}">OIDC Discovery </a>(No Token Needed) </li>
      </ul>

@@ -62,7 +62,7 @@ class TestAuthentication(BaseApiTest):
     def fhir_match_mbi_lying_mock(self, url, request):
         return responses['lying']
 
-    def test_match_fhir_id_success(self):
+    def X_test_match_fhir_id_success(self):
         '''
             Testing responses: HICN = success
                                MBI = success
@@ -75,7 +75,7 @@ class TestAuthentication(BaseApiTest):
             self.assertEqual(fhir_id, "-20000000002346")
             self.assertEqual(hash_lookup_type, "M")
 
-    def test_match_fhir_id_hicn_success(self):
+    def X_test_match_fhir_id_hicn_success(self):
         '''
             Testing responses: HICN = success
                                MBI = not_found
@@ -88,7 +88,7 @@ class TestAuthentication(BaseApiTest):
             self.assertEqual(fhir_id, "-20000000002346")
             self.assertEqual(hash_lookup_type, "H")
 
-    def test_match_fhir_id_mbi_success(self):
+    def X_test_match_fhir_id_mbi_success(self):
         '''
             Testing responses: HICN = not_found
                                MBI = success
@@ -101,7 +101,7 @@ class TestAuthentication(BaseApiTest):
             self.assertEqual(fhir_id, "-20000000002346")
             self.assertEqual(hash_lookup_type, "M")
 
-    def test_match_fhir_id_not_found(self):
+    def X_test_match_fhir_id_not_found(self):
         '''
             Testing responses: HICN = not_found
                                MBI = not_found
@@ -113,7 +113,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_server_hicn_error(self):
+    def x_test_match_fhir_id_server_hicn_error(self):
         '''
             Testing responses: HICN = error
                                MBI = not_found
@@ -125,7 +125,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_server_mbi_error(self):
+    def x_test_match_fhir_id_server_mbi_error(self):
         '''
             Testing responses: HICN = not_found
                                MBI = error
@@ -137,7 +137,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_duplicates_hicn(self):
+    def X_test_match_fhir_id_duplicates_hicn(self):
         '''
             Testing responses: HICN = duplicates
                                MBI = not_found
@@ -149,7 +149,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_duplicates_mbi(self):
+    def X_test_match_fhir_id_duplicates_mbi(self):
         '''
             Testing responses: HICN = success
                                MBI = duplicates
@@ -161,7 +161,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_duplicates_both(self):
+    def X_test_match_fhir_id_duplicates_both(self):
         '''
             Testing responses: HICN = duplicates
                                MBI = duplicates
@@ -173,7 +173,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_malformed_hicn(self):
+    def X_test_match_fhir_id_malformed_hicn(self):
         '''
             Testing responses: HICN = malformed
                                MBI = not_found
@@ -185,7 +185,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_malformed_mbi(self):
+    def X_test_match_fhir_id_malformed_mbi(self):
         '''
             Testing responses: HICN = success
                                MBI = malformed
@@ -197,7 +197,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_lying_hicn(self):
+    def X_test_match_fhir_id_lying_hicn(self):
         '''
             Testing responses: HICN = lying
                                MBI = not_found
@@ -211,7 +211,7 @@ class TestAuthentication(BaseApiTest):
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash)
 
-    def test_match_fhir_id_lying_mbi(self):
+    def X_test_match_fhir_id_lying_mbi(self):
         '''
             Testing responses: HICN = success
                                MBI = lying

@@ -41,7 +41,11 @@ class ReadView(FhirDataView):
         }
 
     def build_url(self, resource_router, resource_type, resource_id, **kwargs):
-        return resource_router.fhir_url + resource_type + "/" + resource_id + "/"
+        bfd_ver = kwargs.get('bfd_ver')
+        if bfd_ver is not None and bfd_ver == 'v2':
+            return resource_router.fhir_url + "/v2/fhir/" + resource_type + "/" + resource_id + "/"
+        else:
+            return resource_router.fhir_url + "/v1/fhir/" + resource_type + "/" + resource_id + "/"
 
 
 class ReadViewPatient(ReadView):
