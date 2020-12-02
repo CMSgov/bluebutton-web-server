@@ -1371,7 +1371,7 @@ stats count by message.crosswalk.user_id_type</query>
     <panel>
       <html>
        <u1> <h1>
-            <b>9. Authorization ApprovalView Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView()</b>
+            <b>9. Authorization ApprovalView Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView(). At this step the beneficiary is presented with the consent form web page. This can have multiple events when a beneficiary refreshes the consent page.</b>
           </h1>
         </u1>
      </html>
@@ -1474,7 +1474,7 @@ stats count by message.crosswalk.user_id_type</query>
     <panel>
       <html>
        <u1> <h1>
-            <b>10. Authorization ApprovalView (redirect to bene consent form) Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView(). After this step the beneficiary is presented with the consent form web page. </b>
+            <b>10. Authorization ApprovalView (redirect to bene consent form) Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView().  </b>
           </h1>
         </u1>
      </html>
