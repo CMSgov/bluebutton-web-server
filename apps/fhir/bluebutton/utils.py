@@ -141,7 +141,6 @@ def generate_info_headers(request):
 
     # Return resource_owner or user
     user = get_user_from_request(request)
-    originating_ip = get_ip_from_request(request)
     crosswalk = get_crosswalk(user)
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
@@ -170,11 +169,6 @@ def generate_info_headers(request):
             result['BlueButton-DeveloperId'] = ""
             result['BlueButton-Developer'] = ""
 
-    if originating_ip:
-        result['BlueButton-OriginatingIpAddress'] = originating_ip
-    else:
-        result['BlueButton-OriginatingIpAddress'] = ""
-
     return result
 
 
@@ -196,6 +190,12 @@ def set_default_header(request, header=None):
         header['X-Forwarded-Proto'] = "http"
 
     header['X-Forwarded-Host'] = request.get_host()
+
+    originating_ip = get_ip_from_request(request)
+    if originating_ip:
+        header['X-Forwarded-For'] = originating_ip
+    else:
+        header['X-Forwarded-For'] = ""
 
     return header
 
