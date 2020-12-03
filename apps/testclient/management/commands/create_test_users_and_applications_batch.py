@@ -109,7 +109,7 @@ def create_dev_users_apps_and_bene_crosswalks(group):
     # create 100 dev users
     # generate access tokens + refresh tokens + archived tokens for random picked benes for each app
     app_index = 0
-    for i in range(50):
+    for i in range(150):
         dev_u_fn = "DevUserFN{}".format(i)
         dev_u_ln = "DevUserLN{}".format(i)
         u = User.objects.create_user(username="{}.{}".format(dev_u_fn, dev_u_ln),
@@ -156,6 +156,8 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                                            authorization_grant_type=auth_grant_type)
             date_created = datetime.utcnow() - timedelta(days=randrange(700))
             a.created = date_created.replace(tzinfo=pytz.utc)
+            u.date_joined = date_created - timedelta(days=randint(1, 10))
+            u.save()
             a.save()
             titles = [
                 "My Medicare and supplemental coverage information.",

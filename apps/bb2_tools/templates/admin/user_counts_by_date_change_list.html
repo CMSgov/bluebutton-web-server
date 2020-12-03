@@ -1,0 +1,147 @@
+{% extends "admin/change_list.html" %}
+{% load humanize %}
+{% block result_list %}
+
+<div class="results">
+
+  <style>
+  .bar-chart {
+    display: flex;
+    justify-content: space-around;
+    height: 160px;
+    padding-top: 60px;
+    overflow: hidden;
+  }
+  .bar-chart .bar {
+      flex: 100%;
+      align-self: flex-end;
+      margin-right: 2px;
+      position: relative;
+      background-color: #79aec8;
+  }
+  .bar-chart .bar:last-child {
+      margin: 0;
+  }
+  .bar-chart .bar:hover {
+      background-color: #417690;
+  }
+  .bar-chart .bar .bar-tooltip {
+      position: relative;
+      z-index: 999;
+  }
+  .bar-chart .bar .bar-tooltip {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-weight: bold;
+      opacity: 0;
+  }
+  .bar-chart .bar:hover .bar-tooltip {
+      opacity: 1;
+  }
+  
+  .row {
+    display: table;
+    width: 100%; /*Optional*/
+    table-layout: fixed; /*Optional*/
+    border-spacing: 10px; /*Optional*/
+  }
+  .column {
+    display: table-cell;
+  }
+
+  </style>
+
+{% for p in panels %}
+  {% if p.type == 'bar-chart' %}
+    <h2> {{ p.title }} </h2>
+    <div class="results">
+        <div class="bar-chart">
+      {% for e in p.body %}
+        {% if p.highlight == 'yes' %}
+          <div class="bar" style="background-color:orange;height:{{e.pct}}%">
+        {% else %}
+          <div class="bar" style="height:{{e.pct}}%">
+        {% endif %}
+            <div class="bar-tooltip">
+                  {{e.sub_total | default:0 | intcomma }}<br>
+                  {{e.period | date:"m/d/Y"}}
+              </div>
+          </div>
+      {% endfor %}
+      </div>
+    </div>  
+  {% endif %}
+
+  {% if p.type == 'horiz-charts' %}
+    <div class="results">
+      <div class="row">
+        {% for c in p.data %}
+          <div class="column">
+            <h2> {{ c.title }} </h2>
+            <div class="bar-chart">
+              {% for b in c.body %}
+                {% if b.marked %}
+                  <div class="bar" style="background-color:orange;height:{{b.pct}}%">
+                    <div class="bar-tooltip">
+                      {{ b.row_cnt | default:0 | intcomma }}<br>
+                      {{ c.tooltip_label }}<br>
+                      {{ c.tooltip_txt.0 }}<br>
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="bar" style="height:{{b.pct}}%">
+                    <div class="bar-tooltip">
+                      {{ b.row_cnt | default:0 | intcomma }}<br>
+                      {{ c.tooltip_label }}<br>
+                      {{ c.tooltip_txt.1 }}<br>
+                    </div>
+                  </div>
+                {% endif  %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>  
+  {% endif %}
+
+  {% if p.type == 'flat-table-view' %}
+    <h2> {{ p.title }} </h2>
+    <div class="results">
+      <table>
+        <thead>
+          <tr>
+            {% for f in p.header %}
+              <th>
+                <div class="text">
+                  <a href="#">{{ f }}</a>
+                </div>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in p.body %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+              {% for k, v in row.items %}
+                <td> {{ v }} </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+  <hr>
+  <hr>
+  <hr>
+  <hr>
+  <hr>
+{% endfor %}
+
+</div>
+{% endblock %}
+{% block pagination %}{% endblock %}

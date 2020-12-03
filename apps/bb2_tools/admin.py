@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from oauth2_provider.models import AccessToken, RefreshToken
 from oauth2_provider.models import get_application_model
 
+from apps.accounts.models import UserProfile
 from apps.dot_ext.models import ArchivedToken
 from apps.bb2_tools.models import (
     BeneficiaryDashboard,
@@ -18,6 +19,7 @@ from apps.bb2_tools.models import (
     RefreshTokenStats,
     ArchivedTokenStats,
     DummyAdminObject,
+    UserStats,
 )
 from apps.fhir.bluebutton.utils import get_patient_by_id
 
@@ -26,7 +28,7 @@ LINK_REF_FMT = "<a  href='{0}{1}?q={2}&user__id__exact={3}'>{4}</a>"
 TOKEN_VIEWERS = {MyAccessTokenViewer, MyRefreshTokenViewer, MyArchivedTokenViewer}
 
 
-def gen_ctx_grp_by_date_fld(request, uniq_fld_name, date_fld_name, clazz_model, date_hierarchy):
+def gen_ctx_grpby_datefld_w_filter(request, uniq_fld_name, filter_fld, filter_val, date_fld_name, clazz_model, date_hierarchy):
     period = get_next_in_date_hierarchy(
         request,
         date_hierarchy,
@@ -34,13 +36,23 @@ def gen_ctx_grp_by_date_fld(request, uniq_fld_name, date_fld_name, clazz_model, 
     aggregate_by_period_ctx = {}
     aggregate_by_period_ctx['period'] = period
 
-    total_by_date = clazz_model.objects.all().annotate(
-        period=Trunc(
-            date_fld_name,
-            period,
-            output_field=DateTimeField(),
-        ),
-    ).values('period').annotate(sub_total=Count(uniq_fld_name)).order_by('period')
+    total_by_date = None
+    if filter_fld is not None:
+        total_by_date = clazz_model.objects.filter(**{filter_fld: filter_val}).annotate(
+            period=Trunc(
+                date_fld_name,
+                period,
+                output_field=DateTimeField(),
+            ),
+        ).values('period').annotate(sub_total=Count(uniq_fld_name)).order_by('period')
+    else:
+        total_by_date = clazz_model.objects.all().annotate(
+            period=Trunc(
+                date_fld_name,
+                period,
+                output_field=DateTimeField(),
+            ),
+        ).values('period').annotate(sub_total=Count(uniq_fld_name)).order_by('period')
 
     sub_totals_range = total_by_date.aggregate(
         low=Min('sub_total'),
@@ -56,6 +68,10 @@ def gen_ctx_grp_by_date_fld(request, uniq_fld_name, date_fld_name, clazz_model, 
              'sub_total': e['sub_total'] or 0,
              'pct': (e['sub_total'] or 0) / high * 100 if high > low else 0, })
     return chart_list
+
+
+def gen_ctx_grp_by_date_fld(request, uniq_fld_name, date_fld_name, clazz_model, date_hierarchy):
+    return gen_ctx_grpby_datefld_w_filter(request, uniq_fld_name, None, None, date_fld_name, clazz_model, date_hierarchy)
 
 
 def gen_ctx_grp_by_flds(clazz_model, grp_flds, uniq_fld, marked_fld_name, marked_fld_val):
@@ -341,7 +357,7 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
                                                               self.date_hierarchy)
         top_panel = {
             'type': 'bar-chart',
-            'title': 'Apps Count by Signup Date: Bar Chart',
+            'title': 'Apps Count by Signup Date, Total ({})'.format(total),
             'body': app_grp_by_created_date_ctx,
         }
 
@@ -380,11 +396,92 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
 
         bottom_panel = {
             'type': 'table-view',
-            'title': 'Apps Count by Signup Date: Tabular View',
+            'title': 'Apps Count by Signup Date, Total ({})'.format(total),
             'header': ['Period', 'Apps Count', 'Percentage'],
             'body': app_grp_by_created_date_ctx,
             'total': total,
             'footer': ['Total', total, '100%'],
+        }
+
+        panels.append(bottom_panel)
+        response.context_data['panels'] = panels
+
+        return response
+
+
+@admin.register(UserStats)
+class UserCountByCreateDateAdmin(ReadOnlyAdmin):
+    change_list_template = 'admin/user_counts_by_date_change_list.html'
+    date_hierarchy = 'user__date_joined'
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+
+        clazz_model = UserProfile
+        total = clazz_model.objects.all().count()
+        total_dev = clazz_model.objects.all().filter(user_type='DEV').count()
+        total_ben = clazz_model.objects.all().filter(user_type='BEN').count()
+        panels = []
+
+        # user ( DEV / BEN ) counts over joined date field as bar chart
+        ben_user_grp_by_created_date_ctx = gen_ctx_grpby_datefld_w_filter(request,
+                                                                          'id',
+                                                                          'user_type',
+                                                                          'BEN',
+                                                                          'user__date_joined',
+                                                                          clazz_model,
+                                                                          self.date_hierarchy)
+        top_panel = {
+            'type': 'bar-chart',
+            'title': ('Beneficiaries Counts by Joined Date, '
+                      'User Total: {}, "BEN": {}, "DEV": {}').format(total, total_ben, total_dev),
+            'highlight': 'no',
+            'body': ben_user_grp_by_created_date_ctx,
+        }
+
+        panels.append(top_panel)
+
+        dev_user_grp_by_created_date_ctx = gen_ctx_grpby_datefld_w_filter(
+            request,
+            'id',
+            'user_type',
+            'DEV',
+            'user__date_joined',
+            clazz_model,
+            self.date_hierarchy)
+        center_panel = {
+            'type': 'bar-chart',
+            'title': ('Developer User Counts by Joined Date:'
+                      ' User Total: {}, "BEN": {}, "DEV": {}').format(total, total_ben, total_dev),
+            'highlight': 'yes',
+            'body': dev_user_grp_by_created_date_ctx,
+        }
+
+        panels.append(center_panel)
+
+        dev_user_list = clazz_model.objects.filter(user_type='DEV').values('user__username',
+                                                                           'user__first_name',
+                                                                           'user__last_name',
+                                                                           'organization_name',
+                                                                           'user_type',
+                                                                           'user__is_superuser',
+                                                                           'user__is_staff',
+                                                                           'user__is_active',
+                                                                           'user__last_login',
+                                                                           'user__date_joined'
+                                                                           ).order_by('user__date_joined')
+
+        bottom_panel = {
+            'type': 'flat-table-view',
+            'title': 'DEV User List (Total: {})'.format(total_dev),
+            'header': ['Name', 'Fist Name', 'Last Name',
+                       'Organization', 'User Type',
+                       'Is SuperUser', 'Is Staff',
+                       'Is Active', 'Last Login', 'Date Joined'],
+            'body': list(dev_user_list),
         }
 
         panels.append(bottom_panel)
@@ -414,9 +511,11 @@ class ConnectedBeneficiaryCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_percentage": "%",
             "header_no_demo_token_count": "Token Count (No Demo Scopes)",
             "header_no_demo_percentage": "%(No Demo Scopes)",
-            "bar_chart_title": "Access Token Count by Apps: Bar Chart",
-            "bar_chart_no_demo_title": "Access Token Count (No Demo Scope) by Apps: Bar Chart",
-            "table_view_title": "Access Token Count by Apps: Tabular View",
+            "bar_chart_title": "Access Token Count by Apps, Total ({})".format(response.context_data['token_total']),
+            "bar_chart_no_demo_title": ("Access Token Count"
+                                        " (No Demo Scope) by Apps, Total ({})").format(
+                                            response.context_data['token_total']),
+            "table_view_title": "Access Token Count by Apps, Total ({})".format(response.context_data['token_total']),
         }
         return response
 
@@ -438,8 +537,8 @@ class RefreshTokenCountByAppsAdmin(TokenCountByAppsAdmin):
             "header_app_name": "Application",
             "header_token_count": "Token Count",
             "header_percentage": "%",
-            "bar_chart_title": "Refresh Token Count by Apps: Bar Chart",
-            "table_view_title": "Refresh Token Count by Apps: Tabular View",
+            "bar_chart_title": "Refresh Token Count by Apps, Total ({})".format(response.context_data['token_total']),
+            "table_view_title": "Refresh Token Count by Apps, Total ({})".format(response.context_data['token_total']),
         }
         return response
 
@@ -463,7 +562,7 @@ class ArchivedTokenStatsAdmin(TokenCountByAppsAdmin):
             "header_percentage": "%",
             "header_no_demo_token_count": "Token Count (No Demo Scopes)",
             "header_no_demo_percentage": "%(No Demo Scopes)",
-            "bar_chart_title": "Archived Token Count by Apps: Bar Chart",
-            "table_view_title": "Archived Token Count by Apps: Tabular View",
+            "bar_chart_title": "Archived Token Count by Apps, Total ({})".format(response.context_data['token_total']),
+            "table_view_title": "Archived Token Count by Apps, Total ({})".format(response.context_data['token_total']),
         }
         return response
