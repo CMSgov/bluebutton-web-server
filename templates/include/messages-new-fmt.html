@@ -3,7 +3,7 @@
   {% for message in messages %}
   <div class="gradient-content-container">
     <!-- <a class="close" data-dismiss="alert">×</a> -->
-    <div class="gradient-messages-container">
+    <div class="gradient-messages-container" role="alert" aria-live="assertive">
       {{message}}
     </div>
   </div>
