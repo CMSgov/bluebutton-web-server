@@ -66,9 +66,17 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         auth_flow_dict = None
 
     # Build URL with patient ID search by identifier.
-    url = get_resourcerouter().fhir_url \
-        + "Patient/?identifier=" + search_identifier \
-        + "&_format=" + settings.FHIR_PARAM_FORMAT
+    # BB2-291 with the introduction of BFD v2, still use v1 path
+    # for authentication, should not be an issue if need to be changed to v2
+    # since this is internal use.
+    url = None
+    if get_resourcerouter().fhir_url.endswith('v1/fhir/'):
+        # only called by tests
+        url = "{}Patient/?identifier={}&_format={}".format(
+            get_resourcerouter().fhir_url, search_identifier, settings.FHIR_PARAM_FORMAT)
+    else:
+        url = "{}/v1/fhir/Patient/?identifier={}&_format={}".format(
+            get_resourcerouter().fhir_url, search_identifier, settings.FHIR_PARAM_FORMAT)
 
     s = requests.Session()
 

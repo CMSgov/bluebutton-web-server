@@ -13,6 +13,7 @@ from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+@never_cache
 def callback(request):
     response = OrderedDict()
     if 'error' in request.GET:
@@ -77,46 +78,25 @@ def test_userinfo(request):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
-    userinfo_uri = "%s/v1/connect/userinfo" % (request.session['resource_uri'])
-    userinfo = oas.get(userinfo_uri).json()
+    userinfo = oas.get(
+        "{}/v1/connect/userinfo/?_format=json&fhir_ver={}".format(
+            request.session['resource_uri'], "v2" if request.path.endswith('userinfoV2') else "v1")).json()
     return JsonResponse(userinfo)
 
 
 @never_cache
 def test_coverage(request):
-    if 'token' not in request.session:
-        return HttpResponseRedirect(reverse('testclient_error_page'))
-    oas = OAuth2Session(
-        request.session['client_id'], token=request.session['token'])
-    coverage_uri = "%s/v1/fhir/Coverage/?_format=json" % (
-        request.session['resource_uri'])
-
-    coverage = oas.get(coverage_uri).json()
-    return JsonResponse(coverage, safe=False)
+    return check_token_and_query(request, 'Coverage')
 
 
 @never_cache
 def test_patient(request):
-    if 'token' not in request.session:
-        return HttpResponseRedirect(reverse('testclient_error_page'))
-    oas = OAuth2Session(
-        request.session['client_id'], token=request.session['token'])
-    patient_uri = "%s/v1/fhir/Patient/%s?_format=json" % (
-        request.session['resource_uri'], request.session['patient'])
-    patient = oas.get(patient_uri).json()
-    return JsonResponse(patient)
+    return check_token_and_query(request, 'Patient')
 
 
 @never_cache
 def test_eob(request):
-    if 'token' not in request.session:
-        return HttpResponseRedirect(reverse('testclient_error_page'))
-    oas = OAuth2Session(
-        request.session['client_id'], token=request.session['token'])
-    eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?_format=json" % (
-        request.session['resource_uri'])
-    eob = oas.get(eob_uri).json()
-    return JsonResponse(eob)
+    return check_token_and_query(request, 'ExplanationOfBenefit')
 
 
 def authorize_link(request):
@@ -131,3 +111,26 @@ def authorize_link(request):
 
 def test_links(request):
     return render(request, 'testlinks.html')
+
+
+@never_cache
+def check_token_and_query(request, resource_name):
+    '''
+    helper: check token in session and add fhir version parameter
+    if a BFD v2 request intended
+    '''
+    if 'token' not in request.session:
+        return HttpResponseRedirect(reverse('testclient_error_page'))
+    oas = OAuth2Session(
+        request.session['client_id'], token=request.session['token'])
+    fhir_resource = None
+    if request.path.endswith('{}V2'.format(resource_name)):
+        # BB2-291: append query parameter fhir_ver=r4
+        fhir_resource = oas.get(
+            "{}/v1/fhir/{}/?_format=json&fhir_ver=r4".format(
+                request.session['resource_uri'], resource_name)).json()
+    else:
+        fhir_resource = oas.get(
+            "{}/v1/fhir/{}/?_format=json".format(
+                request.session['resource_uri'], resource_name)).json()
+    return JsonResponse(fhir_resource, safe=False)

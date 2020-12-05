@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load static %}
+{% load waffle_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,9 +54,15 @@ After they expire you will need to go through Authorization process again.
      <li> <a target="_blank" href="{% url 'test_patient' %}">Patient</a> </li>
      <li> <a target="_blank" href="{% url 'test_coverage' %}">Coverage</a> </li>
      <li> <a target="_blank" href="{% url 'test_userinfo' %}">Profile</a> (OIDC UserInfo) </li>
+     {% switch "bfd_v2" %}
+          <li> <a target="_blank" href="{% url 'test_eob_v2' %}">ExplanationOfBenefitV2</a> </li>
+          <li> <a target="_blank" href="{% url 'test_patient_v2' %}">PatientV2</a> </li>
+          <li> <a target="_blank" href="{% url 'test_coverage_v2' %}">CoverageV2</a> </li>
+          <li> <a target="_blank" href="{% url 'test_userinfo_v2' %}">ProfileV2</a> (OIDC UserInfo) </li>
+     {% endswitch %}
      <li> <a target="_blank" href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata </a> (No Token Needed) </li>
      <li> <a target="_blank"  href="{% url 'openid-configuration' %}">OIDC Discovery</a> (No Token Needed) </li>
-
+     
      </ul>
      
      <h2><a href="{% url 'logout' %}">Logout</a></h1>

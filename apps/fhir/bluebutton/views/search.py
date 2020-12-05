@@ -54,7 +54,14 @@ class SearchView(FhirDataView):
         return super().get(request, self.resource_type, *args, **kwargs)
 
     def build_url(self, resource_router, resource_type, *args, **kwargs):
-        return resource_router.fhir_url + resource_type + "/"
+        fhir_ver = kwargs.get('fhir_ver')
+        if resource_router.fhir_url.endswith('v1/fhir/'):
+            # only if called by tests
+            return "{}{}/".format(resource_router.fhir_url, resource_type)
+        else:
+            return "{}/{}/fhir/{}/".format(resource_router.fhir_url,
+                                           'v2' if fhir_ver is not None and fhir_ver == 'r4' else 'v1',
+                                           resource_type)
 
 
 class SearchViewPatient(SearchView):

@@ -130,7 +130,8 @@ class SLSRequest(Request):
 
 
 class FHIRRequest(Request):
-    def __init__(self, request):
+    def __init__(self, request, fhir_ver=None):
+        self.fhir_ver = fhir_ver
         super().__init__(request)
 
     def includeAddressFields(self):
@@ -169,6 +170,7 @@ class FHIRRequest(Request):
             "type": "fhir_pre_fetch",
             "uuid": self.uuid(),
             "fhir_id": self.fhir_id(),
+            "fhir_ver": self.fhir_ver if self.fhir_ver is not None else 'stu3',
             "includeAddressFields": self.includeAddressFields(),
             "user": self.user(),
             "application": self.application(),
@@ -178,7 +180,8 @@ class FHIRRequest(Request):
 
 
 class FHIRRequestForAuth(Request):
-    def __init__(self, request, auth_flow_dict=None):
+    def __init__(self, request, auth_flow_dict=None, fhir_ver=None):
+        self.fhir_ver = fhir_ver
         if auth_flow_dict:
             self.auth_flow_dict = auth_flow_dict
         else:
@@ -198,6 +201,7 @@ class FHIRRequestForAuth(Request):
         result = {
             "type": "fhir_auth_pre_fetch",
             "uuid": self.uuid(),
+            "fhir_ver": self.fhir_ver if self.fhir_ver is not None else 'stu3',
             "includeAddressFields": self.includeAddressFields(),
             "path": "patient search",
             "start_time": self.start_time(),
@@ -242,11 +246,14 @@ class Response:
 class FHIRResponse(Response):
     request_class = FHIRRequest
 
-    def __init__(self, response):
+    def __init__(self, response, fhir_ver):
+        self.fhir_ver = fhir_ver
         super().__init__(response)
 
     def to_dict(self):
         super_dict = super().to_dict()
+        # add fhir version info
+        super_dict.update({"fhir_ver": self.fhir_ver if self.fhir_ver is not None else 'stu3'})
         # over write type
         super_dict.update({"type": "fhir_post_fetch"})
         return super_dict
@@ -255,7 +262,8 @@ class FHIRResponse(Response):
 class FHIRResponseForAuth(Response):
     request_class = FHIRRequestForAuth
 
-    def __init__(self, response, auth_flow_dict=None):
+    def __init__(self, response, auth_flow_dict=None, fhir_ver=None):
+        self.fhir_ver = fhir_ver
         if auth_flow_dict:
             self.auth_flow_dict = auth_flow_dict
         else:
@@ -264,6 +272,8 @@ class FHIRResponseForAuth(Response):
 
     def to_dict(self):
         super_dict = super().to_dict()
+        # add fhir version info
+        super_dict.update({"fhir_ver": self.fhir_ver if self.fhir_ver is not None else 'stu3'})
         # over write type
         super_dict.update({"type": "fhir_auth_post_fetch"})
         # Update with auth flow session info

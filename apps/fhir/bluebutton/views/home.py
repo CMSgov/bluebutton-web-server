@@ -30,11 +30,14 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     crosswalk = None
     resource_router = get_resourcerouter()
     call_to = resource_router.fhir_url
-
+    # BB2-291 assume for BFD v1(fhir stu3), v2 (fhir r4)
+    # a common metadata served, if not, we can check the request
+    # for intended target fhir version and point to the end point
+    # where the metadata is served
     if call_to.endswith('/'):
-        call_to += 'metadata'
+        call_to += 'v1/fhir/metadata'
     else:
-        call_to += '/metadata'
+        call_to += '/v1/fhir/metadata'
 
     pass_params = {'_format': 'json'}
 

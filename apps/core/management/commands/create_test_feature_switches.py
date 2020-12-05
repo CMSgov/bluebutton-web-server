@@ -6,7 +6,8 @@ WAFFLE_FEATURE_SWITCHES = (('outreach_email', True),
                            ('wellknown_applications', True),
                            ('login', True),
                            ('signup', True),
-                           ('require-scopes', True))
+                           ('require-scopes', True),
+                           ('bfd_v2', True),)
 
 
 class Command(BaseCommand):

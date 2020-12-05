@@ -1,5 +1,6 @@
 import logging
 import voluptuous
+import waffle
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
 from rest_framework.parsers import JSONParser
@@ -91,10 +92,14 @@ class FhirDataView(APIView):
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
+        # BB2-291 v2 switch enforced here, entry of all fhir resources queries
+        fhir_ver = request.query_params.get('fhir_ver')
+        if (not waffle.switch_is_active('bfd_v2') and fhir_ver is not None and fhir_ver == 'r4'):
+            raise exceptions.NotFound("bfd_v2 disabled.")
         target_url = self.build_url(resource_router,
                                     resource_type,
                                     *args,
-                                    **kwargs)
+                                    **dict(kwargs, fhir_ver=fhir_ver))
 
         logger.debug('FHIR URL with key:%s' % target_url)
 
@@ -115,14 +120,14 @@ class FhirDataView(APIView):
         s = Session()
         prepped = s.prepare_request(req)
         # Send signal
-        pre_fetch.send_robust(FhirDataView, request=req)
+        pre_fetch.send_robust(FhirDataView, request=req, fhir_ver=fhir_ver)
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
             verify=FhirServerVerify(crosswalk=request.crosswalk))
         # Send signal
-        post_fetch.send_robust(FhirDataView, request=prepped, response=r)
+        post_fetch.send_robust(FhirDataView, request=prepped, response=r, fhir_ver=fhir_ver)
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128
