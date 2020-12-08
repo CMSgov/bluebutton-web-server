@@ -22,15 +22,26 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
     <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
 
 			{% if user.is_authenticated %}
-			<p><b>IMPORTANT:</b>  It looks like you may be logged in to your Sandbox Developer Account.
-       Being logged into your Developer Account when using this Test Client triggers a 500 error.</p>
- <p><a href="{% url 'logout' %}">Logout</a> now.</p>{% endif %}
+			<div class="ds-c-alert ds-c-alert--warn ds-u-margin-bottom--4">
+				<div class="ds-c-alert__body">
+					<h3 class="ds-c-alert__heading">Log out to continue</h3>
+					<p class="ds-c-alert__text" role="alert">
+						It looks like you may be logged in to your Sandbox developer account. Because the Test Client mimics the behavior of an anonymous user authenticating with Blue Button 2.0, you must be logged out of your Sandbox account to use the Test Client. Otherwise you will receive a 500 error.
+					</p>
+					<a href="{% url 'logout' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Log Out to Continue</a>
+				</div>
+			</div>
+			{% endif %}
 
- <p>These calls require a token to be attached to your session.  The
+			<h2>Step 1: Sample Authorization</h2>
+
+			<p>These calls require a token to be attached to your session.  The
 test redirect_uri callback function {% url 'testclient-callback' %} will do this for you.<br/>
  Use this <a href="{% url 'authorize_link' %}">sample Authorization flow</a> to set the token, then come back here to make the calls.
  Calls requiring an access token will fail unless the above step is completed.
  </p>
+ <br />
+<a href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
      <h1>API Calls</h1>
      <ul>
 
