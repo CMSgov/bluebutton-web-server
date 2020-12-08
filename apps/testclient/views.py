@@ -74,13 +74,15 @@ def success(request, response):
 
 @never_cache
 def test_userinfo(request):
+    # user info is obtained based on Crosswalk entry
+    # so it is agnostic to bfd v1 or v2
     if 'token' not in request.session:
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     userinfo = oas.get(
-        "{}/v1/connect/userinfo/?_format=json&fhir_ver={}".format(
-            request.session['resource_uri'], "v2" if request.path.endswith('userinfoV2') else "v1")).json()
+        "{}/v1/connect/userinfo/?_format=json".format(
+            request.session['resource_uri'])).json()
     return JsonResponse(userinfo)
 
 
@@ -123,9 +125,9 @@ def check_token_and_query(request, resource_name):
         return HttpResponseRedirect(reverse('testclient_error_page'))
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
+    fhir_ver = request.GET.get('fhir_ver')
     fhir_resource = None
-    if request.path.endswith('{}V2'.format(resource_name)):
-        # BB2-291: append query parameter fhir_ver=r4
+    if fhir_ver is not None and fhir_ver == 'r4':
         fhir_resource = oas.get(
             "{}/v1/fhir/{}/?_format=json&fhir_ver=r4".format(
                 request.session['resource_uri'], resource_name)).json()
