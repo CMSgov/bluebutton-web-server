@@ -8,7 +8,7 @@
 <div class="results">
   <ul>
     {% for d in splunk_dashboards %}
-      <li><a href="{{ d.url }}" target="_blank">{{ d.display_name }}</a></li>
+      <li><a href="{{ d.url }}" target="_blank" rel="noopener noreferrer">{{ d.display_name }}</a></li>
     {% endfor %}
   </ul>  
 </div>
