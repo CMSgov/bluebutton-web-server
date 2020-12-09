@@ -35,13 +35,12 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 			<h2>Step 1: Sample Authorization</h2>
 
-			<p>These calls require a token to be attached to your session.  The
-test redirect_uri callback function {% url 'testclient-callback' %} will do this for you.<br/>
- Use this <a href="{% url 'authorize_link' %}">sample Authorization flow</a> to set the token, then come back here to make the calls.
- Calls requiring an access token will fail unless the above step is completed.
- </p>
- <br />
-<a href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
+			<p>To simulate a Medicare beneficiary granting an application access to their Medicare claims data, start by getting a sample authorization token. You'll see how a API call URL is constructed and see what a beneficiary sees when they are granting access.</p>
+
+			<br />
+
+			<a href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
+
      <h1>API Calls</h1>
      <ul>
 
