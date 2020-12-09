@@ -41,19 +41,17 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 			<a href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
 
-     <h1>API Calls</h1>
-     <ul>
-
-     <li> <a target="_blank" href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
-     <li> <a target="_blank" href="{% url 'test_patient' %}">Patient</a> </li>
-     <li> <a target="_blank" href="{% url 'test_coverage' %}">Coverage</a> </li>
-     <li> <a target="_blank" href="{% url 'test_userinfo' %}">Profile </a> (OIDC Userinfo)</li>
-     <li> <a target="_blank" href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata </a>(No Token Needed) </li>
-     <li> <a target="_blank" href="{% url 'openid-configuration' %}">OIDC Discovery </a>(No Token Needed) </li>
+     <h2>Step 2: API Calls</h2>
+		 <p class="ds-u-margin-y--2">Once you've completed step one and have an authorization token, you can click on any of the links below to simulate calls to different endpoints and see the sample data that is delivered in the response.</p>
+     
+		 <ul>
+			 <li> <a href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
+			 <li> <a href="{% url 'test_patient' %}">Patient</a> </li>
+			 <li> <a href="{% url 'test_coverage' %}">Coverage</a> </li>
+			 <li> <a href="{% url 'test_userinfo' %}">Profile </a> (OIDC Userinfo)</li>
+			 <li> <a href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata</a> (No Token Needed)</li>
+			 <li> <a href="{% url 'openid-configuration' %}">OIDC Discovery</a> (No Token Needed)</li>
      </ul>
-    {% if not request.user.is_authenticated %}
-      <h2><a href="{% url 'login' %}">Login to the developer portal</a> </h1>
-     {% endif %}
 
 		</div>
 	</div>
