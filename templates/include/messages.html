@@ -3,7 +3,7 @@
   {% for message in messages %}
   <div class="ds-c-alert alert-{{message.tags}}">
     <!-- <a class="close" data-dismiss="alert">×</a> -->
-    <div class="ds-c-alert__text">
+    <div class="ds-c-alert__text" role="alert" aria-live="assertive">
       {{message}}
     </div>
   </div>

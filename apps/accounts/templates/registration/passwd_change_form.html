@@ -32,7 +32,7 @@
 
 					<!-- Current Password Errors -->
 					{% if form.old_password.errors %}
-					<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2 ds-c-alert--hide-icon">
+					<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2 ds-c-alert--hide-icon" role="alert" aria-live="assertive">
 						{{ form.old_password.errors }}
 					</div>
 					{% endif %}
@@ -44,12 +44,14 @@
 					<!-- Password Requirements -->
 					<h2>Password Requirements</h2>
 					<div class="ds-u-margin-bottom--2">
-						{{ form.new_password1.help_text|safe }}
+						<span role="alert" aria-live="assertive">
+							{{ form.new_password1.help_text|safe }}
+						</span>
 					</div>					
 
 					<!-- New Password Field 1 Errors -->
 					{% if form.new_password1.errors %}
-					<p class="ds-u-margin-y--1">{{ form.new_password1.errors }}</p>
+					<p class="ds-u-margin-y--1" role="alert">{{ form.new_password1.errors }}</p>
 					{% endif %}
 
 					<!-- New Password Field 1 Input -->
@@ -58,7 +60,7 @@
 					
 					<!-- New Password Field 2 Errors (Confirm Password Errors) -->
 					{% if form.new_password2.errors %}
-					<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2 ds-c-alert--hide-icon">
+					<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2 ds-c-alert--hide-icon" role="alert" aria-live="assertive">
 						{{ form.new_password2.errors }}
 					</div>
 					{% endif %}
@@ -69,7 +71,9 @@
 
 					<!-- New Password Field 2 Help Text (Confirm Password Help Text)-->
 					{% if form.new_password2.help_text %}
-						{{ form.new_password2.help_text|safe }}
+						<span role="alert" aria-live="assertive">
+							{{ form.new_password2.help_text|safe }}
+						</span>
 					{% endif %}
 
 					<input type="submit" class="ds-c-button  ds-c-button--primary" value="Change my password" class="default">

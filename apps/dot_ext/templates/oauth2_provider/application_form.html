@@ -36,7 +36,7 @@
 										<h3 class="ds-c-alert__heading">Something went wrong.</h3>
 										<ul>
 										{% for error in form.non_field_errors %}
-											<li>{{ error }}</li>
+											<li role="alert">{{ error }}</li>
 										{% endfor %}
 										</ul>
 									</div>
@@ -48,7 +48,7 @@
 								<div class="ds-c-alert ds-c-alert--error ds-u-margin-bottom--2">
 									<div class="ds-c-alert__body">
 										<h3 class="ds-c-alert__heading">Something went wrong.</h3>
-										<p class="ds-c-alert__text">{{ error }}</p>
+										<p class="ds-c-alert__text" role="alert">{{ error }}</p>
 									</div>
 								</div>
 							{% endfor %}
