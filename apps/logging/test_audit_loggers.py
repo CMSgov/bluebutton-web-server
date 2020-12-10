@@ -6,6 +6,8 @@ from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
 from httmock import all_requests, HTTMock, urlmatch
+from waffle.testutils import override_switch
+
 from apps.dot_ext.models import Application
 from apps.test import BaseApiTest
 from apps.mymedicare_cb.views import generate_nonce
@@ -80,6 +82,7 @@ class TestAuditEventLoggers(BaseApiTest):
         # self.log_buffer_fhir.close()
         self.channel_fhir.close()
 
+    @override_switch('bfd_v2', active=True)
     def test_fhir_events_logging(self):
         first_access_token = self.create_token('John', 'Smith')
 
@@ -111,6 +114,7 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entry_dict = json.loads(log_entries[0])
             self.assertEqual(log_entry_dict["type"], "fhir_pre_fetch")
             self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
+            self.assertEqual(log_entry_dict["fhir_ver"], "stu3")
             self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
             self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
             self.assertIsNotNone(log_entry_dict["application"])
@@ -118,6 +122,52 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entry_dict = json.loads(log_entries[1])
             self.assertEqual(log_entry_dict["type"], "fhir_post_fetch")
             self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
+            self.assertEqual(log_entry_dict["fhir_ver"], "stu3")
+            self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
+            self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
+            self.assertIsNotNone(log_entry_dict["application"])
+
+    @override_switch('bfd_v2', active=True)
+    def test_fhir_events_logging_bfd_v2(self):
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            fhir_log_content = self.log_buffer_fhir.getvalue()
+            self.assertIsNotNone(fhir_log_content)
+            log_entry_dict = json.loads(fhir_log_content)
+            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
+            self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
+            self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
+            self.assertIsNotNone(log_entry_dict["application"])
+            return {
+                'status_code': 200,
+                # TODO replace this with true backend response, this has been post proccessed
+                'content': patient_response,
+            }
+
+        with HTTMock(catchall):
+            self.client.get(
+                reverse('bb_oauth_fhir_patient_search'),
+                {'count': 5, 'hello': 'world', 'fhir_ver': 'r4'},
+                Authorization="Bearer %s" % (first_access_token))
+            # check fhir log content
+            fhir_log_content = self.log_buffer_fhir.getvalue()
+            self.assertIsNotNone(fhir_log_content)
+            log_entries = fhir_log_content.splitlines()
+
+            log_entry_dict = json.loads(log_entries[0])
+            self.assertEqual(log_entry_dict["type"], "fhir_pre_fetch")
+            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
+            self.assertEqual(log_entry_dict["fhir_ver"], "r4")
+            self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
+            self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
+            self.assertIsNotNone(log_entry_dict["application"])
+
+            log_entry_dict = json.loads(log_entries[1])
+            self.assertEqual(log_entry_dict["type"], "fhir_post_fetch")
+            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
+            self.assertEqual(log_entry_dict["fhir_ver"], "r4")
             self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
             self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
             self.assertIsNotNone(log_entry_dict["application"])

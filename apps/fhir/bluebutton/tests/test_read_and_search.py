@@ -1,16 +1,19 @@
-from unittest.mock import patch
 import json
-from httmock import all_requests, HTTMock, urlmatch
-from apps.mymedicare_cb.tests.responses import patient_response
-import apps.fhir.bluebutton.utils
-import apps.fhir.bluebutton.views.home
-from apps.fhir.bluebutton.views.home import (conformance_filter)
 from django.test import TestCase, RequestFactory
-from apps.test import BaseApiTest
 from django.conf import settings
 from django.test.client import Client
-from oauth2_provider.models import get_access_token_model
 from django.urls import reverse
+from httmock import all_requests, HTTMock, urlmatch
+from oauth2_provider.models import get_access_token_model
+from unittest.mock import patch
+from waffle.testutils import override_switch
+
+import apps.fhir.bluebutton.utils
+import apps.fhir.bluebutton.views.home
+
+from apps.fhir.bluebutton.views.home import (conformance_filter)
+from apps.mymedicare_cb.tests.responses import patient_response
+from apps.test import BaseApiTest
 
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
@@ -18,6 +21,8 @@ from .data_conformance import CONFORMANCE
 AccessToken = get_access_token_model()
 
 
+# for BB2-291 support bfd v2, made changes to a selected sub set of tests
+# to cover v2 data request processing logic
 class ConformanceReadRequestTest(TestCase):
     """ Check the BlueButton API call  """
 
@@ -81,12 +86,17 @@ class ThrottleReadRequestTest(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
+    @override_switch('bfd_v2', active=True)
     @patch('apps.dot_ext.throttling.TokenRateThrottle.get_rate')
     def test_read_throttle(self,
                            mock_rates):
+        self._read_throttle(mock_rates, False, 'John', 'Smith')
+        self._read_throttle(mock_rates, True, 'Jane', 'Doe')
+
+    def _read_throttle(self, mock_rates, v2, u_fn, u_ln):
         mock_rates.return_value = '1/day'
         # create the user
-        first_access_token = self.create_token('John', 'Smith')
+        first_access_token = self.create_token(u_fn, u_ln)
 
         @all_requests
         def catchall(url, req):
@@ -96,12 +106,15 @@ class ThrottleReadRequestTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_patient_read_or_update_or_delete',
-                    kwargs={'resource_id': -20140000008325}),
-                Authorization="Bearer %s" % (first_access_token))
+            response = None
+            url = reverse('bb_oauth_fhir_patient_read_or_update_or_delete',
+                          kwargs={'resource_id': -20140000008325})
+            if v2:
+                response = self.client.get(url, {'fhir_ver': 'r4'},
+                                           Authorization="Bearer %s" % (first_access_token))
+            else:
+                response = self.client.get(url,
+                                           Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
 
@@ -145,7 +158,7 @@ class ThrottleReadRequestTest(BaseApiTest):
             self.assertEqual(response.status_code, 429)
 
             # Assert that another token is not rate limited
-            second_access_token = self.create_token('Bob', 'Bobbington')
+            second_access_token = self.create_token(u_fn + "Jr", u_ln + "Jr")
             self.assertFalse(second_access_token == first_access_token)
 
             response = self.client.get(
@@ -179,9 +192,15 @@ class BackendConnectionTest(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
+    @override_switch('bfd_v2', active=True)
     def test_search_request(self):
+        # test both v1 and v2 execution paths
+        self._search_request('John', 'Smith', False)
+        self._search_request('Jane', 'Doe', True)
+
+    def _search_request(self, u_fn, u_ln, v2):
         # create the user
-        first_access_token = self.create_token('John', 'Smith')
+        first_access_token = self.create_token(u_fn, u_ln)
 
         expected_request = {
             'method': 'GET',
@@ -194,8 +213,8 @@ class BackendConnectionTest(BaseApiTest):
                 'Connection': 'keep-alive',
                 'BlueButton-OriginalQueryCounter': '1',
                 'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-                'BlueButton-Application': 'John_Smith_test',
-                'X-Forwarded-For': '127.0.0.1',
+                'BlueButton-Application': '{}_{}_test'.format(u_fn, u_ln),
+                'BlueButton-OriginatingIpAddress': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
                 'BlueButton-OriginalUrl': '/v1/fhir/Patient',
                 'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/',
@@ -223,7 +242,7 @@ class BackendConnectionTest(BaseApiTest):
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_patient_search'),
-                {'count': 5, 'hello': 'world'},
+                {'count': 5, 'hello': 'world', 'fhir_ver': 'r4'} if v2 else {'count': 5, 'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
@@ -414,9 +433,16 @@ class BackendConnectionTest(BaseApiTest):
 
             self.assertEqual(response.status_code, 502)
 
+    @override_switch('bfd_v2', active=True)
     def test_search_parameters_request(self):
-        # create the user
-        first_access_token = self.create_token('John', 'Smith')
+        # test both v1 and v2 execution paths
+        self._search_parameters_request('John', 'Smith', False)
+        self._search_parameters_request('Jane', 'Doe', True)
+
+    def _search_parameters_request(self, u_fn, u_ln, v2):
+        # create the user and associated apps etc.
+        first_access_token = self.create_token(u_fn, u_ln)
+        fhir_ver = {'fhir_ver': 'r4'}
 
         @all_requests
         def catchall(url, req):
@@ -435,17 +461,19 @@ class BackendConnectionTest(BaseApiTest):
 
         # Test _lastUpdated with valid parameter starting with "lt"
         with HTTMock(catchall):
+            params = {'_lastUpdated': 'lt2019-11-22T14:00:00-05:00'}
             response = self.client.get(
                 reverse('bb_oauth_fhir_eob_search'),
-                {'_lastUpdated': 'lt2019-11-22T14:00:00-05:00'},
+                {**params, **fhir_ver} if v2 else params,
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
 
         # Test _lastUpdated with invalid parameter starting with "zz"
         with HTTMock(catchall):
+            bad_params = {'_lastUpdated': 'zz2020-11-22T14:00:00-05:00'}
             response = self.client.get(
                 reverse('bb_oauth_fhir_eob_search'),
-                {'_lastUpdated': 'zz2020-11-22T14:00:00-05:00'},
+                {**bad_params, **fhir_ver} if v2 else bad_params,
                 Authorization="Bearer %s" % (first_access_token))
 
             content = json.loads(response.content.decode("utf-8"))
@@ -454,43 +482,44 @@ class BackendConnectionTest(BaseApiTest):
 
         # Test type= with single valid value: "pde"
         with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_eob_search'),
-                {'type': 'pde'},
-                Authorization="Bearer %s" % (first_access_token))
+            response = self.client.get(reverse('bb_oauth_fhir_eob_search'),
+                                       {'type': 'pde', 'fhr_ver': 'r4'} if v2 else {'type': 'pde'},
+                                       Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
 
         # Test type= with multiple (all valid values)
         with HTTMock(catchall):
+            params = {'type': 'carrier,'
+                      'pde,'
+                      'dme,'
+                      'hha,'
+                      'hospice,'
+                      'inpatient,'
+                      'outpatient,'
+                      'snf,'
+                      'https://bluebutton.cms.gov/resources/codesystem/eob-type|carrier,'
+                      'https://bluebutton.cms.gov/resources/codesystem/eob-type|pde,'
+                      'https://bluebutton.cms.gov/resources/codesystem/eob-type|dme,'
+                      'https://bluebutton.cms.gov/resources/codesystem/eob-type|hha,'
+                      'https://bluebutton.cms.gov/resources/codesystem/eob-type|hospice,'
+                      'https://bluebutton.cms.gov/resources/codesystem/eob-type|inpatient,'
+                      'https://bluebutton.cms.gov/resources/codesystem/eob-type|outpatient,'
+                      'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf'}
+
             response = self.client.get(
                 reverse('bb_oauth_fhir_eob_search'),
-                {'type': 'carrier,'
-                         'pde,'
-                         'dme,'
-                         'hha,'
-                         'hospice,'
-                         'inpatient,'
-                         'outpatient,'
-                         'snf,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|carrier,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|pde,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|dme,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|hha,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|hospice,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|inpatient,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|outpatient,'
-                         'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf'},
+                {**params, **fhir_ver} if v2 else params,
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
 
         # Test type= with an invalid type
         with HTTMock(catchall):
+            params = {'type': 'carrier,'
+                      'INVALID-TYPE,'
+                      'dme,'}
             response = self.client.get(
                 reverse('bb_oauth_fhir_eob_search'),
-                {'type': 'carrier,'
-                         'INVALID-TYPE,'
-                         'dme,'},
+                {**params, **fhir_ver} if v2 else params,
                 Authorization="Bearer %s" % (first_access_token))
 
             content = json.loads(response.content.decode("utf-8"))
@@ -524,16 +553,21 @@ class BackendConnectionTest(BaseApiTest):
 
         with HTTMock(fhir_request, catchall):
             response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_patient_read_or_update_or_delete',
-                    kwargs={'resource_id': '-20140000008325'}),
+                reverse('bb_oauth_fhir_patient_read_or_update_or_delete',
+                        kwargs={'resource_id': '-20140000008325'}),
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 403)
 
+    @override_switch('bfd_v2', active=True)
     def test_read_request(self):
-        # create the user
-        first_access_token = self.create_token('John', 'Smith')
+        # test both v1 and v2 execution paths
+        self._read_request('John', 'Smith', False)
+        self._read_request('Jane', 'Doe', True)
+
+    def _read_request(self, u_fn, u_ln, v2):
+        # create the user and associated app etc.
+        first_access_token = self.create_token(u_fn, u_ln)
 
         expected_request = {
             'method': 'GET',
@@ -545,8 +579,8 @@ class BackendConnectionTest(BaseApiTest):
                 'Connection': 'keep-alive',
                 'BlueButton-OriginalQueryCounter': '1',
                 'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-                'BlueButton-Application': 'John_Smith_test',
-                'X-Forwarded-For': '127.0.0.1',
+                'BlueButton-Application': '{}_{}_test'.format(u_fn, u_ln),
+                'BlueButton-OriginatingIpAddress': '127.0.0.1',
                 'keep-alive': 'timeout=120, max=10',
                 'BlueButton-OriginalUrl': '/v1/fhir/Patient/-20140000008325',
                 'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/Patient/-20140000008325/',
@@ -565,18 +599,22 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_patient_read_or_update_or_delete',
-                    kwargs={'resource_id': '-20140000008325'}),
-                {'hello': 'world'},
-                Authorization="Bearer %s" % (first_access_token))
+            response = self.client.get(reverse('bb_oauth_fhir_patient_read_or_update_or_delete',
+                                               kwargs={'resource_id': '-20140000008325'}),
+                                       {'hello': 'world', 'fhir_ver': 'r4'} if v2 else {'hello': 'world'},
+                                       Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
 
+    @override_switch('bfd_v2', active=True)
     def test_read_eob_request(self):
+        self._read_eob_request('John', 'Smith', False)
+        self._read_eob_request('Jane', 'Doe', True)
+
+    def _read_eob_request(self, u_fn, u_ln, v2):
+        # test both v1 and v2 execution paths
         # create the user
-        first_access_token = self.create_token('John', 'Smith')
+        first_access_token = self.create_token(u_fn, u_ln)
 
         @all_requests
         def catchall(url, req):
@@ -591,17 +629,29 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_eob_read_or_update_or_delete',
-                    kwargs={'resource_id': 'eob_id'}),
-                Authorization="Bearer %s" % (first_access_token))
+            response = None
+            if v2:
+                response = self.client.get(
+                    reverse('bb_oauth_fhir_eob_read_or_update_or_delete',
+                            kwargs={'resource_id': 'eob_id'}), {'fhir_ver': 'r4'},
+                    Authorization="Bearer %s" % (first_access_token))
+            else:
+                response = self.client.get(
+                    reverse(
+                        'bb_oauth_fhir_eob_read_or_update_or_delete',
+                        kwargs={'resource_id': 'eob_id'}),
+                    Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
 
+    @override_switch('bfd_v2', active=True)
     def test_read_coverage_request(self):
-        # create the user
-        first_access_token = self.create_token('John', 'Smith')
+        self._read_coverage_request('John', 'Smith', False)
+        self._read_coverage_request('Jane', 'Doe', True)
+
+    def _read_coverage_request(self, u_fn, u_ln, v2):
+        # create the user and associated app etc.
+        first_access_token = self.create_token(u_fn, u_ln)
 
         @all_requests
         def catchall(url, req):
@@ -616,11 +666,18 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_coverage_read_or_update_or_delete',
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization="Bearer %s" % (first_access_token))
+            response = None
+            if v2:
+                response = self.client.get(
+                    reverse('bb_oauth_fhir_coverage_read_or_update_or_delete',
+                            kwargs={'resource_id': 'coverage_id'}), {'fhir_ver': 'r4'},
+                    Authorization="Bearer %s" % (first_access_token))
+            else:
+                response = self.client.get(
+                    reverse(
+                        'bb_oauth_fhir_coverage_read_or_update_or_delete',
+                        kwargs={'resource_id': 'coverage_id'}),
+                    Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
 
@@ -648,6 +705,7 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
+            # BB-291 add fhir_ver=r4 to cover v2 support logic
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_coverage_read_or_update_or_delete',
@@ -680,6 +738,7 @@ class BackendConnectionTest(BaseApiTest):
             }
 
         with HTTMock(catchall):
+            # BB2-291 add fhir_ver=r4 cases
             response = self.client.get(
                 reverse(
                     'bb_oauth_fhir_coverage_read_or_update_or_delete',
