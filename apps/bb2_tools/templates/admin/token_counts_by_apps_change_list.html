@@ -1,54 +1,10 @@
 {% extends "admin/change_list.html" %}
 {% load humanize %}
 {% block result_list %}
-
+{% include "admin/bb2_tools_flex.html" %}
 <div class="results">
-
+    
   <h2> {{ page_desc.bar_chart_title }} </h2>
-  <style>
-  .columns {
-    display: flex;
-    height: 180px;
-    padding-top: 60px;
-    /* max-height: 400px; */
-    align-items: stretch;
-    border: 1px solid #CCC;
-  }
-  .column-container {
-    flex: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-end;
-  }
-  .column-bar {
-    border-right: 1px solid white;
-  }
-  .value-full { background: #79aec8 }
-  .value-partial { background: orange; }
-  .columns .column_bar:last-child {
-      margin: 0;
-  }
-  .columns .column-bar:hover {
-      background-color: #417690;
-  }
-  .columns .column-bar .bar-tooltip {
-      position: relative;
-      z-index: 999;
-  }
-  .columns .column-bar .bar-tooltip {
-      position: absolute;
-      top: -60px;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      font-weight: bold;
-      opacity: 0;
-  }
-  .columns .column-bar:hover .bar-tooltip {
-      opacity: 1;
-  }
-  </style>
   <div class="results">
     <div class="columns">
       {% if has_demo_scope_cnts %}

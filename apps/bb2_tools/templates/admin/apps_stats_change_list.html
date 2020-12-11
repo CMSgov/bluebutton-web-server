@@ -1,60 +1,11 @@
 {% extends "admin/change_list.html" %}
 {% load humanize %}
 {% block result_list %}
+{% include "admin/bb2_tools_flex.html" %}
 
 <div class="results">
 
-  <style>
-  .bar-chart {
-    display: flex;
-    justify-content: space-around;
-    height: 160px;
-    padding-top: 60px;
-    overflow: hidden;
-  }
-  .bar-chart .bar {
-      flex: 100%;
-      align-self: flex-end;
-      margin-right: 2px;
-      position: relative;
-      background-color: #79aec8;
-  }
-  .bar-chart .bar:last-child {
-      margin: 0;
-  }
-  .bar-chart .bar:hover {
-      background-color: #417690;
-  }
-  .bar-chart .bar .bar-tooltip {
-      position: relative;
-      z-index: 999;
-  }
-  .bar-chart .bar .bar-tooltip {
-      position: absolute;
-      top: -60px;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      font-weight: bold;
-      opacity: 0;
-  }
-  .bar-chart .bar:hover .bar-tooltip {
-      opacity: 1;
-  }
-  
-  .row {
-    display: table;
-    width: 100%; /*Optional*/
-    table-layout: fixed; /*Optional*/
-    border-spacing: 10px; /*Optional*/
-  }
-  .column {
-    display: table-cell;
-  }
-
-  </style>
-
-{% for p in panels %}
+  {% for p in panels %}
   {% if p.type == 'bar-chart' %}
     <h2> {{ p.title }} </h2>
     <div class="results">
