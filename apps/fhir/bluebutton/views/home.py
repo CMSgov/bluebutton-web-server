@@ -2,7 +2,7 @@ import json
 import logging
 
 from collections import OrderedDict
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
 from apps.fhir.bluebutton import constants
@@ -29,22 +29,15 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """
     crosswalk = None
     resource_router = get_resourcerouter()
-    call_to = resource_router.fhir_url
     fhir_ver = request.GET.get('fhir_ver')
-    # BB2-291 assume for BFD v1(fhir stu3), v2 (fhir r4)
-    # a common metadata served, if not, we can check the request
-    # for intended target fhir version and point to the end point
-    # where the metadata is served
-    if call_to.endswith('/'):
-        call_to = '{}{}/fhir/metadata'.format(
-            call_to,
-            'v2' if fhir_ver is not None and fhir_ver == 'r4' else 'v1'
-        )
+    parsed_url = urlparse(resource_router.fhir_url)
+    if parsed_url.path is not None:
+        call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc,
+                                                    'v2' if fhir_ver is not None and fhir_ver == 'r4' else 'v1')
     else:
-        call_to = '{}/{}/fhir/metadata'.format(
-            call_to,
-            'v2' if fhir_ver is not None and fhir_ver == 'r4' else 'v1'
-        )
+        # url with no path
+        call_to = '{}/{}/fhir/metadata'.format(resource_router.fhir_url,
+                                               'v2' if fhir_ver is not None and fhir_ver == 'r4' else 'v1')
 
     pass_params = {'_format': 'json'}
 

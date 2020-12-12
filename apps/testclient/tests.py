@@ -1,10 +1,13 @@
+import json
 from django.core.management import call_command
-from django.test.client import Client
-from django.test import TestCase
-from .utils import test_setup
-from django.urls import reverse
-from unittest import skipIf
 from django.conf import settings
+from django.test import TestCase
+from django.test.client import Client
+from django.urls import reverse
+from httmock import all_requests, HTTMock
+from unittest import skipIf
+from waffle.testutils import override_switch
+from .utils import test_setup
 
 
 class BlueButtonClientApiUserInfoTest(TestCase):
@@ -203,3 +206,80 @@ class BlueButtonClientApiOidcDiscoveryTest(TestCase):
         response = self.client.get(reverse('openid-configuration'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "userinfo_endpoint")
+
+
+class BlueButtonClientApiFhirMetaDataTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+
+    @override_switch('bfd_v2', active=True)
+    def test_get_fhir_metadata(self):
+        self._get_capability(False)
+        self._get_capability(True)
+
+    def _get_capability(self, v2):
+
+        @all_requests
+        def catchall(url, req):
+            if url.path.startswith('/v1/fhir/metadata'):
+                return {
+                    'status_code': 200,
+                    'content': {"resourceType": "CapabilityStatement",
+                                "status": "active",
+                                "date": "2020-12-11T21:54:21+00:00",
+                                "publisher": "Centers for Medicare & Medicaid Services",
+                                "kind": "instance",
+                                "software": {
+                                    "name": "Blue Button API: Direct",
+                                    "version": "1.0.0-SNAPSHOT"
+                                },
+                                "implementation": {
+                                    "description": "gov.cms.bfd:bfd-server-war",
+                                    "url": "https://prod-sbx.bfd.cms.gov/v1/fhir"
+                                },
+                                "fhirVersion": "3.0.2",
+                                "acceptUnknown": "extensions",
+                                "format": ["application/json", "application/fhir+json"],
+                                "rest": [{"mode": "server",
+                                          "security": {}}]
+                                },
+                }
+            elif url.path.startswith('/v2/fhir/metadata'):
+                return {
+                    'status_code': 200,
+                    'content': {"resourceType": "CapabilityStatement",
+                                "status": "active",
+                                "date": "2020-12-11T21:53:27+00:00",
+                                "publisher": "Centers for Medicare & Medicaid Services",
+                                "kind": "instance",
+                                "software": {
+                                    "name": "Blue Button API: Direct",
+                                    "version": "1.0.0-SNAPSHOT"
+                                },
+                                "implementation": {
+                                    "description": "gov.cms.bfd:bfd-server-war",
+                                    "url": "http://192.168.0.109:8000/v2/fhir"
+                                },
+                                "fhirVersion": "4.0.0",
+                                "format": ["application/json", "application/fhir+json"],
+                                "rest": [{"mode": "server",
+                                          "security": {}}]
+                                },
+                }
+            else:
+                return {
+                    'status_code': 404,
+                    'content': {"not found"},
+                }
+
+        with HTTMock(catchall):
+            response = self.client.get(reverse('fhir_conformance_metadata'),
+                                       {'dummy': 'hello world', 'fhir_ver': 'r4'} if v2 else {'dummy': 'hello world'})
+
+            self.assertEqual(response.status_code, 200)
+            content = json.loads(response.content.decode("utf-8"))
+            if v2:
+                self.assertEqual(content['fhirVersion'], '4.0.0')
+            else:
+                self.assertEqual(content['fhirVersion'], '3.0.2')
