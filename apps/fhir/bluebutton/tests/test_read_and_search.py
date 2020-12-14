@@ -824,3 +824,41 @@ class BackendConnectionTest(BaseApiTest):
         # set app user back to active - not to affect subsequent tests
         application.active = True
         application.save()
+
+    @override_switch('bfd_v2', active=True)
+    def test_read_coverage_with_bad_params(self):
+        self._read_coverage_w_bad_param('John', 'Smith', False)
+        self._read_coverage_w_bad_param('Jane', 'Doe', True)
+
+    def _read_coverage_w_bad_param(self, u_fn, u_ln, v2):
+        # create the user and associated app etc.
+        first_access_token = self.create_token(u_fn, u_ln)
+
+        @all_requests
+        def catchall(url, req):
+            return {'status_code': 500,
+                    'content': {"resourceType": "OperationOutcome",
+                                "issue": [{"severity": "error",
+                                           "code": "processing",
+                                           "diagnostics": ("Failed to call access method: java.lang.IllegalArgumentException:"
+                                                           " Unsupported ID pattern: part-___d--20140000008325")
+                                           }
+                                          ]
+                                }
+                    }
+
+        with HTTMock(catchall):
+            response = None
+            if v2:
+                response = self.client.get(
+                    reverse('bb_oauth_fhir_coverage_read_or_update_or_delete',
+                            kwargs={'resource_id': 'part-___d--20140000008325'}), {'fhir_ver': 'r4'},
+                    Authorization="Bearer %s" % (first_access_token))
+            else:
+                response = self.client.get(
+                    reverse(
+                        'bb_oauth_fhir_coverage_read_or_update_or_delete',
+                        kwargs={'resource_id': 'coverage_id'}),
+                    Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 400)
