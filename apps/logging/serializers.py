@@ -288,6 +288,35 @@ class SLSResponse(Response):
         return resp_dict
 
 
+class SLSxTokenResponse(SLSResponse):
+    request_class = SLSRequest
+
+    def get_type(self):
+        return 'SLSx_token'
+
+    def to_dict(self):
+        event_dict = json.loads(self.resp.text)
+        event_dict.update(super().to_dict().copy())
+        resp_dict = {
+            "uuid": event_dict['uuid'],
+            "type": event_dict['type'],
+            "path": event_dict['path'],
+            "auth_token": hashlib.sha256(
+                str(event_dict['auth_token']).encode('utf-8')).hexdigest(),
+            "code": event_dict['code'],
+            "size": event_dict['size'],
+            "start_time": event_dict['start_time'],
+            "elapsed": event_dict['elapsed'],
+        }
+        # Update with auth flow session info
+        resp_dict.update(self.auth_flow_dict)
+
+        return resp_dict
+
+    def __str__(self):
+        return json.dumps(self.to_dict())
+
+
 class SLSTokenResponse(SLSResponse):
     request_class = SLSRequest
 
@@ -331,6 +360,34 @@ class SLSUserInfoResponse(SLSResponse):
             "type": event_dict['type'],
             "path": event_dict['path'],
             "sub": event_dict['sub'],
+            "code": event_dict['code'],
+            "size": event_dict['size'],
+            "start_time": event_dict['start_time'],
+            "elapsed": event_dict['elapsed'],
+        }
+        # Update with auth flow session info
+        resp_dict.update(self.auth_flow_dict)
+
+        return resp_dict
+
+    def __str__(self):
+        return json.dumps(self.to_dict())
+
+
+class SLSxUserInfoResponse(SLSResponse):
+    request_class = SLSRequest
+
+    def get_type(self):
+        return 'SLS_userinfo'
+
+    def to_dict(self):
+        event_dict = json.loads(self.resp.text)
+        event_dict.update(super().to_dict().copy())
+        resp_dict = {
+            "uuid": event_dict['uuid'],
+            "type": event_dict['type'],
+            "path": event_dict['path'],
+            "sub": event_dict['data']['user']['id'],
             "code": event_dict['code'],
             "size": event_dict['size'],
             "start_time": event_dict['start_time'],
