@@ -3,7 +3,7 @@ import json
 from httmock import all_requests, HTTMock
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import AccessToken
-from waffle.testutils import override_switch
+from waffle.testutils import override_switch, override_flag
 
 from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import DataAccessGrant
@@ -92,6 +92,7 @@ class TestBFDHeaders(BaseApiTest):
         return t
 
     @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
     def test_fhir_request_has_header(self):
         # create an app for a user and obtain a token
         anna = self._create_user('anna', '123456', fhir_id='-20140000008325')

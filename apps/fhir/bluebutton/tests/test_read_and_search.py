@@ -1,16 +1,19 @@
 import json
 from django.test import TestCase, RequestFactory
 from django.conf import settings
+from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.urls import reverse
 from httmock import all_requests, HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model
 from unittest.mock import patch
-from waffle.testutils import override_switch
+from waffle.models import Switch
+from waffle.testutils import override_switch, override_flag
 
 import apps.fhir.bluebutton.utils
 import apps.fhir.bluebutton.views.home
 
+from apps.core.models import Flag
 from apps.fhir.bluebutton.views.home import (conformance_filter)
 from apps.mymedicare_cb.tests.responses import patient_response
 from apps.test import BaseApiTest
@@ -87,6 +90,7 @@ class ThrottleReadRequestTest(BaseApiTest):
         self.client = Client()
 
     @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
     @patch('apps.dot_ext.throttling.TokenRateThrottle.get_rate')
     def test_read_throttle(self,
                            mock_rates):
@@ -193,6 +197,7 @@ class BackendConnectionTest(BaseApiTest):
         self.client = Client()
 
     @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
     def test_search_request(self):
         # test both v1 and v2 execution paths
         self._search_request('John', 'Smith', False)
@@ -434,6 +439,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 502)
 
     @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
     def test_search_parameters_request(self):
         # test both v1 and v2 execution paths
         self._search_parameters_request('John', 'Smith', False)
@@ -560,6 +566,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 403)
 
     @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
     def test_read_request(self):
         # test both v1 and v2 execution paths
         self._read_request('John', 'Smith', False)
@@ -607,6 +614,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
 
     @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
     def test_read_eob_request(self):
         self._read_eob_request('John', 'Smith', False)
         self._read_eob_request('Jane', 'Doe', True)
@@ -645,6 +653,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
 
     @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
     def test_read_coverage_request(self):
         self._read_coverage_request('John', 'Smith', False)
         self._read_coverage_request('Jane', 'Doe', True)
@@ -826,7 +835,8 @@ class BackendConnectionTest(BaseApiTest):
         application.save()
 
     @override_switch('bfd_v2', active=True)
-    def test_read_coverage_with_bad_params(self):
+    @override_flag('bfd_v2_flag', active=True)
+    def test_read_resource_map_bad_arg_500_err_to_400(self):
         self._read_coverage_w_bad_param('John', 'Smith', False)
         self._read_coverage_w_bad_param('Jane', 'Doe', True)
 
@@ -862,3 +872,67 @@ class BackendConnectionTest(BaseApiTest):
                     Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 400)
+
+    def test_v2_read_with_flag(self):
+        # test v2 execution paths with
+        # app's owner user:
+        # (1) in the flag's users list but not in flag's groups
+        # (2) not in users list and not in groups
+        # (3) not in users list but in groups
+        try:
+            Switch.objects.get(name='bfd_v2')
+        except Switch.DoesNotExist:
+            Switch.objects.create(name='bfd_v2', active=True)
+
+        flag = None
+
+        try:
+            flag = Flag.objects.get(name='bfd_v2_flag')
+        except Flag.DoesNotExist:
+            flag = Flag.objects.create(name='bfd_v2_flag')
+
+        bfd_v2_grp = None
+
+        try:
+            bfd_v2_grp = Group.objects.get(name='BFDV2Parteners')
+        except Group.DoesNotExist:
+            bfd_v2_grp = Group.objects.create(name='BFDV2Parteners')
+
+        if bfd_v2_grp is not None:
+            flag.groups.add(bfd_v2_grp)
+
+        first_access_token = self.create_token('John', 'Smith')
+        app_owner = User.objects.get(username='John')
+
+        if app_owner is not None:
+            # tie user with flag
+            flag.users.add(app_owner)
+        url = reverse('bb_oauth_fhir_patient_read_or_update_or_delete', kwargs={'resource_id': '-20140000008325'})
+        params = {'hello': 'world', 'fhir_ver': 'r4'}
+        bear_token = "Bearer {}".format(first_access_token)
+
+        @all_requests
+        def catchall(url, req):
+
+            return {
+                'status_code': 200,
+                'content':{"resourceType":"Patient","id":"-20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"-20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(url, params, Authorization=bear_token)
+            self.assertEqual(response.status_code, 200)
+
+        # remove user from flag's users list
+        flag.users.remove(app_owner)
+
+        with HTTMock(catchall):
+            response = self.client.get(url, params, Authorization=bear_token)
+            self.assertEqual(response.status_code, 404)
+
+        # then add app owner user to bfd v2 flag groups
+        app_owner.groups.add(bfd_v2_grp)
+
+        with HTTMock(catchall):
+            response = self.client.get(url, params, Authorization=bear_token)
+            self.assertEqual(response.status_code, 200)

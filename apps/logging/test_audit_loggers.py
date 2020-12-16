@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
 from httmock import all_requests, HTTMock, urlmatch
-from waffle.testutils import override_switch
+from waffle.testutils import override_switch, override_flag
 
 from apps.dot_ext.models import Application
 from apps.test import BaseApiTest
@@ -128,6 +128,7 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertIsNotNone(log_entry_dict["application"])
 
     @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
     def test_fhir_events_logging_bfd_v2(self):
         first_access_token = self.create_token('John', 'Smith')
 

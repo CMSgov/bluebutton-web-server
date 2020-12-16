@@ -45,7 +45,7 @@ def create_user(group):
     u.groups.add(group)
     c, g_o_c = Crosswalk.objects.get_or_create(user=u,
                                                _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                               _user_id_hash="139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130")
+                                               _user_id_hash="ee78989d1d9ba0b98f3cfbd52479f10c7631679c17563186f70fbef038cc9536")
     return u
 
 
@@ -93,8 +93,11 @@ class Command(BaseCommand):
     help = 'Create a test user and application for the test client'
 
     def handle(self, *args, **options):
+        # BB2-291, 373 support bfd v2 feature flag
+        g_v2_parteners = create_group("BFDV2Parteners")
         g = create_group()
         u = create_user(g)
+        u.groups.add(g_v2_parteners)
         a = create_application(u, g)
         t = create_test_token(u, a)
         update_grants()
