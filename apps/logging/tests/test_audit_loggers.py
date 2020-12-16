@@ -2,15 +2,19 @@ import logging
 import io
 import re
 import json
+
 from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
 from httmock import all_requests, HTTMock, urlmatch
+from waffle.testutils import override_switch
+
 from apps.dot_ext.models import Application
 from apps.test import BaseApiTest
 from apps.mymedicare_cb.views import generate_nonce
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.responses import patient_response
+from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
 
 token_logger = logging.getLogger('audit.authorization.token')
 sls_logger = logging.getLogger('audit.authorization.sls')
@@ -122,7 +126,51 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
             self.assertIsNotNone(log_entry_dict["application"])
 
+    @override_switch('slsx-enable', active=True)
+    def test_callback_url_success_slsx_logger(self):
+        # copy and adapted for SLS logger test
+        state = generate_nonce()
+        AnonUserState.objects.create(
+            state=state,
+            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
+
+        # mock fhir user info endpoint
+        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
+        def fhir_patient_info_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': patient_response,
+            }
+
+        @all_requests
+        def catchall(url, request):
+            raise Exception(url)
+
+        with HTTMockWithResponseHook(MockUrlSLSxResponses.slsx_token_mock,
+                                     MockUrlSLSxResponses.slsx_user_info_mock,
+                                     fhir_patient_info_mock,
+                                     catchall):
+            s = self.client.session
+            s.update({"auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
+                      "auth_app_id": "2",
+                      "auth_app_name": "TestApp-001",
+                      "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
+            s.save()
+            self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'state': state})
+            sls_log_content = self.log_buffer_sls.getvalue()
+            quoted_strings = re.findall("{[^{}]+}", sls_log_content)
+            self.assertEqual(len(quoted_strings), 2)
+            sls_token_dict = json.loads(quoted_strings[0])
+            sls_userinfo_dict = json.loads(quoted_strings[1])
+            self.assertEqual(sls_token_dict["type"], "SLSx_token")
+            self.assertIsNotNone(sls_token_dict["auth_token"])
+
+            self.assertEqual(sls_userinfo_dict["type"], "SLS_userinfo")
+            self.assertEqual(sls_userinfo_dict["sub"], "00112233-4455-6677-8899-aabbccddeeff")
+
+    @override_switch('slsx-enable', active=False)
     def test_callback_url_success_sls_logger(self):
+        # TODO: Remove this test after migrated to SLSx
         # copy and adapted for SLS logger test
         state = generate_nonce()
         AnonUserState.objects.create(
