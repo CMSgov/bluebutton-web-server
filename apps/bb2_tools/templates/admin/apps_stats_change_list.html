@@ -34,7 +34,6 @@
                   <div class="bar" style="background-color:orange;height:{{b.pct}}%">
                     <div class="bar-tooltip">
                       {{ b.row_cnt | default:0 | intcomma }}<br>
-                      {{ c.tooltip_label }}<br>
                       {{ c.tooltip_txt.0 }}<br>
                     </div>
                   </div>
@@ -42,7 +41,6 @@
                   <div class="bar" style="height:{{b.pct}}%">
                     <div class="bar-tooltip">
                       {{ b.row_cnt | default:0 | intcomma }}<br>
-                      {{ c.tooltip_label }}<br>
                       {{ c.tooltip_txt.1 }}<br>
                     </div>
                   </div>

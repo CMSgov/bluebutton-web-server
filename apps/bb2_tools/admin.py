@@ -28,17 +28,66 @@ LINK_REF_FMT = "<a  href='{0}{1}?q={2}&user__id__exact={3}'>{4}</a>"
 TOKEN_VIEWERS = {MyAccessTokenViewer, MyRefreshTokenViewer, MyArchivedTokenViewer}
 
 
-def gen_ctx_grpby_datefld_w_filter(request, uniq_fld_name, filter_fld, filter_val, date_fld_name, clazz_model, date_hierarchy):
+def extract_date_range(response):
+    '''
+    helper to extract date range from cl (changelist) date_hirarchy filter
+    expect date_hirarchy.field >= startdate AND date_hirarchy.field < enddate
+    or none (date hirarchy filter not clicked)
+    '''
+    startdate = None
+    lower_bound_op = None
+    enddate = None
+    upper_bound_op = None
+
+    qs = None
+
+    try:
+        qs = response.context_data['cl'].queryset
+    except (AttributeError, KeyError):
+        # proceed without info in response
+        pass
+
+    q = qs.query
+    if hasattr(q, 'where'):
+        w = q.where
+        if w is not None and hasattr(w, 'connector') and hasattr(w, 'children'):
+            conn = w.connector
+            children = w.children
+            if conn == 'AND' and children is not None and len(children) == 2:
+                for exp in children:
+                    if exp.lookup_name == 'gte' or exp.lookup_name == 'gt':
+                        startdate, lower_bound_op = exp.rhs, exp.lookup_name
+                    if exp.lookup_name == 'lte' or exp.lookup_name == 'lt':
+                        enddate, upper_bound_op = exp.rhs, exp.lookup_name
+
+    return startdate, lower_bound_op, enddate, upper_bound_op
+
+
+def gen_ctx_grpby_datefld(request, response, uniq_fld_name, filters, date_fld_name, clazz_model, date_hierarchy):
+
     period = get_next_in_date_hierarchy(
         request,
         date_hierarchy,
     )
+
+    startdate, lower_bound_op, enddate, upper_bound_op = extract_date_range(response)
+    dt_range = None
+    if startdate and lower_bound_op and enddate and upper_bound_op:
+        dt_range = {'{}__{}'.format(date_fld_name, lower_bound_op): startdate,
+                    '{}__{}'.format(date_fld_name, upper_bound_op): enddate}
+
     aggregate_by_period_ctx = {}
     aggregate_by_period_ctx['period'] = period
 
     total_by_date = None
-    if filter_fld is not None:
-        total_by_date = clazz_model.objects.filter(**{filter_fld: filter_val}).annotate(
+    q_filter = filters if filters is not None else None
+    if dt_range:
+        if q_filter:
+            q_filter = {**q_filter, **dt_range}
+        else:
+            q_filter = dt_range
+    if q_filter is not None:
+        total_by_date = clazz_model.objects.filter(**q_filter).annotate(
             period=Trunc(
                 date_fld_name,
                 period,
@@ -68,10 +117,6 @@ def gen_ctx_grpby_datefld_w_filter(request, uniq_fld_name, filter_fld, filter_va
              'sub_total': e['sub_total'] or 0,
              'pct': (e['sub_total'] or 0) / high * 100 if high > low else 0, })
     return chart_list
-
-
-def gen_ctx_grp_by_date_fld(request, uniq_fld_name, date_fld_name, clazz_model, date_hierarchy):
-    return gen_ctx_grpby_datefld_w_filter(request, uniq_fld_name, None, None, date_fld_name, clazz_model, date_hierarchy)
 
 
 def gen_ctx_grp_by_flds(clazz_model, grp_flds, uniq_fld, marked_fld_name, marked_fld_val):
@@ -350,11 +395,13 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
         panels = []
 
         # apps counts over signed up time as bar chart
-        app_grp_by_created_date_ctx = gen_ctx_grp_by_date_fld(request,
-                                                              'name',
-                                                              'created',
-                                                              clazz_model,
-                                                              self.date_hierarchy)
+        app_grp_by_created_date_ctx = gen_ctx_grpby_datefld(request,
+                                                            response,
+                                                            'name',
+                                                            None,
+                                                            'created',
+                                                            clazz_model,
+                                                            self.date_hierarchy)
         top_panel = {
             'type': 'bar-chart',
             'title': 'Apps Count by Signup Date, Total ({})'.format(total),
@@ -372,25 +419,22 @@ class ApplicationStatsAdmin(ReadOnlyAdmin):
             clazz_model,
             ['active'],
             'name', 'active', False),
-            'tooltip_txt': ['active is False', 'active is True'],
-            'title': 'Apps Count by Active Flag',
-            'tooltip_label': 'App group by "active"'})
+            'tooltip_txt': ['active = False', 'active = True'],
+            'title': 'Apps Count by Active Flag'})
 
         center_panel.append({'body': gen_ctx_grp_by_flds(
             clazz_model,
             ['require_demographic_scopes'],
             'name', 'require_demographic_scopes', False),
-            'tooltip_txt': ['require_demographic_scopes is False', 'require_demographic_scopes is True'],
-            'title': 'Apps Count by Demographic Choice',
-            'tooltip_label': 'App group by "require_demographic_scopes"'})
+            'tooltip_txt': ['require_demographic_scopes = False', 'require_demographic_scopes = True'],
+            'title': 'Apps Count by Demographic Choice'})
 
         center_panel.append({'body': gen_ctx_grp_by_flds(
             clazz_model,
             ['client_type', 'authorization_grant_type'],
             'name', 'client_type', 'public'),
-            'tooltip_txt': ['client_type is public', 'client type is not public'],
-            'title': 'Apps Count by Client & Grant Type',
-            'tooltip_label': 'App group by client type, grant type'})
+            'tooltip_txt': ['client_type = public', 'client type is not public'],
+            'title': 'Apps Count by Client & Grant Type'})
 
         panels.append({'type': 'horiz-charts', 'data': center_panel})
 
@@ -426,14 +470,13 @@ class UserCountByCreateDateAdmin(ReadOnlyAdmin):
         total_ben = clazz_model.objects.all().filter(user_type='BEN').count()
         panels = []
 
-        # user ( DEV / BEN ) counts over joined date field as bar chart
-        ben_user_grp_by_created_date_ctx = gen_ctx_grpby_datefld_w_filter(request,
-                                                                          'id',
-                                                                          'user_type',
-                                                                          'BEN',
-                                                                          'user__date_joined',
-                                                                          clazz_model,
-                                                                          self.date_hierarchy)
+        ben_user_grp_by_created_date_ctx = gen_ctx_grpby_datefld(request,
+                                                                 response,
+                                                                 'id',
+                                                                 {'user_type': 'BEN'},
+                                                                 'user__date_joined',
+                                                                 clazz_model,
+                                                                 self.date_hierarchy)
         top_panel = {
             'type': 'bar-chart',
             'title': ('Beneficiaries Counts by Joined Date, '
@@ -444,14 +487,13 @@ class UserCountByCreateDateAdmin(ReadOnlyAdmin):
 
         panels.append(top_panel)
 
-        dev_user_grp_by_created_date_ctx = gen_ctx_grpby_datefld_w_filter(
-            request,
-            'id',
-            'user_type',
-            'DEV',
-            'user__date_joined',
-            clazz_model,
-            self.date_hierarchy)
+        dev_user_grp_by_created_date_ctx = gen_ctx_grpby_datefld(request,
+                                                                 response,
+                                                                 'id',
+                                                                 {'user_type': 'DEV'},
+                                                                 'user__date_joined',
+                                                                 clazz_model,
+                                                                 self.date_hierarchy)
         center_panel = {
             'type': 'bar-chart',
             'title': ('Developer User Counts by Joined Date:'
