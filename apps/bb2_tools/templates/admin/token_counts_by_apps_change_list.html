@@ -1,0 +1,160 @@
+{% extends "admin/change_list.html" %}
+{% load humanize %}
+{% block result_list %}
+{% include "admin/bb2_tools_flex.html" %}
+<div class="results">
+    
+  <h2> {{ page_desc.bar_chart_title }} </h2>
+  <div class="results">
+    <div class="columns">
+      {% if has_demo_scope_cnts %}
+        {% for x in token_cnts_by_app_chart %}
+          <div class="column-container">
+            <div class="column-bar value-full" style="flex-basis:{{x.pct}}%">
+                <div class="bar-tooltip">
+                  {{x.tk_cnt | default:0 | intcomma | add:": granted demographic"}}<br>
+                  {{x.no_demo_tk_cnt | default:0 | intcomma | add:": denied demographic"}}<br>
+                  {{ x.application__name }}
+                </div>
+            </div>
+            <div class="column-bar value-partial" style="flex-basis:{{x.no_demo_pct}}%">
+              <div class="bar-tooltip">
+                {{x.tk_cnt | default:0 | intcomma | add:": granted demographic"}}<br>
+                {{x.no_demo_tk_cnt | default:0 | intcomma | add:": denied demographic"}}<br>
+                {{ x.application__name }}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        {% for x in token_cnts_by_app_chart %}
+          <div class="column-container">
+            <div class="column-bar value-full" style="flex-basis:{{x.pct}}%">
+                <div class="bar-tooltip">
+                    {{x.tk_cnt | default:0 | intcomma | add:": refresh token"}}<br>
+                    {{ x.application__name }}
+                </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>  
+
+  <hr>
+  <hr>
+  <hr>
+
+  <h2> {{ page_desc.table_view_title }} </h2>
+
+  {% if has_demo_scope_cnts %}
+    <table>
+      <thead>
+        <tr>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_app_name }}</a>
+            </div>
+          </th>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_token_count }}</a>
+            </div>
+          </th>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_percentage }}</a>
+            </div>
+          </th>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_no_demo_token_count }}</a>
+            </div>
+          </th>
+          <th>
+            <div class="text">
+              <a href="#">{{ page_desc.header_no_demo_percentage }}</a>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in token_cnts_by_apps %}
+          <tr class="{% cycle 'row1' 'row2' %}">
+            <td> {{ row.application__name }} </td>
+            <td> {{ row.tk_cnt | intcomma }} </td>
+            <td>
+              {% if row.tk_cnt <= 0 and token_total <= 0 %}
+                <strong> {{ 0 }} </strong>
+              {% else %}
+                {% widthratio row.tk_cnt token_total 100 as pct %}
+                <strong> {{ pct }} </strong>
+              {% endif %}
+            </td>
+            <td> {{ row.no_demo_tk_cnt | intcomma }} </td>
+            <td>
+              {% if row.no_demo_tk_cnt <= 0 and token_no_demo_total <= 0 %}
+                <strong> {{ 0 }} </strong>
+              {% else %}
+                {% widthratio row.no_demo_tk_cnt token_no_demo_total 100 as pct %}
+                <strong> {{ pct }} </strong>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
+          <td> Total </td>
+          <td> {{ token_total | intcomma }} </td>
+          <td> 100% </td>
+          <td> {{ token_no_demo_total | intcomma }} </td>
+          <td> 100% </td>
+        </tr>
+      </tbody>
+  </table>
+{% else %}
+  <table>
+    <thead>
+      <tr>
+        <th>
+          <div class="text">
+            <a href="#">{{ page_desc.header_app_name }}</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">{{ page_desc.header_token_count }}</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">{{ page_desc.header_percentage }}</a>
+          </div>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in token_cnts_by_apps %}
+        <tr class="{% cycle 'row1' 'row2' %}">
+          <td> {{ row.application__name }} </td>
+          <td> {{ row.tk_cnt | intcomma }} </td>
+          <td>
+            {% if row.tk_cnt <= 0 and token_total <= 0 %}
+              <strong> {{ 0 }} </strong>
+            {% else %}
+              {% widthratio row.tk_cnt token_total 100 as pct %}
+              <strong> {{ pct }} </strong>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
+        <td> Total </td>
+        <td> {{ token_total | intcomma }} </td>
+        <td> 100% </td>
+      </tr>
+    </tbody>
+  </table>
+{% endif %}
+</div>
+{% endblock %}
+{% block pagination %}{% endblock %}

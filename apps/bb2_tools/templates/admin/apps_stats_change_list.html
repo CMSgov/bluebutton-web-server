@@ -1,0 +1,104 @@
+{% extends "admin/change_list.html" %}
+{% load humanize %}
+{% block result_list %}
+{% include "admin/bb2_tools_flex.html" %}
+
+<div class="results">
+
+  {% for p in panels %}
+  {% if p.type == 'bar-chart' %}
+    <h2> {{ p.title }} </h2>
+    <div class="results">
+      <div class="bar-chart">
+      {% for e in p.body %}
+          <div class="bar" style="height:{{e.pct}}%">
+              <div class="bar-tooltip">
+                  {{e.sub_total | default:0 | intcomma }}<br>
+                  {{e.period | date:"m/d/Y"}}
+              </div>
+          </div>
+      {% endfor %}
+      </div>
+    </div>  
+  {% endif %}
+
+  {% if p.type == 'horiz-charts' %}
+    <div class="results">
+      <div class="row">
+        {% for c in p.data %}
+          <div class="column">
+            <h2> {{ c.title }} </h2>
+            <div class="bar-chart">
+              {% for b in c.body %}
+                {% if b.marked %}
+                  <div class="bar" style="background-color:orange;height:{{b.pct}}%">
+                    <div class="bar-tooltip">
+                      {{ b.row_cnt | default:0 | intcomma }}<br>
+                      {{ c.tooltip_txt.0 }}<br>
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="bar" style="height:{{b.pct}}%">
+                    <div class="bar-tooltip">
+                      {{ b.row_cnt | default:0 | intcomma }}<br>
+                      {{ c.tooltip_txt.1 }}<br>
+                    </div>
+                  </div>
+                {% endif  %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>  
+  {% endif %}
+
+  {% if p.type == 'table-view' %}
+    <h2> {{ p.title }} </h2>
+    <div class="results">
+      <table>
+        <thead>
+          <tr>
+            {% for f in p.header %}
+              <th>
+                <div class="text">
+                  <a href="#">{{ f }}</a>
+                </div>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in p.body %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+              <td> {{ row.period }} </td>
+              <td> {{ row.sub_total }} </td>
+              <td>
+                {% if row.sub_total <= 0 and p.total <= 0 %}
+                  <strong> {{ 0 }} </strong>
+                {% else %}
+                  {% widthratio row.sub_total p.total 100 as pct %}
+                  <strong> {{ pct }} </strong>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          <tr style=”font-weight:bold; border-top:2px solid #DDDDDD;”>
+            {% for f in p.footer %}
+              <td> {{ f }} </td>
+            {% endfor %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+  <hr>
+  <hr>
+  <hr>
+  <hr>
+  <hr>
+{% endfor %}
+
+</div>
+{% endblock %}
+{% block pagination %}{% endblock %}
