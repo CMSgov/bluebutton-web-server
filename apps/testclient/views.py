@@ -77,7 +77,11 @@ def test_links(request):
 
 @never_cache
 def success(request, response):
-    return render(request, "success.html", response)
+    if 'token' in request.session:
+        session_has_token = True
+    else:
+        session_has_token = False
+    return render(request, 'testlinks.html', context={"session_has_token": session_has_token})
 
 
 @never_cache
