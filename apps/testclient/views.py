@@ -19,7 +19,7 @@ def callback(request):
     if 'error' in request.GET:
         if 'token' in request.session:
             del request.session['token']
-        return redirect('test_links', permanent=True)
+        return redirect('test_home', permanent=True)
 
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
@@ -53,22 +53,21 @@ def callback(request):
     cleanup_session_auth_flow_trace(request)
 
     # Successful token response, redirect to home page view
-    return redirect('test_links', permanent=True)
+    return redirect('test_home', permanent=True)
 
 
 # Set up ability to determine if user has token
-def test_links(request):
+def test_home(request):
     if 'token' in request.session:
-        session_has_token = True
+        return render(request, 'home.html', context={"session_token": request.session['token']})
     else:
-        session_has_token = False
-    return render(request, 'testlinks.html', context={"session_has_token": session_has_token})
+        return render(request, 'home.html', context={"session_token": None})
 
 
 @never_cache
 def test_userinfo(request):
     if 'token' not in request.session:
-        return redirect('test_links', permanent=True)
+        return redirect('test_home', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     userinfo_uri = "%s/v1/connect/userinfo" % (request.session['resource_uri'])
@@ -79,7 +78,7 @@ def test_userinfo(request):
 @never_cache
 def test_coverage(request):
     if 'token' not in request.session:
-        return redirect('test_links', permanent=True)
+        return redirect('test_home', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     coverage_uri = "%s/v1/fhir/Coverage/?_format=json" % (
@@ -92,7 +91,7 @@ def test_coverage(request):
 @never_cache
 def test_patient(request):
     if 'token' not in request.session:
-        return redirect('test_links', permanent=True)
+        return redirect('test_home', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     patient_uri = "%s/v1/fhir/Patient/%s?_format=json" % (
@@ -104,7 +103,7 @@ def test_patient(request):
 @never_cache
 def test_eob(request):
     if 'token' not in request.session:
-        return redirect('test_links', permanent=True)
+        return redirect('test_home', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?_format=json" % (
@@ -119,4 +118,4 @@ def authorize_link(request):
                         redirect_uri=request.session['redirect_uri'])
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'])[0]
-    return render(request, 'testclient.html', {"authorization_url": authorization_url})
+    return render(request, 'authorize.html', {"authorization_url": authorization_url})

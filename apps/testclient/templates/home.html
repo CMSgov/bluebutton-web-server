@@ -35,7 +35,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 			<h2>Step 1: Sample Authorization</h2>
 			<!-- If a user does not have a token, give clear instructions about auth flow -->
-			{% if not session_has_token %}
+			{% if session_token is None %}
 			<p>To simulate a Medicare beneficiary granting an application access to their Medicare claims data, start by getting a sample authorization token. You'll see how a API call URL is constructed and see what a beneficiary sees when they are granting access.</p>
 
 			<br />
@@ -44,8 +44,12 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			{% endif %}
 	
 			<!-- If a user DOES have a token, reflect the success of that action -->
-			{% if session_has_token %}
+			{% if session_token is not None %}
 			<p>Success! You have a token. Now you can make API calls below. Or you can <a href="{% url 'authorize_link' %}">repeat this step if you need a new token.</a></p>
+
+			<br />
+
+			<pre>{{ session_token }}</pre>
 
 			<br />
 
