@@ -65,6 +65,7 @@ def callback(request):
 
     return success(request, response)
 
+
 # Set up ability to determine if user has token
 def test_links(request):
     if 'token' in request.session:
@@ -72,6 +73,7 @@ def test_links(request):
     else:
         session_has_token = False
     return render(request, 'testlinks.html', context={"session_has_token": session_has_token})
+
 
 @never_cache
 def success(request, response):
