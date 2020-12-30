@@ -1,15 +1,16 @@
-from django.contrib.auth.models import Group
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
-from apps.accounts.models import UserProfile
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.dot_ext.models import Application
-from apps.capabilities.models import ProtectedCapability
-from oauth2_provider.models import AccessToken
-from django.utils import timezone
 from datetime import timedelta
+
 from django.conf import settings
+from django.contrib.auth.models import Group, User
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+from oauth2_provider.models import AccessToken
+
+from apps.accounts.models import UserProfile
 from apps.authorization.models import update_grants
+from apps.capabilities.models import ProtectedCapability
+from apps.dot_ext.models import Application
+from apps.fhir.bluebutton.models import Crosswalk, hash_id_value
 
 
 def create_group(name="BlueButton"):
@@ -45,7 +46,7 @@ def create_user(group):
     u.groups.add(group)
     c, g_o_c = Crosswalk.objects.get_or_create(user=u,
                                                _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                               _user_id_hash="ee78989d1d9ba0b98f3cfbd52479f10c7631679c17563186f70fbef038cc9536")
+                                               _user_id_hash=hash_id_value(settings.DEFAULT_SAMPLE_HICN))
     return u
 
 
