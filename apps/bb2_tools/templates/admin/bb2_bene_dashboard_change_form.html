@@ -1,0 +1,13 @@
+{% extends "admin/change_form.html" %}
+
+{% block form_top %}
+    <h1 style="color:orange;">{{ warning_label.pii_warning_text }}</h1>
+{% endblock %}
+
+{% block after_field_sets %}
+{{ block.super }}
+<div class="results">
+    <h2>Source(BFD): Patient (json) with hicn, mbi</h2>
+    <div>{{ info_from_bfd }}</div>
+</div>
+{% endblock %}

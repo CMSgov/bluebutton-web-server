@@ -2,7 +2,8 @@ import requests
 from django.conf import settings
 from rest_framework import exceptions
 from apps.dot_ext.loggers import get_session_auth_flow_trace
-from apps.fhir.bluebutton.utils import generate_info_headers
+from apps.fhir.bluebutton.utils import (generate_info_headers,
+                                        set_default_header)
 from ..bluebutton.exceptions import UpstreamServerException
 from ..bluebutton.utils import (FhirServerAuth,
                                 get_resourcerouter)
@@ -54,6 +55,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
         headers = generate_info_headers(request)
+        headers = set_default_header(request, headers)
         # may be part of the contract with BFD
         headers['BlueButton-AuthUuid'] = auth_flow_dict.get('auth_uuid', '')
         headers['BlueButton-AuthAppId'] = auth_flow_dict.get('auth_app_id', '')

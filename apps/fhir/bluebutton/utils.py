@@ -141,7 +141,6 @@ def generate_info_headers(request):
 
     # Return resource_owner or user
     user = get_user_from_request(request)
-    originating_ip = get_ip_from_request(request)
     crosswalk = get_crosswalk(user)
     if crosswalk:
         # we need to send the HicnHash or the fhir_id
@@ -170,11 +169,6 @@ def generate_info_headers(request):
             result['BlueButton-DeveloperId'] = ""
             result['BlueButton-Developer'] = ""
 
-    if originating_ip:
-        result['BlueButton-OriginatingIpAddress'] = originating_ip
-    else:
-        result['BlueButton-OriginatingIpAddress'] = ""
-
     return result
 
 
@@ -196,6 +190,12 @@ def set_default_header(request, header=None):
         header['X-Forwarded-Proto'] = "http"
 
     header['X-Forwarded-Host'] = request.get_host()
+
+    originating_ip = get_ip_from_request(request)
+    if originating_ip:
+        header['X-Forwarded-For'] = originating_ip
+    else:
+        header['X-Forwarded-For'] = ""
 
     return header
 
@@ -657,3 +657,22 @@ def build_oauth_resource(request, format_type="json"):
         ]
 
     return security
+
+
+def get_patient_by_id(id, request):
+    '''
+    a helper adapted to just get patient given an id out of band of auth flow
+    or noraml data flow, use by tools such as BB2-Tools admin viewers
+    '''
+    auth_settings = FhirServerAuth(None)
+    certs = (auth_settings['cert_file'], auth_settings['key_file'])
+    headers = generate_info_headers(request)
+    headers['BlueButton-Application'] = "BB2-Tools"
+    headers['includeIdentifiers'] = "true"
+    url = "{}Patient/{}?_format={}".format(get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT)
+    s = requests.Session()
+    req = requests.Request('GET', url, headers=headers)
+    prepped = req.prepare()
+    response = s.send(prepped, cert=certs, verify=False)
+    response.raise_for_status()
+    return response.json()
