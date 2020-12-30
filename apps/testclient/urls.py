@@ -12,5 +12,4 @@ urlpatterns = [
     url(r'^Patient$', test_patient, name='test_patient'),
     url(r'^Coverage$', test_coverage, name='test_coverage'),
     url(r'^userinfo$', test_userinfo, name='test_userinfo'),
-    url(r'^error$', TemplateView.as_view(template_name='error.html'), name='testclient_error_page'),
 ]
