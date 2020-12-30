@@ -46,10 +46,8 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			<!-- If a user DOES have a token, reflect the success of that action -->
 			{% if session_has_token %}
 			<p>Success! You have a token. Now you can make API calls below. Or you can <a href="{% url 'authorize_link' %}">repeat this step if you need a new token.</a></p>
-			{% endif %}
 
-			<!-- Only show API calls if user has token -->
-			{% if session_has_token %}
+			<br />
 
 			<h2>Step 2: API Calls</h2>
 			
