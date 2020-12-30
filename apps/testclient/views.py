@@ -73,7 +73,6 @@ def test_links(request):
         session_has_token = False
     return render(request, 'testlinks.html', context={"session_has_token": session_has_token})
 
-
 @never_cache
 def success(request, response):
     return render(request, "success.html", response)
@@ -135,7 +134,3 @@ def authorize_link(request):
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'])[0]
     return render(request, 'testclient.html', {"authorization_url": authorization_url})
-
-
-def test_links(request):
-    return render(request, 'testlinks.html')
