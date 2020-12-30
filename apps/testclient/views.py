@@ -14,8 +14,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def callback(request):
-    response = OrderedDict()
-
     # Authorization has been denied or another error has occured, remove token if existing
     # and redirect to home page view to force re-authorization
     if 'error' in request.GET:
@@ -40,14 +38,9 @@ def callback(request):
         return JsonResponse({'error': 'Failed to get token from',
                              'code': 'MissingTokenError',
                              'help': 'Try authorizing again.'}, status=500)
-    request.session['token'] = token
-    response['token_response'] = OrderedDict()
 
-    for k, v in token.items():
-        if k != "scope":
-            response['token_response'][k] = v
-        else:
-            response['token_response'][k] = ' '.join(v)
+    request.session['token'] = token
+
     userinfo_uri = request.session['userinfo_uri']
     try:
         userinfo = oas.get(userinfo_uri).json()
@@ -55,16 +48,6 @@ def callback(request):
         userinfo = {'patient': token.get('patient', None)}
 
     request.session['patient'] = userinfo.get('patient', token.get('patient', None))
-
-    response['userinfo'] = {'patient': request.session.get('patient', None)}
-
-    response['oidc_discovery_uri'] = host + \
-        reverse('openid-configuration')
-
-    response['fhir_metadata_uri'] = host + \
-        reverse('fhir_conformance_metadata')
-
-    response['test_page'] = host + reverse('test_links')
 
     # We are done using auth flow trace, clear from the session.
     cleanup_session_auth_flow_trace(request)
