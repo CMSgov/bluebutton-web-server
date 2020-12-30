@@ -85,7 +85,7 @@ def test_links(request):
 @never_cache
 def test_userinfo(request):
     if 'token' not in request.session:
-        redirect('test_links', permanent=True)
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     userinfo_uri = "%s/v1/connect/userinfo" % (request.session['resource_uri'])
@@ -96,7 +96,7 @@ def test_userinfo(request):
 @never_cache
 def test_coverage(request):
     if 'token' not in request.session:
-        redirect('test_links', permanent=True)
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     coverage_uri = "%s/v1/fhir/Coverage/?_format=json" % (
@@ -109,7 +109,7 @@ def test_coverage(request):
 @never_cache
 def test_patient(request):
     if 'token' not in request.session:
-        redirect('test_links', permanent=True)
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     patient_uri = "%s/v1/fhir/Patient/%s?_format=json" % (
@@ -121,7 +121,7 @@ def test_patient(request):
 @never_cache
 def test_eob(request):
     if 'token' not in request.session:
-        redirect('test_links', permanent=True)
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?_format=json" % (
