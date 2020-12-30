@@ -1,7 +1,6 @@
 from django.conf.urls import url
 from .views import (authorize_link, callback, test_eob, test_userinfo,
                     test_coverage, test_patient, test_links)
-from django.views.generic import TemplateView
 
 urlpatterns = [
 
