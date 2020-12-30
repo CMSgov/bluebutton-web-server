@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from requests_oauthlib import OAuth2Session
-from collections import OrderedDict
 from django.http import JsonResponse
 from django.conf import settings
 from django.urls import reverse
@@ -19,7 +18,7 @@ def callback(request):
     if 'error' in request.GET:
         if 'token' in request.session:
             del request.session['token']
-        return redirect('test_home', permanent=True)
+        return redirect('test_links', permanent=True)
 
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
@@ -53,11 +52,11 @@ def callback(request):
     cleanup_session_auth_flow_trace(request)
 
     # Successful token response, redirect to home page view
-    return redirect('test_home', permanent=True)
+    return redirect('test_links', permanent=True)
 
 
 # New home page view consolidates separate success, error, and access denied views
-def test_home(request):
+def test_links(request):
     # If authorization was successful, pass token to template
     if 'token' in request.session:
         return render(request, 'home.html', context={"session_token": request.session['token']})
@@ -68,7 +67,7 @@ def test_home(request):
 @never_cache
 def test_userinfo(request):
     if 'token' not in request.session:
-        return redirect('test_home', permanent=True)
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     userinfo_uri = "%s/v1/connect/userinfo" % (request.session['resource_uri'])
@@ -79,7 +78,7 @@ def test_userinfo(request):
 @never_cache
 def test_coverage(request):
     if 'token' not in request.session:
-        return redirect('test_home', permanent=True)
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     coverage_uri = "%s/v1/fhir/Coverage/?_format=json" % (
@@ -92,7 +91,7 @@ def test_coverage(request):
 @never_cache
 def test_patient(request):
     if 'token' not in request.session:
-        return redirect('test_home', permanent=True)
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     patient_uri = "%s/v1/fhir/Patient/%s?_format=json" % (
@@ -104,7 +103,7 @@ def test_patient(request):
 @never_cache
 def test_eob(request):
     if 'token' not in request.session:
-        return redirect('test_home', permanent=True)
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?_format=json" % (
