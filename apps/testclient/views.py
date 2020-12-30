@@ -56,8 +56,9 @@ def callback(request):
     return redirect('test_home', permanent=True)
 
 
-# Set up ability to determine if user has token
+# New home page view consolidates separate success, error, and access denied views
 def test_home(request):
+    # If authorization was successful, pass token to template
     if 'token' in request.session:
         return render(request, 'home.html', context={"session_token": request.session['token']})
     else:
