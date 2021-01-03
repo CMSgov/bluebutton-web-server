@@ -14,7 +14,7 @@ echo "DB_MIGRATIONS = " ${DB_MIGRATIONS}
 
 if [ "${DB_MIGRATIONS}" = true ]
 then
-    echo "starting server ..., run db image migration and models initialization."
+    echo "run db image migration and models initialization."
     python manage.py migrate
 
     echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPERUSER_NAME}', '${SUPERUSER_EMAIL}', '${SUPERUSER_PASSWORD}')" | python manage.py shell
@@ -25,7 +25,7 @@ then
     python manage.py create_user_identification_label_selection
     python manage.py create_test_feature_switches
 else
-    echo "restarting server ..., no db image migration and models initialization will run here, you might need to manually run DB image migrations ..."
+    echo "restarting blue button server, no db image migration and models initialization will run here, you might need to manually run DB image migrations."
 fi
 
 if [ ! -d 'bluebutton-css' ]
@@ -46,6 +46,6 @@ then
         python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 --noreload
     fi
 else
-    echo "Start bluebutton server ..."
+    echo "Start blue button server."
     python3 manage.py runserver 0.0.0.0:8000
 fi

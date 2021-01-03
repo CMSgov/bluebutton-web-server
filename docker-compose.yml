@@ -47,8 +47,10 @@ services:
             - REMOTE_DEBUG_WAIT=${REMOTE_DEBUG_WAIT}
             - HOSTNAME_URL=${HOSTNAME_URL}
             - DB_MIGRATIONS=${DB_MIGRATIONS}
+            - FHIR_CERTSTORE_ON_HOST=${FHIR_CERTSTORE_ON_HOST}
     volumes:
       - .:/code
+      - ${FHIR_CERTSTORE_ON_HOST}:${DJANGO_FHIR_CERTSTORE}:ro
     ports:
       - "8000:8000"
       - "5678:5678"
