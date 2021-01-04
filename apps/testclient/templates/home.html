@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block bannerBackButton %}{% endblock %}
+
+{% block bannerTitle %}
+Blue Button 2.0 API Test Client
+{% endblock %}
+
+{% block bannerDescription %}
+The Blue Button 2.0 API Test Client allows you to quickly see what it is like for a Medicare beneficiary to grant access to an application. It allows allows you to see sample data returned from our various API endpoints.
+{% endblock %}
+
+{% block bannerCallToActionButtons %}
+{% endblock %}
+
+{% block Content %}
+
+<div class="container">
+  <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+    <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+
+			{% if user.is_authenticated %}
+			<div class="ds-c-alert ds-c-alert--warn ds-u-margin-bottom--4">
+				<div class="ds-c-alert__body">
+					<h3 class="ds-c-alert__heading">Log out to continue</h3>
+					<p class="ds-c-alert__text" role="alert">
+						It looks like you may be logged in to your Sandbox developer account. Because the Test Client mimics the behavior of an anonymous user authenticating with Blue Button 2.0, you must be logged out of your Sandbox account to use the Test Client. Otherwise you will receive a 500 error.
+					</p>
+					<a href="{% url 'logout' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Log Out to Continue</a>
+				</div>
+			</div>
+			{% endif %}
+
+			<h2>Step 1: Sample Authorization</h2>
+			<!-- If a user does not have a token, give clear instructions about auth flow -->
+			{% if session_token is None %}
+			<p>To simulate a Medicare beneficiary granting an application access to their Medicare claims data, start by getting a sample authorization token. You'll see how a API call URL is constructed and see what a beneficiary sees when they are granting access.</p>
+
+			<br />
+
+			<a href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
+			{% endif %}
+	
+			<!-- If a user DOES have a token, reflect the success of that action -->
+			{% if session_token is not None %}
+			<p>Success! You have a token. Now you can make API calls below. Or you can <a href="{% url 'authorize_link' %}">repeat this step if you need a new token.</a></p>
+
+			<br />
+
+			<pre>{{ session_token }}</pre>
+
+			<br />
+
+			<h2>Step 2: API Calls</h2>
+			
+			<p class="ds-u-margin-y--2">Once you've completed step one and have an authorization token, you can click on any of the links below to simulate calls to different endpoints and see the sample data that is delivered in the response.</p>
+
+			<ul>
+				<li> <a href="{% url 'test_eob' %}">ExplanationOfBenefit</a> </li>
+				<li> <a href="{% url 'test_patient' %}">Patient</a> </li>
+				<li> <a href="{% url 'test_coverage' %}">Coverage</a> </li>
+				<li> <a href="{% url 'test_userinfo' %}">Profile </a> (OIDC Userinfo)</li>
+				<li> <a href="{% url 'fhir_conformance_metadata' %}?format=json">FHIR Metadata</a> (No Token Needed)</li>
+				<li> <a href="{% url 'openid-configuration' %}">OIDC Discovery</a> (No Token Needed)</li>
+			</ul>
+
+			<h2 class="ds-u-margin-y--2">Additional Resources</h2>
+
+			<p>If you need more information about the API or the sample data, feel free to read our <a href="https://bluebutton.cms.gov/developers/">developer documentation</a>.</p>
+
+			<h3 class="ds-u-margin-y--2">Testing your own application:</h3>
+
+			<p>If you want to test the Blue Button 2.0 API with your own application, create a Sandbox account and register your application. Once registered, you can use your test credentials to re-create this experience and include synthetic Medicare data in your own application.</p>
+
+			<a href="{% url 'accounts_create_account' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Create a Sandbox Account</a>
+
+			{% endif %}
+
+			<div class="spacer" style="min-height: 50vh;"></div>
+		</div>
+	</div>
+</div>
+    
+{% endblock %}

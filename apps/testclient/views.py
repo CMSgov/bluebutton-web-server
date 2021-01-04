@@ -1,7 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from requests_oauthlib import OAuth2Session
-from collections import OrderedDict
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from django.conf import settings
 from django.urls import reverse
 from .utils import test_setup, get_client_secret
@@ -14,9 +13,13 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def callback(request):
-    response = OrderedDict()
+    # Authorization has been denied or another error has occured, remove token if existing
+    # and redirect to home page view to force re-authorization
     if 'error' in request.GET:
-        return render(request, "access-denied.html", {"error": request.GET.get("error")})
+        if 'token' in request.session:
+            del request.session['token']
+        return redirect('test_links', permanent=True)
+
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
     host = settings.HOSTNAME_URL
@@ -34,14 +37,9 @@ def callback(request):
         return JsonResponse({'error': 'Failed to get token from',
                              'code': 'MissingTokenError',
                              'help': 'Try authorizing again.'}, status=500)
-    request.session['token'] = token
-    response['token_response'] = OrderedDict()
 
-    for k, v in token.items():
-        if k != "scope":
-            response['token_response'][k] = v
-        else:
-            response['token_response'][k] = ' '.join(v)
+    request.session['token'] = token
+
     userinfo_uri = request.session['userinfo_uri']
     try:
         userinfo = oas.get(userinfo_uri).json()
@@ -50,31 +48,26 @@ def callback(request):
 
     request.session['patient'] = userinfo.get('patient', token.get('patient', None))
 
-    response['userinfo'] = {'patient': request.session.get('patient', None)}
-
-    response['oidc_discovery_uri'] = host + \
-        reverse('openid-configuration')
-
-    response['fhir_metadata_uri'] = host + \
-        reverse('fhir_conformance_metadata')
-
-    response['test_page'] = host + reverse('test_links')
-
     # We are done using auth flow trace, clear from the session.
     cleanup_session_auth_flow_trace(request)
 
-    return success(request, response)
+    # Successful token response, redirect to home page view
+    return redirect('test_links', permanent=True)
 
 
-@never_cache
-def success(request, response):
-    return render(request, "success.html", response)
+# New home page view consolidates separate success, error, and access denied views
+def test_links(request):
+    # If authorization was successful, pass token to template
+    if 'token' in request.session:
+        return render(request, 'home.html', context={"session_token": request.session['token']})
+    else:
+        return render(request, 'home.html', context={"session_token": None})
 
 
 @never_cache
 def test_userinfo(request):
     if 'token' not in request.session:
-        return HttpResponseRedirect(reverse('testclient_error_page'))
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     userinfo_uri = "%s/v1/connect/userinfo" % (request.session['resource_uri'])
@@ -85,7 +78,7 @@ def test_userinfo(request):
 @never_cache
 def test_coverage(request):
     if 'token' not in request.session:
-        return HttpResponseRedirect(reverse('testclient_error_page'))
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     coverage_uri = "%s/v1/fhir/Coverage/?_format=json" % (
@@ -98,7 +91,7 @@ def test_coverage(request):
 @never_cache
 def test_patient(request):
     if 'token' not in request.session:
-        return HttpResponseRedirect(reverse('testclient_error_page'))
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     patient_uri = "%s/v1/fhir/Patient/%s?_format=json" % (
@@ -110,7 +103,7 @@ def test_patient(request):
 @never_cache
 def test_eob(request):
     if 'token' not in request.session:
-        return HttpResponseRedirect(reverse('testclient_error_page'))
+        return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     eob_uri = "%s/v1/fhir/ExplanationOfBenefit/?_format=json" % (
@@ -120,14 +113,9 @@ def test_eob(request):
 
 
 def authorize_link(request):
-
     request.session.update(test_setup())
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'])[0]
-    return render(request, 'testclient.html', {"authorization_url": authorization_url})
-
-
-def test_links(request):
-    return render(request, 'testlinks.html')
+    return render(request, 'authorize.html', {"authorization_url": authorization_url})
