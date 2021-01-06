@@ -39,17 +39,28 @@ submit{
 </p>
 <br>
 <br>
+<h2>{{.HelpMessage}}</h2>
+<br>
 <form method="post" action="/login">
 <div>
-    <h3>Enter User Name:</h3>
     <label>SUB(username): </label> <input type="text" name="username" size=50></input>
     <br>
-    <h3>Enter Identity:</h3>
-    <label>HICN</label> <input type="text" name="hicn" size=64></input>
+	<br>
+	<label>HICN</label><input list="hicn_list" name="hicn" id="hicn" size=64>
+	<datalist id="hicn_list">
+	{{range .HicnValues}}
+	<option value="{{.}}">
+	{{end}}
+  	</datalist>
+  	<br>
     <br>
-    <br>
-    <label>MBI</label> <input type="text" name="mbi" size=64></input>
-    <br>
+	<label>MBI</label><input list="mbi_list" name="mbi" id="mbi" size=64>
+	<datalist id="mbi_list">
+	{{range .MbiValues}}
+	<option value="{{.}}">
+	{{end}}
+  	</datalist>
+	<br>
     <br>
     <label>name</label> <input type="text" name="name" size=30></input>
     <br>
