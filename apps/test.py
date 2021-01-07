@@ -162,7 +162,7 @@ class BaseApiTest(TestCase):
             log_contents[n] = v[0].getvalue()
         return log_contents
 
-    def assert_log_entry_valid(self, entry_dict, compare_dict, remove_list):
+    def assert_log_entry_valid(self, entry_dict, compare_dict, attrexist_list, hasvalue_list):
         '''
         Method for validating a log entry has the expected structure and values
         '''
@@ -176,7 +176,7 @@ class BaseApiTest(TestCase):
         for key in compare_dict:
             expected_keys.append(key)
 
-        for item in remove_list:
+        for item in attrexist_list:
             expected_keys.append(item)
 
         for key in entry_dict:
@@ -185,9 +185,11 @@ class BaseApiTest(TestCase):
         self.assertEqual(expected_keys.sort(), entry_keys.sort())
 
         # Remove items not needed for comparison and check that they have values (not None/empty)
-        for key in remove_list:
-            self.assertIsNotNone(copy_dict[key])
-            self.assertNotEqual(copy_dict[key], '')
+        for key in attrexist_list:
+            self.assertTrue(key in copy_dict)
+            if hasvalue_list is not None and key in hasvalue_list:
+                self.assertIsNotNone(copy_dict[key])
+                self.assertNotEqual(copy_dict[key], '')
             copy_dict.pop(key)
 
         # Compare dictionaries for expected values
