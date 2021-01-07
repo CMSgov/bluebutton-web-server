@@ -80,7 +80,7 @@ class TestAuditEventLoggers(BaseApiTest):
                             'path': '/v1/fhir/Patient',
                             'type': 'fhir_pre_fetch',
                             'user': 'patientId:-20140000008325'}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid'])
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid'], None)
 
             return {
                 'status_code': 200,
@@ -108,7 +108,7 @@ class TestAuditEventLoggers(BaseApiTest):
                             'path': '/v1/fhir/Patient',
                             'type': 'fhir_pre_fetch',
                             'user': 'patientId:-20140000008325'}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid'])
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid'], None)
 
             # Validate fhir_post_fetch entry
             log_entry_dict = json.loads(log_entries[1])
@@ -120,7 +120,7 @@ class TestAuditEventLoggers(BaseApiTest):
                             'size': 1270,
                             'type': 'fhir_post_fetch',
                             'user': 'patientId:-20140000008325'}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid', 'elapsed'])
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid', 'elapsed'], None)
 
             # Validate AccessToken entry
             token_log_content = self.get_log_content('audit.authorization.token')
@@ -137,7 +137,7 @@ class TestAuditEventLoggers(BaseApiTest):
                             'scopes': 'read write patient',
                             'type': 'AccessToken',
                             'user': {'id': 1, 'username': 'John'}}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['access_token'])
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['access_token'], None)
 
     def test_callback_url_success_sls_logger(self):
         # copy and adapted for SLS logger test
@@ -198,91 +198,193 @@ class TestAuditEventLoggers(BaseApiTest):
             quoted_strings = re.findall("{[^{}]+}", sls_log_content)
             self.assertEqual(len(quoted_strings), 2)
             sls_token_dict = json.loads(quoted_strings[0])
-            sls_userinfo_dict = json.loads(quoted_strings[1])
-            self.assertEqual(sls_token_dict["type"], "SLS_token")
-            self.assertIsNotNone(sls_token_dict["access_token"])
+            compare_dict = {
+                'code': 200,
+                'path': '/v1/oauth/token',
+                'type': 'SLS_token'
+            }
+            remove_list = [
+                'size',
+                'elapsed',
+                'start_time',
+                'access_token',
+                'uuid'
+            ]
+            hasvalue_list = [
+                'access_token',
+                'uuid'
+            ]
+            self.assert_log_entry_valid(sls_token_dict, compare_dict, remove_list, hasvalue_list)
 
-            self.assertEqual(sls_userinfo_dict["type"], "SLS_userinfo")
-            self.assertEqual(sls_userinfo_dict["sub"], "00112233-4455-6677-8899-aabbccddeeff")
+            sls_userinfo_dict = json.loads(quoted_strings[1])
+            compare_dict = {
+                'code': 200,
+                'path': '/v1/oauth/userinfo',
+                'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                'type': 'SLS_userinfo',
+            }
+            remove_list = [
+                'elapsed',
+                'size',
+                'start_time',
+                'uuid'
+            ]
+            hasvalue_list = [
+                'uuid'
+            ]
+            self.assert_log_entry_valid(sls_userinfo_dict, compare_dict, remove_list, hasvalue_list)
 
             authn_sls_log_content = self.get_log_content('audit.authenticate.sls')
             log_entries = authn_sls_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
             # Authentication:start
             log_entry_dict = json.loads(log_entries[0])
-            self.assertEqual(log_entry_dict["type"], "Authentication:start")
-            self.assertEqual(log_entry_dict["sls_status"], "OK")
-            self.assertEqual(log_entry_dict["sub"], "00112233-4455-6677-8899-aabbccddeeff")
-            self.assertIsNotNone(log_entry_dict["sls_mbi_format_valid"])
-            self.assertIsNotNone(log_entry_dict["sls_mbi_format_msg"])
-            self.assertIsNotNone(log_entry_dict["sls_mbi_format_synthetic"])
-            self.assertIsNotNone(log_entry_dict["sls_hicn_hash"])
-            self.assertIsNotNone(log_entry_dict["sls_mbi_hash"])
-            # Authentication:success
+            compare_dict = {
+                'sls_mbi_format_msg': 'Valid',
+                'sls_mbi_format_synthetic': True,
+                'sls_mbi_format_valid': True,
+                'sls_status': 'OK',
+                'sls_status_mesg': None,
+                'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                'type': 'Authentication:start'
+            }
+            remove_list = [
+                'sls_hicn_hash',
+                'sls_mbi_hash'
+            ]
+            hasvalue_list = [
+                'sls_hicn_hash',
+                'sls_mbi_hash'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
             log_entry_dict = json.loads(log_entries[1])
-            self.assertEqual(log_entry_dict["type"], "Authentication:success")
-            self.assertEqual(log_entry_dict["sub"], "00112233-4455-6677-8899-aabbccddeeff")
-            self.assertEqual(log_entry_dict["auth_crosswalk_action"], "C")
-            self.assertIsNotNone(log_entry_dict["user"])
+            compare_dict = {
+                'auth_crosswalk_action': 'C',
+                'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                'type': 'Authentication:success',
+            }
+            remove_list = [
+                'user'
+            ]
+            hasvalue_list = [
+                'user'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
 
             mymedicare_cb_log_content = self.get_log_content('audit.authenticate.mymedicare_cb')
             log_entries = mymedicare_cb_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
             # mymedicare_cb:create_beneficiary_record
             log_entry_dict = json.loads(log_entries[0])
-            self.assertEqual(log_entry_dict["type"], "mymedicare_cb:create_beneficiary_record")
-            self.assertEqual(log_entry_dict["status"], "OK")
-            self.assertEqual(log_entry_dict["username"], "00112233-4455-6677-8899-aabbccddeeff")
-            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
-            self.assertIsNotNone(log_entry_dict["user_mbi_hash"])
-            self.assertIsNotNone(log_entry_dict["user_hicn_hash"])
-            self.assertEqual(log_entry_dict["mesg"], "CREATE beneficiary record")
+
+            compare_dict = {
+                'fhir_id': '-20140000008325',
+                'mesg': 'CREATE beneficiary record',
+                'status': 'OK',
+                'type': 'mymedicare_cb:create_beneficiary_record',
+                'username': '00112233-4455-6677-8899-aabbccddeeff'
+            }
+            remove_list = [
+                'user_hicn_hash',
+                'user_mbi_hash'
+            ]
+            hasvalue_list = [
+                'user_hicn_hash',
+                'user_mbi_hash'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
 
             # mymedicare_cb:get_and_update_user
             log_entry_dict = json.loads(log_entries[1])
-            self.assertEqual(log_entry_dict["type"], "mymedicare_cb:get_and_update_user")
-            self.assertEqual(log_entry_dict["status"], "OK")
-            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
-            self.assertEqual(log_entry_dict["hash_lookup_type"], "M")
-            self.assertEqual(log_entry_dict["mesg"], "CREATE beneficiary record")
-            self.assertIsNotNone(log_entry_dict["crosswalk"])
-            self.assertIsNotNone(log_entry_dict["mbi_hash"])
-            self.assertIsNotNone(log_entry_dict["hicn_hash"])
+
+            compare_dict = {
+                'fhir_id': '-20140000008325',
+                'hash_lookup_type': 'M',
+                'mesg': 'CREATE beneficiary record',
+                'status': 'OK',
+                'type': 'mymedicare_cb:get_and_update_user'
+            }
+            remove_list = [
+                'crosswalk',
+                'hicn_hash',
+                'mbi_hash',
+            ]
+            hasvalue_list = [
+                'crosswalk',
+                'hicn_hash',
+                'mbi_hash'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
 
             fhir_log_content = self.get_log_content('audit.data.fhir')
             log_entries = fhir_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
             # fhir_auth_pre_fetch
             log_entry_dict = json.loads(log_entries[0])
-            self.assertEqual(log_entry_dict["type"], "fhir_auth_pre_fetch")
-            self.assertEqual(log_entry_dict["includeAddressFields"], 'False')
-            self.assertEqual(log_entry_dict["path"], "patient search")
-            self.assertIsNotNone(log_entry_dict["uuid"])
-            self.assertIsNotNone(log_entry_dict["start_time"])
+
+            compare_dict = {
+                'includeAddressFields': 'False',
+                'path': 'patient search',
+                'type': 'fhir_auth_pre_fetch',
+            }
+            remove_list = [
+                'start_time',
+                'uuid'
+            ]
+            hasvalue_list = [
+                'start_time',
+                'uuid'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
 
             # fhir_auth_post_fetch
             log_entry_dict = json.loads(log_entries[1])
-            self.assertEqual(log_entry_dict["type"], "fhir_auth_post_fetch")
-            self.assertEqual(log_entry_dict["includeAddressFields"], 'False')
-            self.assertEqual(log_entry_dict["path"], "patient search")
-            self.assertEqual(log_entry_dict["code"], 200)
-            self.assertIsNotNone(log_entry_dict["uuid"])
-            self.assertIsNotNone(log_entry_dict["start_time"])
-            self.assertIsNotNone(log_entry_dict["size"])
-            self.assertIsNotNone(log_entry_dict["elapsed"])
+            compare_dict = {
+                'code': 200,
+                'includeAddressFields': 'False',
+                'path': 'patient search',
+                'type': 'fhir_auth_post_fetch',
+            }
+            remove_list = [
+                'elapsed',
+                'size',
+                'start_time',
+                'uuid'
+            ]
+            hasvalue_list = [
+                'elapsed',
+                'size',
+                'start_time',
+                'uuid'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
 
             match_fhir_id_log_content = self.get_log_content('audit.authenticate.match_fhir_id')
             log_entries = match_fhir_id_log_content.splitlines()
             self.assertGreater(len(log_entries), 0)
             # fhir.server.authentication.match_fhir_id
             log_entry_dict = json.loads(log_entries[0])
-            self.assertEqual(log_entry_dict["type"], "fhir.server.authentication.match_fhir_id")
-            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
-            self.assertIsNotNone(log_entry_dict["mbi_hash"])
-            self.assertIsNotNone(log_entry_dict["hicn_hash"])
-            self.assertEqual(log_entry_dict["match_found"], True)
-            self.assertEqual(log_entry_dict["hash_lookup_type"], "M")
-            self.assertEqual(log_entry_dict["hash_lookup_mesg"], "FOUND beneficiary via mbi_hash")
+            compare_dict = {
+                'fhir_id': '-20140000008325',
+                'hash_lookup_mesg': 'FOUND beneficiary via mbi_hash',
+                'hash_lookup_type': 'M',
+                'match_found': True,
+                'type': 'fhir.server.authentication.match_fhir_id'
+            }
+            remove_list = [
+                'auth_app_id',
+                'auth_app_name',
+                'auth_client_id',
+                'auth_pkce_method',
+                'hicn_hash',
+                'mbi_hash',
+                'auth_uuid'
+            ]
+            hasvalue_list = [
+                'hicn_hash',
+                'mbi_hash'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
 
             hhs_oauth_server_log_content = self.get_log_content('audit.hhs_oauth_server.request_logging')
             log_entries = hhs_oauth_server_log_content.splitlines()
@@ -332,10 +434,32 @@ class TestAuditEventLoggers(BaseApiTest):
         # assert token logger record works by assert some top level fields
         token_log_content = self.get_log_content('audit.authorization.token')
         self.assertIsNotNone(token_log_content)
-        token_log_record = json.loads(token_log_content)
-        self.assertEqual(token_log_record["type"], "Authorization")
-        self.assertIsNotNone(token_log_record["auth_uuid"])
-        self.assertEqual(token_log_record["auth_app_name"], "an app")
-        self.assertEqual(token_log_record["auth_status"], "OK")
-        self.assertIsNotNone(token_log_record["user"])
-        self.assertIsNotNone(token_log_record["application"])
+        token_log_dict = json.loads(token_log_content)
+        compare_dict = {
+            'allow': True,
+            'auth_app_name': 'an app',
+            'auth_require_demographic_scopes': 'True',
+            'auth_status': 'OK',
+            'scopes': 'capability-a',
+            'type': 'Authorization'
+        }
+        remove_list = [
+            'access_token_delete_cnt',
+            'application',
+            'auth_app_id',
+            'auth_client_id',
+            'auth_pkce_method',
+            'auth_status_code',
+            'auth_uuid',
+            'auth_share_demographic_scopes',
+            'data_access_grant_delete_cnt',
+            'refresh_token_delete_cnt',
+            'share_demographic_scopes',
+            'user'
+        ]
+        hasvalue_list = [
+            'auth_uuid',
+            'user',
+            'application'
+        ]
+        self.assert_log_entry_valid(token_log_dict, compare_dict, remove_list, hasvalue_list)
