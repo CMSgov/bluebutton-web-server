@@ -378,7 +378,7 @@ class SLSxUserInfoResponse(SLSResponse):
     request_class = SLSRequest
 
     def get_type(self):
-        return 'SLS_userinfo'
+        return 'SLSx_userinfo'
 
     def to_dict(self):
         event_dict = json.loads(self.resp.text)
