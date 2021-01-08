@@ -1,20 +1,25 @@
-import logging
-import io
 import re
 import json
 from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
 from httmock import all_requests, HTTMock, urlmatch
+
 from apps.dot_ext.models import Application
 from apps.test import BaseApiTest
 from apps.mymedicare_cb.views import generate_nonce
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.responses import patient_response
 
-token_logger = logging.getLogger('audit.authorization.token')
-sls_logger = logging.getLogger('audit.authorization.sls')
-fhir_logger = logging.getLogger('audit.data.fhir')
+loggers = [
+    'audit.authorization.token',
+    'audit.authorization.sls',
+    'audit.data.fhir',
+    'audit.authenticate.sls',
+    'audit.authenticate.mymedicare_cb',
+    'audit.authenticate.match_fhir_id',
+    'audit.hhs_oauth_server.request_logging'
+]
 
 
 class HTTMockWithResponseHook(HTTMock):
@@ -52,46 +57,31 @@ class TestAuditEventLoggers(BaseApiTest):
         ])
         # Setup the RequestFactory
         self.client = Client()
-        # capture sls logging records
-        self.log_buffer_sls = io.StringIO()
-        self.channel_sls = logging.StreamHandler(self.log_buffer_sls)
-        self.channel_sls.setLevel(logging.INFO)
-        sls_logger.setLevel(logging.INFO)
-        sls_logger.addHandler(self.channel_sls)
-        # capture token logging records
-        self.log_buffer_token = io.StringIO()
-        self.channel_token = logging.StreamHandler(self.log_buffer_token)
-        self.channel_token.setLevel(logging.INFO)
-        token_logger.setLevel(logging.INFO)
-        token_logger.addHandler(self.channel_token)
-        # capture fhir data logging records
-        self.log_buffer_fhir = io.StringIO()
-        self.channel_fhir = logging.StreamHandler(self.log_buffer_fhir)
-        self.channel_fhir.setLevel(logging.INFO)
-        fhir_logger.setLevel(logging.INFO)
-        fhir_logger.addHandler(self.channel_fhir)
+        self._redirect_loggers(loggers)
 
     def tearDown(self):
-        # do not close stream, only close channel
-        # self.log_buffer_sls.close()
-        self.channel_sls.close()
-        # self.log_buffer_token.close()
-        self.channel_token.close()
-        # self.log_buffer_fhir.close()
-        self.channel_fhir.close()
+        self._cleanup_logger()
+
+    def get_log_content(self, logger_name):
+        return self._collect_logs(loggers).get(logger_name)
 
     def test_fhir_events_logging(self):
         first_access_token = self.create_token('John', 'Smith')
 
         @all_requests
         def catchall(url, req):
-            fhir_log_content = self.log_buffer_fhir.getvalue()
+            fhir_log_content = self.get_log_content('audit.data.fhir')
             self.assertIsNotNone(fhir_log_content)
+
             log_entry_dict = json.loads(fhir_log_content)
-            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
-            self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
-            self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
-            self.assertIsNotNone(log_entry_dict["application"])
+            compare_dict = {'application': {'id': '1', 'name': 'John_Smith_test', 'user': {'id': '1'}},
+                            'fhir_id': '-20140000008325',
+                            'includeAddressFields': 'False',
+                            'path': '/v1/fhir/Patient',
+                            'type': 'fhir_pre_fetch',
+                            'user': 'patientId:-20140000008325'}
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid'], None)
+
             return {
                 'status_code': 200,
                 # TODO replace this with true backend response, this has been post proccessed
@@ -103,24 +93,51 @@ class TestAuditEventLoggers(BaseApiTest):
                 reverse('bb_oauth_fhir_patient_search'),
                 {'count': 5, 'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
+
+            # fhir_log_content, token_log_content
             # check fhir log content
-            fhir_log_content = self.log_buffer_fhir.getvalue()
+            fhir_log_content = self.get_log_content('audit.data.fhir')
             self.assertIsNotNone(fhir_log_content)
             log_entries = fhir_log_content.splitlines()
 
+            # Validate fhir_pre_fetch entry
             log_entry_dict = json.loads(log_entries[0])
-            self.assertEqual(log_entry_dict["type"], "fhir_pre_fetch")
-            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
-            self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
-            self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
-            self.assertIsNotNone(log_entry_dict["application"])
+            compare_dict = {'application': {'id': '1', 'name': 'John_Smith_test', 'user': {'id': '1'}},
+                            'fhir_id': '-20140000008325',
+                            'includeAddressFields': 'False',
+                            'path': '/v1/fhir/Patient',
+                            'type': 'fhir_pre_fetch',
+                            'user': 'patientId:-20140000008325'}
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid'], None)
 
+            # Validate fhir_post_fetch entry
             log_entry_dict = json.loads(log_entries[1])
-            self.assertEqual(log_entry_dict["type"], "fhir_post_fetch")
-            self.assertEqual(log_entry_dict["fhir_id"], "-20140000008325")
-            self.assertEqual(log_entry_dict["user"], "patientId:-20140000008325")
-            self.assertEqual(log_entry_dict["path"], "/v1/fhir/Patient")
-            self.assertIsNotNone(log_entry_dict["application"])
+            compare_dict = {'application': {'id': '1', 'name': 'John_Smith_test', 'user': {'id': '1'}},
+                            'code': 200,
+                            'fhir_id': '-20140000008325',
+                            'includeAddressFields': 'False',
+                            'path': '/v1/fhir/Patient',
+                            'size': 1270,
+                            'type': 'fhir_post_fetch',
+                            'user': 'patientId:-20140000008325'}
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid', 'elapsed'], None)
+
+            # Validate AccessToken entry
+            token_log_content = self.get_log_content('audit.authorization.token')
+            self.assertIsNotNone(token_log_content)
+            log_entries = token_log_content.splitlines()
+
+            log_entry_dict = json.loads(log_entries[0])
+            compare_dict = {'action': 'authorized',
+                            'application': {'id': 1,
+                                            'name': 'John_Smith_test',
+                                            'user': {'id': 1, 'username': 'John'}},
+                            'auth_grant_type': 'password',
+                            'id': 1,
+                            'scopes': 'read write patient',
+                            'type': 'AccessToken',
+                            'user': {'id': 1, 'username': 'John'}}
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['access_token'], None)
 
     def test_callback_url_success_sls_logger(self):
         # copy and adapted for SLS logger test
@@ -175,19 +192,217 @@ class TestAuditEventLoggers(BaseApiTest):
                       "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
             s.save()
             self.client.get(self.callback_url, data={'code': 'test', 'state': state})
-            sls_log_content = self.log_buffer_sls.getvalue()
+
+            sls_log_content = self.get_log_content('audit.authorization.sls')
+
             quoted_strings = re.findall("{[^{}]+}", sls_log_content)
             self.assertEqual(len(quoted_strings), 2)
             sls_token_dict = json.loads(quoted_strings[0])
-            sls_userinfo_dict = json.loads(quoted_strings[1])
-            self.assertEqual(sls_token_dict["type"], "SLS_token")
-            self.assertIsNotNone(sls_token_dict["access_token"])
+            compare_dict = {
+                'code': 200,
+                'path': '/v1/oauth/token',
+                'type': 'SLS_token'
+            }
+            remove_list = [
+                'size',
+                'elapsed',
+                'start_time',
+                'access_token',
+                'uuid'
+            ]
+            hasvalue_list = [
+                'access_token',
+                'uuid'
+            ]
+            self.assert_log_entry_valid(sls_token_dict, compare_dict, remove_list, hasvalue_list)
 
-            self.assertEqual(sls_userinfo_dict["type"], "SLS_userinfo")
-            self.assertEqual(sls_userinfo_dict["sub"], "00112233-4455-6677-8899-aabbccddeeff")
+            sls_userinfo_dict = json.loads(quoted_strings[1])
+            compare_dict = {
+                'code': 200,
+                'path': '/v1/oauth/userinfo',
+                'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                'type': 'SLS_userinfo',
+            }
+            remove_list = [
+                'elapsed',
+                'size',
+                'start_time',
+                'uuid'
+            ]
+            hasvalue_list = [
+                'uuid'
+            ]
+            self.assert_log_entry_valid(sls_userinfo_dict, compare_dict, remove_list, hasvalue_list)
+
+            authn_sls_log_content = self.get_log_content('audit.authenticate.sls')
+            log_entries = authn_sls_log_content.splitlines()
+            self.assertEqual(len(log_entries), 2)
+            # Authentication:start
+            log_entry_dict = json.loads(log_entries[0])
+            compare_dict = {
+                'sls_mbi_format_msg': 'Valid',
+                'sls_mbi_format_synthetic': True,
+                'sls_mbi_format_valid': True,
+                'sls_status': 'OK',
+                'sls_status_mesg': None,
+                'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                'type': 'Authentication:start'
+            }
+            remove_list = [
+                'sls_hicn_hash',
+                'sls_mbi_hash'
+            ]
+            hasvalue_list = [
+                'sls_hicn_hash',
+                'sls_mbi_hash'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            log_entry_dict = json.loads(log_entries[1])
+            compare_dict = {
+                'auth_crosswalk_action': 'C',
+                'sub': '00112233-4455-6677-8899-aabbccddeeff',
+                'type': 'Authentication:success',
+            }
+            remove_list = [
+                'user'
+            ]
+            hasvalue_list = [
+                'user'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+
+            mymedicare_cb_log_content = self.get_log_content('audit.authenticate.mymedicare_cb')
+            log_entries = mymedicare_cb_log_content.splitlines()
+            self.assertEqual(len(log_entries), 2)
+            # mymedicare_cb:create_beneficiary_record
+            log_entry_dict = json.loads(log_entries[0])
+
+            compare_dict = {
+                'fhir_id': '-20140000008325',
+                'mesg': 'CREATE beneficiary record',
+                'status': 'OK',
+                'type': 'mymedicare_cb:create_beneficiary_record',
+                'username': '00112233-4455-6677-8899-aabbccddeeff'
+            }
+            remove_list = [
+                'user_hicn_hash',
+                'user_mbi_hash'
+            ]
+            hasvalue_list = [
+                'user_hicn_hash',
+                'user_mbi_hash'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+
+            # mymedicare_cb:get_and_update_user
+            log_entry_dict = json.loads(log_entries[1])
+
+            compare_dict = {
+                'fhir_id': '-20140000008325',
+                'hash_lookup_type': 'M',
+                'mesg': 'CREATE beneficiary record',
+                'status': 'OK',
+                'type': 'mymedicare_cb:get_and_update_user'
+            }
+            remove_list = [
+                'crosswalk',
+                'hicn_hash',
+                'mbi_hash',
+            ]
+            hasvalue_list = [
+                'crosswalk',
+                'hicn_hash',
+                'mbi_hash'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+
+            fhir_log_content = self.get_log_content('audit.data.fhir')
+            log_entries = fhir_log_content.splitlines()
+            self.assertEqual(len(log_entries), 2)
+            # fhir_auth_pre_fetch
+            log_entry_dict = json.loads(log_entries[0])
+
+            compare_dict = {
+                'includeAddressFields': 'False',
+                'path': 'patient search',
+                'type': 'fhir_auth_pre_fetch',
+            }
+            remove_list = [
+                'start_time',
+                'uuid'
+            ]
+            hasvalue_list = [
+                'start_time',
+                'uuid'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+
+            # fhir_auth_post_fetch
+            log_entry_dict = json.loads(log_entries[1])
+            compare_dict = {
+                'code': 200,
+                'includeAddressFields': 'False',
+                'path': 'patient search',
+                'type': 'fhir_auth_post_fetch',
+            }
+            remove_list = [
+                'elapsed',
+                'size',
+                'start_time',
+                'uuid'
+            ]
+            hasvalue_list = [
+                'elapsed',
+                'size',
+                'start_time',
+                'uuid'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+
+            match_fhir_id_log_content = self.get_log_content('audit.authenticate.match_fhir_id')
+            log_entries = match_fhir_id_log_content.splitlines()
+            self.assertGreater(len(log_entries), 0)
+            # fhir.server.authentication.match_fhir_id
+            log_entry_dict = json.loads(log_entries[0])
+            compare_dict = {
+                'fhir_id': '-20140000008325',
+                'hash_lookup_mesg': 'FOUND beneficiary via mbi_hash',
+                'hash_lookup_type': 'M',
+                'match_found': True,
+                'type': 'fhir.server.authentication.match_fhir_id'
+            }
+            remove_list = [
+                'auth_app_id',
+                'auth_app_name',
+                'auth_client_id',
+                'auth_pkce_method',
+                'hicn_hash',
+                'mbi_hash',
+                'auth_uuid'
+            ]
+            hasvalue_list = [
+                'hicn_hash',
+                'mbi_hash'
+            ]
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+
+            hhs_oauth_server_log_content = self.get_log_content('audit.hhs_oauth_server.request_logging')
+            log_entries = hhs_oauth_server_log_content.splitlines()
+            self.assertGreater(len(log_entries), 0)
+            # hhs oauth server request logging
+            log_entry_dict = json.loads(log_entries[0])
+
+            log_flds = ["start_time", "end_time", "request_uuid",
+                        "path", "response_code", "size", "location",
+                        "app_name", "app_id", "dev_id", "dev_name",
+                        "access_token_hash", "ip_addr", "auth_crosswalk_action",
+                        "user", "fhir_id"]
+            keys = log_entry_dict.keys()
+            for f in log_flds:
+                self.assertTrue(f in keys)
 
     def test_creation_on_approval_token_logger(self):
-        # copy and adapted o=to test token logger
+        # copy and adapted to test token logger
         redirect_uri = 'http://localhost'
         self._create_user('anna', '123456')
         capability_a = self._create_capability('Capability A', [])
@@ -217,12 +432,34 @@ class TestAuditEventLoggers(BaseApiTest):
         response = self.client.post(response['Location'], data=payload)
         self.assertEqual(response.status_code, 302)
         # assert token logger record works by assert some top level fields
-        token_log_content = self.log_buffer_token.getvalue()
+        token_log_content = self.get_log_content('audit.authorization.token')
         self.assertIsNotNone(token_log_content)
-        token_log_record = json.loads(token_log_content)
-        self.assertEqual(token_log_record["type"], "Authorization")
-        self.assertIsNotNone(token_log_record["auth_uuid"])
-        self.assertEqual(token_log_record["auth_app_name"], "an app")
-        self.assertEqual(token_log_record["auth_status"], "OK")
-        self.assertIsNotNone(token_log_record["user"])
-        self.assertIsNotNone(token_log_record["application"])
+        token_log_dict = json.loads(token_log_content)
+        compare_dict = {
+            'allow': True,
+            'auth_app_name': 'an app',
+            'auth_require_demographic_scopes': 'True',
+            'auth_status': 'OK',
+            'scopes': 'capability-a',
+            'type': 'Authorization'
+        }
+        remove_list = [
+            'access_token_delete_cnt',
+            'application',
+            'auth_app_id',
+            'auth_client_id',
+            'auth_pkce_method',
+            'auth_status_code',
+            'auth_uuid',
+            'auth_share_demographic_scopes',
+            'data_access_grant_delete_cnt',
+            'refresh_token_delete_cnt',
+            'share_demographic_scopes',
+            'user'
+        ]
+        hasvalue_list = [
+            'auth_uuid',
+            'user',
+            'application'
+        ]
+        self.assert_log_entry_valid(token_log_dict, compare_dict, remove_list, hasvalue_list)
