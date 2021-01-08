@@ -1,4 +1,6 @@
+import io
 import json
+import logging
 
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
@@ -135,3 +137,60 @@ class BaseApiTest(TestCase):
         return self._get_access_token(first_name,
                                       passwd,
                                       application)
+
+    def _redirect_loggers(self, logger_names):
+        self.logger_registry = {}
+        for n in logger_names:
+            logger = logging.getLogger(n)
+            log_buffer = io.StringIO()
+            log_channel = logging.StreamHandler(log_buffer)
+            log_channel.setLevel(logging.INFO)
+            logger.setLevel(logging.INFO)
+            logger.addHandler(log_channel)
+            self.logger_registry[n] = (log_buffer, log_channel)
+
+    def _cleanup_logger(self):
+        # do not close stream, only close channel
+        for k, v in self.logger_registry.items():
+            v[1].close()
+        self.logger_registry.clear()
+
+    def _collect_logs(self, logger_names):
+        log_contents = {}
+        for n in logger_names:
+            v = self.logger_registry.get(n)
+            log_contents[n] = v[0].getvalue()
+        return log_contents
+
+    def assert_log_entry_valid(self, entry_dict, compare_dict, attrexist_list, hasvalue_list):
+        '''
+        Method for validating a log entry has the expected structure and values
+        '''
+        # Make a copy to work with so that the original is not modified
+        copy_dict = entry_dict.copy()
+
+        # Check that all items are included and there are no additional items
+        expected_keys = []
+        entry_keys = []
+
+        for key in compare_dict:
+            expected_keys.append(key)
+
+        for item in attrexist_list:
+            expected_keys.append(item)
+
+        for key in entry_dict:
+            entry_keys.append(key)
+
+        self.assertEqual(expected_keys.sort(), entry_keys.sort())
+
+        # Remove items not needed for comparison and check that they have values (not None/empty)
+        for key in attrexist_list:
+            self.assertTrue(key in copy_dict)
+            if hasvalue_list is not None and key in hasvalue_list:
+                self.assertIsNotNone(copy_dict[key])
+                self.assertNotEqual(copy_dict[key], '')
+            copy_dict.pop(key)
+
+        # Compare dictionaries for expected values
+        self.assertDictEqual(copy_dict, compare_dict)
