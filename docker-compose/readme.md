@@ -268,3 +268,15 @@ NOTES:
   * For the CBC related setup see these files for more details:
     * `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job. 
     * `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification.  These settings will also need to be updated when there are CBC image naming changes.
+
+
+## Test with Rails Sample Client with BFD V2 patch
+
+1. git clone https://github.com/CMSgov/bluebutton-sample-client-rails.git
+2. change directory to sample rails client local repo
+3. Apply BFD V2 support patch: git apply rails_client_bfd_v2.patch
+4. Follow sample rails client readme to point to the app created registered on BlueButton server
+5. At rails sample client local repo base directory, run docker-compose up
+6. Point browser to http://localhost:3000, and start authorization and resource read/search
+   
+
