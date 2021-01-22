@@ -552,6 +552,9 @@ SLS_TOKEN_ENDPOINT = env(
 SLSX_TOKEN_ENDPOINT = env(
     'DJANGO_SLSX_TOKEN_ENDPOINT', 'https://dev.accounts.cms.gov/sso/session')
 
+# ACA token for SLSX_TOKEN_ENDPOINT
+MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env('DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN', '')
+
 SLS_USERINFO_ENDPOINT = env(
     'DJANGO_SLS_USERINFO_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/userinfo')
 SLSX_USERINFO_ENDPOINT = env(
@@ -566,6 +569,7 @@ SLS_CLIENT_SECRET = env('DJANGO_SLS_CLIENT_SECRET')
 
 SLSX_CLIENT_ID = env('DJANGO_SLSX_CLIENT_ID')
 SLSX_CLIENT_SECRET = env('DJANGO_SLSX_CLIENT_SECRET')
+
 
 # Message returned to bene for API exceptions related to medicare login/SLS
 MEDICARE_ERROR_MSG = "An error occurred connecting to account.mymedicare.gov"

@@ -85,6 +85,7 @@ class OAuth2Config(object):
 
 class OAuth2ConfigSLSx(object):
     token_endpoint = settings.SLSX_TOKEN_ENDPOINT
+    token_endpoint_aca_token = settings.MEDICARE_SLSX_AKAMAI_ACA_TOKEN
     redirect_uri = settings.MEDICARE_SLSX_REDIRECT_URI
     userinfo_endpoint = settings.SLSX_USERINFO_ENDPOINT
     healthcheck_endpoint = settings.SLSX_HEALTH_CHECK_ENDPOINT
@@ -110,6 +111,7 @@ class OAuth2ConfigSLSx(object):
             "client_secret": self.client_secret,
         }
         headers = {"Content-Type": "application/json",
+                   "Cookie": self.token_endpoint_aca_token,
                    "X-SLS-starttime": str(datetime.datetime.utcnow())}
 
         if request is not None:
