@@ -295,6 +295,7 @@ class SLSxTokenResponse(SLSResponse):
         return 'SLSx_token'
 
     def to_dict(self):
+        # TODO: Handle exception json.decoder.JSONDecodeError
         event_dict = json.loads(self.resp.text)
         event_dict.update(super().to_dict().copy())
         resp_dict = {
