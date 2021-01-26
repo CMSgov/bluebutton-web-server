@@ -10,56 +10,29 @@ from django.urls import reverse
 from django.test import TestCase
 from httmock import urlmatch, all_requests, HTTMock
 from urllib.parse import urlparse, parse_qs
+from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Approval, Application
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.mymedicare_cb.authorization import OAuth2Config
+from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
-from apps.mymedicare_cb.views import generate_nonce
+from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
+from apps.mymedicare_cb.authorization import BBMyMedicareSLSxUserinfoException
+from apps.mymedicare_cb.views import generate_nonce, BBSLSxHealthCheckFailedException
+
 from .responses import patient_response
 
 
-class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
+class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
     """
-    Tests for the MyMedicare login and SLS Callback
-
-    TODO:  Remove this entire test class/file after fully migrated from SLS to SLSx!
+    Tests for the MyMedicare login and SLSx Callback
     """
 
     def setUp(self):
         self.callback_url = reverse('mymedicare-sls-callback')
         self.login_url = reverse('mymedicare-login')
         Group.objects.create(name='BlueButton')
-
-    def test_login_url_success(self):
-        """
-        Test well-formed login_url has expected content
-        """
-        fake_login_url = 'https://example.com/login?scope=openid'
-
-        with self.settings(MEDICARE_LOGIN_URI=fake_login_url, MEDICARE_REDIRECT_URI='/123'):
-            response = self.client.get(self.login_url + '?next=/')
-            self.assertEqual(response.status_code, 302)
-            query = parse_qs(urlparse(response['Location']).query)
-            path = response['Location'].split('?')[0]
-            self.assertEqual(path, 'https://example.com/login')
-            self.assertEqual(query['redirect_uri'][0], '/123')
-
-    def test_callback_url_missing_state(self):
-        """
-        Test callback_url returns HTTP 400 when
-        necessary GET parameter state is missing.
-        """
-        response = self.client.get(self.callback_url)
-        self.assertEqual(response.status_code, 400)
-
-    def test_authorize_uuid_dne(self):
-        auth_uri = reverse(
-            'oauth2_provider:authorize-instance',
-            args=[uuid.uuid4()])
-        response = self.client.get(auth_uri)
-        self.assertEqual(302, response.status_code)
 
     def _create_capability(self, name, urls, group=None, default=True):
         """
@@ -83,6 +56,52 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         group, _ = Group.objects.get_or_create(name=name)
         return group
 
+    @override_switch('slsx-enable', active=True)
+    def test_login_url_success(self):
+        """
+        Test well-formed login_url has expected content
+        """
+        fake_login_url = 'https://example.com/login?scope=openid'
+        with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
+            with HTTMock(MockUrlSLSxResponses.slsx_health_ok_mock):
+                response = self.client.get(self.login_url + '?next=/')
+            self.assertEqual(response.status_code, 302)
+            query = parse_qs(urlparse(response['Location']).query)
+            path = response['Location'].split('?')[0]
+            self.assertEqual(path, 'https://example.com/login')
+            self.assertEqual(query['redirect_uri'][0], '/123')
+            self.assertTrue('relay' in query)
+
+    @override_switch('slsx-enable', active=True)
+    def test_login_url_health_check_fail(self):
+        """
+        Test SLSx health check failure
+        """
+        fake_login_url = 'https://example.com/login?scope=openid'
+        with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
+            with HTTMock(MockUrlSLSxResponses.slsx_health_fail_mock):
+                with self.assertRaisesRegex(BBSLSxHealthCheckFailedException,
+                                            "An error occurred connecting to account.mymedicare.gov"):
+                    self.client.get(self.login_url + '?next=/')
+
+    @override_switch('slsx-enable', active=True)
+    def test_callback_url_missing_relay(self):
+        """
+        Test callback_url returns HTTP 400 when
+        necessary GET parameter relay (state) is missing.
+        """
+        response = self.client.get(self.callback_url)
+        self.assertEqual(response.status_code, 400)
+
+    @override_switch('slsx-enable', active=True)
+    def test_authorize_uuid_dne(self):
+        auth_uri = reverse(
+            'oauth2_provider:authorize-instance',
+            args=[uuid.uuid4()])
+        response = self.client.get(auth_uri)
+        self.assertEqual(302, response.status_code)
+
+    @override_switch('slsx-enable', active=True)
     def test_authorize_uuid(self):
         user = User.objects.create_user(
             "bob",
@@ -139,35 +158,13 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             "response_type": "code"})
         self.assertEqual(302, response.status_code)
 
+    @override_switch('slsx-enable', active=True)
     def test_callback_url_success(self):
         # create a state
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
             next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
-        # mock sls token endpoint
-
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/token')
-        def sls_token_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {'access_token': 'works'},
-            }
-
-        # mock sls user info endpoint
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
-        def sls_user_info_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {
-                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                    'given_name': '',
-                    'family_name': '',
-                    'email': 'bob@bobserver.bob',
-                    'hicn': '1234567890A',
-                    'mbi': '1SA0A00AA00',
-                },
-            }
 
         # mock fhir user info endpoint
         @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
@@ -181,8 +178,9 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         def catchall(url, request):
             raise Exception(url)
 
-        with HTTMock(sls_token_mock,
-                     sls_user_info_mock,
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             # need to fake an auth flow context to pass
@@ -194,15 +192,17 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                       "auth_app_name": "TestApp-001",
                       "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
             s.save()
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, 302)
             self.assertIn("client_id=test", response.url)
             self.assertIn("redirect_uri=test.com", response.url)
-            # self.assertRedirects(response, "http://www.google.com", fetch_redirect_response=False)
+            self.assertIn("response_type=token", response.url)
+            self.assertIn("http://www.google.com/v1/o/authorize/", response.url)
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
 
+    @override_switch('slsx-enable', active=True)
     def test_callback_url_failure(self):
         # create a state
         state = generate_nonce()
@@ -216,15 +216,16 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, 502)
 
+    @override_switch('slsx-enable', active=True)
     def test_sls_token_exchange_w_creds(self):
-        with self.settings(SLS_CLIENT_ID="test",
-                           SLS_CLIENT_SECRET="stest"):
+        with self.settings(SLSX_CLIENT_ID="test",
+                           SLSX_CLIENT_SECRET="stest"):
 
-            sls_client = OAuth2Config()
+            sls_client = OAuth2ConfigSLSx()
 
             @all_requests
             def catchall(url, request):
@@ -233,19 +234,22 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
                 return {
                     'status_code': 200,
                     'content': {
-                        'access_token': 'test_tkn',
+                        'auth_token': 'test_tkn',
+                        "user_id": "00112233-4455-6677-8899-aabbccddeeff",
                     },
                 }
 
             with HTTMock(catchall):
-                tkn = sls_client.exchange("test_code", None)
+                tkn, user_id = sls_client.exchange_for_access_token("test_code", None)
                 self.assertEquals(tkn, "test_tkn")
+                self.assertEquals(user_id, "00112233-4455-6677-8899-aabbccddeeff")
 
+    @override_switch('slsx-enable', active=True)
     def test_failed_sls_token_exchange(self):
-        with self.settings(SLS_CLIENT_ID="test",
-                           SLS_CLIENT_SECRET="stest"):
+        with self.settings(SLSX_CLIENT_ID="test",
+                           SLSX_CLIENT_SECRET="stest"):
 
-            sls_client = OAuth2Config()
+            sls_client = OAuth2ConfigSLSx()
 
             @all_requests
             def catchall(url, request):
@@ -260,9 +264,9 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
 
             with HTTMock(catchall):
                 with self.assertRaises(requests.exceptions.HTTPError):
-                    tkn = sls_client.exchange("test_code", None)
-                    self.assertEquals(tkn, "test_tkn")
+                    tkn, user_id = sls_client.exchange_for_access_token("test_code", None)
 
+    @override_switch('slsx-enable', active=True)
     def test_callback_exceptions(self):
         # BB2-237: Added to test ASSERTS replaced with exceptions.
         #          These are typically for conditions that should never be reached, so generate a 500.
@@ -273,71 +277,6 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         AnonUserState.objects.create(
             state=state,
             next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
-
-        # mock sls token endpoint
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/token')
-        def sls_token_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {'access_token': 'works'},
-            }
-
-        # mock sls token endpoint with http error
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/token')
-        def sls_token_http_error_mock(url, request):
-            raise requests.exceptions.HTTPError
-
-        # mock sls user info endpoint
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
-        def sls_user_info_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {
-                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                    'hicn': '1234567890A',
-                    'mbi': '1SA0A00AA00',
-                },
-            }
-
-        # mock sls user info endpoint with http error
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
-        def sls_user_info_http_error_mock(url, request):
-            raise requests.exceptions.HTTPError
-
-        # mock sls user info endpoint with out a sub/username
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
-        def sls_user_info_no_sub_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {
-                    'hicn': '1234567890A',
-                    'mbi': '1SA0A00AA00',
-                },
-            }
-
-        # mock sls user info endpoint with empty hicn
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
-        def sls_user_info_empty_hicn_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {
-                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                    'hicn': '',
-                    'mbi': '1SA0A00AA00',
-                },
-            }
-
-        # mock sls user info endpoint
-        @urlmatch(netloc='dev.accounts.cms.gov', path='/v1/oauth/userinfo')
-        def sls_user_info_invalid_mbi_mock(url, request):
-            return {
-                'status_code': 200,
-                'content': {
-                    'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                    'hicn': '1234567890A',
-                    'mbi': '1SA0A00SS00',
-                },
-            }
 
         # mock fhir user info endpoint
         @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
@@ -351,11 +290,12 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         def catchall(url, request):
             raise Exception(url)
 
-        with HTTMock(sls_token_mock,
-                     sls_user_info_mock,
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
             self.assertEqual(response.status_code, 302)
 
@@ -367,11 +307,12 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         cw._user_id_hash = "XXX"
         cw.save()
 
-        with HTTMock(sls_token_mock,
-                     sls_user_info_mock,
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
             self.assertEqual(response.status_code, 500)
@@ -384,11 +325,12 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         cw._user_mbi_hash = "XXX"
         cw.save()
 
-        with HTTMock(sls_token_mock,
-                     sls_user_info_mock,
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
             self.assertEqual(response.status_code, 500)
@@ -401,11 +343,12 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         cw._fhir_id = "XXX"
         cw.save()
 
-        with HTTMock(sls_token_mock,
-                     sls_user_info_mock,
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
             self.assertEqual(response.status_code, 500)
@@ -418,61 +361,59 @@ class MyMedicareBlueButtonClientApiUserInfoTest(TestCase):
         cw.save()
 
         # With HTTMock sls_user_info_no_sub_mock that has no sub/username
-        with HTTMock(sls_token_mock,
-                     sls_user_info_no_sub_mock,
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_no_username_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
-
-            # assert 500 exception
-            self.assertEqual(response.status_code, 500)
-            content = json.loads(response.content)
-            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
+            with self.assertRaises(BBMyMedicareSLSxUserinfoException):
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
         # With HTTMock sls_user_info_empty_hicn_mock test User info HICN cannot be empty.
-        with HTTMock(sls_token_mock,
-                     sls_user_info_empty_hicn_mock,
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_empty_hicn_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
             self.assertEqual(response.status_code, 500)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
-        # With HTTMock sls_user_info_invalid_mbi_mock test User info HICN cannot be empty.
-        with HTTMock(sls_token_mock,
-                     sls_user_info_invalid_mbi_mock,
+        # With HTTMock sls_user_info_invalid_mbi_mock test User info MBI is not in valid format.
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_invalid_mbi_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
             self.assertEqual(response.status_code, 500)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
-        # With HTTMock sls_token_http_error_mock to test BBMyMedicareCallbackAuthenticateSlsClientException
-        with HTTMock(sls_token_http_error_mock,
-                     sls_user_info_mock,
+        # With HTTMock sls_token_http_error_mock
+        with HTTMock(MockUrlSLSxResponses.slsx_token_http_error_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 502 exception
             self.assertEqual(response.status_code, 502)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
-        # With HTTMock sls_user_info_http_error_mock to test BBMyMedicareCallbackAuthenticateSlsClientException
-        with HTTMock(sls_token_mock,
-                     sls_user_info_http_error_mock,
+        # With HTTMock sls_user_info_http_error_mock
+            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_http_error_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
-
-            # assert 502 exception
-            self.assertEqual(response.status_code, 502)
-            content = json.loads(response.content)
-            self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
+            with self.assertRaises(BBMyMedicareSLSxUserinfoException):
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})

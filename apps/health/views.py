@@ -26,10 +26,10 @@ class Check(APIView):
                     raise ServiceUnavailable()
         except ServiceUnavailable:
             raise
-        except Exception:
-            logger.exception("health check raised exception")
-            raise ServiceUnavailable()
-
+        except Exception as e:
+            logger.exception("health check raised exception. {reason}".format(reason=e))
+            raise ServiceUnavailable(detail="Service temporarily unavailable, try again later. There is an issue with the - {svc}"
+                                            " - service check. Reason: {reason}".format(svc=check.__name__, reason=e))
         return Response({'message': 'all\'s well'})
 
     def get_services(self):

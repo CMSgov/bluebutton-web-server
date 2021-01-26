@@ -6,11 +6,12 @@ WAFFLE_FEATURE_SWITCHES = (('outreach_email', True),
                            ('wellknown_applications', True),
                            ('login', True),
                            ('signup', True),
-                           ('require-scopes', True))
+                           ('require-scopes', True),
+                           ('slsx-enable', True))
 
 
 class Command(BaseCommand):
-    help = 'Create Feature Switches for Local Testing'
+    help = 'Create Feature Switches for Local Testing.'
 
     def handle(self, *args, **options):
         # Create feature switches for testing in local development
