@@ -34,18 +34,16 @@ echo_msg
 echo_msg 
 echo_msg 
 
-# Clone from local repo if code directory is not found.
-if [ ! -d code ]
+# Clone from local repo if /app mount directory is found.
+if [ -d /app ]
 then
   echo_msg
-  echo_msg "- Cloning webserver repo from local mounted /app to code."
+  echo_msg "- Cloning webserver repo from LOCAL mounted /app to code."
   echo_msg
   git clone  /app code
+  cd code
   echo_msg
 fi
-
-# Change to code directory.
-cd code
 
 # Checkout commit hash or branch if set.
 if [[ ${BRANCH} != "" ]]
@@ -67,13 +65,13 @@ python --version
 
 # Setup Python virtual env.
 echo_msg
-echo_msg "- Setup Python virtual env and Install requirements:"
+echo_msg "- Setup Python virtual env:"
 python3 -m venv venv
 . venv/bin/activate
 
 # Install requirements.
 echo_msg
-echo_msg "- Setup Python virtual env and Install requirements:"
+echo_msg "- Install PIP requirements:"
 pip install -r requirements/requirements.txt
 pip install sqlparse
 
