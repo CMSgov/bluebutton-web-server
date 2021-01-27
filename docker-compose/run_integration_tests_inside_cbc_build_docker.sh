@@ -67,7 +67,7 @@ python3 -m venv venv
 # Install requirements.
 echo_msg
 echo_msg "- Install PIP requirements:"
-pip install -r requirements/requirements.txt
+pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
 pip install sqlparse
 
 # Run integration tests script.
