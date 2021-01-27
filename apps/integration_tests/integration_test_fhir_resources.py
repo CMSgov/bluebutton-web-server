@@ -1,5 +1,3 @@
-import json
-
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
@@ -20,10 +18,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
     @override_switch('require-scopes', active=True)
     def test_userinfo_endpoint(self):
-        print("---")
-        print("--- test_userinfo_endpoint()")
-        print("---")
-
         base_path = SCOPES_TO_URL_BASE_PATH['profile']["base_path"]
 
         # Setup token in APIClient
@@ -55,22 +49,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         # Test FHIR endpoint:
         url = self.live_server_url + base_path
-        print("---")
-        print("---    CALLING:  URL: ", url)
-        print("---")
         response = client.get(url)
-        content = json.loads(response.content)
-        print("---")
-        print("---  content: ", content)
-        print("---")
+        # content = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
 
     @override_switch('require-scopes', active=True)
     def test_patient_endpoint(self):
-        print("---")
-        print("--- test_patient_endpoint()")
-        print("---")
-
         base_path = SCOPES_TO_URL_BASE_PATH['patient/Patient.read']["base_path"]
 
         # Setup token in APIClient
@@ -102,12 +86,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         # Test FHIR endpoint:
         url = self.live_server_url + base_path
-        print("---")
-        print("---    CALLING:  URL: ", url)
-        print("---")
         response = client.get(url)
-        content = json.loads(response.content)
-        print("---")
-        print("---  content: ", content)
-        print("---")
+        # content = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
