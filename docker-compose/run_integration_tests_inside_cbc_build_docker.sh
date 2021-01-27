@@ -14,13 +14,16 @@ echo_msg "Running script: $0"
 echo_msg
 echo_msg "  Using ENV/environment variables:"
 echo_msg
-echo_msg "     BRANCH:  ${BRANCH}"
+echo_msg "                    BRANCH:  ${BRANCH}"
 echo_msg 
-echo_msg "     FHIR_URL:  ${FHIR_URL}"
+echo_msg "                  FHIR_URL:  ${FHIR_URL}"
 echo_msg
-echo_msg "   CERT_FILE: ${CERT_FILE}"
+echo_msg "     DJANGO_FHIR_CERTSTORE: ${DJANGO_FHIR_CERTSTORE}"
 echo_msg
-echo_msg "    KEY_FILE: ${KEY_FILE}"
+echo_msg "                 CERT_FILE: ${CERT_FILE}"
+echo_msg
+echo_msg "                  KEY_FILE: ${KEY_FILE}"
+echo_msg
 
 
 # Clone from local repo if /app mount directory is found.
