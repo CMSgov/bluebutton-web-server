@@ -5,7 +5,7 @@
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
-  echo "$(basename $0): $1"
+  echo "$(basename $0): $*"
 }
 
 # main
