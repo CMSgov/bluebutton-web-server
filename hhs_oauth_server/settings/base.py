@@ -498,9 +498,9 @@ APPLICATION_TEMPORARILY_INACTIVE = ("This application, {}, is temporarily inacti
                                     " please contact the application's support team or call 1-800-MEDICARE (1-800-633-4227)")
 # Debug BB2-124
 print("---")
-print("--- ENV FHIR_CLIENT_CERTSTORE: ", env('FHIR_CLIENT_CERTSTORE', 'EMPTY'))
+print("--- ENV DJANGO_FHIR_CERTSTORE: ", env('DJANGO_FHIR_CERTSTORE', 'EMPTY'))
 print("---")
-print("--- ENV FHIR_CLIENT_CERTSTORE_REL: ", env('FHIR_CLIENT_CERTSTORE_REL', 'EMPTY'))
+print("--- ENV DJANGO_FHIR_CERTSTORE_REL: ", env('DJANGO_FHIR_CERTSTORE_REL', 'EMPTY'))
 print("---")
 print("--- ENV FHIR_CERT_FILE: ", env('FHIR_CERT_FILE', 'EMPTY'))
 print("---")
@@ -515,6 +515,7 @@ FHIR_SERVER = {
     "KEY_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_KEY_FILE", "ca.key.nocrypt.pem")),
     "CLIENT_AUTH": True,
 }
+# Debug BB2-124
 print("---")
 print("--- FHIR_SERVER:  ", FHIR_SERVER)
 print("---")
