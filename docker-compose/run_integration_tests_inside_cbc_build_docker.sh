@@ -17,6 +17,11 @@ echo_msg
 echo_msg "     BRANCH:  ${BRANCH}"
 echo_msg 
 echo_msg "     FHIR_URL:  ${FHIR_URL}"
+echo_msg
+echo_msg "   CERT_FILE: ${CERT_FILE}"
+echo_msg
+echo_msg "    KEY_FILE: ${KEY_FILE}"
+
 
 # Clone from local repo if /app mount directory is found.
 if [ -d /app ]
