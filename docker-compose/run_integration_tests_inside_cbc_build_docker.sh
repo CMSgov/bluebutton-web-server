@@ -21,8 +21,10 @@ echo_msg
 echo_msg "     DJANGO_FHIR_CERTSTORE: ${DJANGO_FHIR_CERTSTORE}"
 echo_msg
 echo_msg "                 CERT_FILE: ${CERT_FILE}"
-echo_msg
 echo_msg "                  KEY_FILE: ${KEY_FILE}"
+echo_msg
+echo_msg "            FHIR_CERT_FILE: ${FHIR_CERT_FILE}"
+echo_msg "             FHIR_KEY_FILE: ${FHIR_KEY_FILE}"
 echo_msg
 
 
