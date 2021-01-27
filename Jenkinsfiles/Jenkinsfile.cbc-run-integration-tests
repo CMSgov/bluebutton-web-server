@@ -43,13 +43,13 @@ pipeline {
               sh """
                 pwd
                 ls -ld *
-                BRANCH=${params.COMMIT_SHA} FHIR_URL=${params.FHIR_URL} CERT_FILE="${cf}" KEY_FILE="${kf}" .Jenkinsfiles/scripts/cbc-run-integration-tests.sh
+                BRANCH=${params.COMMIT_SHA} FHIR_URL=${params.FHIR_URL} CERT_FILE="${cf}" KEY_FILE="${kf}" ./Jenkinsfiles/scripts/cbc-run-integration-tests.sh
               """
             } else {
               sh """
                 pwd
                 ls -ld *
-                BRANCH=${params.BRANCH} FHIR_URL=${params.FHIR_URL} CERT_FILE="${cf}" KEY_FILE="${kf}" .Jenkinsfiles/scripts/cbc-run-integration-tests.sh
+                BRANCH=${params.BRANCH} FHIR_URL=${params.FHIR_URL} CERT_FILE="${cf}" KEY_FILE="${kf}" ./Jenkinsfiles/scripts/cbc-run-integration-tests.sh
               """
             }
           }
