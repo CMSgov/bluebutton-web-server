@@ -18,22 +18,6 @@ echo_msg "     BRANCH:  ${BRANCH}"
 echo_msg 
 echo_msg "     FHIR_URL:  ${FHIR_URL}"
 
-# Debugging for CBC 
-echo_msg 
-echo_msg 
-echo_msg 
-echo_msg 
-echo_msg "DEBUG:   PWD is:  $PWD"
-echo_msg 
-echo_msg 
-echo_msg "LS of PWD: start"
-ls -latrd * 
-echo_msg 
-echo_msg "LS of PWD: end"
-echo_msg 
-echo_msg 
-echo_msg 
-
 # Clone from local repo if /app mount directory is found.
 if [ -d /app ]
 then
@@ -45,13 +29,16 @@ then
   echo_msg
 fi
 
-# Checkout commit hash or branch if set.
-if [[ ${BRANCH} != "" ]]
+# Checkout commit hash or branch if not already checked out.
+if [ ${BRANCH} != "$(git branch --show-current)" ]
 then
   echo_msg
-  echo_msg "- Checkout commit hash or branch from: branch = ${BRANCH}"
+  echo_msg "- Checkout commit hash or branch from: BRANCH = ${BRANCH}"
   git fetch origin "+refs/heads/master:refs/remotes/origin/master" "+refs/pull/*:refs/remotes/origin/pr/*"
-  git checkout "$BRANCH"
+  git checkout "${BRANCH}"
+else
+  echo_msg
+  echo_msg "- Target BRANCH is already checked out for: BRANCH = ${BRANCH}"
 fi
 
 # Show git status.
