@@ -29,8 +29,8 @@ then
   echo_msg
 fi
 
-# Checkout commit hash or branch if not already checked out.
-if [ ${BRANCH} != "$(git branch --show-current)" ]
+# Checkout commit hash or branch if set
+if [ "${BRANCH}" != "" ]
 then
   echo_msg
   echo_msg "- Checkout commit hash or branch from: BRANCH = ${BRANCH}"
@@ -38,7 +38,7 @@ then
   git checkout "${BRANCH}"
 else
   echo_msg
-  echo_msg "- Target BRANCH is already checked out for: BRANCH = ${BRANCH}"
+  echo_msg "- Using currently checked out branch in local development."
 fi
 
 # Show git status.
