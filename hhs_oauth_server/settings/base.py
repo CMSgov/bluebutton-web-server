@@ -496,7 +496,16 @@ APPLICATION_TEMPORARILY_INACTIVE = ("This application, {}, is temporarily inacti
                                     " If you are the app maintainer, please contact the Blue Button 2.0 API team."
                                     " If you are a Medicare Beneficiary and need assistance,"
                                     " please contact the application's support team or call 1-800-MEDICARE (1-800-633-4227)")
-
+# Debug BB2-124
+print("---")
+print("--- ENV FHIR_CLIENT_CERTSTORE: ", env('FHIR_CLIENT_CERTSTORE', 'EMPTY'))
+print("---")
+print("--- ENV FHIR_CLIENT_CERTSTORE_REL: ", env('FHIR_CLIENT_CERTSTORE_REL', 'EMPTY'))
+print("---")
+print("--- ENV FHIR_CERT_FILE: ", env('FHIR_CERT_FILE', 'EMPTY'))
+print("---")
+print("--- ENV FHIR_KEY_FILE: ", env('FHIR_KEY_FILE', 'EMPTY'))
+print("---")
 FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, env('DJANGO_FHIR_CERTSTORE_REL', '../certstore')))
 
@@ -506,6 +515,9 @@ FHIR_SERVER = {
     "KEY_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_KEY_FILE", "ca.key.nocrypt.pem")),
     "CLIENT_AUTH": True,
 }
+print("---")
+print("--- FHIR_SERVER:  ", FHIR_SERVER)
+print("---")
 
 '''
     FHIR URL search query parameters for backend /Patient resource
