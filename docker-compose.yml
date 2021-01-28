@@ -50,6 +50,7 @@ services:
             - REMOTE_DEBUG=${REMOTE_DEBUG}
             - REMOTE_DEBUG_WAIT=${REMOTE_DEBUG_WAIT}
             - HOSTNAME_URL=${HOSTNAME_URL}
+            - SLSX_ENABLED=${SLSX_ENABLED}
             - DB_MIGRATIONS=${DB_MIGRATIONS}
     volumes:
       - .:/code
