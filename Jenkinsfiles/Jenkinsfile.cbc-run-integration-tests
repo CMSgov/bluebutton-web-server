@@ -26,8 +26,8 @@ pipeline {
   stages {
     stage("Copy FHIR cert and key") {
       steps {
-        writeFile file "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT)
-        writeFile file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY)
+        writeFile(file "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
       }
     }
 
@@ -45,8 +45,34 @@ pipeline {
     stage("Run integration tests") {
       steps{
         sh """
+        . venv/bin/activate
         python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
         """
+      }
+    }
+  }
+
+  stages {
+    stage("Run integration tests") {
+      steps {
+        withCredentials([
+          file(credentialsId: "bb2-integration-tests-bfd-cert", variable: 'cf'),
+          file(credentialsId: "bb2-integration-tests-bfd-key", variable: 'kf')
+        ]) {
+          writeFile file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(cf)
+          writeFile file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(kf)
+          script {
+            echo("Running integration tests...")
+            sh """
+              python --version
+              python -m venv venv
+              . venv/bin/activate
+              pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
+              pip install sqlparse
+              python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+            """
+          }
+        }
       }
     }
   }
