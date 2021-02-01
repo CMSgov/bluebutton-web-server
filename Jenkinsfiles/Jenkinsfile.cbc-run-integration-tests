@@ -59,8 +59,6 @@ pipeline {
           script {
             echo("Running integration tests...")
             sh """
-              pwd
-              ls -ld ${DJANGO_FHIR_CERTSTORE}/*
               ./docker-compose/run_integration_tests_docker_cbc_build.sh
             """
           }
