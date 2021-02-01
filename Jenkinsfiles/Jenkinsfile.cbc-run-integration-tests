@@ -9,6 +9,9 @@ pipeline {
   environment {
     DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
     DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
+    BRANCH = "${params.COMMIT_SHA == "" ? params.BRANCH : params.COMMIT_SHA}"
+    FHIR_URL = "${params.FHIR_URL}"
+    DJANGO_FHIR_CERTSTORE = "./certstore/"
   }
 
   parameters {
@@ -30,27 +33,28 @@ pipeline {
   }
 
   stages {
+
+   stage("Checkout BRANCH or COMMIT_SHA") {
+      steps {
+        git branch: 'env.BRANCH', url: "https://github.com/CMSgov/bluebutton-web-server.git"
+      }
+    }
+
     stage("Run integration tests") {
       steps {
         withCredentials([
           file(credentialsId: "bb2-integration-tests-bfd-cert", variable: 'cf'),
           file(credentialsId: "bb2-integration-tests-bfd-key", variable: 'kf')
         ]) {
+          writeFile file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(cf)
+          writeFile file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(kf)
           script {
             echo("Running integration tests...")
-
-            if (params.COMMIT_SHA != "") {
-              sh """
-                pwd
-                ls -ld *
-                BRANCH=${params.COMMIT_SHA} FHIR_URL=${params.FHIR_URL} CERT_FILE="${cf}" KEY_FILE="${kf}" ./Jenkinsfiles/scripts/cbc-run-integration-tests.sh
-              """
-            } else {
-              sh """
-                pwd
-                ls -ld *
-                BRANCH=${params.BRANCH} FHIR_URL=${params.FHIR_URL} CERT_FILE="${cf}" KEY_FILE="${kf}" ./Jenkinsfiles/scripts/cbc-run-integration-tests.sh
-              """
+            sh """
+              pwd
+              ls -ld ${DJANGO_FHIR_CERTSTORE}/*
+              ./docker-compose/run_integration_tests_docker_cbc_build.sh
+            """
             }
           }
         }
@@ -61,13 +65,13 @@ pipeline {
   post {
     success {
       script {
-        echo "DEBUG: SUCCESS"
+        echo "SUCCESS"
       }
     }
 
     failure {
       script {
-        echo "DEBUG: FAILURE"
+        echo "FAILURE"
       }
     }
   }
