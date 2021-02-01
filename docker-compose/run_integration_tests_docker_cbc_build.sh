@@ -28,6 +28,11 @@ then
   git clone  /app code
   cd code
   echo_msg
+  # Checkout branch or if empty remain on current
+  if [ "$BRANCH" != "" ]
+  then
+    git checkout ${BRANCH}
+  fi
 fi
 
 # Show git status.
