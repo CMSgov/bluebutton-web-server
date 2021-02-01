@@ -36,6 +36,8 @@ pipeline {
               python --version
               python -m venv venv
               . venv/bin/activate
+              python --version
+              pip --version
               pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
               pip install sqlparse
               python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
