@@ -33,7 +33,8 @@ pipeline {
           script {
             echo("Running integration tests...")
             sh """
-              python3 -m venv venv
+              python --version
+              python -m venv venv
               . venv/bin/activate
               pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
               pip install sqlparse
