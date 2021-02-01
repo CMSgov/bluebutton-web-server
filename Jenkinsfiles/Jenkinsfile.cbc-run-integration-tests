@@ -6,14 +6,6 @@ pipeline {
     }
   }
 
-  environment {
-    DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
-    DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
-    BRANCH = "${params.COMMIT_SHA == "" ? params.BRANCH : params.COMMIT_SHA}"
-    FHIR_URL = "${params.FHIR_URL}"
-    DJANGO_FHIR_CERTSTORE = "./certstore/"
-  }
-
   parameters {
     string(
       name: "BRANCH",
@@ -32,13 +24,23 @@ pipeline {
     )
   }
 
-  stages {
+  environment {
+    DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
+    DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
+    BRANCH = "${params.COMMIT_SHA == "" ? params.BRANCH : params.COMMIT_SHA}"
+    FHIR_URL = "${params.FHIR_URL}"
+    DJANGO_FHIR_CERTSTORE = "./certstore/"
+  }
 
-   stage("Checkout BRANCH or COMMIT_SHA") {
+
+  stages {
+    /*
+    stage("Checkout BRANCH or COMMIT_SHA") {
       steps {
         git branch: 'env.BRANCH', url: "https://github.com/CMSgov/bluebutton-web-server.git"
       }
     }
+    */
 
     stage("Run integration tests") {
       steps {
@@ -64,13 +66,13 @@ pipeline {
   post {
     success {
       script {
-        echo "SUCCESS"
+        echo "DEBUG: SUCCESS"
       }
     }
 
     failure {
       script {
-        echo "FAILURE"
+        echo "DEBUG: FAILURE"
       }
     }
   }
