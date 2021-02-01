@@ -9,22 +9,11 @@ pipeline {
   environment {
     DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
     DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
-    BRANCH = "${params.COMMIT_SHA == "" ? params.BRANCH : params.COMMIT_SHA}"
     FHIR_URL = "${params.FHIR_URL}"
     DJANGO_FHIR_CERTSTORE = "./certstore/"
   }
 
   parameters {
-    string(
-      name: "BRANCH",
-      defaultValue: "master",
-      description: "The branch of the bluebutton-web-server repo to test."
-    )
-    string(
-      name: 'COMMIT_SHA',
-      defaultValue: "",
-      description: 'The commit sha to send status updates for. If specified, this variable overrides BRANCH.'
-    )
     string(
       name: 'FHIR_URL',
       defaultValue: "https://prod-sbx.bfdcloud.net/v1/fhir/",
@@ -33,21 +22,6 @@ pipeline {
   }
 
   stages {
-    stage("Checkout BRANCH or COMMIT_SHA") {
-      steps {
-        checkout([
-          $class: 'GitSCM',
-          branches: [[
-            name: "${env.BRANCH}"
-          ]],
-          doGenerateSubmoduleConfigurations: false,
-          userRemoteConfigs: [[
-            url: 'https://github.com/CMSgov/bluebutton-web-server.git'
-          ]]
-        ])
-      }
-    }
-
     stage("Run integration tests") {
       steps {
         withCredentials([
@@ -59,7 +33,9 @@ pipeline {
           script {
             echo("Running integration tests...")
             sh """
-              ./docker-compose/run_integration_tests_docker_cbc_build.sh
+              echo $BRANCH_NAME
+              ls -l
+              #./docker-compose/run_integration_tests_docker_cbc_build.sh
             """
           }
         }
