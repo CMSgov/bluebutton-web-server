@@ -33,6 +33,8 @@ pipeline {
           script {
             echo("Running integration tests...")
             sh """
+              python3 -m venv venv
+              source venv/bin/activate
               pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
               pip install sqlparse
               python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
