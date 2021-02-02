@@ -7,24 +7,15 @@ pipeline {
   }
 
   environment {
-    DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
-    DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
-    BRANCH = "${params.COMMIT_SHA == "" ? params.BRANCH : params.COMMIT_SHA}"
-    FHIR_URL = "${params.FHIR_URL}"
     DJANGO_FHIR_CERTSTORE = "./certstore/"
+    DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
+    DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
+    FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
+    FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
+    FHIR_URL = "${params.FHIR_URL}"
   }
 
   parameters {
-    string(
-      name: "BRANCH",
-      defaultValue: "master",
-      description: "The branch of the bluebutton-web-server repo to test."
-    )
-    string(
-      name: 'COMMIT_SHA',
-      defaultValue: "",
-      description: 'The commit sha to send status updates for. If specified, this variable overrides BRANCH.'
-    )
     string(
       name: 'FHIR_URL',
       defaultValue: "https://prod-sbx.bfdcloud.net/v1/fhir/",
@@ -33,36 +24,30 @@ pipeline {
   }
 
   stages {
-    stage("Checkout BRANCH or COMMIT_SHA") {
+    stage("Copy FHIR cert and key") {
       steps {
-        checkout([
-          $class: 'GitSCM',
-          branches: [[
-            name: "${env.BRANCH}"
-          ]],
-          doGenerateSubmoduleConfigurations: false,
-          userRemoteConfigs: [[
-            url: 'https://github.com/CMSgov/bluebutton-web-server.git'
-          ]]
-        ])
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+      }
+    }
+
+    stage("Create venv and install dependencies") {
+      steps {
+        sh """
+          python -m venv venv
+          . venv/bin/activate
+          pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
+          pip install sqlparse
+        """
       }
     }
 
     stage("Run integration tests") {
-      steps {
-        withCredentials([
-          file(credentialsId: "bb2-integration-tests-bfd-cert", variable: 'cf'),
-          file(credentialsId: "bb2-integration-tests-bfd-key", variable: 'kf')
-        ]) {
-          writeFile file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(cf)
-          writeFile file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(kf)
-          script {
-            echo("Running integration tests...")
-            sh """
-              ./docker-compose/run_integration_tests_docker_cbc_build.sh
-            """
-          }
-        }
+      steps{
+        sh """
+        . venv/bin/activate
+        python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+        """
       }
     }
   }
