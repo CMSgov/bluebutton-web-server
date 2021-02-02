@@ -51,18 +51,4 @@ pipeline {
       }
     }
   }
-
-  post {
-    success {
-      script {
-        echo "DEBUG: SUCCESS"
-      }
-    }
-
-    failure {
-      script {
-        echo "DEBUG: FAILURE"
-      }
-    }
-  }
 }
