@@ -213,13 +213,13 @@ curl -k -v --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/Ex
 
 ## Developing and Running Integration Tests in Local Development
 
-The code source is located under the `apps/integration_tests` path.
+The Python source code is located under the `apps/integration_tests` path.
+
+The difference with these tests is the usage of the [LiveServerTestCase](https://docs.djangoproject.com/en/3.1/topics/testing/tools/#django.test.LiveServerTestCase) class from the Django contrib testing tools.  This launches a LIVE Django server in the background on setup. This allows the integration tests to use a live running server for testing BB2 FHIR endpoints, and can also be used to create real user type, simulated browser tests with a [Selenium](http://seleniumhq.org/) client. The live server can also be setup to use a BFD backend service for tests. This is done for the CBC PR checks.
 
 Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for Github PR checks. This instruction provides a few ways to test these out locally and to test using the same Docker container image as CBC.
 
-The integration tests are referenced by and launched from the `docker-compose/run_integration_tests.sh` script. This uses the Python `runtests.py` program, which is also used for running the Django unit type tests. Any newly developed tests are to be added and called from here.
-
-The difference with these tests is the usage of the [LiveServerTestCase](https://docs.djangoproject.com/en/3.1/topics/testing/tools/#django.test.LiveServerTestCase) class from the Django contrib testing tools.  This launches a LIVE Django server in the background on setup. This allows the integration tests to use a live running server for testing BB2 FHIR endpoints, and can also be used to create real user type, simulated browser tests with a [Selenium](http://seleniumhq.org/) client. The live server can also be setup to use a BFD backend service for tests. This is done for the CBC PR checks.
+The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local_keybase.sh` script that performs pre-setup and sources environment varialbes from Keybase needed to utilize a live BFD back end system.
 
 There are two ways to test locally using the `docker-compose/run_integration_tests_local_keybase.sh` script:
 
@@ -245,13 +245,6 @@ There are two ways to test locally using the `docker-compose/run_integration_tes
 
      ```
      docker-compose/run_integration_tests_local_keybase.sh cbc
-     ```
-
-     OR
-
-     A different branch from local can be tested.
-     ```
-     docker-compose/run_integration_tests_local_keybase.sh cbc <branch-name>
      ```
 
 NOTES:
