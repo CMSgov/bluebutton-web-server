@@ -196,7 +196,12 @@ fi
 echo_msg
 echo_msg Shred and Remove certfiles from CERTSTORE_TEMPORARY_MOUNT_PATH=${CERTSTORE_TEMPORARY_MOUNT_PATH}
 echo_msg
-shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
+if which shred
+then
+  echo_msg "  - Shredding files"
+  shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
+  shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
+fi
+echo_msg "  - Removing files"
 rm "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
-shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
 rm "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
