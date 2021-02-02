@@ -27,7 +27,7 @@ DOCKER_TAG="py36-an27-tf11"
 INTEGRATION_TESTS_LIST="apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
 
 # Backend FHIR server to use for integration tests of FHIR resource endpoints:
-FHIR_URL=https://prod-sbx.bfdcloud.net/v1/fhir/
+FHIR_URL="https://prod-sbx.bfdcloud.net/v1/fhir/"
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
@@ -54,6 +54,9 @@ then
   echo 
   exit 1
 fi
+
+# Set bash builtins for safety
+set -e -u -o pipefail
 
 # Set KeyBase ENV path based on your type of system
 SYSTEM=$(uname -s)
@@ -111,7 +114,7 @@ else
 fi
 
 # Keybase cert files
-keybase_certfiles="${keybase_env_path}/${KEYBASE_CERTFILES_SUBPATH}/${KEYBASE_CERFILES_SUBPATH}"
+keybase_certfiles="${keybase_env_path}/${KEYBASE_CERTFILES_SUBPATH}"
 keybase_cert_file="${keybase_certfiles}/${CERT_FILENAME}"
 keybase_key_file="${keybase_certfiles}/${KEY_FILENAME}"
 
@@ -156,10 +159,11 @@ then
   echo_msg
   docker-compose run \
     --service-ports \
-    -e HOSTNAME_URL=${HOSTNAME_URL} \
-    -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
-    -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
     -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
+    -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
+    -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
+    -e FHIR_URL=${FHIR_URL} \
+    -e HOSTNAME_URL=${HOSTNAME_URL} \
     -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
     web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
 fi
@@ -173,11 +177,10 @@ then
   echo_msg "    INTEGRATION_TESTS_LIST: ${INTEGRATION_TESTS_LIST}"
   echo_msg
   docker run \
-    -e CERT_FILE=${CERT_FILE} \
-    -e KEY_FILE=${KEY_FILE} \
     -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
     -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
     -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
+    -e FHIR_URL=${FHIR_URL} \
     --env-file ${keybase_env} \
     --mount type=bind,source="$(pwd)",target=/app,readonly \
     --mount type=bind,source="${CERTSTORE_TEMPORARY_MOUNT_PATH}",target=/certstore,readonly \
