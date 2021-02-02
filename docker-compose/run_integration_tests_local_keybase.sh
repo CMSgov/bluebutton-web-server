@@ -26,6 +26,9 @@ DOCKER_TAG="py36-an27-tf11"
 # List of integration tests to run. To be passed in to runtests.py.
 INTEGRATION_TESTS_LIST="apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
 
+# Backend FHIR server to use for integration tests of FHIR resource endpoints:
+FHIR_URL=https://prod-sbx.bfdcloud.net/v1/fhir/
+
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
   echo "$(basename $0): $*"
@@ -46,10 +49,8 @@ then
   echo "  Use one of the following command line options for the type of test to run:"
   echo
   echo "    dc  = Run using the docker-compose web local developer setup (QUICK test)"
-  echo "          This uses the currently checked out branch."
   echo
-  echo "    cbc <branch>  = Run using the docker CBC (Cloud Bees Core) containter image (FULL test)"
-  echo "                    If <branch> is not included it will use your currently checked out branch." 
+  echo "    cbc = Run using the docker CBC (Cloud Bees Core) containter image (FULL test)"
   echo 
   exit 1
 fi
@@ -69,37 +70,37 @@ else
 fi
 
 # Keybase ENV file
-keybase_env=${keybase_env_path}/${KEYBASE_ENV_FILE}
+keybase_env="${keybase_env_path}/${KEYBASE_ENV_FILE}"
 
 echo_msg " - Sourcing ENV secrets from: ${keybase_env}"
 echo_msg
 
 # Check that ENV file exists in correct location
-if [ ! -f ${keybase_env} ]
+if [ ! -f "${keybase_env}" ]
 then
   echo_msg
-  echo_msg ERROR: The ENV secrets could NOT be found at: ${keybase_env}
+  echo_msg "ERROR: The ENV secrets could NOT be found at: ${keybase_env}"
   echo_msg
   exit 1
 fi
 
 # Source ENVs
-source ${keybase_env}
+source "${keybase_env}"
 
 # Check ENV vars have been sourced
 if [ -z "${DJANGO_USER_ID_SALT}" ]
 then
-  echo_msg ERROR: The DJANGO_USER_ID_SALT variable was not sourced!
+  echo_msg "ERROR: The DJANGO_USER_ID_SALT variable was not sourced!"
   exit 1
 fi
 if [ -z "${DJANGO_USER_ID_ITERATIONS}" ]
 then
-  echo_msg ERROR: The DJANGO_USER_ID_ITERATIONS variable was not sourced!
+  echo_msg "ERROR: The DJANGO_USER_ID_ITERATIONS variable was not sourced!"
   exit 1
 fi
 
 # Check temp certstore dir and create if not existing
-if [ -d ${CERTSTORE_TEMPORARY_MOUNT_PATH} ]
+if [ -d "${CERTSTORE_TEMPORARY_MOUNT_PATH}" ]
 then
   echo_msg
   echo_msg "  - OK: The temporary certstore mount path is found at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
@@ -115,7 +116,7 @@ keybase_cert_file="${keybase_certfiles}/${CERT_FILENAME}"
 keybase_key_file="${keybase_certfiles}/${KEY_FILENAME}"
 
 # Check that certfiles in keybase dir exist
-if [ -f ${keybase_cert_file} ]
+if [ -f "${keybase_cert_file}" ]
 then
   echo_msg
   echo_msg "  - OK: The cert file was found at: ${keybase_cert_file}"
@@ -137,8 +138,8 @@ fi
 # Copy certfiles from KeyBase to local for container mount
 echo_msg "  - COPY certfiles from KeyBase to local temp for container mount..."
 echo_msg
-cp ${keybase_cert_file} ${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem
-cp ${keybase_key_file} ${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem
+cp ${keybase_cert_file} "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
+cp ${keybase_key_file} "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
 
 # Check if tests are to run in docker-compose
 if [[ $1 == "dc" ]]
@@ -166,34 +167,33 @@ fi
 # Check if tests are to run in docker CBC container one-off
 if [[ $1 == "cbc" ]]
 then
-  # Set branch to optional $2 cmd line arg.
-  BRANCH="$2"
-
   echo_msg
   echo_msg "------RUNNING DOCKER CONTAINER CBC IMAGE WITH INTEGRATION TESTS------"
   echo_msg
-  echo_msg "  - Using BRANCH: ${BRANCH}"
+  echo_msg "    INTEGRATION_TESTS_LIST: ${INTEGRATION_TESTS_LIST}"
   echo_msg
   docker run \
-    -e BRANCH=${BRANCH} \
     -e CERT_FILE=${CERT_FILE} \
     -e KEY_FILE=${KEY_FILE} \
     -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
     -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
     -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
-    -e INTEGRATION_TESTS_LIST=${INTEGRATION_TESTS_LIST} \
     --env-file ${keybase_env} \
     --mount type=bind,source="$(pwd)",target=/app,readonly \
     --mount type=bind,source="${CERTSTORE_TEMPORARY_MOUNT_PATH}",target=/certstore,readonly \
     --rm \
-    ${DOCKER_IMAGE}:${DOCKER_TAG} bash -c "cd /tmp; /app/docker-compose/run_integration_tests_docker_cbc_build.sh"
+    ${DOCKER_IMAGE}:${DOCKER_TAG} bash -c "cd /app; \
+                                           pip install -r requirements/requirements.txt \
+                                                        --no-index --find-links ./vendor/; \
+                                           pip install sqlparse; \
+                                           python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
 fi
 
 # Remove certfiles from local directory
 echo_msg
 echo_msg Shred and Remove certfiles from CERTSTORE_TEMPORARY_MOUNT_PATH=${CERTSTORE_TEMPORARY_MOUNT_PATH}
 echo_msg
-shred ${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem
-rm ${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem
-shred ${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem
-rm ${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem
+shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
+rm "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
+shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
+rm "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
