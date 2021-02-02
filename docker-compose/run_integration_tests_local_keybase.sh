@@ -23,6 +23,8 @@ KEY_FILENAME="client_data_server_bluebutton_local_integration_tests_private_key.
 DOCKER_IMAGE="public.ecr.aws/f5g8o1y9/bb2-cbc-build"
 DOCKER_TAG="py36-an27-tf11"
 
+# List of integration tests to run. To be passed in to runtests.py.
+INTEGRATION_TESTS_LIST="apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
@@ -149,6 +151,8 @@ then
   echo_msg
   echo_msg "------RUNNING DOCKER-COMPOSE CONTAINER WITH INTEGRATION TESTS------"
   echo_msg
+  echo_msg "    INTEGRATION_TESTS_LIST: ${INTEGRATION_TESTS_LIST}"
+  echo_msg
   docker-compose run \
     --service-ports \
     -e HOSTNAME_URL=${HOSTNAME_URL} \
@@ -156,7 +160,7 @@ then
     -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
     -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
     -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
-    web bash -c "docker-compose/run_integration_tests.sh" 
+    web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
 fi
 
 # Check if tests are to run in docker CBC container one-off
@@ -177,6 +181,7 @@ then
     -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
     -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
     -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
+    -e INTEGRATION_TESTS_LIST=${INTEGRATION_TESTS_LIST} \
     --env-file ${keybase_env} \
     --mount type=bind,source="$(pwd)",target=/app,readonly \
     --mount type=bind,source="${CERTSTORE_TEMPORARY_MOUNT_PATH}",target=/certstore,readonly \

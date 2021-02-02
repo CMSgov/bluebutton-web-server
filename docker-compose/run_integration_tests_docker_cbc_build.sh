@@ -60,7 +60,7 @@ pip install sqlparse
 echo_msg
 echo_msg "- Running integration tests in StaticLiveServerTestCase mode:"
 echo_msg
-sh docker-compose/run_integration_tests.sh
+python runtests.py --integration ${INTEGRATION_TESTS_LIST}
 result_status=$?
 
 # Return status.
