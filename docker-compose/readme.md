@@ -209,3 +209,46 @@ Get ExplanationOfBenefit FHIR Resource json
 curl -k -v --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/ExplanationOfBenefit/?Patient=${BENE_ID}"
 
 ```
+
+
+## Developing and Running Integration Tests in Local Development
+
+The Python source code is located under the `apps/integration_tests` path.
+
+The difference with these tests is the usage of the [LiveServerTestCase](https://docs.djangoproject.com/en/3.1/topics/testing/tools/#django.test.LiveServerTestCase) class from the Django contrib testing tools.  This launches a LIVE Django server in the background on setup. This allows the integration tests to use a live running server for testing BB2 FHIR endpoints, and can also be used to create real user type, simulated browser tests with a [Selenium](http://seleniumhq.org/) client. The live server can also be setup to use a BFD backend service for tests. This is done for the CBC PR checks.
+
+Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for Github PR checks. This instruction provides a few ways to test these out locally and to test using the same Docker container image as CBC.
+
+The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local_keybase.sh` script that performs pre-setup and sources environment variables from Keybase needed to utilize a live BFD back end system.
+
+There are two ways to test locally using the `docker-compose/run_integration_tests_local_keybase.sh` script:
+
+  To get usage help use the following command:
+
+  ```
+  docker-compose/run_integration_tests_local_keybase.sh
+  ```
+
+
+  1. Using the docker-compose local development setup and containers. This is the quickest!
+
+     The currently checked out (or working branch) will be used.
+
+     ```
+     docker-compose/run_integration_tests_local_keybase.sh dc
+     ```
+
+
+  2. Using a Doocker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
+
+     The currently checked out (or working branch) will be used.
+
+     ```
+     docker-compose/run_integration_tests_local_keybase.sh cbc
+     ```
+
+NOTES:
+  * The settings variables in the `docker-compose/run_integration_tests_local_keybase.sh cbc` may need to be updated to match your local development platform.
+  * For the CBC related setup see these files for more details:
+    * `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job. 
+    * `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification.  These settings will also need to be updated when there are CBC image naming changes.

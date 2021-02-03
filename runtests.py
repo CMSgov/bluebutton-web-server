@@ -1,7 +1,8 @@
 #!/usr/bin/env python
+import argparse
+import django
 import os
 import sys
-import django
 
 from django.conf import settings
 from django.test.utils import get_runner
@@ -10,7 +11,9 @@ from django.test.utils import get_runner
 '''
     Reference: https://docs.djangoproject.com/en/3.0/topics/testing/advanced/#defining-a-test-runner
 
-    Command line arguments sys.argv[1:] is a list of specific tests to run.
+    Command line arguments:
+        --integration  This optional flag indicates tests are to run in integration test mode.
+        Space separated list of Django tests to run.
 
     For example:
         $ docker-compose exec web python runtests.py apps.dot_ext.tests
@@ -28,12 +31,26 @@ from django.test.utils import get_runner
         $ docker-compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
 '''
 
-# Unset ENV variables so that tests use default values.
-for env_var in ['FHIR_URL', 'DJANGO_MEDICARE_LOGIN_URI',
-                'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
-                'DJANGO_FHIR_CERTSTORE', 'DATABASES_CUSTOM']:
-    if env_var in os.environ:
-        del os.environ[env_var]
+# Parse command line arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('--integration', help='Integration tests mode', action='store_true')
+parser.add_argument('test', nargs='*')
+args = parser.parse_args()
+
+if args.integration:
+    # Unset ENV variables for integration type tests so default values get set.
+    for env_var in ['DJANGO_MEDICARE_LOGIN_URI',
+                    'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
+                    'DATABASES_CUSTOM']:
+        if env_var in os.environ:
+            del os.environ[env_var]
+else:
+    # Unset ENV variables for Django unit type tests so default values get set.
+    for env_var in ['FHIR_URL', 'DJANGO_MEDICARE_LOGIN_URI',
+                    'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
+                    'DJANGO_FHIR_CERTSTORE', 'DATABASES_CUSTOM']:
+        if env_var in os.environ:
+            del os.environ[env_var]
 
 if __name__ == '__main__':
     os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.test'
@@ -42,8 +59,8 @@ if __name__ == '__main__':
     test_runner = TestRunner()
 
     # Is there a list of specific tests to run?
-    if len(sys.argv) > 1:
-        failures = test_runner.run_tests(sys.argv[1:])
+    if args.test:
+        failures = test_runner.run_tests(args.test)
     else:
         failures = test_runner.run_tests(None)
     sys.exit(bool(failures))

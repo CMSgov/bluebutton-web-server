@@ -1,0 +1,54 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer "bb2-cbc-build"
+      yamlFile "Jenkinsfiles/cbc-run-integration-tests.yaml"
+    }
+  }
+
+  environment {
+    DJANGO_FHIR_CERTSTORE = "./certstore/"
+    DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
+    DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
+    FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
+    FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
+    FHIR_URL = "${params.FHIR_URL}"
+  }
+
+  parameters {
+    string(
+      name: 'FHIR_URL',
+      defaultValue: "https://prod-sbx.bfdcloud.net/v1/fhir/",
+      description: 'The default FHIR URL for the back end BFD service.'
+    )
+  }
+
+  stages {
+    stage("Copy FHIR cert and key") {
+      steps {
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+      }
+    }
+
+    stage("Create venv and install dependencies") {
+      steps {
+        sh """
+          python -m venv venv
+          . venv/bin/activate
+          pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
+          pip install sqlparse
+        """
+      }
+    }
+
+    stage("Run integration tests") {
+      steps{
+        sh """
+        . venv/bin/activate
+        python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+        """
+      }
+    }
+  }
+}
