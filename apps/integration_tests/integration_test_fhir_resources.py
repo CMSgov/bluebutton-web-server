@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
-from waffle.testutils import override_switch
+from waffle.testutils import override_switch, override_flag
 
 from apps.test import BaseApiTest
 
@@ -61,7 +61,16 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
     @override_switch('require-scopes', active=True)
     def test_userinfo_endpoint(self):
-        base_path = "/v1/connect/userinfo"
+        self._call_userinfo_endpoint(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_userinfo_endpoint_v2(self):
+        self._call_userinfo_endpoint(True)
+
+    def _call_userinfo_endpoint(self, v2=False):
+        base_path = "/{}/connect/userinfo".format('v2' if v2 else 'v1')
         client = APIClient()
 
         # 1. Test unauthenticated request
@@ -81,7 +90,16 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
     @override_switch('require-scopes', active=True)
     def test_patient_endpoint(self):
-        base_path = "/v1/fhir/Patient"
+        self._call_patient_endpoint(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_patient_endpoint_v2(self):
+        self._call_patient_endpoint(True)
+
+    def _call_patient_endpoint(self, v2=False):
+        base_path = "/{}/fhir/Patient".format('v2' if v2 else 'v1')
         client = APIClient()
 
         # 1. Test unauthenticated request
@@ -115,7 +133,16 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
     @override_switch('require-scopes', active=True)
     def test_coverage_endpoint(self):
-        base_path = "/v1/fhir/Coverage"
+        self._call_coverage_endpoint(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_coverage_endpoint_v2(self):
+        self._call_coverage_endpoint(True)
+
+    def _call_coverage_endpoint(self, v2=False):
+        base_path = "/{}/fhir/Coverage".format('v2' if v2 else 'v1')
         client = APIClient()
 
         # 1. Test unauthenticated request
@@ -149,7 +176,16 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
     @override_switch('require-scopes', active=True)
     def test_eob_endpoint(self):
-        base_path = "/v1/fhir/ExplanationOfBenefit"
+        self._call_eob_endpoint(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_eob_endpoint_v2(self):
+        self._call_eob_endpoint(True)
+
+    def _call_eob_endpoint(self, v2=False):
+        base_path = "/{}/fhir/ExplanationOfBenefit".format('v2' if v2 else 'v1')
         client = APIClient()
 
         # 1. Test unauthenticated request
@@ -167,7 +203,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         #     Validate JSON Schema
         content = json.loads(response.content)
         self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
-
+        print(content)
         # 3. Test READ VIEW endpoint
         url = self.live_server_url + base_path + "/carrier--22639159481"
         response = client.get(url)
