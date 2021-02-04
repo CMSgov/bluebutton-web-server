@@ -169,6 +169,7 @@ then
       -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
       -e FHIR_URL=${FHIR_URL} \
       -e HOSTNAME_URL=${HOSTNAME_URL} \
+      -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
       web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
   else
     docker-compose run \
@@ -178,7 +179,6 @@ then
       -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
       -e FHIR_URL=${FHIR_URL} \
       -e HOSTNAME_URL=${HOSTNAME_URL} \
-      -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
       web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
   fi
 
