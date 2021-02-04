@@ -70,6 +70,8 @@ then
 else
   # Assume Windows if not
   keybase_env_path="/cygdrive/k"
+  CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
+  DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
 fi
 
 # Keybase ENV file
@@ -164,7 +166,6 @@ then
     -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
     -e FHIR_URL=${FHIR_URL} \
     -e HOSTNAME_URL=${HOSTNAME_URL} \
-    -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
     web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
 fi
 
