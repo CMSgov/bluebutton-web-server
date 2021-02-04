@@ -159,14 +159,29 @@ then
   echo_msg
   echo_msg "    INTEGRATION_TESTS_LIST: ${INTEGRATION_TESTS_LIST}"
   echo_msg
-  docker-compose run \
-    --service-ports \
-    -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
-    -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
-    -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
-    -e FHIR_URL=${FHIR_URL} \
-    -e HOSTNAME_URL=${HOSTNAME_URL} \
-    web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
+
+  if [[ ${SYSTEM} == "Linux" || ${SYSTEM} == "Darwin" ]]
+  then
+    docker-compose run \
+      --service-ports \
+      -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
+      -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
+      -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
+      -e FHIR_URL=${FHIR_URL} \
+      -e HOSTNAME_URL=${HOSTNAME_URL} \
+      web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
+  else
+    docker-compose run \
+      --service-ports \
+      -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
+      -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
+      -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
+      -e FHIR_URL=${FHIR_URL} \
+      -e HOSTNAME_URL=${HOSTNAME_URL} \
+      -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
+      web bash -c "python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
+  fi
+
 fi
 
 # Check if tests are to run in docker CBC container one-off
