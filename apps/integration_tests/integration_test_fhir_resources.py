@@ -231,13 +231,14 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             # dump_content(json.dumps(content), "eob_read_{}.json".format('v2' if v2 else 'v1'))
             self.assertEqual(self._validateJsonSchema(EOB_READ_SCHEMA, content), True)
         else:
-            # 3. Test SEARCH VIEW endpoint v2
+            # 3. Test SEARCH VIEW endpoint v2 (BB2-418 EOB V2 PDE profile)
             url = self.live_server_url + base_path + "/?patient=-20140000008325"
             response = client.get(url)
             self.assertEqual(response.status_code, 200)
             #     Validate JSON Schema
             content = json.loads(response.content)
             # dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
+            print("EXPECT EOB V2, content={}".format(json.dumps(content)))
             meta_profile = None
             try:
                 meta_profile = content['entry'][0]['resource']['meta']['profile'][0]
