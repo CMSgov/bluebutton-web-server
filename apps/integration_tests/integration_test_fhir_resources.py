@@ -15,6 +15,12 @@ from .endpoint_schemas import (USERINFO_SCHEMA, PATIENT_READ_SCHEMA, PATIENT_SEA
                                EOB_READ_SCHEMA, EOB_SEARCH_SCHEMA)
 
 
+def dump_content(json_str, file_name):
+    text_file = open(file_name, "w")
+    text_file.write(json_str)
+    text_file.close()
+
+
 class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     '''
     This sets up a live server in the background to test with.
@@ -86,6 +92,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         #     Validate JSON Schema
         content = json.loads(response.content)
+        # dump_content(json.dumps(content), "userinfo_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(USERINFO_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
@@ -116,6 +123,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         #     Validate JSON Schema
         content = json.loads(response.content)
+        # dump_content(json.dumps(content), "patient_search_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(PATIENT_SEARCH_SCHEMA, content), True)
 
         # 3. Test READ VIEW endpoint
@@ -124,6 +132,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         #     Validate JSON Schema
         content = json.loads(response.content)
+        # dump_content(json.dumps(content), "patient_read_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(PATIENT_READ_SCHEMA, content), True)
 
         # 4. Test unauthorized READ request
@@ -159,6 +168,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         #     Validate JSON Schema
         content = json.loads(response.content)
+        # dump_content(json.dumps(content), "coverage_search_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(COVERAGE_SEARCH_SCHEMA, content), True)
 
         # 3. Test READ VIEW endpoint
@@ -167,7 +177,13 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         #     Validate JSON Schema
         content = json.loads(response.content)
-        self.assertEqual(self._validateJsonSchema(COVERAGE_READ_SCHEMA, content), True)
+        # dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))
+
+        if not v2:
+            self.assertEqual(self._validateJsonSchema(COVERAGE_READ_SCHEMA, content), True)
+        else:
+            # check C4BB indicator
+            pass
 
         # 4. Test unauthorized READ request
         url = self.live_server_url + base_path + "/part-a-" + "99999999999999"
@@ -202,15 +218,35 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         #     Validate JSON Schema
         content = json.loads(response.content)
+        # dump_content(json.dumps(content), "eob_search_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
-        print(content)
-        # 3. Test READ VIEW endpoint
-        url = self.live_server_url + base_path + "/carrier--22639159481"
-        response = client.get(url)
-        self.assertEqual(response.status_code, 200)
-        #     Validate JSON Schema
-        content = json.loads(response.content)
-        self.assertEqual(self._validateJsonSchema(EOB_READ_SCHEMA, content), True)
+
+        # 3. Test READ VIEW endpoint v1
+        if not v2:
+            url = self.live_server_url + base_path + "/carrier--22639159481"
+            response = client.get(url)
+            self.assertEqual(response.status_code, 200)
+            #     Validate JSON Schema
+            content = json.loads(response.content)
+            # dump_content(json.dumps(content), "eob_read_{}.json".format('v2' if v2 else 'v1'))
+            self.assertEqual(self._validateJsonSchema(EOB_READ_SCHEMA, content), True)
+        else:
+            # 3. Test SEARCH VIEW endpoint v2
+            url = self.live_server_url + base_path + "/?patient=-20140000008325"
+            response = client.get(url)
+            self.assertEqual(response.status_code, 200)
+            #     Validate JSON Schema
+            content = json.loads(response.content)
+            # dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
+            meta_profile = None
+            try:
+                meta_profile = content['entry'][0]['resource']['meta']['profile'][0]
+            except KeyError:
+                pass
+            self.assertIsNotNone(meta_profile)
+            self.assertEqual(meta_profile,
+                             'https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy')
+            self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
 
         # 4. Test unauthorized READ request
         url = self.live_server_url + base_path + "/carrier-23017401521"
