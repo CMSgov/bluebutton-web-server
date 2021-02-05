@@ -30,10 +30,10 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """
     crosswalk = None
     resource_router = get_resourcerouter()
-    call_to = resource_router.fhir_url
     api_ver = 'v1' if request.path is not None and request.path.startswith('/v1') else 'v2'
     parsed_url = urlparse(resource_router.fhir_url)
 
+    call_to = None
     if parsed_url.path is not None:
         call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc, api_ver)
     else:
