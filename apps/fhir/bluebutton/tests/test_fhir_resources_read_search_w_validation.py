@@ -7,47 +7,15 @@ from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch, override_flag
 
 from apps.test import BaseApiTest
-from apps.mymedicare_cb.tests.responses import patient_response
 
 AccessToken = get_access_token_model()
 
 
-def get_expected_read_request(ver):
-    return {'method': 'GET',
-            'url': 'https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/Patient/-20140000008325/?_format=json'.format(ver),
-            'headers': {
-                'User-Agent': 'python-requests/2.20.0',
-                'Accept-Encoding': 'gzip, deflate',
-                'Accept': '*/*',
-                'Connection': 'keep-alive',
-                'BlueButton-OriginalQueryCounter': '1',
-                'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-                'BlueButton-Application': 'John_Smith_test',
-                'X-Forwarded-For': '127.0.0.1',
-                'keep-alive': 'timeout=120, max=10',
-                'BlueButton-OriginalUrl': '/{}/fhir/Patient/-20140000008325'.format(ver),
-                'BlueButton-BackendCall': ('https://fhir.backend.bluebutton.hhsdevcloud.us'
-                                           '/{}/fhir/Patient/-20140000008325/').format(ver), }
-            }
-
-
-def get_expected_request(ver):
-    return {'method': 'GET',
-            'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
-                    "{}/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=-20140000008325".format(ver)),
-            'headers': {
-                'User-Agent': 'python-requests/2.20.0',
-                'Accept-Encoding': 'gzip, deflate',
-                'Accept': '*/*',
-                'Connection': 'keep-alive',
-                'BlueButton-OriginalQueryCounter': '1',
-                'BlueButton-BeneficiaryId': 'patientId:-20140000008325',
-                'BlueButton-Application': 'John_Smith_test',
-                'X-Forwarded-For': '127.0.0.1',
-                'keep-alive': 'timeout=120, max=10',
-                'BlueButton-OriginalUrl': '/{}/fhir/Patient'.format(ver),
-                'BlueButton-BackendCall': 'https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/Patient/'.format(ver), }
-            }
+def get_response_json(resource_file_name):
+    response_file = open("./apps/fhir/bluebutton/tests/fhir_resources/{}.json".format(resource_file_name), 'r')
+    resource = json.load(response_file)
+    response_file.close()
+    return resource
 
 
 class FHIRResourcesReadSearchTest(BaseApiTest):
@@ -84,23 +52,13 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
         ver = 'v1' if not v2 else 'v2'
-        expected_request = get_expected_request(ver)
 
         @all_requests
         def catchall(url, req):
-            self.assertIn("https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/Patient/".format(ver), req.url)
-            self.assertIn("_format=application%2Fjson%2Bfhir", req.url)
-            self.assertIn("_id=-20140000008325", req.url)
-            self.assertIn("startIndex=0", req.url)
-            self.assertIn("_count=5", req.url)
-            self.assertNotIn("hello", req.url)
-            self.assertEqual(expected_request['method'], req.method)
-            self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
             return {
                 'status_code': 200,
-                # TODO replace this with true backend response, this has been post proccessed
-                'content': patient_response,
+                'content': get_response_json("patient_search_{}".format(ver)),
             }
 
         with HTTMock(catchall):
@@ -111,10 +69,36 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
-            # asserts no significant transformation
-            self.assertEqual(response.json()['entry'], patient_response['entry'])
+            # check C4BB in resource as v2 charactor
+            self.assertIsNotNone(response.json()['entry'])
             self.assertTrue(len(response.json()['link']) > 0)
-            self.assertIn("_count=5", response.json()['link'][0]['url'])
+            for r in response.json()['entry']:
+                self.assertEqual(r['resource']['resourceType'], "Patient")
+
+                identifiers = None
+
+                try:
+                    identifiers = r['resource']['identifier']
+                except KeyError:
+                    pass
+
+                self.assertIsNotNone(identifiers)
+
+                hasC4BB = False
+
+                for id in identifiers:
+                    try:
+                        system = id['type']['coding'][0]['system']
+                        if system == "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType":
+                            hasC4BB = True
+                            break
+                    except KeyError:
+                        pass
+
+                if v2:
+                    self.assertTrue(hasC4BB)
+                else:
+                    self.assertFalse(hasC4BB)
 
     def test_search_eob_by_parameters_request(self):
         self._search_eob_by_parameters_request(False)
@@ -208,7 +192,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(content['detail'], 'the type parameter value is not valid')
             self.assertEqual(response.status_code, 400)
 
-    def test_read_request(self):
+    def test_read_patient_request(self):
         self._read_patient_request(False)
 
     @override_switch('bfd_v2', active=True)
@@ -219,18 +203,13 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def _read_patient_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
-        ver = 'v1' if not v2 else 'v2'
-        expected_request = get_expected_read_request(ver)
 
         @all_requests
         def catchall(url, req):
-            self.assertEqual(expected_request['url'], req.url)
-            self.assertEqual(expected_request['method'], req.method)
-            self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
             return {
                 'status_code': 200,
-                'content':{"resourceType":"Patient","id":"-20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"-20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+                'content': get_response_json("patient_read_{}".format('v2' if v2 else 'v1')),
             }
 
         with HTTMock(catchall):
@@ -243,6 +222,31 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
+            identifiers = None
+
+            try:
+                identifiers = response.json()['identifier']
+            except KeyError:
+                pass
+
+            self.assertIsNotNone(identifiers)
+
+            hasC4BB = False
+
+            for id in identifiers:
+                try:
+                    system = id['type']['coding'][0]['system']
+                    print("==========={}".format(system))
+                    if system == "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType":
+                        hasC4BB = True
+                        break
+                except KeyError:
+                    pass
+
+            if v2:
+                self.assertTrue(hasC4BB)
+            else:
+                self.assertFalse(hasC4BB)
 
     def test_read_eob_request(self):
         self._read_eob_request(False)
@@ -311,3 +315,33 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
+
+    def test_fhir_meta_request(self):
+        self._query_fhir_meta(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    def test_fhir_meta_request_v2(self):
+        self._query_fhir_meta(True)
+
+    def _query_fhir_meta(self, v2=False):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': get_response_json("fhir_meta_{}".format('v2' if v2 else 'v1')),
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'fhir_conformance_metadata'
+                    if not v2 else 'fhir_conformance_metadata_v2',),
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["resourceType"], "CapabilityStatement")
+            self.assertEqual(response.json()["fhirVersion"], '4.0.0' if v2 else '3.0.2')

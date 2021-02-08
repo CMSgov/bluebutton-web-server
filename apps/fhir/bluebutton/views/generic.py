@@ -106,7 +106,6 @@ class FhirDataView(APIView):
                                     **dict(kwargs, ver=api_ver))
 
         logger.debug('FHIR URL with key:%s' % target_url)
-        print('FHIR URL with key:{}'.format(target_url))
 
         try:
             get_parameters = {**self.filter_parameters(request), **self.build_parameters(request)}
