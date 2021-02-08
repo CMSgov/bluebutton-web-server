@@ -18,6 +18,20 @@ USERINFO_SCHEMA = {
                  'iat', 'name', 'patient', 'sub'],
 }
 
+FHIR_META_SCHEMA = {
+    "title": "CapabilityStatement",
+    'type': 'object',
+    'properties': {
+        "resourceType": {"type": "string"},
+        "date": {"type": "string"},
+        "publisher": {"type": "string"},
+        "fhirVersion": {"type": "string"},
+        "rest": {"type": "array"},
+    },
+    'required': ['resourceType', 'date', 'publisher',
+                 'fhirVersion', 'rest'],
+}
+
 PATIENT_READ_SCHEMA = {
     "title": "PatientRead",
     "type": "object",

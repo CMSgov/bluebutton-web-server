@@ -1,9 +1,8 @@
 import json
 
-from django.conf import settings
 from django.test.client import Client
 from django.urls import reverse
-from httmock import all_requests, HTTMock, urlmatch
+from httmock import all_requests, HTTMock
 from oauth2_provider.models import get_access_token_model
 from waffle.testutils import override_switch, override_flag
 
@@ -73,15 +72,15 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
-    def test_search_request(self):
-        self._search_request(False)
+    def test_search_patient_request(self):
+        self._search_patient_request(False)
 
     @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
-    def test_search_request_v2(self):
-        self._search_request(True)
+    def test_search_patient_request_v2(self):
+        self._search_patient_request(True)
 
-    def _search_request(self, v2=False):
+    def _search_patient_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
         ver = 'v1' if not v2 else 'v2'
@@ -117,15 +116,15 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertTrue(len(response.json()['link']) > 0)
             self.assertIn("_count=5", response.json()['link'][0]['url'])
 
-    def test_search_parameters_request(self):
-        self._search_parameters_request(False)
+    def test_search_eob_by_parameters_request(self):
+        self._search_eob_by_parameters_request(False)
 
     @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
-    def test_search_parameters_request_v2(self):
-        self._search_parameters_request(True)
+    def test_search_eob_by_parameters_request_v2(self):
+        self._search_eob_by_parameters_request(True)
 
-    def _search_parameters_request(self, v2=False):
+    def _search_eob_by_parameters_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
         ver = 'v1' if not v2 else 'v2'
@@ -209,58 +208,15 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(content['detail'], 'the type parameter value is not valid')
             self.assertEqual(response.status_code, 400)
 
-    def test_read_request_failed_no_fhir_id(self):
-        self._read_request_failed_no_fhir_id(False)
-
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
-    def test_read_request_failed_no_fhir_id_v2(self):
-        self._read_request_failed_no_fhir_id(True)
-
-    def _read_request_failed_no_fhir_id(self, v2=False):
-        # create the user
-        first_access_token = self.create_token('John', 'Smith')
-
-        @urlmatch(query=r'.*identifier=http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash%7C139e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130.*')  # noqa
-        def fhir_request(url, req):
-            return {
-                'status_code': 200,
-                'content': {
-                    'total': 1,
-                    'entry': [{
-                        'resource': {
-                            'id': 20140000008324,
-                        },
-                    }],
-                },
-            }
-
-        @all_requests
-        def catchall(url, req):
-            return {
-                'status_code': 200,
-                'content': {},
-            }
-
-        with HTTMock(fhir_request, catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_patient_read_or_update_or_delete'
-                    if not v2 else 'bb_oauth_fhir_patient_read_or_update_or_delete_v2',
-                    kwargs={'resource_id': '-20140000008325'}),
-                Authorization="Bearer %s" % (first_access_token))
-
-            self.assertEqual(response.status_code, 403)
-
     def test_read_request(self):
-        self._read_request(False)
+        self._read_patient_request(False)
 
     @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
-    def test_read_request_v2(self):
-        self._read_request(True)
+    def test_read_patient_request_v2(self):
+        self._read_patient_request(True)
 
-    def _read_request(self, v2=False):
+    def _read_patient_request(self, v2=False):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
         ver = 'v1' if not v2 else 'v2'
@@ -355,165 +311,3 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
-
-    def test_application_first_last_active(self):
-        self._application_first_last_active(False)
-
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
-    def test_application_first_last_active_v2(self):
-        self._application_first_last_active(True)
-
-    def _application_first_last_active(self, v2=False):
-        # create the user
-        first_access_token = self.create_token('John', 'Smith')
-
-        access_token_obj = AccessToken.objects.get(token=first_access_token)
-        application = access_token_obj.application
-
-        # Check that application last_active and first_active are not set (= None)
-        self.assertEqual(application.first_active, None)
-        self.assertEqual(application.last_active, None)
-
-        @all_requests
-        def catchall(url, req):
-            return {
-                'status_code': 200,
-                'content': {
-                    'resourceType': 'Coverage',
-                    'beneficiary': {
-                        'reference': 'stuff/-20140000008325',
-                    },
-                },
-            }
-
-        with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_coverage_read_or_update_or_delete'
-                    if not v2 else 'bb_oauth_fhir_coverage_read_or_update_or_delete_v2',
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization="Bearer %s" % (first_access_token))
-
-            self.assertEqual(response.status_code, 200)
-
-        access_token_obj = AccessToken.objects.get(token=first_access_token)
-        application = access_token_obj.application
-
-        # Check that application last_active and first_active are set
-        self.assertNotEqual(application.first_active, None)
-        self.assertNotEqual(application.last_active, None)
-
-        prev_first_active = application.first_active
-        prev_last_active = application.last_active
-
-        # 2nd resource call
-        @all_requests
-        def catchall(url, req):
-            return {
-                'status_code': 200,
-                'content': {
-                    'resourceType': 'Coverage',
-                    'beneficiary': {
-                        'reference': 'stuff/-20140000008325',
-                    },
-                },
-            }
-
-        with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_coverage_read_or_update_or_delete'
-                    if not v2 else 'bb_oauth_fhir_coverage_read_or_update_or_delete_v2',
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization="Bearer %s" % (first_access_token))
-
-            self.assertEqual(response.status_code, 200)
-
-        access_token_obj = AccessToken.objects.get(token=first_access_token)
-        application = access_token_obj.application
-
-        # Check that application first_active is the same
-        self.assertEqual(application.first_active, prev_first_active)
-        # Check that application last_active was updated
-        self.assertNotEqual(application.last_active, prev_last_active)
-
-    def test_permission_deny_fhir_request_on_disabled_app_org(self):
-        self._permission_deny_fhir_request_on_disabled_app_org(False)
-
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
-    def test_permission_deny_fhir_request_on_disabled_app_org_v2(self):
-        self._permission_deny_fhir_request_on_disabled_app_org(True)
-
-    def _permission_deny_fhir_request_on_disabled_app_org(self, v2=False):
-        # create the user
-        first_access_token = self.create_token('John', 'Smith')
-
-        access_token_obj = AccessToken.objects.get(token=first_access_token)
-        application = access_token_obj.application
-        user = access_token_obj.user
-
-        application.active = False
-        application.save()
-
-        self.assertEqual(application.active, False)
-        self.assertEqual(user.is_active, True)
-
-        @all_requests
-        def catchall(url, req):
-            return {
-                'status_code': 200,
-                'content': {
-                    'resourceType': 'Coverage',
-                    'beneficiary': {
-                        'reference': 'stuff/-20140000008325',
-                    },
-                },
-            }
-
-        with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_coverage_read_or_update_or_delete'
-                    if not v2 else 'bb_oauth_fhir_coverage_read_or_update_or_delete_v2',
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization="Bearer %s" % (first_access_token))
-            self.assertEqual(response.status_code, 403)
-            errStr = str(response.json().get("detail"))
-            errwords = errStr.split()
-            packedErrStr = "-".join(errwords)
-            msgwords = settings.APPLICATION_TEMPORARILY_INACTIVE.split()
-            packedMsg = "-".join(msgwords)
-            self.assertEqual(packedErrStr, packedMsg.format(application.name))
-
-        # 2nd resource call
-        @all_requests
-        def catchall(url, req):
-            return {
-                'status_code': 200,
-                'content': {
-                    'resourceType': 'Coverage',
-                    'beneficiary': {
-                        'reference': 'stuff/-20140000008325',
-                    },
-                },
-            }
-
-        with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_coverage_read_or_update_or_delete'
-                    if not v2 else 'bb_oauth_fhir_coverage_read_or_update_or_delete_v2',
-                    kwargs={'resource_id': 'coverage_id'}),
-                Authorization="Bearer %s" % (first_access_token))
-            self.assertEqual(response.status_code, 403)
-            errStr = str(response.json().get("detail"))
-            errwords = errStr.split()
-            packedErrStr = "-".join(errwords)
-            msgwords = settings.APPLICATION_TEMPORARILY_INACTIVE.split()
-            packedMsg = "-".join(msgwords)
-            self.assertEqual(packedErrStr, packedMsg.format(application.name))
-        # set app user back to active - not to affect subsequent tests
-        application.active = True
-        application.save()

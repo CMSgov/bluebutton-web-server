@@ -10,9 +10,13 @@ from waffle.testutils import override_switch, override_flag
 
 from apps.test import BaseApiTest
 
-from .endpoint_schemas import (USERINFO_SCHEMA, PATIENT_READ_SCHEMA, PATIENT_SEARCH_SCHEMA,
+from .endpoint_schemas import (FHIR_META_SCHEMA, USERINFO_SCHEMA, PATIENT_READ_SCHEMA, PATIENT_SEARCH_SCHEMA,
                                COVERAGE_READ_SCHEMA, COVERAGE_SEARCH_SCHEMA,
                                EOB_READ_SCHEMA, EOB_SEARCH_SCHEMA)
+
+C4BB_SCHEMAS = {
+    "fhir.schema.json": None,
+}
 
 
 def dump_content(json_str, file_name):
@@ -28,6 +32,12 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     This uses APIClient to test the BB2 FHIR API endpoints with the default (Fred) access token.
     '''
     fixtures = ['scopes.json']
+
+    def setUp(self):
+        super().setUp()
+        schema = open("./apps/integration_tests/fhir_resources_schemas/fhir.schema.json", 'r')
+        C4BB_SCHEMAS['fhir.schema.json'] = json.load(schema)
+        schema.close()
 
     def _setup_apiclient(self, client):
         # Setup token in APIClient
@@ -94,6 +104,43 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "userinfo_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(USERINFO_SCHEMA, content), True)
+
+    @override_switch('require-scopes', active=True)
+    def test_fhir_meta_endpoint(self):
+        self._call_fhir_meta_endpoint(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_fhir_meta_endpoint_v2(self):
+        self._call_fhir_meta_endpoint(True)
+
+    def _call_fhir_meta_endpoint(self, v2=False):
+        base_path = "/{}/fhir/metadata".format('v2' if v2 else 'v1')
+        client = APIClient()
+
+        # 1. Test unauthenticated request, no auth needed for capabilities
+        url = self.live_server_url + base_path
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        # Authenticate
+        self._setup_apiclient(client)
+
+        # 2. Test authenticated request
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        # Validate JSON Schema
+        content = json.loads(response.content)
+        fhir_ver = None
+        try:
+            fhir_ver = content['fhirVersion']
+        except KeyError:
+            pass
+        self.assertIsNotNone(fhir_ver)
+        self.assertEqual(fhir_ver, '4.0.0' if v2 else '3.0.2')
+        # dump_content(json.dumps(content), "fhir_meta_{}.json".format('v2' if v2 else 'v1'))
+        self.assertEqual(self._validateJsonSchema(FHIR_META_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
     def test_patient_endpoint(self):
@@ -216,40 +263,65 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         url = self.live_server_url + base_path
         response = client.get(url)
         self.assertEqual(response.status_code, 200)
-        #     Validate JSON Schema
+        # Validate JSON Schema
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "eob_search_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        meta_profile = None
+        try:
+            meta_profile = content['entry'][0]['resource']['meta']['profile'][0]
+        except KeyError:
+            pass
+        if not v2:
+            self.assertIsNone(meta_profile)
+            self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        else:
+            self.assertIsNotNone(meta_profile)
+            self.assertEqual(meta_profile,
+                             'https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy')
+            self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
 
         # 3. Test READ VIEW endpoint v1
+        url = self.live_server_url + base_path + "/carrier--22639159481"
+        response = client.get(url)
         if not v2:
-            url = self.live_server_url + base_path + "/carrier--22639159481"
-            response = client.get(url)
             self.assertEqual(response.status_code, 200)
             #     Validate JSON Schema
             content = json.loads(response.content)
             # dump_content(json.dumps(content), "eob_read_{}.json".format('v2' if v2 else 'v1'))
             self.assertEqual(self._validateJsonSchema(EOB_READ_SCHEMA, content), True)
         else:
-            # 3. Test SEARCH VIEW endpoint v2 (BB2-418 EOB V2 PDE profile)
-            url = self.live_server_url + base_path + "/?patient=-20140000008325"
-            response = client.get(url)
-            self.assertEqual(response.status_code, 200)
-            #     Validate JSON Schema
-            content = json.loads(response.content)
-            # dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
-            print("EXPECT EOB V2, content={}".format(json.dumps(content)))
-            meta_profile = None
-            try:
-                meta_profile = content['entry'][0]['resource']['meta']['profile'][0]
-            except KeyError:
-                pass
+            # not found for now on v2
+            self.assertEqual(response.status_code, 404)
+
+        # 4. Test SEARCH VIEW endpoint v2 (BB2-418 EOB V2 PDE profile)
+        url = self.live_server_url + base_path + "/?patient=-20140000008325"
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        #     Validate JSON Schema
+        content = json.loads(response.content)
+        dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
+        meta_profile = None
+        try:
+            meta_profile = content['entry'][0]['resource']['meta']['profile'][0]
+        except KeyError:
+            pass
+
+        if not v2:
+            self.assertIsNone(meta_profile)
+            self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        else:
             self.assertIsNotNone(meta_profile)
             self.assertEqual(meta_profile,
                              'https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy')
             self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+            # resources = content['entry']
+            # self.assertIsNotNone(resources)
+            # eob_schema = C4BB_SCHEMAS['fhir.schema.json']['definitions']['ExplanationOfBenefit']
+            # for r in resources:
+            #     self.assertEqual(self._validateJsonSchema(eob_schema, r), True)
 
-        # 4. Test unauthorized READ request
+        # 5. Test unauthorized READ request
+        # same asserts for v1 and v2
         url = self.live_server_url + base_path + "/carrier-23017401521"
         response = client.get(url)
         self.assertEqual(response.status_code, 404)
