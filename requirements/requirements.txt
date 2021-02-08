@@ -83,7 +83,7 @@ django-waffle==0.20.0 \
     --hash=sha256:73ec03d28c60af0a6fd6327933e615e92dd936137d25b25d3ebaf64e9963c463 \
     --hash=sha256:744c3fe6cedbd175d2247cb93904e931f056b503f6e4a4836a0b9b66b43be625 \
     # via -r requirements/requirements.in
-django==2.2.13 \
+django==2.2.18 \
     --hash=sha256:84f370f6acedbe1f3c41e1a02de44ac206efda3355e427139ecb785b5f596d80 \
     --hash=sha256:e8fe3c2b2212dce6126becab7a693157f1a441a07b62ec994c046c76af5bb66d \
     # via -r requirements/requirements.in, django-bootstrap-form, django-filter, django-localflavor, django-oauth-toolkit, django-settings-export, django-storages
@@ -125,7 +125,7 @@ oauthlib==2.1.0 \
     --hash=sha256:ac35665a61c1685c56336bda97d5eefa246f1202618a1d6f34fccb1bdd404162 \
     --hash=sha256:d883b36b21a6ad813953803edfa563b1b579d79ca758fe950d1bc9e8b326025b \
     # via -r requirements/requirements.in, django-oauth-toolkit, requests-oauthlib
-pillow==7.1.0 \
+pillow==8.1.0 \
     --hash=sha256:0011ec16bcab9f2f07afa95081ee025b3f0fe428611a000df0fbcb51dd873ca0 \
     --hash=sha256:0e5aedc62a78525fcfbec417d8db0073dff5de9d8544047f619d208e2cd3d323 \
     --hash=sha256:196d9ff5d0b070b50cd3a3c59ffa3b41232ca34dbd09e262bfa32047229d4b16 \
