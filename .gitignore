@@ -84,3 +84,7 @@ ENV/
 bluebutton-css/
 
 .vscode
+
+# cert files
+docker-compose/certstore/
+*/certstore/*
