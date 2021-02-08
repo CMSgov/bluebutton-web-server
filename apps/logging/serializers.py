@@ -1,6 +1,8 @@
 import json
 import hashlib
 
+from django.conf import settings
+
 
 class DataAccessGrantSerializer:
     tkn = None
@@ -32,7 +34,11 @@ class DataAccessGrantSerializer:
                 "username": getattr(user, 'username', None),
             }
         }
-        return json.dumps(result)
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            return json.dumps(result, indent=2)
+        else:
+            return json.dumps(result)
+
 
 
 class Token:
@@ -54,6 +60,7 @@ class Token:
         app_user = getattr(app, 'user', None)
         user = getattr(self.tkn, 'user', None)
         scopes_dict = getattr(self.tkn, 'scopes', None)
+        crosswalk = getattr(user, 'crosswalk', None)
 
         if scopes_dict:
             # Convert dict keys list to str
@@ -79,13 +86,23 @@ class Token:
             "user": {
                 "id": getattr(user, 'id', None),
                 "username": getattr(user, 'username', None),
-            }
+            },
+            "crosswalk": {
+                "id": getattr(crosswalk, 'id', None),
+                "user_hicn_hash": getattr(crosswalk, "user_hicn_hash", None),
+                "user_mbi_hash": getattr(crosswalk, "user_mbi_hash", None),
+                "fhir_id": getattr(crosswalk, "fhir_id", None),
+                "user_id_type": getattr(crosswalk, "user_id_type", None),
+            },
         }
 
         # Update with auth flow session info
         result.update(self.auth_flow_dict)
 
-        return json.dumps(result)
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            return json.dumps(result, indent=2)
+        else:
+            return json.dumps(result)
 
 
 class Request:
@@ -108,7 +125,10 @@ class Request:
         }
 
     def __str__(self):
-        return json.dumps(self.to_dict())
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            return json.dumps(self.to_dict(), indent=2)
+        else:
+            return json.dumps(self.to_dict())
 
 
 class SLSRequest(Request):
@@ -236,7 +256,10 @@ class Response:
     def __str__(self):
         result = self.req.copy()
         result.update(self.to_dict())
-        return json.dumps(result)
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            return json.dumps(result, indent=2)
+        else:
+            return json.dumps(result)
 
 
 class FHIRResponse(Response):
@@ -299,8 +322,8 @@ class SLSxTokenResponse(SLSResponse):
         event_dict = json.loads(self.resp.text)
         event_dict.update(super().to_dict().copy())
         resp_dict = {
-            "uuid": event_dict['uuid'],
             "type": event_dict['type'],
+            "uuid": event_dict['uuid'],
             "path": event_dict['path'],
             "auth_token": hashlib.sha256(
                 str(event_dict['auth_token']).encode('utf-8')).hexdigest(),
@@ -315,7 +338,10 @@ class SLSxTokenResponse(SLSResponse):
         return resp_dict
 
     def __str__(self):
-        return json.dumps(self.to_dict())
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            return json.dumps(self.to_dict(), indent=2)
+        else:
+            return json.dumps(self.to_dict())
 
 
 class SLSTokenResponse(SLSResponse):
@@ -328,8 +354,8 @@ class SLSTokenResponse(SLSResponse):
         event_dict = json.loads(self.resp.text)
         event_dict.update(super().to_dict().copy())
         resp_dict = {
-            "uuid": event_dict['uuid'],
             "type": event_dict['type'],
+            "uuid": event_dict['uuid'],
             "path": event_dict['path'],
             "access_token": hashlib.sha256(
                 str(event_dict['access_token']).encode('utf-8')).hexdigest(),
@@ -344,7 +370,10 @@ class SLSTokenResponse(SLSResponse):
         return resp_dict
 
     def __str__(self):
-        return json.dumps(self.to_dict())
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            return json.dumps(self.to_dict(), indent=2)
+        else:
+            return json.dumps(self.to_dict())
 
 
 class SLSUserInfoResponse(SLSResponse):
@@ -357,8 +386,8 @@ class SLSUserInfoResponse(SLSResponse):
         event_dict = json.loads(self.resp.text)
         event_dict.update(super().to_dict().copy())
         resp_dict = {
-            "uuid": event_dict['uuid'],
             "type": event_dict['type'],
+            "uuid": event_dict['uuid'],
             "path": event_dict['path'],
             "sub": event_dict['sub'],
             "code": event_dict['code'],
@@ -372,7 +401,10 @@ class SLSUserInfoResponse(SLSResponse):
         return resp_dict
 
     def __str__(self):
-        return json.dumps(self.to_dict())
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            return json.dumps(self.to_dict(), indent=2)
+        else:
+            return json.dumps(self.to_dict())
 
 
 class SLSxUserInfoResponse(SLSResponse):
@@ -385,8 +417,8 @@ class SLSxUserInfoResponse(SLSResponse):
         event_dict = json.loads(self.resp.text)
         event_dict.update(super().to_dict().copy())
         resp_dict = {
-            "uuid": event_dict['uuid'],
             "type": event_dict['type'],
+            "uuid": event_dict['uuid'],
             "path": event_dict['path'],
             "sub": event_dict['data']['user']['id'],
             "code": event_dict['code'],
@@ -400,4 +432,7 @@ class SLSxUserInfoResponse(SLSResponse):
         return resp_dict
 
     def __str__(self):
-        return json.dumps(self.to_dict())
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            return json.dumps(self.to_dict(), indent=2)
+        else:
+            return json.dumps(self.to_dict())

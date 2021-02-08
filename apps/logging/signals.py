@@ -2,6 +2,7 @@ import json
 import logging
 import sys
 import traceback
+from django.conf import settings
 from django.db.models.signals import (
     post_delete,
 )
@@ -82,7 +83,12 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
     # Update with auth flow session info
     if auth_flow_dict:
         log_dict.update(auth_flow_dict)
-    token_logger.info(get_event(json.dumps(log_dict)))
+
+    if settings.LOG_JSON_FORMAT_PRETTY:
+        token_logger.info(get_event(json.dumps(log_dict, indent=2)))
+    else:
+        token_logger.info(get_event(json.dumps(log_dict)))
+
 
 
 # BB2-218 also capture delete MyAccessToken
