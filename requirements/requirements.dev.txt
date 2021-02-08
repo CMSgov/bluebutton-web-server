@@ -19,9 +19,9 @@ boto3==1.9.86 \
     # via
     #   -r requirements/requirements.in
     #   django-ses
-botocore==1.12.86 \
-    --hash=sha256:24444e7580f0114c3e9fff5d2032c6f0cfbf88691b1be3ba27c6922507a902ec \
-    --hash=sha256:5b01a16f02c3da55068b3aacfa1c37dd8e17141551e1702424b38dd21fa1c792
+botocore==1.12.253 \
+    --hash=sha256:3baf129118575602ada9926f5166d82d02273c250d0feb313fc270944b27c48b \
+    --hash=sha256:dc080aed4f9b220a9e916ca29ca97a9d37e8e1d296fe89cbaeef929bf0c8066b
     # via
     #   boto3
     #   s3transfer
@@ -463,9 +463,9 @@ typing-extensions==3.7.4.3 \
 unicodecsv==0.14.1 \
     --hash=sha256:018c08037d48649a0412063ff4eda26eaa81eff1546dbffa51fa5293276ff7fc
     # via djangorestframework-csv
-urllib3==1.24.3 \
-    --hash=sha256:2393a695cd12afedd0dcb26fe5d50d0cf248e5a66f75dbd89a3d4eb333a61af4 \
-    --hash=sha256:a637e5fae88995b256e3409dc4d52c2e2e0ba32c42a6365fee8bbd2238de3cfb
+urllib3==1.25.11 \
+    --hash=sha256:8d7eaa5a82a1cac232164990f04874c594c9453ec55eef02eab885aa02fc17a2 \
+    --hash=sha256:f5321fbe4bf3fefa0efd0bfe7fb14e90909eb62a48ccda331726b4319897dd5e
     # via
     #   botocore
     #   requests
