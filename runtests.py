@@ -41,14 +41,14 @@ if args.integration:
     # Unset ENV variables for integration type tests so default values get set.
     for env_var in ['DJANGO_MEDICARE_LOGIN_URI',
                     'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
-                    'DATABASES_CUSTOM']:
+                    'DATABASES_CUSTOM', 'DJANGO_LOG_JSON_FORMAT_PRETTY']:
         if env_var in os.environ:
             del os.environ[env_var]
 else:
     # Unset ENV variables for Django unit type tests so default values get set.
     for env_var in ['FHIR_URL', 'DJANGO_MEDICARE_LOGIN_URI',
                     'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
-                    'DJANGO_FHIR_CERTSTORE', 'DATABASES_CUSTOM']:
+                    'DJANGO_FHIR_CERTSTORE', 'DATABASES_CUSTOM', 'DJANGO_LOG_JSON_FORMAT_PRETTY']:
         if env_var in os.environ:
             del os.environ[env_var]
 
