@@ -40,7 +40,6 @@ class DataAccessGrantSerializer:
             return json.dumps(result)
 
 
-
 class Token:
     tkn = None
     action = None

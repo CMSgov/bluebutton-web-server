@@ -90,7 +90,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         token_logger.info(get_event(json.dumps(log_dict)))
 
 
-
 # BB2-218 also capture delete MyAccessToken
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
