@@ -131,10 +131,8 @@ class RequestResponseLog(object):
                     self.log_msg[key] = value
         except ObjectDoesNotExist:
             self.log_msg[key] = "ObjectDoesNotExist exception for key " + key + ":" + dict_key
-            pass
         except AttributeError:
             self.log_msg[key] = "AttributeError exception for key " + key + ":" + dict_key
-            pass
 
     def _log_msg_update_from_object(self, obj, key, obj_key):
         # Log message update from a passed in object
@@ -145,10 +143,8 @@ class RequestResponseLog(object):
                     self.log_msg[key] = value
         except ObjectDoesNotExist:
             self.log_msg[key] = "ObjectDoesNotExist exception for key " + key + ":" + obj_key
-            pass
         except AttributeError:
             self.log_msg[key] = "AttributeError exception for key " + key + ":" + obj_key
-            pass
 
     def _log_msg_update_from_querydict(self, key, qp_key):
         # Log message update from request QueryDict HTTP query parameters
@@ -161,10 +157,8 @@ class RequestResponseLog(object):
                     self.log_msg[key] = value_list
         except ObjectDoesNotExist:
             self.log_msg[key] = "ObjectDoesNotExist exception for key " + key + ":" + qp_key
-            pass
         except AttributeError:
             self.log_msg[key] = "AttributeError exception for key " + key + ":" + qp_key
-            pass
 
     def __str__(self):
         '''
