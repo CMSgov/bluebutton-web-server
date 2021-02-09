@@ -207,25 +207,25 @@ class RequestResponseLog(object):
                     application = Application.objects.get(client_id=self.log_msg.get('req_client_id'))
                     self._log_msg_update_from_object(application, 'req_app_name', 'name')
                     self._log_msg_update_from_object(application, 'req_app_id', 'id')
+
+                refresh_token = request_body_dict.get('refresh_token', None)
+                if refresh_token is not None:
+                    self.log_msg['req_refresh_token_hash'] = hashlib.sha256(str(refresh_token).encode('utf-8')).hexdigest()
+
+                # Log AC passed from RequestTimeLoggingMiddleware.process_request() pre-response
+                self._log_msg_update_from_object(self.request, 'req_access_token_hash', '_req_access_token_hash')
+
+                self._log_msg_update_from_dict(request_body_dict, 'req_response_type', 'response_type')
+                self._log_msg_update_from_dict(request_body_dict, 'req_code_challenge_method', 'code_challenge_method')
+                self._log_msg_update_from_dict(request_body_dict, 'req_grant_type', 'grant_type')
+                self._log_msg_update_from_dict(request_body_dict, 'req_redirect_uri', 'redirect_uri')
+                self._log_msg_update_from_dict(request_body_dict, 'req_scope', 'scope')
+                self._log_msg_update_from_dict(request_body_dict, 'req_share_demographic_scopes', 'share_demographic_scopes')
+                self._log_msg_update_from_dict(request_body_dict, 'req_allow', 'allow')
             except ObjectDoesNotExist:
                 pass
             except ValueError:
                 pass
-
-            refresh_token = request_body_dict.get('refresh_token', None)
-            if refresh_token is not None:
-                self.log_msg['req_refresh_token_hash'] = hashlib.sha256(str(refresh_token).encode('utf-8')).hexdigest()
-
-            # Log AC passed from RequestTimeLoggingMiddleware.process_request() pre-response
-            self._log_msg_update_from_object(self.request, 'req_access_token_hash', '_req_access_token_hash')
-
-            self._log_msg_update_from_dict(request_body_dict, 'req_response_type', 'response_type')
-            self._log_msg_update_from_dict(request_body_dict, 'req_code_challenge_method', 'code_challenge_method')
-            self._log_msg_update_from_dict(request_body_dict, 'req_grant_type', 'grant_type')
-            self._log_msg_update_from_dict(request_body_dict, 'req_redirect_uri', 'redirect_uri')
-            self._log_msg_update_from_dict(request_body_dict, 'req_scope', 'scope')
-            self._log_msg_update_from_dict(request_body_dict, 'req_share_demographic_scopes', 'share_demographic_scopes')
-            self._log_msg_update_from_dict(request_body_dict, 'req_allow', 'allow')
 
         '''
         --- Logging items from request.user ---
