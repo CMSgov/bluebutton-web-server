@@ -325,3 +325,27 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         url = self.live_server_url + base_path + "/carrier-23017401521"
         response = client.get(url)
         self.assertEqual(response.status_code, 404)
+
+    @override_switch('require-scopes', active=True)
+    def test_err_response_caused_by_illegalarguments(self):
+        self._err_response_caused_by_illegalarguments(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_err_response_caused_by_illegalarguments(self):
+        self._err_response_caused_by_illegalarguments(True)
+
+    def _err_response_caused_by_illegalarguments(self, v2=False):
+        base_path = "/{}/fhir/Coverage/part-d___--20140000008325".format('v2' if v2 else 'v1')
+        client = APIClient()
+
+        # Authenticate
+        self._setup_apiclient(client)
+
+        url = self.live_server_url + base_path
+        response = client.get(url)
+        # check that bfd error response 500 with root cause 'IllegalArgument' 
+        # mapped to 400 bad request (client error)
+        # for both v1 and v2
+        self.assertEqual(response.status_code, 400)

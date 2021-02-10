@@ -236,7 +236,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             for id in identifiers:
                 try:
                     system = id['type']['coding'][0]['system']
-                    print("==========={}".format(system))
                     if system == "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType":
                         hasC4BB = True
                         break
@@ -345,3 +344,34 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["resourceType"], "CapabilityStatement")
             self.assertEqual(response.json()["fhirVersion"], '4.0.0' if v2 else '3.0.2')
+
+    def test_err_response_caused_by_illegalarguments(self):
+        self._err_response_caused_by_illegalarguments(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    def test_err_response_caused_by_illegalarguments_v2(self):
+        self._err_response_caused_by_illegalarguments(True)
+
+    def _err_response_caused_by_illegalarguments(self, v2=False):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+
+            return {
+                'status_code': 500,
+                'content': get_response_json("resource_error_response"),
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_patient_read_or_update_or_delete'
+                    if not v2 else 'bb_oauth_fhir_patient_read_or_update_or_delete_v2',
+                    kwargs={'resource_id': '-20140000008325'}),
+                {'hello': 'world'},
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 400)
