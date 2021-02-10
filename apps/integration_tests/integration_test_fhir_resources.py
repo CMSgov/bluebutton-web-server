@@ -333,7 +333,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
-    def test_err_response_caused_by_illegalarguments(self):
+    def test_err_response_caused_by_illegalarguments_v2(self):
         self._err_response_caused_by_illegalarguments(True)
 
     def _err_response_caused_by_illegalarguments(self, v2=False):
@@ -345,7 +345,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         url = self.live_server_url + base_path
         response = client.get(url)
-        # check that bfd error response 500 with root cause 'IllegalArgument' 
+        # check that bfd error response 500 with root cause 'IllegalArgument'
         # mapped to 400 bad request (client error)
         # for both v1 and v2
         self.assertEqual(response.status_code, 400)
