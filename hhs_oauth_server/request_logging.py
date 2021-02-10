@@ -24,9 +24,10 @@ class RequestResponseLog(object):
     """Audit Log message to JSON string
 
     The JSON log entry contains the following fields when available:
+        NOTE: Items are tagged with the Jira ticket number when they were added.
         - access_token_hash = Hash of the access token.
-        - access_token_id = AC id.
-        - access_token_scopes =  Access token scopes when available
+        - access_token_id = AC id. (BB2-342)
+        - access_token_scopes =  Access token scopes when available.
         - app_id = Application id.
         - app_name = Application name.
         - app_require_demographic_scopes = Application required scopes choice.
@@ -42,65 +43,64 @@ class RequestResponseLog(object):
         - ip_addr = IP address of the request, account for the possibility of being behind a proxy.
         - location = Location (redirect) for 300,301,302,307 response codes.
         - path = The request.path.
-        - req_access_token_hash = Request AC hash.
-        - req_allow = Request AC allow.
-        - req_app_id = Request AC app id.
-        - req_app_name = Request AC app name.
-        - req_client_id = Request client_id.
-        - req_code_challenge_method = Request code challenge_method.
-        - req_fhir_id = Request FHIR_ID.
-        - req_grant_type = Request grant type.
-        - req_header_accept_encoding = Req header info.
-        - req_header_content_length = Req header info.
-        - req_header_content_type = Req header info.
-        - req_header_host = Req header info.
-        - req_header_referrer = Req header info.
-        - req_header_user_agent = Req header info.
-        - req_post_grant_type = Post grant type.
-        - req_qparam_beneficiary = Info from HTTP Query Params.
-        - req_qparam_beneficiary = Info from HTTP Query Params.
-        - req_qparam_client_id = Info from HTTP Query Params.
-        - req_qparam__count = Info from HTTP Query Params.
-        - req_qparam_count = Info from HTTP Query Params.
-        - req_qparam_format = Info from HTTP Query Params.
-        - req_qparam__id = Info from HTTP Query Params.
-        - req_qparam_lastupdated = Info from HTTP Query Params.
-        - req_qparam_patient = Info from HTTP Query Params.
-        - req_qparam_response_type = Info from HTTP Query Params.
-        - req_qparam_startindex = Info from HTTP Query Params.
-        - req_qparam_type = Info from HTTP Query Params.
-        - req_redirect_uri = Request redirect URI.
-        - req_refresh_token_hash = Request refresh token hash.
-        - req_response_type = Response type.
-        - req_scope = Request scope
-        - req_share_demographic_scopes = Request bene share demo scopes.
-        - request_method = http request method type (GET/POST/etc)
-        - request_post_grant_type = Post grant type.
-        - request_scheme = The scheme of the request (http/https/etc)
+        - req_access_token_hash = Request AC hash. (BB2-342)
+        - req_allow = Request AC allow. (BB2-342)
+        - req_app_id = Request AC app id. (BB2-342)
+        - req_app_name = Request AC app name. (BB2-342)
+        - req_client_id = Request client_id. (BB2-342)
+        - req_code_challenge_method = Request code challenge_method. (BB2-342)
+        - req_fhir_id = Request FHIR_ID. (BB2-342)
+        - req_grant_type = Request grant type. (BB2-342)
+        - req_header_accept_encoding = Req header info. (BB2-342)
+        - req_header_content_length = Req header info. (BB2-342)
+        - req_header_content_type = Req header info. (BB2-342)
+        - req_header_host = Req header info. (BB2-342)
+        - req_header_referrer = Req header info. (BB2-342)
+        - req_header_user_agent = Req header info. (BB2-342)
+        - req_post_grant_type = Post grant type. (BB2-342)
+        - req_qparam_beneficiary = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_beneficiary = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_client_id = Info from HTTP Query Params. (BB2-342)
+        - req_qparam__count = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_count = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_format = Info from HTTP Query Params. (BB2-342)
+        - req_qparam__id = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_lastupdated = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_patient = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_response_type = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_startindex = Info from HTTP Query Params. (BB2-342)
+        - req_qparam_type = Info from HTTP Query Params. (BB2-342)
+        - req_redirect_uri = Request redirect URI. (BB2-342)
+        - req_refresh_token_hash = Request refresh token hash. (BB2-342)
+        - req_response_type = Response type. (BB2-342)
+        - req_scope = Request scope (BB2-342)
+        - req_share_demographic_scopes = Request bene share demo scopes. (BB2-342)
+        - request_method = http request method type (GET/POST/etc) (BB2-342)
+        - request_scheme = The scheme of the request (http/https/etc) (BB2-342)
         - request_uuid = The UUID identifying the request.
-        - req_user_id = Request user id.
-        - req_user_username = Request username.
-        - resp_access_token_hash = Response AC info.
-        - resp_access_token_scopes = Response AC info.
-        - resp_app_id = Response AC info.
-        - resp_app_name = Response AC info.
-        - resp_app_require_demographic_scopes = Response AC info.
-        - resp_dev_id = Response AC info.
-        - resp_dev_name = Response AC info.
-        - resp_expires_in = Response AC info.
-        - resp_fhir_id = Response AC info.
+        - req_user_id = Request user id. (BB2-342)
+        - req_user_username = Request username. (BB2-342)
+        - resp_access_token_hash = Response AC info. (BB2-342)
+        - resp_access_token_scopes = Response AC info. (BB2-342)
+        - resp_app_id = Response AC info. (BB2-342)
+        - resp_app_name = Response AC info. (BB2-342)
+        - resp_app_require_demographic_scopes = Response AC info. (BB2-342)
+        - resp_dev_id = Response AC info. (BB2-342)
+        - resp_dev_name = Response AC info. (BB2-342)
+        - resp_expires_in = Response AC info. (BB2-342)
+        - resp_fhir_id = Response AC info. (BB2-342)
         - response_code = The response status code.
-        - resp_refresh_token_hash = Response refresh token info.
-        - resp_scope = Response refresh token info.
-        - resp_token_type = Response refresh token info.
-        - resp_user_id = Response refresh token info.
-        - resp_user_username = Response refresh token info.
+        - resp_refresh_token_hash = Response refresh token info. (BB2-342)
+        - resp_scope = Response refresh token info. (BB2-342)
+        - resp_token_type = Response refresh token info. (BB2-342)
+        - resp_user_id = Response refresh token info. (BB2-342)
+        - resp_user_username = Response refresh token info. (BB2-342)
         - size = Size in bytes of the response.content
         - start_time = Unix Epoch format time of the request processed.
-        - type = Label for type of log. Set to "request_response_middleware".
-        - user_id = Login user (or None) or OAuth2 API id.
+        - type = Label for type of log. Set to "request_response_middleware". (BB2-342)
+        - user_id = Login user (or None) or OAuth2 API id. (BB2-342)
         - user = Login user (or None) or OAuth2 API username.
-        - user_username = Login user (or None) or OAuth2 API username.
+        - user_username = Login user (or None) or OAuth2 API username. (BB2-342)
     """
     request = None
     response = None
@@ -314,13 +314,13 @@ class RequestResponseLog(object):
         '''
         access_token = None
         if (getattr(self.response, 'content', False)
-           and self.log_msg.get('request_post_grant_type', False)
+           and self.log_msg.get('req_post_grant_type', False)
            and self.log_msg.get('request_method', False)):
 
             response_content = json.loads(self.response.content)
             resp_access_token = response_content.get('access_token', None)
 
-            if (self.log_msg['request_post_grant_type'] == "refresh_token"
+            if (self.log_msg['req_post_grant_type'] == "refresh_token"
                and self.log_msg['request_method'] == "POST"
                and AccessToken.objects.filter(token=resp_access_token).exists()):
 
