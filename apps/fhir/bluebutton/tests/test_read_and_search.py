@@ -24,7 +24,7 @@ def get_expected_read_request(ver):
     return {'method': 'GET',
             'url': 'https://fhir.backend.bluebutton.hhsdevcloud.us/{}/fhir/Patient/-20140000008325/?_format=json'.format(ver),
             'headers': {
-                'User-Agent': 'python-requests/2.20.0',
+                # 'User-Agent': 'python-requests/2.20.0',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept': '*/*',
                 'Connection': 'keep-alive',
@@ -44,7 +44,7 @@ def get_expected_request(ver):
             'url': ("https://fhir.backend.bluebutton.hhsdevcloud.us/"
                     "{}/fhir/Patient/?_format=application%2Fjson%2Bfhir&_id=-20140000008325".format(ver)),
             'headers': {
-                'User-Agent': 'python-requests/2.20.0',
+                # 'User-Agent': 'python-requests/2.20.0',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept': '*/*',
                 'Connection': 'keep-alive',
