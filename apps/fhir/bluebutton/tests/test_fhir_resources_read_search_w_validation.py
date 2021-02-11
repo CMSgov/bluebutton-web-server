@@ -40,6 +40,67 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
+    def _assertHasC4BBIdentifier(self, resource, c4bb_type, resource_type, v2=False):
+        self.assertEqual(resource['resourceType'], resource_type)
+        identifiers = None
+
+        try:
+            identifiers = resource['identifier']
+        except KeyError:
+            pass
+
+        self.assertIsNotNone(identifiers)
+
+        hasC4BB = False
+
+        for id in identifiers:
+            try:
+                system = id['type']['coding'][0]['system']
+                if system == c4bb_type:
+                    hasC4BB = True
+                    break
+            except KeyError:
+                pass
+
+        if v2:
+            self.assertTrue(hasC4BB)
+        else:
+            self.assertFalse(hasC4BB)
+
+    def test_read_patient_request(self):
+        self._read_patient_request(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    def test_read_patient_request_v2(self):
+        self._read_patient_request(True)
+
+    def _read_patient_request(self, v2=False):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+
+            return {
+                'status_code': 200,
+                'content': get_response_json("patient_read_{}".format('v2' if v2 else 'v1')),
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_patient_read_or_update_or_delete'
+                    if not v2 else 'bb_oauth_fhir_patient_read_or_update_or_delete_v2',
+                    kwargs={'resource_id': '-20140000008325'}),
+                {'hello': 'world'},
+                Authorization="Bearer %s" % (first_access_token))
+
+            self.assertEqual(response.status_code, 200)
+            self._assertHasC4BBIdentifier(response.json(),
+                                          "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
+                                          "Patient", v2)
+
     def test_search_patient_request(self):
         self._search_patient_request(False)
 
@@ -73,32 +134,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertIsNotNone(response.json()['entry'])
             self.assertTrue(len(response.json()['link']) > 0)
             for r in response.json()['entry']:
-                self.assertEqual(r['resource']['resourceType'], "Patient")
-
-                identifiers = None
-
-                try:
-                    identifiers = r['resource']['identifier']
-                except KeyError:
-                    pass
-
-                self.assertIsNotNone(identifiers)
-
-                hasC4BB = False
-
-                for id in identifiers:
-                    try:
-                        system = id['type']['coding'][0]['system']
-                        if system == "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType":
-                            hasC4BB = True
-                            break
-                    except KeyError:
-                        pass
-
-                if v2:
-                    self.assertTrue(hasC4BB)
-                else:
-                    self.assertFalse(hasC4BB)
+                self._assertHasC4BBIdentifier(r['resource'],
+                                              "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
+                                              "Patient", v2)
 
     def test_search_eob_by_parameters_request(self):
         self._search_eob_by_parameters_request(False)
@@ -191,61 +229,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             content = json.loads(response.content.decode("utf-8"))
             self.assertEqual(content['detail'], 'the type parameter value is not valid')
             self.assertEqual(response.status_code, 400)
-
-    def test_read_patient_request(self):
-        self._read_patient_request(False)
-
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
-    def test_read_patient_request_v2(self):
-        self._read_patient_request(True)
-
-    def _read_patient_request(self, v2=False):
-        # create the user
-        first_access_token = self.create_token('John', 'Smith')
-
-        @all_requests
-        def catchall(url, req):
-
-            return {
-                'status_code': 200,
-                'content': get_response_json("patient_read_{}".format('v2' if v2 else 'v1')),
-            }
-
-        with HTTMock(catchall):
-            response = self.client.get(
-                reverse(
-                    'bb_oauth_fhir_patient_read_or_update_or_delete'
-                    if not v2 else 'bb_oauth_fhir_patient_read_or_update_or_delete_v2',
-                    kwargs={'resource_id': '-20140000008325'}),
-                {'hello': 'world'},
-                Authorization="Bearer %s" % (first_access_token))
-
-            self.assertEqual(response.status_code, 200)
-            identifiers = None
-
-            try:
-                identifiers = response.json()['identifier']
-            except KeyError:
-                pass
-
-            self.assertIsNotNone(identifiers)
-
-            hasC4BB = False
-
-            for id in identifiers:
-                try:
-                    system = id['type']['coding'][0]['system']
-                    if system == "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType":
-                        hasC4BB = True
-                        break
-                except KeyError:
-                    pass
-
-            if v2:
-                self.assertTrue(hasC4BB)
-            else:
-                self.assertFalse(hasC4BB)
 
     def test_read_eob_request(self):
         self._read_eob_request(False)

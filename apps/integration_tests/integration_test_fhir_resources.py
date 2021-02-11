@@ -75,6 +75,33 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             return False
         return True
 
+    def _assertHasC4BBIdentifier(self, resource, c4bb_type, resource_type, v2=False):
+        self.assertEqual(resource['resourceType'], resource_type)
+        identifiers = None
+
+        try:
+            identifiers = resource['identifier']
+        except KeyError:
+            pass
+
+        self.assertIsNotNone(identifiers)
+
+        hasC4BB = False
+
+        for id in identifiers:
+            try:
+                system = id['type']['coding'][0]['system']
+                if system == c4bb_type:
+                    hasC4BB = True
+                    break
+            except KeyError:
+                pass
+
+        if v2:
+            self.assertTrue(hasC4BB)
+        else:
+            self.assertFalse(hasC4BB)
+
     @override_switch('require-scopes', active=True)
     def test_userinfo_endpoint(self):
         self._call_userinfo_endpoint(False)
@@ -173,6 +200,11 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # dump_content(json.dumps(content), "patient_search_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(PATIENT_SEARCH_SCHEMA, content), True)
 
+        for r in content['entry']:
+            self._assertHasC4BBIdentifier(r['resource'],
+                                          "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
+                                          "Patient", v2)
+
         # 3. Test READ VIEW endpoint
         url = self.live_server_url + base_path + "/" + settings.DEFAULT_SAMPLE_FHIR_ID
         response = client.get(url)
@@ -181,6 +213,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "patient_read_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(PATIENT_READ_SCHEMA, content), True)
+
+        self._assertHasC4BBIdentifier(content,
+                                      "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
+                                      "Patient", v2)
 
         # 4. Test unauthorized READ request
         url = self.live_server_url + base_path + "/" + "99999999999999"
@@ -229,7 +265,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         if not v2:
             self.assertEqual(self._validateJsonSchema(COVERAGE_READ_SCHEMA, content), True)
         else:
-            # check C4BB indicator
+            # check C4BB indicator???
             pass
 
         # 4. Test unauthorized READ request
