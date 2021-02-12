@@ -259,6 +259,12 @@ class RequestResponseLog(object):
             self._log_msg_update_from_querydict('req_qparam_startindex', 'startIndex')
             self._log_msg_update_from_querydict('req_qparam_type', 'type')
 
+            if self.log_msg.get('req_qparam_client_id', False):
+                Application = get_application_model()
+                application = Application.objects.get(client_id=self.log_msg.get('req_qparam_client_id'))
+                self._log_msg_update_from_object(application, 'req_app_name', 'name')
+                self._log_msg_update_from_object(application, 'req_app_id', 'id')
+
         '''
         --- Logging items from request ---
         '''
