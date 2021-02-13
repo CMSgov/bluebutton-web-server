@@ -221,14 +221,13 @@ Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for G
 
 The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local_keybase.sh` script that performs pre-setup and sources environment variables from Keybase needed to utilize a live BFD back end system.
 
-There are two ways to test locally using the `docker-compose/run_integration_tests_local_keybase.sh` script:
+There are ways to test locally using the `docker-compose/run_integration_tests_local_keybase.sh` script:
 
   To get usage help use the following command:
 
   ```
   docker-compose/run_integration_tests_local_keybase.sh
   ```
-
 
   1. Using the docker-compose local development setup and containers. This is the quickest!
 
@@ -237,7 +236,11 @@ There are two ways to test locally using the `docker-compose/run_integration_tes
      ```
      docker-compose/run_integration_tests_local_keybase.sh dc
      ```
+     To debug integration tests:
 
+     ```
+     docker-compose/run_integration_tests_local_keybase.sh dc-debug
+     ```
 
   2. Using a Doocker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
 
@@ -245,6 +248,19 @@ There are two ways to test locally using the `docker-compose/run_integration_tes
 
      ```
      docker-compose/run_integration_tests_local_keybase.sh cbc
+     ```
+
+  3. Using the docker-compose local development setup and containers with local bfd as backend.
+
+     The currently checked out (or working branch) will be used.
+
+     ```
+     docker-compose/run_integration_tests_local_keybase.sh local
+     ```
+     To debug integration tests:
+
+     ```
+     docker-compose/run_integration_tests_local_keybase.sh local-debug
      ```
 
 NOTES:
