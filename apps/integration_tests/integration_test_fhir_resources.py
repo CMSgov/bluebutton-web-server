@@ -10,12 +10,24 @@ from waffle.testutils import override_switch, override_flag
 
 from apps.test import BaseApiTest
 
-from .endpoint_schemas import (FHIR_META_SCHEMA, USERINFO_SCHEMA, PATIENT_READ_SCHEMA, PATIENT_SEARCH_SCHEMA,
-                               COVERAGE_READ_SCHEMA, COVERAGE_SEARCH_SCHEMA,
-                               EOB_READ_SCHEMA, EOB_SEARCH_SCHEMA)
+from .endpoint_schemas import (COVERAGE_READ_SCHEMA_V2,
+                               EOB_READ_INPT_SCHEMA,
+                               FHIR_META_SCHEMA,
+                               USERINFO_SCHEMA,
+                               PATIENT_READ_SCHEMA,
+                               PATIENT_SEARCH_SCHEMA,
+                               COVERAGE_READ_SCHEMA,
+                               COVERAGE_SEARCH_SCHEMA,
+                               EOB_READ_SCHEMA,
+                               EOB_SEARCH_SCHEMA)
 
-C4BB_SCHEMAS = {
-    "fhir.schema.json": None,
+
+C4BB_PROFILE_URLS = {
+    "INPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Inpatient-Institutional",
+    "OUTPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Outpatient-Institutional",
+    # note should be "http://hl7..." BFD-640 opened
+    "PHARMACY": "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy",
+    "NONCLINICIAN": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Professional-NonClinician",
 }
 
 
@@ -35,9 +47,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
     def setUp(self):
         super().setUp()
-        schema = open("./apps/integration_tests/fhir_resources_schemas/fhir.schema.json", 'r')
-        C4BB_SCHEMAS['fhir.schema.json'] = json.load(schema)
-        schema.close()
 
     def _setup_apiclient(self, client):
         # Setup token in APIClient
@@ -75,8 +84,19 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             return False
         return True
 
-    def _assertHasC4BBIdentifier(self, resource, c4bb_type, resource_type, v2=False):
-        self.assertEqual(resource['resourceType'], resource_type)
+    def _assertHasC4BBProfile(self, resource, c4bb_profile, v2=False):
+        meta_profile = None
+        try:
+            meta_profile = resource['meta']['profile'][0]
+        except KeyError:
+            pass
+        if not v2:
+            self.assertIsNone(meta_profile)
+        else:
+            self.assertIsNotNone(meta_profile)
+            self.assertEqual(meta_profile, c4bb_profile)
+
+    def _assertHasC4BBIdentifier(self, resource, c4bb_type, v2=False):
         identifiers = None
 
         try:
@@ -203,7 +223,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         for r in content['entry']:
             self._assertHasC4BBIdentifier(r['resource'],
                                           "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
-                                          "Patient", v2)
+                                          v2)
 
         # 3. Test READ VIEW endpoint
         url = self.live_server_url + base_path + "/" + settings.DEFAULT_SAMPLE_FHIR_ID
@@ -216,7 +236,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         self._assertHasC4BBIdentifier(content,
                                       "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
-                                      "Patient", v2)
+                                      v2)
 
         # 4. Test unauthorized READ request
         url = self.live_server_url + base_path + "/" + "99999999999999"
@@ -260,13 +280,8 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         #     Validate JSON Schema
         content = json.loads(response.content)
-        # dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))
-
-        if not v2:
-            self.assertEqual(self._validateJsonSchema(COVERAGE_READ_SCHEMA, content), True)
-        else:
-            # check C4BB indicator???
-            pass
+        dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))
+        self.assertEqual(self._validateJsonSchema(COVERAGE_READ_SCHEMA_V2 if v2 else COVERAGE_READ_SCHEMA, content), True)
 
         # 4. Test unauthorized READ request
         url = self.live_server_url + base_path + "/part-a-" + "99999999999999"
@@ -295,28 +310,50 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Authenticate
         self._setup_apiclient(client)
 
-        # 2. Test SEARCH VIEW endpoint
+        # 2. Test SEARCH VIEW endpoint, default to current bene's PDE
         url = self.live_server_url + base_path
         response = client.get(url)
         self.assertEqual(response.status_code, 200)
         # Validate JSON Schema
         content = json.loads(response.content)
+        self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
         # dump_content(json.dumps(content), "eob_search_{}.json".format('v2' if v2 else 'v1'))
-        meta_profile = None
-        try:
-            meta_profile = content['entry'][0]['resource']['meta']['profile'][0]
-        except KeyError:
-            pass
-        if not v2:
-            self.assertIsNone(meta_profile)
-            self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
-        else:
-            self.assertIsNotNone(meta_profile)
-            self.assertEqual(meta_profile,
-                             'https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy')
-            self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        for r in content['entry']:
+            self._assertHasC4BBProfile(r['resource'],
+                                       C4BB_PROFILE_URLS['PHARMACY'],
+                                       v2)
 
-        # 3. Test READ VIEW endpoint v1
+        # 3. Test READ VIEW endpoint v1 and v2: inpatient
+        url = self.live_server_url + base_path + "/inpatient-4436342082"
+        response = client.get(url)
+        content = json.loads(response.content)
+        dump_content(json.dumps(content), "eob_read_in_pt_{}.json".format('v2' if v2 else 'v1'))
+
+        if not v2:
+            self.assertEqual(response.status_code, 200)
+            #     Validate JSON Schema
+            self.assertEqual(self._validateJsonSchema(EOB_READ_INPT_SCHEMA, content), True)
+        else:
+            # change this when inpatient v2 become available on sandbox
+            self.assertEqual(response.status_code, 404)
+            # self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], v2)
+
+        # 4. Test READ VIEW endpoint v1 and v2: outpatient
+        url = self.live_server_url + base_path + "/outpatient-4388491497"
+        response = client.get(url)
+        content = json.loads(response.content)
+        dump_content(json.dumps(content), "eob_read_out_pt_{}.json".format('v2' if v2 else 'v1'))
+
+        if not v2:
+            self.assertEqual(response.status_code, 200)
+            #     Validate JSON Schema
+            self.assertEqual(self._validateJsonSchema(EOB_READ_INPT_SCHEMA, content), True)
+        else:
+            # not available yet
+            self.assertEqual(response.status_code, 404)
+            # self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], v2)
+
+        # 5. Test READ VIEW endpoint v1 (carrier) and v2
         url = self.live_server_url + base_path + "/carrier--22639159481"
         response = client.get(url)
         if not v2:
@@ -329,34 +366,18 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             # not found for now on v2
             self.assertEqual(response.status_code, 404)
 
-        # 4. Test SEARCH VIEW endpoint v2 (BB2-418 EOB V2 PDE profile)
+        # 6. Test SEARCH VIEW endpoint v2 (BB2-418 EOB V2 PDE profile)
         url = self.live_server_url + base_path + "/?patient=-20140000008325"
         response = client.get(url)
         self.assertEqual(response.status_code, 200)
         #     Validate JSON Schema
         content = json.loads(response.content)
         dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
-        meta_profile = None
-        try:
-            meta_profile = content['entry'][0]['resource']['meta']['profile'][0]
-        except KeyError:
-            pass
+        self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        for r in content['entry']:
+            self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
 
-        if not v2:
-            self.assertIsNone(meta_profile)
-            self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
-        else:
-            self.assertIsNotNone(meta_profile)
-            self.assertEqual(meta_profile,
-                             'https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy')
-            self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
-            # resources = content['entry']
-            # self.assertIsNotNone(resources)
-            # eob_schema = C4BB_SCHEMAS['fhir.schema.json']['definitions']['ExplanationOfBenefit']
-            # for r in resources:
-            #     self.assertEqual(self._validateJsonSchema(eob_schema, r), True)
-
-        # 5. Test unauthorized READ request
+        # 7. Test unauthorized READ request
         # same asserts for v1 and v2
         url = self.live_server_url + base_path + "/carrier-23017401521"
         response = client.get(url)
