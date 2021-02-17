@@ -1,5 +1,7 @@
 import re
 import json
+import jsonschema
+from jsonschema import validate
 
 from django.urls import reverse
 from django.test.client import Client
@@ -13,6 +15,15 @@ from apps.mymedicare_cb.views import generate_nonce
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.responses import patient_response
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
+
+from .audit_logger_schemas import (ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, AUTHENTICATION_START_LOG_SCHEMA,
+                                   AUTHENTICATION_SUCCESS_LOG_SCHEMA, AUTHORIZATION_LOG_SCHEMA,
+                                   FHIR_AUTH_POST_FETCH_LOG_SCHEMA, FHIR_AUTH_PRE_FETCH_LOG_SCHEMA,
+                                   FHIR_POST_FETCH_LOG_SCHEMA, FHIR_PRE_FETCH_LOG_SCHEMA,
+                                   MATCH_FHIR_ID_LOG_SCHEMA, MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA,
+                                   MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA,
+                                   SLSX_TOKEN_LOG_SCHEMA, SLSX_USERINFO_LOG_SCHEMA)
+
 
 loggers = [
     'audit.authorization.token',
@@ -68,6 +79,15 @@ class TestAuditEventLoggers(BaseApiTest):
     def get_log_content(self, logger_name):
         return self._collect_logs(loggers).get(logger_name)
 
+    def _validateJsonSchema(self, schema, content):
+        try:
+            validate(instance=content, schema=schema)
+        except jsonschema.exceptions.ValidationError as e:
+            # Show error info for debugging
+            print("jsonschema.exceptions.ValidationError: ", e)
+            return False
+        return True
+
     def test_fhir_events_logging(self):
         first_access_token = self.create_token('John', 'Smith')
 
@@ -78,24 +98,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate FHIR Patient response
             log_entry_dict = json.loads(fhir_log_content)
-            """
-            Example log_entry_dict entry:
-            {   'application': {'id': '1', 'name': 'John_Smith_test', 'user': {'id': '1'}},
-                'fhir_id': '-20140000008325',
-                'includeAddressFields': 'False',
-                'path': '/v1/fhir/Patient',
-                'start_time': '2021-01-08 16:14:49.041219',
-                'type': 'fhir_pre_fetch',
-                'user': 'patientId:-20140000008325',
-                'uuid': 'a18bec1c-51cc-11eb-b863-0242ac120003'}
-            """
-            compare_dict = {'application': {'id': '1', 'name': 'John_Smith_test', 'user': {'id': '1'}},
-                            'fhir_id': '-20140000008325',
-                            'includeAddressFields': 'False',
-                            'path': '/v1/fhir/Patient',
-                            'type': 'fhir_pre_fetch',
-                            'user': 'patientId:-20140000008325'}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid'], None)
+            self.assertTrue(self._validateJsonSchema(FHIR_PRE_FETCH_LOG_SCHEMA, log_entry_dict))
 
             return {
                 'status_code': 200,
@@ -117,39 +120,11 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate fhir_pre_fetch entry
             log_entry_dict = json.loads(log_entries[0])
-            compare_dict = {'application': {'id': '1', 'name': 'John_Smith_test', 'user': {'id': '1'}},
-                            'fhir_id': '-20140000008325',
-                            'includeAddressFields': 'False',
-                            'path': '/v1/fhir/Patient',
-                            'type': 'fhir_pre_fetch',
-                            'user': 'patientId:-20140000008325'}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid'], None)
+            self.assertTrue(self._validateJsonSchema(FHIR_PRE_FETCH_LOG_SCHEMA, log_entry_dict))
 
             # Validate fhir_post_fetch entry
             log_entry_dict = json.loads(log_entries[1])
-            """
-            Example log_entry_dict:
-            {   'application': {'id': '1', 'name': 'John_Smith_test', 'user': {'id': '1'}},
-                'code': 200,
-                'elapsed': 0.0,
-                'fhir_id': '-20140000008325',
-                'includeAddressFields': 'False',
-                'path': '/v1/fhir/Patient',
-                'size': 1270,
-                'start_time': '2021-01-08 16:18:54.717788',
-                'type': 'fhir_post_fetch',
-                'user': 'patientId:-20140000008325',
-                'uuid': '33fb312a-51cd-11eb-a21d-0242ac120003'}
-            """
-            compare_dict = {'application': {'id': '1', 'name': 'John_Smith_test', 'user': {'id': '1'}},
-                            'code': 200,
-                            'fhir_id': '-20140000008325',
-                            'includeAddressFields': 'False',
-                            'path': '/v1/fhir/Patient',
-                            'size': 1270,
-                            'type': 'fhir_post_fetch',
-                            'user': 'patientId:-20140000008325'}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['start_time', 'uuid', 'elapsed'], None)
+            self.assertTrue(self._validateJsonSchema(FHIR_POST_FETCH_LOG_SCHEMA, log_entry_dict))
 
             # Validate AccessToken entry
             token_log_content = self.get_log_content('audit.authorization.token')
@@ -157,29 +132,7 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entries = token_log_content.splitlines()
 
             log_entry_dict = json.loads(log_entries[0])
-            """
-            Example log_entry_dict:
-            {   'access_token': 'dc4d1d793108af4476a87f712f7553d2612e39315e07e977ee98d73b0fc1a374',
-                'action': 'authorized',
-                'application': {   'id': 1,
-                                   'name': 'John_Smith_test',
-                                   'user': {'id': 1, 'username': 'John'}},
-                'auth_grant_type': 'password',
-                'id': 1,
-                'scopes': 'read write patient',
-                'type': 'AccessToken',
-                'user': {'id': 1, 'username': 'John'}}
-            """
-            compare_dict = {'action': 'authorized',
-                            'application': {'id': 1,
-                                            'name': 'John_Smith_test',
-                                            'user': {'id': 1, 'username': 'John'}},
-                            'auth_grant_type': 'password',
-                            'id': 1,
-                            'scopes': 'read write patient',
-                            'type': 'AccessToken',
-                            'user': {'id': 1, 'username': 'John'}}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['access_token'], None)
+            self.assertTrue(self._validateJsonSchema(ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, log_entry_dict))
 
     @override_switch('slsx-enable', active=True)
     def test_callback_url_success_slsx_logger(self):
@@ -220,64 +173,11 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate token response
             slsx_token_dict = json.loads(quoted_strings[0])
-            """
-            Example slsx_token_dict entry:
-            {   'auth_token': '5afa715c1250f987fa4ac4cdcfc8d4174f0ae34e48f85a59935f7e7397d084a5',
-                'code': 200,
-                'elapsed': 0.0,
-                'path': '/sso/session',
-                'size': 183,
-                'start_time': '2021-01-08 15:00:31.781767',
-                'type': 'SLSx_token',
-                'uuid': '40cf7222-51c2-11eb-854f-0242ac120003'}
-            """
-            compare_dict = {
-                'code': 200,
-                'path': '/sso/session',
-                'type': 'SLSx_token'
-            }
-            remove_list = [
-                'size',
-                'elapsed',
-                'start_time',
-                'auth_token',
-                'uuid'
-            ]
-            hasvalue_list = [
-                'auth_token',
-                'uuid'
-            ]
-            self.assert_log_entry_valid(slsx_token_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(SLSX_TOKEN_LOG_SCHEMA, slsx_token_dict))
 
             # Validate userinfo response
             slsx_userinfo_dict = json.loads(quoted_strings[1])
-            """
-            Example slsx_userinfo_dict entry:
-            {   'code': 200,
-                'elapsed': 0.0,
-                'path': '/v1/users/00112233-4455-6677-8899-aabbccddeeff',
-                'size': 249,
-                'start_time': '2021-01-08 15:09:11.888342',
-                'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                'type': 'SLSx_userinfo',
-                'uuid': '76d1390e-51c3-11eb-b4cd-0242ac120003'}
-            """
-            compare_dict = {
-                'code': 200,
-                'path': '/v1/users/00112233-4455-6677-8899-aabbccddeeff',
-                'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                'type': 'SLSx_userinfo'
-            }
-            remove_list = [
-                'size',
-                'elapsed',
-                'start_time',
-                'uuid'
-            ]
-            hasvalue_list = [
-                'uuid'
-            ]
-            self.assert_log_entry_valid(slsx_userinfo_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(SLSX_USERINFO_LOG_SCHEMA, slsx_userinfo_dict))
 
             authn_sls_log_content = self.get_log_content('audit.authenticate.sls')
             log_entries = authn_sls_log_content.splitlines()
@@ -285,64 +185,11 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate Authentication:start entry
             log_entry_dict = json.loads(log_entries[0])
-            """
-            Example log_entry_dict:
-            {   'sls_hicn_hash': 'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
-                'sls_mbi_format_msg': 'Valid',
-                'sls_mbi_format_synthetic': True,
-                'sls_mbi_format_valid': True,
-                'sls_mbi_hash': '4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28',
-                'sls_status': 'OK',
-                'sls_status_mesg': None,
-                'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                'type': 'Authentication:start'}
-            """
-            compare_dict = {
-                'sls_mbi_format_msg': 'Valid',
-                'sls_mbi_format_synthetic': True,
-                'sls_mbi_format_valid': True,
-                'sls_status': 'OK',
-                'sls_status_mesg': None,
-                'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                'type': 'Authentication:start'
-            }
-            remove_list = [
-                'sls_hicn_hash',
-                'sls_mbi_hash'
-            ]
-            hasvalue_list = [
-                'sls_hicn_hash',
-                'sls_mbi_hash'
-            ]
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(AUTHENTICATION_START_LOG_SCHEMA, log_entry_dict))
 
             # Validate Authentication:success entry
             log_entry_dict = json.loads(log_entries[1])
-            """
-            Example log_entry_dict:
-            {   'auth_crosswalk_action': 'C',
-                'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                'type': 'Authentication:success',
-                'user': {   'crosswalk': {   'fhir_id': '-20140000008325',
-                                             'id': 1,
-                                             'user_hicn_hash': 'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
-                                             'user_id_type': 'M',
-                                             'user_mbi_hash': '4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28'},
-                            'id': 1,
-                            'username': '00112233-4455-6677-8899-aabbccddeeff'}}
-            """
-            compare_dict = {
-                'auth_crosswalk_action': 'C',
-                'sub': '00112233-4455-6677-8899-aabbccddeeff',
-                'type': 'Authentication:success',
-            }
-            remove_list = [
-                'user'
-            ]
-            hasvalue_list = [
-                'user'
-            ]
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(AUTHENTICATION_SUCCESS_LOG_SCHEMA, log_entry_dict))
 
             mymedicare_cb_log_content = self.get_log_content('audit.authenticate.mymedicare_cb')
             log_entries = mymedicare_cb_log_content.splitlines()
@@ -350,68 +197,11 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate mymedicare_cb:create_beneficiary_record entry
             log_entry_dict = json.loads(log_entries[0])
-            """
-            Example log_entry_dict:
-            {   'fhir_id': '-20140000008325',
-                'mesg': 'CREATE beneficiary record',
-                'status': 'OK',
-                'type': 'mymedicare_cb:create_beneficiary_record',
-                'user_hicn_hash': 'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
-                'user_mbi_hash': '4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28',
-                'username': '00112233-4455-6677-8899-aabbccddeeff'}
-            """
-            compare_dict = {
-                'fhir_id': '-20140000008325',
-                'mesg': 'CREATE beneficiary record',
-                'status': 'OK',
-                'type': 'mymedicare_cb:create_beneficiary_record',
-                'username': '00112233-4455-6677-8899-aabbccddeeff'
-            }
-            remove_list = [
-                'user_hicn_hash',
-                'user_mbi_hash'
-            ]
-            hasvalue_list = [
-                'user_hicn_hash',
-                'user_mbi_hash'
-            ]
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, log_entry_dict))
 
             # Validate mymedicare_cb:get_and_update_user entry
             log_entry_dict = json.loads(log_entries[1])
-            """
-            Example log_entry_dict:
-            {   'crosswalk': {   'fhir_id': '-20140000008325',
-                                 'id': 1,
-                                 'user_hicn_hash': 'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
-                                 'user_id_type': 'M',
-                                 'user_mbi_hash': '4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28'},
-                'fhir_id': '-20140000008325',
-                'hash_lookup_type': 'M',
-                'hicn_hash': 'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
-                'mbi_hash': '4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28',
-                'mesg': 'CREATE beneficiary record',
-                'status': 'OK',
-                'type': 'mymedicare_cb:get_and_update_user'}
-            """
-            compare_dict = {
-                'fhir_id': '-20140000008325',
-                'hash_lookup_type': 'M',
-                'mesg': 'CREATE beneficiary record',
-                'status': 'OK',
-                'type': 'mymedicare_cb:get_and_update_user'
-            }
-            remove_list = [
-                'crosswalk',
-                'hicn_hash',
-                'mbi_hash',
-            ]
-            hasvalue_list = [
-                'crosswalk',
-                'hicn_hash',
-                'mbi_hash'
-            ]
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, log_entry_dict))
 
             fhir_log_content = self.get_log_content('audit.data.fhir')
             log_entries = fhir_log_content.splitlines()
@@ -419,61 +209,11 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate fhir_auth_pre_fetch entry
             log_entry_dict = json.loads(log_entries[0])
-            """
-            Example log_entry_dict:
-            {   'includeAddressFields': 'False',
-                'path': 'patient search',
-                'start_time': '2021-01-08 16:55:12.127467',
-                'type': 'fhir_auth_pre_fetch',
-                'uuid': '45d18aac-51d2-11eb-a494-0242ac120003'}
-            """
-            compare_dict = {
-                'includeAddressFields': 'False',
-                'path': 'patient search',
-                'type': 'fhir_auth_pre_fetch',
-            }
-            remove_list = [
-                'start_time',
-                'uuid'
-            ]
-            hasvalue_list = [
-                'start_time',
-                'uuid'
-            ]
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(FHIR_AUTH_PRE_FETCH_LOG_SCHEMA, log_entry_dict))
 
             # Validate fhir_auth_post_fetch entry
             log_entry_dict = json.loads(log_entries[1])
-            """
-            Example log_entry_dict:
-            {   'code': 200,
-                'elapsed': 0.0,
-                'includeAddressFields': 'False',
-                'path': 'patient search',
-                'size': 1270,
-                'start_time': '2021-01-08 16:56:52.608630',
-                'type': 'fhir_auth_post_fetch',
-                'uuid': '81b5c01a-51d2-11eb-9a2d-0242ac120003'}
-            """
-            compare_dict = {
-                'code': 200,
-                'includeAddressFields': 'False',
-                'path': 'patient search',
-                'type': 'fhir_auth_post_fetch',
-            }
-            remove_list = [
-                'elapsed',
-                'size',
-                'start_time',
-                'uuid'
-            ]
-            hasvalue_list = [
-                'elapsed',
-                'size',
-                'start_time',
-                'uuid'
-            ]
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(FHIR_AUTH_POST_FETCH_LOG_SCHEMA, log_entry_dict))
 
             match_fhir_id_log_content = self.get_log_content('audit.authenticate.match_fhir_id')
             log_entries = match_fhir_id_log_content.splitlines()
@@ -481,42 +221,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate fhir.server.authentication.match_fhir_id entry
             log_entry_dict = json.loads(log_entries[0])
-            """
-            Example log_entry_dict:
-            {   'auth_app_id': None,
-                'auth_app_name': None,
-                'auth_client_id': None,
-                'auth_pkce_method': None,
-                'auth_uuid': None,
-                'fhir_id': '-20140000008325',
-                'hash_lookup_mesg': 'FOUND beneficiary via mbi_hash',
-                'hash_lookup_type': 'M',
-                'hicn_hash': 'f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948',
-                'match_found': True,
-                'mbi_hash': '4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28',
-                'type': 'fhir.server.authentication.match_fhir_id'}
-            """
-            compare_dict = {
-                'fhir_id': '-20140000008325',
-                'hash_lookup_mesg': 'FOUND beneficiary via mbi_hash',
-                'hash_lookup_type': 'M',
-                'match_found': True,
-                'type': 'fhir.server.authentication.match_fhir_id'
-            }
-            remove_list = [
-                'auth_app_id',
-                'auth_app_name',
-                'auth_client_id',
-                'auth_pkce_method',
-                'hicn_hash',
-                'mbi_hash',
-                'auth_uuid'
-            ]
-            hasvalue_list = [
-                'hicn_hash',
-                'mbi_hash'
-            ]
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(MATCH_FHIR_ID_LOG_SCHEMA, log_entry_dict))
 
             hhs_oauth_server_log_content = self.get_log_content('audit.hhs_oauth_server.request_logging')
             log_entries = hhs_oauth_server_log_content.splitlines()
@@ -524,57 +229,14 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate hhs_oauth_server request/response custom middleware log entry
             log_entry_dict = json.loads(log_entries[0])
-            """
-            Example log_entry_dict:
-            {   'access_token_hash': '',
-                'app_id': '',
-                'app_name': '',
-                'auth_crosswalk_action': 'C',
-                'dev_id': '',
-                'dev_name': '',
-                'end_time': 1610125194.105491,
-                'fhir_id': '-20140000008325',
-                'ip_addr': '127.0.0.1',
-                'location': '',
-                'path': '/mymedicare/sls-callback',
-                'request_uuid': 'ede19390-51d2-11eb-b3a2-0242ac120003',
-                'response_code': 400,
-                'size': 44,
-                'start_time': 1610125194.089803,
-                'user': '00112233-4455-6677-8899-aabbccddeeff'}
-            """
-            compare_dict = {
-                'auth_crosswalk_action': 'C',
-                'fhir_id': '-20140000008325',
-                'ip_addr': '127.0.0.1',
-                'path': '/mymedicare/sls-callback',
-                'response_code': 400,
-                'user': '00112233-4455-6677-8899-aabbccddeeff'
-            }
-            remove_list = [
-                'access_token_hash',
-                'app_id',
-                'app_name',
-                'dev_id',
-                'dev_name',
-                'end_time',
-                'location',
-                'request_uuid',
-                'size',
-                'start_time'
-            ]
-            hasvalue_list = [
-                'end_time',
-                'request_uuid',
-                'size',
-                'start_time',
-            ]
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, remove_list, hasvalue_list)
+            self.assertTrue(self._validateJsonSchema(REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA, log_entry_dict))
 
     @override_switch('slsx-enable', active=False)
     def test_callback_url_success_sls_logger(self):
         # TODO: Remove this test after migrated to SLSx
         # copy and adapted for SLS logger test
+        # TODO: Also remove self.assert_log_entry_valid()
+        #       used only in this test.
         state = generate_nonce()
         AnonUserState.objects.create(
             state=state,
@@ -871,69 +533,4 @@ class TestAuditEventLoggers(BaseApiTest):
 
         # Validate Authorization entry
         token_log_dict = json.loads(token_log_content)
-        """
-        Example token_log_dict:
-        {   'access_token_delete_cnt': 0,
-            'allow': True,
-            'application': {'id': 1, 'name': 'an app'},
-            'auth_app_id': '1',
-            'auth_app_name': 'an app',
-            'auth_client_id': 'gHTJido7WsWvxfIjTAda9gcGSqSVjeSt65MZt5aS',
-            'auth_pkce_method': None,
-            'auth_require_demographic_scopes': 'True',
-            'auth_share_demographic_scopes': '',
-            'auth_status': 'OK',
-            'auth_status_code': None,
-            'auth_uuid': '7437e6bb-d97e-4ceb-9844-0603b2717100',
-            'data_access_grant_delete_cnt': 0,
-            'refresh_token_delete_cnt': 0,
-            'scopes': 'capability-a',
-            'share_demographic_scopes': '',
-            'type': 'Authorization',
-            'user': {   'crosswalk': {   'fhir_id': '-20140000008325',
-                                         'id': 1,
-                                         'user_hicn_hash': '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7',
-                                         'user_id_type': 'H',
-                                         'user_mbi_hash': '98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321'},
-                        'id': 1,
-                        'username': 'anna'}}
-        """
-        compare_dict = {
-            'access_token_delete_cnt': 0,
-            'allow': True,
-            'application': {'id': 1, 'name': 'an app'},
-            'auth_app_id': '1',
-            'auth_app_name': 'an app',
-            'auth_require_demographic_scopes': 'True',
-            'auth_share_demographic_scopes': '',
-            'auth_status': 'OK',
-            'data_access_grant_delete_cnt': 0,
-            'refresh_token_delete_cnt': 0,
-            'scopes': 'capability-a',
-            'share_demographic_scopes': '',
-            'type': 'Authorization'
-        }
-        remove_list = [
-            'auth_client_id',
-            'auth_pkce_method',
-            'auth_status_code',
-            'auth_uuid',
-            'user',
-        ]
-        hasvalue_list = [
-            'auth_uuid',
-            'auth_client_id',
-        ]
-        self.assert_log_entry_valid(token_log_dict, compare_dict, remove_list, hasvalue_list)
-
-        # Copy user to compare seperately, since there is an issue with nested dicts
-        user_log_dict = token_log_dict['user']
-        compare_dict = {
-            'crosswalk': {'fhir_id': '-20140000008325',
-                          'id': 1,
-                          'user_hicn_hash': '96228a57f37efea543f4f370f96f1dbf01c3e3129041dba3ea4367545507c6e7',
-                          'user_id_type': 'H',
-                          'user_mbi_hash': '98765432137efea543f4f370f96f1dbf01c3e3129041dba3ea43675987654321'},
-            'id': 1,
-            'username': 'anna'}
-        self.assert_log_entry_valid(user_log_dict, compare_dict, [], [])
+        self.assertTrue(self._validateJsonSchema(AUTHORIZATION_LOG_SCHEMA, token_log_dict))

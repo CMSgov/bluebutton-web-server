@@ -374,6 +374,9 @@ LOGGING = env("DJANGO_LOGGING", {
     },
 })
 
+# Option for local development to pretty print/format JSON logging
+LOG_JSON_FORMAT_PRETTY = env('DJANGO_LOG_JSON_FORMAT_PRETTY', False)
+
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
 
 # Django Oauth Tookit settings and customizations

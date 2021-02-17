@@ -1,6 +1,8 @@
 import json
 import logging
 
+from django.conf import settings
+
 
 """
   Logger functions for mymedicare_cb module
@@ -36,7 +38,10 @@ def log_get_and_update_user(auth_flow_dict, status, user, fhir_id, mbi_hash, hic
     if auth_flow_dict:
         log_dict.update(auth_flow_dict)
 
-    mymedicare_cb_logger.info(json.dumps(log_dict))
+    if settings.LOG_JSON_FORMAT_PRETTY:
+        mymedicare_cb_logger.info(json.dumps(log_dict, indent=2))
+    else:
+        mymedicare_cb_logger.info(json.dumps(log_dict))
 
 
 # For use in models.create_beneficiary_record()
@@ -59,7 +64,10 @@ def log_create_beneficiary_record(auth_flow_dict, status, username, fhir_id, use
     if auth_flow_dict:
         log_dict.update(auth_flow_dict)
 
-    mymedicare_cb_logger.info(json.dumps(log_dict))
+    if settings.LOG_JSON_FORMAT_PRETTY:
+        mymedicare_cb_logger.info(json.dumps(log_dict, indent=2))
+    else:
+        mymedicare_cb_logger.info(json.dumps(log_dict))
 
 
 # For use in views.authenticate()
@@ -82,7 +90,10 @@ def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subj
     if auth_flow_dict:
         log_dict.update(auth_flow_dict)
 
-    authenticate_logger.info(json.dumps(log_dict))
+    if settings.LOG_JSON_FORMAT_PRETTY:
+        authenticate_logger.info(json.dumps(log_dict, indent=2))
+    else:
+        authenticate_logger.info(json.dumps(log_dict))
 
 
 # For use in views.authenticate()
@@ -106,4 +117,7 @@ def log_authenticate_success(auth_flow_dict, sls_subject, user):
     if auth_flow_dict:
         log_dict.update(auth_flow_dict)
 
-    authenticate_logger.info(json.dumps(log_dict))
+    if settings.LOG_JSON_FORMAT_PRETTY:
+        authenticate_logger.info(json.dumps(log_dict, indent=2))
+    else:
+        authenticate_logger.info(json.dumps(log_dict))

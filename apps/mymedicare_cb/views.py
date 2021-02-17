@@ -52,7 +52,11 @@ class BBSLSxHealthCheckFailedException(APIException):
 # For SLS auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
-    request_state = request.GET.get('state', None)
+    if waffle.switch_is_active('slsx-enable'):
+        request_state = request.GET.get('relay')
+    else:
+        request_state = request.GET.get('state')
+
     clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
 
