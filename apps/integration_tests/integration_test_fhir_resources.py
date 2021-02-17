@@ -186,7 +186,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             pass
         self.assertIsNotNone(fhir_ver)
         self.assertEqual(fhir_ver, '4.0.0' if v2 else '3.0.2')
-        # dump_content(json.dumps(content), "fhir_meta_{}.json".format('v2' if v2 else 'v1'))
+        dump_content(json.dumps(content), "fhir_meta_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(FHIR_META_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
@@ -334,9 +334,9 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             #     Validate JSON Schema
             self.assertEqual(self._validateJsonSchema(EOB_READ_INPT_SCHEMA, content), True)
         else:
-            # change this when inpatient v2 become available on sandbox
-            self.assertEqual(response.status_code, 404)
+            # uncomment below line when inpatient v2 become available on sandbox
             # self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], v2)
+            self.assertEqual(response.status_code, 404)
 
         # 4. Test READ VIEW endpoint v1 and v2: outpatient
         url = self.live_server_url + base_path + "/outpatient-4388491497"
@@ -351,16 +351,17 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         else:
             # not available yet
             self.assertEqual(response.status_code, 404)
+            # uncomment below line when outpatient v2 become available on sandbox
             # self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], v2)
 
         # 5. Test READ VIEW endpoint v1 (carrier) and v2
         url = self.live_server_url + base_path + "/carrier--22639159481"
         response = client.get(url)
+        content = json.loads(response.content)
+        dump_content(json.dumps(content), "eob_read_{}.json".format('v2' if v2 else 'v1'))
         if not v2:
             self.assertEqual(response.status_code, 200)
-            #     Validate JSON Schema
-            content = json.loads(response.content)
-            # dump_content(json.dumps(content), "eob_read_{}.json".format('v2' if v2 else 'v1'))
+            # Validate JSON Schema
             self.assertEqual(self._validateJsonSchema(EOB_READ_SCHEMA, content), True)
         else:
             # not found for now on v2

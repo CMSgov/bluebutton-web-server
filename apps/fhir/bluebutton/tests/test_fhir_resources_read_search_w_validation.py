@@ -10,6 +10,18 @@ from apps.test import BaseApiTest
 
 AccessToken = get_access_token_model()
 
+C4BB_PROFILE_URLS = {
+    "INPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Inpatient-Institutional",
+    "OUTPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Outpatient-Institutional",
+    # note should be "http://hl7..." BFD-640 opened
+    "PHARMACY": "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy",
+    "NONCLINICIAN": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Professional-NonClinician",
+}
+
+C4BB_SYSTEM_TYPES = {
+    "IDTYPE": "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
+}
+
 
 def get_response_json(resource_file_name):
     response_file = open("./apps/fhir/bluebutton/tests/fhir_resources/{}.json".format(resource_file_name), 'r')
@@ -40,8 +52,19 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
-    def _assertHasC4BBIdentifier(self, resource, c4bb_type, resource_type, v2=False):
-        self.assertEqual(resource['resourceType'], resource_type)
+    def _assertHasC4BBProfile(self, resource, c4bb_profile, v2=False):
+        meta_profile = None
+        try:
+            meta_profile = resource['meta']['profile'][0]
+        except KeyError:
+            pass
+        if not v2:
+            self.assertIsNone(meta_profile)
+        else:
+            self.assertIsNotNone(meta_profile)
+            self.assertEqual(meta_profile, c4bb_profile)
+
+    def _assertHasC4BBIdentifier(self, resource, c4bb_type, v2=False):
         identifiers = None
 
         try:
@@ -97,9 +120,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             self.assertEqual(response.status_code, 200)
-            self._assertHasC4BBIdentifier(response.json(),
-                                          "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
-                                          "Patient", v2)
+            self._assertHasC4BBIdentifier(response.json(), C4BB_SYSTEM_TYPES['IDTYPE'], v2)
 
     def test_search_patient_request(self):
         self._search_patient_request(False)
@@ -134,9 +155,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertIsNotNone(response.json()['entry'])
             self.assertTrue(len(response.json()['link']) > 0)
             for r in response.json()['entry']:
-                self._assertHasC4BBIdentifier(r['resource'],
-                                              "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
-                                              "Patient", v2)
+                self._assertHasC4BBIdentifier(r['resource'], C4BB_SYSTEM_TYPES['IDTYPE'], v2)
 
     def test_search_eob_by_parameters_request(self):
         self._search_eob_by_parameters_request(False)
@@ -158,12 +177,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
             return {
                 'status_code': 200,
-                'content': {
-                    'resourceType': 'ExplanationOfBenefit',
-                    'patient': {
-                        'reference': 'stuff/-20140000008325',
-                    },
-                },
+                'content': get_response_json("eob_search_{}".format(ver)),
             }
 
         # Test _lastUpdated with valid parameter starting with "lt"
@@ -173,6 +187,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 {'_lastUpdated': 'lt2019-11-22T14:00:00-05:00'},
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
+            # assert v1 and v2 eob
+            for r in response.json()['entry']:
+                self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
 
         # Test _lastUpdated with invalid parameter starting with "zz"
         with HTTMock(catchall):
@@ -193,6 +210,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 {'type': 'pde'},
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
+            # assert v1 and v2 eob
+            for r in response.json()['entry']:
+                self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
 
         # Test type= with multiple (all valid values)
         with HTTMock(catchall):
@@ -216,6 +236,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                          'https://bluebutton.cms.gov/resources/codesystem/eob-type|snf'},
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
+            # assert v1 and v2 eob
+            for r in response.json()['entry']:
+                self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
 
         # Test type= with an invalid type
         with HTTMock(catchall):
@@ -246,12 +269,43 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         def catchall(url, req):
             return {
                 'status_code': 200,
-                'content': {
-                    'resourceType': 'ExplanationOfBenefit',
-                    'patient': {
-                        'reference': 'stuff/-20140000008325',
-                    },
-                },
+                'content': get_response_json("eob_read_{}".format('v2' if v2 else 'v1')),
+            }
+
+        with HTTMock(catchall):
+            # here the eob carrier id serve as fake id
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_eob_read_or_update_or_delete'
+                    if not v2 else 'bb_oauth_fhir_eob_read_or_update_or_delete_v2',
+                    kwargs={'resource_id': 'carrier--22639159481'}),
+                Authorization="Bearer %s" % (first_access_token))
+
+            # assert v1 and v2 eob read using carrier id
+            if not v2:
+                self.assertEqual(response.status_code, 200)
+            else:
+                self.assertEqual(response.status_code, 403)
+                # uncomment when v2 eob with carrier id read become available on sandbox
+                # self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['PHARMACY'], v2)
+
+    def test_read_eob_inpatient_request(self):
+        self._read_eob_inpatient_request(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    def test_read_eob_inpatient_request_v2(self):
+        self._read_eob_inpatient_request(True)
+
+    def _read_eob_inpatient_request(self, v2=False):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': get_response_json("eob_read_in_pt_{}".format('v2' if v2 else 'v1')),
             }
 
         with HTTMock(catchall):
@@ -259,10 +313,50 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 reverse(
                     'bb_oauth_fhir_eob_read_or_update_or_delete'
                     if not v2 else 'bb_oauth_fhir_eob_read_or_update_or_delete_v2',
-                    kwargs={'resource_id': 'eob_id'}),
+                    kwargs={'resource_id': 'inpatient-4436342082'}),
                 Authorization="Bearer %s" % (first_access_token))
-
             self.assertEqual(response.status_code, 200)
+            # assert v1 and v2 eob inpatient
+            self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['INPATIENT'], v2)
+
+    def test_read_eob_outpatient_request(self):
+        self._read_eob_outpatient_request(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    def test_read_eob_outpatient_request_v2(self):
+        self._read_eob_outpatient_request(True)
+
+    def _read_eob_outpatient_request(self, v2=False):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': get_response_json("eob_read_out_pt_{}".format('v2' if v2 else 'v1')),
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_eob_read_or_update_or_delete'
+                    if not v2 else 'bb_oauth_fhir_eob_read_or_update_or_delete_v2',
+                    kwargs={'resource_id': 'outpatient-4388491497'}),
+                Authorization="Bearer %s" % (first_access_token))
+            if not v2:
+                self.assertEqual(response.status_code, 200)
+            else:
+                # now 403 expected due to eob_read_out_pt_v2.json - EOB resource instance permission check
+                # requires eob-> "patient": {
+                #    "reference": "Patient/-20140000008325"
+                # },
+                # contains: {"detail": "The requested resource does not exist"}
+                self.assertEqual(response.status_code, 403)
+            # assert v1 and v2 eob outpatient
+            # uncomment below line when V2 EOB outpatient become available on sandbox
+            # self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['OUTPATIENT'], v2)
 
     def test_read_coverage_request(self):
         self._read_coverage_request(False)
@@ -278,15 +372,8 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            return {
-                'status_code': 200,
-                'content': {
-                    'resourceType': 'Coverage',
-                    'beneficiary': {
-                        'reference': 'stuff/-20140000008325',
-                    },
-                },
-            }
+            return {'status_code': 200,
+                    'content': get_response_json("coverage_read_{}".format('v2' if v2 else 'v1')), }
 
         with HTTMock(catchall):
             response = self.client.get(
@@ -295,8 +382,67 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                     if not v2 else 'bb_oauth_fhir_coverage_read_or_update_or_delete_v2',
                     kwargs={'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
-
             self.assertEqual(response.status_code, 200)
+            subId = None
+            relationship = None
+            try:
+                subId = response.json()['subscriberId']
+            except KeyError:
+                pass
+            try:
+                relationship = response.json()['relationship']
+            except KeyError:
+                pass
+            if not v2:
+                self.assertIsNone(subId)
+                self.assertIsNone(relationship)
+            else:
+                self.assertIsNotNone(subId)
+                self.assertIsNotNone(relationship)
+
+    def test_search_coverage_request(self):
+        self._search_coverage_request(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    def test_search_coverage_request_v2(self):
+        self._search_coverage_request(True)
+
+    def _search_coverage_request(self, v2=False):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {'status_code': 200,
+                    'content': get_response_json("coverage_search_{}".format('v2' if v2 else 'v1')), }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'bb_oauth_fhir_coverage_search'
+                    if not v2 else 'bb_oauth_fhir_coverage_search_v2'),
+                Authorization="Bearer %s" % (first_access_token))
+            self.assertEqual(response.status_code, 200)
+
+            # assert v1 and v2 coverage resources
+            for r in response.json()['entry']:
+                subId = None
+                relationship = None
+                try:
+                    subId = r['resource']['subscriberId']
+                except KeyError:
+                    pass
+                try:
+                    relationship = r['resource']['relationship']
+                except KeyError:
+                    pass
+                if not v2:
+                    self.assertIsNone(subId)
+                    self.assertIsNone(relationship)
+                else:
+                    self.assertIsNotNone(subId)
+                    self.assertIsNotNone(relationship)
 
     def test_fhir_meta_request(self):
         self._query_fhir_meta(False)
@@ -327,6 +473,35 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["resourceType"], "CapabilityStatement")
             self.assertEqual(response.json()["fhirVersion"], '4.0.0' if v2 else '3.0.2')
+
+    def test_userinfo_request(self):
+        self._query_userinfo(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    def test_userinfo_request_v2(self):
+        self._query_userinfo(True)
+
+    def _query_userinfo(self, v2=False):
+        # create the user
+        first_access_token = self.create_token('John', 'Smith')
+
+        @all_requests
+        def catchall(url, req):
+            return {
+                'status_code': 200,
+                'content': get_response_json("userinfo_{}".format('v2' if v2 else 'v1')),
+            }
+
+        with HTTMock(catchall):
+            response = self.client.get(
+                reverse(
+                    'openid_connect_userinfo'
+                    if not v2 else 'openid_connect_userinfo_v2',),
+                Authorization="Bearer %s" % (first_access_token))
+            # identical response for v1 and v2
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["sub"], response.json()["patient"])
 
     def test_err_response_caused_by_illegalarguments(self):
         self._err_response_caused_by_illegalarguments(False)
