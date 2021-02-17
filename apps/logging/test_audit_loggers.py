@@ -144,6 +144,9 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entries = token_log_content.splitlines()
 
             log_entry_dict = json.loads(log_entries[0])
+            hasvalue_list = [
+                'crosswalk'
+            ]
             compare_dict = {'action': 'authorized',
                             'application': {'id': 1,
                                             'name': 'John_Smith_test',
@@ -153,7 +156,7 @@ class TestAuditEventLoggers(BaseApiTest):
                             'scopes': 'read write patient',
                             'type': 'AccessToken',
                             'user': {'id': 1, 'username': 'John'}}
-            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['access_token'], None)
+            self.assert_log_entry_valid(log_entry_dict, compare_dict, ['access_token', 'crosswalk'], hasvalue_list)
 
     def test_callback_url_success_sls_logger(self):
         self._callback_url_success_sls_logger(False)

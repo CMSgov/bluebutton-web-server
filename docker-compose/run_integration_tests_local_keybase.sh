@@ -31,7 +31,7 @@ DOCKER_IMAGE="public.ecr.aws/f5g8o1y9/bb2-cbc-build"
 DOCKER_TAG="py36-an27-tf11"
 
 # Backend FHIR server to use for integration tests of FHIR resource endpoints:
-FHIR_URL="https://prod-sbx.bfdcloud.net/v1/fhir/"
+FHIR_URL="https://prod-sbx.bfd.cms.gov"
 
 # List of integration tests to run. To be passed in to runtests.py.
 INTEGRATION_TESTS_LIST="apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
@@ -114,7 +114,7 @@ then
       exit 127
   fi
 
-  FHIR_URL="https://192.168.0.109:1337/v1/fhir/"
+  FHIR_URL="https://192.168.0.109:1337"
   CERT_FILENAME="ca.cert.pem"
   KEY_FILENAME="ca.key.nocrypt.pem"
   CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
