@@ -1,0 +1,29 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer "bb2-cbc-build"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config.yml"
+    }
+  }
+
+    stage("Create venv and install dependencies") {
+      steps {
+        sh """
+          python -m venv venv
+          . venv/bin/activate
+          make reqs-install
+          make reqs-install-dev
+        """
+      }
+    }
+
+    stage("Run Django unit tests") {
+      steps{
+        sh """
+        . venv/bin/activate
+        python runtests.py
+        """
+      }
+    }
+  }
+}
