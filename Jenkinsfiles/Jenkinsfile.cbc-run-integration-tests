@@ -2,7 +2,7 @@ pipeline {
   agent {
     kubernetes {
       defaultContainer "bb2-cbc-build"
-      yamlFile "Jenkinsfiles/cbc-run-integration-tests.yaml"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config.yml"
     }
   }
 
