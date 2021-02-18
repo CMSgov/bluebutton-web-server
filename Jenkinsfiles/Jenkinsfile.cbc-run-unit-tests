@@ -6,12 +6,15 @@ pipeline {
     }
   }
 
+  stages {
     stage("Create venv and install dependencies") {
       steps {
         sh """
           python -m venv venv
           . venv/bin/activate
+          # Install from vendor files in requirements.txt
           make reqs-install
+          # Install additional packages in requirements.dev.txt
           make reqs-install-dev
         """
       }
