@@ -24,15 +24,6 @@ pipeline {
   }
 
   stages {
-    stage("CHECK Flake8 Python Lint/Style") {
-      steps{
-        sh """
-        pip install flake8
-        flake8
-        """
-      }
-    }
-
     stage("SETUP FHIR cert and key") {
       steps {
         writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
@@ -47,6 +38,14 @@ pipeline {
           . venv/bin/activate
           make reqs-install
           make reqs-install-dev
+        """
+      }
+    }
+
+    stage("CHECK Flake8 Python Lint/Style") {
+      steps{
+        sh """
+          flake8
         """
       }
     }
