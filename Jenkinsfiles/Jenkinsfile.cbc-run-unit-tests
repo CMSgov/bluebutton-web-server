@@ -1,3 +1,12 @@
+void notifyGithubStatus(String state, String mesg) {
+    echo "Notifying status on GitHub to: " + state + " with message: " + mesg
+    step([
+        $class: "GitHubCommitStatusSetter",
+        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/check-unit-tests"],
+        statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: mesg, state: state]] ]
+  ]);
+}
+
 pipeline {
   agent {
     kubernetes {
@@ -9,7 +18,7 @@ pipeline {
   stages {
     stage("Create venv and install dependencies") {
       steps {
-        githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'This commit is being unit tested.',  status: 'PENDING');
+        notifyGithubStatus("PENDING", "Unit tests are running...");
         sh """
           python -m venv venv
           . venv/bin/activate
@@ -33,10 +42,12 @@ pipeline {
 
   post {
     success {
-      githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'Unit testing SUCCESS!',  status: 'SUCCESS');
+      githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'Unit tests SUCCESS!',  status: 'SUCCESS');
+      notifyGithubStatus("SUCCESS", "Unit testing SUCCESS!");
     }
     failure {
-      githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'Unit testing FAILED!',  status: 'FAILED');
+      notifyGithubStatus("FAILED", "Unit testing FAILED!");
+      githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'Unit tests FAILED!',  status: 'FAILED');
     }
   }
 }
