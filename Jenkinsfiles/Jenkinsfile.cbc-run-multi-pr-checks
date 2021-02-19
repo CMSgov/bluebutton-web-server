@@ -53,7 +53,6 @@ pipeline {
 
     stage("RUN Django Unit Tests") {
       steps{
-        notifyGithubStatus("PENDING","Running unit tests...");
         sh """
           . venv/bin/activate
           python runtests.py
