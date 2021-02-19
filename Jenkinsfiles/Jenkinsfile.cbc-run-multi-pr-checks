@@ -27,6 +27,7 @@ pipeline {
     stage("CHECK Flake8 Python Lint/Style") {
       steps{
         sh """
+        pip install flake8
         flake8
         """
       }
