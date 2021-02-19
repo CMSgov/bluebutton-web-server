@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 130
+ignore = F403,F405,W503
+exclude = migrations,docs,examples,bluebutton-css,vendor,venv,*/management/*
