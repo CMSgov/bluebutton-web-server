@@ -45,6 +45,7 @@ pipeline {
     stage("CHECK Flake8 Python Lint/Style") {
       steps{
         sh """
+          . venv/bin/activate
           flake8
         """
       }
@@ -54,8 +55,8 @@ pipeline {
       steps{
         notifyGithubStatus("PENDING","Running unit tests...");
         sh """
-        . venv/bin/activate
-        python runtests.py
+          . venv/bin/activate
+          python runtests.py
         """
       }
     }
@@ -63,8 +64,8 @@ pipeline {
     stage("RUN integration tests") {
       steps{
         sh """
-        . venv/bin/activate
-        python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+          . venv/bin/activate
+          python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
         """
       }
     }
