@@ -2,7 +2,7 @@ pipeline {
   agent {
     kubernetes {
       defaultContainer "bb2-cbc-build"
-      yamlFile "Jenkinsfiles/cbc-run-integration-tests.yaml"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config.yaml"
     }
   }
 
@@ -36,8 +36,17 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
-          pip install sqlparse
+          make reqs-install
+          make reqs-install-dev
+        """
+      }
+    }
+
+    stage("Run Django unit tests") {
+      steps{
+        sh """
+        . venv/bin/activate
+        python runtests.py
         """
       }
     }
