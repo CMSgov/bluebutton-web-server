@@ -42,12 +42,10 @@ pipeline {
 
   post {
     success {
-      githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'Unit tests SUCCESS!',  status: 'SUCCESS');
       notifyGithubStatus("SUCCESS", "Unit testing SUCCESS!");
     }
     failure {
       notifyGithubStatus("FAILED", "Unit testing FAILED!");
-      githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'Unit tests FAILED!',  status: 'FAILED');
     }
   }
 }
