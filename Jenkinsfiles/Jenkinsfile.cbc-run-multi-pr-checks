@@ -1,12 +1,3 @@
-void notifyGithubStatus(String state, String mesg) {
-    echo "Notifying status on GitHub to: " + state + " with message: " + mesg
-    step([
-        $class: "GitHubCommitStatusSetter",
-        contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "continuous-integration/jenkins/pr-merge"],
-        statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: mesg, state: state]] ]
-  ]);
-}
-
 pipeline {
   agent {
     kubernetes {
@@ -33,14 +24,22 @@ pipeline {
   }
 
   stages {
-    stage("Copy FHIR cert and key") {
+    stage("CHECK Flake8 Python Lint/Style") {
+      steps{
+        sh """
+        flake8
+        """
+      }
+    }
+
+    stage("SETUP FHIR cert and key") {
       steps {
         writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
         writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
       }
     }
 
-    stage("Create venv and install dependencies") {
+    stage("INSTALL Python Packages") {
       steps {
         sh """
           python -m venv venv
@@ -51,7 +50,7 @@ pipeline {
       }
     }
 
-    stage("Run Django unit tests") {
+    stage("RUN Django Unit Tests") {
       steps{
         notifyGithubStatus("PENDING","Running unit tests...");
         sh """
@@ -61,7 +60,7 @@ pipeline {
       }
     }
 
-    stage("Run integration tests") {
+    stage("RUN integration tests") {
       steps{
         sh """
         . venv/bin/activate
