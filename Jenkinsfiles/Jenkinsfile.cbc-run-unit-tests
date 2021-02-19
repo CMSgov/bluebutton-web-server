@@ -9,6 +9,7 @@ pipeline {
   stages {
     stage("Create venv and install dependencies") {
       steps {
+        githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'This commit is being unit tested.',  status: 'PENDING');
         sh """
           python -m venv venv
           . venv/bin/activate
@@ -27,6 +28,15 @@ pipeline {
         python runtests.py
         """
       }
+    }
+  }
+
+  post {
+    success {
+      githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'Unit testing SUCCESS!',  status: 'SUCCESS');
+    }
+    failure {
+      githubNotify(context: 'ci/jenkins/check-unit-tests', description: 'Unit testing FAILED!',  status: 'FAILED');
     }
   }
 }
