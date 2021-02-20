@@ -8,6 +8,7 @@ from django.test.client import Client
 from django.urls import reverse
 from httmock import all_requests, HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model
+from urllib.parse import unquote
 from unittest.mock import patch
 from waffle.testutils import override_switch, override_flag
 
@@ -598,7 +599,7 @@ class BackendConnectionTest(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            self.assertEqual(expected_request['url'], req.url)
+            self.assertEqual(expected_request['url'], unquote(req.url))
             self.assertEqual(expected_request['method'], req.method)
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 

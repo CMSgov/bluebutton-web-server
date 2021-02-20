@@ -32,7 +32,7 @@ def get_userinfo(user):
 @authentication_classes([OAuth2Authentication])
 @permission_classes([ApplicationActivePermission, TokenHasProtectedCapability])
 @protected_resource()
-def openidconnect_userinfo(request):
+def openidconnect_userinfo(request, **kwargs):
     user = request.resource_owner
     data = get_userinfo(user)
     return JsonResponse(data)

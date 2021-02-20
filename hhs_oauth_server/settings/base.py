@@ -546,8 +546,6 @@ MEDICARE_SLSX_REDIRECT_URI = env(
 
 SLSX_HEALTH_CHECK_ENDPOINT = env(
     'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', 'https://dev.accounts.cms.gov/health')
-MEDICARE_REDIRECT_URI_V2 = env(
-    'DJANGO_MEDICARE_REDIRECT_URI_v2', 'http://localhost:8000/mymedicare/sls-callback-v2')
 SLS_TOKEN_ENDPOINT = env(
     'DJANGO_SLS_TOKEN_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/token')
 SLSX_TOKEN_ENDPOINT = env(

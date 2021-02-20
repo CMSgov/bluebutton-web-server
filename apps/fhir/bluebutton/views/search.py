@@ -44,8 +44,9 @@ class SearchView(FhirDataView):
         '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")]
     }
 
-    def __init__(self):
+    def __init__(self, version=1):
         self.resource_type = None
+        super().__init__(version)
 
     def initial(self, request, *args, **kwargs):
         return super().initial(request, self.resource_type, *args, **kwargs)
@@ -54,19 +55,19 @@ class SearchView(FhirDataView):
         return super().get(request, self.resource_type, *args, **kwargs)
 
     def build_url(self, resource_router, resource_type, *args, **kwargs):
-        api_ver = kwargs.get('ver')
         if resource_router.fhir_url.endswith('v1/fhir/'):
             # only if called by tests
             return "{}{}/".format(resource_router.fhir_url, resource_type)
         else:
-            return "{}/{}/fhir/{}/".format(resource_router.fhir_url, api_ver,
+            return "{}/{}/fhir/{}/".format(resource_router.fhir_url, 'v2' if self.version == 2 else 'v1',
                                            resource_type)
 
 
 class SearchViewPatient(SearchView):
     # Class used for Patient resource search view
 
-    def __init__(self):
+    def __init__(self, version=1):
+        super().__init__(version)
         self.resource_type = "Patient"
 
     def build_parameters(self, request, *args, **kwargs):
@@ -79,7 +80,8 @@ class SearchViewPatient(SearchView):
 class SearchViewCoverage(SearchView):
     # Class used for Coverage resource search view
 
-    def __init__(self):
+    def __init__(self, version=1):
+        super().__init__(version)
         self.resource_type = "Coverage"
 
     def build_parameters(self, request, *args, **kwargs):
@@ -118,7 +120,8 @@ class SearchViewExplanationOfBenefit(SearchView):
     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
                     'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid")}
 
-    def __init__(self):
+    def __init__(self, version=1):
+        super().__init__(version)
         self.resource_type = "ExplanationOfBenefit"
 
     def build_parameters(self, request, *args, **kwargs):
