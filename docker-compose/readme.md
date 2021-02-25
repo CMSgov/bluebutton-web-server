@@ -136,18 +136,18 @@ COMPOSE_CONVERT_WINDOWS_PATHS=1
 
 ## Remote debugging BB2 server
 
-Add the line below to the .env file to enable remote PTVSD debugging
+Add the line below to the .env file to enable remote debugging
 of BB2 server in a docker container:
 
 ```
 BB20_ENABLE_REMOTE_DEBUG=true
 ```
 
-After BB2 server is up, ptvsd is listening on port 5678.
+After BB2 server is up, debugpy is listening on port 5678.
 Afterward, attach to it from your IDE (e.g. VSCode) and put break 
 points on the execution path. You can now start debugging.
 
-Add the line below to the .env file to make ptvsd agent wait on attaching, before execute
+Add the line below to the .env file to make debugpy wait on attaching, before execute
 bluebutton server, this is needed when debugging logic during bluebutton server bootstrap.
 
 ```
@@ -156,7 +156,7 @@ BB2_REMOTE_DEBUG_WAIT_ATTACH=true
 
 ## Remote debugging Blue Button unit tests
 
-Run the docker-compose command below to start the unittests with PTVSD and for it to wait on port 6789 for the debugger to attach.
+Run the docker-compose command below to start the unittests with debugpy and for it to wait on port 6789 for the debugger to attach.
 Attach to the unittests from an IDE (e.g. VSCode), then put break points in the test cases and debugging.
 
 ```
