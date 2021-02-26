@@ -25,8 +25,7 @@ from .endpoint_schemas import (COVERAGE_READ_SCHEMA_V2,
 C4BB_PROFILE_URLS = {
     "INPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Inpatient-Institutional",
     "OUTPATIENT": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Outpatient-Institutional",
-    # note should be "http://hl7..." BFD-640 opened
-    "PHARMACY": "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy",
+    "PHARMACY": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy",
     "NONCLINICIAN": "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Professional-NonClinician",
 }
 
@@ -327,16 +326,14 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         url = self.live_server_url + base_path + "/inpatient-4436342082"
         response = client.get(url)
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "eob_read_in_pt_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "eob_read_in_pt_{}.json".format('v2' if v2 else 'v1'))
+        self.assertEqual(response.status_code, 200)
 
         if not v2:
-            self.assertEqual(response.status_code, 200)
             #     Validate JSON Schema
             self.assertEqual(self._validateJsonSchema(EOB_READ_INPT_SCHEMA, content), True)
         else:
-            # uncomment below line when inpatient v2 become available on sandbox
-            # self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], v2)
-            self.assertEqual(response.status_code, 404)
+            self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], v2)
 
         # 4. Test READ VIEW endpoint v1 and v2: outpatient
         url = self.live_server_url + base_path + "/outpatient-4388491497"

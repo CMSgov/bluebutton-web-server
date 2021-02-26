@@ -78,13 +78,13 @@ def test_userinfo_v2(request):
 
 
 @never_cache
-def test_userinfo(request, **kwargs):
+def test_userinfo(request, version=1):
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
     oas = OAuth2Session(
         request.session['client_id'], token=request.session['token'])
     userinfo_uri = "{}/{}/connect/userinfo".format(
-        request.session['resource_uri'], kwargs.get('ver', 'v1'))
+        request.session['resource_uri'], 'v2' if version == 2 else 'v1')
     userinfo = oas.get(userinfo_uri).json()
     return JsonResponse(userinfo)
 
