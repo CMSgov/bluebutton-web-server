@@ -28,7 +28,7 @@
                 "meta": {
                     "lastUpdated": "2020-01-01T00:00:00.000+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -550,7 +550,7 @@
                 "meta": {
                     "lastUpdated": "2020-01-01T00:00:00.000+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -1099,7 +1099,7 @@
                 "meta": {
                     "lastUpdated": "2020-01-01T00:00:00.000+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -1652,7 +1652,7 @@
                 "meta": {
                     "lastUpdated": "2020-01-01T00:00:00.000+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -2220,7 +2220,7 @@
                 "meta": {
                     "lastUpdated": "2020-01-01T00:00:00.000+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -2745,7 +2745,7 @@
                 "meta": {
                     "lastUpdated": "2020-11-09T22:52:58.934+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -3267,7 +3267,7 @@
                 "meta": {
                     "lastUpdated": "2020-11-09T22:52:58.934+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -3816,7 +3816,7 @@
                 "meta": {
                     "lastUpdated": "2020-11-09T22:52:58.934+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -4369,7 +4369,7 @@
                 "meta": {
                     "lastUpdated": "2020-11-09T22:52:58.934+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
@@ -4937,7 +4937,7 @@
                 "meta": {
                     "lastUpdated": "2020-11-09T22:52:58.934+00:00",
                     "profile": [
-                        "https://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
+                        "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-ExplanationOfBenefit-Pharmacy"
                     ]
                 },
                 "identifier": [
