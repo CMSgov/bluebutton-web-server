@@ -47,18 +47,28 @@ fi
 export DB_MIGRATIONS=true 
 export DJANGO_DEFAULT_SAMPLE_FHIR_ID="dummy"
 export DJANGO_FHIR_CERTSTORE="dummy"
+export DJANGO_SLSX_CLIENT_ID="dummy"
+export DJANGO_SLSX_CLIENT_SECRET="dummy"
 
 docker-compose down
 
+echo "Cleanup files"
+
 if [ -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_CERT_FILE}" ]
 then
-    echo "cleanup client cert file."
+    if which shred
+    then
+        shred "${FHIR_CERTSTORE_ON_HOST}/${FHIR_CERT_FILE}"
+    fi
     rm -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_CERT_FILE}"
 fi
 
 if [ -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_KEY_FILE}" ]
 then
-    echo "cleanup client key file."
+    if which shred
+    then
+        shred "${FHIR_CERTSTORE_ON_HOST}/${FHIR_KEY_FILE}"
+    fi
     rm -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_KEY_FILE}"
 fi
 

@@ -254,3 +254,23 @@ then
 else
     start_server_with_remote_bfd
 fi
+
+echo "Cleanup files"
+
+if [ -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_CERT_FILE}" ]
+then
+    if which shred
+    then
+        shred "${FHIR_CERTSTORE_ON_HOST}/${FHIR_CERT_FILE}"
+    fi
+    rm -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_CERT_FILE}"
+fi
+
+if [ -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_KEY_FILE}" ]
+then
+    if which shred
+    then
+        shred "${FHIR_CERTSTORE_ON_HOST}/${FHIR_KEY_FILE}"
+    fi
+    rm -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_KEY_FILE}"
+fi
