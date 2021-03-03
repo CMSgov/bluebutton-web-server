@@ -443,17 +443,13 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "outpatient-4412920419", v2))
         content = json.loads(response.content)
         dump_content(json.dumps(content), "eob_read_out_pt_{}.json".format('v2' if v2 else 'v1'))
+        self.assertEqual(response.status_code, 200)
         if not v2:
-            self.assertEqual(response.status_code, 200)
             # Validate JSON Schema v1
             self.assertEqual(self._validateJsonSchema(EOB_READ_INPT_SCHEMA, content), True)
-            self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], v2)
         else:
-            # uncomment after BFD outpatient v2 deployed
-            # self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.status_code, 404)
-        # uncomment after outpatient v2 deployed
-        # self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], v2)
+            self.assertEqual(response.status_code, 200)
+        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], v2)
 
     @override_switch('require-scopes', active=True)
     def test_err_response_caused_by_illegalarguments(self):

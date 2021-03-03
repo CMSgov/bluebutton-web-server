@@ -344,18 +344,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                     if not v2 else 'bb_oauth_fhir_eob_read_or_update_or_delete_v2',
                     kwargs={'resource_id': 'outpatient-4388491497'}),
                 Authorization="Bearer %s" % (first_access_token))
-            if not v2:
-                self.assertEqual(response.status_code, 200)
-            else:
-                # now 403 expected due to eob_read_out_pt_v2.json - EOB resource instance permission check
-                # requires eob-> "patient": {
-                #    "reference": "Patient/-20140000008325"
-                # },
-                # contains: {"detail": "The requested resource does not exist"}
-                self.assertEqual(response.status_code, 403)
+            self.assertEqual(response.status_code, 200)
             # assert v1 and v2 eob outpatient
-            # uncomment below line when V2 EOB outpatient become available on sandbox
-            # self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['OUTPATIENT'], v2)
+            self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['OUTPATIENT'], v2)
 
     def test_read_coverage_request(self):
         self._read_coverage_request(False)
