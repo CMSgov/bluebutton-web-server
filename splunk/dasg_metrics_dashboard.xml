@@ -142,13 +142,13 @@
   </row>
   <row>
     <panel>
-      <title>2. Count of Beneficiaries choosing ALLOW on Consent Form for all auth flow (NOTE: A bene could have multiple auth flows during this time frame)</title>
+      <title>2. Count of Beneficiaries choosing ALLOW on Consent Form for all auth flow (NOTE: A bene could have multiple auth flows during this time frame. This only counts interactions with applications where message.auth_require_demographic_scopes=True)</title>
       <single>
         <search base="baseSearch2">
           <done>
             <set token="beneAllowCount">$result.count$</set>
           </done>
-          <query>search message.allow=True | stats count</query>
+          <query>search message.auth_require_demographic_scopes=True | search message.allow=True | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
