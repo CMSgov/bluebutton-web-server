@@ -176,7 +176,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
 
             return {
                 'status_code': 200,
-                'content': get_response_json("eob_search_{}".format(ver)),
+                'content': get_response_json("eob_search_pt_{}".format(ver)),
             }
 
         # Test _lastUpdated with valid parameter starting with "lt"
@@ -187,6 +187,9 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
             self.assertEqual(response.status_code, 200)
             # assert v1 and v2 eob
+            # noticed resources ids are different: in v1 the id is like: "id": "carrier--20587716665",
+            # in v2: "id": "pde--3269834580",
+            # will check resource id in the loop upon confirm with BFD
             for r in response.json()['entry']:
                 self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
 
@@ -268,7 +271,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         def catchall(url, req):
             return {
                 'status_code': 200,
-                'content': get_response_json("eob_read_{}".format('v2' if v2 else 'v1')),
+                'content': get_response_json("eob_read_carrier_{}".format('v2' if v2 else 'v1')),
             }
 
         with HTTMock(catchall):
@@ -281,12 +284,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 Authorization="Bearer %s" % (first_access_token))
 
             # assert v1 and v2 eob read using carrier id
-            if not v2:
-                self.assertEqual(response.status_code, 200)
-            else:
-                self.assertEqual(response.status_code, 403)
-                # uncomment when v2 eob with carrier id read become available on sandbox
-                # self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['PHARMACY'], v2)
+            self._assertHasC4BBProfile(response.json(), C4BB_PROFILE_URLS['NONCLINICIAN'], v2)
 
     def test_read_eob_inpatient_request(self):
         self._read_eob_inpatient_request(False)

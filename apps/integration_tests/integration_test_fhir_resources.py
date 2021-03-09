@@ -204,7 +204,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             pass
         self.assertIsNotNone(fhir_ver)
         self.assertEqual(fhir_ver, '4.0.0' if v2 else '3.0.2')
-        dump_content(json.dumps(content), "fhir_meta_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "fhir_meta_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(FHIR_META_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
@@ -236,7 +236,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, None, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "patient_search_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "patient_search_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
         self.assertEqual(self._validateJsonSchema(PATIENT_SEARCH_SCHEMA, content), True)
 
@@ -250,7 +250,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_PATIENT, settings.DEFAULT_SAMPLE_FHIR_ID, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "patient_read_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "patient_read_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
         self.assertEqual(self._validateJsonSchema(PATIENT_READ_SCHEMA, content), True)
 
@@ -291,7 +291,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, None, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "coverage_search_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "coverage_search_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
         self.assertEqual(self._validateJsonSchema(COVERAGE_SEARCH_SCHEMA, content), True)
 
@@ -299,7 +299,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-a-" + settings.DEFAULT_SAMPLE_FHIR_ID, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
         self.assertEqual(self._validateJsonSchema(COVERAGE_READ_SCHEMA_V2 if v2 else COVERAGE_READ_SCHEMA, content), True)
 
@@ -337,7 +337,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
         self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
-        dump_content(json.dumps(content), "eob_search_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "eob_search_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
         for r in content['entry']:
             self._assertHasC4BBProfile(r['resource'],
@@ -347,21 +347,19 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # 3. Test READ VIEW endpoint v1 (carrier) and v2
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "carrier-22639159481", v2))
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "eob_read_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "eob_read_carrier_{}.json".format('v2' if v2 else 'v1'))
+        self.assertEqual(response.status_code, 200)
         if not v2:
-            self.assertEqual(response.status_code, 200)
             # Validate JSON Schema
             self.assertEqual(self._validateJsonSchema(EOB_READ_SCHEMA, content), True)
-        else:
-            # not found for now on v2
-            self.assertEqual(response.status_code, 404)
+        self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['NONCLINICIAN'], v2)
 
         # 4. Test SEARCH VIEW endpoint v1 and v2 (BB2-418 EOB V2 PDE profile)
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "?patient=-20140000008325", v2))
         self.assertEqual(response.status_code, 200)
         # Validate JSON Schema
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
         for r in content['entry']:
             self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
@@ -394,7 +392,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # read eob pde profile v1 and v2
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "pde-4894712975", v2))
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "eob_read_pde_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "eob_read_pde_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(response.status_code, 200)
         if not v2:
             # Validate JSON Schema for v1
@@ -418,7 +416,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Test READ VIEW endpoint v1 and v2: inpatient
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "inpatient-4436342082", v2))
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "eob_read_in_pt_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "eob_read_in_pt_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(response.status_code, 200)
         if not v2:
             # Validate JSON Schema v1
@@ -442,7 +440,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Test READ VIEW endpoint v1 and v2: outpatient
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "outpatient-4412920419", v2))
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "eob_read_out_pt_{}.json".format('v2' if v2 else 'v1'))
+        # dump_content(json.dumps(content), "eob_read_out_pt_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(response.status_code, 200)
         if not v2:
             # Validate JSON Schema v1
