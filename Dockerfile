@@ -1,9 +1,11 @@
-FROM python:3.6.12
+FROM selenium/standalone-chrome
+
 ENV PYTHONUNBUFFERED 1
+USER root
+RUN apt-get update && apt-get install -yq python3.6 python3-pip
+RUN pip3 install --upgrade pip
 RUN mkdir /code
 ADD . /code/
 WORKDIR /code
 RUN make reqs-install-dev
-RUN pip install --upgrade pip
-RUN pip install pip-tools
-RUN pip install psycopg2-binary
+RUN ln -s /usr/bin/python3 /usr/bin/python

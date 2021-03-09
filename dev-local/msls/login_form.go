@@ -1,6 +1,14 @@
 package main
 
 var login_template = `
+<html lang="en">
+	<head>
+		<title>
+			 BB2 MSLS Login 
+		</title>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 label{
     display: inline-block;
@@ -29,6 +37,8 @@ submit{
   padding-left: 100px;
 }
 </style>
+</head>
+<body>
 
 <h1>MSLS Component Inputs for simulating SLS/MyMedicare auth flow locally</h1>
 <p>
@@ -68,4 +78,6 @@ submit{
     <button type="submit">Sign In</button>
 </div>
 </form>
+</body>
+</html>
 `

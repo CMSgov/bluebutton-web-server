@@ -17,7 +17,12 @@
 #   When backend is a local bfd, 1. and 2. are not required
 
 # SETTINGS:  You may need to customize these for your local setup.
-HOSTNAME_URL="http://localhost:8000"
+# for automated testclient test run, need to use IP of localhost
+# and change docker-compose.yml env vars as below:
+#            - DJANGO_MEDICARE_LOGIN_URI=http://192.168.0.109:8080?scope=openid%20profile&client_id=bluebutton
+#            - DJANGO_MEDICARE_REDIRECT_URI=http://192.168.0.109:8000/mymedicare/sls-callback
+# to use SLSX, it is a work in progress
+HOSTNAME_URL="http://192.168.0.109:8000"
 
 KEYBASE_ENV_FILE="team/bb20/infrastructure/creds/ENV_secrets_for_local_integration_tests.env"
 KEYBASE_CERTFILES_SUBPATH="team/bb20/infrastructure/certs/local_integration_tests/fhir_client/certstore/"
@@ -34,8 +39,7 @@ DOCKER_TAG="py36-an27-tf11"
 FHIR_URL="https://prod-sbx.bfd.cms.gov"
 
 # List of integration tests to run. To be passed in to runtests.py.
-INTEGRATION_TESTS_LIST="apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
-
+INTEGRATION_TESTS_LIST="apps.integration_tests.auto_test_via_testclient.RunTestClient apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources"
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
