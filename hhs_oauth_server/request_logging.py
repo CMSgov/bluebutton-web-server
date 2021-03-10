@@ -191,7 +191,7 @@ class RequestResponseLog(object):
         --- Logging items from request.body ---
         '''
         if getattr(self.request, 'body', False):
-            req_body = self.request.body.decode()
+            req_body = self.request.body.decode('utf-8', 'ignore')
             try:
                 request_body_dict = dict(item.split("=") for item in req_body.split("&"))
                 self._log_msg_update_from_dict(request_body_dict, 'req_client_id', 'client_id')
@@ -396,7 +396,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
 
         # Get access token to be refreshed pre-response, since it is removed
         if getattr(request, 'body', False):
-            req_body = request.body.decode()
+            req_body = request.body.decode('utf-8', 'ignore')
             try:
                 request_body_dict = dict(item.split("=") for item in req_body.split("&"))
 
