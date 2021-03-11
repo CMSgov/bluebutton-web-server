@@ -54,6 +54,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 	
 			<!-- If a user DOES have a token, reflect the success of that action -->
 			{% if session_token is not None %}
+			{% url 'testclient-restart' as restart_url %}
 			{% if api_ver == 'v2' %}
 				{% url 'authorize_link_v2' as auth_url %}
 				{% url 'fhir_conformance_metadata_v2' as meta_url %}
@@ -71,7 +72,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 				{% url 'test_patient' as test_patient_url %}
 				{% url 'test_coverage' as test_coverage_url %}
 			{% endif %}
-			<p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ auth_url }}">repeat this step if you need a new token.</a></p>
+			<p>Success! You have a token. Now you can make API calls below. Or you can <a href="{{ auth_url }}">repeat this step if you need a new token.</a> or <a href="{{ restart_url }}">restart testclient</a></p>
 
 			<br />
 

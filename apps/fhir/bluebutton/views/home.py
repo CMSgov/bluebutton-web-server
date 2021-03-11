@@ -31,13 +31,13 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     crosswalk = None
     resource_router = get_resourcerouter()
     parsed_url = urlparse(resource_router.fhir_url)
-
+    v2 = True if kwargs.get('ver', 'v1') == 'v2' else False
     call_to = None
     if parsed_url.path is not None:
-        call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc, kwargs.get('ver', 'v1'))
+        call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc, 'v2' if v2 else 'v1')
     else:
         # url with no path
-        call_to = '{}/{}/fhir/metadata'.format(resource_router.fhir_url, kwargs.get('ver', 'v1'))
+        call_to = '{}/{}/fhir/metadata'.format(resource_router.fhir_url, 'v2' if v2 else 'v1')
 
     pass_params = {'_format': 'json'}
 
@@ -61,7 +61,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     od = conformance_filter(text_out)
 
     # Append Security to ConformanceStatement
-    security_endpoint = build_oauth_resource(request, format_type="json")
+    security_endpoint = build_oauth_resource(request, v2, format_type="json")
     od['rest'][0]['security'] = security_endpoint
     # Fix format values
     od['format'] = ['application/json', 'application/fhir+json']

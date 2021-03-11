@@ -45,7 +45,7 @@ def base_issuer(request):
     return issuer
 
 
-def build_endpoint_info(data=OrderedDict(), issuer="", v2=False):
+def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
     """
     construct the data package
     issuer should be http: or https:// prefixed url.

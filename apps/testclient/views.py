@@ -11,6 +11,16 @@ from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
+HOME_PAGE = "home.html"
+
+
+def restart(request, **kwargs):
+    # restart link clicked on API try out page
+    if 'token' in request.session:
+        del request.session['token']
+
+    return render(request, HOME_PAGE, context={"session_token": None})
+
 
 def callback(request, **kwargs):
     # Authorization has been denied or another error has occured, remove token if existing
@@ -65,11 +75,11 @@ def callback(request, **kwargs):
 def test_links(request, **kwargs):
     # If authorization was successful, pass token to template
     if 'token' in request.session:
-        return render(request, 'home.html',
+        return render(request, HOME_PAGE,
                       context={"session_token": request.session['token'],
                                "api_ver": request.session.get('api_ver', 'v1')})
     else:
-        return render(request, 'home.html', context={"session_token": None})
+        return render(request, HOME_PAGE, context={"session_token": None})
 
 
 @never_cache

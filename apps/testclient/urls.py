@@ -1,9 +1,10 @@
 from django.conf.urls import url
-from .views import (authorize_link, callback, test_eob, test_eob_v2, test_userinfo, test_userinfo_v2,
+from .views import (authorize_link, restart, callback, test_eob, test_eob_v2, test_userinfo, test_userinfo_v2,
                     test_coverage, test_coverage_v2, test_patient, test_patient_v2, test_links)
 
 urlpatterns = [
 
+    url(r'^restart$', restart, name='testclient-restart'),
     url(r'^callback$', callback, name='testclient-callback'),
     url(r'^callback-v2$', callback, {"ver": "v2"}, name='testclient-callback-v2'),
     url(r'^authorize-link$', authorize_link, name='authorize_link'),
