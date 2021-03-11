@@ -178,7 +178,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         self.assertEqual(response, expected)
 
-    def test_get_host_ur_good(self):
+    def test_get_host_url_good(self):
         """
         Get the host url and split on resource_type
         """
@@ -309,7 +309,7 @@ class Security_Metadata_test(BaseApiTest):
         """
         request = self.factory.get('/cmsblue/fhir/v1/metadata')
 
-        result = build_oauth_resource(request, "xml")
+        result = build_oauth_resource(request, False, "xml")
 
         expected = "<cors>true</cors>"
 
