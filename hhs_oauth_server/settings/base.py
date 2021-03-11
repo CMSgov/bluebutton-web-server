@@ -305,10 +305,6 @@ EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', None)
 EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', None)
 EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 
-# AWS Credentials need to support SES, SQS and SNS
-AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', 'change-me')
-AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', 'change-me')
-
 # Use env-specific logging config if present
 LOGGING = env("DJANGO_LOGGING", {
     'version': 1,
@@ -612,7 +608,7 @@ else:
     # NOTE: To test, place variables in the .env file of the project root directory.
     #
     #     The following ENV variables are needed:
-    #         AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_CUSTOM_DOMAIN
+    #         AWS_STORAGE_BUCKET_NAME, AWS_S3_CUSTOM_DOMAIN
     AWS_S3_CUSTOM_DOMAIN = env('AWS_S3_CUSTOM_DOMAIN')
     if AWS_S3_CUSTOM_DOMAIN:
         AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
