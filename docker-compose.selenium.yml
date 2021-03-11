@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  autotests:
+    build:
+      context: ./
+      dockerfile: SeleniumDockerfile
+    command: python3 runtests.py apps.integration_tests.auto_test_via_testclient.RunTestClient
+    environment:
+            - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
+    volumes:
+      - .:/code
+    

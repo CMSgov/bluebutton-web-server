@@ -12,7 +12,7 @@ class RunTestClient(TestCase):
     Test authorization and fhir flow through the built in testclient by
     leveraging selenium web driver (chrome is used)
     '''
-    
+
     def setUp(self):
         super(RunTestClient, self).setUp()
         opt = webdriver.ChromeOptions()
@@ -24,6 +24,8 @@ class RunTestClient(TestCase):
         opt.add_argument("--disable-setuid-sandbox")
         opt.add_argument("--disable-webgl")
         opt.add_argument("--disable-popup-blocking")
+        opt.add_argument("--enable-javascript")
+        opt.add_argument('--allow-insecure-localhost')
         self.driver = webdriver.Chrome(options=opt)
 
     def tearDown(self):
@@ -37,21 +39,20 @@ class RunTestClient(TestCase):
         return elem
 
     def test_testclient_01(self):
-        # assume bb2 is on url set by HOSTNAME_URL 
+        # assume bb2 is on url set by HOSTNAME_URL
+        print("HOSTNAME={}".format(settings.HOSTNAME_URL))
         self.driver.get(settings.HOSTNAME_URL)
         # bb2 landing page: click test client link
-        self.find_and_click(20, By.ID, 'testclient')
+        self.find_and_click(30, By.ID, 'testclient')
         # test client home page: click link with label text "Get a Sample Authorization Token"
         self.find_and_click(20, By.LINK_TEXT, 'Get a Sample Authorization Token')
         # test client sample API call page: click link with label text "Authorize as a Beneficiary" id=authorization_url
         self.find_and_click(20, By.ID, 'authorization_url')
-
         # support 2 identity providers:
         # 1. MSLS - indicator: HOSTNAME_URL http://192.168.0.109:8000 (e.g. must use local host IP)
-        # 2. SLSX - indicator: HOSTNAME_URL http://localhost:8000
+        # 2. SLSX - indicator: HOSTNAME_URL http://localhost:8000 - unresolved issue remain
         if 'localhost' in settings.HOSTNAME_URL:
-            print("=================== YAY MyMedicare.gov ============================")
-            elem = self.find_and_click(20, By.ID, 'user-textbox')
+            elem = self.find_and_click(30, By.ID, 'user-textbox')
             # type in synthetic user name
             elem.send_keys("BBUser10000")
             # focus move to input password
@@ -104,4 +105,5 @@ class RunTestClient(TestCase):
         self.driver.back()
         # click OIDC Discovery
         self.find_and_click(20, By.LINK_TEXT, 'OIDC Discovery')
-        self.assertRegex(self.driver.page_source, r'^.*\"service_documentation\":\s*\"https:\/\/bluebutton.cms.gov\/developers\".*$')
+        url_pattern = r'^.*\"service_documentation\":\s*\"https:\/\/bluebutton.cms.gov\/developers\".*$'
+        self.assertRegex(self.driver.page_source, url_pattern)

@@ -41,7 +41,6 @@ services:
     volumes:
       - .:/code
     ports:
-      - "8080:8080"
       - "8000:8000"
       - "5678:5678"
     depends_on:

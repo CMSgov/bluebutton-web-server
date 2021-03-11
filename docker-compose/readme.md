@@ -268,5 +268,29 @@ NOTES:
   * For the CBC related setup see these files for more details:
     * `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job. 
     * `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification.  These settings will also need to be updated when there are CBC image naming changes.
+
+## Developing and Running Automated clients in Local Development
+You can run automated client tests by following below steps:
+
+  1. Start a local blue button server as instructed by other parts of the read me
+  2. go to the base directory of the repo and run:
    
+     ```
+     docker-compose -f docker-compose.selenium.yml up autotests
+     ```
+
+Note:
+
+Autotests are a collection of selenium webdriver (currently chrome is chosen) based tests that run through blue button
+functional processes e.g.:
+
+  1. testclient: authorization, re-authorization, fhir resource read and search etc.
+  2. account management: account creation, activation, login, logout, password change etc.
+  3. app management: app creation, edit, delete etc.
+  4. site static
+  5. and more
+
+the tests cover web UIs and the underlying blue button API calls.
+
+the tests can be created from scratch or customized from selenium plugin recording.
 

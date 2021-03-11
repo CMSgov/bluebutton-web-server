@@ -1,0 +1,12 @@
+FROM selenium/standalone-chrome
+
+ENV PYTHONUNBUFFERED 1
+USER root
+RUN apt-get update && apt-get install -yq python3.6 python3-pip
+RUN pip3 install --upgrade pip
+RUN pip3 install selenium
+RUN mkdir /code
+ADD . /code/
+WORKDIR /code
+RUN make reqs-install-dev
+RUN ln -s /usr/bin/python3 /usr/local/bin/python
