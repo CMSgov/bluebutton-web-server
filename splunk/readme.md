@@ -8,7 +8,7 @@ If there is a need to reinstall the dashboard in Spunk, follow these steps:
 2. Click on the -Edit- button.
 3. Click on the -Source- button.
 4. Right click and choose "Select all".
-5. Copy the contents of the bb2_splunk_authorization_flow_dashboard.xml file in to your clipboard.
+5. Copy the contents of the authorization_flow_dashboard.xml file in to your clipboard.
 6. Past the contents over top of the selected (all) source in Splunk.
 7. Click -Save-.
 
@@ -25,7 +25,7 @@ Some tips when working with the dashboard source:
 * The "xsel" (linux) command line tool is useful for quickly copying the file contents in to your clipboard. The following is an example:
 
   ```bash
-  $ cat bb2_splunk_authorization_flow_dashboard.xml | xsel -ib
+  $ cat authorization_flow_dashboard.xml | xsel -ib
   ```
 
 * You can drill in to almost any cell or chart item on the dashboard by clicking on it. To open in a new browser tab, use \<CTRL\>-\<mouse click\>. This will bring up a new search that includes the related parameters clicked on.
