@@ -5,6 +5,5 @@ python-coveralls==2.9.3
 flake8==3.8.4
 django-debug-toolbar==3.2
 httmock==1.4.0
-debugpy
 beautifulsoup4
 
