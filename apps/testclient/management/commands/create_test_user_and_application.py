@@ -94,10 +94,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # BB2-291, 373 support bfd v2 feature flag
-        g_v2_parteners = create_group("BFDV2Parteners")
+        g_v2_partners = create_group("BFDV2Partners")
         g = create_group()
         u = create_user(g)
-        u.groups.add(g_v2_parteners)
+        u.groups.add(g_v2_partners)
         a = create_application(u, g)
         t = create_test_token(u, a)
         update_grants()
