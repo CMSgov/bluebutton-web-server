@@ -36,7 +36,7 @@ class Command(BaseCommand):
             flag = Flag.objects.create(name=flag_name)
             self._log('Feature flag created: %s' % flag_name)
 
-        bfd_v2_grp = Group.objects.get(name='BFDV2Parteners')
+        bfd_v2_grp = Group.objects.get(name='BFDV2Partners')
         if bfd_v2_grp is not None:
             flag.groups.add(bfd_v2_grp)
 
