@@ -45,9 +45,6 @@ class FhirDataView(APIView):
         self.version = version
         super().__init__()
 
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
     # Must return a Crosswalk
     def check_resource_permission(self, request, **kwargs):
         raise NotImplementedError()
