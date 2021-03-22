@@ -61,7 +61,6 @@ EXPECTED = {
     'test_patient': '/testclient/Patient',
     'test_userinfo': '/testclient/userinfo',
     'testclient-callback': '/testclient/callback',
-    'testclient-callback-v2': '/testclient/callback-v2',
     'tokens': '/admin/metrics/tokens',
     'unauth_home': '/',
 }
@@ -123,7 +122,6 @@ URLS_NAMES = {
     "test_patient": None,
     "test_userinfo": None,
     "testclient-callback": None,
-    "testclient-callback-v2": None,
     "tokens": None,
     "unauth_home": None,
 }

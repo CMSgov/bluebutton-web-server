@@ -46,7 +46,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			<br />
 
 			<a href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
-			{% switch "bfd_v2" %}
+			{% switch "testclient_v2" %}
 				<a href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token for v2</a>
 			{% endswitch %}
 
@@ -64,7 +64,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 				{% url 'test_patient_v2' as test_patient_url %}
 				{% url 'test_coverage_v2' as test_coverage_url %}
 			{% else %}
-				{% url 'authorize_link_v2' as auth_url %}
+				{% url 'authorize_link' as auth_url %}
 				{% url 'fhir_conformance_metadata' as meta_url %}
 				{% url 'openid-configuration' as openid_cfg_url %}
 				{% url 'test_userinfo' as test_userinfo_url %}

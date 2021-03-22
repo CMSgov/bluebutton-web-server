@@ -14,7 +14,7 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 HOME_PAGE = "home.html"
 
 
-def restart(request, **kwargs):
+def restart(request):
     # restart link clicked on API try out page
     if 'token' in request.session:
         del request.session['token']
@@ -22,7 +22,7 @@ def restart(request, **kwargs):
     return render(request, HOME_PAGE, context={"session_token": None})
 
 
-def callback(request, **kwargs):
+def callback(request):
     # Authorization has been denied or another error has occured, remove token if existing
     # and redirect to home page view to force re-authorization
     if 'error' in request.GET:
@@ -151,11 +151,17 @@ def test_eob(request, version=1):
     return JsonResponse(eob)
 
 
-def authorize_link(request, **kwargs):
-    request.session.update(test_setup(v2=True if kwargs.get('ver', 'v1') == 'v2' else False))
+@never_cache
+def authorize_link_v2(request):
+    return authorize_link(request, True)
+
+
+@never_cache
+def authorize_link(request, v2=False):
+    request.session.update(test_setup(v2=v2))
     oas = OAuth2Session(request.session['client_id'],
                         redirect_uri=request.session['redirect_uri'])
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'])[0]
     return render(request, 'authorize.html',
-                  {"authorization_url": authorization_url, "api_ver": kwargs.get('ver', 'v1')})
+                  {"authorization_url": authorization_url, "api_ver": "v2" if v2 else "v1"})

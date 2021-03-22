@@ -162,7 +162,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def test_health_external_endpoint(self):
         self._call_health_external_endpoint(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_health_external_endpoint_v2(self):
@@ -185,7 +184,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def test_userinfo_endpoint(self):
         self._call_userinfo_endpoint(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_userinfo_endpoint_v2(self):
@@ -215,7 +213,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def test_fhir_meta_endpoint(self):
         self._call_fhir_meta_endpoint(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_fhir_meta_endpoint_v2(self):
@@ -252,7 +249,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         '''
         self._call_patient_endpoint(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_patient_endpoint_v2(self):
@@ -310,7 +306,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         '''
         self._call_coverage_endpoint(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_coverage_endpoint_v2(self):
@@ -356,7 +351,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         '''
         self._call_eob_endpoint(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_eob_endpoint_v2(self):
@@ -418,7 +412,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         '''
         self._call_eob_endpoint_pde(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_eob_endpoint_pde_v2(self):
@@ -445,7 +438,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def test_eob_endpoint_inpatient(self):
         self._call_eob_endpoint_inpatient(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_eob_endpoint_inpatient_v2(self):
@@ -469,7 +461,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def test_eob_endpoint_outpatient(self):
         self._call_eob_endpoint_outpatient(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_eob_endpoint_outpatient_v2(self):
@@ -495,7 +486,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def test_err_response_caused_by_illegalarguments(self):
         self._err_response_caused_by_illegalarguments(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     @override_switch('require-scopes', active=True)
     def test_err_response_caused_by_illegalarguments_v2(self):

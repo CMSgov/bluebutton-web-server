@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
 from httmock import all_requests, HTTMock, urlmatch
-from waffle.testutils import override_switch, override_flag
+from waffle.testutils import override_flag
 
 from apps.dot_ext.models import Application
 from apps.test import BaseApiTest
@@ -72,7 +72,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_fhir_events_logging(self):
         self._fhir_events_logging(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_fhir_events_logging_v2(self):
         self._fhir_events_logging(True)
@@ -161,7 +160,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_callback_url_success_sls_logger(self):
         self._callback_url_success_sls_logger(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_callback_url_success_sls_logger_v2(self):
         self._callback_url_success_sls_logger(True)
@@ -436,7 +434,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_creation_on_approval_token_logger(self):
         self._creation_on_approval_token_logger(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_creation_on_approval_token_logger_v2(self):
         self._creation_on_approval_token_logger(True)

@@ -8,7 +8,7 @@ WAFFLE_FEATURE_SWITCHES = (('outreach_email', True),
                            ('login', True),
                            ('signup', True),
                            ('require-scopes', True),
-                           ('bfd_v2', True),
+                           ('testclient_v2', True),
                            ('slsx-enable', True))
 
 

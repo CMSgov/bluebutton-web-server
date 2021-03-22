@@ -99,13 +99,9 @@ class FhirDataView(APIView):
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
-        # api_ver = self.kwargs.get('ver', 'v1')
         # BB2-291 v2 switch enforced here, entry of all fhir resources queries
-        if self.version == 2:
-            if (not waffle.switch_is_active('bfd_v2')):
-                raise exceptions.NotFound("bfd_v2 disabled.")
-            if (not waffle.flag_is_active(request, 'bfd_v2_flag')):
-                raise exceptions.NotFound("bfd_v2_flag not active.")
+        if self.version == 2 and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
+            raise exceptions.NotFound("bfd_v2_flag not active.")
 
         target_url = self.build_url(resource_router,
                                     resource_type,

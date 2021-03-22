@@ -4,7 +4,7 @@ from django.test.client import Client
 from django.urls import reverse
 from httmock import all_requests, HTTMock
 from oauth2_provider.models import get_access_token_model
-from waffle.testutils import override_switch, override_flag
+from waffle.testutils import override_flag
 
 from apps.test import BaseApiTest
 
@@ -92,7 +92,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_read_patient_request(self):
         self._read_patient_request(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_read_patient_request_v2(self):
         self._read_patient_request(True)
@@ -124,7 +123,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_search_patient_request(self):
         self._search_patient_request(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_search_patient_request_v2(self):
         self._search_patient_request(True)
@@ -159,7 +157,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_search_eob_by_parameters_request(self):
         self._search_eob_by_parameters_request(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_search_eob_by_parameters_request_v2(self):
         self._search_eob_by_parameters_request(True)
@@ -258,7 +255,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_read_eob_request(self):
         self._read_eob_request(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_read_eob_request_v2(self):
         self._read_eob_request(True)
@@ -289,7 +285,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_read_eob_inpatient_request(self):
         self._read_eob_inpatient_request(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_read_eob_inpatient_request_v2(self):
         self._read_eob_inpatient_request(True)
@@ -319,7 +314,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_read_eob_outpatient_request(self):
         self._read_eob_outpatient_request(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_read_eob_outpatient_request_v2(self):
         self._read_eob_outpatient_request(True)
@@ -349,7 +343,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_read_coverage_request(self):
         self._read_coverage_request(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_read_coverage_request_v2(self):
         self._read_coverage_request(True)
@@ -391,7 +384,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_search_coverage_request(self):
         self._search_coverage_request(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_search_coverage_request_v2(self):
         self._search_coverage_request(True)
@@ -435,7 +427,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_fhir_meta_request(self):
         self._query_fhir_meta(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_fhir_meta_request_v2(self):
         self._query_fhir_meta(True)
@@ -465,7 +456,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_userinfo_request(self):
         self._query_userinfo(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_userinfo_request_v2(self):
         self._query_userinfo(True)
@@ -494,7 +484,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_err_response_caused_by_illegalarguments(self):
         self._err_response_caused_by_illegalarguments(False)
 
-    @override_switch('bfd_v2', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_err_response_caused_by_illegalarguments_v2(self):
         self._err_response_caused_by_illegalarguments(True)

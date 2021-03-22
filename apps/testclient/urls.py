@@ -1,14 +1,13 @@
 from django.conf.urls import url
-from .views import (authorize_link, restart, callback, test_eob, test_eob_v2, test_userinfo, test_userinfo_v2,
+from .views import (authorize_link, authorize_link_v2, restart, callback, test_eob, test_eob_v2, test_userinfo, test_userinfo_v2,
                     test_coverage, test_coverage_v2, test_patient, test_patient_v2, test_links)
 
 urlpatterns = [
 
     url(r'^restart$', restart, name='testclient-restart'),
     url(r'^callback$', callback, name='testclient-callback'),
-    url(r'^callback-v2$', callback, {"ver": "v2"}, name='testclient-callback-v2'),
     url(r'^authorize-link$', authorize_link, name='authorize_link'),
-    url(r'^authorize-link-v2$', authorize_link, {"ver": "v2"}, name='authorize_link_v2'),
+    url(r'^authorize-link-v2$', authorize_link_v2, name='authorize_link_v2'),
     url(r'^$', test_links, name='test_links'),
     url(r'^ExplanationOfBenefit$', test_eob, name='test_eob'),
     url(r'^Patient$', test_patient, name='test_patient'),

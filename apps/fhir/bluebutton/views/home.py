@@ -17,7 +17,11 @@ from apps.fhir.bluebutton.utils import (request_call,
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-def fhir_conformance(request, via_oauth=False, *args, **kwargs):
+def fhir_conformance_v2(request, via_oauth=False):
+    return fhir_conformance(request, via_oauth, True)
+
+
+def fhir_conformance(request, via_oauth=False, v2=False, *args):
     """ Pull and filter fhir Conformance statement
 
     BaseStu3 = "CapabilityStatement"
@@ -31,7 +35,6 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     crosswalk = None
     resource_router = get_resourcerouter()
     parsed_url = urlparse(resource_router.fhir_url)
-    v2 = True if kwargs.get('ver', 'v1') == 'v2' else False
     call_to = None
     if parsed_url.path is not None:
         call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc, 'v2' if v2 else 'v1')
