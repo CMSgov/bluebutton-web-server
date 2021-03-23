@@ -28,11 +28,10 @@ def process_error_response(response: Fhir_Response) -> APIException:
                         issues = json.get('issue')
                         issue = issues[0] if issues else None
                         diagnostics = issue.get('diagnostics') if issue else None
-                        if diagnostics is not None:
-                            if "IllegalArgumentException" in diagnostics:
-                                err = BadRequestToBackendError("{}:{}".format(msg, diagnostics))
-                            else:
-                                err = UpstreamServerException("{}:{}".format(msg, diagnostics))
+                        if diagnostics is not None and "Unsupported ID pattern" in diagnostics:
+                            err = BadRequestToBackendError("{}:{}".format(msg, diagnostics))
+                        else:
+                            err = UpstreamServerException("{}:{}".format(msg, diagnostics))
                 except Exception:
                     pass
     return err
