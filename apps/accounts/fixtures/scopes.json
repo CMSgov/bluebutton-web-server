@@ -15,7 +15,7 @@
             "slug": "patient/Patient.read",
             "group": 5,
             "description": "Patient FHIR Resource",
-            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v1/fhir/Patient[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v2/fhir/Patient[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v1/fhir/Patient[/?].*$\"\n  ],\n [\n    \"GET\",\n   \"/v2/fhir/Patient[/?].*$\"\n  ]\n]",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Patient[/]?$\"\n  ],\n [\n    \"GET\",\n   \"/v[12]/fhir/Patient[/?].*$\"\n  ]\n]",
             "default": "True"
         }
     },
@@ -27,7 +27,7 @@
             "slug": "profile",
             "group": 5,
             "description": "OIDC userinfo endpoint /connect/userinfo",
-            "protected_resources": "[\n  [\n    \"GET\",\n    \"/v1/connect/userinfo.*$\"\n  ],\n [\n    \"GET\",\n    \"/v2/connect/userinfo.*$\"\n  ]\n]",
+            "protected_resources": "[\n  [\n    \"GET\",\n    \"/v[12]/connect/userinfo.*$\"\n  ]\n]",
             "default": "True"
         }
     },
@@ -39,7 +39,7 @@
             "slug": "patient/ExplanationOfBenefit.read",
             "group": 5,
             "description": "ExplanationOfBenefit FHIR Resource",
-            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v1/fhir/ExplanationOfBenefit[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v2/fhir/ExplanationOfBenefit[/]?$\"\n  ],\n [\n    \"GET\",\n   \"/v1/fhir/ExplanationOfBenefit[/?].*$\"\n  ],\n [\n    \"GET\",\n   \"/v2/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/ExplanationOfBenefit[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[12]/fhir/ExplanationOfBenefit[/?].*$\"\n  ]\n]",
             "default": "True"
         }
     },
@@ -51,7 +51,7 @@
             "slug": "patient/Coverage.read",
             "group": 5,
             "description": "Coverage FHIR Resource",
-            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v1/fhir/Coverage[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v2/fhir/Coverage[/]?$\"\n  ],\n [\n    \"GET\",\n   \"/v1/fhir/Coverage[/?].*$\"\n  ],\n [\n    \"GET\",\n   \"/v2/fhir/Coverage[/?].*$\"\n  ]\n]",
+            "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[12]/fhir/Coverage[/?].*$\"\n  ]\n]",
             "default": "True"
         }
     },
@@ -65,6 +65,19 @@
             "description": "Allow an app to manage all of a user's tokens.",
             "protected_resources": "[]",
             "protected_resources": "[[\"GET\", \"/some-url\"]]",
+            "default": "False"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 6,
+        "fields": {
+            "title": "Token Introspect",
+            "slug": "token_introspect",
+            "group": 5,
+            "description": "Allow an app to introspect a user's tokens.",
+            "protected_resources": "[]",
+            "protected_resources": "[[\"POST\", \"/v[12]/o/introspect\"]]",
             "default": "False"
         }
     }
