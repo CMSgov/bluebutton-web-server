@@ -5,7 +5,7 @@ from rest_framework import status
 from django.conf.urls import include, url
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
-from apps.fhir.bluebutton.views.home import fhir_conformance
+from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 
 admin.autodiscover()
@@ -23,6 +23,15 @@ urlpatterns = [
     url(r'^v1/o/', include('apps.dot_ext.urls')),
     url(r'^v1/o/', include('apps.authorization.urls')),
     url(r'^v1/', include('apps.openapi.urls')),
+
+    url(r'^v2/accounts/', include('apps.accounts.v2.urls')),
+    url(r'^v2/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo_v2'),
+    url(r'^v2/fhir/metadata$', fhir_conformance_v2, name='fhir_conformance_metadata_v2'),
+    url(r'^v2/fhir/', include('apps.fhir.bluebutton.v2.urls')),
+    url(r'^v2/o/', include('apps.dot_ext.v2.urls')),
+    url(r'^v2/o/', include('apps.authorization.v2.urls')),
+    url(r'^v2/', include('apps.openapi.urls')),
+
     url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
 
 

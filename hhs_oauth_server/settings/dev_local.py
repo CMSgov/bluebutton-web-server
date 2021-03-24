@@ -4,7 +4,7 @@ from .base import *
 DEBUG = True
 SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
 
-HOSTNAME_URL = env('HOSTNAME_URL', 'http://127.0.0.1:8000')
+HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 
 DEV_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------

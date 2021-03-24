@@ -26,10 +26,12 @@ class BBMyMedicareSLSxUserinfoException(APIException):
 
 
 class OAuth2Config(object):
-    token_endpoint = settings.SLS_TOKEN_ENDPOINT
-    redirect_uri = settings.MEDICARE_REDIRECT_URI
-    verify_ssl = getattr(settings, 'SLS_VERIFY_SSL', False)
-    token = None
+    def __init__(self):
+        self.redirect_uri = settings.MEDICARE_REDIRECT_URI
+
+        self.token_endpoint = settings.SLS_TOKEN_ENDPOINT
+        self.verify_ssl = getattr(settings, 'SLS_VERIFY_SSL', False)
+        self.token = None
 
     @property
     def client_id(self):

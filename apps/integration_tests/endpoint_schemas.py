@@ -18,6 +18,20 @@ USERINFO_SCHEMA = {
                  'iat', 'name', 'patient', 'sub'],
 }
 
+FHIR_META_SCHEMA = {
+    "title": "CapabilityStatement",
+    'type': 'object',
+    'properties': {
+        "resourceType": {"type": "string"},
+        "date": {"type": "string"},
+        "publisher": {"type": "string"},
+        "fhirVersion": {"type": "string"},
+        "rest": {"type": "array"},
+    },
+    'required': ['resourceType', 'date', 'publisher',
+                 'fhirVersion', 'rest'],
+}
+
 PATIENT_READ_SCHEMA = {
     "title": "PatientRead",
     "type": "object",
@@ -59,6 +73,22 @@ COVERAGE_READ_SCHEMA = {
     "required": ["id", "resourceType", "extension", "status", "type", "beneficiary", "grouping"]
 }
 
+COVERAGE_READ_SCHEMA_V2 = {
+    "title": "CoverageRead",
+    "type": "object",
+    "properties": {
+        "resourceType": {"type": "string"},
+        "id": {"type": "string"},
+        "extension": {"type": "array"},
+        "status": {"type": "string"},
+        "type": {"type": "object"},
+        "beneficiary": {"type": "object"},
+        "subscriberId": {"type": "string"},
+        "relationship": {"type": "object"},
+    },
+    "required": ["id", "resourceType", "extension", "status", "type", "beneficiary", "subscriberId", "relationship"]
+}
+
 COVERAGE_SEARCH_SCHEMA = {
     "title": "CoverageSearch",
     "type": "object",
@@ -80,6 +110,17 @@ EOB_READ_SCHEMA = {
         "contained": {"type": "array"}
     },
     "required": ["id", "resourceType", "contained"]
+}
+
+EOB_READ_INPT_SCHEMA = {
+    "title": "ExplenationofBenefitRead",
+    "type": "object",
+    "properties": {
+        "resourceType": {"type": "string"},
+        "id": {"type": "string"},
+        "contained": {"type": "array"}
+    },
+    "required": ["id", "resourceType"]
 }
 
 EOB_SEARCH_SCHEMA = {

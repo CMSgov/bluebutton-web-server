@@ -12,14 +12,14 @@ from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-def django_rds_database():
+def django_rds_database(v2=False):
     connection.ensure_connection()
     return connection.is_usable()
 
 
-def bfd_fhir_dataserver():
+def bfd_fhir_dataserver(v2=False):
     resource_router = get_resourcerouter()
-    target_url = resource_router.fhir_url + "metadata"
+    target_url = "{}{}".format(resource_router.fhir_url, "/v2/fhir/metadata" if v2 else "/v1/fhir/metadata")
     r = requests.get(target_url,
                      params={"_format": "json"},
                      cert=backend_connection.certs(),
@@ -32,7 +32,7 @@ def bfd_fhir_dataserver():
     return r.json()
 
 
-def slsx():
+def slsx(v2=False):
     # SLS vs. SLSx flow based on feature switch slsx-enable (true = SLSx / false = SLS)
     # TODO: Remove switch logic after migration to SLSx
     if waffle.switch_is_active('slsx-enable'):

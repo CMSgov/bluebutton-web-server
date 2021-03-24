@@ -500,7 +500,7 @@ FHIR_CLIENT_CERTSTORE = env('DJANGO_FHIR_CERTSTORE',
                             os.path.join(BASE_DIR, env('DJANGO_FHIR_CERTSTORE_REL', '../certstore')))
 
 FHIR_SERVER = {
-    "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us/v1/fhir/"),
+    "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
     "CERT_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", "ca.cert.pem")),
     "KEY_FILE": os.path.join(FHIR_CLIENT_CERTSTORE, env("FHIR_KEY_FILE", "ca.key.nocrypt.pem")),
     "CLIENT_AUTH": True,
@@ -585,6 +585,7 @@ USER_ID_TYPE_CHOICES = (('H', 'HICN'),
 
 USER_ID_TYPE_DEFAULT = "H"
 DEFAULT_SAMPLE_FHIR_ID = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID", "-20140000008325")
+TESTCLIENT_REDIRECT_URI = "/testclient/callback"
 
 OFFLINE = False
 EXTERNAL_LOGIN_TEMPLATE_NAME = '/v1/accounts/upstream-login'

@@ -36,8 +36,13 @@ class AuthorizationView(DotAuthorizationView):
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+    version = None
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
+
+    def __init__(self, version=1):
+        self.version = version
+        super().__init__()
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -182,13 +187,17 @@ class ApprovalView(AuthorizationView):
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+    version = None
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
+
+    def __init__(self, version=1):
+        self.version = version
+        super().__init__()
 
     def dispatch(self, request, uuid, *args, **kwargs):
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
-
         # trows DoesNotExist
         try:
             approval = Approval.objects.get(uuid=uuid)

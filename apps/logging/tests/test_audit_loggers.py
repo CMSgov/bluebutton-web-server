@@ -419,6 +419,7 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entry_dict = json.loads(log_entries[0])
 
             compare_dict = {
+                'api_ver': 'v1',
                 'includeAddressFields': 'False',
                 'path': 'patient search',
                 'type': 'fhir_auth_pre_fetch',
@@ -436,6 +437,7 @@ class TestAuditEventLoggers(BaseApiTest):
             # fhir_auth_post_fetch
             log_entry_dict = json.loads(log_entries[1])
             compare_dict = {
+                'api_ver': 'v1',
                 'code': 200,
                 'includeAddressFields': 'False',
                 'path': 'patient search',

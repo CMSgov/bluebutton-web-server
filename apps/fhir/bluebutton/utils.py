@@ -582,14 +582,14 @@ def get_response_text(fhir_response=None):
         return text_in
 
 
-def build_oauth_resource(request, format_type="json"):
+def build_oauth_resource(request, v2=False, format_type="json"):
     """
     Create a resource entry for oauth endpoint(s) for insertion
     into the conformance/capabilityStatement
 
     :return: security
     """
-    endpoints = build_endpoint_info(OrderedDict(),
+    endpoints = build_endpoint_info(OrderedDict(), v2,
                                     issuer=base_issuer(request))
     logger.info("\nEndpoints:%s" % endpoints)
 

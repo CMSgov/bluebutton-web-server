@@ -1,0 +1,188 @@
+{
+    "resourceType": "Bundle",
+    "id": "852cfa37-c00c-4be7-8f04-d210b7e374ed",
+    "meta": {
+        "lastUpdated": "2020-12-09T16:19:38.679+00:00"
+    },
+    "type": "searchset",
+    "total": 1,
+    "link": [
+        {
+            "relation": "first",
+            "url": "http://testserver/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-20140000008325"
+        },
+        {
+            "relation": "last",
+            "url": "http://testserver/v2/fhir/Patient?_format=application%2Fjson%2Bfhir&startIndex=0&_count=10&_id=-20140000008325"
+        },
+        {
+            "relation": "self",
+            "url": "http://testserver/v2/fhir/Patient/?_count=10&_format=application%2Fjson%2Bfhir&_id=-20140000008325&startIndex=0"
+        }
+    ],
+    "entry": [
+        {
+            "resource": {
+                "resourceType": "Patient",
+                "id": "-20140000008325",
+                "meta": {
+                    "lastUpdated": "2020-11-09T22:50:14.146+00:00"
+                },
+                "extension": [
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/race",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/race",
+                            "code": "1",
+                            "display": "White"
+                        }
+                    },
+                    {
+                        "url": "http://hl7.org/fhir/us/core/ValueSet/omb-race-category",
+                        "extension": [
+                            {
+                                "url": "ombCategory",
+                                "valueCoding": {
+                                    "system": "urn:oid:2.16.840.1.113883.6.238",
+                                    "code": "UNK",
+                                    "display": "Unknown"
+                                }
+                            },
+                            {
+                                "url": "text",
+                                "valueString": "Unknown"
+                            }
+                        ]
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/rfrnc_yr",
+                        "valueDate": "0003"
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_01",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_01",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_02",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_02",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_03",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_03",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_04",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_04",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_05",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_05",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_06",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_06",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_07",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_07",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_08",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_08",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_09",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_09",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_10",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_10",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_11",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_11",
+                            "code": "AA"
+                        }
+                    },
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/dual_12",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/dual_12",
+                            "code": "AA"
+                        }
+                    }
+                ],
+                "identifier": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
+                        "value": "-20140000008325"
+                    },
+                    {
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType",
+                                    "code": "PI",
+                                    "display": "Patient internal identifier"
+                                }
+                            ]
+                        },
+                        "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
+                        "value": "-20140000008325"
+                    }
+                ],
+                "active": false,
+                "name": [
+                    {
+                        "use": "usual",
+                        "family": "Doe",
+                        "given": [
+                            "Jane",
+                            "X"
+                        ]
+                    }
+                ],
+                "gender": "female",
+                "birthDate": "2014-06-01",
+                "deceasedDateTime": "1981-03-17",
+                "address": [
+                    {
+                        "state": "15",
+                        "postalCode": "99999"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -22,7 +22,9 @@ SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type'
                                 'auth_share_demographic_scopes', 'auth_require_demographic_scopes']
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
-AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = "(^/v1/o/authorize/.*|^/mymedicare/login$|^/mymedicare/sls-callback$|^/v1/o/token/$)"
+AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = ("(^/v[1|2]/o/authorize/.*"
+                                         "|^/mymedicare/login$|^/mymedicare/sls-callback$"
+                                         "|^/v[1|2]/o/token/$)")
 
 
 def is_path_part_of_auth_flow_trace(path):

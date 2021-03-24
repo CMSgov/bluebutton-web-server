@@ -206,7 +206,12 @@ def authenticate(request):
 
 
 @never_cache
-def callback(request):
+def callback_v2(request):
+    return callback(request, 2)
+
+
+@never_cache
+def callback(request, version=1):
     try:
         authenticate(request)
     except ValidationError as e:
@@ -260,9 +265,13 @@ def callback(request):
         user=request.user)
 
     # Only go back to app authorization
-    auth_uri = reverse('oauth2_provider:authorize-instance', args=[approval.uuid])
-    _, _, auth_path, _, _ = urlsplit(auth_uri)
+    url_map_name = 'oauth2_provider_v2:authorize-instance-v2' if version == 2 else 'oauth2_provider:authorize-instance'
+    auth_uri = reverse(url_map_name, args=[approval.uuid])
 
+    # if path.startswith('/v2/o/authorize/') and auth_uri.startswith('/v1/o/authorize/'):
+    #     auth_uri = auth_uri.replace("/v1/o/authorize/", "/v2/o/authorize/")
+
+    _, _, auth_path, _, _ = urlsplit(auth_uri)
     return HttpResponseRedirect(urlunsplit((scheme, netloc, auth_path, query_string, fragment)))
 
 
@@ -272,7 +281,12 @@ def generate_nonce(length=26):
 
 
 @never_cache
-def mymedicare_login(request):
+def mymedicare_login_v2(request):
+    return mymedicare_login(request, 2)
+
+
+@never_cache
+def mymedicare_login(request, version=1):
     # SLS vs. SLSx flow based on feature switch slsx-enable (true = SLSx / false = SLS).
     if waffle.switch_is_active('slsx-enable'):
         redirect = settings.MEDICARE_SLSX_REDIRECT_URI
@@ -291,19 +305,25 @@ def mymedicare_login(request):
             raise BBSLSxHealthCheckFailedException(settings.MEDICARE_ERROR_MSG)
 
         relay_param_name = "relay"
+        redirect = urllib_request.pathname2url(redirect)
+        state = generate_nonce()
+        state = urllib_request.pathname2url(state)
+        request.session[relay_param_name] = state
+        mymedicare_login_url = "%s&%s=%s&redirect_uri=%s" % (
+            mymedicare_login_url, relay_param_name, state, redirect)
+        next_uri = request.GET.get('next', "")
     else:
         # TODO: Deprecate SLS related code when SLSx is deployed and functioning in all ENVs
+        # check next_uri if is v2 authorize, correct redirect here (do not use default)
         redirect = settings.MEDICARE_REDIRECT_URI
+        next_uri = request.GET.get('next', "")
         mymedicare_login_url = settings.MEDICARE_LOGIN_URI
-        relay_param_name = "state"
-
-    redirect = urllib_request.pathname2url(redirect)
-    state = generate_nonce()
-    state = urllib_request.pathname2url(state)
-    request.session[relay_param_name] = state
-    mymedicare_login_url = "%s&%s=%s&redirect_uri=%s" % (
-        mymedicare_login_url, relay_param_name, state, redirect)
-    next_uri = request.GET.get('next', "")
+        redirect = urllib_request.pathname2url(redirect)
+        state = generate_nonce()
+        state = urllib_request.pathname2url(state)
+        request.session['state'] = state
+        mymedicare_login_url = "{}&state={}&redirect_uri={}".format(
+            mymedicare_login_url, state, redirect)
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
 

@@ -1,4 +1,7 @@
+import waffle
+
 from django.http import JsonResponse
+from rest_framework import exceptions
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.capabilities.permissions import TokenHasProtectedCapability
@@ -32,7 +35,9 @@ def get_userinfo(user):
 @authentication_classes([OAuth2Authentication])
 @permission_classes([ApplicationActivePermission, TokenHasProtectedCapability])
 @protected_resource()
-def openidconnect_userinfo(request):
+def openidconnect_userinfo(request, **kwargs):
+    if request.path.startswith('/v2') and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
+        raise exceptions.NotFound("bfd_v2_flag not active.")
     user = request.resource_owner
     data = get_userinfo(user)
     return JsonResponse(data)

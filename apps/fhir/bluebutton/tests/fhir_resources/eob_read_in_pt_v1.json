@@ -1,0 +1,1442 @@
+{
+    "resourceType": "ExplanationOfBenefit",
+    "id": "inpatient-4436342082",
+    "meta": {
+        "lastUpdated": "2021-02-17T00:32:37.547+00:00"
+    },
+    "extension": [
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_pass_thru_per_diem_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_profnl_cmpnt_chrg_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_tot_pps_cptl_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_uncompd_care_pmt_amt",
+            "valueMoney": {
+                "value": 6.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_bene_ip_ddctbl_amt",
+            "valueMoney": {
+                "value": 1000.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_bene_pta_coinsrnc_lblty_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_ip_ncvrd_chrg_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_ip_tot_ddctn_amt",
+            "valueMoney": {
+                "value": 1000.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_pps_cptl_dsprprtnt_shr_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_pps_cptl_excptn_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_pps_cptl_fsp_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_pps_cptl_ime_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_pps_cptl_outlier_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_pps_old_cptl_hld_hrmls_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_drg_outlier_aprvd_pmt_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_bene_blood_ddctbl_lblty_am",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/prpayamt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/fi_num",
+            "valueIdentifier": {
+                "system": "https://bluebutton.cms.gov/resources/variables/fi_num",
+                "value": "99999"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/fi_doc_clm_cntl_num",
+            "valueIdentifier": {
+                "system": "https://bluebutton.cms.gov/resources/variables/fi_doc_clm_cntl_num",
+                "value": "00000000000000000000000"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/fi_orig_clm_cntl_num",
+            "valueIdentifier": {
+                "system": "https://bluebutton.cms.gov/resources/variables/fi_orig_clm_cntl_num",
+                "value": "00000000000000000000000"
+            }
+        }
+    ],
+    "identifier": [
+        {
+            "system": "https://bluebutton.cms.gov/resources/variables/clm_id",
+            "value": "4436342082"
+        },
+        {
+            "system": "https://bluebutton.cms.gov/resources/identifier/claim-group",
+            "value": "52241843218"
+        }
+    ],
+    "status": "active",
+    "type": {
+        "coding": [
+            {
+                "system": "https://bluebutton.cms.gov/resources/variables/nch_clm_type_cd",
+                "code": "60",
+                "display": "Inpatient claim"
+            },
+            {
+                "system": "https://bluebutton.cms.gov/resources/codesystem/eob-type",
+                "code": "INPATIENT"
+            },
+            {
+                "system": "http://hl7.org/fhir/ex-claimtype",
+                "code": "institutional",
+                "display": "Institutional"
+            },
+            {
+                "system": "https://bluebutton.cms.gov/resources/variables/nch_near_line_rec_ident_cd",
+                "code": "V",
+                "display": "Part A institutional claim record (inpatient [IP], skilled nursing facility [SNF], hospice [HOS], or home health agency [HHA])"
+            },
+            {
+                "system": "https://bluebutton.cms.gov/resources/variables/clm_srvc_clsfctn_type_cd",
+                "code": "1"
+            }
+        ]
+    },
+    "patient": {
+        "reference": "Patient/-20140000008325"
+    },
+    "billablePeriod": {
+        "extension": [
+            {
+                "url": "https://bluebutton.cms.gov/resources/variables/claim_query_cd",
+                "valueCoding": {
+                    "system": "https://bluebutton.cms.gov/resources/variables/claim_query_cd",
+                    "code": "3",
+                    "display": "Final bill"
+                }
+            }
+        ],
+        "start": "2015-04-01",
+        "end": "2015-04-01"
+    },
+    "provider": {
+        "identifier": {
+            "system": "https://bluebutton.cms.gov/resources/variables/prvdr_num",
+            "value": "999999"
+        }
+    },
+    "organization": {
+        "identifier": {
+            "system": "http://hl7.org/fhir/sid/us-npi",
+            "value": "9999999999"
+        }
+    },
+    "facility": {
+        "extension": [
+            {
+                "url": "https://bluebutton.cms.gov/resources/variables/clm_fac_type_cd",
+                "valueCoding": {
+                    "system": "https://bluebutton.cms.gov/resources/variables/clm_fac_type_cd",
+                    "code": "1",
+                    "display": "Hospital"
+                }
+            }
+        ],
+        "identifier": {
+            "system": "http://hl7.org/fhir/sid/us-npi",
+            "value": "9999999999"
+        }
+    },
+    "information": [
+        {
+            "sequence": 1,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/nch_wkly_proc_dt",
+                        "display": "NCH Weekly Claim Processing Date"
+                    }
+                ]
+            },
+            "timingDate": "2015-05-22"
+        },
+        {
+            "sequence": 2,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/nch_ptnt_stus_ind_cd",
+                        "display": "NCH Patient Status Indicator Code"
+                    }
+                ]
+            },
+            "code": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/nch_ptnt_stus_ind_cd",
+                        "code": "A",
+                        "display": "Discharged"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 3,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/clm_ip_admsn_type_cd",
+                        "display": "Claim Inpatient Admission Type Code"
+                    }
+                ]
+            },
+            "code": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_ip_admsn_type_cd",
+                        "code": "1",
+                        "display": "Emergency - The patient required immediate medical intervention as a result of severe, life threatening, or potentially disabling conditions. Generally, the patient was admitted through the emergency room."
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 4,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/clm_src_ip_admsn_cd",
+                        "display": "Claim Source Inpatient Admission Code"
+                    }
+                ]
+            },
+            "code": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_src_ip_admsn_cd",
+                        "code": "1"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 5,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/nch_blood_pnts_frnshd_qty",
+                        "display": "NCH Blood Pints Furnished Quantity"
+                    }
+                ]
+            },
+            "valueQuantity": {
+                "value": 0,
+                "unit": "pint",
+                "system": "http://unitsofmeasure.org",
+                "code": "[pt_us]"
+            }
+        },
+        {
+            "sequence": 6,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/clm_freq_cd",
+                        "display": "Claim Frequency Code"
+                    }
+                ]
+            },
+            "code": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_freq_cd",
+                        "code": "1",
+                        "display": "Admit thru discharge claim"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 7,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/ptnt_dschrg_stus_cd",
+                        "display": "Patient Discharge Status Code"
+                    }
+                ]
+            },
+            "code": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/ptnt_dschrg_stus_cd",
+                        "code": "01",
+                        "display": "Discharged to home/self-care (routine charge)."
+                    }
+                ]
+            }
+        }
+    ],
+    "careTeam": [
+        {
+            "sequence": 2,
+            "provider": {
+                "identifier": {
+                    "system": "http://hl7.org/fhir/sid/us-npi",
+                    "value": "9999999999"
+                }
+            },
+            "role": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/claimcareteamrole",
+                        "code": "assist",
+                        "display": "Assisting Provider"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 3,
+            "provider": {
+                "identifier": {
+                    "system": "http://hl7.org/fhir/sid/us-npi",
+                    "value": "9999999999"
+                }
+            },
+            "role": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/claimcareteamrole",
+                        "code": "other",
+                        "display": "Other"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 4,
+            "provider": {
+                "identifier": {
+                    "system": "http://hl7.org/fhir/sid/us-npi",
+                    "value": "9999999999"
+                }
+            },
+            "role": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/claimcareteamrole",
+                        "code": "primary",
+                        "display": "Primary provider"
+                    }
+                ]
+            }
+        }
+    ],
+    "diagnosis": [
+        {
+            "packageCode": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_drg_cd",
+                        "code": "191"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 2,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "49392",
+                        "display": "ASTHMA NOS W (AC) EXAC"
+                    }
+                ]
+            },
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": "https://bluebutton.cms.gov/resources/codesystem/diagnosis-type",
+                            "code": "admitting",
+                            "display": "The diagnosis given as the reason why the patient was admitted to the hospital."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "extension": [
+                {
+                    "url": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                    "valueCoding": {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                        "code": "Y",
+                        "display": "Diagnosis was present at the time of admission (POA)"
+                    }
+                }
+            ],
+            "sequence": 3,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "4940",
+                        "display": "BRONCHIECTAS W/O AC EXAC"
+                    }
+                ]
+            },
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": "https://bluebutton.cms.gov/resources/codesystem/diagnosis-type",
+                            "code": "principal",
+                            "display": "The single medical diagnosis that is most relevant to the patient's chief complaint or need for treatment."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "extension": [
+                {
+                    "url": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                    "valueCoding": {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                        "code": "Y",
+                        "display": "Diagnosis was present at the time of admission (POA)"
+                    }
+                }
+            ],
+            "sequence": 4,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "49322",
+                        "display": "CH OBST ASTH W (AC) EXAC"
+                    }
+                ]
+            }
+        },
+        {
+            "extension": [
+                {
+                    "url": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                    "valueCoding": {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                        "code": "Y",
+                        "display": "Diagnosis was present at the time of admission (POA)"
+                    }
+                }
+            ],
+            "sequence": 5,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "4619",
+                        "display": "ACUTE SINUSITIS NOS"
+                    }
+                ]
+            }
+        },
+        {
+            "extension": [
+                {
+                    "url": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                    "valueCoding": {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                        "code": "Y",
+                        "display": "Diagnosis was present at the time of admission (POA)"
+                    }
+                }
+            ],
+            "sequence": 6,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "79902",
+                        "display": "HYPOXEMIA"
+                    }
+                ]
+            }
+        },
+        {
+            "extension": [
+                {
+                    "url": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                    "valueCoding": {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                        "code": "Y",
+                        "display": "Diagnosis was present at the time of admission (POA)"
+                    }
+                }
+            ],
+            "sequence": 7,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "2449",
+                        "display": "HYPOTHYROIDISM NOS"
+                    }
+                ]
+            }
+        },
+        {
+            "extension": [
+                {
+                    "url": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                    "valueCoding": {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_poa_ind_sw1",
+                        "code": "Y",
+                        "display": "Diagnosis was present at the time of admission (POA)"
+                    }
+                }
+            ],
+            "sequence": 8,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "4019",
+                        "display": "HYPERTENSION NOS"
+                    }
+                ]
+            }
+        }
+    ],
+    "insurance": {
+        "coverage": {
+            "reference": "Coverage/part-a--20140000008325"
+        }
+    },
+    "hospitalization": {
+        "start": "2015-04-01",
+        "end": "2015-04-01"
+    },
+    "item": [
+        {
+            "sequence": 1,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0111",
+                        "display": "Private medical or general-medical/surgical/GYN"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 3
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 4000.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 2,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0250",
+                        "display": "Pharmacy-general classification"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 147
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 650.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 3,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0271",
+                        "display": "Medical/surgical supplies-nonsterile supply"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 3
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 500.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 4,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0300",
+                        "display": "Laboratory-general classification"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 2
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 40.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 5,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0301",
+                        "display": "Laboratory-chemistry"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 3
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 450.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 6,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0305",
+                        "display": "Laboratory-hematology"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 2
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 80.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 7,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0306",
+                        "display": "Laboratory-bacteriology & microbiology"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 3
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 450.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 8,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0410",
+                        "display": "Respiratory services-general classification"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 10
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 1000.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 9,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0412",
+                        "display": "Respiratory services-inhalation services"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 18
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 2000.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 10,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0460",
+                        "display": "Pulmonary function-general classification"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 3
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 200.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 11,
+            "revenue": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0001",
+                        "display": "Total charge"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 0
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 10000.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        }
+    ],
+    "totalCost": {
+        "value": 10000.0,
+        "system": "urn:iso:std:iso:4217",
+        "code": "USD"
+    },
+    "payment": {
+        "amount": {
+            "value": 10000.0,
+            "system": "urn:iso:std:iso:4217",
+            "code": "USD"
+        }
+    },
+    "benefitBalance": [
+        {
+            "category": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/benefit-category",
+                        "code": "medical",
+                        "display": "Medical Health Coverage"
+                    }
+                ]
+            },
+            "financial": [
+                {
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/benefit-balance",
+                                "code": "https://bluebutton.cms.gov/resources/variables/bene_tot_coinsrnc_days_cnt",
+                                "display": "Beneficiary Total Coinsurance Days Count"
+                            }
+                        ]
+                    },
+                    "usedUnsignedInt": 7
+                },
+                {
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/benefit-balance",
+                                "code": "https://bluebutton.cms.gov/resources/variables/clm_non_utlztn_days_cnt",
+                                "display": "Claim Medicare Non Utilization Days Count"
+                            }
+                        ]
+                    },
+                    "usedUnsignedInt": 10
+                },
+                {
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/benefit-balance",
+                                "code": "https://bluebutton.cms.gov/resources/variables/clm_utlztn_day_cnt",
+                                "display": "Claim Medicare Utilization Day Count"
+                            }
+                        ]
+                    },
+                    "usedUnsignedInt": 9
+                }
+            ]
+        }
+    ]
+}
