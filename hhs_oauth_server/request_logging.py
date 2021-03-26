@@ -108,8 +108,6 @@ class RequestResponseLog(object):
         - user_id = Login user (or None) or OAuth2 API id. (BB2-342)
         - user = Login user (or None) or OAuth2 API username.
         - user_username = Login user (or None) or OAuth2 API username. (BB2-342)
-        - x-ratelimit-limit = Rate limit max.
-        - x-ratelimit-remaining = Remaining counter for rate limit.
     """
     request = None
     response = None
