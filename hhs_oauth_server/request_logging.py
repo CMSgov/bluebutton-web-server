@@ -325,9 +325,6 @@ class RequestResponseLog(object):
         elif getattr(self.response, 'content', False):
             self.log_msg['size'] = len(self.response.content)
 
-        self.log_msg['x-ratelimit-limit'] = self.response.get('x-ratelimit-limit', None)
-        self.log_msg['x-ratelimit-remaining'] = self.response.get('x-ratelimit-remaining', None)
-
         '''
         --- Logging items from a FHIR type response ---
         '''
