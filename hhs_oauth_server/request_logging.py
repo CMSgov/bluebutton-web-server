@@ -41,12 +41,13 @@ class RequestResponseLog(object):
         - dev_name = Developer user name.
         - elapsed = Response time (end_time - start_time)
         - end_time = Unix Epoch format time of the response processed.
-        - fhir_element_count = FHIR payload number of top level elements.
+        - fhir_attribute_count = FHIR payload number of top level object attributes.
+        - fhir_bundle_type = FHIR payload 'type'.
+        - fhir_entry_count = FHIR entry count in response.
         - fhir_id = Bene patient id.
         - fhir_resource_id = FHIR payload 'id'.
         - fhir_resource_type = FHIR payload 'resourceType'.
-        - fhir_total = FHIR payload 'total'.
-        - fhir_bundle_type = FHIR payload 'type'.
+        - fhir_total = FHIR payload entry count 'total'.
         - ip_addr = IP address of the request, account for the possibility of being behind a proxy.
         - location = Location (redirect) for 300,301,302,307 response codes.
         - path = The request.path.
@@ -330,7 +331,11 @@ class RequestResponseLog(object):
             self.log_msg['fhir_bundle_type'] = self.response.data.get('type', None)
             self.log_msg['fhir_resource_id'] = self.response.data.get('id', None)
             self.log_msg['fhir_resource_type'] = self.response.data.get('resourceType', None)
-            self.log_msg['fhir_element_count'] = len(self.response.data)
+            self.log_msg['fhir_attribute_count'] = len(self.response.data)
+            if self.response.data.get('entry', False):
+                self.log_msg['fhir_entry_count'] = len(self.response.data.get('entry'))
+            else:
+                self.log_msg['fhir_entry_count'] = None
             self.log_msg['fhir_total'] = self.response.data.get('total', None)
 
         '''
