@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
+from rest_framework.response import Response
 
 from apps.dot_ext.loggers import (SESSION_AUTH_FLOW_TRACE_KEYS,
                                   get_session_auth_flow_trace,
@@ -38,8 +39,15 @@ class RequestResponseLog(object):
         - auth_uuid = The UUID identifying the auth flow session.
         - dev_id = Developer user id.
         - dev_name = Developer user name.
+        - elapsed = Response time (end_time - start_time)
         - end_time = Unix Epoch format time of the response processed.
+        - fhir_attribute_count = FHIR payload number of top level object attributes.
+        - fhir_bundle_type = FHIR payload 'type'.
+        - fhir_entry_count = FHIR entry count in response.
         - fhir_id = Bene patient id.
+        - fhir_resource_id = FHIR payload 'id'.
+        - fhir_resource_type = FHIR payload 'resourceType'.
+        - fhir_total = FHIR payload entry count 'total'.
         - ip_addr = IP address of the request, account for the possibility of being behind a proxy.
         - location = Location (redirect) for 300,301,302,307 response codes.
         - path = The request.path.
@@ -166,6 +174,7 @@ class RequestResponseLog(object):
         '''
         self.log_msg['start_time'] = self.request._logging_start_dt.timestamp()
         self.log_msg['end_time'] = datetime.datetime.utcnow().timestamp()
+        self.log_msg['elapsed'] = datetime.datetime.utcnow().timestamp() - self.request._logging_start_dt.timestamp()
         self.log_msg['ip_addr'] = get_ip_from_request(self.request)
         self.log_msg['request_uuid'] = str(self.request._logging_uuid)
 
@@ -314,6 +323,20 @@ class RequestResponseLog(object):
             self.log_msg['location'] = self.response.get('Location', '?')
         elif getattr(self.response, 'content', False):
             self.log_msg['size'] = len(self.response.content)
+
+        '''
+        --- Logging items from a FHIR type response ---
+        '''
+        if type(self.response) == Response:
+            self.log_msg['fhir_bundle_type'] = self.response.data.get('type', None)
+            self.log_msg['fhir_resource_id'] = self.response.data.get('id', None)
+            self.log_msg['fhir_resource_type'] = self.response.data.get('resourceType', None)
+            self.log_msg['fhir_attribute_count'] = len(self.response.data)
+            if self.response.data.get('entry', False):
+                self.log_msg['fhir_entry_count'] = len(self.response.data.get('entry'))
+            else:
+                self.log_msg['fhir_entry_count'] = None
+            self.log_msg['fhir_total'] = self.response.data.get('total', None)
 
         '''
         --- Logging items from response content (refresh_token)
