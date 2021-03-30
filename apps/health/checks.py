@@ -1,6 +1,5 @@
 import logging
 import requests
-import waffle
 
 from django.db import connection
 
@@ -33,15 +32,12 @@ def bfd_fhir_dataserver(v2=False):
 
 
 def slsx(v2=False):
-    # SLS vs. SLSx flow based on feature switch slsx-enable (true = SLSx / false = SLS)
-    # TODO: Remove switch logic after migration to SLSx
-    if waffle.switch_is_active('slsx-enable'):
-        # Perform health check on SLSx service
-        slsx_client = OAuth2ConfigSLSx()
-        try:
-            slsx_client.service_health_check()
-        except requests.exceptions.HTTPError as e:
-            return "SLSx service health check error {reason}".format(reason=e).json()
+    # Perform health check on SLSx service
+    slsx_client = OAuth2ConfigSLSx()
+    try:
+        slsx_client.service_health_check()
+    except requests.exceptions.HTTPError as e:
+        return "SLSx service health check error {reason}".format(reason=e).json()
     return True
 
 
