@@ -45,7 +45,7 @@ class BBSLSxHealthCheckFailedException(APIException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
 
-# For SLS auth workflow info, see apps/mymedicare_db/README.md
+# For SLSx auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
     request_state = request.GET.get('relay')
@@ -88,7 +88,7 @@ def authenticate(request):
     if sls_email is None:
         sls_email = ""
 
-    # If MBI returned from SLS is blank, set to None for hash logging
+    # If MBI returned from SLSx is blank, set to None for hash logging
     if sls_mbi == "":
         sls_mbi = None
 
@@ -142,6 +142,11 @@ def authenticate(request):
 
     # Update request user.
     request.user = user
+
+
+@never_cache
+def callback_v2(request):
+    return callback(request, 2)
 
 
 @never_cache

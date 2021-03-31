@@ -20,7 +20,7 @@ from apps.test import BaseApiTest
 from .audit_logger_schemas import (ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, AUTHENTICATION_START_LOG_SCHEMA,
                                    AUTHENTICATION_SUCCESS_LOG_SCHEMA, AUTHORIZATION_LOG_SCHEMA,
                                    FHIR_AUTH_POST_FETCH_LOG_SCHEMA, FHIR_AUTH_PRE_FETCH_LOG_SCHEMA,
-                                   FHIR_POST_FETCH_LOG_SCHEMA, FHIR_PRE_FETCH_LOG_SCHEMA,
+                                   get_post_fetch_fhir_log_entry_schema, get_pre_fetch_fhir_log_entry_schema,
                                    MATCH_FHIR_ID_LOG_SCHEMA, MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA,
                                    MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA,
                                    SLSX_TOKEN_LOG_SCHEMA, SLSX_USERINFO_LOG_SCHEMA)
@@ -64,6 +64,7 @@ class TestAuditEventLoggers(BaseApiTest):
     def setUp(self):
         Group.objects.create(name='BlueButton')
         self.callback_url = reverse('mymedicare-sls-callback')
+        self.callback_url_v2 = reverse('mymedicare-sls-callback-v2')
         self.read_capability = self._create_capability('Read', [])
         self.write_capability = self._create_capability('Write', [])
         self._create_capability('patient', [
@@ -108,7 +109,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate FHIR Patient response
             log_entry_dict = json.loads(fhir_log_content)
-            self.assertTrue(self._validateJsonSchema(FHIR_PRE_FETCH_LOG_SCHEMA, log_entry_dict))
+            self.assertTrue(self._validateJsonSchema(get_pre_fetch_fhir_log_entry_schema(2 if v2 else 1), log_entry_dict))
 
             return {
                 'status_code': 200,
@@ -118,7 +119,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         with HTTMock(catchall):
             self.client.get(
-                reverse('bb_oauth_fhir_patient_search'),
+                reverse('bb_oauth_fhir_patient_search' if not v2 else 'bb_oauth_fhir_patient_search_v2'),
                 {'count': 5, 'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
@@ -130,11 +131,11 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # Validate fhir_pre_fetch entry
             log_entry_dict = json.loads(log_entries[0])
-            self.assertTrue(self._validateJsonSchema(FHIR_PRE_FETCH_LOG_SCHEMA, log_entry_dict))
+            self.assertTrue(self._validateJsonSchema(get_pre_fetch_fhir_log_entry_schema(2 if v2 else 1), log_entry_dict))
 
             # Validate fhir_post_fetch entry
             log_entry_dict = json.loads(log_entries[1])
-            self.assertTrue(self._validateJsonSchema(FHIR_POST_FETCH_LOG_SCHEMA, log_entry_dict))
+            self.assertTrue(self._validateJsonSchema(get_post_fetch_fhir_log_entry_schema(2 if v2 else 1), log_entry_dict))
 
             # Validate AccessToken entry
             token_log_content = self.get_log_content('audit.authorization.token')
@@ -267,7 +268,7 @@ class TestAuditEventLoggers(BaseApiTest):
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
-
+        api_ver = 'v1' if not v2 else 'v2'
         self.client.login(username='anna', password='123456')
 
         payload = {
@@ -275,7 +276,7 @@ class TestAuditEventLoggers(BaseApiTest):
             'response_type': 'code',
             'redirect_uri': redirect_uri,
         }
-        response = self.client.get('/v1/o/authorize', data=payload)
+        response = self.client.get('/{}/o/authorize'.format(api_ver), data=payload)
         payload = {
             'client_id': application.client_id,
             'response_type': 'code',

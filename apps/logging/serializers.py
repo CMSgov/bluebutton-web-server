@@ -149,7 +149,8 @@ class SLSRequest(Request):
 
 
 class FHIRRequest(Request):
-    def __init__(self, request):
+    def __init__(self, request, api_ver=None):
+        self.api_ver = api_ver
         super().__init__(request)
 
     def includeAddressFields(self):
@@ -188,6 +189,7 @@ class FHIRRequest(Request):
             "type": "fhir_pre_fetch",
             "uuid": self.uuid(),
             "fhir_id": self.fhir_id(),
+            "api_ver": self.api_ver if self.api_ver is not None else 'v1',
             "includeAddressFields": self.includeAddressFields(),
             "user": self.user(),
             "application": self.application(),
@@ -197,7 +199,8 @@ class FHIRRequest(Request):
 
 
 class FHIRRequestForAuth(Request):
-    def __init__(self, request, auth_flow_dict=None):
+    def __init__(self, request, auth_flow_dict=None, api_ver=None):
+        self.api_ver = api_ver
         if auth_flow_dict:
             self.auth_flow_dict = auth_flow_dict
         else:
@@ -217,6 +220,7 @@ class FHIRRequestForAuth(Request):
         result = {
             "type": "fhir_auth_pre_fetch",
             "uuid": self.uuid(),
+            "api_ver": self.api_ver if self.api_ver is not None else 'v1',
             "includeAddressFields": self.includeAddressFields(),
             "path": "patient search",
             "start_time": self.start_time(),
@@ -264,11 +268,14 @@ class Response:
 class FHIRResponse(Response):
     request_class = FHIRRequest
 
-    def __init__(self, response):
+    def __init__(self, response, api_ver):
+        self.api_ver = api_ver
         super().__init__(response)
 
     def to_dict(self):
         super_dict = super().to_dict()
+        # add fhir version info
+        super_dict.update({"api_ver": self.api_ver if self.api_ver is not None else 'v1'})
         # over write type
         super_dict.update({"type": "fhir_post_fetch"})
         return super_dict
@@ -277,7 +284,8 @@ class FHIRResponse(Response):
 class FHIRResponseForAuth(Response):
     request_class = FHIRRequestForAuth
 
-    def __init__(self, response, auth_flow_dict=None):
+    def __init__(self, response, auth_flow_dict=None, api_ver=None):
+        self.api_ver = api_ver
         if auth_flow_dict:
             self.auth_flow_dict = auth_flow_dict
         else:
@@ -286,6 +294,8 @@ class FHIRResponseForAuth(Response):
 
     def to_dict(self):
         super_dict = super().to_dict()
+        # add fhir version info
+        super_dict.update({"api_ver": self.api_ver if self.api_ver is not None else 'v1'})
         # over write type
         super_dict.update({"type": "fhir_auth_post_fetch"})
         # Update with auth flow session info
@@ -343,67 +353,67 @@ class SLSxTokenResponse(SLSResponse):
             return json.dumps(self.to_dict())
 
 
-class SLSTokenResponse(SLSResponse):
-    request_class = SLSRequest
+# class SLSTokenResponse(SLSResponse):
+#     request_class = SLSRequest
 
-    def get_type(self):
-        return 'SLS_token'
+#     def get_type(self):
+#         return 'SLS_token'
 
-    def to_dict(self):
-        event_dict = json.loads(self.resp.text)
-        event_dict.update(super().to_dict().copy())
-        resp_dict = {
-            "type": event_dict['type'],
-            "uuid": event_dict['uuid'],
-            "path": event_dict['path'],
-            "access_token": hashlib.sha256(
-                str(event_dict['access_token']).encode('utf-8')).hexdigest(),
-            "code": event_dict['code'],
-            "size": event_dict['size'],
-            "start_time": event_dict['start_time'],
-            "elapsed": event_dict['elapsed'],
-        }
-        # Update with auth flow session info
-        resp_dict.update(self.auth_flow_dict)
+#     def to_dict(self):
+#         event_dict = json.loads(self.resp.text)
+#         event_dict.update(super().to_dict().copy())
+#         resp_dict = {
+#             "type": event_dict['type'],
+#             "uuid": event_dict['uuid'],
+#             "path": event_dict['path'],
+#             "access_token": hashlib.sha256(
+#                 str(event_dict['access_token']).encode('utf-8')).hexdigest(),
+#             "code": event_dict['code'],
+#             "size": event_dict['size'],
+#             "start_time": event_dict['start_time'],
+#             "elapsed": event_dict['elapsed'],
+#         }
+#         # Update with auth flow session info
+#         resp_dict.update(self.auth_flow_dict)
 
-        return resp_dict
+#         return resp_dict
 
-    def __str__(self):
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.to_dict(), indent=2)
-        else:
-            return json.dumps(self.to_dict())
+#     def __str__(self):
+#         if settings.LOG_JSON_FORMAT_PRETTY:
+#             return json.dumps(self.to_dict(), indent=2)
+#         else:
+#             return json.dumps(self.to_dict())
 
 
-class SLSUserInfoResponse(SLSResponse):
-    request_class = SLSRequest
+# class SLSUserInfoResponse(SLSResponse):
+#     request_class = SLSRequest
 
-    def get_type(self):
-        return 'SLS_userinfo'
+#     def get_type(self):
+#         return 'SLS_userinfo'
 
-    def to_dict(self):
-        event_dict = json.loads(self.resp.text)
-        event_dict.update(super().to_dict().copy())
-        resp_dict = {
-            "type": event_dict['type'],
-            "uuid": event_dict['uuid'],
-            "path": event_dict['path'],
-            "sub": event_dict['sub'],
-            "code": event_dict['code'],
-            "size": event_dict['size'],
-            "start_time": event_dict['start_time'],
-            "elapsed": event_dict['elapsed'],
-        }
-        # Update with auth flow session info
-        resp_dict.update(self.auth_flow_dict)
+#     def to_dict(self):
+#         event_dict = json.loads(self.resp.text)
+#         event_dict.update(super().to_dict().copy())
+#         resp_dict = {
+#             "type": event_dict['type'],
+#             "uuid": event_dict['uuid'],
+#             "path": event_dict['path'],
+#             "sub": event_dict['sub'],
+#             "code": event_dict['code'],
+#             "size": event_dict['size'],
+#             "start_time": event_dict['start_time'],
+#             "elapsed": event_dict['elapsed'],
+#         }
+#         # Update with auth flow session info
+#         resp_dict.update(self.auth_flow_dict)
 
-        return resp_dict
+#         return resp_dict
 
-    def __str__(self):
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.to_dict(), indent=2)
-        else:
-            return json.dumps(self.to_dict())
+#     def __str__(self):
+#         if settings.LOG_JSON_FORMAT_PRETTY:
+#             return json.dumps(self.to_dict(), indent=2)
+#         else:
+#             return json.dumps(self.to_dict())
 
 
 class SLSxUserInfoResponse(SLSResponse):
