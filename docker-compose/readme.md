@@ -46,7 +46,7 @@ local git repo to blue button server certstore automatically.
 
 ```
 USE_LOCAL_BFD=true
-FHIR_URL="url to local bfd, e.g. https://192.168.0.109:1337/v1/fhir/"
+FHIR_URL="url to local bfd, e.g. https://192.168.0.109:1337"
 BFD_CLIENT_TRUSTED_PFX="path to client-trusted-keystore.pfx in bfd local git repo"
 
 ```
@@ -57,7 +57,7 @@ SRC_CERT_FILE, SRC_KEY_FILE, and are copied to blue button server certstore auto
 
 ```
 USE_LOCAL_BFD=false
-FHIR_URL="url to remote bfd e.g. https://prod-sbx.bfd.cms.gov/v1/fhir/"
+FHIR_URL="url to remote bfd e.g. https://prod-sbx.bfd.cms.gov"
 VAULT_PASSFILE="path-to-vault-password-file" (usually in secured store)
 VAULT_FILE="path-to-vault-file" (in bluebutton-web-deployment local git repo)
 SRC_CERT_FILE="/my_secured_store/my_cert_store/my_client_certificate.pem" (usually in secured store)
