@@ -33,6 +33,7 @@ class OAuth2ConfigSLSx(object):
     healthcheck_endpoint = settings.SLSX_HEALTH_CHECK_ENDPOINT
     verify_ssl = getattr(settings, 'SLSX_VERIFY_SSL', False)
     logger.debug("SLSX_VERIFY_SSL={}".format(verify_ssl))
+    print("SLSX_VERIFY_SSL={}".format(verify_ssl))
 
     @property
     def client_id(self):
@@ -142,5 +143,7 @@ class OAuth2ConfigSLSx(object):
         return data_user_response
 
     def service_health_check(self):
+        logger.debug("SLSX_VERIFY_SSL={}".format(self.verify_ssl))
+        print("SLSX_VERIFY_SSL={}".format(self.verify_ssl))
         response = requests.get(self.healthcheck_endpoint, verify=self.verify_ssl)
         response.raise_for_status()
