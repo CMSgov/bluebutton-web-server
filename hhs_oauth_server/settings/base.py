@@ -552,7 +552,7 @@ SLSX_USERINFO_ENDPOINT = env(
     'DJANGO_SLSX_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/users')
 
 # Since this is internal False may be acceptable.
-SLSX_VERIFY_SSL = env('DJANGO_SLSX_VERIFY_SSL', True)
+SLSX_VERIFY_SSL = env('DJANGO_SLSX_VERIFY_SSL', False)
 
 SLSX_CLIENT_ID = env('DJANGO_SLSX_CLIENT_ID')
 SLSX_CLIENT_SECRET = env('DJANGO_SLSX_CLIENT_SECRET')

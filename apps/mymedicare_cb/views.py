@@ -56,8 +56,6 @@ def authenticate(request):
     # Get auth flow session values.
     auth_flow_dict = get_session_auth_flow_trace(request)
 
-    # SLS vs. SLSx flow based on feature switch slsx-enable (true = SLSx / false = SLS)
-    # removed checking of switch 'slsx-enable' per BB2-397
     request_token = request.GET.get('req_token', None)
     if request_token is None:
         log_authenticate_start(auth_flow_dict, "FAIL",
@@ -182,7 +180,6 @@ def callback(request, version=1):
             "error": e.detail,
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # removed 'slsx-enable' check per BB2-397
     state = request.GET.get('relay')
 
     if not state:
@@ -222,8 +219,6 @@ def mymedicare_login_v2(request):
 
 @never_cache
 def mymedicare_login(request, version=1):
-    # SLS vs. SLSx flow based on feature switch slsx-enable (true = SLSx / false = SLS).
-    # removed switch checking 'slsx-enable' per BB2-397, cleanup post SLSX migration complete
     redirect = settings.MEDICARE_SLSX_REDIRECT_URI
     mymedicare_login_url = settings.MEDICARE_SLSX_LOGIN_URI
 
