@@ -142,54 +142,55 @@ FHIR_AUTH_PRE_FETCH_LOG_SCHEMA = {
     "required": ["type", "uuid", "includeAddressFields", "path", "start_time"]
 }
 
+
 def get_post_fetch_fhir_log_entry_schema(version):
     return {
-    "title": "FhirPostFetchLogSchema",
-    "type": "object",
-    "properties": {
-        "type": {"pattern": "fhir_post_fetch"},
-        "uuid": {"type": "string"},
-        "fhir_id": {"pattern": "-20140000008325"},
-        "includeAddressFields": {"pattern": "False"},
-        "user": {"pattern": FHIR_PAT_ID_STR},
-        "application": {"type": "object",
-                        "properties": {
-                            "id": {"pattern": "1"},
-                            "name": {"pattern": "John_Smith_test"},
-                            "user": {"type": "object",
-                                     "properties": {
-                                         "id": {"pattern": "1"}}}}},
-        "path": {"pattern": "/v{}/fhir/Patient".format(version)},
-        "start_time": {"type": "string"},
-        "code": {"type": "integer", "enum": [200]},
-        "size": {"type": "integer"},
-        "elapsed": {"type": "number"},
-    },
-    "required": ["type", "uuid", "fhir_id", "includeAddressFields", "user",
-                 "application", "path", "start_time", "code", "size", "elapsed"]
-}
+        "title": "FhirPostFetchLogSchema",
+        "type": "object",
+        "properties": {
+            "type": {"pattern": "fhir_post_fetch"},
+            "uuid": {"type": "string"},
+            "fhir_id": {"pattern": "-20140000008325"},
+            "includeAddressFields": {"pattern": "False"},
+            "user": {"pattern": FHIR_PAT_ID_STR},
+            "application": {"type": "object",
+                            "properties": {
+                                "id": {"pattern": "1"},
+                                "name": {"pattern": "John_Smith_test"},
+                                "user": {"type": "object",
+                                         "properties": {"id": {"pattern": "1"}}}}},
+            "path": {"pattern": "/v{}/fhir/Patient".format(version)},
+            "start_time": {"type": "string"},
+            "code": {"type": "integer", "enum": [200]},
+            "size": {"type": "integer"},
+            "elapsed": {"type": "number"},
+        },
+        "required": ["type", "uuid", "fhir_id", "includeAddressFields", "user",
+                     "application", "path", "start_time", "code", "size", "elapsed"]
+    }
+
 
 def get_pre_fetch_fhir_log_entry_schema(version):
     return {
-    "title": "FhirPreFetchLogSchema",
-    "type": "object",
-    "properties": {
-        "type": {"pattern": "fhir_pre_fetch"},
-        "uuid": {"type": "string"},
-        "fhir_id": {"pattern": "-20140000008325"},
-        "includeAddressFields": {"pattern": "False"},
-        "user": {"pattern": FHIR_PAT_ID_STR},
-        "application": {"type": "object",
-                        "properties": {
-                            "id": {"pattern": "1"},
-                            "name": {"pattern": "John_Smith_test"},
-                            "user": {"type": "object",
-                                     "properties": {"id": {"pattern": "1"}}}}},
-        "path": {"pattern": "/v{}/fhir/Patient".format(version)},
-        "start_time": {"type": "string"},
-    },
-    "required": ["type", "uuid", "fhir_id", "includeAddressFields", "user", "application", "path", "start_time"]
-}
+        "title": "FhirPreFetchLogSchema",
+        "type": "object",
+        "properties": {
+            "type": {"pattern": "fhir_pre_fetch"},
+            "uuid": {"type": "string"},
+            "fhir_id": {"pattern": "-20140000008325"},
+            "includeAddressFields": {"pattern": "False"},
+            "user": {"pattern": FHIR_PAT_ID_STR},
+            "application": {"type": "object",
+                            "properties": {
+                                "id": {"pattern": "1"},
+                                "name": {"pattern": "John_Smith_test"},
+                                "user": {"type": "object", "properties": {"id": {"pattern": "1"}}}}},
+            "path": {"pattern": "/v{}/fhir/Patient".format(version)},
+            "start_time": {"type": "string"},
+        },
+        "required": ["type", "uuid", "fhir_id", "includeAddressFields", "user", "application", "path", "start_time"]
+    }
+
 
 MATCH_FHIR_ID_LOG_SCHEMA = {
     "title": "MatchFhirIdLogSchema",
