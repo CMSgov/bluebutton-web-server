@@ -32,7 +32,7 @@ class OAuth2ConfigSLSx(object):
     userinfo_endpoint = settings.SLSX_USERINFO_ENDPOINT
     healthcheck_endpoint = settings.SLSX_HEALTH_CHECK_ENDPOINT
     verify_ssl = getattr(settings, 'SLSX_VERIFY_SSL', False)
-    logger.debug("SLSX_VERIFY_SSL={}".format(verify_ssl)
+    logger.debug("SLSX_VERIFY_SSL={}".format(verify_ssl))
 
     @property
     def client_id(self):
