@@ -119,7 +119,7 @@ def fetched_data(sender, request=None, response=None, auth_flow_dict=None, api_v
 
 
 def sls_hook(sender, response=None, auth_flow_dict=None, **kwargs):
-    # Handles sender for SLSxUserInfoResponse, or SLSTokenResponse
+    # Handles sender for SLSxUserInfoResponse, or SLSxTokenResponse
     sls_logger.info(get_event(sender(response, auth_flow_dict)))
 
 
