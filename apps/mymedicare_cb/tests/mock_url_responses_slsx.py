@@ -35,6 +35,7 @@ class MockUrlSLSxResponses:
     def slsx_token_http_error_mock(url, request):
         raise requests.exceptions.HTTPError
 
+    # below urlmatch still use /v1/users..., since SLSX endpoints use v1 in path
     # mock sls user info endpoint
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
     def slsx_user_info_mock(url, request):

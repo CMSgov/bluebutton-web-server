@@ -1,5 +1,5 @@
 """
-  Validators for SLS user_info() return values.
+  Validators for SLSx user_info() return values.
 """
 
 

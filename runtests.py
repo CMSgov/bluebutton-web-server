@@ -39,15 +39,15 @@ args = parser.parse_args()
 
 if args.integration:
     # Unset ENV variables for integration type tests so default values get set.
-    for env_var in ['DJANGO_MEDICARE_LOGIN_URI',
-                    'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
+    for env_var in ['DJANGO_MEDICARE_SLSX_LOGIN_URI', 'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
+                    'DJANGO_SLSX_USERINFO_ENDPOINT', 'DJANGO_SLSX_TOKEN_ENDPOINT',
                     'DATABASES_CUSTOM', 'DJANGO_LOG_JSON_FORMAT_PRETTY']:
         if env_var in os.environ:
             del os.environ[env_var]
 else:
     # Unset ENV variables for Django unit type tests so default values get set.
-    for env_var in ['FHIR_URL', 'DJANGO_MEDICARE_LOGIN_URI',
-                    'DJANGO_SLS_USERINFO_ENDPOINT', 'DJANGO_SLS_TOKEN_ENDPOINT',
+    for env_var in ['FHIR_URL', 'DJANGO_MEDICARE_SLSX_LOGIN_URI', 'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
+                    'DJANGO_SLSX_USERINFO_ENDPOINT', 'DJANGO_SLSX_TOKEN_ENDPOINT',
                     'DJANGO_FHIR_CERTSTORE', 'DATABASES_CUSTOM', 'DJANGO_LOG_JSON_FORMAT_PRETTY',
                     'DJANGO_USER_ID_ITERATIONS', 'DJANGO_USER_ID_SALT']:
         if env_var in os.environ:

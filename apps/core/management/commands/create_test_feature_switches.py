@@ -8,8 +8,7 @@ WAFFLE_FEATURE_SWITCHES = (('outreach_email', True),
                            ('login', True),
                            ('signup', True),
                            ('require-scopes', True),
-                           ('testclient_v2', True),
-                           ('slsx-enable', True))
+                           ('testclient_v2', True))
 
 
 class Command(BaseCommand):

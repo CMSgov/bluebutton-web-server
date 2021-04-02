@@ -58,7 +58,7 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
     fhir_id, hash_lookup_type = match_fhir_id(mbi_hash=mbi_hash, hicn_hash=hicn_hash, request=request)
 
     try:
-        # Does an existing user and crosswalk exist for SLS username?
+        # Does an existing user and crosswalk exist for SLSx username?
         user = User.objects.get(username=subject)
 
         if user.crosswalk.user_hicn_hash != hicn_hash:
