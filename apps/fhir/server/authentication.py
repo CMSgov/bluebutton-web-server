@@ -66,7 +66,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         auth_flow_dict = None
 
     # Build URL with patient ID search by identifier.
-    ver = 'v2' if request.path.endswith('sls-callback-v2') else 'v1'
+    ver = "v{}".format(request.session.get('version', 1))
     url = get_resourcerouter().fhir_url \
         + "/{}/fhir/Patient/?identifier=".format(ver) + search_identifier \
         + "&_format=" + settings.FHIR_PARAM_FORMAT
@@ -75,9 +75,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     req = requests.Request('GET', url, headers=headers)
     prepped = req.prepare()
-    pre_fetch.send_robust(FhirServerAuth, request=req, api_ver=ver, auth_flow_dict=auth_flow_dict)
+    pre_fetch.send_robust(FhirServerAuth, request=req, auth_flow_dict=auth_flow_dict)
     response = s.send(prepped, cert=certs, verify=False)
-    post_fetch.send_robust(FhirServerAuth, request=req, response=response, api_ver=ver, auth_flow_dict=auth_flow_dict)
+    post_fetch.send_robust(FhirServerAuth, request=req, response=response, auth_flow_dict=auth_flow_dict)
     response.raise_for_status()
     backend_data = response.json()
 
