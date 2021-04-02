@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load waffle_tags %}
 
 {% block bannerBackButton %}{% endblock %}
 
@@ -30,6 +31,18 @@ The Developer Sandbox lets you register applications to get credentials to acces
   <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
     <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
       {% include "include/messages.html" %}
+
+
+      {% switch message_implicit_flow %}
+        <div class="ds-c-alert ds-c-alert--warn ds-u-margin-bottom--4">
+          <div class="ds-c-alert__body">
+            <h3 class="ds-c-alert__heading">Announcement</h3>
+              <p class="ds-c-alert__text">
+                <a href="javascript:void(0);">The Implicit Auth Flow is being deprecated and should not be used for development.</a>
+              </p>
+          </div>
+        </div>
+      {% endswitch %}
 
       <h2>My Sandbox Apps</h2>
 

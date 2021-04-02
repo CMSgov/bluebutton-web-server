@@ -1,13 +1,9 @@
 from django.utils.translation import ugettext_lazy as _
+from ..accounts.models import UserProfile
 from oauth2_provider.models import get_application_model
 from django.views.generic.base import TemplateView
 from django.shortcuts import redirect
-from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.utils.safestring import mark_safe
-
-from ..accounts.models import UserProfile
-
 
 Application = get_application_model()
 
@@ -31,12 +27,6 @@ class AuthenticatedHomeView(LoginRequiredMixin, TemplateView):
             profile = UserProfile.objects.get(user=request.user)
         except UserProfile.DoesNotExist:
             profile = None
-
-        # Implicit flow depreication warning message per BB2-554
-        messages.warning(self.request, mark_safe("ANNOUNCEMENT: The Implicit Auth Flow is being deprecated and should"
-                                                 " not be used for development. More information "
-                                                 "<a href='https://groups.google.com/g/developer-group-"
-                                                 "for-cms-blue-button-api/c/PFfVNymltfE/m/XsRMaQXXCAAJ'>here.</a>"))
 
         # this is a GET
         context = {
