@@ -2,7 +2,6 @@ from .base import *
 
 # removing security enforcement in development mode
 DEBUG = True
-SLS_VERIFY_SSL = env('DJANGO_SLS_VERIFY_SSL', False)
 SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')

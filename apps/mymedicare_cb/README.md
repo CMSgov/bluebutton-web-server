@@ -10,8 +10,7 @@ Docs for the MyMedicare (SLS) authentication flow can be found in Confluence: ht
 
 Adjust the following settings for environments.  Below the DEV defaults are given, but must be updated for production.
 
-
-    SLS_TOKEN_ENDPOINT = 'https://dev.accounts.cms.gov/v1/oauth/token'
-    MEDICARE_LOGIN_URI = 'https://dev2.account.mymedicare.gov/?scope=openid%20profile&client_id=bluebutton'
-    MEDICARE_REDIRECT_URI = 'http://localhost:8000/mymedicare/sls-callback'
-    SLS_VERIFY_SSL = False
+    SLSX_TOKEN_ENDPOINT = 'https://test.medicare.gov/sso/session'
+    MEDICARE_SLSX_LOGIN_URI = 'https://test.medicare.gov/sso/authorize?client_id=bb2api'
+    MEDICARE_SLSX_REDIRECT_URI = 'http://localhost:8000/mymedicare/sls-callback'
+    SLSX_VERIFY_SSL = False

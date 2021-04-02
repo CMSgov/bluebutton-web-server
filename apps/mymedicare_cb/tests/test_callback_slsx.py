@@ -10,7 +10,6 @@ from django.urls import reverse
 from django.test import TestCase
 from httmock import urlmatch, all_requests, HTTMock
 from urllib.parse import urlparse, parse_qs
-from waffle.testutils import override_switch
 
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Approval, Application
@@ -56,7 +55,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         group, _ = Group.objects.get_or_create(name=name)
         return group
 
-    @override_switch('slsx-enable', active=True)
     def test_login_url_success(self):
         """
         Test well-formed login_url has expected content
@@ -72,7 +70,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             self.assertEqual(query['redirect_uri'][0], '/123')
             self.assertTrue('relay' in query)
 
-    @override_switch('slsx-enable', active=True)
     def test_login_url_health_check_fail(self):
         """
         Test SLSx health check failure
@@ -84,7 +81,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                                             "An error occurred connecting to account.mymedicare.gov"):
                     self.client.get(self.login_url + '?next=/')
 
-    @override_switch('slsx-enable', active=True)
     def test_callback_url_missing_relay(self):
         """
         Test callback_url returns HTTP 400 when
@@ -93,7 +89,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         response = self.client.get(self.callback_url)
         self.assertEqual(response.status_code, 400)
 
-    @override_switch('slsx-enable', active=True)
     def test_authorize_uuid_dne(self):
         auth_uri = reverse(
             'oauth2_provider:authorize-instance',
@@ -101,7 +96,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         response = self.client.get(auth_uri)
         self.assertEqual(302, response.status_code)
 
-    @override_switch('slsx-enable', active=True)
     def test_authorize_uuid(self):
         user = User.objects.create_user(
             "bob",
@@ -158,7 +152,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             "response_type": "code"})
         self.assertEqual(302, response.status_code)
 
-    @override_switch('slsx-enable', active=True)
     def test_callback_url_success(self):
         # create a state
         state = generate_nonce()
@@ -202,7 +195,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             # assert login
             self.assertNotIn('_auth_user_id', self.client.session)
 
-    @override_switch('slsx-enable', active=True)
     def test_callback_url_failure(self):
         # create a state
         state = generate_nonce()
@@ -220,7 +212,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             # assert http redirect
             self.assertEqual(response.status_code, 502)
 
-    @override_switch('slsx-enable', active=True)
     def test_sls_token_exchange_w_creds(self):
         with self.settings(SLSX_CLIENT_ID="test",
                            SLSX_CLIENT_SECRET="stest"):
@@ -244,7 +235,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                 self.assertEquals(tkn, "test_tkn")
                 self.assertEquals(user_id, "00112233-4455-6677-8899-aabbccddeeff")
 
-    @override_switch('slsx-enable', active=True)
     def test_failed_sls_token_exchange(self):
         with self.settings(SLSX_CLIENT_ID="test",
                            SLSX_CLIENT_SECRET="stest"):
@@ -266,7 +256,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                 with self.assertRaises(requests.exceptions.HTTPError):
                     tkn, user_id = sls_client.exchange_for_access_token("test_code", None)
 
-    @override_switch('slsx-enable', active=True)
     def test_callback_exceptions(self):
         # BB2-237: Added to test ASSERTS replaced with exceptions.
         #          These are typically for conditions that should never be reached, so generate a 500.
