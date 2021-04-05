@@ -201,6 +201,51 @@ class TestRegisterApplicationForm(BaseApiTest):
         form.is_valid()
         self.assertNotEqual(form.errors.get('require_demographic_scopes'), None)
 
+        # Base set of passing data fields
+        passing_app_fields = {'name': 'john_app_new',
+                              'client_type': 'confidential',
+                              'authorization_grant_type': 'authorization-code',
+                              'redirect_uris': 'http://localhost:8000/social-auth/complete/oauth2io/',
+                              'logo_uri': '',
+                              'logo_image': '',
+                              'website_uri': '',
+                              'description': '',
+                              'policy_uri': '',
+                              'tos_uri': '',
+                              'support_email': '',
+                              'support_phone_number': '',
+                              'contacts': '',
+                              'require_demographic_scopes': True,
+                              'agree': True}
+
+        # Test that passing_app_fields are OK/valid.
+        form = CustomRegisterApplicationForm(user, passing_app_fields)
+        self.assertTrue(form.is_valid())
+
+        # Test client_type = 'confidential' and authorization_grant_type = 'implicit' not allowed.
+        data = passing_app_fields
+        data['client_type'] = 'confidential'
+        data['authorization_grant_type'] = 'implicit'
+        form = CustomRegisterApplicationForm(user, data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('A confidential client may not request an implicit grant type.', str(form.errors.get('__all__')))
+
+        # Test client_type = 'public' and grant_type = 'authorization-code' not allowed.
+        data = passing_app_fields
+        data['client_type'] = 'public'
+        data['authorization_grant_type'] = 'authorization-code'
+        form = CustomRegisterApplicationForm(user, data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('A public client may not request an authorization-code grant type.', str(form.errors.get('__all__')))
+
+        # Test client_type = 'public' and grant_type = 'implicit' not allowed.
+        data = passing_app_fields
+        data['client_type'] = 'public'
+        data['authorization_grant_type'] = 'implicit'
+        form = CustomRegisterApplicationForm(user, data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('A public client may not request an implicit grant type.', str(form.errors.get('__all__')))
+
     def test_create_applications_with_logo(self):
         """
         regression test: BB2-66: Fix-logo-display-in-Published-Applications-API
