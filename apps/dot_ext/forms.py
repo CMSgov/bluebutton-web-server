@@ -106,17 +106,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                         """)
         return name
 
-    def clean_client_type(self):
-        client_type = self.cleaned_data.get('client_type')
-        authorization_grant_type = self.cleaned_data.get(
-            'authorization_grant_type')
-        if client_type == 'public' and authorization_grant_type == 'authorization-code':
-            msg = _(
-                'A public client may not request an '
-                'authorization-code grant type.')
-            raise forms.ValidationError(msg)
-        return client_type
-
     def clean_agree(self):
         agree = self.cleaned_data.get('agree')
         if not agree:
