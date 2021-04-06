@@ -49,10 +49,10 @@ then
     if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]
     then
         echo "Start bluebutton server with remote debugging and wait attach..."
-        python3 -m ptvsd --host 0.0.0.0 --port 5678 --wait manage.py runserver 0.0.0.0:8000 --noreload
+        python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 --noreload
     else
         echo "Start bluebutton server with remote debugging..."
-        python3 -m ptvsd --host 0.0.0.0 --port 5678 manage.py runserver 0.0.0.0:8000 --noreload
+        python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 --noreload
     fi
 else
     echo "Start bluebutton server ..."
