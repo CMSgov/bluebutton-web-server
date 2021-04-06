@@ -1,9 +1,9 @@
 import json
 import jsonschema
-from jsonschema import validate
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from jsonschema import validate
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch, override_flag
@@ -144,6 +144,28 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             self.assertTrue(hasC4BB)
         else:
             self.assertFalse(hasC4BB)
+
+    def _extract_urls(self, relations):
+        nav_info = {}
+        for r in relations:
+            nav_info[r.get('relation')] = r.get('url', None)
+        return nav_info
+
+    def _stats_resource_by_type(self, bundle_json, cur_stats_dict):
+
+        for e in bundle_json['entry']:
+
+            rs_id = e['resource']['id']
+
+            is_matched = False
+
+            for t in cur_stats_dict:
+                if rs_id.startswith(t):
+                    is_matched = True
+                    cur_stats_dict[t] = int(cur_stats_dict[t]) - 1
+                    break
+
+            self.assertTrue(is_matched, 'Unexpected resource id prefix encountered, id={}'.format(rs_id))
 
     def test_health_endpoint(self):
         client = APIClient()
@@ -343,6 +365,137 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # 4. Test unauthorized READ request
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-a-99999999999999", v2))
         self.assertEqual(response.status_code, 404)
+
+    @override_switch('require-scopes', active=True)
+    def test_coverage_search_endpoint(self):
+        '''
+        Search Coverage v1, navigate pages and collect stats
+        '''
+        self._call_coverage_search_endpoint(False)
+
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_coverage_search_endpoint_v2(self):
+        '''
+        Search Coverage v2, navigate pages and collect stats
+        '''
+        self._call_coverage_search_endpoint(True)
+
+    def _call_coverage_search_endpoint(self, v2=False):
+        client = APIClient()
+
+        # Authenticate
+        self._setup_apiclient(client)
+
+        # Coverage search endpoint
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, None, v2))
+        self.assertEqual(response.status_code, 200)
+
+        content = json.loads(response.content)
+        # dump_content(json.dumps(content), "coverage_search_nav_p{}_{}.json".format(0, 'v2' if v2 else 'v1'))
+
+        # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
+        self.assertEqual(self._validateJsonSchema(COVERAGE_SEARCH_SCHEMA, content), True)
+
+        total = content['total']
+        count = 10
+        page_total = (total + count) // count
+
+        resource_stats = {'part-a': 1, 'part-b': 1, 'part-c': 1, 'part-d': 1}
+        self._stats_resource_by_type(content, resource_stats)
+
+        for i in range(page_total):
+            lnk = content.get('link', None)
+            self.assertIsNotNone(lnk,
+                                 ("Field 'link' expected, "
+                                  "containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "))
+            nav_info = self._extract_urls(lnk)
+            if nav_info.get('next', None) is not None:
+                response = client.get(nav_info['next'])
+                self.assertEqual(response.status_code, 200)
+                content = json.loads(response.content)
+                self._stats_resource_by_type(content, resource_stats)
+                # dump_content(json.dumps(content), "coverage_search_nav_p{}_{}.json".format(i+1, 'v2' if v2 else 'v1'))
+            else:
+                # last page does not have 'next'
+                break
+
+        # assert resource stats of sample A:
+        self.assertEqual(resource_stats['part-a'], 0)
+        self.assertEqual(resource_stats['part-b'], 0)
+        self.assertEqual(resource_stats['part-c'], 0)
+        self.assertEqual(resource_stats['part-d'], 0)
+
+    @override_switch('require-scopes', active=True)
+    def test_eob_search_endpoint(self):
+        '''
+        Search EOB v1, navigate pages and collect stats of different types of claims
+        e.g. pde, carrier, outpatient, inpatient, etc.
+
+        Also validate sample A stats - consistent with IG documentation:
+
+        total claim: 70
+
+        carrier: 50
+        pde: 10
+        inpatient: 4
+        outpatient: 6
+
+        '''
+        self._call_eob_search_endpoint(False)
+
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_eob_search_endpoint_v2(self):
+        '''
+        Search EOB v2, navigate pages and collect stats of different types of claims
+        e.g. pde, carrier, outpatient, inpatient, etc.
+        '''
+        self._call_eob_search_endpoint(True)
+
+    def _call_eob_search_endpoint(self, v2=False):
+        client = APIClient()
+
+        # Authenticate
+        self._setup_apiclient(client)
+
+        # EOB search endpoint
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, v2))
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        # dump_content(json.dumps(content), "eob_search_nav_p{}_{}.json".format(0, 'v2' if v2 else 'v1'))
+
+        # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
+        self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+
+        total = content['total']
+        count = 10
+        page_total = (total + count) // count
+
+        resource_stats = {'pde': 10, 'carrier': 50, 'inpatient': 4, 'outpatient': 6}
+        self._stats_resource_by_type(content, resource_stats)
+
+        for i in range(page_total):
+            lnk = content.get('link', None)
+            self.assertIsNotNone(lnk,
+                                 ("Field 'link' expected, "
+                                  "containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "))
+            nav_info = self._extract_urls(lnk)
+            if nav_info.get('next', None) is not None:
+                response = client.get(nav_info['next'])
+                self.assertEqual(response.status_code, 200)
+                content = json.loads(response.content)
+                self._stats_resource_by_type(content, resource_stats)
+                # dump_content(json.dumps(content), "eob_search_nav_p{}_{}.json".format(i+1, 'v2' if v2 else 'v1'))
+            else:
+                # last page does not have 'next'
+                break
+
+        # assert eob claims resource stats of sample A:
+        self.assertEqual(resource_stats['pde'], 0)
+        self.assertEqual(resource_stats['carrier'], 0)
+        self.assertEqual(resource_stats['inpatient'], 0)
+        self.assertEqual(resource_stats['outpatient'], 0)
 
     @override_switch('require-scopes', active=True)
     def test_eob_endpoint(self):
