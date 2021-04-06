@@ -88,7 +88,7 @@ EXPO_PORTS=""
 
 if [[ $1 == *-debug ]]
 then
-  DEBUG_OPTS="-m ptvsd --host 0.0.0.0 --port 6789 --wait"
+  DEBUG_OPTS="-m debugpy --listen 0.0.0.0:6789 --wait-for-client"
   EXPO_PORTS="-p 6789:6789"
 fi
 

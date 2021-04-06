@@ -44,7 +44,7 @@ services:
       - msls
   unittests:
     build: .
-    command: python3 -m ptvsd --host 0.0.0.0 --port 6789 --wait runtests.py
+    command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
     environment:
             - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
             - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton
