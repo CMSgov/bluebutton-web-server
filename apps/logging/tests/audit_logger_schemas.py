@@ -69,8 +69,11 @@ AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
         "synth_bene_cnt": {"type": "integer"},
         "app_real_bene_cnt": {"type": "integer"},
         "app_synth_bene_cnt": {"type": "integer"},
+        "global_apps_active_cnt": {"type": "integer"},
+        "global_apps_inactive_cnt": {"type": "integer"},
     },
-    "required": ["type", "sub", "user", "auth_crosswalk_action", "real_bene_cnt", "synth_bene_cnt"]
+    "required": ["type", "sub", "user", "auth_crosswalk_action", "real_bene_cnt", "synth_bene_cnt",
+                 "global_apps_active_cnt", "global_apps_inactive_cnt"]
 }
 
 AUTHORIZATION_LOG_SCHEMA = {

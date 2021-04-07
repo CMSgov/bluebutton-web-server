@@ -3,8 +3,9 @@ import logging
 
 from django.conf import settings
 
-from apps.fhir.bluebutton.models import check_crosswalks
 from apps.authorization.models import get_application_bene_grant_counts
+from apps.dot_ext.models import get_application_counts
+from apps.fhir.bluebutton.models import check_crosswalks
 
 
 """
@@ -103,6 +104,7 @@ def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subj
 def log_authenticate_success(auth_flow_dict, sls_subject, user):
     # Get current total real and synth bene counts per BB2-506.
     crosswalk_counts = check_crosswalks()
+    application_counts = get_application_counts()
 
     log_dict = {
         "type": "Authentication:success",
@@ -120,6 +122,8 @@ def log_authenticate_success(auth_flow_dict, sls_subject, user):
         },
         "real_bene_cnt": crosswalk_counts.get('real', None),
         "synth_bene_cnt": crosswalk_counts.get('synthetic', None),
+        "global_apps_active_cnt": application_counts.get('active_cnt', None),
+        "global_apps_inactive_cnt": application_counts.get('inactive_cnt', None),
     }
     # Update with auth flow session info
     if auth_flow_dict:

@@ -12,9 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from apps.capabilities.models import ProtectedCapability
-from oauth2_provider.models import (
-    AbstractApplication,
-)
+from oauth2_provider.models import AbstractApplication, get_application_model
 from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
 from django.template.defaultfilters import truncatechars
@@ -274,6 +272,31 @@ class AuthFlowUuid(models.Model):
 
     def __str__(self):
         return str(self.auth_uuid)
+
+
+def get_application_counts():
+    '''
+    Get the active and inactive counts of applications.
+    '''
+    Application = get_application_model()
+
+    try:
+        active_cnt = Application.objects.filter(active=True).count()
+        inactive_cnt = Application.objects.filter(active=False).count()
+
+        return {
+            "active_cnt": active_cnt,
+            "inactive_cnt": inactive_cnt,
+        }
+    except ValueError:
+        pass
+    except Application.DoesNotExist:
+        pass
+
+    return {
+        "active_cnt": None,
+        "inactive_cnt": None,
+    }
 
 
 post_delete.connect(archive_token, sender='oauth2_provider.AccessToken')
