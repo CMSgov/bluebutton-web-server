@@ -152,7 +152,12 @@ function start_server_with_remote_bfd() {
 
         echo "SALT:" ${DJANGO_USER_ID_SALT} ", ITERATIONS:" ${DJANGO_USER_ID_ITERATIONS} ", PASSWORD_HASH_ITERATIONS:" ${DJANGO_PASSWORD_HASH_ITERATIONS} 
         echo "Starting blue button server, FHIR_URL: " ${FHIR_URL}
-        docker-compose run --publish 8000:8000 -p 5678:5678 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} -e DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS} web bash -c "./docker-compose/bluebutton_server_start.sh"
+        docker-compose run --publish 8000:8000 -p 5678:5678 \
+        -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
+        -e DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS} \
+        -e DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID} \
+        -e DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET} \
+        web bash -c "./docker-compose/bluebutton_server_start.sh"
     else
         echo "Using remote BFD, but either VAULT_PASSFILE or VAULT_FILE are not properly set."
         exit 1
