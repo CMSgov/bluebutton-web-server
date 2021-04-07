@@ -1,17 +1,22 @@
-from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth.models import User
+from django.utils import timezone
+from django.urls import reverse
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import (
     get_application_model,
     get_access_token_model,
 )
-from django.urls import reverse
-from apps.test import BaseApiTest
+
 from apps.authorization.models import (
     DataAccessGrant,
     check_grants,
+    get_application_bene_grant_counts,
     update_grants,
 )
+from apps.fhir.bluebutton.models import check_crosswalks
+from apps.test import BaseApiTest
+
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
@@ -249,3 +254,115 @@ class TestDataAccessGrant(BaseApiTest):
         # set back app and user to active - not to affect other tests
         application.active = True
         application.save()
+
+    def test_get_application_bene_grant_counts(self):
+        '''
+        Test the get_application_bene_grant_counts() function
+        from apps.authorization.models
+        '''
+        redirect_uri = 'http://localhost'
+
+        # create capabilities
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+
+        # create an application1 and add capabilities
+        application1 = self._create_application(
+            'application1',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect_uri)
+        application1.scope.add(capability_a, capability_b)
+
+        # create dev2 user
+        dev2_user = User.objects.create_user('dev2', password='123456')
+
+        # create an application2 and add capabilities
+        application2 = self._create_application(
+            'application2',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            user=dev2_user,
+            redirect_uris=redirect_uri)
+        application2.scope.add(capability_a, capability_b)
+
+        # Create 5x Real (positive FHIR_ID) users and access tokens for applicaiton1
+        for cnt in range(5):
+            user = self._create_user('johnsmith' + str(cnt), 'password',
+                                     first_name='John1' + str(cnt),
+                                     last_name='Smith',
+                                     email='john' + str(cnt) + '@smith.net',
+                                     fhir_id='2000000000000' + str(cnt),
+                                     user_hicn_hash='239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt),
+                                     user_mbi_hash='9876543217ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
+            # create AC
+            AccessToken.objects.create(
+                token="existingtokenReal" + str(cnt),
+                user=user,
+                application=application1,
+                expires=timezone.now() + timedelta(seconds=10),
+            )
+
+        # Create 7x Synthetic (negative FHIR_ID) users and access tokens for application2
+        for cnt in range(7):
+            user = self._create_user('johndoe' + str(cnt), 'password',
+                                     first_name='John' + str(cnt),
+                                     last_name='Doe',
+                                     email='john' + str(cnt) + '@doe.net',
+                                     fhir_id='-2000000000000' + str(cnt),
+                                     user_hicn_hash='255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt),
+                                     user_mbi_hash='987654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
+            # create AC
+            AccessToken.objects.create(
+                token="existingtoken1Synth" + str(cnt),
+                user=user,
+                application=application1,
+                expires=timezone.now() + timedelta(seconds=10),
+            )
+
+        # Create 3x Real (positive FHIR_ID) users and access tokens for applicaiton2
+        for cnt in range(3):
+            user = self._create_user('joesmith' + str(cnt), 'password',
+                                     first_name='Joe' + str(cnt),
+                                     last_name='Smith',
+                                     email='joe' + str(cnt) + '@smith.net',
+                                     fhir_id='1000000000000' + str(cnt),
+                                     user_hicn_hash='509e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt),
+                                     user_mbi_hash='9076543217ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
+            # create AC
+            AccessToken.objects.create(
+                token="existingtoken2Real" + str(cnt),
+                user=user,
+                application=application2,
+                expires=timezone.now() + timedelta(seconds=10),
+            )
+
+        # Create 9x Synthetic (negative FHIR_ID) users and access tokens for application2
+        for cnt in range(9):
+            user = self._create_user('joedoe' + str(cnt), 'password',
+                                     first_name='Joe' + str(cnt),
+                                     last_name='Doe',
+                                     email='joe' + str(cnt) + '@doe.net',
+                                     fhir_id='-1000000000000' + str(cnt),
+                                     user_hicn_hash='505e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt),
+                                     user_mbi_hash='907654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
+            # create AC
+            AccessToken.objects.create(
+                token="existingtoken2Synth" + str(cnt),
+                user=user,
+                application=application2,
+                expires=timezone.now() + timedelta(seconds=10),
+            )
+
+        # Assert crosswalks counts
+        self.assertEqual("{'synthetic': 16, 'real': 8}", str(check_crosswalks()))
+
+        # This creates grants from access tokens. Does not test creation on approval (this is tested elsewhere).
+        update_grants()
+
+        # Asert check_grants (all grants)
+        self.assertEqual("{'unique_tokens': 24, 'grants': 24}", str(check_grants()))
+
+        # Asert application1 get_application_bene_grant_counts()
+        self.assertEqual("{'real': 5, 'synthetic': 7}", str(get_application_bene_grant_counts(application1.id)))
+
+        # Asert application2 get_application_bene_grant_counts()
+        self.assertEqual("{'real': 3, 'synthetic': 9}", str(get_application_bene_grant_counts(application2.id)))

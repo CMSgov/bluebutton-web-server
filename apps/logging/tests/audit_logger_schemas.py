@@ -65,8 +65,12 @@ AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
                              "fhir_id": {"pattern": "-20140000008325"},
                              "user_id_type": {"pattern": "M"}}}}},
         "auth_crosswalk_action": {"pattern": "C"},
+        "real_bene_cnt": {"type": "integer"},
+        "synth_bene_cnt": {"type": "integer"},
+        "app_real_bene_cnt": {"type": "integer"},
+        "app_synth_bene_cnt": {"type": "integer"},
     },
-    "required": ["type", "sub", "user", "auth_crosswalk_action"]
+    "required": ["type", "sub", "user", "auth_crosswalk_action", "real_bene_cnt", "synth_bene_cnt"]
 }
 
 AUTHORIZATION_LOG_SCHEMA = {

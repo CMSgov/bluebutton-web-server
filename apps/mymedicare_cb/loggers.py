@@ -3,6 +3,9 @@ import logging
 
 from django.conf import settings
 
+from apps.fhir.bluebutton.models import check_crosswalks
+from apps.authorization.models import get_application_bene_grant_counts
+
 
 """
   Logger functions for mymedicare_cb module
@@ -98,6 +101,9 @@ def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subj
 
 # For use in views.authenticate()
 def log_authenticate_success(auth_flow_dict, sls_subject, user):
+    # Get current total real and synth bene counts per BB2-506.
+    crosswalk_counts = check_crosswalks()
+
     log_dict = {
         "type": "Authentication:success",
         "sub": sls_subject,
@@ -112,10 +118,19 @@ def log_authenticate_success(auth_flow_dict, sls_subject, user):
                 "user_id_type": user.crosswalk.user_id_type,
             },
         },
+        "real_bene_cnt": crosswalk_counts.get('real', None),
+        "synth_bene_cnt": crosswalk_counts.get('synthetic', None),
     }
     # Update with auth flow session info
     if auth_flow_dict:
         log_dict.update(auth_flow_dict)
+
+        # Get current total real and synth bene counts connected to application (if available) per BB2-506.
+        app_id = auth_flow_dict.get('auth_app_id', None)
+        if app_id is not None:
+            app_bene_grant_counts = get_application_bene_grant_counts(app_id)
+            log_dict.update({"app_real_bene_cnt": app_bene_grant_counts.get('real', None),
+                             "app_synth_bene_cnt": app_bene_grant_counts.get('synthetic', None), })
 
     if settings.LOG_JSON_FORMAT_PRETTY:
         authenticate_logger.info(json.dumps(log_dict, indent=2))
