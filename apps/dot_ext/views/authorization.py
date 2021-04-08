@@ -65,6 +65,7 @@ class AuthorizationView(DotAuthorizationView):
                     "detail": error.detail,
                 },
                 status=error.status_code)
+
         request.session['version'] = self.version
         return super().dispatch(request, *args, **kwargs)
 
