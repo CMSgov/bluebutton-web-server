@@ -98,10 +98,11 @@ def get_application_bene_grant_counts(app_id=None):
             grant_user_synth_count = DataAccessGrant.objects.filter(
                 application=app).values('application', 'beneficiary').distinct().filter(
                     Q(beneficiary__crosswalk___fhir_id__startswith='-')).count()
-        return {
-            "real": grant_user_real_count,
-            "synthetic": grant_user_synth_count,
-        }
+
+            return {
+                "real": grant_user_real_count,
+                "synthetic": grant_user_synth_count,
+            }
     except ValueError:
         pass
     except Application.DoesNotExist:
