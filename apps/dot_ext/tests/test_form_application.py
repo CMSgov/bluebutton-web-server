@@ -228,7 +228,8 @@ class TestRegisterApplicationForm(BaseApiTest):
         data['authorization_grant_type'] = 'implicit'
         form = CustomRegisterApplicationForm(user, data)
         self.assertFalse(form.is_valid())
-        self.assertIn('A confidential client may not request an implicit grant type.', str(form.errors.get('__all__')))
+        self.assertIn('Only a confidential client and authorization-code grant type are allowed at this time.',
+                      str(form.errors.get('__all__')))
 
         # Test client_type = 'public' and grant_type = 'authorization-code' not allowed.
         data = passing_app_fields
@@ -236,7 +237,8 @@ class TestRegisterApplicationForm(BaseApiTest):
         data['authorization_grant_type'] = 'authorization-code'
         form = CustomRegisterApplicationForm(user, data)
         self.assertFalse(form.is_valid())
-        self.assertIn('A public client may not request an authorization-code grant type.', str(form.errors.get('__all__')))
+        self.assertIn('Only a confidential client and authorization-code grant type are allowed at this time.',
+                      str(form.errors.get('__all__')))
 
         # Test client_type = 'public' and grant_type = 'implicit' not allowed.
         data = passing_app_fields
@@ -244,7 +246,8 @@ class TestRegisterApplicationForm(BaseApiTest):
         data['authorization_grant_type'] = 'implicit'
         form = CustomRegisterApplicationForm(user, data)
         self.assertFalse(form.is_valid())
-        self.assertIn('A public client may not request an implicit grant type.', str(form.errors.get('__all__')))
+        self.assertIn('Only a confidential client and authorization-code grant type are allowed at this time.',
+                      str(form.errors.get('__all__')))
 
     def test_create_applications_with_logo(self):
         """
