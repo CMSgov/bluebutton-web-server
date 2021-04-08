@@ -8,7 +8,7 @@ from django.test.client import Client
 from django.contrib.auth.models import Group
 from httmock import all_requests, HTTMock, urlmatch
 from jsonschema import validate
-from waffle.testutils import override_flag
+from waffle.testutils import override_flag, override_switch
 
 from apps.dot_ext.models import Application
 from apps.mymedicare_cb.views import generate_nonce
@@ -145,9 +145,11 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(self._validateJsonSchema(ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, log_entry_dict))
 
+    @override_switch('logging_dasg', active=True)
     def test_callback_url_success_slsx_logger(self):
         self._callback_url_success_slsx_logger(False)
 
+    @override_switch('logging_dasg', active=True)
     @override_flag('bfd_v2_flag', active=True)
     def test_callback_url_success_slsx_logger_v2(self):
         self._callback_url_success_slsx_logger(True)
