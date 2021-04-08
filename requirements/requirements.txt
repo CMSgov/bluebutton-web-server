@@ -12,7 +12,7 @@ boto3==1.9.86 \
     --hash=sha256:63cd957ba663f5c10ff48ed904575eaa701314f79f18dbc59bd050311cd5f809 \
     --hash=sha256:d1338582bc58741f54bd6b43488de6097a82ea45cebed0a3fd936981eadbb3a5
     # via
-    #   -r requirements/requirements.in
+    #   -r requirements.in
     #   django-ses
 botocore==1.12.253 \
     --hash=sha256:3baf129118575602ada9926f5166d82d02273c250d0feb313fc270944b27c48b \
@@ -30,11 +30,11 @@ chardet==3.0.4 \
     # via requests
 configparser==3.5.0 \
     --hash=sha256:5308b47021bc2340965c371f0f058cc6971a04502638d4244225c49d80db273a
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 dj-database-url==0.5.0 \
     --hash=sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163 \
     --hash=sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-appconf==1.0.2 \
     --hash=sha256:6a4d9aea683b4c224d97ab8ee11ad2d29a37072c0c6c509896dd9857466fb261 \
     --hash=sha256:ddab987d14b26731352c01ee69c090a4ebfc9141ed223bef039d79587f22acd9
@@ -42,56 +42,56 @@ django-appconf==1.0.2 \
 django-axes==4.4.0 \
     --hash=sha256:155e12f95d0691ac15fe68c7274752356c371df93e8ac97bd1c1629ef682cf50 \
     --hash=sha256:4129f6fa089778a4be11c372e3398e85946a369ad3b9a6a642bcce774db81f4a
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-bootstrap-form==3.4 \
     --hash=sha256:de3f7893e515352834d446c441c0cb861637f92cebbe59d8229469c6cd3dc640
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-cors-headers==3.6.0 \
     --hash=sha256:5665fc1b1aabf1b678885cf6f8f8bd7da36ef0a978375e767d491b48d3055d8f \
     --hash=sha256:ba898dd478cd4be3a38ebc3d8729fa4d044679f8c91b2684edee41129d7e968a
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-dotenv==1.4.2 \
     --hash=sha256:3812bb0f4876cf31f902aad140f0645e120e51ee30eb7c40c22050f58a0e4adb \
     --hash=sha256:a9b1b40a70bd321acd231926acedb9bd2c5e873e33a1873b34a7276d196a765e
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-filter==2.4.0 \
     --hash=sha256:84e9d5bb93f237e451db814ed422a3a625751cbc9968b484ecc74964a8696b06 \
     --hash=sha256:e00d32cebdb3d54273c48f4f878f898dced8d5dfaad009438fe61ebdf535ace1
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-getenv==1.3.2 \
     --hash=sha256:cede44ed68570aefe91a32925b28f1d111c93023bb387c5adb36bbd42c0e5739 \
     --hash=sha256:d292571cefb84904a25d163689fc8f451c3cd090be72c6b3dc60a9c44730baee
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-ipware==2.1.0 \
     --hash=sha256:a7c7a8fd019dbdc9c357e6e582f65034e897572fc79a7e467674efa8aef9d00b
     # via django-axes
 django-localflavor==1.6.2 \
     --hash=sha256:fdfd47205a26d47d657e84c98b7a9dbe17f2a2a5e6f7ad02c31cb7e795b3a0f7
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-oauth-toolkit==1.1.3 \
     --hash=sha256:5be54cf6f3d068b81616592242743c4897ccb281d8aa077101b394f87646fb64 \
     --hash=sha256:814d99d66c61b9114a042a79de23fb169fcc15ea03cdbc101a795067cd17e16e
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-ses==1.0.3 \
     --hash=sha256:45f041acb9f2f8df85f3fddd63b04f1d381982bdc7730a3dc1f88e5795758bdd \
     --hash=sha256:9c0a3e59e1e2424093820fa7cd519aa35f9ba978c26917a97a30c682449f0df6
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-settings-export==1.2.1 \
     --hash=sha256:fceeae49fc597f654c1217415d8e049fc81c930b7154f5d8f28c432db738ff79
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-storages==1.7.1 \
     --hash=sha256:8e35d2c7baeda5dc6f0b4f9a0fc142d25f9a1bf72b8cebfcbc5db4863abc552d \
     --hash=sha256:b1a63cd5ea286ee5a9fb45de6c3c5c0ae132d58308d06f1ce9865cfcd5e470a7
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 django-waffle==2.0.0 \
     --hash=sha256:1973801b2bfdebb2d4ac3a7e5871a51f4d4b91ef712bdf46cc65d89b9dc3c988 \
     --hash=sha256:e079cb530d3c8d62e204cfc08c7494a71cb08626630c09cd00e844bed1df0044
-    # via -r requirements/requirements.in
-django==2.2.19 \
-    --hash=sha256:30c235dec87e05667597e339f194c9fed6c855bda637266ceee891bf9093da43 \
-    --hash=sha256:e319a7164d6d30cb177b3fd74d02c52f1185c37304057bb76d74047889c605d9
+    # via -r requirements.in
+django==2.2.20 \
+    --hash=sha256:2484f115891ab1a0e9ae153602a641fbc15d7894c036d79fb78662c0965d7954 \
+    --hash=sha256:2569f9dc5f8e458a5e988b03d6b7a02bda59b006d6782f4ea0fd590ed7336a64
     # via
-    #   -r requirements/requirements.in
+    #   -r requirements.in
     #   django-bootstrap-form
     #   django-cors-headers
     #   django-filter
@@ -103,16 +103,16 @@ django==2.2.19 \
     #   djangorestframework
 djangorestframework-csv==2.1.0 \
     --hash=sha256:2f008b20a44f2d3c37835ea5b5ddfe19f54394f07b9cb267c616a917a7f7e27c
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 djangorestframework-yaml==2.0.0 \
     --hash=sha256:1b2cfd7482425f3c6924a8eb803d6f73276e76b03293cd7144c755753e029f15 \
     --hash=sha256:7fe744e6004d2191fa1cb8a4fc62f98150202bfebd60702a04f8187cc240b7c4
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 djangorestframework==3.12.2 \
     --hash=sha256:0209bafcb7b5010fdfec784034f059d512256424de2a0f084cb82b096d6dd6a7 \
     --hash=sha256:0898182b4737a7b584a2c73735d89816343369f259fea932d90dc78e35d8ac33
     # via
-    #   -r requirements/requirements.in
+    #   -r requirements.in
     #   djangorestframework-csv
 docutils==0.14 \
     --hash=sha256:02aec4bd92ab067f6ff27a38a38a41173bf01bed8f89157768c1573f53e474a6 \
@@ -126,10 +126,6 @@ idna==2.7 \
     --hash=sha256:156a6814fb5ac1fc6850fb002e0852d56c0c8d2531923a51032d1b70760e186e \
     --hash=sha256:684a38a6f903c1d71d6d5fac066b58d7768af4de2b832e426ec79c30daa94a16
     # via requests
-importlib-metadata==3.4.0 \
-    --hash=sha256:ace61d5fc652dc280e7b6b4ff732a9c2d40db2c0f92bc6cb74e07b73d53a1771 \
-    --hash=sha256:fa5daa4477a7414ae34e95942e4dd07f62adf589143c875c133c1e53c4eff38d
-    # via jsonschema
 jmespath==0.9.3 \
     --hash=sha256:6a81d4c9aa62caf061cb517b4d9ad1dd300374cd4706997aff9cd6aedd61fc64 \
     --hash=sha256:f11b4461f425740a1d908e9a3f7365c3d2e569f6ca68a2ff8bc5bcd9676edd63
@@ -139,15 +135,15 @@ jmespath==0.9.3 \
 jsonschema==3.2.0 \
     --hash=sha256:4e5b3cf8216f577bee9ce139cbe72eca3ea4f292ec60928ff24758ce626cd163 \
     --hash=sha256:c8a85b28d377cc7737e46e2d9f2b4f44ee3c0e1deac6bf46ddefc7187d30797a
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 newrelic==4.4.1.104 \
     --hash=sha256:eb60752a2c2a9904ea1eaf6b25dfbe8181e02fca9c11f895c13469057971b343
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 oauthlib==2.1.0 \
     --hash=sha256:ac35665a61c1685c56336bda97d5eefa246f1202618a1d6f34fccb1bdd404162 \
     --hash=sha256:d883b36b21a6ad813953803edfa563b1b579d79ca758fe950d1bc9e8b326025b
     # via
-    #   -r requirements/requirements.in
+    #   -r requirements.in
     #   django-oauth-toolkit
     #   requests-oauthlib
 pillow==8.1.2 \
@@ -184,7 +180,7 @@ pillow==8.1.2 \
     --hash=sha256:e5739ae63636a52b706a0facec77b2b58e485637e1638202556156e424a02dc2 \
     --hash=sha256:f36c3ff63d6fc509ce599a2f5b0d0732189eed653420e7294c039d342c6e204a \
     --hash=sha256:f91b50ad88048d795c0ad004abbe1390aa1882073b1dca10bfd55d0b8cf18ec5
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 psycopg2-binary==2.8.6 \
     --hash=sha256:0deac2af1a587ae12836aa07970f5cb91964f05a7c6cdb69d8425ff4c15d4e2c \
     --hash=sha256:0e4dc3d5996760104746e6cfcdb519d9d2cd27c738296525d5867ea695774e67 \
@@ -221,15 +217,15 @@ psycopg2-binary==2.8.6 \
     --hash=sha256:e82aba2188b9ba309fd8e271702bd0d0fc9148ae3150532bbb474f4590039ffb \
     --hash=sha256:ee69dad2c7155756ad114c02db06002f4cded41132cc51378e57aad79cc8e4f4 \
     --hash=sha256:f5ab93a2cb2d8338b1674be43b442a7f544a0971da062a5da774ed40587f18f5
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 py==1.10.0 \
     --hash=sha256:21b81bda15b66ef5e1a777a21c4dcd9c20ad3efd0b3f817e7a809035269e1bd3 \
     --hash=sha256:3b80836aa6d1feeaa108e046da6423ab8f6ceda6468545ae8d02d9d58d18818a
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 pyjwt==1.6.4 \
     --hash=sha256:30b1380ff43b55441283cc2b2676b755cca45693ae3097325dea01f3d110628c \
     --hash=sha256:4ee413b357d53fd3fb44704577afac88e72e878716116270d722723d65b42176
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 pyrsistent==0.17.3 \
     --hash=sha256:2e636185d9eb976a18a8a8e96efce62f2905fea90041958d8cc2a189756ebf3e
     # via jsonschema
@@ -240,12 +236,12 @@ python-dateutil==2.7.5 \
 python-openid==2.2.5 \
     --hash=sha256:92c51c3ecec846cbec4aeff11f9ff47303d4a63f93b0e6ac0ec02a091fed70ef \
     --hash=sha256:c2d133e47e0a7705c9272eef00d7a09c174f5bf17a127fed8e2c6499556cc782
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 pytz==2018.5 \
     --hash=sha256:a061aa0a9e06881eb8b3b2b43f05b9439d6583c206d0a6c340ff72a7b6669053 \
     --hash=sha256:ffb9ef1de172603304d9d2819af6f5ece76f2e85ec10692a524dd876e72bf277
     # via
-    #   -r requirements/requirements.in
+    #   -r requirements.in
     #   django
     #   django-axes
     #   django-ses
@@ -272,17 +268,17 @@ pyyaml==5.4.1 \
     --hash=sha256:e4fac90784481d221a8e4b1162afa7c47ed953be40d31ab4629ae917510051df \
     --hash=sha256:fa5ae20527d8e831e8230cbffd9f8fe952815b2b7dae6ffec25318803a7528fc
     # via
-    #   -r requirements/requirements.in
+    #   -r requirements.in
     #   djangorestframework-yaml
 requests-oauthlib==1.0.0 \
     --hash=sha256:8886bfec5ad7afb391ed5443b1f697c6f4ae98d0e5620839d8b4499c032ada3f \
     --hash=sha256:e21232e2465808c0e892e0e4dbb8c2faafec16ac6dc067dd546e9b466f3deac8
-    # via -r requirements/requirements.in
+    # via -r requirements.in
 requests==2.25.1 \
     --hash=sha256:27973dd4a904a4f13b263a19c866c13b92a39ed1c964655f025f3f8d3d75b804 \
     --hash=sha256:c210084e36a42ae6b9219e00e48287def368a26d03a048ddad7bfee44f75871e
     # via
-    #   -r requirements/requirements.in
+    #   -r requirements.in
     #   django-oauth-toolkit
     #   requests-oauthlib
 s3transfer==0.1.13 \
@@ -300,13 +296,8 @@ sqlparse==0.2.4 \
     --hash=sha256:ce028444cfab83be538752a2ffdb56bc417b7784ff35bb9a3062413717807dec \
     --hash=sha256:d9cf190f51cbb26da0412247dfe4fb5f4098edb73db84e02f9fc21fdca31fed4
     # via
-    #   -r requirements/requirements.in
+    #   -r requirements.in
     #   django
-typing-extensions==3.7.4.3 \
-    --hash=sha256:7cb407020f00f7bfc3cb3e7881628838e69d8f3fcab2f64742a5e76b2f841918 \
-    --hash=sha256:99d4073b617d30288f569d3f13d2bd7548c3a7e4c8de87db09a9d29bb3a4a60c \
-    --hash=sha256:dafc7639cde7f1b6e1acc0f457842a83e722ccca8eef5270af2d74792619a89f
-    # via importlib-metadata
 unicodecsv==0.14.1 \
     --hash=sha256:018c08037d48649a0412063ff4eda26eaa81eff1546dbffa51fa5293276ff7fc
     # via djangorestframework-csv
@@ -319,11 +310,7 @@ urllib3==1.25.11 \
 voluptuous==0.12.1 \
     --hash=sha256:663572419281ddfaf4b4197fd4942d181630120fb39b333e3adad70aeb56444b \
     --hash=sha256:8ace33fcf9e6b1f59406bfaf6b8ec7bcc44266a9f29080b4deb4fe6ff2492386
-    # via -r requirements/requirements.in
-zipp==3.4.0 \
-    --hash=sha256:102c24ef8f171fd729d46599845e95c7ab894a4cf45f5de11a44cc7444fb1108 \
-    --hash=sha256:ed5eee1974372595f9e416cc7bbeeb12335201d8081ca8a0743c954d4446e5cb
-    # via importlib-metadata
+    # via -r requirements.in
 
 # WARNING: The following packages were not pinned, but pip requires them to be
 # pinned when the requirements file includes hashes. Consider using the --allow-unsafe flag.
