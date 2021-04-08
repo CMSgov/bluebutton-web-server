@@ -9,7 +9,7 @@ WAFFLE_FEATURE_SWITCHES = (('outreach_email', True),
                            ('signup', True),
                            ('require-scopes', True),
                            ('testclient_v2', True),
-                           ('logging_dasg_counts', True))
+                           ('logging_dasg', True))
 
 
 class Command(BaseCommand):
