@@ -1,5 +1,6 @@
 from datetime import timedelta
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils import timezone
 from django.urls import reverse
 from oauth2_provider.compat import parse_qs, urlparse
@@ -356,7 +357,8 @@ class TestDataAccessGrant(BaseApiTest):
         self.assertEqual("{'synthetic': 16, 'real': 8}", str(check_crosswalks()))
 
         # This creates grants from access tokens. Does not test creation on approval (this is tested elsewhere).
-        update_grants()
+        with transaction.atomic():
+            update_grants()
 
         # Assert check_grants (all grants)
         self.assertEqual("{'unique_tokens': 24, 'grants': 24}", str(check_grants()))
