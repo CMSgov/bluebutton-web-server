@@ -358,11 +358,11 @@ class TestDataAccessGrant(BaseApiTest):
         # This creates grants from access tokens. Does not test creation on approval (this is tested elsewhere).
         update_grants()
 
-        # Asert check_grants (all grants)
+        # Assert check_grants (all grants)
         self.assertEqual("{'unique_tokens': 24, 'grants': 24}", str(check_grants()))
 
-        # Asert application1 get_application_bene_grant_counts()
+        # Assert application1 get_application_bene_grant_counts()
         self.assertEqual("{'real': 5, 'synthetic': 7}", str(get_application_bene_grant_counts(application1.id)))
 
-        # Asert application2 get_application_bene_grant_counts()
+        # Assert application2 get_application_bene_grant_counts()
         self.assertEqual("{'real': 3, 'synthetic': 9}", str(get_application_bene_grant_counts(application2.id)))
