@@ -67,17 +67,12 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
         msg = ""
         validate_error = False
-        # Public clients don't use authorization-code flow
-        if client_type == 'public' and authorization_grant_type == 'authorization-code':
-            validate_error = True
-            msg += 'A public client may not request ' \
-                   'an authorization-code grant type.'
 
-        # Confidential clients cannot use implicit authorization_grant_type
-        if client_type == 'confidential' and authorization_grant_type == 'implicit':
+        # Validate choices
+        if not (client_type == 'confidential' and authorization_grant_type == 'authorization-code'):
             validate_error = True
-            msg += 'A confidential client may not ' \
-                   'request an implicit grant type.'
+            msg += 'Only a confidential client and ' \
+                   'authorization-code grant type are allowed at this time.'
 
         if validate_error:
             msg_output = _(msg)
@@ -99,17 +94,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                         Note that names are case-insensitive.
                                         """)
         return name
-
-    def clean_client_type(self):
-        client_type = self.cleaned_data.get('client_type')
-        authorization_grant_type = self.cleaned_data.get(
-            'authorization_grant_type')
-        if client_type == 'public' and authorization_grant_type == 'authorization-code':
-            msg = _(
-                'A public client may not request an '
-                'authorization-code grant type.')
-            raise forms.ValidationError(msg)
-        return client_type
 
     def clean_agree(self):
         agree = self.cleaned_data.get('agree')
