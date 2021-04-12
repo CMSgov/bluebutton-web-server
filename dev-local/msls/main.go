@@ -30,14 +30,76 @@ SLS_USERINFO_ENDPOINT = env(
     'DJANGO_SLS_USERINFO_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/userinfo')
 SLS_TOKEN_ENDPOINT = env(
     'DJANGO_SLS_TOKEN_ENDPOINT', 'https://dev.accounts.cms.gov/v1/oauth/token')
-*/
+
+MEDICARE_SLSX_LOGIN_URI=env('DJANGO_MEDICARE_SLSX_LOGIN_URI',
+							'https://test.medicare.gov/sso/authorize?client_id=bb2api')
+MEDICARE_SLSX_REDIRECT_URI=env('DJANGO_MEDICARE_SLSX_REDIRECT_URI',
+							   'http://localhost:8000/mymedicare/sls-callback')
+SLSX_USERINFO_ENDPOINT=env('DJANGO_SLSX_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/users')
+SLSX_TOKEN_ENDPOINT=env('DJANGO_SLSX_TOKEN_ENDPOINT', 'https://test.medicare.gov/sso/session')
+
+SLSX exchange for auth_token:
+
+{
+"auth_token":"6yemAjHlDCa15RxXXNr15hfd/Q6Uvcc11KbgXhp/AgrJ",
+"role":"consumer",
+"user_id":"0854b569-5d28-4aa7-9878-fccdb15b4ffc",
+"session_id":"36106cbd6982479c8c1dce52d8fb1588"}'
+
+
+Sample SLSX response:
+
+{
+ "status": "ok",
+ "code": 200,
+ "data": {
+   "user": {
+     "id": "0854b569-5d28-4aa7-9878-fccdb15b4ffc",
+     "username": "BbUser10000",
+     "email": null,
+     "firstName": null,
+     "middleName": null,
+     "lastName": null,
+     "suffix": null,
+     "dateOfBirth": null,
+     "ssn": null,
+     "city": null,
+     "state": null,
+     "addressLine1": null,
+     "addressLine2": null,
+     "zipcode": null,
+     "zipcodeExtension": null,
+     "phoneNumber": null,
+     "challenges": null,
+     "webBrokerInfo": null,
+     "isManuallyDisabled": false,
+     "requiresConfirm": null,
+     "loa": 0,
+     "loaAdminReason": null,
+     "lastLoginTime": 1617920826,
+     "createdTime": 1594071993,
+     "updatedTime": 1617920826,
+     "hicn": "1000087197",
+     "passwordExpirationTime": 1680992826,
+     "isDisabled": false,
+     "customUserInfo": {
+       "mbi": "2S17E00AA00"
+     },
+     "mbi": "2S17E00AA00"
+   }
+ }
+ }
+
+
+	*/
 
 const (
-	USERNAME_FIELD    = "username"
-	NAME_FIELD        = "name"
-	GIVEN_NAME_FIELD  = "given_name"
-	FAMILY_NAME_FIELD = "family_name"
-	EMAIL_FIELD       = "email"
+	ID_FIELD          	= "id"
+	USERNAME_FIELD    	= "username"
+	NAME_FIELD    		= "name"
+	EMAIL_FIELD       	= "email"
+	FIRST_NAME_FIELD  	= "fisrtName"
+	LAST_NAME_FIELD   	= "lastName"
 	HICN_FIELD        = "hicn"
 	MBI_FIELD         = "mbi"
 	CODE_KEY          = "code"
@@ -57,14 +119,14 @@ func main() {
 	http.Handle("/", logRequest(presentLogin(t)))
 
 	http.Handle("/login", logRequest(http.HandlerFunc(handleLogin)))
-	http.Handle("/token", logRequest(http.HandlerFunc(handleCode)))
-	http.Handle("/userinfo", logRequest(http.HandlerFunc(handleUserinfo)))
+	http.Handle("/sso/session", logRequest(http.HandlerFunc(handleCode)))
+	http.Handle("/v1/users/", logRequest(http.HandlerFunc(handleUserinfo)))
 	http.ListenAndServe(":8080", nil)
 }
 
 func handleCode(rw http.ResponseWriter, r *http.Request) {
 	body := &struct {
-		Code string `json:"code"`
+		Code string `json:"request_token"`
 	}{}
 
 	// Try to decode the request body into the struct. If there is an error,
@@ -75,8 +137,13 @@ func handleCode(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tkn := code(body.Code)
+
+	user_info := tkn.userinfo()
+
 	token := map[string]string{
-		"access_token": body.Code,
+		"user_id": user_info.Sub,
+		"auth_token": body.Code,
 	}
 
 	log.Println(token)
@@ -86,7 +153,21 @@ func handleCode(rw http.ResponseWriter, r *http.Request) {
 
 func handleUserinfo(rw http.ResponseWriter, r *http.Request) {
 	tkn := code(strings.Split(r.Header.Get(AUTH_HEADER), " ")[1])
-	json.NewEncoder(rw).Encode(tkn.userinfo())
+	user_info := tkn.userinfo()
+	slsx_userinfo := map[string]map[string]map[string]string{
+		"data": {
+			"user": {
+				"id": user_info.Sub,
+				"username": user_info.Name,
+				"email": user_info.Email,
+				"firstName": user_info.First_name,
+				"lastName": user_info.Last_name,
+				"hicn": user_info.Hicn,
+				"mbi": user_info.Mbi,
+			},
+		},
+	}
+	json.NewEncoder(rw).Encode(slsx_userinfo)
 }
 
 func presentLogin(t *template.Template) http.Handler {
@@ -107,8 +188,8 @@ func handleLogin(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	q := u.Query()
-	q.Add("code", string(code))
-	q.Add("state", r.FormValue("state"))
+	q.Add("req_token", string(code))
+	q.Add("relay", r.FormValue("relay"))
 
 	u.RawQuery = q.Encode()
 
@@ -118,24 +199,24 @@ func handleLogin(rw http.ResponseWriter, r *http.Request) {
 func login(r *http.Request) code {
 	usr := r.FormValue(USERNAME_FIELD)
 	name := r.FormValue(NAME_FIELD)
-	given_name := r.FormValue(GIVEN_NAME_FIELD)
-	family_name := r.FormValue(FAMILY_NAME_FIELD)
+	first_name := r.FormValue(FIRST_NAME_FIELD)
+	last_name := r.FormValue(LAST_NAME_FIELD)
 	email := r.FormValue(EMAIL_FIELD)
 	hicn := r.FormValue(HICN_FIELD)
 	mbi := r.FormValue(MBI_FIELD)
 
-	return encode(usr, name, given_name, family_name, email, hicn, mbi)
+	return encode(usr, name, first_name, last_name, email, hicn, mbi)
 }
 
 type code string
 
 func (c code) userinfo() *userinfo {
-	usr, name, given_name, family_name, email, hicn, mbi := decode(string(c))
+	usr, name, first_name, last_name, email, hicn, mbi := decode(string(c))
 	return &userinfo{
 		Sub:  usr,
 		Name: name,
-		Given_name: given_name,
-		Family_name: family_name,
+		First_name: first_name,
+		Last_name: last_name,
 		Email: email,
 		Hicn: hicn,
 		Mbi: mbi,
@@ -145,32 +226,32 @@ func (c code) userinfo() *userinfo {
 func decode(c string) (string, string, string, string, string, string, string) {
 	d_usr, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[0])
 	d_name, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[1])
-	d_given_name, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[2])
-	d_family_name, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[3])
+	d_first_name, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[2])
+	d_last_name, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[3])
 	d_email, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[4])
 	d_hicn, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[5])
 	d_mbi, _ := base64.RawURLEncoding.DecodeString(strings.Split(c, ".")[6])
-	return string(d_usr), string(d_name), string(d_given_name), string(d_family_name),
+	return string(d_usr), string(d_name), string(d_first_name), string(d_last_name),
 	       string(d_email), string(d_hicn), string(d_mbi)
 }
 
-func encode(usr,name, given_name, family_name, email, hicn, mbi string) code {
+func encode(usr, name, first_name, last_name, email, hicn, mbi string) code {
 	e_usr := base64.RawURLEncoding.EncodeToString([]byte(usr))
 	e_name := base64.RawURLEncoding.EncodeToString([]byte(name))
-	e_given_name := base64.RawURLEncoding.EncodeToString([]byte(given_name))
-	e_family_name := base64.RawURLEncoding.EncodeToString([]byte(family_name))
+	e_first_name := base64.RawURLEncoding.EncodeToString([]byte(first_name))
+	e_last_name := base64.RawURLEncoding.EncodeToString([]byte(last_name))
 	e_email := base64.RawURLEncoding.EncodeToString([]byte(email))
 	e_hicn := base64.RawURLEncoding.EncodeToString([]byte(hicn))
 	e_mbi := base64.RawURLEncoding.EncodeToString([]byte(mbi))
-	return code(fmt.Sprintf("%s.%s.%s.%s.%s.%s.%s", e_usr, e_name, e_given_name,
-				e_family_name, e_email, e_hicn, e_mbi))
+	return code(fmt.Sprintf("%s.%s.%s.%s.%s.%s.%s", e_usr, e_name, e_first_name,
+				e_last_name, e_email, e_hicn, e_mbi))
 }
 
 type userinfo struct {
 	Sub         	string `json:"sub"`
 	Name        	string `json:"name"`
-	Given_name  	string `json:"given_name"`
-	Family_name 	string `json:"family_name"`
+	First_name  	string `json:"first_name"`
+	Last_name 	    string `json:"last_name"`
 	Email       	string `json:"email"`
 	Hicn   			string `json:"hicn"`
 	Mbi   			string `json:"mbi"`
