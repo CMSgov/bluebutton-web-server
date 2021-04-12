@@ -10,7 +10,7 @@ from apps.fhir.bluebutton.models import check_crosswalks
 """
   Logger functions for logging  module
 """
-logger = logging.getLogger('hhs_server.global_metrics')
+logger = logging.getLogger('audit.global_state_metrics')
 
 
 # For use in apps/logging/management/commands/log_global_metrics.py management command
@@ -19,7 +19,7 @@ def log_global_state_metrics(group_timestamp=None):
     application_counts = get_application_counts()
     require_demographic_scopes_count = get_application_require_demographic_scopes_count()
 
-    log_dict = {"type": "Logging:global_state",
+    log_dict = {"type": "global_state_metrics",
                 "group_timestamp": group_timestamp,
                 "real_bene_cnt": crosswalk_counts.get('real', None),
                 "synth_bene_cnt": crosswalk_counts.get('synthetic', None),
