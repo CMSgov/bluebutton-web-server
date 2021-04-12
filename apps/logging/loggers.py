@@ -25,7 +25,7 @@ def log_global_state_metrics(group_timestamp=None):
                 "synth_bene_cnt": crosswalk_counts.get('synthetic', None),
                 "global_apps_active_cnt": application_counts.get('active_cnt', None),
                 "global_apps_inactive_cnt": application_counts.get('inactive_cnt', None),
-                "global_apps_require_demographic_scopes_count": require_demographic_scopes_count, }
+                "global_apps_require_demographic_scopes_cnt": require_demographic_scopes_count, }
 
     if settings.LOG_JSON_FORMAT_PRETTY:
         logger.info(json.dumps(log_dict, indent=2))
