@@ -308,3 +308,23 @@ SLSX_USERINFO_LOG_SCHEMA = {
     },
     "required": ["type", "uuid", "path", "sub", "code", "size", "start_time", "elapsed"]
 }
+
+'''
+  Log entry schema used for tests in apps/logging/tests/test_loggers_management_command.py
+'''
+GLOBAL_STATE_METRICS_LOG_SCHEMA = {
+    "title": "GlobalStateMetrics",
+    "type": "object",
+    "properties": {
+        "type": {"pattern": "global_state_metrics"},
+        "group_timestamp": {"type": "string"},
+        "real_bene_cnt": {"type": "integer", "enum": [5]},
+        "synth_bene_cnt": {"type": "integer", "enum": [7]},
+        "global_apps_active_cnt": {"type": "integer", "enum": [7]},
+        "global_apps_inactive_cnt": {"type": "integer", "enum": [3]},
+        "global_apps_require_demographic_scopes_cnt": {"type": "integer", "enum": [5]},
+    },
+    "required": ["type", "group_timestamp", "real_bene_cnt", "synth_bene_cnt",
+                 "global_apps_active_cnt", "global_apps_inactive_cnt",
+                 "global_apps_require_demographic_scopes_cnt"]
+}
