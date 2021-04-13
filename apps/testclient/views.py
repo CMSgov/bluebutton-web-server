@@ -1,17 +1,92 @@
-from django.shortcuts import render, redirect
-from requests_oauthlib import OAuth2Session
-from django.http import JsonResponse
-from django.conf import settings
-from django.urls import reverse
-from .utils import test_setup, get_client_secret
+import json
 import logging
-from oauthlib.oauth2.rfc6749.errors import MissingTokenError
+
+from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.views.decorators.cache import never_cache
+from oauthlib.oauth2.rfc6749.errors import MissingTokenError
+from requests_oauthlib import OAuth2Session
+
+from .utils import test_setup, get_client_secret
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 HOME_PAGE = "home.html"
+
+
+ENDPOINT_URL_FMT = {
+    "userinfo": "{}/{}/connect/userinfo",
+    "patient": "{}/{}/fhir/Patient/{}?_format=json",
+    "eob": "{}/{}/fhir/ExplanationOfBenefit/?_format=json",
+    "coverage": "{}/{}/fhir/Coverage/?_format=json",
+}
+
+
+NAV_URI_FMT = "{}&_count={}&startIndex={}&{}={}"
+
+
+def _get_page_loc(request, fhir_json):
+    total = fhir_json.get('total', 0)
+    index = int(request.GET.get('startIndex', 0))
+    count = int(request.GET.get('_count', 10))
+    return "{}/{}".format(index // count + 1, total // count + 1)
+
+
+def _extract_page_nav(request, fhir_json):
+    link = fhir_json.get('link', None)
+    nav_list = []
+    if link is not None:
+        for lnk in link:
+            if lnk.get('url', None) is not None and lnk.get('relation', None) is not None:
+                nav_list.append({'relation': lnk['relation'], 'nav_link': lnk['url']})
+            else:
+                nav_list = []
+                break
+    return nav_list
+
+
+def _get_data_json(request, name, params):
+
+    oas = _get_oauth2_session_with_token(request)
+
+    nav_link = request.GET.get('nav_link', None)
+
+    uri = ENDPOINT_URL_FMT[name].format(*params)
+
+    if nav_link is not None:
+        q_params = [uri]
+        q_params.append(request.GET.get('_count', 10))
+        q_params.append(request.GET.get('startIndex', 0))
+
+        # for now it's either EOB or Coverage, make this more generic later
+        patient = request.GET.get('patient')
+
+        if patient is not None:
+            q_params.append('patient')
+            q_params.append(patient)
+
+        beneficiary = request.GET.get('beneficiary')
+
+        if beneficiary is not None:
+            q_params.append('beneficiary')
+            q_params.append(beneficiary)
+
+        uri = NAV_URI_FMT.format(*q_params)
+
+    return oas.get(uri).json()
+
+
+def _get_oauth2_session_with_token(request):
+    return OAuth2Session(
+        request.session['client_id'], token=request.session['token'])
+
+
+def _get_oauth2_session_with_redirect(request):
+    return OAuth2Session(
+        request.session['client_id'], redirect_uri=request.session['redirect_uri'])
 
 
 def restart(request):
@@ -30,8 +105,7 @@ def callback(request):
             del request.session['token']
         return redirect('test_links', permanent=True)
 
-    oas = OAuth2Session(request.session['client_id'],
-                        redirect_uri=request.session['redirect_uri'])
+    oas = _get_oauth2_session_with_redirect(request)
 
     host = settings.HOSTNAME_URL
 
@@ -89,14 +163,13 @@ def test_userinfo_v2(request):
 
 @never_cache
 def test_userinfo(request, version=1):
+
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
-    oas = OAuth2Session(
-        request.session['client_id'], token=request.session['token'])
-    userinfo_uri = "{}/{}/connect/userinfo".format(
-        request.session['resource_uri'], 'v2' if version == 2 else 'v1')
-    userinfo = oas.get(userinfo_uri).json()
-    return JsonResponse(userinfo)
+
+    params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2']
+
+    return JsonResponse(_get_data_json(request, 'userinfo', params))
 
 
 @never_cache
@@ -106,15 +179,24 @@ def test_coverage_v2(request):
 
 @never_cache
 def test_coverage(request, version=1):
+
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
-    oas = OAuth2Session(
-        request.session['client_id'], token=request.session['token'])
-    coverage_uri = "{}/{}/fhir/Coverage/?_format=json".format(
-        request.session['resource_uri'], 'v2' if version == 2 else 'v1')
 
-    coverage = oas.get(coverage_uri).json()
-    return JsonResponse(coverage, safe=False)
+    coverage = _get_data_json(request, 'coverage', [request.session['resource_uri'], 'v1' if version == 1 else 'v2'])
+
+    nav_info = _extract_page_nav(request, coverage)
+
+    if nav_info is not None and len(nav_info) > 0:
+        return render(request, 'results.html',
+                      {"fhir_json_pretty": json.dumps(coverage, indent=3),
+                       "url_name": 'test_coverage_v2' if version == 2 else 'test_coverage',
+                       "nav_list": nav_info, "page_loc": _get_page_loc(request, coverage),
+                       "total_resource": coverage.get('total', 0),
+                       "api_ver": "v2" if version == 2 else "v1"})
+    else:
+        # render json (fall back to legacy)
+        return JsonResponse(coverage, safe=False)
 
 
 @never_cache
@@ -124,14 +206,13 @@ def test_patient_v2(request):
 
 @never_cache
 def test_patient(request, version=1):
+
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
-    oas = OAuth2Session(
-        request.session['client_id'], token=request.session['token'])
-    patient_uri = "{}/{}/fhir/Patient/{}?_format=json".format(
-        request.session['resource_uri'], 'v2' if version == 2 else 'v1', request.session['patient'])
-    patient = oas.get(patient_uri).json()
-    return JsonResponse(patient)
+
+    params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2', request.session['patient']]
+
+    return JsonResponse(_get_data_json(request, 'patient', params))
 
 
 @never_cache
@@ -143,12 +224,23 @@ def test_eob_v2(request):
 def test_eob(request, version=1):
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
-    oas = OAuth2Session(
-        request.session['client_id'], token=request.session['token'])
-    eob_uri = "{}/{}/fhir/ExplanationOfBenefit/?_format=json".format(
-        request.session['resource_uri'], 'v2' if version == 2 else 'v1')
-    eob = oas.get(eob_uri).json()
-    return JsonResponse(eob)
+
+    params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2']
+
+    eob = _get_data_json(request, 'eob', params)
+
+    nav_info = _extract_page_nav(request, eob)
+
+    if nav_info is not None and len(nav_info) > 0:
+        return render(request, 'results.html',
+                      {"fhir_json_pretty": json.dumps(eob, indent=3),
+                       "url_name": 'test_eob_v2' if version == 2 else 'test_eob',
+                       "nav_list": nav_info, "page_loc": _get_page_loc(request, eob),
+                       "total_resource": eob.get('total', 0),
+                       "api_ver": "v2" if version == 2 else "v1"})
+    else:
+        # render json (fall back to legacy)
+        return JsonResponse(eob)
 
 
 @never_cache
@@ -159,8 +251,7 @@ def authorize_link_v2(request):
 @never_cache
 def authorize_link(request, v2=False):
     request.session.update(test_setup(v2=v2))
-    oas = OAuth2Session(request.session['client_id'],
-                        redirect_uri=request.session['redirect_uri'])
+    oas = _get_oauth2_session_with_redirect(request)
     authorization_url = oas.authorization_url(
         request.session['authorization_uri'])[0]
     return render(request, 'authorize.html',
