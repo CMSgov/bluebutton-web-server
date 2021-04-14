@@ -17,22 +17,44 @@ div.auto-scroll {
 	height: 500px;
 	overflow: auto;
 }
-</style>
-  
- <div class="sandbox-gradient-bg">
-	<div>
-		{% if api_ver is not None %}
-			<h2>API version: {{ api_ver }}, Page: {{ page_loc }}, Total Resource(s): {{ total_resource }}</h2>
-		{% endif %}
+a:link {
+  color: black;
+  background-color: transparent;
+  text-decoration: none;
+}
 
-		<h2>FHIR Response</h2>
-		<div>
-			<h2>
-				{% for n in nav_list %}
-					<a href="{% url url_name %}?nav_link={{ n.nav_link }}">{{ n.relation }}</a>
-				{% endfor %}
-			</h2>
-		</div>
+a:visited {
+  color: black;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+a:active {
+  color: orange;
+  background-color: transparent;
+  text-decoration: underline;
+}
+</style>
+
+<div class="sandbox-gradient-bg">
+	<div>
+		<h2>Response ({{ response_type }}), API version: {{ api_ver }}</h2>
+		{% if nav_list %}
+			<h2>Page: {{ page_loc }}, Total Resource(s): {{ total_resource }}</h2>
+			<div>
+				<h2>
+					{% for n in nav_list %}
+						<a href="{% url url_name %}?nav_link={{ n.nav_link }}">{{ n.relation }}</a>
+					{% endfor %}
+				</h2>
+			</div>
+		{% endif %}
 		<div  class="auto-scroll">
 			<pre>{{ fhir_json_pretty }}</pre>
 		</div>

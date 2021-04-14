@@ -11,11 +11,13 @@ from requests_oauthlib import OAuth2Session
 
 from .utils import test_setup, get_client_secret
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
+from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
+from apps.wellknown.views.openid import openid_configuration
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 HOME_PAGE = "home.html"
-
+RESULTS_PAGE = "results.html"
 
 ENDPOINT_URL_FMT = {
     "userinfo": "{}/{}/connect/userinfo",
@@ -77,6 +79,10 @@ def _get_data_json(request, name, params):
         uri = NAV_URI_FMT.format(*q_params)
 
     return oas.get(uri).json()
+
+
+def _convert_to_json(json_response):
+    return json.loads(json_response.content) if json_response.status_code == 200 else {"error": json_response.status_code}
 
 
 def _get_oauth2_session_with_token(request):
@@ -169,7 +175,41 @@ def test_userinfo(request, version=1):
 
     params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2']
 
-    return JsonResponse(_get_data_json(request, 'userinfo', params))
+    user_info = _get_data_json(request, 'userinfo', params)
+
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(user_info, indent=3),
+                   "response_type": "Profile (OIDC Userinfo)",
+                   "api_ver": "v2" if version == 2 else "v1"})
+
+
+@never_cache
+def test_metadata_v2(request):
+    return test_metadata(request, True)
+
+
+@never_cache
+def test_metadata(request, v2=False):
+    json_response = _convert_to_json(fhir_conformance_v2(request) if v2 else fhir_conformance(request))
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(json_response, indent=3),
+                   "response_type": "FHIR Metadata",
+                   "api_ver": "v2" if v2 else "v1"})
+
+
+@never_cache
+def test_openid_config_v2(request):
+    return test_openid_config(request, True)
+
+
+@never_cache
+def test_openid_config(request, v2=False):
+    # api ver agnostic for now, but show version any way on page
+    json_response = _convert_to_json(openid_configuration(request))
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(json_response, indent=3),
+                   "response_type": "OIDC Discovery",
+                   "api_ver": "v2" if v2 else "v1"})
 
 
 @never_cache
@@ -188,10 +228,11 @@ def test_coverage(request, version=1):
     nav_info = _extract_page_nav(request, coverage)
 
     if nav_info is not None and len(nav_info) > 0:
-        return render(request, 'results.html',
+        return render(request, RESULTS_PAGE,
                       {"fhir_json_pretty": json.dumps(coverage, indent=3),
                        "url_name": 'test_coverage_v2' if version == 2 else 'test_coverage',
                        "nav_list": nav_info, "page_loc": _get_page_loc(request, coverage),
+                       "response_type": "Bundle of Coverage",
                        "total_resource": coverage.get('total', 0),
                        "api_ver": "v2" if version == 2 else "v1"})
     else:
@@ -212,7 +253,12 @@ def test_patient(request, version=1):
 
     params = [request.session['resource_uri'], 'v1' if version == 1 else 'v2', request.session['patient']]
 
-    return JsonResponse(_get_data_json(request, 'patient', params))
+    patient = _get_data_json(request, 'patient', params)
+
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(patient, indent=3),
+                   "response_type": "Patient",
+                   "api_ver": "v2" if version == 2 else "v1"})
 
 
 @never_cache
@@ -232,10 +278,11 @@ def test_eob(request, version=1):
     nav_info = _extract_page_nav(request, eob)
 
     if nav_info is not None and len(nav_info) > 0:
-        return render(request, 'results.html',
+        return render(request, RESULTS_PAGE,
                       {"fhir_json_pretty": json.dumps(eob, indent=3),
                        "url_name": 'test_eob_v2' if version == 2 else 'test_eob',
                        "nav_list": nav_info, "page_loc": _get_page_loc(request, eob),
+                       "response_type": "Bundle of ExplanationOfBenefit",
                        "total_resource": eob.get('total', 0),
                        "api_ver": "v2" if version == 2 else "v1"})
     else:
