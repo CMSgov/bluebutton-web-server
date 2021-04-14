@@ -35,7 +35,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			{% endif %}
 
 			{% if api_ver is not None %}
-			<h2><strong>API version: {{ api_ver }}</strong></h2>
+			<h2>API version: {{ api_ver }}</h2>
 			{% endif %}
 
 			<h2>Step 1: Sample Authorization</h2>
@@ -57,16 +57,16 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 			{% url 'testclient-restart' as restart_url %}
 			{% if api_ver == 'v2' %}
 				{% url 'authorize_link_v2' as auth_url %}
-				{% url 'fhir_conformance_metadata_v2' as meta_url %}
-				{% url 'openid-configuration-v2' as openid_cfg_url %}
+				{% url 'test_metadata_v2' as meta_url %}
+				{% url 'test_openid_config_v2' as openid_cfg_url %}
 				{% url 'test_userinfo_v2' as test_userinfo_url %}
 				{% url 'test_eob_v2' as test_eob_url %}
 				{% url 'test_patient_v2' as test_patient_url %}
 				{% url 'test_coverage_v2' as test_coverage_url %}
 			{% else %}
 				{% url 'authorize_link' as auth_url %}
-				{% url 'fhir_conformance_metadata' as meta_url %}
-				{% url 'openid-configuration' as openid_cfg_url %}
+				{% url 'test_metadata' as meta_url %}
+				{% url 'test_openid_config' as openid_cfg_url %}
 				{% url 'test_userinfo' as test_userinfo_url %}
 				{% url 'test_eob' as test_eob_url %}
 				{% url 'test_patient' as test_patient_url %}
