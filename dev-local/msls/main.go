@@ -98,8 +98,8 @@ const (
 	USERNAME_FIELD    	= "username"
 	NAME_FIELD    		= "name"
 	EMAIL_FIELD       	= "email"
-	FIRST_NAME_FIELD  	= "fisrtName"
-	LAST_NAME_FIELD   	= "lastName"
+	FIRST_NAME_FIELD  	= "fisrt_name"
+	LAST_NAME_FIELD   	= "last_name"
 	HICN_FIELD        = "hicn"
 	MBI_FIELD         = "mbi"
 	CODE_KEY          = "code"
@@ -118,6 +118,7 @@ func main() {
 	t := template.Must(template.New("loginpage").Parse(login_template))
 	http.Handle("/", logRequest(presentLogin(t)))
 
+	http.Handle("/health", logRequest(http.HandlerFunc(handleHealth)))
 	http.Handle("/login", logRequest(http.HandlerFunc(handleLogin)))
 	http.Handle("/sso/session", logRequest(http.HandlerFunc(handleCode)))
 	http.Handle("/v1/users/", logRequest(http.HandlerFunc(handleUserinfo)))
@@ -149,6 +150,13 @@ func handleCode(rw http.ResponseWriter, r *http.Request) {
 	log.Println(token)
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(token)
+}
+
+func handleHealth(rw http.ResponseWriter, r *http.Request) {
+	all_is_well := map[string]string{
+		"message": "all's well",
+	}
+	json.NewEncoder(rw).Encode(all_is_well)
 }
 
 func handleUserinfo(rw http.ResponseWriter, r *http.Request) {
