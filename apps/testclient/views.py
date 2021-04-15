@@ -233,12 +233,12 @@ def test_coverage(request, version=1):
         nav_info = []
 
     return render(request, RESULTS_PAGE,
-                    {"fhir_json_pretty": json.dumps(coverage, indent=3),
-                    "url_name": 'test_coverage_v2' if version == 2 else 'test_coverage',
-                    "nav_list": nav_info, "page_loc": _get_page_loc(request, coverage),
-                    "response_type": "Bundle of Coverage",
-                    "total_resource": coverage.get('total', 0),
-                    "api_ver": "v2" if version == 2 else "v1"})
+                  {"fhir_json_pretty": json.dumps(coverage, indent=3),
+                   "url_name": 'test_coverage_v2' if version == 2 else 'test_coverage',
+                   "nav_list": nav_info, "page_loc": _get_page_loc(request, coverage),
+                   "response_type": "Bundle of Coverage",
+                   "total_resource": coverage.get('total', 0),
+                   "api_ver": "v2" if version == 2 else "v1"})
 
 
 @never_cache
@@ -283,12 +283,12 @@ def test_eob(request, version=1):
         nav_info = []
 
     return render(request, RESULTS_PAGE,
-                    {"fhir_json_pretty": json.dumps(eob, indent=3),
-                    "url_name": 'test_eob_v2' if version == 2 else 'test_eob',
-                    "nav_list": nav_info, "page_loc": _get_page_loc(request, eob),
-                    "response_type": "Bundle of ExplanationOfBenefit",
-                    "total_resource": eob.get('total', 0),
-                    "api_ver": "v2" if version == 2 else "v1"})
+                  {"fhir_json_pretty": json.dumps(eob, indent=3),
+                   "url_name": 'test_eob_v2' if version == 2 else 'test_eob',
+                   "nav_list": nav_info, "page_loc": _get_page_loc(request, eob),
+                   "response_type": "Bundle of ExplanationOfBenefit",
+                   "total_resource": eob.get('total', 0),
+                   "api_ver": "v2" if version == 2 else "v1"})
 
 
 @never_cache
