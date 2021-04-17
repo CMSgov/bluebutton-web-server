@@ -14,7 +14,8 @@ def openid_configuration(request):
     """
     data = OrderedDict()
     issuer = base_issuer(request)
-    data = build_endpoint_info(data, issuer=issuer, v2=request.path.endswith('openid-configuration-v2'))
+    v2 = request.path.endswith('openid-configuration-v2') or request.path.endswith('openidConfigV2')
+    data = build_endpoint_info(data, issuer=issuer, v2=v2)
     return JsonResponse(data)
 
 

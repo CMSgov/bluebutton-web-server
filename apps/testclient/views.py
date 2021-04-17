@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -34,7 +35,7 @@ def _get_page_loc(request, fhir_json):
     total = fhir_json.get('total', 0)
     index = int(request.GET.get('startIndex', 0))
     count = int(request.GET.get('_count', 10))
-    return "{}/{}".format(index // count + 1, total // count + 1)
+    return "{}/{}".format(index // count + 1, math.ceil(total / count))
 
 
 def _extract_page_nav(request, fhir_json):
@@ -227,17 +228,17 @@ def test_coverage(request, version=1):
 
     nav_info = _extract_page_nav(request, coverage)
 
-    if nav_info is not None and len(nav_info) > 0:
-        return render(request, RESULTS_PAGE,
-                      {"fhir_json_pretty": json.dumps(coverage, indent=3),
-                       "url_name": 'test_coverage_v2' if version == 2 else 'test_coverage',
-                       "nav_list": nav_info, "page_loc": _get_page_loc(request, coverage),
-                       "response_type": "Bundle of Coverage",
-                       "total_resource": coverage.get('total', 0),
-                       "api_ver": "v2" if version == 2 else "v1"})
-    else:
-        # render json (fall back to legacy)
-        return JsonResponse(coverage, safe=False)
+    if coverage.get('total', 0) == 0:
+        # defensive
+        nav_info = []
+
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(coverage, indent=3),
+                   "url_name": 'test_coverage_v2' if version == 2 else 'test_coverage',
+                   "nav_list": nav_info, "page_loc": _get_page_loc(request, coverage),
+                   "response_type": "Bundle of Coverage",
+                   "total_resource": coverage.get('total', 0),
+                   "api_ver": "v2" if version == 2 else "v1"})
 
 
 @never_cache
@@ -277,17 +278,17 @@ def test_eob(request, version=1):
 
     nav_info = _extract_page_nav(request, eob)
 
-    if nav_info is not None and len(nav_info) > 0:
-        return render(request, RESULTS_PAGE,
-                      {"fhir_json_pretty": json.dumps(eob, indent=3),
-                       "url_name": 'test_eob_v2' if version == 2 else 'test_eob',
-                       "nav_list": nav_info, "page_loc": _get_page_loc(request, eob),
-                       "response_type": "Bundle of ExplanationOfBenefit",
-                       "total_resource": eob.get('total', 0),
-                       "api_ver": "v2" if version == 2 else "v1"})
-    else:
-        # render json (fall back to legacy)
-        return JsonResponse(eob)
+    if eob.get('total', 0) == 0:
+        # defensive
+        nav_info = []
+
+    return render(request, RESULTS_PAGE,
+                  {"fhir_json_pretty": json.dumps(eob, indent=3),
+                   "url_name": 'test_eob_v2' if version == 2 else 'test_eob',
+                   "nav_list": nav_info, "page_loc": _get_page_loc(request, eob),
+                   "response_type": "Bundle of ExplanationOfBenefit",
+                   "total_resource": eob.get('total', 0),
+                   "api_ver": "v2" if version == 2 else "v1"})
 
 
 @never_cache
