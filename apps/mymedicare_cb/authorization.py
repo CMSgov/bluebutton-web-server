@@ -35,6 +35,8 @@ class OAuth2ConfigSLSx(object):
     verify_ssl = getattr(settings, 'SLSX_VERIFY_SSL', False)
 
     def __init__(self):
+        self.auth_token = None
+        self.user_id = None
         self.signout_status_code = None
         self.signout_status_mesg = None
         super().__init__()
@@ -84,30 +86,28 @@ class OAuth2ConfigSLSx(object):
 
         token_response = response.json()
 
-        auth_token = token_response.get('auth_token', None)
-        if auth_token is None:
+        self.auth_token = token_response.get('auth_token', None)
+        if self.auth_token is None:
             log_authenticate_start(auth_flow_dict, "FAIL",
                                    "Exchange auth_token is missing in response error")
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
-        user_id = token_response.get('user_id', None)
-        if user_id is None:
+        self.user_id = token_response.get('user_id', None)
+        if self.user_id is None:
             log_authenticate_start(auth_flow_dict, "FAIL",
                                    "Exchange user_id is missing in response error")
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
-        if user_id is None:
+        if self.user_id is None:
             log_authenticate_start(auth_flow_dict, "FAIL",
                                    "Exchange user_id is missing in response error")
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
-
-        return auth_token, user_id
 
     def auth_header(self):
         return {"Authorization": "Bearer %s" % (self.token['access_token'])}
 
-    def get_user_info(self, access_token, user_id, request):
-        headers = {"Authorization": "Bearer %s" % (access_token)}
+    def get_user_info(self, request):
+        headers = {"Authorization": "Bearer %s" % (self.auth_token)}
         # keep using deprecated conv - no conflict issue
         headers.update({"X-SLS-starttime": str(datetime.datetime.utcnow())})
 
@@ -118,7 +118,7 @@ class OAuth2ConfigSLSx(object):
         # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
         try:
-            response = requests.get(self.userinfo_endpoint + "/" + user_id,
+            response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                     headers=headers,
                                     verify=self.verify_ssl,
                                     hooks={
@@ -144,7 +144,7 @@ class OAuth2ConfigSLSx(object):
                                    "SLSx userinfo user_id is missing in response error")
             raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
 
-        if user_id != data_user_response.get('id', None):
+        if self.user_id != data_user_response.get('id', None):
             log_authenticate_start(auth_flow_dict, "FAIL",
                                    "SLSx userinfo user_id is not equal in response error")
             raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
@@ -155,8 +155,8 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.healthcheck_endpoint, verify=self.verify_ssl)
         response.raise_for_status()
 
-    def user_signout(self, access_token, request):
-        headers = {"Authorization": "Bearer %s" % (access_token)}
+    def user_signout(self, request):
+        headers = {"Authorization": "Bearer %s" % (self.auth_token)}
 
         # keep using deprecated conv - no conflict issue
         headers.update({"X-SLS-starttime": str(datetime.datetime.utcnow())})

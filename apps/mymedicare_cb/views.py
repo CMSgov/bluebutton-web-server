@@ -61,21 +61,22 @@ def authenticate(request):
         log_authenticate_start(auth_flow_dict, "FAIL",
                                "SLSx request_token is missing in callback error.")
         raise ValidationError(settings.MEDICARE_ERROR_MSG)
+
     slsx_client = OAuth2ConfigSLSx()
     try:
-        access_token, user_id = slsx_client.exchange_for_access_token(request_token, request)
-    except requests.exceptions.HTTPError as e:
+        slsx_client.exchange_for_access_token(request_token, request)
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         log_authenticate_start(auth_flow_dict, "FAIL",
                                "Token request response error {reason}".format(reason=e))
         raise BBMyMedicareCallbackAuthenticateSlsClientException(settings.MEDICARE_ERROR_MSG)
 
-    user_info = slsx_client.get_user_info(access_token, user_id, request)
+    user_info = slsx_client.get_user_info(request)
 
     # Signout bene to prevent SSO issues per BB2-544
-    slsx_client.user_signout(access_token, request)
+    slsx_client.user_signout(request)
 
     # Set identity values from userinfo response.
-    sls_subject = user_id.strip()
+    sls_subject = slsx_client.user_id.strip()
     sls_hicn = user_info.get("hicn", "").strip()
     #     Convert SLS's mbi to UPPER case.
     sls_mbi = user_info.get("mbi", "").strip().upper()
