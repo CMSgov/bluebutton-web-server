@@ -71,6 +71,9 @@ def authenticate(request):
 
     user_info = slsx_client.get_user_info(access_token, user_id, request)
 
+    # Signout bene to prevent SSO issues per BB2-544
+    slsx_client.user_signout(access_token, request)
+
     # Set identity values from userinfo response.
     sls_subject = user_id.strip()
     sls_hicn = user_info.get("hicn", "").strip()
@@ -93,13 +96,13 @@ def authenticate(request):
     # Validate: sls_subject cannot be empty. TODO: Validate format too.
     if sls_subject == "":
         err_msg = "User info sub cannot be empty"
-        log_authenticate_start(auth_flow_dict, "FAIL", err_msg)
+        log_authenticate_start(auth_flow_dict, "FAIL", err_msg, slsx_client=slsx_client)
         raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
 
     # Validate: sls_hicn cannot be empty.
     if sls_hicn == "":
         err_msg = "User info HICN cannot be empty."
-        log_authenticate_start(auth_flow_dict, "FAIL", err_msg, sls_subject)
+        log_authenticate_start(auth_flow_dict, "FAIL", err_msg, sls_subject, slsx_client=slsx_client)
         raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
 
     # Set Hash values once here for performance and logging.
@@ -115,13 +118,13 @@ def authenticate(request):
         log_authenticate_start(auth_flow_dict, "FAIL", err_msg,
                                sls_subject, sls_mbi_format_valid,
                                sls_mbi_format_msg, sls_mbi_format_synthetic,
-                               sls_hicn_hash, sls_mbi_hash)
+                               sls_hicn_hash, sls_mbi_hash, slsx_client)
         raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
 
     # Log successful identity information gathered.
     log_authenticate_start(auth_flow_dict, "OK", None, sls_subject,
                            sls_mbi_format_valid, sls_mbi_format_msg,
-                           sls_mbi_format_synthetic, sls_hicn_hash, sls_mbi_hash)
+                           sls_mbi_format_synthetic, sls_hicn_hash, sls_mbi_hash, slsx_client)
 
     # Find or create the user associated with the identity information from SLS.
     user, crosswalk_action = get_and_update_user(subject=sls_subject,

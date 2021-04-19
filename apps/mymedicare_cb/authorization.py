@@ -96,13 +96,12 @@ class OAuth2ConfigSLSx(object):
                                    "Exchange user_id is missing in response error")
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
-        session_id = token_response.get('session_id', None)
         if user_id is None:
             log_authenticate_start(auth_flow_dict, "FAIL",
                                    "Exchange user_id is missing in response error")
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
-        return auth_token, user_id, session_id
+        return auth_token, user_id
 
     def auth_header(self):
         return {"Authorization": "Bearer %s" % (self.token['access_token'])}
