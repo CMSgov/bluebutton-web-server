@@ -74,8 +74,8 @@ submit{
     <label>email</label> <input type="text" name="email" size=80></input>
     <br>
     <br>
-    <input type="hidden" name="relay" value="{{ .Get "relay" }}"></input>
-    <input type="hidden" name="redirect_uri" value="{{ .Get "redirect_uri" }}"></input>
+    <input type="hidden" name="redirect_uri" value="{{.Redirect_uri}}"></input>
+    <input type="hidden" name="relay" value="{{.Relay}}"></input>
     <button type="submit">Sign In</button>
 </div>
 </form>

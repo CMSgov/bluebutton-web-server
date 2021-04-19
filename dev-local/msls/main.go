@@ -110,7 +110,7 @@ const (
 
 type LoginPageData struct {
     HelpMessage string
-	State       string
+	Relay       string
 	Redirect_uri    string
 	MbiValues   []string
 	HicnValues  []string
@@ -211,7 +211,7 @@ func presentLogin(t *template.Template) http.Handler {
 		login_data.HicnValues = hicn_array
 		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 		r.ParseForm()
-		login_data.State = r.FormValue("state")
+		login_data.Relay = r.FormValue("relay")
 		login_data.Redirect_uri = r.FormValue("redirect_uri")
 		t.Execute(rw, login_data)
 	})
