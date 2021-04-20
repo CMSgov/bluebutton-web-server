@@ -22,6 +22,16 @@ class MockUrlSLSxResponses:
     def slsx_health_fail_mock(url, request):
         raise requests.exceptions.HTTPError
 
+    # mock sls signout endpoint OK
+    @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
+    def slsx_signout_ok_mock(url, request):
+        return {"status_code": 200}
+
+    # mock sls signout endpoint 404
+    @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
+    def slsx_signout_fail_mock(url, request):
+        return {"status_code": 404}
+
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/session')
     def slsx_token_mock(url, request):
         return {"status_code": 200,

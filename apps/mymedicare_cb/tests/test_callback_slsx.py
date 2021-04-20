@@ -174,6 +174,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             # need to fake an auth flow context to pass
@@ -231,9 +232,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                 }
 
             with HTTMock(catchall):
-                tkn, user_id = sls_client.exchange_for_access_token("test_code", None)
-                self.assertEquals(tkn, "test_tkn")
-                self.assertEquals(user_id, "00112233-4455-6677-8899-aabbccddeeff")
+                sls_client.exchange_for_access_token("test_code", None)
+                self.assertEquals(sls_client.auth_token, "test_tkn")
+                self.assertEquals(sls_client.user_id, "00112233-4455-6677-8899-aabbccddeeff")
 
     def test_failed_sls_token_exchange(self):
         with self.settings(SLSX_CLIENT_ID="test",
@@ -254,7 +255,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
 
             with HTTMock(catchall):
                 with self.assertRaises(requests.exceptions.HTTPError):
-                    tkn, user_id = sls_client.exchange_for_access_token("test_code", None)
+                    sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
         # BB2-237: Added to test ASSERTS replaced with exceptions.
@@ -282,6 +283,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
@@ -299,6 +301,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
@@ -317,6 +320,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
@@ -335,6 +339,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
@@ -353,6 +358,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_no_username_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             with self.assertRaises(BBMyMedicareSLSxUserinfoException):
@@ -362,6 +368,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_empty_hicn_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
@@ -375,6 +382,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_invalid_mbi_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
@@ -388,6 +396,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_http_error_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
@@ -402,7 +411,19 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_http_error_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
             with self.assertRaises(BBMyMedicareSLSxUserinfoException):
                 response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+
+        # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock STILL PASSES
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_fail_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            # assert http redirect
+            self.assertEqual(response.status_code, 302)

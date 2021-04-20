@@ -173,6 +173,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         with HTTMockWithResponseHook(MockUrlSLSxResponses.slsx_token_mock,
                                      MockUrlSLSxResponses.slsx_user_info_mock,
+                                     MockUrlSLSxResponses.slsx_signout_ok_mock,
                                      fhir_patient_info_mock,
                                      catchall):
             s = self.client.session
