@@ -17,7 +17,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
-from apps.mymedicare_cb.authorization import BBMyMedicareSLSxUserinfoException
+from apps.mymedicare_cb.authorization import BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException
 from apps.mymedicare_cb.views import generate_nonce, BBSLSxHealthCheckFailedException
 
 from .responses import patient_response
@@ -424,6 +424,5 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                      MockUrlSLSxResponses.slsx_signout_fail_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
-            # assert http redirect
-            self.assertEqual(response.status_code, 302)
+            with self.assertRaises(BBMyMedicareSLSxSignoutException):
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})

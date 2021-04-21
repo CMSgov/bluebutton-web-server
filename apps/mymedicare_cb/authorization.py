@@ -25,6 +25,11 @@ class BBMyMedicareSLSxUserinfoException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
 
 
+class BBMyMedicareSLSxSignoutException(APIException):
+    # BB2-544 custom exception
+    status_code = status.HTTP_502_BAD_GATEWAY
+
+
 class OAuth2ConfigSLSx(object):
     token_endpoint = settings.SLSX_TOKEN_ENDPOINT
     token_endpoint_aca_token = settings.MEDICARE_SLSX_AKAMAI_ACA_TOKEN
@@ -165,6 +170,9 @@ class OAuth2ConfigSLSx(object):
             headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                             if hasattr(request, '_logging_uuid') else '')})
 
+        # Get auth flow session values.
+        auth_flow_dict = get_session_auth_flow_trace(request)
+
         try:
             response = requests.get(self.signout_endpoint,
                                     headers=headers,
@@ -172,5 +180,6 @@ class OAuth2ConfigSLSx(object):
             self.signout_status_code = response.status_code
             response.raise_for_status()
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            # Only setting mesg for logging if a signout fails per BB2-544
-            self.signout_status_mesg = "SLSx signout error {reason}".format(reason=e)
+            log_authenticate_start(auth_flow_dict, "FAIL",
+                                   "SLSx signout error".format(reason=e))
+            raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
