@@ -327,9 +327,9 @@ class SLSxTokenResponse(SLSResponse):
         return 'SLSx_token'
 
     def to_dict(self):
-
         event_dict = {}
         json_exception = {}
+
         try:
             event_dict = json.loads(self.resp.text)
         except json.decoder.JSONDecodeError:
@@ -339,12 +339,14 @@ class SLSxTokenResponse(SLSResponse):
 
         event_dict.update(super().to_dict().copy())
 
+        auth_token = None if event_dict.get('auth_token') is None else \
+            hashlib.sha256(str(event_dict.get('auth_token')).encode('utf-8')).hexdigest()
+
         resp_dict = {
             "type": event_dict.get('type'),
             "uuid": event_dict.get('uuid'),
             "path": event_dict.get('path'),
-            "auth_token": None if event_dict.get('auth_token') is None
-            else hashlib.sha256(str(event_dict.get('auth_token')).encode('utf-8')).hexdigest(),
+            "auth_token": auth_token,
             "code": event_dict.get('code'),
             "size": event_dict.get('size'),
             "start_time": event_dict.get('start_time'),

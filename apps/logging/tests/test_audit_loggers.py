@@ -11,12 +11,12 @@ from jsonschema import validate
 from waffle.testutils import override_flag
 
 from apps.dot_ext.models import Application
+from apps.mymedicare_cb.authorization import BBMyMedicareSLSxUserinfoException
 from apps.mymedicare_cb.views import generate_nonce
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
 from apps.mymedicare_cb.tests.responses import patient_response
 from apps.test import BaseApiTest
-
 from .audit_logger_schemas import (ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, AUTHENTICATION_START_LOG_SCHEMA,
                                    AUTHENTICATION_SUCCESS_LOG_SCHEMA, AUTHORIZATION_LOG_SCHEMA,
                                    FHIR_AUTH_POST_FETCH_LOG_SCHEMA, FHIR_AUTH_PRE_FETCH_LOG_SCHEMA,
@@ -250,6 +250,108 @@ class TestAuditEventLoggers(BaseApiTest):
             # Validate hhs_oauth_server request/response custom middleware log entry
             log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(self._validateJsonSchema(REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA, log_entry_dict))
+
+    def test_callback_url_slsx_tkn_error_logger(self):
+        self._callback_url_slsx_tkn_error_logger(False)
+
+    @override_flag('bfd_v2_flag', active=True)
+    def test_callback_url_slsx_tkn_error_logger_v2(self):
+        self._callback_url_slsx_tkn_error_logger(True)
+
+    def _callback_url_slsx_tkn_error_logger(self, v2=False):
+        state = generate_nonce()
+        AnonUserState.objects.create(
+            state=state,
+            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
+
+        # mock fhir user info endpoint
+        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path=r'/v[12]/fhir/Patient/')
+        def fhir_patient_info_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': patient_response,
+            }
+
+        @all_requests
+        def catchall(url, request):
+            raise Exception(url)
+
+        with HTTMockWithResponseHook(MockUrlSLSxResponses.slsx_token_non_json_response_mock,
+                                     MockUrlSLSxResponses.slsx_user_info_mock,
+                                     fhir_patient_info_mock,
+                                     catchall):
+            s = self.client.session
+            s.update({"auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
+                      "auth_app_id": "2",
+                      "version": 2 if v2 else 1,
+                      "auth_app_name": "TestApp-001",
+                      "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
+            s.save()
+
+            self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'state': state})
+
+            slsx_log_content = self.get_log_content('audit.authorization.sls')
+            quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
+
+            self.assertEqual(len(quoted_strings), 1)
+
+            log_entry_dict = json.loads(quoted_strings[0])
+            self.assertIsNotNone(log_entry_dict.get('message'))
+            self.assertEqual(log_entry_dict.get('message'), 'JSONDecodeError thrown when parsing response text.')
+
+    def test_callback_url_slsx_userinfo_error_logger(self):
+        self._callback_url_slsx_userinfo_error_logger(False)
+
+    @override_flag('bfd_v2_flag', active=True)
+    def test_callback_url_slsx_userinfo_error_logger_v2(self):
+        self._callback_url_slsx_userinfo_error_logger(True)
+
+    def _callback_url_slsx_userinfo_error_logger(self, v2=False):
+        state = generate_nonce()
+        AnonUserState.objects.create(
+            state=state,
+            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
+
+        # mock fhir user info endpoint
+        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path=r'/v[12]/fhir/Patient/')
+        def fhir_patient_info_mock(url, request):
+            return {
+                'status_code': 200,
+                'content': patient_response,
+            }
+
+        @all_requests
+        def catchall(url, request):
+            raise Exception(url)
+
+        with HTTMockWithResponseHook(MockUrlSLSxResponses.slsx_token_mock,
+                                     MockUrlSLSxResponses.slsx_user_info_non_json_response_mock,
+                                     fhir_patient_info_mock,
+                                     catchall):
+            s = self.client.session
+            s.update({"auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
+                      "auth_app_id": "2",
+                      "version": 2 if v2 else 1,
+                      "auth_app_name": "TestApp-001",
+                      "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
+            s.save()
+
+            # apps.mymedicare_cb.authorization.BBMyMedicareSLSxUserinfoException
+
+            try:
+                self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'state': state})
+            except  BBMyMedicareSLSxUserinfoException:
+                # expected
+                pass
+
+            slsx_log_content = self.get_log_content('audit.authorization.sls')
+            quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
+
+            self.assertEqual(len(quoted_strings), 2)
+
+            log_entry_dict = json.loads(quoted_strings[1])
+            self.assertIsNotNone(log_entry_dict.get('message'))
+            self.assertEqual(log_entry_dict.get('message'), 'JSONDecodeError thrown when parsing response text.')
 
     def test_creation_on_approval_token_logger(self):
         self._creation_on_approval_token_logger(False)

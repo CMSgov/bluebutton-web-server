@@ -40,6 +40,12 @@ class MockUrlSLSxResponses:
                             "user_id": "00112233-4455-6677-8899-aabbccddeeff",
                             "session_id": "47dc2799838c4a3cb0ad55c688f6de07"}}
 
+    @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/session')
+    def slsx_token_non_json_response_mock(url, request):
+        # pick a non 200 just fake an error response
+        return {"status_code": 403,
+                "content": "<div>Hey something went wrong with token service!</div>"}
+
     # mock sls token endpoint with http error
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/session')
     def slsx_token_http_error_mock(url, request):
@@ -59,6 +65,12 @@ class MockUrlSLSxResponses:
                                               "hicn": "1234567890A",
                                               "customUserInfo": {"mbi": "1SA0A00AA00"},
                                               "mbi": "1SA0A00AA00"}}}}
+
+    @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
+    def slsx_user_info_non_json_response_mock(url, request):
+        # pick a non 200 for a fake error
+        return {"status_code": 403,
+                "content": "<div>Hey something went wrong with user info service!</div>"}
 
     # mock sls user info endpoint with http error
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
