@@ -340,7 +340,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
             try:
                 self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'state': state})
-            except  BBMyMedicareSLSxUserinfoException:
+            except BBMyMedicareSLSxUserinfoException:
                 # expected
                 pass
 
