@@ -544,6 +544,8 @@ SLSX_HEALTH_CHECK_ENDPOINT = env(
     'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', 'https://test.accounts.cms.gov/health')
 SLSX_TOKEN_ENDPOINT = env(
     'DJANGO_SLSX_TOKEN_ENDPOINT', 'https://test.medicare.gov/sso/session')
+SLSX_SIGNOUT_ENDPOINT = env(
+    'DJANGO_SLSX_SIGNOUT_ENDPOINT', 'https://test.medicare.gov/sso/signout')
 
 # ACA token for SLSX_TOKEN_ENDPOINT
 MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env('DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN', '')

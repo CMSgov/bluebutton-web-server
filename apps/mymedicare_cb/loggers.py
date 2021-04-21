@@ -73,7 +73,8 @@ def log_create_beneficiary_record(auth_flow_dict, status, username, fhir_id, use
 # For use in views.authenticate()
 def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subject=None,
                            sls_mbi_format_valid=None, sls_mbi_format_msg=None,
-                           sls_mbi_format_synthetic=None, sls_hicn_hash=None, sls_mbi_hash=None):
+                           sls_mbi_format_synthetic=None, sls_hicn_hash=None,
+                           sls_mbi_hash=None, slsx_client=None):
 
     log_dict = {
         "type": "Authentication:start",
@@ -86,6 +87,17 @@ def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subj
         "sls_hicn_hash": sls_hicn_hash,
         "sls_mbi_hash": sls_mbi_hash,
     }
+
+    try:
+        log_dict.update({"sls_signout_status_code": slsx_client.signout_status_code, })
+    except (AttributeError, KeyError):
+        log_dict.update({"sls_signout_status_code": None, })
+
+    try:
+        log_dict.update({"sls_signout_status_mesg": slsx_client.signout_status_mesg, })
+    except (AttributeError, KeyError):
+        log_dict.update({"sls_signout_status_mesg": None, })
+
     # Update with auth flow session info
     if auth_flow_dict:
         log_dict.update(auth_flow_dict)

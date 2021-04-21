@@ -36,6 +36,7 @@ services:
             - DJANGO_MEDICARE_SLSX_REDIRECT_URI=http://localhost:8000/mymedicare/sls-callback
             - DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=https://test.accounts.cms.gov/health
             - DJANGO_SLSX_TOKEN_ENDPOINT=https://test.medicare.gov/sso/session
+            - DJANGO_SLSX_SIGNOUT_ENDPOINT=https://test.medicare.gov/sso/signout
             - DJANGO_SLSX_USERINFO_ENDPOINT=https://test.accounts.cms.gov/v1/users
             - DJANGO_SLSX_VERIFY_SSL=False
             - DJANGO_LOG_JSON_FORMAT_PRETTY=True
