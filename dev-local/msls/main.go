@@ -121,6 +121,7 @@ func main() {
 	http.Handle("/health", logRequest(http.HandlerFunc(handleHealth)))
 	http.Handle("/login", logRequest(http.HandlerFunc(handleLogin)))
 	http.Handle("/sso/session", logRequest(http.HandlerFunc(handleCode)))
+	http.Handle("/sso/signout", logRequest(http.HandlerFunc(handleSignout)))
 	http.Handle("/v1/users/", logRequest(http.HandlerFunc(handleUserinfo)))
 	http.ListenAndServe(":8080", nil)
 }
@@ -157,6 +158,13 @@ func handleHealth(rw http.ResponseWriter, r *http.Request) {
 		"message": "all's well",
 	}
 	json.NewEncoder(rw).Encode(all_is_well)
+}
+
+func handleSignout(rw http.ResponseWriter, r *http.Request) {
+	signout_ok := map[string]string{
+		"message": "singout OK",
+	}
+	json.NewEncoder(rw).Encode(signout_ok)
 }
 
 func handleUserinfo(rw http.ResponseWriter, r *http.Request) {
