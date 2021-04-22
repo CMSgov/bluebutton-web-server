@@ -182,4 +182,5 @@ class OAuth2ConfigSLSx(object):
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
             log_authenticate_start(auth_flow_dict, "FAIL",
                                    "SLSx signout error {reason}".format(reason=e))
-            raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
+            # TODO: NOTE: Commenting out the exception below due to endpoint issues/incident.
+            # raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
