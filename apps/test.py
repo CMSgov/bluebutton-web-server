@@ -116,19 +116,25 @@ class BaseApiTest(TestCase):
         apps_qs = Application.objects.filter(name__exact=app_name).filter(user__username=username)
         return apps_qs.first()
 
-    def create_token(self, first_name, last_name):
+    def create_token(self, first_name, last_name, bene_id=None, hicn_hash=None, mbi_hash=None):
         passwd = '123456'
         user = self._create_user(first_name,
                                  passwd,
                                  first_name=first_name,
                                  last_name=last_name,
+                                 fhir_id=bene_id if bene_id is not None else settings.DEFAULT_SAMPLE_FHIR_ID,
+                                 user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
+                                 user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash,
                                  email="%s@%s.net" % (first_name, last_name))
-        if Crosswalk.objects.filter(_fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).exists():
-            Crosswalk.objects.filter(_fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID).delete()
+        fhir_id = bene_id if bene_id is not None else settings.DEFAULT_SAMPLE_FHIR_ID
+
+        if Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
+            Crosswalk.objects.filter(_fhir_id=fhir_id).delete()
+
         Crosswalk.objects.create(user=user,
-                                 fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                 user_hicn_hash=self.test_hicn_hash,
-                                 user_mbi_hash=self.test_mbi_hash)
+                                 fhir_id=fhir_id,
+                                 user_hicn_hash=hicn_hash if hicn_hash is not None else self.test_hicn_hash,
+                                 user_mbi_hash=mbi_hash if mbi_hash is not None else self.test_mbi_hash)
 
         # create a oauth2 application and add capabilities
         application = self._create_application("%s_%s_test" % (first_name, last_name), user=user)
