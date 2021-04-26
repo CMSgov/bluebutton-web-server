@@ -7,4 +7,5 @@ django-debug-toolbar==3.2.1
 httmock==1.4.0
 beautifulsoup4
 debugpy
+pre-commit
 
