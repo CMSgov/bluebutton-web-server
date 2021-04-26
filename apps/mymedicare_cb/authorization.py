@@ -176,6 +176,7 @@ class OAuth2ConfigSLSx(object):
         try:
             response = requests.get(self.signout_endpoint,
                                     headers=headers,
+                                    allow_redirects=False,
                                     verify=self.verify_ssl)
             self.signout_status_code = response.status_code
             response.raise_for_status()

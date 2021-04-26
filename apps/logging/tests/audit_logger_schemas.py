@@ -41,7 +41,7 @@ AUTHENTICATION_START_LOG_SCHEMA = {
         "sls_mbi_format_synthetic": {"type": "boolean"},
         "sls_hicn_hash": {"pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"},
         "sls_mbi_hash": {"pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"},
-        "sls_signout_status_code": {"type": "integer", "enum": [200]},
+        "sls_signout_status_code": {"type": "integer", "enum": [302]},
         "sls_signout_status_mesg": {"type": "null"},
     },
     "required": ["type", "sls_status", "sub", "sls_mbi_format_valid", "sls_mbi_format_msg",

@@ -25,7 +25,7 @@ class MockUrlSLSxResponses:
     # mock sls signout endpoint OK
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
     def slsx_signout_ok_mock(url, request):
-        return {"status_code": 200}
+        return {"status_code": 302}
 
     # mock sls signout endpoint 404
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
