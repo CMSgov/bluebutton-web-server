@@ -15,6 +15,11 @@ from .signals import response_hook_wrapper
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
+class BBMyMedicareSLSxSignoutException(APIException):
+    # BB2-544 custom exception
+    status_code = status.HTTP_502_BAD_GATEWAY
+
+
 class BBMyMedicareSLSxTokenException(APIException):
     # BB2-391 custom exception
     status_code = status.HTTP_502_BAD_GATEWAY
@@ -25,9 +30,14 @@ class BBMyMedicareSLSxUserinfoException(APIException):
     status_code = status.HTTP_502_BAD_GATEWAY
 
 
-class BBMyMedicareSLSxSignoutException(APIException):
+class BBMyMedicareSLSxValidateSignoutException(APIException):
     # BB2-544 custom exception
     status_code = status.HTTP_502_BAD_GATEWAY
+
+
+class BBSLSxHealthCheckFailedException(APIException):
+    # BB2-391 custom exception
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
 
 class OAuth2ConfigSLSx(object):
@@ -42,8 +52,16 @@ class OAuth2ConfigSLSx(object):
     def __init__(self):
         self.auth_token = None
         self.user_id = None
+        self.healthcheck_status_code = None
+        self.healthcheck_status_mesg = None
         self.signout_status_code = None
         self.signout_status_mesg = None
+        self.token_status_code = None
+        self.token_status_mesg = None
+        self.userinfo_status_code = None
+        self.userinfo_status_mesg = None
+        self.validate_signout_status_code = None
+        self.validate_signout_status_mesg = None
         super().__init__()
 
     @property
@@ -76,36 +94,46 @@ class OAuth2ConfigSLSx(object):
         # Get auth flow trace session values dict.
         auth_flow_dict = get_session_auth_flow_trace(request)
 
-        response = requests.post(
-            self.token_endpoint,
-            auth=self.basic_auth(),
-            json=data_dict,
-            headers=headers,
-            verify=self.verify_ssl,
-            hooks={
-                'response': [
-                    response_hook_wrapper(sender=SLSxTokenResponse,
-                                          auth_flow_dict=auth_flow_dict)]})
-
-        response.raise_for_status()
+        try:
+            response = requests.post(
+                self.token_endpoint,
+                auth=self.basic_auth(),
+                json=data_dict,
+                headers=headers,
+                verify=self.verify_ssl,
+                hooks={
+                    'response': [
+                        response_hook_wrapper(sender=SLSxTokenResponse,
+                                              auth_flow_dict=auth_flow_dict)]})
+            self.token_status_code = response.status_code
+            response.raise_for_status()
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+            self.token_status_mesg = e
+            log_authenticate_start(auth_flow_dict, "FAIL",
+                                   "SLSx token response error {reason}".format(reason=e),
+                                   slsx_client=self)
+            raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
         token_response = response.json()
 
         self.auth_token = token_response.get('auth_token', None)
         if self.auth_token is None:
             log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "Exchange auth_token is missing in response error")
+                                   "Exchange auth_token is missing in response error",
+                                   slsx_client=self)
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
         self.user_id = token_response.get('user_id', None)
         if self.user_id is None:
             log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "Exchange user_id is missing in response error")
+                                   "Exchange user_id is missing in response error",
+                                   slsx_client=self)
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
         if self.user_id is None:
             log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "Exchange user_id is missing in response error")
+                                   "Exchange user_id is missing in response error",
+                                   slsx_client=self)
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
     def auth_header(self):
@@ -114,7 +142,9 @@ class OAuth2ConfigSLSx(object):
     def get_user_info(self, request):
         headers = {"Authorization": "Bearer %s" % (self.auth_token)}
         # keep using deprecated conv - no conflict issue
-        headers.update({"X-SLS-starttime": str(datetime.datetime.utcnow())})
+        headers.update({"Content-Type": "application/json",
+                        "Cookie": self.token_endpoint_aca_token,
+                        "X-SLS-starttime": str(datetime.datetime.utcnow())})
 
         if request is not None:
             headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
@@ -130,10 +160,13 @@ class OAuth2ConfigSLSx(object):
                                         'response': [
                                             response_hook_wrapper(sender=SLSxUserInfoResponse,
                                                                   auth_flow_dict=auth_flow_dict)]})
+            self.userinfo_status_code = response.status_code
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
+            self.userinfo_status_mesg = response.status_mesg
             log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx userinfo request response error {reason}".format(reason=e))
+                                   "SLSx userinfo response error {reason}".format(reason=e),
+                                   slsx_client=self)
             raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
 
         # Get data.user part of response
@@ -141,30 +174,57 @@ class OAuth2ConfigSLSx(object):
             data_user_response = response.json().get('data').get('user')
         except KeyError:
             log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx userinfo issue with data.user sub fields in response error")
+                                   "SLSx userinfo issue with data.user sub fields in response error",
+                                   slsx_client=self)
             raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
 
         if data_user_response.get('id', None) is None:
             log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx userinfo user_id is missing in response error")
+                                   "SLSx userinfo user_id is missing in response error",
+                                   slsx_client=self)
             raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
 
         if self.user_id != data_user_response.get('id', None):
             log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx userinfo user_id is not equal in response error")
+                                   "SLSx userinfo user_id is not equal in response error",
+                                   slsx_client=self)
             raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
 
         return data_user_response
 
-    def service_health_check(self):
-        response = requests.get(self.healthcheck_endpoint, verify=self.verify_ssl)
-        response.raise_for_status()
+    def service_health_check(self, request):
+        # Get auth flow session values.
+        auth_flow_dict = get_session_auth_flow_trace(request)
+
+        # keep using deprecated conv - no conflict issue
+        headers = {"Content-Type": "application/json",
+                   "Cookie": self.token_endpoint_aca_token,
+                   "X-SLS-starttime": str(datetime.datetime.utcnow())}
+
+        if request is not None:
+            headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
+                            if hasattr(request, '_logging_uuid') else '')})
+
+        try:
+            response = requests.get(self.healthcheck_endpoint,
+                                    allow_redirects=False,
+                                    verify=self.verify_ssl)
+            self.healthcheck_status_code = response.status_code
+            response.raise_for_status()
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+            self.healthcheck_status_mesg = e
+            log_authenticate_start(auth_flow_dict, "FAIL",
+                                   "SLSx service health check error {reason}".format(reason=e),
+                                   slsx_client=self)
+            raise BBSLSxHealthCheckFailedException(settings.MEDICARE_ERROR_MSG)
 
     def user_signout(self, request):
         headers = {"Authorization": "Bearer %s" % (self.auth_token)}
 
         # keep using deprecated conv - no conflict issue
-        headers.update({"X-SLS-starttime": str(datetime.datetime.utcnow())})
+        headers.update({"Content-Type": "application/json",
+                        "Cookie": self.token_endpoint_aca_token,
+                        "X-SLS-starttime": str(datetime.datetime.utcnow())})
 
         if request is not None:
             headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
@@ -181,6 +241,45 @@ class OAuth2ConfigSLSx(object):
             self.signout_status_code = response.status_code
             response.raise_for_status()
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+            self.signout_status_mesg = e
             log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx signout error {reason}".format(reason=e))
+                                   "SLSx signout error {reason}".format(reason=e),
+                                   slsx_client=self)
             raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
+
+    def validate_user_signout(self, request):
+        """
+        Performs a call to self.get_user_info to validate that the bene is
+        signed out. When signed out, an exception is thrown.
+        """
+        headers = {"Authorization": "Bearer %s" % (self.auth_token)}
+        # keep using deprecated conv - no conflict issue
+        headers.update({"Content-Type": "application/json",
+                        "Cookie": self.token_endpoint_aca_token,
+                        "X-SLS-starttime": str(datetime.datetime.utcnow())})
+
+        if request is not None:
+            headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
+                            if hasattr(request, '_logging_uuid') else '')})
+
+        # Get auth flow session values.
+        auth_flow_dict = get_session_auth_flow_trace(request)
+        try:
+            response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
+                                    headers=headers,
+                                    verify=self.verify_ssl,
+                                    hooks={
+                                        'response': [
+                                            response_hook_wrapper(sender=SLSxUserInfoResponse,
+                                                                  auth_flow_dict=auth_flow_dict)]})
+            self.validate_signout_status_code = response.status_code
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            # Check for the expected 403 = Forbidden response code.
+            if self.validate_signout_status_code != status.HTTP_403_FORBIDDEN:
+                self.validate_signout_status_mesg = e
+                log_authenticate_start(auth_flow_dict, "FAIL",
+                                       "SLSx validate_signout response_code = {code}."
+                                       " Expecting HTTP_403_FORBIDDEN.".format(code=self.validate_signout_status_code),
+                                       slsx_client=self)
+                raise BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)

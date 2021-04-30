@@ -1,6 +1,5 @@
 import logging
 import random
-import requests
 import urllib.request as urllib_request
 
 from django.conf import settings
@@ -40,11 +39,6 @@ class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException)
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-class BBSLSxHealthCheckFailedException(APIException):
-    # BB2-391 custom exception
-    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-
-
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
 def authenticate(request):
     # Update authorization flow from previously stored state in AuthFlowUuid instance in mymedicare_login().
@@ -63,17 +57,18 @@ def authenticate(request):
         raise ValidationError(settings.MEDICARE_ERROR_MSG)
 
     slsx_client = OAuth2ConfigSLSx()
-    try:
-        slsx_client.exchange_for_access_token(request_token, request)
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        log_authenticate_start(auth_flow_dict, "FAIL",
-                               "Token request response error {reason}".format(reason=e))
-        raise BBMyMedicareCallbackAuthenticateSlsClientException(settings.MEDICARE_ERROR_MSG)
 
+    # Exchange req_token for access token
+    slsx_client.exchange_for_access_token(request_token, request)
+
+    # Get user_info
     user_info = slsx_client.get_user_info(request)
 
     # Signout bene to prevent SSO issues per BB2-544
     slsx_client.user_signout(request)
+
+    # Validate bene is signed out per BB2-544
+    slsx_client.validate_user_signout(request)
 
     # Set identity values from userinfo response.
     sls_subject = slsx_client.user_id.strip()
@@ -226,17 +221,9 @@ def mymedicare_login(request, version=1):
     redirect = settings.MEDICARE_SLSX_REDIRECT_URI
     mymedicare_login_url = settings.MEDICARE_SLSX_LOGIN_URI
 
-    # Get auth flow session values.
-    auth_flow_dict = get_session_auth_flow_trace(request)
-
     # Perform health check on SLSx service
     slsx_client = OAuth2ConfigSLSx()
-    try:
-        slsx_client.service_health_check()
-    except requests.exceptions.HTTPError as e:
-        log_authenticate_start(auth_flow_dict, "FAIL",
-                               "SLSx service health check error {reason}".format(reason=e))
-        raise BBSLSxHealthCheckFailedException(settings.MEDICARE_ERROR_MSG)
+    slsx_client.service_health_check(request)
 
     relay_param_name = "relay"
     redirect = urllib_request.pathname2url(redirect)
