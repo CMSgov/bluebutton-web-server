@@ -163,7 +163,7 @@ class OAuth2ConfigSLSx(object):
             self.userinfo_status_code = response.status_code
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            self.userinfo_status_mesg = response.status_mesg
+            self.userinfo_status_mesg = e
             log_authenticate_start(auth_flow_dict, "FAIL",
                                    "SLSx userinfo response error {reason}".format(reason=e),
                                    slsx_client=self)
