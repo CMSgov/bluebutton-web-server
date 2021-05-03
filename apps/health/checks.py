@@ -35,7 +35,7 @@ def slsx(v2=False):
     # Perform health check on SLSx service
     slsx_client = OAuth2ConfigSLSx()
     try:
-        slsx_client.service_health_check()
+        slsx_client.service_health_check(None)
     except requests.exceptions.HTTPError as e:
         return "SLSx service health check error {reason}".format(reason=e).json()
     return True
