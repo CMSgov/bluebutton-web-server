@@ -192,7 +192,7 @@ class OAuth2ConfigSLSx(object):
 
         return data_user_response
 
-    def service_health_check(self, request):
+    def service_health_check(self, request, called_from_health_external=False):
         # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
 
@@ -212,10 +212,11 @@ class OAuth2ConfigSLSx(object):
             self.healthcheck_status_code = response.status_code
             response.raise_for_status()
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            self.healthcheck_status_mesg = e
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx service health check error {reason}".format(reason=e),
-                                   slsx_client=self)
+            if not called_from_health_external:
+                self.healthcheck_status_mesg = e
+                log_authenticate_start(auth_flow_dict, "FAIL",
+                                       "SLSx service health check error {reason}".format(reason=e),
+                                       slsx_client=self)
             raise BBSLSxHealthCheckFailedException(settings.MEDICARE_ERROR_MSG)
 
     def user_signout(self, request):

@@ -5,7 +5,7 @@ from django.db import connection
 
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.fhir.server import connection as backend_connection
-from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
+from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx, BBSLSxHealthCheckFailedException
 
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -35,8 +35,8 @@ def slsx(v2=False):
     # Perform health check on SLSx service
     slsx_client = OAuth2ConfigSLSx()
     try:
-        slsx_client.service_health_check(None)
-    except requests.exceptions.HTTPError as e:
+        slsx_client.service_health_check(None, called_from_health_external=True)
+    except BBSLSxHealthCheckFailedException as e:
         return "SLSx service health check error {reason}".format(reason=e).json()
     return True
 
