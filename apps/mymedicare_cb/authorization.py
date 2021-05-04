@@ -240,6 +240,13 @@ class OAuth2ConfigSLSx(object):
                                     verify=self.verify_ssl)
             self.signout_status_code = response.status_code
             response.raise_for_status()
+
+            if self.signout_status_code != status.HTTP_302_FOUND:
+                log_authenticate_start(auth_flow_dict, "FAIL",
+                                       "SLSx signout response_code = {code}."
+                                       " Expecting HTTP_302_FOUND.".format(code=self.signout_status_code),
+                                       slsx_client=self)
+                raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
             self.signout_status_mesg = e
             log_authenticate_start(auth_flow_dict, "FAIL",
