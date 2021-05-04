@@ -50,13 +50,14 @@ def authenticate(request):
     # Get auth flow session values.
     auth_flow_dict = get_session_auth_flow_trace(request)
 
+    # SLSx client instance
+    slsx_client = OAuth2ConfigSLSx()
+
     request_token = request.GET.get('req_token', None)
     if request_token is None:
         log_authenticate_start(auth_flow_dict, "FAIL",
-                               "SLSx request_token is missing in callback error.")
+                               "SLSx request_token is missing in callback error.", slsx_client=slsx_client)
         raise ValidationError(settings.MEDICARE_ERROR_MSG)
-
-    slsx_client = OAuth2ConfigSLSx()
 
     # Exchange req_token for access token
     slsx_client.exchange_for_access_token(request_token, request)
