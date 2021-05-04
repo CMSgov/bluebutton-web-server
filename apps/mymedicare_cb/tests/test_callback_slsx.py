@@ -1,5 +1,4 @@
 import json
-import requests
 import uuid
 
 from datetime import datetime
@@ -17,8 +16,10 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
-from apps.mymedicare_cb.authorization import BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException
-from apps.mymedicare_cb.views import generate_nonce, BBSLSxHealthCheckFailedException
+from apps.mymedicare_cb.authorization import (BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException,
+                                              BBMyMedicareSLSxTokenException, BBSLSxHealthCheckFailedException)
+
+from apps.mymedicare_cb.views import generate_nonce
 
 from .responses import patient_response
 
@@ -209,9 +210,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             }
 
         with HTTMock(catchall):
-            response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
-            # assert http redirect
-            self.assertEqual(response.status_code, 502)
+            with self.assertRaises(BBMyMedicareSLSxTokenException):
+                self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
 
     def test_sls_token_exchange_w_creds(self):
         with self.settings(SLSX_CLIENT_ID="test",
@@ -254,7 +254,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                 }
 
             with HTTMock(catchall):
-                with self.assertRaises(requests.exceptions.HTTPError):
+                with self.assertRaises(BBMyMedicareSLSxTokenException):
                     sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
@@ -399,15 +399,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                      MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            with self.assertRaises(BBMyMedicareSLSxTokenException):
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
-            # assert 502 exception
-            self.assertEqual(response.status_code, 502)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
         # With HTTMock sls_user_info_http_error_mock
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_http_error_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
@@ -417,11 +415,21 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             with self.assertRaises(BBMyMedicareSLSxUserinfoException):
                 response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
-        # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock STILL PASSES
+        # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock has exception
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
                      MockUrlSLSxResponses.slsx_signout_fail_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            with self.assertRaises(BBMyMedicareSLSxSignoutException):
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+
+        # With HTTMock MockUrlSLSxResponses.slsx_signout_fail2_mock has exception
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_fail2_mock,
                      fhir_patient_info_mock,
                      catchall):
             with self.assertRaises(BBMyMedicareSLSxSignoutException):
