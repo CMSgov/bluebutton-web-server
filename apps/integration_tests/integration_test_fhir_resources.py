@@ -8,7 +8,6 @@ from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch, override_flag
 
-from apps.fhir.bluebutton.models import Crosswalk
 from apps.test import BaseApiTest
 
 from .endpoint_schemas import (COVERAGE_READ_SCHEMA_V2,
@@ -34,8 +33,6 @@ C4BB_PROFILE_URLS = {
 
 SAMPLE_A_888_MBI_HASH = '37c37d08d239f7f1da60e949674c8e4b5bb2106077cb0671d3dfcbf510ec3248'
 SAMPLE_A_888_HICN_HASH = '3637b48c050b8d7a3aa29cd012a535c0ab0e52fe18ddcf1863266b217adc242f'
-
-C4BB_ID_TYPE_DEF_URL = "http://hl7.org/fhir/us/carin-bb/CodeSystem/C4BBIdentifierType"
 
 FHIR_RES_TYPE_EOB = "ExplanationOfBenefit"
 FHIR_RES_TYPE_PATIENT = "Patient"
@@ -65,7 +62,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             endpoint_url = "{}/{}".format(endpoint_url, params)
         return endpoint_url
 
-    def _setup_apiclient(self, client, fn=None, ln=None, bene_id=None, hicn_hash=None, mbi_hash=None):
+    def _setup_apiclient(self, client, fn=None, ln=None, fhir_id=None, hicn_hash=None, mbi_hash=None):
         # Setup token in APIClient
         '''
         TODO: Perform auth flow here --- when selenium is included later.
@@ -84,7 +81,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # create user, app, and access token
         first_name = fn if fn is not None else "John"
         last_name = ln if ln is not None else "Doe"
-        access_token = base_api_test.create_token(first_name, last_name, bene_id, hicn_hash, mbi_hash)
+        access_token = base_api_test.create_token(first_name, last_name, fhir_id, hicn_hash, mbi_hash)
 
         # Test scope in access_token
         at = AccessToken.objects.get(token=access_token)
@@ -154,11 +151,17 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             nav_info[r.get('relation')] = r.get('url', None)
         return nav_info
 
-    def _stats_resource_by_type(self, bundle_json, cur_stats_dict):
+    def _stats_resource_by_type(self, bundle_json, cur_stats_dict, schema=None):
 
         for e in bundle_json['entry']:
 
-            rs_id = e['resource']['id']
+            rs = e['resource']
+            rs_id = rs['id']
+
+            if schema is not None:
+                eob_profile = rs['meta']['profile'][0]
+                self.assertIsNotNone(eob_profile)
+                self.assertTrue(self._validateJsonSchema(schema, rs))
 
             is_matched = False
 
@@ -505,13 +508,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
     def test_eob_profiles_endpoint(self):
         client = APIClient()
 
-        crosswalks = Crosswalk.objects.all()
-
-        for c in crosswalks:
-            print("Crosswalk mbi hash = {}".format(c._user_mbi_hash))
-            print("Crosswalk hicn hash = {}".format(c._user_hicn_hash))
-            print("Crosswalk pk = {}".format(c.pk))
-
         # Authenticate
         self._setup_apiclient(client,
                               'sample_a_88888888888888',
@@ -524,9 +520,10 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, True))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
-        dump_content(json.dumps(content), "eob_search_profiles_888888888888.json")
+        # dump_content(json.dumps(content), "eob_search_profiles_888888888888.json")
 
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
+        # comment out since the C4BB EOB resources do not validate with FHIR R4 json schema
         self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
 
         total = content['total']
@@ -547,7 +544,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
                 self.assertEqual(response.status_code, 200)
                 content = json.loads(response.content)
                 self._stats_resource_by_type(content, resource_stats)
-                dump_content(json.dumps(content), "eob_search_profiles_p{}.json".format(i + 1))
+                # dump_content(json.dumps(content), "eob_search_profiles_p{}.json".format(i + 1))
             else:
                 # last page does not have 'next'
                 break
