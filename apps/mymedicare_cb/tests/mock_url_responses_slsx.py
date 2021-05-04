@@ -33,7 +33,7 @@ class MockUrlSLSxResponses:
     # mock sls health check endpoint
     @urlmatch(netloc=NETLOC_REGEX, path='/health')
     def slsx_health_ok_mock(url, request):
-        return {"status_code": 200}
+        return {"status_code": status.HTTP_200_OK}
 
     # mock sls health check endpoint with http error
     @urlmatch(netloc=NETLOC_REGEX, path='/health')
@@ -43,22 +43,23 @@ class MockUrlSLSxResponses:
     # mock sls signout endpoint OK
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
     def slsx_signout_ok_mock(url, request):
-        return {'status_code': 302,
+        return {'status_code': status.HTTP_302_FOUND,
                 'Location': 'https://test.medicare.gov/mbp/signout.aspx'}
 
-    # mock sls signout endpoint 404
+    # mock sls signout endpoint not-found
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
     def slsx_signout_fail_mock(url, request):
-        return {"status_code": 404}
+        return {"status_code": status.HTTP_404_NOT_FOUND}
 
-    # mock sls signout endpoint 200
+    # mock sls signout endpoint OK
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
     def slsx_signout_fail2_mock(url, request):
-        return {"status_code": 200}
+        return {"status_code": status.HTTP_200_OK}
 
+    # mock sls token endpoint OK
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/session')
     def slsx_token_mock(url, request):
-        return {"status_code": 200,
+        return {"status_code": status.HTTP_200_OK,
                 "content": {"auth_token": "tqXFB/j2OR9Fx7aDowGasMZGqoWmwcihNzMdaW2gpEmV",
                             "role": "consumer",
                             "user_id": "00112233-4455-6677-8899-aabbccddeeff",
@@ -76,9 +77,9 @@ class MockUrlSLSxResponses:
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
-            return {"status_code": 200,
+            return {"status_code": status.HTTP_200_OK,
                     "content": {"status": "ok",
-                                "code": 200,
+                                "code": status.HTTP_200_OK,
                                 "data": {"user": {"id": "00112233-4455-6677-8899-aabbccddeeff",
                                                   "email": "bob@bobserver.bob",
                                                   "firstName": None,
@@ -101,9 +102,9 @@ class MockUrlSLSxResponses:
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
-            return {"status_code": 200,
+            return {"status_code": status.HTTP_200_OK,
                     "content": {"status": "ok",
-                                "code": 200,
+                                "code": status.HTTP_200_OK,
                                 "data": {"user": {"email": "bob@bobserver.bob",
                                                   "firstName": None,
                                                   "lastName": None,
@@ -117,9 +118,9 @@ class MockUrlSLSxResponses:
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
-            return {"status_code": 200,
+            return {"status_code": status.HTTP_200_OK,
                     "content": {"status": "ok",
-                                "code": 200,
+                                "code": status.HTTP_200_OK,
                                 "data": {"user": {"id": "00112233-4455-6677-8899-aabbccddeeff",
                                                   "email": "bob@bobserver.bob",
                                                   "firstName": None,
@@ -134,9 +135,9 @@ class MockUrlSLSxResponses:
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
-            return {"status_code": 200,
+            return {"status_code": status.HTTP_200_OK,
                     "content": {"status": "ok",
-                                "code": 200,
+                                "code": status.HTTP_200_OK,
                                 "data": {"user": {"id": "00112233-4455-6677-8899-aabbccddeeff",
                                                   "email": "bob@bobserver.bob",
                                                   "firstName": None,
