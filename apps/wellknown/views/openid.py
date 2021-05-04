@@ -67,9 +67,14 @@ def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
                                             "https://cmsgov.github.io/bluebutton-developer-help/")
     data["op_tos_uri"] = settings.TOS_URI
     data["grant_types_supported"] = []
+
     for i in settings.GRANT_TYPES:
         data["grant_types_supported"].append(i[0])
+
     data["grant_types_supported"].append("refresh_token")
+
+    data["grant_types_supported"].remove("implicit")
+
     data["response_types_supported"] = ["code", "token"]
     data["fhir_metadata_uri"] = issuer + \
         reverse('fhir_conformance_metadata' if not v2 else 'fhir_conformance_metadata_v2')
