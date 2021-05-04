@@ -239,20 +239,20 @@ class OAuth2ConfigSLSx(object):
                                     allow_redirects=False,
                                     verify=self.verify_ssl)
             self.signout_status_code = response.status_code
-            response.raise_for_status()
-
             if self.signout_status_code != status.HTTP_302_FOUND:
                 log_authenticate_start(auth_flow_dict, "FAIL",
                                        "SLSx signout response_code = {code}."
                                        " Expecting HTTP_302_FOUND.".format(code=self.signout_status_code),
                                        slsx_client=self)
                 raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
+            response.raise_for_status()
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            self.signout_status_mesg = e
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx signout error {reason}".format(reason=e),
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
+            if self.signout_status_code != status.HTTP_302_FOUND:
+                self.signout_status_mesg = e
+                log_authenticate_start(auth_flow_dict, "FAIL",
+                                       "SLSx signout error {reason}".format(reason=e),
+                                       slsx_client=self)
+                raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
 
     def validate_user_signout(self, request):
         """
@@ -280,13 +280,17 @@ class OAuth2ConfigSLSx(object):
                                             response_hook_wrapper(sender=SLSxUserInfoResponse,
                                                                   auth_flow_dict=auth_flow_dict)]})
             self.validate_signout_status_code = response.status_code
+            if self.validate_signout_status_code != status.HTTP_403_FORBIDDEN:
+                log_authenticate_start(auth_flow_dict, "FAIL",
+                                       "SLSx validate signout response_code = {code}."
+                                       " Expecting HTTP_403_FORBIDDEN.".format(code=self.validate_signout_status_code),
+                                       slsx_client=self)
+                raise BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)
             response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            # Check for the expected 403 = Forbidden response code.
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
             if self.validate_signout_status_code != status.HTTP_403_FORBIDDEN:
                 self.validate_signout_status_mesg = e
                 log_authenticate_start(auth_flow_dict, "FAIL",
-                                       "SLSx validate_signout response_code = {code}."
-                                       " Expecting HTTP_403_FORBIDDEN.".format(code=self.validate_signout_status_code),
+                                       "SLSx validate signout error {reason}".format(reason=e),
                                        slsx_client=self)
                 raise BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)
