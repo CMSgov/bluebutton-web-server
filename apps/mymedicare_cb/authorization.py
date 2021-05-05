@@ -77,12 +77,8 @@ class OAuth2ConfigSLSx(object):
             return (self.client_id, self.client_secret)
         return None
 
-    def exchange_for_access_token(self, req_token, request):
-        data_dict = {
-            "request_token": req_token,
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-        }
+    def slsx_common_headers(self, request):
+        # keep using deprecated conv - no conflict issue
         headers = {"Content-Type": "application/json",
                    "Cookie": self.token_endpoint_aca_token,
                    "X-SLS-starttime": str(datetime.datetime.utcnow())}
@@ -90,8 +86,17 @@ class OAuth2ConfigSLSx(object):
         if request is not None:
             headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
                             if hasattr(request, '_logging_uuid') else '')})
+        return headers
 
-        # Get auth flow trace session values dict.
+    def exchange_for_access_token(self, req_token, request):
+        data_dict = {
+            "request_token": req_token,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+        }
+
+        headers = self.slsx_common_headers(request)
+
         auth_flow_dict = get_session_auth_flow_trace(request)
 
         try:
@@ -100,6 +105,7 @@ class OAuth2ConfigSLSx(object):
                 auth=self.basic_auth(),
                 json=data_dict,
                 headers=headers,
+                allow_redirects=False,
                 verify=self.verify_ssl,
                 hooks={
                     'response': [
@@ -137,24 +143,18 @@ class OAuth2ConfigSLSx(object):
             raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
     def auth_header(self):
-        return {"Authorization": "Bearer %s" % (self.token['access_token'])}
+        return {"Authorization": "Bearer %s" % (self.auth_token)}
 
     def get_user_info(self, request):
-        headers = {"Authorization": "Bearer %s" % (self.auth_token)}
-        # keep using deprecated conv - no conflict issue
-        headers.update({"Content-Type": "application/json",
-                        "Cookie": self.token_endpoint_aca_token,
-                        "X-SLS-starttime": str(datetime.datetime.utcnow())})
+        headers = self.slsx_common_headers(request)
+        headers.update(self.auth_header())
 
-        if request is not None:
-            headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
-                            if hasattr(request, '_logging_uuid') else '')})
-
-        # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
+
         try:
             response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                     headers=headers,
+                                    allow_redirects=False,
                                     verify=self.verify_ssl,
                                     hooks={
                                         'response': [
@@ -193,20 +193,13 @@ class OAuth2ConfigSLSx(object):
         return data_user_response
 
     def service_health_check(self, request, called_from_health_external=False):
-        # Get auth flow session values.
+        headers = self.slsx_common_headers(request)
+
         auth_flow_dict = get_session_auth_flow_trace(request)
-
-        # keep using deprecated conv - no conflict issue
-        headers = {"Content-Type": "application/json",
-                   "Cookie": self.token_endpoint_aca_token,
-                   "X-SLS-starttime": str(datetime.datetime.utcnow())}
-
-        if request is not None:
-            headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
-                            if hasattr(request, '_logging_uuid') else '')})
 
         try:
             response = requests.get(self.healthcheck_endpoint,
+                                    headers=headers,
                                     allow_redirects=False,
                                     verify=self.verify_ssl)
             self.healthcheck_status_code = response.status_code
@@ -220,18 +213,9 @@ class OAuth2ConfigSLSx(object):
             raise BBSLSxHealthCheckFailedException(settings.MEDICARE_ERROR_MSG)
 
     def user_signout(self, request):
-        headers = {"Authorization": "Bearer %s" % (self.auth_token)}
+        headers = self.slsx_common_headers(request)
+        headers.update(self.auth_header())
 
-        # keep using deprecated conv - no conflict issue
-        headers.update({"Content-Type": "application/json",
-                        "Cookie": self.token_endpoint_aca_token,
-                        "X-SLS-starttime": str(datetime.datetime.utcnow())})
-
-        if request is not None:
-            headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
-                            if hasattr(request, '_logging_uuid') else '')})
-
-        # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
 
         try:
@@ -258,23 +242,19 @@ class OAuth2ConfigSLSx(object):
     def validate_user_signout(self, request):
         """
         Performs a call to self.get_user_info to validate that the bene is
-        signed out. When signed out, an exception is thrown.
+        signed out. When NOT signed out, an exception is thrown.
+        This assumes the bene is signed out, if the userinfo endpoint returns
+        a HTTP_403_FORBIDDEN respose, since the auth_token is no longer valid.
         """
-        headers = {"Authorization": "Bearer %s" % (self.auth_token)}
-        # keep using deprecated conv - no conflict issue
-        headers.update({"Content-Type": "application/json",
-                        "Cookie": self.token_endpoint_aca_token,
-                        "X-SLS-starttime": str(datetime.datetime.utcnow())})
+        headers = self.slsx_common_headers(request)
+        headers.update(self.auth_header())
 
-        if request is not None:
-            headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
-                            if hasattr(request, '_logging_uuid') else '')})
-
-        # Get auth flow session values.
         auth_flow_dict = get_session_auth_flow_trace(request)
+
         try:
             response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                     headers=headers,
+                                    allow_redirects=False,
                                     verify=self.verify_ssl,
                                     hooks={
                                         'response': [
