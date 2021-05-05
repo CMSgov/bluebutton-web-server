@@ -41,6 +41,11 @@ class BBSLSxHealthCheckFailedException(APIException):
 
 
 class OAuth2ConfigSLSx(object):
+    """
+    SLSx client class.
+    See the following for more details about the endpoint usage:
+    https://confluence.cms.gov/pages/viewpage.action?spaceKey=SLS&title=SLSx%3A+Client+Onboarding+Guide
+    """
     token_endpoint = settings.SLSX_TOKEN_ENDPOINT
     token_endpoint_aca_token = settings.MEDICARE_SLSX_AKAMAI_ACA_TOKEN
     redirect_uri = settings.MEDICARE_SLSX_REDIRECT_URI
@@ -78,6 +83,9 @@ class OAuth2ConfigSLSx(object):
         return None
 
     def slsx_common_headers(self, request):
+        """
+        Common headers used for all endpoint requests
+        """
         # keep using deprecated conv - no conflict issue
         headers = {"Content-Type": "application/json",
                    "Cookie": self.token_endpoint_aca_token,
@@ -89,6 +97,10 @@ class OAuth2ConfigSLSx(object):
         return headers
 
     def exchange_for_access_token(self, req_token, request):
+        """
+        Exchnages the request_token from the slsx -> medicare.gov login
+        login flow for an auth_token via the slsx token endpoint.
+        """
         data_dict = {
             "request_token": req_token,
             "client_id": self.client_id,
@@ -146,6 +158,10 @@ class OAuth2ConfigSLSx(object):
         return {"Authorization": "Bearer %s" % (self.auth_token)}
 
     def get_user_info(self, request):
+        """
+        Retrieves bene information containing MBI/HICN values
+        from the userinfo endpoint.
+        """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
@@ -193,6 +209,12 @@ class OAuth2ConfigSLSx(object):
         return data_user_response
 
     def service_health_check(self, request, called_from_health_external=False):
+        """
+        Checks the SLSx service health check endpoint to see if it is online.
+        This is used in the mymedicare_login() view at the start of the auth flow
+        and will produce an exception if not successful. This is also used by
+        the BB2 /health/external check.
+        """
         headers = self.slsx_common_headers(request)
 
         auth_flow_dict = get_session_auth_flow_trace(request)
@@ -213,6 +235,12 @@ class OAuth2ConfigSLSx(object):
             raise BBSLSxHealthCheckFailedException(settings.MEDICARE_ERROR_MSG)
 
     def user_signout(self, request):
+        """
+        This uses the SLSx signout endpoint to sign out the bene.
+        After it does the signout, the response is a redirect to the
+        Medicare.gov signout page. Since this is more of a browser type
+        functionality, we disable the redirects in the HTTP GET call.
+        """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
