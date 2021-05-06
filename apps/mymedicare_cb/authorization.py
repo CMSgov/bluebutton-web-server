@@ -57,8 +57,6 @@ class OAuth2ConfigSLSx(object):
     def __init__(self):
         self.auth_token = None
         self.user_id = None
-        self.healthcheck_status_code = None
-        self.healthcheck_status_mesg = None
         self.signout_status_code = None
         self.signout_status_mesg = None
         self.token_status_code = None
@@ -98,7 +96,7 @@ class OAuth2ConfigSLSx(object):
 
     def exchange_for_access_token(self, req_token, request):
         """
-        Exchnages the request_token from the slsx -> medicare.gov login
+        Exchanges the request_token from the slsx -> medicare.gov
         login flow for an auth_token via the slsx token endpoint.
         """
         data_dict = {
@@ -111,26 +109,17 @@ class OAuth2ConfigSLSx(object):
 
         auth_flow_dict = get_session_auth_flow_trace(request)
 
-        try:
-            response = requests.post(
-                self.token_endpoint,
-                auth=self.basic_auth(),
-                json=data_dict,
-                headers=headers,
-                allow_redirects=False,
-                verify=self.verify_ssl,
-                hooks={
-                    'response': [
-                        response_hook_wrapper(sender=SLSxTokenResponse,
-                                              auth_flow_dict=auth_flow_dict)]})
-            self.token_status_code = response.status_code
-            response.raise_for_status()
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            self.token_status_mesg = e
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx token response error {reason}".format(reason=e),
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
+        response = requests.post(self.token_endpoint,
+                                 auth=self.basic_auth(),
+                                 json=data_dict,
+                                 headers=headers,
+                                 allow_redirects=False,
+                                 verify=self.verify_ssl,
+                                 hooks={'response': [
+                                        response_hook_wrapper(sender=SLSxTokenResponse,
+                                                              auth_flow_dict=auth_flow_dict)]})
+        self.token_status_code = response.status_code
+        response.raise_for_status()
 
         token_response = response.json()
 
@@ -159,7 +148,7 @@ class OAuth2ConfigSLSx(object):
 
     def get_user_info(self, request):
         """
-        Retrieves bene information containing MBI/HICN values
+        Retrieves and returns bene information containing MBI/HICN values
         from the userinfo endpoint.
         """
         headers = self.slsx_common_headers(request)
@@ -167,23 +156,15 @@ class OAuth2ConfigSLSx(object):
 
         auth_flow_dict = get_session_auth_flow_trace(request)
 
-        try:
-            response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
-                                    headers=headers,
-                                    allow_redirects=False,
-                                    verify=self.verify_ssl,
-                                    hooks={
-                                        'response': [
-                                            response_hook_wrapper(sender=SLSxUserInfoResponse,
-                                                                  auth_flow_dict=auth_flow_dict)]})
-            self.userinfo_status_code = response.status_code
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            self.userinfo_status_mesg = e
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx userinfo response error {reason}".format(reason=e),
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
+        response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
+                                headers=headers,
+                                allow_redirects=False,
+                                verify=self.verify_ssl,
+                                hooks={'response': [
+                                       response_hook_wrapper(sender=SLSxUserInfoResponse,
+                                                             auth_flow_dict=auth_flow_dict)]})
+        self.userinfo_status_code = response.status_code
+        response.raise_for_status()
 
         # Get data.user part of response
         try:
@@ -208,7 +189,7 @@ class OAuth2ConfigSLSx(object):
 
         return data_user_response
 
-    def service_health_check(self, request, called_from_health_external=False):
+    def service_health_check(self, request):
         """
         Checks the SLSx service health check endpoint to see if it is online.
         This is used in the mymedicare_login() view at the start of the auth flow
@@ -217,22 +198,11 @@ class OAuth2ConfigSLSx(object):
         """
         headers = self.slsx_common_headers(request)
 
-        auth_flow_dict = get_session_auth_flow_trace(request)
-
-        try:
-            response = requests.get(self.healthcheck_endpoint,
-                                    headers=headers,
-                                    allow_redirects=False,
-                                    verify=self.verify_ssl)
-            self.healthcheck_status_code = response.status_code
-            response.raise_for_status()
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            if not called_from_health_external:
-                self.healthcheck_status_mesg = e
-                log_authenticate_start(auth_flow_dict, "FAIL",
-                                       "SLSx service health check error {reason}".format(reason=e),
-                                       slsx_client=self)
-            raise BBSLSxHealthCheckFailedException(settings.MEDICARE_ERROR_MSG)
+        response = requests.get(self.healthcheck_endpoint,
+                                headers=headers,
+                                allow_redirects=False,
+                                verify=self.verify_ssl)
+        response.raise_for_status()
 
     def user_signout(self, request):
         """
@@ -240,66 +210,52 @@ class OAuth2ConfigSLSx(object):
         After it does the signout, the response is a redirect to the
         Medicare.gov signout page. Since this is more of a browser type
         functionality, we disable the redirects in the HTTP GET call.
+        NOTE: This enpoint always returns a 302---even if the signout
+              did not work.
         """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
         auth_flow_dict = get_session_auth_flow_trace(request)
 
-        try:
-            response = requests.get(self.signout_endpoint,
-                                    headers=headers,
-                                    allow_redirects=False,
-                                    verify=self.verify_ssl)
-            self.signout_status_code = response.status_code
-            if self.signout_status_code != status.HTTP_302_FOUND:
-                log_authenticate_start(auth_flow_dict, "FAIL",
-                                       "SLSx signout response_code = {code}."
-                                       " Expecting HTTP_302_FOUND.".format(code=self.signout_status_code),
-                                       slsx_client=self)
-                raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
-            response.raise_for_status()
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            if self.signout_status_code != status.HTTP_302_FOUND:
-                self.signout_status_mesg = e
-                log_authenticate_start(auth_flow_dict, "FAIL",
-                                       "SLSx signout error {reason}".format(reason=e),
-                                       slsx_client=self)
-                raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
+        response = requests.get(self.signout_endpoint,
+                                headers=headers,
+                                allow_redirects=False,
+                                verify=self.verify_ssl)
+        self.signout_status_code = response.status_code
+        response.raise_for_status()
+
+        if self.signout_status_code != status.HTTP_302_FOUND:
+            log_authenticate_start(auth_flow_dict, "FAIL",
+                                   "SLSx signout response_code = {code}."
+                                   " Expecting HTTP_302_FOUND.".format(code=self.signout_status_code),
+                                   slsx_client=self)
+            raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
 
     def validate_user_signout(self, request):
         """
-        Performs a call to self.get_user_info to validate that the bene is
+        Performs a call to userinfo_endpoint to validate that the bene is
         signed out. When NOT signed out, an exception is thrown.
         This assumes the bene is signed out, if the userinfo endpoint returns
-        a HTTP_403_FORBIDDEN respose, since the auth_token is no longer valid.
+        a HTTP_403_FORBIDDEN respose and the auth_token is no longer valid.
         """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
         auth_flow_dict = get_session_auth_flow_trace(request)
 
-        try:
-            response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
-                                    headers=headers,
-                                    allow_redirects=False,
-                                    verify=self.verify_ssl,
-                                    hooks={
-                                        'response': [
-                                            response_hook_wrapper(sender=SLSxUserInfoResponse,
-                                                                  auth_flow_dict=auth_flow_dict)]})
-            self.validate_signout_status_code = response.status_code
-            if self.validate_signout_status_code != status.HTTP_403_FORBIDDEN:
-                log_authenticate_start(auth_flow_dict, "FAIL",
-                                       "SLSx validate signout response_code = {code}."
-                                       " Expecting HTTP_403_FORBIDDEN.".format(code=self.validate_signout_status_code),
-                                       slsx_client=self)
-                raise BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)
-            response.raise_for_status()
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-            if self.validate_signout_status_code != status.HTTP_403_FORBIDDEN:
-                self.validate_signout_status_mesg = e
-                log_authenticate_start(auth_flow_dict, "FAIL",
-                                       "SLSx validate signout error {reason}".format(reason=e),
-                                       slsx_client=self)
-                raise BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)
+        response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
+                                headers=headers,
+                                allow_redirects=False,
+                                verify=self.verify_ssl,
+                                hooks={'response': [
+                                       response_hook_wrapper(sender=SLSxUserInfoResponse,
+                                                             auth_flow_dict=auth_flow_dict)]})
+        self.validate_signout_status_code = response.status_code
+
+        if self.validate_signout_status_code != status.HTTP_403_FORBIDDEN:
+            log_authenticate_start(auth_flow_dict, "FAIL",
+                                   "SLSx validate signout response_code = {code}."
+                                   " Expecting HTTP_403_FORBIDDEN.".format(code=self.validate_signout_status_code),
+                                   slsx_client=self)
+            raise BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)

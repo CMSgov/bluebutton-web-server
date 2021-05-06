@@ -80,8 +80,6 @@ def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subj
         "type": "Authentication:start",
         "sls_status": sls_status,
         "sls_status_mesg": sls_status_mesg,
-        "sls_healthcheck_status_code": slsx_client.healthcheck_status_code,
-        "sls_healthcheck_status_mesg": str(slsx_client.healthcheck_status_mesg),
         "sls_signout_status_code": slsx_client.signout_status_code,
         "sls_signout_status_mesg": str(slsx_client.signout_status_mesg),
         "sls_token_status_code": slsx_client.token_status_code,

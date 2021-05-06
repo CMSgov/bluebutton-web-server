@@ -8,6 +8,7 @@ from django.utils.text import slugify
 from django.urls import reverse
 from django.test import TestCase
 from httmock import urlmatch, all_requests, HTTMock
+from requests.exceptions import HTTPError
 from rest_framework import status
 from urllib.parse import urlparse, parse_qs
 
@@ -17,8 +18,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
-from apps.mymedicare_cb.authorization import (BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException,
-                                              BBMyMedicareSLSxTokenException, BBSLSxHealthCheckFailedException)
+from apps.mymedicare_cb.authorization import (BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException)
 
 from apps.mymedicare_cb.views import generate_nonce
 
@@ -79,8 +79,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         fake_login_url = 'https://example.com/login?scope=openid'
         with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
             with HTTMock(MockUrlSLSxResponses.slsx_health_fail_mock):
-                with self.assertRaisesRegex(BBSLSxHealthCheckFailedException,
-                                            "An error occurred connecting to account.mymedicare.gov"):
+                with self.assertRaises(HTTPError):
                     self.client.get(self.login_url + '?next=/')
 
     def test_callback_url_missing_relay(self):
@@ -211,7 +210,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             }
 
         with HTTMock(catchall):
-            with self.assertRaises(BBMyMedicareSLSxTokenException):
+            with self.assertRaises(HTTPError):
                 self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
 
     def test_sls_token_exchange_w_creds(self):
@@ -255,7 +254,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                 }
 
             with HTTMock(catchall):
-                with self.assertRaises(BBMyMedicareSLSxTokenException):
+                with self.assertRaises(HTTPError):
                     sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
@@ -400,7 +399,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                      MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            with self.assertRaises(BBMyMedicareSLSxTokenException):
+            with self.assertRaises(HTTPError):
                 response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             content = json.loads(response.content)
@@ -413,7 +412,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                      MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            with self.assertRaises(BBMyMedicareSLSxUserinfoException):
+            with self.assertRaises(HTTPError):
                 response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock has exception
@@ -423,7 +422,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                      MockUrlSLSxResponses.slsx_signout_fail_mock,
                      fhir_patient_info_mock,
                      catchall):
-            with self.assertRaises(BBMyMedicareSLSxSignoutException):
+            with self.assertRaises(HTTPError):
                 response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail2_mock has exception
