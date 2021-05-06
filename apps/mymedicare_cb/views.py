@@ -29,11 +29,6 @@ from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-class BBMyMedicareCallbackAuthenticateSlsClientException(APIException):
-    # BB2-237 custom exception
-    status_code = status.HTTP_502_BAD_GATEWAY
-
-
 class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):
     # BB2-237 custom exception
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -163,10 +158,6 @@ def callback(request, version=1):
                 "error": e.detail,
             },
             status=status.HTTP_404_NOT_FOUND)
-    except BBMyMedicareCallbackAuthenticateSlsClientException as e:
-        return JsonResponse({
-            "error": e.detail,
-        }, status=status.HTTP_502_BAD_GATEWAY)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
         return JsonResponse({
             "error": e.detail,
