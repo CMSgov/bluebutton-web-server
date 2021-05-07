@@ -203,6 +203,7 @@ class OAuth2ConfigSLSx(object):
                                 allow_redirects=False,
                                 verify=self.verify_ssl)
         response.raise_for_status()
+        return True
 
     def user_signout(self, request):
         """
