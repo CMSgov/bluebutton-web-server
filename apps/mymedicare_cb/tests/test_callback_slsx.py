@@ -1,5 +1,4 @@
 import json
-import requests
 import uuid
 
 from datetime import datetime
@@ -9,6 +8,8 @@ from django.utils.text import slugify
 from django.urls import reverse
 from django.test import TestCase
 from httmock import urlmatch, all_requests, HTTMock
+from requests.exceptions import HTTPError
+from rest_framework import status
 from urllib.parse import urlparse, parse_qs
 
 from apps.capabilities.models import ProtectedCapability
@@ -17,8 +18,9 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
-from apps.mymedicare_cb.authorization import BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException
-from apps.mymedicare_cb.views import generate_nonce, BBSLSxHealthCheckFailedException
+from apps.mymedicare_cb.authorization import (BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException)
+
+from apps.mymedicare_cb.views import generate_nonce
 
 from .responses import patient_response
 
@@ -63,7 +65,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
             with HTTMock(MockUrlSLSxResponses.slsx_health_ok_mock):
                 response = self.client.get(self.login_url + '?next=/')
-            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             query = parse_qs(urlparse(response['Location']).query)
             path = response['Location'].split('?')[0]
             self.assertEqual(path, 'https://example.com/login')
@@ -77,8 +79,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         fake_login_url = 'https://example.com/login?scope=openid'
         with self.settings(MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI='/123'):
             with HTTMock(MockUrlSLSxResponses.slsx_health_fail_mock):
-                with self.assertRaisesRegex(BBSLSxHealthCheckFailedException,
-                                            "An error occurred connecting to account.mymedicare.gov"):
+                with self.assertRaises(HTTPError):
                     self.client.get(self.login_url + '?next=/')
 
     def test_callback_url_missing_relay(self):
@@ -87,14 +88,14 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         necessary GET parameter relay (state) is missing.
         """
         response = self.client.get(self.callback_url)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_authorize_uuid_dne(self):
         auth_uri = reverse(
             'oauth2_provider:authorize-instance',
             args=[uuid.uuid4()])
         response = self.client.get(auth_uri)
-        self.assertEqual(302, response.status_code)
+        self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
     def test_authorize_uuid(self):
         user = User.objects.create_user(
@@ -124,7 +125,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             "client_id": application.client_id,
             "redirect_uri": "http://test.com",
             "response_type": "code"})
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
         approval.refresh_from_db()
         self.assertEqual(application, approval.application)
         self.assertNotIn('_auth_user_id', self.client.session)
@@ -132,7 +133,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             "client_id": "bad",
             "redirect_uri": "http://test.com",
             "response_type": "code"})
-        self.assertEqual(302, response.status_code)
+        self.assertEqual(status.HTTP_302_FOUND, response.status_code)
         payload = {
             'client_id': application.client_id,
             'response_type': 'code',
@@ -142,7 +143,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             'allow': True,
         }
         response = self.client.post(auth_uri, data=payload)
-        self.assertEqual(302, response.status_code)
+        self.assertEqual(status.HTTP_302_FOUND, response.status_code)
         self.assertIn("code=", response.url)
         approval.created_at = datetime.now() - parse_duration("601")
         approval.save()
@@ -150,7 +151,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             "client_id": application.client_id,
             "redirect_uri": "http://test.com",
             "response_type": "code"})
-        self.assertEqual(302, response.status_code)
+        self.assertEqual(status.HTTP_302_FOUND, response.status_code)
 
     def test_callback_url_success(self):
         # create a state
@@ -163,7 +164,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
         def fhir_patient_info_mock(url, request):
             return {
-                'status_code': 200,
+                'status_code': status.HTTP_200_OK,
                 'content': patient_response,
             }
 
@@ -188,7 +189,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             s.save()
             response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
             # assert http redirect
-            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             self.assertIn("client_id=test", response.url)
             self.assertIn("redirect_uri=test.com", response.url)
             self.assertIn("response_type=token", response.url)
@@ -204,14 +205,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         @all_requests
         def catchall(url, request):
             return {
-                'status_code': 403,
+                'status_code': status.HTTP_403_FORBIDDEN,
                 'content': {'error': 'nope'},
             }
 
         with HTTMock(catchall):
-            response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
-            # assert http redirect
-            self.assertEqual(response.status_code, 502)
+            with self.assertRaises(HTTPError):
+                self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
 
     def test_sls_token_exchange_w_creds(self):
         with self.settings(SLSX_CLIENT_ID="test",
@@ -224,7 +224,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                 sls_auth_header = request.headers['Authorization']
                 self.assertEqual(sls_auth_header, 'Basic dGVzdDpzdGVzdA==')
                 return {
-                    'status_code': 200,
+                    'status_code': status.HTTP_200_OK,
                     'content': {
                         'auth_token': 'test_tkn',
                         "user_id": "00112233-4455-6677-8899-aabbccddeeff",
@@ -247,14 +247,14 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                 sls_auth_header = request.headers['Authorization']
                 self.assertEqual(sls_auth_header, 'Basic dGVzdDpzdGVzdA==')
                 return {
-                    'status_code': 401,
+                    'status_code': status.HTTP_401_UNAUTHORIZED,
                     'content': {
                         'error': 'nope!',
                     },
                 }
 
             with HTTMock(catchall):
-                with self.assertRaises(requests.exceptions.HTTPError):
+                with self.assertRaises(HTTPError):
                     sls_client.exchange_for_access_token("test_code", None)
 
     def test_callback_exceptions(self):
@@ -272,7 +272,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
         def fhir_patient_info_mock(url, request):
             return {
-                'status_code': 200,
+                'status_code': status.HTTP_200_OK,
                 'content': patient_response,
             }
 
@@ -288,7 +288,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                      catchall):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
             # assert http redirect
-            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
         # Change existing hash prior to test
         cw = Crosswalk.objects.get(id=1)
@@ -307,7 +307,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
-            self.assertEqual(response.status_code, 500)
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             content = json.loads(response.content)
             self.assertEqual(content['error'], "Found user's hicn did not match")
 
@@ -326,7 +326,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
-            self.assertEqual(response.status_code, 500)
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             content = json.loads(response.content)
             self.assertEqual(content['error'], "Found user's mbi did not match")
 
@@ -345,7 +345,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
-            self.assertEqual(response.status_code, 500)
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             content = json.loads(response.content)
             self.assertEqual(content['error'], "Found user's fhir_id did not match")
 
@@ -374,7 +374,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
-            self.assertEqual(response.status_code, 500)
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
@@ -388,7 +388,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
             # assert 500 exception
-            self.assertEqual(response.status_code, 500)
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
@@ -399,29 +399,37 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                      MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            with self.assertRaises(HTTPError):
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
-            # assert 502 exception
-            self.assertEqual(response.status_code, 502)
             content = json.loads(response.content)
             self.assertEqual(content['error'], ERROR_MSG_MYMEDICARE)
 
         # With HTTMock sls_user_info_http_error_mock
-            response = self.client.get(self.callback_url, data={'code': 'test', 'state': state})
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_http_error_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
                      MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            with self.assertRaises(BBMyMedicareSLSxUserinfoException):
+            with self.assertRaises(HTTPError):
                 response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
 
-        # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock STILL PASSES
+        # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock has exception
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock,
                      MockUrlSLSxResponses.slsx_health_ok_mock,
                      MockUrlSLSxResponses.slsx_signout_fail_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            with self.assertRaises(HTTPError):
+                response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+
+        # With HTTMock MockUrlSLSxResponses.slsx_signout_fail2_mock has exception
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_fail2_mock,
                      fhir_patient_info_mock,
                      catchall):
             with self.assertRaises(BBMyMedicareSLSxSignoutException):
