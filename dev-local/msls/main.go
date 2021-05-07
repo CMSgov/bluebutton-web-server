@@ -95,6 +95,8 @@ Sample SLSX response:
 
 	*/
 
+var signed_in = true
+
 const (
 	ID_FIELD          	= "id"
 	USERNAME_FIELD    	= "username"
@@ -146,6 +148,7 @@ func main() {
 	http.Handle("/health", logRequest(http.HandlerFunc(handleHealth)))
 	http.Handle("/login", logRequest(http.HandlerFunc(handleLogin)))
 	http.Handle("/sso/session", logRequest(http.HandlerFunc(handleCode)))
+	http.Handle("/sso/signout", logRequest(http.HandlerFunc(handleSignout)))
 	http.Handle("/v1/users/", logRequest(http.HandlerFunc(handleUserinfo)))
 	http.ListenAndServe(":8080", nil)
 }
@@ -184,23 +187,33 @@ func handleHealth(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(all_is_well)
 }
 
+func handleSignout(rw http.ResponseWriter, r *http.Request) {
+	rw.WriteHeader(http.StatusFound)
+}
+
 func handleUserinfo(rw http.ResponseWriter, r *http.Request) {
-	tkn := code(strings.Split(r.Header.Get(AUTH_HEADER), " ")[1])
-	user_info := tkn.userinfo()
-	slsx_userinfo := map[string]map[string]map[string]string{
-		"data": {
-			"user": {
-				"id": user_info.Sub,
-				"username": user_info.Name,
-				"email": user_info.Email,
-				"firstName": user_info.First_name,
-				"lastName": user_info.Last_name,
-				"hicn": user_info.Hicn,
-				"mbi": user_info.Mbi,
+	if signed_in == true {
+		tkn := code(strings.Split(r.Header.Get(AUTH_HEADER), " ")[1])
+		user_info := tkn.userinfo()
+		slsx_userinfo := map[string]map[string]map[string]string{
+			"data": {
+				"user": {
+					"id": user_info.Sub,
+					"username": user_info.Name,
+					"email": user_info.Email,
+					"firstName": user_info.First_name,
+					"lastName": user_info.Last_name,
+					"hicn": user_info.Hicn,
+					"mbi": user_info.Mbi,
+				},
 			},
-		},
+		}
+		signed_in = false
+		json.NewEncoder(rw).Encode(slsx_userinfo)
+	} else {
+		signed_in = true
+		rw.WriteHeader(http.StatusForbidden)
 	}
-	json.NewEncoder(rw).Encode(slsx_userinfo)
 }
 
 func presentLogin(t *template.Template) http.Handler {
