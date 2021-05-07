@@ -2,12 +2,12 @@ import re
 import json
 import jsonschema
 
-
 from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
 from httmock import all_requests, HTTMock, urlmatch
 from jsonschema import validate
+from rest_framework import status
 from waffle.testutils import override_flag
 
 from apps.dot_ext.models import Application
@@ -112,7 +112,7 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertTrue(self._validateJsonSchema(get_pre_fetch_fhir_log_entry_schema(2 if v2 else 1), log_entry_dict))
 
             return {
-                'status_code': 200,
+                'status_code': status.HTTP_200_OK,
                 # TODO replace this with true backend response, this has been post proccessed
                 'content': patient_response,
             }
@@ -163,7 +163,7 @@ class TestAuditEventLoggers(BaseApiTest):
         @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path=r'/v[12]/fhir/Patient/')
         def fhir_patient_info_mock(url, request):
             return {
-                'status_code': 200,
+                'status_code': status.HTTP_200_OK,
                 'content': patient_response,
             }
 
@@ -287,7 +287,7 @@ class TestAuditEventLoggers(BaseApiTest):
             'allow': True,
         }
         response = self.client.post(response['Location'], data=payload)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         # assert token logger record works by assert some top level fields
         token_log_content = self.get_log_content('audit.authorization.token')
         self.assertIsNotNone(token_log_content)
