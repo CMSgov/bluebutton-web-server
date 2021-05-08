@@ -1,6 +1,7 @@
 import re
 import json
 import jsonschema
+import requests
 
 from django.urls import reverse
 from django.test.client import Client
@@ -11,7 +12,6 @@ from rest_framework import status
 from waffle.testutils import override_flag
 
 from apps.dot_ext.models import Application
-from apps.mymedicare_cb.authorization import BBMyMedicareSLSxUserinfoException
 from apps.mymedicare_cb.views import generate_nonce
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
@@ -184,7 +184,7 @@ class TestAuditEventLoggers(BaseApiTest):
                       "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
             s.save()
 
-            self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'state': state})
+            self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'relay': state})
 
             slsx_log_content = self.get_log_content('audit.authorization.sls')
 
@@ -288,7 +288,11 @@ class TestAuditEventLoggers(BaseApiTest):
                       "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
             s.save()
 
-            self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'state': state})
+            try:
+                self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'relay': state})
+                self.fail("HTTP Error 403 expected.")
+            except requests.exceptions.HTTPError as err:
+                self.assertEqual(err.response.status_code, status.HTTP_403_FORBIDDEN)
 
             slsx_log_content = self.get_log_content('audit.authorization.sls')
             quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
@@ -336,13 +340,11 @@ class TestAuditEventLoggers(BaseApiTest):
                       "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
             s.save()
 
-            # apps.mymedicare_cb.authorization.BBMyMedicareSLSxUserinfoException
-
             try:
-                self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'state': state})
-            except BBMyMedicareSLSxUserinfoException:
-                # expected
-                pass
+                self.client.get(self.callback_url, data={'req_token': 'xxxx-request-token-xxxx', 'relay': state})
+                self.fail("HTTP Error 403 expected.")
+            except requests.exceptions.HTTPError as err:
+                self.assertEqual(err.response.status_code, status.HTTP_403_FORBIDDEN)
 
             slsx_log_content = self.get_log_content('audit.authorization.sls')
             quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
