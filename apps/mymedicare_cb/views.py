@@ -138,11 +138,6 @@ def authenticate(request):
 
 
 @never_cache
-def callback_v2(request):
-    return callback(request, 2)
-
-
-@never_cache
 def callback(request, version=1):
     try:
         authenticate(request)
@@ -200,12 +195,6 @@ def callback(request, version=1):
 def generate_nonce(length=26):
     """Generate pseudo-random number."""
     return ''.join([str(random.randint(0, 9)) for i in range(length)])
-
-
-@never_cache
-def mymedicare_login_v2(request):
-    # not invoked by runtime, invoked by unittests only
-    return mymedicare_login(request, 2)
 
 
 @never_cache
