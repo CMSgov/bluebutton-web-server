@@ -390,16 +390,11 @@ class SLSxUserInfoResponse(SLSResponse):
 
         event_dict.update(super().to_dict().copy())
 
-        sub = event_dict.get('data').get('user').get('id') if event_dict.get('data') is not None \
-            and event_dict.get('data').get('user') is not None \
-            and event_dict.get('data').get('user').get('id') is not None \
-            else 'Not available'
-
         resp_dict = {
             "type": event_dict.get('type', ''),
             "uuid": event_dict.get('uuid', ''),
             "path": event_dict.get('path', ''),
-            "sub": sub,
+            "sub": event_dict.get('data', {}).get('user', {}).get('id', 'Not available'),
             "code": event_dict.get('code', 306),
             "size": event_dict.get('size', 0),
             "start_time": event_dict.get('start_time', ''),
