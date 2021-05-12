@@ -327,30 +327,32 @@ class SLSxTokenResponse(SLSResponse):
         return 'SLSx_token'
 
     def to_dict(self):
+
         event_dict = {}
         json_exception = {}
 
-        try:
-            event_dict = json.loads(self.resp.text)
-        except json.decoder.JSONDecodeError:
-            json_exception = {
-                "message": "JSONDecodeError thrown when parsing response text."
-            }
+        if self.resp.text:
+            try:
+                event_dict = json.loads(self.resp.text)
+            except json.decoder.JSONDecodeError:
+                json_exception = {
+                    "message": "JSONDecodeError thrown when parsing response text."
+                }
 
         event_dict.update(super().to_dict().copy())
 
-        auth_token = None if event_dict.get('auth_token') is None else \
+        auth_token = '' if event_dict.get('auth_token') is None else \
             hashlib.sha256(str(event_dict.get('auth_token')).encode('utf-8')).hexdigest()
 
         resp_dict = {
-            "type": event_dict.get('type'),
-            "uuid": event_dict.get('uuid'),
-            "path": event_dict.get('path'),
+            "type": event_dict.get('type', ''),
+            "uuid": event_dict.get('uuid', ''),
+            "path": event_dict.get('path', ''),
             "auth_token": auth_token,
-            "code": event_dict.get('code'),
-            "size": event_dict.get('size'),
-            "start_time": event_dict.get('start_time'),
-            "elapsed": event_dict.get('elapsed'),
+            "code": event_dict.get('code', 306),
+            "size": event_dict.get('size', 0),
+            "start_time": event_dict.get('start_time', ''),
+            "elapsed": event_dict.get('elapsed', 0.0),
         }
 
         # update json parse err if any
@@ -378,28 +380,30 @@ class SLSxUserInfoResponse(SLSResponse):
         event_dict = {}
         json_exception = {}
 
-        try:
-            event_dict = json.loads(self.resp.text)
-        except json.decoder.JSONDecodeError:
-            json_exception = {
-                "message": "JSONDecodeError thrown when parsing response text."
-            }
+        if self.resp.text:
+            try:
+                event_dict = json.loads(self.resp.text)
+            except json.decoder.JSONDecodeError:
+                json_exception = {
+                    "message": "JSONDecodeError thrown when parsing response text."
+                }
 
         event_dict.update(super().to_dict().copy())
 
+        sub = event_dict.get('data').get('user').get('id') if event_dict.get('data') is not None \
+            and event_dict.get('data').get('user') is not None \
+            and event_dict.get('data').get('user').get('id') is not None \
+            else 'Not available'
+
         resp_dict = {
-            "type": event_dict.get('type'),
-            "uuid": event_dict.get('uuid'),
-            "path": event_dict.get('path'),
-            "sub": event_dict.get('data').get('user').get('id')
-            if event_dict.get('data') is not None
-            and event_dict.get('data').get('user') is not None
-            and event_dict.get('data').get('user').get('id') is not None
-            else None,
-            "code": event_dict.get('code'),
-            "size": event_dict.get('size'),
-            "start_time": event_dict.get('start_time'),
-            "elapsed": event_dict.get('elapsed'),
+            "type": event_dict.get('type', ''),
+            "uuid": event_dict.get('uuid', ''),
+            "path": event_dict.get('path', ''),
+            "sub": sub,
+            "code": event_dict.get('code', 306),
+            "size": event_dict.get('size', 0),
+            "start_time": event_dict.get('start_time', ''),
+            "elapsed": event_dict.get('elapsed', 0.0),
         }
 
         # update json parse err if any
