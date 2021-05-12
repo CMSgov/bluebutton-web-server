@@ -341,14 +341,12 @@ class SLSxTokenResponse(SLSResponse):
 
         event_dict.update(super().to_dict().copy())
 
-        auth_token = '' if event_dict.get('auth_token') is None else \
-            hashlib.sha256(str(event_dict.get('auth_token')).encode('utf-8')).hexdigest()
-
         resp_dict = {
-            "type": event_dict.get('type', ''),
+            "type": event_dict.get('type', 'unknown'),
             "uuid": event_dict.get('uuid', ''),
             "path": event_dict.get('path', ''),
-            "auth_token": auth_token,
+            "auth_token": 'Not available' if event_dict.get('auth_token') is not None else hashlib.sha256(
+                str(event_dict.get('auth_token')).encode('utf-8')).hexdigest(),
             "code": event_dict.get('code', 306),
             "size": event_dict.get('size', 0),
             "start_time": event_dict.get('start_time', ''),
@@ -376,6 +374,9 @@ class SLSxUserInfoResponse(SLSResponse):
         return 'SLSx_userinfo'
 
     def to_dict(self):
+        # handle case where response text is empty or none json,
+        # e.g. reconcile with additional slsx flow singout validation
+        # added to slsx flow
 
         event_dict = {}
         json_exception = {}
@@ -395,6 +396,7 @@ class SLSxUserInfoResponse(SLSResponse):
             "uuid": event_dict.get('uuid', ''),
             "path": event_dict.get('path', ''),
             "sub": event_dict.get('data', {}).get('user', {}).get('id', 'Not available'),
+            # use http unused code as place holder - unittests now check schema
             "code": event_dict.get('code', 306),
             "size": event_dict.get('size', 0),
             "start_time": event_dict.get('start_time', ''),
@@ -403,7 +405,6 @@ class SLSxUserInfoResponse(SLSResponse):
 
         # update json parse err if any
         resp_dict.update(json_exception)
-
         # Update with auth flow session info
         resp_dict.update(self.auth_flow_dict)
 
