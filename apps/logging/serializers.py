@@ -327,10 +327,18 @@ class SLSxTokenResponse(SLSResponse):
         return 'SLSx_token'
 
     def to_dict(self):
-        # TODO: Handle exception json.decoder.JSONDecodeError
-        # this is handled in BB2-432
 
-        event_dict = json.loads(self.resp.text)
+        event_dict = {}
+        json_exception = {}
+
+        if self.resp.text:
+            try:
+                event_dict = json.loads(self.resp.text)
+            except json.decoder.JSONDecodeError:
+                json_exception = {
+                    "message": "JSONDecodeError thrown when parsing response text."
+                }
+
         event_dict.update(super().to_dict().copy())
 
         resp_dict = {
@@ -344,6 +352,9 @@ class SLSxTokenResponse(SLSResponse):
             "start_time": event_dict.get('start_time', ''),
             "elapsed": event_dict.get('elapsed', 0.0),
         }
+
+        # update json parse err if any
+        resp_dict.update(json_exception)
         # Update with auth flow session info
         resp_dict.update(self.auth_flow_dict)
 
