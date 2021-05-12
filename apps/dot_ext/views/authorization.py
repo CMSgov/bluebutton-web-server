@@ -66,6 +66,7 @@ class AuthorizationView(DotAuthorizationView):
                 },
                 status=error.status_code)
 
+        request.session['version'] = self.version
         return super().dispatch(request, *args, **kwargs)
 
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
@@ -213,6 +214,8 @@ class ApprovalView(AuthorizationView):
 
         # Set flag to let super method know who's calling, so auth_uuid doesn't get reset.
         kwargs['is_subclass_approvalview'] = True
+
+        request.session['version'] = self.version
 
         result = super().dispatch(request, *args, **kwargs)
 
