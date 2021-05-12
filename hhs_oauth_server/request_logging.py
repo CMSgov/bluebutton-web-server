@@ -128,7 +128,7 @@ class RequestResponseLog(object):
         self.log_msg['dev_id'] = ""
         self.log_msg['dev_name'] = ""
         self.log_msg['location'] = ""
-        self.log_msg['size'] = ""
+        self.log_msg['size'] = 0
 
     def _log_msg_update_from_dict(self, from_dict, key, dict_key):
         # Log message update from a passed in dictionary
