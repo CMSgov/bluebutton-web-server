@@ -391,15 +391,11 @@ class SLSxUserInfoResponse(SLSResponse):
 
         event_dict.update(super().to_dict().copy())
 
-        sub = "Not available" if event_dict.get('data') is None \
-            or event_dict.get('data').get('user') is None \
-            or event_dict.get('data').get('user').get('id') is None else event_dict['data']['user']['id']
-
         resp_dict = {
             "type": event_dict.get('type', ''),
             "uuid": event_dict.get('uuid', ''),
             "path": event_dict.get('path', ''),
-            "sub": sub,
+            "sub": event_dict.get('data', {}).get('user', {}).get('id', 'Not available'),
             # use http unused code as place holder - unittests now check schema
             "code": event_dict.get('code', 306),
             "size": event_dict.get('size', 0),
