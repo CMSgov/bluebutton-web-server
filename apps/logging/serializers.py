@@ -327,20 +327,34 @@ class SLSxTokenResponse(SLSResponse):
         return 'SLSx_token'
 
     def to_dict(self):
-        # TODO: Handle exception json.decoder.JSONDecodeError
-        event_dict = json.loads(self.resp.text)
+
+        event_dict = {}
+        json_exception = {}
+
+        if self.resp.text:
+            try:
+                event_dict = json.loads(self.resp.text)
+            except json.decoder.JSONDecodeError:
+                json_exception = {
+                    "message": "JSONDecodeError thrown when parsing response text."
+                }
+
         event_dict.update(super().to_dict().copy())
+
         resp_dict = {
-            "type": event_dict['type'],
-            "uuid": event_dict['uuid'],
-            "path": event_dict['path'],
-            "auth_token": hashlib.sha256(
-                str(event_dict['auth_token']).encode('utf-8')).hexdigest(),
-            "code": event_dict['code'],
-            "size": event_dict['size'],
-            "start_time": event_dict['start_time'],
-            "elapsed": event_dict['elapsed'],
+            "type": event_dict.get('type', 'unknown'),
+            "uuid": event_dict.get('uuid', ''),
+            "path": event_dict.get('path', ''),
+            "auth_token": 'Not available' if event_dict.get('auth_token') is not None else hashlib.sha256(
+                str(event_dict.get('auth_token')).encode('utf-8')).hexdigest(),
+            "code": event_dict.get('code', 306),
+            "size": event_dict.get('size', 0),
+            "start_time": event_dict.get('start_time', ''),
+            "elapsed": event_dict.get('elapsed', 0.0),
         }
+
+        # update json parse err if any
+        resp_dict.update(json_exception)
         # Update with auth flow session info
         resp_dict.update(self.auth_flow_dict)
 
@@ -360,18 +374,37 @@ class SLSxUserInfoResponse(SLSResponse):
         return 'SLSx_userinfo'
 
     def to_dict(self):
-        event_dict = json.loads(self.resp.text)
+        # handle case where response text is empty or none json,
+        # e.g. reconcile with additional slsx flow singout validation
+        # added to slsx flow
+
+        event_dict = {}
+        json_exception = {}
+
+        if self.resp.text:
+            try:
+                event_dict = json.loads(self.resp.text)
+            except json.decoder.JSONDecodeError:
+                json_exception = {
+                    "message": "JSONDecodeError thrown when parsing response text."
+                }
+
         event_dict.update(super().to_dict().copy())
+
         resp_dict = {
-            "type": event_dict['type'],
-            "uuid": event_dict['uuid'],
-            "path": event_dict['path'],
-            "sub": event_dict['data']['user']['id'],
-            "code": event_dict['code'],
-            "size": event_dict['size'],
-            "start_time": event_dict['start_time'],
-            "elapsed": event_dict['elapsed'],
+            "type": event_dict.get('type', ''),
+            "uuid": event_dict.get('uuid', ''),
+            "path": event_dict.get('path', ''),
+            "sub": event_dict.get('data', {}).get('user', {}).get('id', 'Not available'),
+            # use http unused code as place holder - unittests now check schema
+            "code": event_dict.get('code', 306),
+            "size": event_dict.get('size', 0),
+            "start_time": event_dict.get('start_time', ''),
+            "elapsed": event_dict.get('elapsed', 0.0),
         }
+
+        # update json parse err if any
+        resp_dict.update(json_exception)
         # Update with auth flow session info
         resp_dict.update(self.auth_flow_dict)
 

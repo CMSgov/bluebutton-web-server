@@ -1,6 +1,5 @@
 import logging
 import random
-import requests
 import urllib.request as urllib_request
 
 from django.conf import settings
@@ -30,19 +29,9 @@ from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
-class BBMyMedicareCallbackAuthenticateSlsClientException(APIException):
-    # BB2-237 custom exception
-    status_code = status.HTTP_502_BAD_GATEWAY
-
-
 class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):
     # BB2-237 custom exception
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-class BBSLSxHealthCheckFailedException(APIException):
-    # BB2-391 custom exception
-    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
@@ -56,24 +45,26 @@ def authenticate(request):
     # Get auth flow session values.
     auth_flow_dict = get_session_auth_flow_trace(request)
 
+    # SLSx client instance
+    slsx_client = OAuth2ConfigSLSx()
+
     request_token = request.GET.get('req_token', None)
     if request_token is None:
         log_authenticate_start(auth_flow_dict, "FAIL",
-                               "SLSx request_token is missing in callback error.")
+                               "SLSx request_token is missing in callback error.", slsx_client=slsx_client)
         raise ValidationError(settings.MEDICARE_ERROR_MSG)
 
-    slsx_client = OAuth2ConfigSLSx()
-    try:
-        slsx_client.exchange_for_access_token(request_token, request)
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        log_authenticate_start(auth_flow_dict, "FAIL",
-                               "Token request response error {reason}".format(reason=e))
-        raise BBMyMedicareCallbackAuthenticateSlsClientException(settings.MEDICARE_ERROR_MSG)
+    # Exchange req_token for access token
+    slsx_client.exchange_for_access_token(request_token, request)
 
+    # Get user_info
     user_info = slsx_client.get_user_info(request)
 
     # Signout bene to prevent SSO issues per BB2-544
     slsx_client.user_signout(request)
+
+    # Validate bene is signed out per BB2-544
+    slsx_client.validate_user_signout(request)
 
     # Set identity values from userinfo response.
     sls_subject = slsx_client.user_id.strip()
@@ -147,11 +138,6 @@ def authenticate(request):
 
 
 @never_cache
-def callback_v2(request):
-    return callback(request, 2)
-
-
-@never_cache
 def callback(request, version=1):
     try:
         authenticate(request)
@@ -167,10 +153,6 @@ def callback(request, version=1):
                 "error": e.detail,
             },
             status=status.HTTP_404_NOT_FOUND)
-    except BBMyMedicareCallbackAuthenticateSlsClientException as e:
-        return JsonResponse({
-            "error": e.detail,
-        }, status=status.HTTP_502_BAD_GATEWAY)
     except BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException as e:
         return JsonResponse({
             "error": e.detail,
@@ -216,27 +198,13 @@ def generate_nonce(length=26):
 
 
 @never_cache
-def mymedicare_login_v2(request):
-    # not invoked by runtime, invoked by unittests only
-    return mymedicare_login(request, 2)
-
-
-@never_cache
 def mymedicare_login(request, version=1):
     redirect = settings.MEDICARE_SLSX_REDIRECT_URI
     mymedicare_login_url = settings.MEDICARE_SLSX_LOGIN_URI
 
-    # Get auth flow session values.
-    auth_flow_dict = get_session_auth_flow_trace(request)
-
     # Perform health check on SLSx service
     slsx_client = OAuth2ConfigSLSx()
-    try:
-        slsx_client.service_health_check()
-    except requests.exceptions.HTTPError as e:
-        log_authenticate_start(auth_flow_dict, "FAIL",
-                               "SLSx service health check error {reason}".format(reason=e))
-        raise BBSLSxHealthCheckFailedException(settings.MEDICARE_ERROR_MSG)
+    slsx_client.service_health_check(request)
 
     relay_param_name = "relay"
     redirect = urllib_request.pathname2url(redirect)

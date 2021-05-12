@@ -34,11 +34,7 @@ def bfd_fhir_dataserver(v2=False):
 def slsx(v2=False):
     # Perform health check on SLSx service
     slsx_client = OAuth2ConfigSLSx()
-    try:
-        slsx_client.service_health_check()
-    except requests.exceptions.HTTPError as e:
-        return "SLSx service health check error {reason}".format(reason=e).json()
-    return True
+    return slsx_client.service_health_check(None)
 
 
 internal_services = (
