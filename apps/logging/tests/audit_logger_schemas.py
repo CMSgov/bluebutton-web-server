@@ -281,7 +281,7 @@ REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA = {
         "request_scheme": {"pattern": "http"},
         "user": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
         "fhir_id": {"pattern": "-20140000008325"},
-        "response_code": {"type": "integer", "enum": [status.HTTP_400_BAD_REQUEST]},
+        "response_code": {"type": "integer", "enum": [status.HTTP_302_FOUND]},
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
                  "req_user_id", "req_user_username", "req_fhir_id", "auth_crosswalk_action",
