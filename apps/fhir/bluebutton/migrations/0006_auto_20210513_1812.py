@@ -45,8 +45,8 @@ class Migration(migrations.Migration):
             },
             bases=('dot_ext.authflowuuid',),
         ),
-        migrations.RemoveField(
-            model_name='crosswalk',
-            name='fhir_source',
-        ),
+        # migrations.RemoveField(
+        #     model_name='crosswalk',
+        #     name='fhir_source',
+        # ),
     ]
