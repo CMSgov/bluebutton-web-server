@@ -43,8 +43,6 @@ Follow these steps on the command line.
     pip install --upgrade pip==9.0.1
     pip install pip-tools
     pip install -r requirements/requirements.txt
-    pip install pre-commit
-    pre-commit install
 
     # prepare Django settings
     cp hhs_oauth_server/settings/local_sample.txt hhs_oauth_server/settings/local.py
