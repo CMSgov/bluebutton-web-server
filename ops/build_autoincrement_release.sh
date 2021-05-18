@@ -76,11 +76,15 @@ cat << "EOF" > "${GITHUB_RELEASE_PAYLOAD}"
 }
 EOF
 
-NEW_RELEASE_HISTORY_SANITIZED="${NEW_RELEASE_HISTORY//$'\n'/'\\n'}"
+# Sanitize the commit history for JSON usage by stripping quotes and replacing newline sequences
+# with newline literals
+#
+NEW_RELEASE_HISTORY="${NEW_RELEASE_HISTORY//[\'\"]/}"
+NEW_RELEASE_HISTORY="${NEW_RELEASE_HISTORY//$'\n'/'\\n'}"
 
 sed -i "s|NEW_RELEASE_TAG|${NEW_RELEASE_TAG}|g" "${GITHUB_RELEASE_PAYLOAD}"
 sed -i "s|NEW_RELEASE_DATE|${NEW_RELEASE_DATE}|g" "${GITHUB_RELEASE_PAYLOAD}"
-sed -i "s|NEW_RELEASE_HISTORY|${NEW_RELEASE_HISTORY_SANITIZED}|g" "${GITHUB_RELEASE_PAYLOAD}"
+sed -i "s|NEW_RELEASE_HISTORY|${NEW_RELEASE_HISTORY}|g" "${GITHUB_RELEASE_PAYLOAD}"
 
 # Create GitHub release via API request
 #
