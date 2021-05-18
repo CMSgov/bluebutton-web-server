@@ -17,6 +17,7 @@ fi
 #
 if [[ "$(git branch --show-current)" != "master" ]]; then
     echo "Please run script from the master branch of repository: git checkout master"
+    exit 1
 fi
 
 # Test GitHub access token
