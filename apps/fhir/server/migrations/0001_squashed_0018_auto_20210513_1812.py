@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('bluebutton', '0006_auto_20210513_1812'),
+        ('bluebutton', '0001_squashed_0006_auto_20210513_1812'),
     ]
 
     operations = [
