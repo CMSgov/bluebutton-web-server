@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Change this value if testing against a fork
 #
-GITHUB_REPO="njdister/bluebutton-web-server"
+GITHUB_REPO="CMSgov/bluebutton-web-server"
 
 # Test running from root of repository
 #
