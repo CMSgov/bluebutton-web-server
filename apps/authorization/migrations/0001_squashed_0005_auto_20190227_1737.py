@@ -15,8 +15,6 @@ def migrate_grants(*args, **kwargs):
 
 class Migration(migrations.Migration):
 
-    # replaces = [('authorization', '0001_initial'), ('authorization', '0002_auto_20181203_1542'), ('authorization', '0003_auto_20181203_1843'), ('authorization', '0004_auto_20181218_1447'), ('authorization', '0005_auto_20190227_1737')]
-
     initial = True
 
     dependencies = [

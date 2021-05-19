@@ -7,8 +7,6 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
 
-    # replaces = [('core', '0001_initial'), ('core', '0002_auto_20210324_1543')]
-
     initial = True
 
     dependencies = [

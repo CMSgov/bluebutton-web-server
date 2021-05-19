@@ -5,8 +5,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    # replaces = [('mymedicare_cb', '0001_initial'), ('mymedicare_cb', '0002_remove_anonuserstate_session_key')]
-
     initial = True
 
     dependencies = [
