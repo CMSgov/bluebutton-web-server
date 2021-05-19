@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-# Change this value if testing against a fork
+# Detect if running from a fork
 #
-GITHUB_REPO="CMSgov/bluebutton-web-server"
+GITHUB_REPO="$(git ls-remote --quiet --get-url | grep -o '[^:/]\{1,\}/bluebutton-web-server')"
 
 # Test running from root of repository
 #
