@@ -535,29 +535,35 @@ ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
 
-MEDICARE_SLSX_LOGIN_URI = env('DJANGO_MEDICARE_SLSX_LOGIN_URI',
-                              'https://test.medicare.gov/sso/authorize?client_id=bb2api')
-MEDICARE_SLSX_REDIRECT_URI = env(
-    'DJANGO_MEDICARE_SLSX_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
-
-SLSX_HEALTH_CHECK_ENDPOINT = env(
-    'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', 'https://test.accounts.cms.gov/health')
-SLSX_TOKEN_ENDPOINT = env(
-    'DJANGO_SLSX_TOKEN_ENDPOINT', 'https://test.medicare.gov/sso/session')
-SLSX_SIGNOUT_ENDPOINT = env(
-    'DJANGO_SLSX_SIGNOUT_ENDPOINT', 'https://test.medicare.gov/sso/signout')
+# SLSx settings
+SLSX_CLIENT_ID = env('DJANGO_SLSX_CLIENT_ID')
+SLSX_CLIENT_SECRET = env('DJANGO_SLSX_CLIENT_SECRET')
 
 # ACA token for SLSX_TOKEN_ENDPOINT
 MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env('DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN', '')
 
+MEDICARE_SLSX_REDIRECT_URI = env(
+    'DJANGO_MEDICARE_SLSX_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
+
+MEDICARE_SLSX_LOGIN_URI = env('DJANGO_MEDICARE_SLSX_LOGIN_URI',
+                              'https://test.medicare.gov/sso/authorize?client_id=bb2api')
+MEDICARE_SLSX_LOGIN_URI_SSL = env('DJANGO_MEDICARE_SLSX_LOGIN_URI_SSL', False)
+
+SLSX_HEALTH_CHECK_ENDPOINT = env(
+    'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', 'https://test.accounts.cms.gov/health')
+SLSX_HEALTH_CHECK_ENDPOINT_SSL = env('DJANGO_SLSX_HEALTH_CHECK_ENDPOINT_SSL', False)
+
+SLSX_TOKEN_ENDPOINT = env(
+    'DJANGO_SLSX_TOKEN_ENDPOINT', 'https://test.medicare.gov/sso/session')
+SLSX_TOKEN_ENDPOINT_SSL = env('DJANGO_SLSX_TOKEN_ENDPOINT_SSL', False)
+
+SLSX_SIGNOUT_ENDPOINT = env(
+    'DJANGO_SLSX_SIGNOUT_ENDPOINT', 'https://test.medicare.gov/sso/signout')
+SLSX_SIGNOUT_ENDPOINT_SSL = env('DJANGO_SLSX_SIGNOUT_ENDPOINT_SSL', False)
+
 SLSX_USERINFO_ENDPOINT = env(
     'DJANGO_SLSX_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/users')
-
-# Since this is internal False may be acceptable.
-SLSX_VERIFY_SSL = env('DJANGO_SLSX_VERIFY_SSL', False)
-
-SLSX_CLIENT_ID = env('DJANGO_SLSX_CLIENT_ID')
-SLSX_CLIENT_SECRET = env('DJANGO_SLSX_CLIENT_SECRET')
+SLSX_USERINFO_ENDPOINT_SSL = env('DJANGO_SLSX_USERINFO_ENDPOINT_SSL', False)
 
 
 # Message returned to bene for API exceptions related to medicare login/SLS
