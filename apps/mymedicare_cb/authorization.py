@@ -49,17 +49,14 @@ class OAuth2ConfigSLSx(object):
     redirect_uri = settings.MEDICARE_SLSX_REDIRECT_URI
 
     healthcheck_endpoint = settings.SLSX_HEALTH_CHECK_ENDPOINT
-    healthcheck_endpoint_ssl = settings.SLSX_HEALTH_CHECK_ENDPOINT_SSL
-
     token_endpoint = settings.SLSX_TOKEN_ENDPOINT
     token_endpoint_aca_token = settings.MEDICARE_SLSX_AKAMAI_ACA_TOKEN
-    token_endpoint_ssl = settings.SLSX_TOKEN_ENDPOINT_SSL
-
     signout_endpoint = settings.SLSX_SIGNOUT_ENDPOINT
-    signout_endpoint_ssl = settings.SLSX_SIGNOUT_ENDPOINT_SSL
-
     userinfo_endpoint = settings.SLSX_USERINFO_ENDPOINT
-    userinfo_endpoint_ssl = settings.SLSX_USERINFO_ENDPOINT_SSL
+
+    # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
+    verify_ssl_internal = settings.SLSX_VERIFY_SSL_INTERNAL
+    verify_ssl_external = settings.SLSX_VERIFY_SSL_INTERNAL
 
     def __init__(self):
         self.auth_token = None
@@ -117,7 +114,7 @@ class OAuth2ConfigSLSx(object):
                                  json=data_dict,
                                  headers=headers,
                                  allow_redirects=False,
-                                 verify=self.token_endpoint_ssl,
+                                 verify=self.verify_ssl_external,
                                  hooks={'response': [
                                         response_hook_wrapper(sender=SLSxTokenResponse,
                                                               auth_flow_dict=auth_flow_dict)]})
@@ -162,7 +159,7 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.userinfo_endpoint_ssl,
+                                verify=self.verify_ssl_internal,
                                 hooks={'response': [
                                        response_hook_wrapper(sender=SLSxUserInfoResponse,
                                                              auth_flow_dict=auth_flow_dict)]})
@@ -204,7 +201,7 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.healthcheck_endpoint,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.healthcheck_endpoint_ssl)
+                                verify=self.verify_ssl_internal)
         response.raise_for_status()
         return True
 
@@ -225,7 +222,7 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.signout_endpoint,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.signout_endpoint_ssl)
+                                verify=self.verify_ssl_external)
         self.signout_status_code = response.status_code
         response.raise_for_status()
 
@@ -251,7 +248,7 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.userinfo_endpoint_ssl,
+                                verify=self.verify_ssl_internal,
                                 hooks={'response': [
                                        response_hook_wrapper(sender=SLSxUserInfoResponse,
                                                              auth_flow_dict=auth_flow_dict)]})

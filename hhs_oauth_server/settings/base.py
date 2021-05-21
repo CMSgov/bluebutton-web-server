@@ -547,24 +547,18 @@ MEDICARE_SLSX_REDIRECT_URI = env(
 
 MEDICARE_SLSX_LOGIN_URI = env('DJANGO_MEDICARE_SLSX_LOGIN_URI',
                               'https://test.medicare.gov/sso/authorize?client_id=bb2api')
-MEDICARE_SLSX_LOGIN_URI_SSL = env('DJANGO_MEDICARE_SLSX_LOGIN_URI_SSL', False)
-
 SLSX_HEALTH_CHECK_ENDPOINT = env(
     'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', 'https://test.accounts.cms.gov/health')
-SLSX_HEALTH_CHECK_ENDPOINT_SSL = env('DJANGO_SLSX_HEALTH_CHECK_ENDPOINT_SSL', False)
-
 SLSX_TOKEN_ENDPOINT = env(
     'DJANGO_SLSX_TOKEN_ENDPOINT', 'https://test.medicare.gov/sso/session')
-SLSX_TOKEN_ENDPOINT_SSL = env('DJANGO_SLSX_TOKEN_ENDPOINT_SSL', False)
-
 SLSX_SIGNOUT_ENDPOINT = env(
     'DJANGO_SLSX_SIGNOUT_ENDPOINT', 'https://test.medicare.gov/sso/signout')
-SLSX_SIGNOUT_ENDPOINT_SSL = env('DJANGO_SLSX_SIGNOUT_ENDPOINT_SSL', False)
-
 SLSX_USERINFO_ENDPOINT = env(
     'DJANGO_SLSX_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/users')
-SLSX_USERINFO_ENDPOINT_SSL = env('DJANGO_SLSX_USERINFO_ENDPOINT_SSL', False)
 
+# SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
+SLSX_VERIFY_SSL_INTERNAL = env('DJANGO_SLSX_VERIFY_SSL_INTERNAL', False)
+SLSX_VERIFY_SSL_EXTERNAL = env('DJANGO_SLSX_VERIFY_SSL_EXTERNAL', False)
 
 # Message returned to bene for API exceptions related to medicare login/SLS
 MEDICARE_ERROR_MSG = "An error occurred connecting to account.mymedicare.gov"

@@ -44,20 +44,18 @@ AUTHENTICATION_START_LOG_SCHEMA = {
         "sls_mbi_format_synthetic": {"type": "boolean"},
         "sls_hicn_hash": {"pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"},
         "sls_mbi_hash": {"pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"},
-        "sls_healthcheck_ssl": {"type": "boolean", "enum": [False]},
-        "sls_signout_ssl": {"type": "boolean", "enum": [False]},
         "sls_signout_status_code": {"type": "integer", "enum": [status.HTTP_302_FOUND]},
-        "sls_token_ssl": {"type": "boolean", "enum": [False]},
         "sls_token_status_code": {"type": "integer", "enum": [status.HTTP_200_OK]},
-        "sls_userinfo_ssl": {"type": "boolean", "enum": [False]},
         "sls_userinfo_status_code": {"type": "integer", "enum": [status.HTTP_200_OK]},
         "sls_validate_signout_status_code": {"type": "integer", "enum": [status.HTTP_403_FORBIDDEN]},
+        "sls_verify_ssl_internal": {"type": "boolean", "enum": [False]},
+        "sls_verify_ssl_external": {"type": "boolean", "enum": [False]},
     },
     "required": ["type", "sls_status", "sls_status_mesg", "sub", "sls_mbi_format_valid",
                  "sls_mbi_format_synthetic", "sls_hicn_hash", "sls_mbi_hash",
-                 "sls_healthcheck_ssl", "sls_signout_ssl", "sls_signout_status_code",
-                 "sls_token_ssl", "sls_token_status_code", "sls_userinfo_ssl",
-                 "sls_userinfo_status_code", "sls_validate_signout_status_code"]
+                 "sls_signout_status_code", "sls_token_status_code",
+                 "sls_userinfo_status_code", "sls_validate_signout_status_code",
+                 "sls_verify_ssl_internal", "sls_verify_ssl_external"]
 }
 
 AUTHENTICATION_SUCCESS_LOG_SCHEMA = {
