@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -eo pipefail
 
 # Detect if running from a fork
 #
@@ -97,7 +97,7 @@ curl -s -X POST -H "Accept: application/vnd.github.v3+json" \
 
 # Verify GitHub release
 #
-if [[ "$(grep 'errors' ${GITHUB_RELEASE_STATUS})" ]]; then
+if [[ "$(grep '"errors":' ${GITHUB_RELEASE_STATUS})" ]]; then
     echo "Error during release creation, dumping debug output!"
     echo "Release JSON payload:"
     cat "${GITHUB_RELEASE_PAYLOAD}"
