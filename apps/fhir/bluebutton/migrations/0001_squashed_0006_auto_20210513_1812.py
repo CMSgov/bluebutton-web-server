@@ -7,6 +7,8 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
+    replaces = [('bluebutton', '0001_initial'), ('bluebutton', '0002_auto_20180127_2032'), ('bluebutton', '0003_auto_20191208_0010'), ('bluebutton', '0004_auto_20191220_2327'), ('bluebutton', '0005_auto_20200529_1906')]
+
     initial = True
 
     dependencies = [

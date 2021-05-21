@@ -6,6 +6,8 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
+    replaces = [('capabilities', '0001_initial'), ('capabilities', '0002_auto_20160613_1243'), ('capabilities', '0003_auto_20160621_0803'), ('capabilities', '0004_auto_20160720_1816'), ('capabilities', '0004_auto_20160708_0420'), ('capabilities', '0005_merge'), ('capabilities', '0006_auto_20170423_2201'), ('capabilities', '0007_merge'), ('capabilities', '0006_auto_20170517_1350'), ('capabilities', '0008_merge'), ('capabilities', '0009_protectedcapability_default'), ('capabilities', '0010_auto_20190723_1728')]
+
     initial = True
 
     dependencies = [

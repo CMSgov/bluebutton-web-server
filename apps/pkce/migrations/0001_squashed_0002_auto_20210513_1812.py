@@ -8,6 +8,8 @@ from oauth2_provider import settings as oauth2_settings
 
 class Migration(migrations.Migration):
 
+    replaces = [('pkce', '0001_initial')]
+
     initial = True
 
     dependencies = [

@@ -5,6 +5,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
+    replaces = [('server', '0001_initial'), ('server', '0002_auto_20160917_1523'), ('server', '0003_auto_20160917_1745'), ('server', '0004_auto_20160917_1802'), ('server', '0005_supportedresourcetype_patch'), ('server', '0006_supportedresourcetype_secure_access'), ('server', '0007_auto_20170423_2201'), ('server', '0008_supportedresourcetype_resourcetype'), ('server', '0009_auto_20170501_2213'), ('server', '0010_auto_20170501_2220'), ('server', '0011_auto_20170713_1917'), ('server', '0012_auto_20170713_1944'), ('server', '0013_resourcerouter_supported_resource'), ('server', '0014_remove_resourcerouter_supported_resource'), ('server', '0015_resourcerouter_supported_resource'), ('server', '0016_resourcerouter_server_search_expiry'), ('server', '0017_resourcerouter_wait_time')]
+
     initial = True
 
     dependencies = [

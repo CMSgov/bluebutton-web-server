@@ -12,6 +12,8 @@ import uuid
 
 class Migration(migrations.Migration):
 
+    replaces = [('dot_ext', '0001_initial'), ('dot_ext', '0002_auto_20160608_1524'), ('dot_ext', '0003_auto_20160720_1816'), ('dot_ext', '0003_auto_20160708_0420'), ('dot_ext', '0004_merge'), ('dot_ext', '0005_auto_20180122_1553'), ('dot_ext', '0006_django_cache'), ('dot_ext', '0007_auto_20180517_2051'), ('dot_ext', '0008_auto_20181101_2104'), ('dot_ext', '0009_auto_20181112_1856'), ('dot_ext', '0010_auto_20181219_2117'), ('dot_ext', '0011_auto_20181220_2037'), ('dot_ext', '0012_auto_20181220_2222'), ('dot_ext', '0013_auto_20181221_2114'), ('dot_ext', '0014_auto_20190117_1319'), ('dot_ext', '0014_auto_20190121_1345'), ('dot_ext', '0015_auto_20190131_1343'), ('dot_ext', '0016_auto_20190227_1737'), ('dot_ext', '0017_auto_20200806_1207'), ('dot_ext', '0018_auto_20200828_1820'), ('dot_ext', '0019_auto_20200902_2115'), ('dot_ext', '0020_auto_20200903_1419'), ('dot_ext', '0021_auto_20200918_1350'), ('dot_ext', '0022_auto_20200918_1802'), ('dot_ext', '0023_auto_20200923_1528'), ('dot_ext', '0024_auto_20210324_1543')]
+
     initial = True
 
     dependencies = [
