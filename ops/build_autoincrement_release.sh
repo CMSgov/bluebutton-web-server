@@ -82,9 +82,9 @@ EOF
 NEW_RELEASE_HISTORY="${NEW_RELEASE_HISTORY//[\'\"]/}"
 NEW_RELEASE_HISTORY="${NEW_RELEASE_HISTORY//$'\n'/'\\n'}"
 
-sed -i "s|NEW_RELEASE_TAG|${NEW_RELEASE_TAG}|g" "${GITHUB_RELEASE_PAYLOAD}"
-sed -i "s|NEW_RELEASE_DATE|${NEW_RELEASE_DATE}|g" "${GITHUB_RELEASE_PAYLOAD}"
-sed -i "s|NEW_RELEASE_HISTORY|${NEW_RELEASE_HISTORY}|g" "${GITHUB_RELEASE_PAYLOAD}"
+sed -i.bak "s|NEW_RELEASE_TAG|${NEW_RELEASE_TAG}|g" "${GITHUB_RELEASE_PAYLOAD}"
+sed -i.bak "s|NEW_RELEASE_DATE|${NEW_RELEASE_DATE}|g" "${GITHUB_RELEASE_PAYLOAD}"
+sed -i.bak "s|NEW_RELEASE_HISTORY|${NEW_RELEASE_HISTORY}|g" "${GITHUB_RELEASE_PAYLOAD}"
 
 # Create GitHub release via API request
 #
@@ -101,14 +101,12 @@ if [[ "$(grep 'errors' ${GITHUB_RELEASE_STATUS})" ]]; then
     echo "Error during release creation, dumping debug output!"
     echo "Release JSON payload:"
     cat "${GITHUB_RELEASE_PAYLOAD}"
-    rm "${GITHUB_RELEASE_PAYLOAD}"
     echo "Release API status:"
     cat "${GITHUB_RELEASE_STATUS}"
-    rm "${GITHUB_RELEASE_STATUS}"
+    rm "/tmp/$(basename $0)"*
     exit 1
 else
     echo "Release created successfully: https://github.com/${GITHUB_REPO}/releases/tag/${NEW_RELEASE_TAG}"
-    rm "${GITHUB_RELEASE_PAYLOAD}"
-    rm "${GITHUB_RELEASE_STATUS}"
+    rm "/tmp/$(basename $0)"*
     exit 0
 fi
