@@ -30,12 +30,6 @@ services:
             - DJANGO_SECURE_SESSION=False
             - FHIR_URL=${FHIR_URL}
             - DJANGO_FHIR_CERTSTORE=/code/docker-compose/certstore/
-            # - DJANGO_MEDICARE_SLSX_LOGIN_URI=http://127.0.0.1:8080/sso/authorize?client_id=bb2api
-            # - DJANGO_MEDICARE_SLSX_REDIRECT_URI=http://localhost:8000/mymedicare/sls-callback
-            # - DJANGO_SLSX_USERINFO_ENDPOINT=http://msls:8080/v1/users
-            # - DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=http://msls:8080/health
-            # - DJANGO_SLSX_TOKEN_ENDPOINT=http://msls:8080/sso/session
-            # - DJANGO_SLSX_SIGNOUT_ENDPOINT=http://msls:8080/sso/signout
             - DJANGO_SLSX_CLIENT_ID=bb2api
             - DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
             - DJANGO_MEDICARE_SLSX_LOGIN_URI=https://test.medicare.gov/sso/authorize?client_id=bb2api
@@ -44,6 +38,42 @@ services:
             - DJANGO_SLSX_TOKEN_ENDPOINT=https://test.medicare.gov/sso/session
             - DJANGO_SLSX_SIGNOUT_ENDPOINT=https://test.medicare.gov/sso/signout
             - DJANGO_SLSX_USERINFO_ENDPOINT=https://test.accounts.cms.gov/v1/users
+            - DJANGO_SLSX_VERIFY_SSL=False
+            - DJANGO_LOG_JSON_FORMAT_PRETTY=True
+            - SUPERUSER_NAME=${SUPERUSER_NAME}
+            - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
+            - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
+            - REMOTE_DEBUG=${REMOTE_DEBUG}
+            - REMOTE_DEBUG_WAIT=${REMOTE_DEBUG_WAIT}
+            - HOSTNAME_URL=${HOSTNAME_URL}
+            - DB_MIGRATIONS=${DB_MIGRATIONS}
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    depends_on:
+      - db
+      - msls
+  web-mslsx:
+    build: . 
+    command: ./docker-compose/bluebutton_server_start.sh
+    environment:
+            - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
+            - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton
+            - OAUTHLIB_INSECURE_TRANSPORT=true
+            - DJANGO_DEFAULT_SAMPLE_FHIR_ID=${DJANGO_DEFAULT_SAMPLE_FHIR_ID}
+            - DJANGO_SECURE_SESSION=False
+            - FHIR_URL=${FHIR_URL}
+            - DJANGO_FHIR_CERTSTORE=/code/docker-compose/certstore/
+            - DJANGO_MEDICARE_SLSX_LOGIN_URI=http://127.0.0.1:8080/sso/authorize?client_id=bb2api
+            - DJANGO_MEDICARE_SLSX_REDIRECT_URI=http://localhost:8000/mymedicare/sls-callback
+            - DJANGO_SLSX_USERINFO_ENDPOINT=http://msls:8080/v1/users
+            - DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=http://msls:8080/health
+            - DJANGO_SLSX_TOKEN_ENDPOINT=http://msls:8080/sso/session
+            - DJANGO_SLSX_SIGNOUT_ENDPOINT=http://msls:8080/sso/signout
+            - DJANGO_SLSX_CLIENT_ID=bb2api
+            - DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
             - DJANGO_SLSX_VERIFY_SSL=False
             - DJANGO_LOG_JSON_FORMAT_PRETTY=True
             - SUPERUSER_NAME=${SUPERUSER_NAME}

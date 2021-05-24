@@ -29,6 +29,7 @@ function export_vars() {
     SAMPLE_MBI_LIST \
     SAMPLE_HICN_LIST \
     USE_LOCAL_BFD \
+    USE_MSLSX \
     VAULT_PASSFILE \
     VAULT_FILE \
     FHIR_URL \
@@ -47,7 +48,7 @@ function export_vars() {
 }
 
 function start_server_with_local_bfd() {
-    echo "Start blue button server with local BFD as fhir server."
+    echo "Start blue button server with local BFD as fhir server, use mslsx = {$USE_MSLSX}."
     if [ ! -z ${FHIR_CERT_FILE} ] && [ ! -z ${FHIR_KEY_FILE} ]
     then
         if [ ! -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_CERT_FILE}" ] || [ ! -f "${FHIR_CERTSTORE_ON_HOST}/${FHIR_KEY_FILE}" ]
@@ -80,18 +81,18 @@ function start_server_with_local_bfd() {
         then
             docker-compose down
         else
-            docker-compose stop web
+            docker-compose stop $1
         fi
 
         echo "Starting blue button server..., FHIR_URL: " ${FHIR_URL}
-        docker-compose run --publish 8000:8000 -p 5678:5678 web bash -c "./docker-compose/bluebutton_server_start.sh"
+        docker-compose run --publish 8000:8000 -p 5678:5678 $1 bash -c "./docker-compose/bluebutton_server_start.sh"
     else
         echo "local BFD trusted client cert and private key files in .pem format is required but not found."
     fi
 }
 
 function start_server_with_remote_bfd() {
-    echo "Start bluebutton server with remote BFD as fhir server."
+    echo "Start bluebutton server with remote BFD as fhir server, user mslsx = {$USE_MSLSX}."
     if ! command -v ansible-vault &> /dev/null
     then
         echo "ansible-vault could not be found, it is required to access ansible vault file."
@@ -147,7 +148,7 @@ function start_server_with_remote_bfd() {
         then
             docker-compose down
         else
-            docker-compose stop web
+            docker-compose stop $1
         fi
 
         echo "SALT:" ${DJANGO_USER_ID_SALT} ", ITERATIONS:" ${DJANGO_USER_ID_ITERATIONS} ", PASSWORD_HASH_ITERATIONS:" ${DJANGO_PASSWORD_HASH_ITERATIONS} 
@@ -157,7 +158,7 @@ function start_server_with_remote_bfd() {
         -e DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS} \
         -e DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID} \
         -e DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET} \
-        web bash -c "./docker-compose/bluebutton_server_start.sh"
+        $1 bash -c "./docker-compose/bluebutton_server_start.sh"
     else
         echo "Using remote BFD, but either VAULT_PASSFILE or VAULT_FILE are not properly set."
         exit 1
@@ -253,11 +254,18 @@ then
     export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
 fi
 
+bb2_service="web"
+
+if [ "${USE_MSLSX}" = true ]
+then
+    bb2_service="web-mslsx"
+fi
+
 if [ "${USE_LOCAL_BFD}" = true ]
 then
-    start_server_with_local_bfd
+    start_server_with_local_bfd $bb2_service
 else
-    start_server_with_remote_bfd
+    start_server_with_remote_bfd $bb2_service
 fi
 
 echo "Cleanup files"
