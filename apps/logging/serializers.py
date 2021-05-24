@@ -345,7 +345,7 @@ class SLSxTokenResponse(SLSResponse):
             "type": event_dict.get('type', 'unknown'),
             "uuid": event_dict.get('uuid', ''),
             "path": event_dict.get('path', ''),
-            "auth_token": 'Not available' if event_dict.get('auth_token') is not None else hashlib.sha256(
+            "auth_token": 'Not available' if event_dict.get('auth_token') is None else hashlib.sha256(
                 str(event_dict.get('auth_token')).encode('utf-8')).hexdigest(),
             "code": event_dict.get('code', 306),
             "size": event_dict.get('size', 0),
