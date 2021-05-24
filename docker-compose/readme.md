@@ -32,6 +32,18 @@ stop_server.sh
 ```
 
 Note that stop_server.sh executes docker-compose down to stop and remove the containerized services
+## Setting up Pre Commit
+Precommit config has been setup inside the repo which will make sure that the code is properly formatted prior to commiting. To setup run as follows:
+
+```
+source venv/bin/activate (unless already done)
+pip install pre-commit
+pre-commit install
+```
+
+Once that is setup the pre commit tooling should be run prior to every commit to ensure everything is formatted correctly.
+
+## Blue Button DB image migrations
 
 ## Secured blue button server secrets handling:
 
