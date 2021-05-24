@@ -56,7 +56,7 @@ class OAuth2ConfigSLSx(object):
 
     # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
     verify_ssl_internal = settings.SLSX_VERIFY_SSL_INTERNAL
-    verify_ssl_external = settings.SLSX_VERIFY_SSL_INTERNAL
+    verify_ssl_external = settings.SLSX_VERIFY_SSL_EXTERNAL
 
     def __init__(self):
         self.auth_token = None
