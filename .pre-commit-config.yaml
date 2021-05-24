@@ -4,8 +4,3 @@ repos:
     hooks:
     -   id: flake8
         exclude: 'migrations|docs|examples|bluebutton-css|vendor|venv|management'
--   repo: https://github.com/ambv/black
-    rev: 21.5b1
-    hooks:
-    - id: black
-      language_version: python3
