@@ -8,7 +8,6 @@ class OAuth2ResourceOwner(authentication.OAuth2Authentication):
         user_auth_tuple = super(OAuth2ResourceOwner, self).authenticate(request)
         access_token_query_param = request.GET.get("access_token", None)
         if access_token_query_param is not None:
-            user_auth_tuple = None
             raise exceptions.ParseError(
                 "Using the access token in the query parameters is not supported. "
                 "Use the Authorization header instead"
