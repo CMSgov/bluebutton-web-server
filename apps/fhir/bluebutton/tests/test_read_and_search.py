@@ -306,6 +306,11 @@ class BackendConnectionTest(BaseApiTest):
         response = self.client.get(url, Authorization="Bearer %s" % (first_access_token))
 
         self.assertEqual(response.status_code, 400)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content['detail'], (
+            "Using the access token in the query parameters is not supported. "
+            "Use the Authorization header instead"
+        ))
 
     def test_search_request_not_found(self):
         self._search_request_not_found(False)
