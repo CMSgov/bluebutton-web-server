@@ -1,10 +1,26 @@
 import json
 import logging
 
-from django.conf import settings
-
 from apps.dot_ext.models import get_application_counts, get_application_require_demographic_scopes_count
 from apps.fhir.bluebutton.models import check_crosswalks
+from django.conf import settings
+from django.utils import timezone
+
+
+"""
+  Logger and logging function for waffle flags, switches
+"""
+waffle_event_logger = logging.getLogger('audit.waffle.event')
+
+
+def log_v2_blocked(user=None, app=None, err=None, **kwargs):
+    log_dict = {"type": "v2_blocked",
+                "user": str(user) if user else None,
+                "app": str(app) if app else None,
+                "message": str(err) if err else None,
+                "timestamp": timezone.now().strftime("%m/%d/%Y, %H:%M:%S")}
+    log_dict.update(kwargs)
+    waffle_event_logger.info(json.dumps(log_dict))
 
 
 """

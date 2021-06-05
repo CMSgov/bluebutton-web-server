@@ -1,13 +1,16 @@
 import waffle
 
+from collections import OrderedDict
 from django.http import JsonResponse
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+from oauth2_provider.decorators import protected_resource
 from rest_framework import exceptions
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from apps.fhir.bluebutton.models import Crosswalk
+
 from apps.capabilities.permissions import TokenHasProtectedCapability
-from oauth2_provider.decorators import protected_resource
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication
-from collections import OrderedDict
+from apps.fhir.bluebutton.models import Crosswalk
+from apps.logging.loggers import log_v2_blocked
+
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
 
@@ -37,7 +40,9 @@ def get_userinfo(user):
 @protected_resource()
 def openidconnect_userinfo(request, **kwargs):
     if request.path.startswith('/v2') and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
-        raise exceptions.NotFound("bfd_v2_flag not active.")
+        err = exceptions.NotFound("bfd_v2_flag not active.")
+        log_v2_blocked(request.user, request.auth.application, err, fhir='CapabilityStatement')
+        raise err
     user = request.resource_owner
     data = get_userinfo(user)
     return JsonResponse(data)
