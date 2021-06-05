@@ -9,26 +9,6 @@
 },
 {
     "model": "auth.group",
-    "pk": 17,
-    "fields": {
-        "name": "InviteBeneficiary",
-        "permissions": [
-            91
-        ]
-    }
-},
-{
-    "model": "auth.group",
-    "pk": 18,
-    "fields": {
-        "name": "InviteDeveloper",
-        "permissions": [
-            31
-        ]
-    }
-},
-{
-    "model": "auth.group",
     "pk": 19,
     "fields": {
         "name": "HelpDesk",
