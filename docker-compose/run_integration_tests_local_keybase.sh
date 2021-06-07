@@ -160,6 +160,7 @@ else
   # Source ENVs
   source "${keybase_env}"
 
+
   # Check ENV vars have been sourced
   if [ -z "${DJANGO_USER_ID_SALT}" ]
   then
