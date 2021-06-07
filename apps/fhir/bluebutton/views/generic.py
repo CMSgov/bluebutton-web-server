@@ -103,7 +103,7 @@ class FhirDataView(APIView):
         # interim flag, to be removed after v2 GA
         if self.version == 2 and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
             err = exceptions.NotFound("bfd_v2_flag not active.")
-            log_v2_blocked(request.user, request.auth.application, err, fhir=resource_type)
+            log_v2_blocked(request.user, request.path, request.auth.application, err)
             raise err
 
         target_url = self.build_url(resource_router,

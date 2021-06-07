@@ -9,9 +9,8 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.logging.loggers import log_v2_blocked
-
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
+from apps.logging.loggers import log_v2_blocked
 
 
 def get_userinfo(user):
@@ -41,7 +40,7 @@ def get_userinfo(user):
 def openidconnect_userinfo(request, **kwargs):
     if request.path.startswith('/v2') and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
         err = exceptions.NotFound("bfd_v2_flag not active.")
-        log_v2_blocked(request.user, request.auth.application, err, fhir='CapabilityStatement')
+        log_v2_blocked(request.user, request.path, request.auth.application, err)
         raise err
     user = request.resource_owner
     data = get_userinfo(user)

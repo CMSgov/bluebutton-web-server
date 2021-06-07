@@ -4,7 +4,6 @@ import logging
 from apps.dot_ext.models import get_application_counts, get_application_require_demographic_scopes_count
 from apps.fhir.bluebutton.models import check_crosswalks
 from django.conf import settings
-from django.utils import timezone
 
 
 """
@@ -13,12 +12,16 @@ from django.utils import timezone
 waffle_event_logger = logging.getLogger('audit.waffle.event')
 
 
-def log_v2_blocked(user=None, app=None, err=None, **kwargs):
+def log_v2_blocked(user=None, path=None, app=None, err=None, **kwargs):
     log_dict = {"type": "v2_blocked",
                 "user": str(user) if user else None,
-                "app": str(app) if app else None,
-                "message": str(err) if err else None,
-                "timestamp": timezone.now().strftime("%m/%d/%Y, %H:%M:%S")}
+                "path": path if user else None,
+                "app_id": app.id if app else None,
+                "app_name": str(app.name) if app else None,
+                "dev_id": str(app.user.id) if app else None,
+                "dev_name": str(app.user.username) if app else None,
+                "response_code": err.status_code,
+                "message": str(err) if err else None}
     log_dict.update(kwargs)
     waffle_event_logger.info(json.dumps(log_dict))
 
