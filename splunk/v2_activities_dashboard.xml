@@ -60,27 +60,6 @@
     </row>
 
     <!-- Setup of BASE searches to be used in panels -->
-    <search id="baseSearch1a">
-        <!-- BASE search 1a. New Beneficiaries Added -->
-       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | dedup message.fhir_id message.auth_client_id message.auth_uuid message.username | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
-       <earliest>$t_local.earliest$</earliest>
-       <latest>$t_local.latest$</latest>
-       <sampleRatio>1</sampleRatio>
-    </search>
-    <search id="baseSearch1b">
-        <!-- BASE search 1b. RETURNING Beneficiaries who have re-authorized -->
-       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | dedup message.fhir_id message.auth_client_id message.auth_uuid | fields time message.auth_uuid message.fhir_id message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
-       <earliest>$t_local.earliest$</earliest>
-       <latest>$t_local.latest$</latest>
-       <sampleRatio>1</sampleRatio>
-    </search>
-    <search id="baseSearch2">
-       <!-- BASE search benes choosing to share demographics -->
-       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
-       <earliest>$t_local.earliest$</earliest>
-       <latest>$t_local.latest$</latest>
-       <sampleRatio>1</sampleRatio>
-    </search>
     <search id="baseSearchFhirV1">
         <!-- BASE search for FHIR V1 events -->
        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ message.path="/v1/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
@@ -219,9 +198,9 @@
     <row>
       <panel>
         <chart>
-          <title>Total V2 Requests NOT FOUND (404) TIME-CHART</title>
+          <title>V2 Requests Blocked By bfd_v2_flag TIME-CHART</title>
           <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" message.response_code=404 | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" message.type="v2_blocked" | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
             <sampleRatio>1</sampleRatio>
@@ -231,6 +210,27 @@
           <option name="height">199</option>
           <option name="refresh.display">progressbar</option>
         </chart>
+      </panel>
+    </row>
+
+    <row>
+      <panel>
+        <title>Count Requests Blocked By V2 Flag Per App</title>
+        <table>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ "message.type"=v2_blocked message.path="/v2/*" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+          </search>
+          <option name="count">10</option>
+          <option name="dataOverlayMode">none</option>
+          <option name="drilldown">none</option>
+          <option name="percentagesRow">false</option>
+          <option name="refresh.display">progressbar</option>
+          <option name="rowNumbers">false</option>
+          <option name="totalsRow">false</option>
+          <option name="wrap">true</option>
+        </table>
       </panel>
     </row>
 
