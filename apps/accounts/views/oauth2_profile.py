@@ -39,6 +39,7 @@ def get_userinfo(user):
 @protected_resource()
 def openidconnect_userinfo(request, **kwargs):
     if request.path.startswith('/v2') and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
+        # TODO: waffle flag enforced, to be removed after v2 GA
         err = exceptions.NotFound("bfd_v2_flag not active.")
         log_v2_blocked(request.user, request.path, request.auth.application, err)
         raise err

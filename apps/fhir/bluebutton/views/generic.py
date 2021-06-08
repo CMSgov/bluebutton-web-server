@@ -100,7 +100,7 @@ class FhirDataView(APIView):
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
         # BB2-291 v2 switch enforced here, entry of all fhir resources queries
-        # interim flag, to be removed after v2 GA
+        # TODO: waffle flag enforced, to be removed after v2 GA
         if self.version == 2 and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
             err = exceptions.NotFound("bfd_v2_flag not active.")
             log_v2_blocked(request.user, request.path, request.auth.application, err)
