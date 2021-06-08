@@ -5,7 +5,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 class RunTestClient(TestCase):
@@ -27,11 +26,7 @@ class RunTestClient(TestCase):
         opt.add_argument("--disable-popup-blocking")
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
-        # self.driver = webdriver.Chrome(options=opt)
-        self.driver = webdriver.Remote(command_executor=f"http://chrome:6900/wd/hub",
-            desired_capabilities=DesiredCapabilities.CHROME,
-            options=opt,
-        )
+        self.driver = webdriver.Chrome(options=opt)
 
     def tearDown(self):
         self.driver.close()
@@ -53,7 +48,6 @@ class RunTestClient(TestCase):
         print("BB2 Landing Page.....................................")
         # self.driver.get(settings.HOSTNAME_URL)
         # bb2 landing page: click test client link
-        
         self.find_and_click(30, By.LINK_TEXT, 'Test Client')
         print("Test Client Page.....................................")
         # self.find_and_click(30, By.ID, 'testclient')

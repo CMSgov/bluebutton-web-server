@@ -1,4 +1,3 @@
-import os
 import time
 from django.conf import settings
 from django.test import TestCase
@@ -7,8 +6,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.common.action_chains import ActionChains
 
 
 class RunTestClient(TestCase):
@@ -31,10 +28,6 @@ class RunTestClient(TestCase):
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
         self.driver = webdriver.Chrome(options=opt)
-        # self.driver = webdriver.Remote(command_executor=f"http://localhost:4444",
-        #     desired_capabilities=DesiredCapabilities.CHROME,
-        #     options=opt,
-        # )
 
     def tearDown(self):
         self.driver.quit()
@@ -63,8 +56,6 @@ class RunTestClient(TestCase):
         print("Next Page.......click sign up")
         print("TITLE={}".format(self.driver.title))
         print(self.driver.page_source.encode("utf-8"))
-
-
         # for n, v in os.environ.items():
         #     print("ENV: {} = {}".format(n, v))
         # assume bb2 is on url set by HOSTNAME_URL
@@ -74,7 +65,7 @@ class RunTestClient(TestCase):
         print("BB2 Landing Page.....................................")
         # self.driver.get(settings.HOSTNAME_URL)
         # bb2 landing page: click test client link
-        
+
         self.find_and_click(30, By.LINK_TEXT, 'Test Client')
         print("Test Client Page.....................................")
         # self.find_and_click(30, By.ID, 'testclient')
