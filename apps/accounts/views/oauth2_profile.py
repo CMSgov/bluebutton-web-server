@@ -5,7 +5,11 @@ from django.http import JsonResponse
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from oauth2_provider.decorators import protected_resource
 from rest_framework import exceptions
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import (
+    api_view,
+    permission_classes,
+    authentication_classes,
+)
 
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.models import Crosswalk
@@ -18,18 +22,18 @@ def get_userinfo(user):
     OIDC-style userinfo
     """
     data = OrderedDict()
-    data['sub'] = user.username
-    data['name'] = "%s %s" % (user.first_name, user.last_name)
-    data['given_name'] = user.first_name
-    data['family_name'] = user.last_name
-    data['email'] = user.email
-    data['iat'] = user.date_joined
+    data["sub"] = user.username
+    data["name"] = "%s %s" % (user.first_name, user.last_name)
+    data["given_name"] = user.first_name
+    data["family_name"] = user.last_name
+    data["email"] = user.email
+    data["iat"] = user.date_joined
 
     # Get the FHIR ID if its there
     fhir_id = get_fhir_id(user)
     if fhir_id:
-        data['patient'] = fhir_id
-        data['sub'] = fhir_id
+        data["patient"] = fhir_id
+        data["sub"] = fhir_id
     return data
 
 
@@ -38,7 +42,9 @@ def get_userinfo(user):
 @permission_classes([ApplicationActivePermission, TokenHasProtectedCapability])
 @protected_resource()
 def openidconnect_userinfo(request, **kwargs):
-    if request.path.startswith('/v2') and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
+    if request.path.startswith("/v2") and (
+        not waffle.flag_is_active(request, "bfd_v2_flag")
+    ):
         # TODO: waffle flag enforced, to be removed after v2 GA
         err = exceptions.NotFound("bfd_v2_flag not active.")
         log_v2_blocked(request.user, request.path, request.auth.application, err)

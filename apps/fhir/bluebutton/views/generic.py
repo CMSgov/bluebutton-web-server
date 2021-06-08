@@ -3,7 +3,7 @@ import voluptuous
 import waffle
 
 from requests import Session, Request
-from rest_framework import (exceptions, permissions)
+from rest_framework import exceptions, permissions
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -18,16 +18,11 @@ from apps.logging.loggers import log_v2_blocked
 
 from ..authentication import OAuth2ResourceOwner
 from ..exceptions import process_error_response
-from ..permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
-from ..signals import (
-    pre_fetch,
-    post_fetch
-)
-from ..utils import (build_fhir_response,
-                     FhirServerVerify,
-                     get_resourcerouter)
+from ..permissions import HasCrosswalk, ResourcePermission, ApplicationActivePermission
+from ..signals import pre_fetch, post_fetch
+from ..utils import build_fhir_response, FhirServerVerify, get_resourcerouter
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger("hhs_server.%s" % __name__)
 
 
 class FhirDataView(APIView):
@@ -42,7 +37,8 @@ class FhirDataView(APIView):
         ApplicationActivePermission,
         HasCrosswalk,
         ResourcePermission,
-        DataAccessGrantPermission]
+        DataAccessGrantPermission,
+    ]
 
     def __init__(self, version=1):
         self.version = version
@@ -66,11 +62,11 @@ class FhirDataView(APIView):
     def filter_parameters(self, request):
         params = self.map_parameters(request.query_params.dict())
         # Get list from _lastUpdated QueryDict(), since it can have multi params
-        params['_lastUpdated'] = request.query_params.getlist('_lastUpdated')
+        params["_lastUpdated"] = request.query_params.getlist("_lastUpdated")
 
         schema = voluptuous.Schema(
-            getattr(self, "QUERY_SCHEMA", {}),
-            extra=voluptuous.REMOVE_EXTRA)
+            getattr(self, "QUERY_SCHEMA", {}), extra=voluptuous.REMOVE_EXTRA
+        )
         return schema(params)
 
     def validate_response(self, response):
@@ -101,43 +97,58 @@ class FhirDataView(APIView):
         resource_router = get_resourcerouter(request.crosswalk)
         # BB2-291 v2 switch enforced here, entry of all fhir resources queries
         # TODO: waffle flag enforced, to be removed after v2 GA
-        if self.version == 2 and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
+        if self.version == 2 and (not waffle.flag_is_active(request, "bfd_v2_flag")):
             err = exceptions.NotFound("bfd_v2_flag not active.")
             log_v2_blocked(request.user, request.path, request.auth.application, err)
             raise err
 
-        target_url = self.build_url(resource_router,
-                                    resource_type,
-                                    *args, **kwargs)
+        target_url = self.build_url(resource_router, resource_type, *args, **kwargs)
 
-        logger.debug('FHIR URL with key:%s' % target_url)
+        logger.debug("FHIR URL with key:%s" % target_url)
 
         try:
-            get_parameters = {**self.filter_parameters(request), **self.build_parameters(request)}
+            get_parameters = {
+                **self.filter_parameters(request),
+                **self.build_parameters(request),
+            }
         except voluptuous.error.Invalid as e:
             raise exceptions.ParseError(detail=e.msg)
 
-        logger.debug('Here is the URL to send, %s now add '
-                     'GET parameters %s' % (target_url, get_parameters))
+        logger.debug(
+            "Here is the URL to send, %s now add "
+            "GET parameters %s" % (target_url, get_parameters)
+        )
 
         # Now make the call to the backend API
-        req = Request('GET',
-                      target_url,
-                      data=get_parameters,
-                      params=get_parameters,
-                      headers=backend_connection.headers(request, url=target_url))
+        req = Request(
+            "GET",
+            target_url,
+            data=get_parameters,
+            params=get_parameters,
+            headers=backend_connection.headers(request, url=target_url),
+        )
         s = Session()
         prepped = s.prepare_request(req)
         # Send signal
-        pre_fetch.send_robust(FhirDataView, request=req, api_ver='v2' if self.version == 2 else 'v1')
+        pre_fetch.send_robust(
+            FhirDataView, request=req, api_ver="v2" if self.version == 2 else "v1"
+        )
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
-            verify=FhirServerVerify(crosswalk=request.crosswalk))
+            verify=FhirServerVerify(crosswalk=request.crosswalk),
+        )
         # Send signal
-        post_fetch.send_robust(FhirDataView, request=prepped, response=r, api_ver='v2' if self.version == 2 else 'v1')
-        response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
+        post_fetch.send_robust(
+            FhirDataView,
+            request=prepped,
+            response=r,
+            api_ver="v2" if self.version == 2 else "v1",
+        )
+        response = build_fhir_response(
+            request._request, target_url, request.crosswalk, r=r, e=None
+        )
 
         # BB2-128
         error = process_error_response(response)
