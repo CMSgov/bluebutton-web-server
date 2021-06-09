@@ -22,7 +22,8 @@ def bfd_fhir_dataserver(v2=False):
     r = requests.get(target_url,
                      params={"_format": "json"},
                      cert=backend_connection.certs(),
-                     verify=False)
+                     verify=False,
+                     timeout=5)
     try:
         r.raise_for_status()
     except Exception:
