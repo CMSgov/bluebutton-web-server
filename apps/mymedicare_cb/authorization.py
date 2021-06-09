@@ -201,7 +201,8 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.healthcheck_endpoint,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.verify_ssl_internal)
+                                verify=self.verify_ssl_internal,
+                                timeout=5)
         response.raise_for_status()
         return True
 

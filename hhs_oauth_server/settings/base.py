@@ -22,15 +22,26 @@ if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
     print("WARNING: Generate your secret key and set in environment "
           "variable: DJANGO_SECRET_KEY")
 
+
+CMS_SPLUNK_URL = env('CMS_SPLUNK_URL', "https://splunk.cloud.cms.gov")
+
 # splunk dashboards links:
 SPLUNK_DASHBOARDS = [
     {
-        "display_name": "Blue Button API 2.0 Authorization Flow Dashboard",
-        "url": "https://splunk.aws.healthcare.gov/en-US/app/cms_bbapi_landing_app/bb2_authorization_flow_dashboard",
+        "display_name": "BB2 Authorization Flow Dashboard",
+        "url": "{}/en-US/app/cms_bbapi_landing_app/bb2_authorization_flow_dashboard".format(CMS_SPLUNK_URL),
     },
     {
-        "display_name": "Blue Button API 2.0 Big Stats Dashboard",
-        "url": "https://splunk.aws.healthcare.gov/en-US/app/cms_bbapi_landing_app/00_api_big_stats_dashboard__structured",
+        "display_name": "API Big Stats Dashboard - Structured",
+        "url": "{}/en-US/app/cms_bbapi_landing_app/00_api_big_stats_dashboard__structured".format(CMS_SPLUNK_URL),
+    },
+    {
+        "display_name": "BB2 DASG Metrics Dashboard",
+        "url": "{}/en-US/app/cms_bbapi_landing_app/BB2_DASG_Metrics_Dashboard".format(CMS_SPLUNK_URL),
+    },
+    {
+        "display_name": "BB2 V2 Activities Dashboard",
+        "url": "{}/en-US/app/cms_bbapi_landing_app/bb2_v2_activities_dashboard".format(CMS_SPLUNK_URL),
     },
 ]
 

@@ -478,7 +478,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         count = 10
         page_total = (total + count) // count
 
-        resource_stats = {'pde': 10, 'carrier': 50, 'inpatient': 4, 'outpatient': 6}
+        resource_stats = {'pde': 5, 'carrier': 25, 'inpatient': 2, 'outpatient': 6}
         self._stats_resource_by_type(content, resource_stats)
 
         for i in range(page_total):
@@ -596,7 +596,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
                                        v2)
 
         # 3. Test READ VIEW endpoint v1 (carrier) and v2
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "carrier-22639159481", v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "carrier--22639159481", v2))
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "eob_read_carrier_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(response.status_code, 200)
@@ -617,7 +617,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         # 5. Test unauthorized READ request
         # same asserts for v1 and v2
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "carrier-23017401521", v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "carrier--23017401521", v2))
         self.assertEqual(response.status_code, 404)
 
     @override_switch('require-scopes', active=True)
@@ -640,7 +640,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Authenticate
         self._setup_apiclient(client)
         # read eob pde profile v1 and v2
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "pde-4894712975", v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "pde--4894712975", v2))
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "eob_read_pde_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(response.status_code, 200)
@@ -663,7 +663,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Authenticate
         self._setup_apiclient(client)
         # Test READ VIEW endpoint v1 and v2: inpatient
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "inpatient-4436342082", v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "inpatient--4436342082", v2))
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "eob_read_in_pt_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(response.status_code, 200)
@@ -686,7 +686,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Authenticate
         self._setup_apiclient(client)
         # Test READ VIEW endpoint v1 and v2: outpatient
-        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "outpatient-4412920419", v2))
+        response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, "outpatient--4412920419", v2))
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "eob_read_out_pt_{}.json".format('v2' if v2 else 'v1'))
         self.assertEqual(response.status_code, 200)
