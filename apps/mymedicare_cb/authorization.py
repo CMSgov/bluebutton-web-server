@@ -46,25 +46,25 @@ class OAuth2ConfigSLSx(object):
     See the following for more details about the endpoint usage:
     https://confluence.cms.gov/pages/viewpage.action?spaceKey=SLS&title=SLSx%3A+Client+Onboarding+Guide
     """
+    redirect_uri = settings.MEDICARE_SLSX_REDIRECT_URI
+
+    healthcheck_endpoint = settings.SLSX_HEALTH_CHECK_ENDPOINT
     token_endpoint = settings.SLSX_TOKEN_ENDPOINT
     token_endpoint_aca_token = settings.MEDICARE_SLSX_AKAMAI_ACA_TOKEN
-    redirect_uri = settings.MEDICARE_SLSX_REDIRECT_URI
     signout_endpoint = settings.SLSX_SIGNOUT_ENDPOINT
     userinfo_endpoint = settings.SLSX_USERINFO_ENDPOINT
-    healthcheck_endpoint = settings.SLSX_HEALTH_CHECK_ENDPOINT
-    verify_ssl = getattr(settings, 'SLSX_VERIFY_SSL', False)
+
+    # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
+    verify_ssl_internal = settings.SLSX_VERIFY_SSL_INTERNAL
+    verify_ssl_external = settings.SLSX_VERIFY_SSL_EXTERNAL
 
     def __init__(self):
         self.auth_token = None
         self.user_id = None
         self.signout_status_code = None
-        self.signout_status_mesg = None
         self.token_status_code = None
-        self.token_status_mesg = None
         self.userinfo_status_code = None
-        self.userinfo_status_mesg = None
         self.validate_signout_status_code = None
-        self.validate_signout_status_mesg = None
         super().__init__()
 
     @property
@@ -114,7 +114,7 @@ class OAuth2ConfigSLSx(object):
                                  json=data_dict,
                                  headers=headers,
                                  allow_redirects=False,
-                                 verify=self.verify_ssl,
+                                 verify=self.verify_ssl_external,
                                  hooks={'response': [
                                         response_hook_wrapper(sender=SLSxTokenResponse,
                                                               auth_flow_dict=auth_flow_dict)]})
@@ -159,7 +159,7 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.verify_ssl,
+                                verify=self.verify_ssl_internal,
                                 hooks={'response': [
                                        response_hook_wrapper(sender=SLSxUserInfoResponse,
                                                              auth_flow_dict=auth_flow_dict)]})
@@ -201,7 +201,8 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.healthcheck_endpoint,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.verify_ssl)
+                                verify=self.verify_ssl_internal,
+                                timeout=5)
         response.raise_for_status()
         return True
 
@@ -222,7 +223,7 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.signout_endpoint,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.verify_ssl)
+                                verify=self.verify_ssl_external)
         self.signout_status_code = response.status_code
         response.raise_for_status()
 
@@ -248,7 +249,7 @@ class OAuth2ConfigSLSx(object):
         response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                 headers=headers,
                                 allow_redirects=False,
-                                verify=self.verify_ssl,
+                                verify=self.verify_ssl_internal,
                                 hooks={'response': [
                                        response_hook_wrapper(sender=SLSxUserInfoResponse,
                                                              auth_flow_dict=auth_flow_dict)]})

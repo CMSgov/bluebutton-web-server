@@ -22,15 +22,26 @@ if SECRET_KEY == 'FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR':
     print("WARNING: Generate your secret key and set in environment "
           "variable: DJANGO_SECRET_KEY")
 
+
+CMS_SPLUNK_URL = env('CMS_SPLUNK_URL', "https://splunk.cloud.cms.gov")
+
 # splunk dashboards links:
 SPLUNK_DASHBOARDS = [
     {
-        "display_name": "Blue Button API 2.0 Authorization Flow Dashboard",
-        "url": "https://splunk.aws.healthcare.gov/en-US/app/cms_bbapi_landing_app/bb2_authorization_flow_dashboard",
+        "display_name": "BB2 Authorization Flow Dashboard",
+        "url": "{}/en-US/app/cms_bbapi_landing_app/bb2_authorization_flow_dashboard".format(CMS_SPLUNK_URL),
     },
     {
-        "display_name": "Blue Button API 2.0 Big Stats Dashboard",
-        "url": "https://splunk.aws.healthcare.gov/en-US/app/cms_bbapi_landing_app/00_api_big_stats_dashboard__structured",
+        "display_name": "API Big Stats Dashboard - Structured",
+        "url": "{}/en-US/app/cms_bbapi_landing_app/00_api_big_stats_dashboard__structured".format(CMS_SPLUNK_URL),
+    },
+    {
+        "display_name": "BB2 DASG Metrics Dashboard",
+        "url": "{}/en-US/app/cms_bbapi_landing_app/BB2_DASG_Metrics_Dashboard".format(CMS_SPLUNK_URL),
+    },
+    {
+        "display_name": "BB2 V2 Activities Dashboard",
+        "url": "{}/en-US/app/cms_bbapi_landing_app/bb2_v2_activities_dashboard".format(CMS_SPLUNK_URL),
     },
 ]
 
@@ -535,30 +546,30 @@ ADMIN_PREPEND_URL = env('DJANGO_ADMIN_PREPEND_URL', '')
 ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = 'MyMedicare.gov'
 
-MEDICARE_SLSX_LOGIN_URI = env('DJANGO_MEDICARE_SLSX_LOGIN_URI',
-                              'https://test.medicare.gov/sso/authorize?client_id=bb2api')
+# SLSx settings
+SLSX_CLIENT_ID = env('DJANGO_SLSX_CLIENT_ID')
+SLSX_CLIENT_SECRET = env('DJANGO_SLSX_CLIENT_SECRET')
+
+# ACA token for SLSX_TOKEN_ENDPOINT
+MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env('DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN', '')
+
 MEDICARE_SLSX_REDIRECT_URI = env(
     'DJANGO_MEDICARE_SLSX_REDIRECT_URI', 'http://localhost:8000/mymedicare/sls-callback')
 
+MEDICARE_SLSX_LOGIN_URI = env('DJANGO_MEDICARE_SLSX_LOGIN_URI',
+                              'https://test.medicare.gov/sso/authorize?client_id=bb2api')
 SLSX_HEALTH_CHECK_ENDPOINT = env(
     'DJANGO_SLSX_HEALTH_CHECK_ENDPOINT', 'https://test.accounts.cms.gov/health')
 SLSX_TOKEN_ENDPOINT = env(
     'DJANGO_SLSX_TOKEN_ENDPOINT', 'https://test.medicare.gov/sso/session')
 SLSX_SIGNOUT_ENDPOINT = env(
     'DJANGO_SLSX_SIGNOUT_ENDPOINT', 'https://test.medicare.gov/sso/signout')
-
-# ACA token for SLSX_TOKEN_ENDPOINT
-MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env('DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN', '')
-
 SLSX_USERINFO_ENDPOINT = env(
     'DJANGO_SLSX_USERINFO_ENDPOINT', 'https://test.accounts.cms.gov/v1/users')
 
-# Since this is internal False may be acceptable.
-SLSX_VERIFY_SSL = env('DJANGO_SLSX_VERIFY_SSL', False)
-
-SLSX_CLIENT_ID = env('DJANGO_SLSX_CLIENT_ID')
-SLSX_CLIENT_SECRET = env('DJANGO_SLSX_CLIENT_SECRET')
-
+# SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
+SLSX_VERIFY_SSL_INTERNAL = env('DJANGO_SLSX_VERIFY_SSL_INTERNAL', False)
+SLSX_VERIFY_SSL_EXTERNAL = env('DJANGO_SLSX_VERIFY_SSL_EXTERNAL', False)
 
 # Message returned to bene for API exceptions related to medicare login/SLS
 MEDICARE_ERROR_MSG = "An error occurred connecting to account.mymedicare.gov"
