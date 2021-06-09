@@ -19,17 +19,17 @@ class TokenHasProtectedCapability(permissions.BasePermission):
         token = request.auth
         access_token_query_param = request.GET.get("access_token", None)
 
-        if not token:
-            return False
-
-        if not switch_is_active("require-scopes"):
-            return True
-
         if access_token_query_param is not None:
             raise ParseError(
                 "Using the access token in the query parameters is not supported. "
                 "Use the Authorization header instead"
             )
+
+        if not token:
+            return False
+
+        if not switch_is_active("require-scopes"):
+            return True
 
         if hasattr(token, "scope"):  # OAuth 2
             scopes = list(ProtectedCapability.objects.filter(
