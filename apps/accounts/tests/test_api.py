@@ -1,3 +1,4 @@
+import json
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
@@ -41,6 +42,31 @@ class TestUserSelfEndpoint(BaseApiTest):
         response = self.client.get(reverse('openid_connect_userinfo'))
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.get("WWW-Authenticate"), 'Bearer realm="api"')
+
+    def test_user_self_get_access_token_query_param(self):
+        """
+        Tests that GET requests to /connect/userinfo endpoint fail when
+        the access token is given in the query params
+        """
+        self._create_user('john',
+                          '123456',
+                          first_name='John',
+                          last_name='Smith',
+                          email='john@smith.net')
+
+        access_token = self._get_access_token('john', '123456')
+        url = reverse('openid_connect_userinfo')
+        url += "?access_token=%s" % (access_token)
+        auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
+
+        response = self.client.get(url, **auth_headers)
+
+        self.assertEqual(response.status_code, 400)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content['detail'], (
+            "Using the access token in the query parameters is not supported. "
+            "Use the Authorization header instead"
+        ))
 
     def test_user_self_get(self):
         """
