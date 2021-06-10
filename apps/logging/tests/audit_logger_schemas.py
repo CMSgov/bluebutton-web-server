@@ -48,14 +48,11 @@ AUTHENTICATION_START_LOG_SCHEMA = {
         "sls_token_status_code": {"type": "integer", "enum": [status.HTTP_200_OK]},
         "sls_userinfo_status_code": {"type": "integer", "enum": [status.HTTP_200_OK]},
         "sls_validate_signout_status_code": {"type": "integer", "enum": [status.HTTP_403_FORBIDDEN]},
-        "sls_verify_ssl_internal": {"type": "boolean", "enum": [False]},
-        "sls_verify_ssl_external": {"type": "boolean", "enum": [False]},
     },
     "required": ["type", "sls_status", "sls_status_mesg", "sub", "sls_mbi_format_valid",
                  "sls_mbi_format_synthetic", "sls_hicn_hash", "sls_mbi_hash",
                  "sls_signout_status_code", "sls_token_status_code",
-                 "sls_userinfo_status_code", "sls_validate_signout_status_code",
-                 "sls_verify_ssl_internal", "sls_verify_ssl_external"]
+                 "sls_userinfo_status_code", "sls_validate_signout_status_code"]
 }
 
 AUTHENTICATION_SUCCESS_LOG_SCHEMA = {

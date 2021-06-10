@@ -84,8 +84,6 @@ def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subj
         "sls_token_status_code": slsx_client.token_status_code,
         "sls_userinfo_status_code": slsx_client.userinfo_status_code,
         "sls_validate_signout_status_code": slsx_client.validate_signout_status_code,
-        "sls_verify_ssl_internal": slsx_client.verify_ssl_internal,
-        "sls_verify_ssl_external": slsx_client.verify_ssl_external,
         "sub": sls_subject,
         "sls_mbi_format_valid": sls_mbi_format_valid,
         "sls_mbi_format_msg": sls_mbi_format_msg,
