@@ -291,6 +291,27 @@ class BackendConnectionTest(BaseApiTest):
 
         self.assertEqual(response.status_code, 401)
 
+    def test_search_request_access_token_query_param(self):
+        self._search_request_access_token_query_param(False)
+
+    @override_switch('bfd_v2', active=True)
+    @override_flag('bfd_v2_flag', active=True)
+    def test_search_request_access_token_query_param_v2(self):
+        self._search_request_access_token_query_param(True)
+
+    def _search_request_access_token_query_param(self, v2=False):
+        first_access_token = self.create_token('John', 'Smith')
+        url = reverse('bb_oauth_fhir_patient_search' if not v2 else 'bb_oauth_fhir_patient_search_v2')
+        url += "?access_token=%s" % (first_access_token)
+        response = self.client.get(url, Authorization="Bearer %s" % (first_access_token))
+
+        self.assertEqual(response.status_code, 400)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content['detail'], (
+            "Using the access token in the query parameters is not supported. "
+            "Use the Authorization header instead"
+        ))
+
     def test_search_request_not_found(self):
         self._search_request_not_found(False)
 
