@@ -16,6 +16,7 @@ class SimpleToken(object):
 class SimpleRequest(object):
     method = ""
     path = ""
+    GET = {}
 
     def __init__(self, scope=""):
         self.auth = SimpleToken()
@@ -69,6 +70,7 @@ class TestTokenHasProtectedCapabilityScopesSwitchTrue(TestCase):
         class FakeRequest:
             def __init__(self, auth):
                 self.auth = auth
+                self.GET = {}
 
         # Fake auth/token
         class FakeAuth:
