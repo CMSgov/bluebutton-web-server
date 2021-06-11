@@ -10,7 +10,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
-from apps.logging.loggers import log_v2_blocked
+from apps.fhir.bluebutton.loggers import log_v2_blocked
 
 
 def get_userinfo(user):

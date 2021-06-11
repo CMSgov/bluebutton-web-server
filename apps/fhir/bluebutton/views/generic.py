@@ -14,7 +14,7 @@ from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.fhir.server import connection as backend_connection
-from apps.logging.loggers import log_v2_blocked
+from apps.fhir.bluebutton.loggers import log_v2_blocked
 
 from ..authentication import OAuth2ResourceOwner
 from ..exceptions import process_error_response
