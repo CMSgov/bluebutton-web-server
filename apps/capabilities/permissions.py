@@ -2,7 +2,7 @@ import json
 import re
 
 from rest_framework import permissions, status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ParseError
 from waffle import switch_is_active
 
 from .models import ProtectedCapability
@@ -17,6 +17,13 @@ class TokenHasProtectedCapability(permissions.BasePermission):
 
     def has_permission(self, request, view):
         token = request.auth
+        access_token_query_param = request.GET.get("access_token", None)
+
+        if access_token_query_param is not None:
+            raise ParseError(
+                "Using the access token in the query parameters is not supported. "
+                "Use the Authorization header instead"
+            )
 
         if not token:
             return False
