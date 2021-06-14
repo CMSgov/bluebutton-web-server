@@ -87,9 +87,9 @@ django-waffle==2.0.0 \
     --hash=sha256:1973801b2bfdebb2d4ac3a7e5871a51f4d4b91ef712bdf46cc65d89b9dc3c988 \
     --hash=sha256:e079cb530d3c8d62e204cfc08c7494a71cb08626630c09cd00e844bed1df0044
     # via -r requirements/requirements.in
-django==2.2.22 \
-    --hash=sha256:db2214db1c99017cbd971e58824e6f424375154fe358afc30e976f5b99fc6060 \
-    --hash=sha256:e831105edb153af1324de44d06091ca75520a227456387dda4a47d2f1cc2731a
+django==2.2.24 \
+    --hash=sha256:3339ff0e03dee13045aef6ae7b523edff75b6d726adf7a7a48f53d5a501f7db7 \
+    --hash=sha256:f2084ceecff86b1e631c2cd4107d435daf4e12f1efcdf11061a73bf0b5e95f92
     # via
     #   -r requirements/requirements.in
     #   django-bootstrap-form
