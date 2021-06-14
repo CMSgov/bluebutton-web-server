@@ -1,22 +1,203 @@
+import time
 from django.conf import settings
 from django.test import TestCase
+from enum import Enum
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
+TESTCLIENT_RESOURCE_LABEL_FMT = "Response ({}), API version: {}"
+
+DISP_BACK = "Back to FHIR resource page"
+
+LNK_TXT_TESTCLIENT = "Test Client"
+LNK_TXT_GET_TOKEN_V2 = "Get a Sample Authorization Token for v2"
+LNK_TXT_AUTH_AS_BENE = "Authorize as a Beneficiary"
+MSLSX_TXT_FLD_SUB = "username"
+MSLSX_TXT_FLD_HICN = "hicn"
+MSLSX_TXT_FLD_MBI = "mbi"
+MSLSX_TXT_FLD_SUB_VAL = "fred"
+MSLSX_TXT_FLD_HICN_VAL = "1000044680"
+MSLSX_TXT_FLD_MBI_VAL = "2SW4N00AA00"
+MSLSX_CSS_BUTTON = "button"
+GRANT_DEMO_ACCESS = "approve"
+DENY_DEMO_ACCESS = "deny"
+FHIR_LNK_PATIENT = "Patient"
+FHIR_LNK_EOB = "ExplanationOfBenefit"
+FHIR_LNK_COVERAGE = "Coverage"
+FHIR_LNK_PROFILE = "Profile"
+FHIR_LNK_METADATA = "FHIR Metadata"
+FHIR_LNK_OIDC_DISCOVERY = "OIDC Discovery"
+RESULT_PAGE_TITLE_H2 = "h2"
+API_V2 = "v2"
+API_V2 = "v2"
 
 
-class RunTestClient(TestCase):
+class Action(Enum):
+    LOAD_PAGE = 1
+    FIND_CLICK = 2
+    FIND = 3
+    FIND_SEND_KEY = 4
+    CHECK = 5
+    BACK = 6
+
+
+tests = {
+    "testcase_01": {
+        "step 1": {
+            "display": "Load BB2 Landing Page ...",
+            "action": Action.LOAD_PAGE,
+            "params": [settings.HOSTNAME_URL]
+        },
+        "step 2": {
+            "display": "Click link 'Test Client'",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
+        },
+        "step 3": {
+            "display": "Click link to get sample token v2",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_GET_TOKEN_V2]
+        },
+        "step 4": {
+            "display": "Click link 'Authorize as a Beneficiary' - start authorization",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+        },
+        "step 5": {
+            "display": "Input SUB(username)",
+            "action": Action.FIND_SEND_KEY,
+            "params": [20, By.NAME, MSLSX_TXT_FLD_SUB, MSLSX_TXT_FLD_SUB_VAL]
+        },
+        "step 6": {
+            "display": "Input hicn",
+            "action": Action.FIND_SEND_KEY,
+            "params": [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL]
+        },
+        "step 7": {
+            "display": "Input mbi",
+            "action": Action.FIND_SEND_KEY,
+            "params": [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL]
+        },
+        "step 8": {
+            "display": "Click 'submit' on MSLSX login form",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.CSS_SELECTOR, MSLSX_CSS_BUTTON]
+        },
+        "step 9": {
+            "display": "Click 'Agree' on DEMO info grant form",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.ID, GRANT_DEMO_ACCESS]
+        },
+        "step 10": {
+            "display": "Click 'Patient' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_PATIENT]
+        },
+        "step 11": {
+            "display": "Check Patient result page title",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_PATIENT, API_V2]
+        },
+        "step 12": {
+            "display": "Back to FHIR resource page",
+            "action": Action.BACK,
+            "params": []
+        },
+        "step 13": {
+            "display": "Click 'Coverage' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_COVERAGE]
+        },
+        "step 14": {
+            "display": "Check Coverage result page title",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE, API_V2]
+        },
+        "step 15": {
+            "display": DISP_BACK,
+            "action": Action.BACK,
+            "params": []
+        },
+        "step 16": {
+            "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
+        },
+        "step 17": {
+            "display": "Check ExplanationOfBenefit result page title",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB, API_V2]
+        },
+        "step 18": {
+            "display": DISP_BACK,
+            "action": Action.BACK,
+            "params": []
+        },
+        "step 19": {
+            "display": "Click 'Profile' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
+        },
+        "step 20": {
+            "display": "Check Profile result page title",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
+                       "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE), API_V2]
+        },
+        "step 21": {
+            "display": DISP_BACK,
+            "action": Action.BACK,
+            "params": []
+        },
+        "step 22": {
+            "display": "Click 'FHIR Metadata' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
+        },
+        "step 23": {
+            "display": "Check FHIR Metadata result page title",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA, API_V2]
+        },
+        "step 24": {
+            "display": DISP_BACK,
+            "action": Action.BACK,
+            "params": []
+        },
+        "step 25": {
+            "display": "Click 'OIDC Discovery' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
+        },
+        "step 26": {
+            "display": "Check OIDC Discovery result page title",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY, API_V2]
+        },
+        "step 27": {
+            "display": DISP_BACK,
+            "action": Action.BACK,
+            "params": []
+        },
+    },
+}
+
+
+class SeleniumTests(TestCase):
     '''
     Test authorization and fhir flow through the built in testclient by
     leveraging selenium web driver (chrome is used)
     '''
 
     def setUp(self):
-        super(RunTestClient, self).setUp()
+        super(SeleniumTests, self).setUp()
+        time.sleep(20)
         opt = webdriver.ChromeOptions()
-        opt.add_argument("--headless")
         opt.add_argument("--disable-dev-shm-usage")
         opt.add_argument("--disable-web-security")
         opt.add_argument("--allow-running-insecure-content")
@@ -26,96 +207,59 @@ class RunTestClient(TestCase):
         opt.add_argument("--disable-popup-blocking")
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
-        self.driver = webdriver.Chrome(options=opt)
+        opt.add_argument('--window-size=1920,1080')
+        opt.add_argument("--whitelisted-ips=''")
+
+        self.driver = webdriver.Remote(
+            command_executor='http://selenium-hub:4444',
+            desired_capabilities=DesiredCapabilities.CHROME, options=opt)
+
+        self.actions = {
+            Action.LOAD_PAGE: self._load_page,
+            Action.FIND_CLICK: self._find_and_click,
+            Action.FIND: self._find_and_return,
+            Action.FIND_SEND_KEY: self._find_and_sendkey,
+            Action.CHECK: self._check_page_title,
+            Action.BACK: self._back,
+        }
 
     def tearDown(self):
-        self.driver.close()
-        super(RunTestClient, self).tearDown()
+        self.driver.quit()
+        super(SeleniumTests, self).tearDown()
 
-    def find_and_click(self, timeout_sec, by, by_expr):
+    def _find_and_click(self, timeout_sec, by, by_expr):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
         self.assertIsNotNone(elem)
         elem.click()
         return elem
 
-    def test_testclient_01(self):
-        # assume bb2 is on url set by HOSTNAME_URL
-        # bb2_host_url = settings.HOSTNAME_URL
-        bb2_host_url = "http://web:8000"
-        print("HOSTNAME={}".format(bb2_host_url))
-        self.driver.get(bb2_host_url)
-        # print(self.driver.page_source.encode("utf-8"))
-        print("BB2 Landing Page.....................................")
-        # self.driver.get(settings.HOSTNAME_URL)
-        # bb2 landing page: click test client link
-        self.find_and_click(30, By.LINK_TEXT, 'Test Client')
-        print("Test Client Page.....................................")
-        # self.find_and_click(30, By.ID, 'testclient')
-        # test client home page: click link with label text "Get a Sample Authorization Token"
-        self.find_and_click(20, By.LINK_TEXT, 'Get a Sample Authorization Token')
-        print("Test Client Authorize Page.....................................")
-        # test client sample API call page: click link with label text "Authorize as a Beneficiary" id=authorization_url
-        self.find_and_click(20, By.LINK_TEXT, 'Authorize as a Beneficiary')
-        # support 2 identity providers:
-        # 1. MSLS - indicator: HOSTNAME_URL http://192.168.0.109:8000 (e.g. must use local host IP)
-        # 2. SLSX - indicator: HOSTNAME_URL http://localhost:8000 - unresolved issue remain
-        if 'localhost' in settings.HOSTNAME_URL:
-            print("MyMedicare Login Page.....................................")
-            elem = self.find_and_click(30, By.ID, 'username-textbox')
-            print("MyMedicare Login user name located .....................................")
-            # type in synthetic user name
-            elem.send_keys("BBUser10000")
-            # focus move to input password
-            elem = self.find_and_click(20, By.ID, 'password-textbox')
-            print("MyMedicare Login password located .....................................")
-            elem.send_keys('PW10000!')
-            # find the 'Log in' button
-            self.find_and_click(20, By.ID, 'login-button')
-            print("MyMedicare Login button located and clicked .....................................")
-        else:
-            elem = self.find_and_click(20, By.NAME, 'username')
-            # type in sub name
-            elem.send_keys("fred")
-            # focus move to input 'hicn' and type in the value
-            elem = self.find_and_click(20, By.NAME, 'hicn')
-            elem.send_keys('1000044680')
-            # focus move to input 'mbi' and type in the value
-            elem = self.find_and_click(20, By.NAME, 'mbi')
-            elem.send_keys('2SW4N00AA00')
-            # find the 'submit' button - note we have only one button on MSLS login page
-            self.find_and_click(20, By.CSS_SELECTOR, 'button')
+    def _find_and_sendkey(self, timeout_sec, by, by_expr, txt):
+        elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
+        self.assertIsNotNone(elem)
+        elem.send_keys(txt)
+        return elem
 
-        # scope choose and grant access or deny page - in this path, 'grant' clicked
-        self.find_and_click(20, By.ID, 'approve')
-        # now on authorized page, access FHIR resources, e.g. Patient
-        self.find_and_click(20, By.LINK_TEXT, 'Patient')
-        self.assertRegex(self.driver.page_source, r'^.*\"resourceType\":\s*\"Patient\".*$')
-        # go back to previous page
-        self.driver.back()
-        # click EOB
-        self.find_and_click(20, By.LINK_TEXT, 'ExplanationOfBenefit')
-        self.assertRegex(self.driver.page_source, r'^.*\"resourceType\":\s*\"ExplanationOfBenefit\".*$')
-        # go back to previous page
-        self.driver.back()
-        # click Coverage
-        self.find_and_click(20, By.LINK_TEXT, 'Coverage')
-        self.assertRegex(self.driver.page_source, r'^.*\"resourceType\":\s*\"Coverage\".*$')
+    def _find_and_return(self, timeout_sec, by, by_expr):
+        elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
+        self.assertIsNotNone(elem)
+        return elem
 
-        # go back to previous page
-        self.driver.back()
-        # click Profile
-        self.find_and_click(20, By.LINK_TEXT, 'Profile')
-        self.assertRegex(self.driver.page_source, r'^.*\"sub\":\s*\"-20140000008325\".*$')
+    def _load_page(self, url):
+        self.driver.get(url)
 
-        # go back to previous page
-        self.driver.back()
-        # click Meta
-        self.find_and_click(20, By.LINK_TEXT, 'FHIR Metadata')
-        self.assertRegex(self.driver.page_source, r'^.*\"resourceType\":\s*\"CapabilityStatement\".*$')
+    def _check_page_title(self, timeout_sec, by, by_expr, fmt, resource_type, api_ver):
+        elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
+        self.assertIsNotNone(elem)
+        self.assertEqual(elem.text, fmt.format(resource_type, api_ver))
 
-        # go back to previous page
+    def _back(self):
         self.driver.back()
-        # click OIDC Discovery
-        self.find_and_click(20, By.LINK_TEXT, 'OIDC Discovery')
-        url_pattern = r'^.*\"service_documentation\":\s*\"https:\/\/bluebutton.cms.gov\/developers\".*$'
-        self.assertRegex(self.driver.page_source, url_pattern)
+
+    def _play(self, casename):
+        testcase = tests[casename]
+        for k, v in testcase.items():
+            print("{}:{}".format(k, v["display"]))
+            self.actions[v["action"]](*v["params"])
+
+    def test_testclient(self):
+        self._play("testcase_01")
