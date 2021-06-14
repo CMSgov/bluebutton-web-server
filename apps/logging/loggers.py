@@ -1,10 +1,9 @@
 import json
 import logging
 
-from django.conf import settings
-
 from apps.dot_ext.models import get_application_counts, get_application_require_demographic_scopes_count
 from apps.fhir.bluebutton.models import check_crosswalks
+from django.conf import settings
 
 
 """
