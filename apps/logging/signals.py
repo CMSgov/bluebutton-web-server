@@ -54,8 +54,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
     auth_flow_dict = get_session_auth_flow_trace(request)
     crosswalk_log = {}
 
-    token_logger.info("user: %s", user)
-
     try:
         crosswalk_log = {
             "id": user.crosswalk.id,
