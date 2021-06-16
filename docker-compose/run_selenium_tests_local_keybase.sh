@@ -82,6 +82,8 @@ else
   fi
 fi
 
+echo "DOCKER_COMPOSE_SERVICE: " ${DOCKER_COMPOSE_SERVICE}
+echo "HOSTNAME_URL: " ${HOSTNAME_URL}
 
 # Set KeyBase ENV path based on your type of system
 SYSTEM=$(uname -s)
@@ -193,7 +195,7 @@ docker-compose -f docker-compose.selenium.yml run \
 -e DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET} \
 -e HOSTNAME_URL=${HOSTNAME_URL} \
 -e USE_MSLSX=${USE_MSLSX} \
-${DOCKER_COMPOSE_SERVICE} bash -c "python runtests.py apps.integration_tests.selenium_tests.SeleniumTests"
+${DOCKER_COMPOSE_SERVICE} bash -c "python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests"
 
 # Remove certfiles from local directory
 echo_msg

@@ -5,7 +5,7 @@ USER root
 RUN apt-get update && apt-get install -yq python3.7 python3-pip
 RUN pip3 install --upgrade pip
 RUN pip3 install selenium
-RUN pip3 install psycopg2-binary
+RUN pip3 install psycopg2-binary==2.8.6
 RUN pip3 install pyyaml==5.4.1
 RUN pip3 install Pillow==8.2.0
 RUN mkdir /code
