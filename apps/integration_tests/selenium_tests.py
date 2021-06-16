@@ -60,51 +60,51 @@ class Action(Enum):
 
 
 BROWSER_BACK = {
-            "display": "Back to FHIR resource page",
-            "action": Action.BACK,
-            "params": []
-        }
+    "display": "Back to FHIR resource page",
+    "action": Action.BACK,
+    "params": []
+}
 
 FLOW_MSLSX_LOGIN = {
-        "mslsx 1": {
-            "display": "Input SUB(username)",
-            "action": Action.FIND_SEND_KEY,
-            "params": [20, By.NAME, MSLSX_TXT_FLD_SUB, MSLSX_TXT_FLD_SUB_VAL]
-        },
-        "mslsx 2": {
-            "display": "Input hicn",
-            "action": Action.FIND_SEND_KEY,
-            "params": [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL]
-        },
-        "mslsx 3": {
-            "display": "Input mbi",
-            "action": Action.FIND_SEND_KEY,
-            "params": [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL]
-        },
-        "mslsx 4": {
-            "display": "Click 'submit' on MSLSX login form",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.CSS_SELECTOR, MSLSX_CSS_BUTTON]
-        },
+    "mslsx 1": {
+        "display": "Input SUB(username)",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.NAME, MSLSX_TXT_FLD_SUB, MSLSX_TXT_FLD_SUB_VAL]
+    },
+    "mslsx 2": {
+        "display": "Input hicn",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL]
+    },
+    "mslsx 3": {
+        "display": "Input mbi",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL]
+    },
+    "mslsx 4": {
+        "display": "Click 'submit' on MSLSX login form",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.CSS_SELECTOR, MSLSX_CSS_BUTTON]
+    },
 }
 
 
 FLOW_SLSX_LOGIN = {
-        "slsx 1": {
-            "display": "MyMedicare login username",
-            "action": Action.FIND_SEND_KEY,
-            "params": [20, By.ID, SLSX_TXT_FLD_USERNAME, SLSX_TXT_FLD_USERNAME_VAL]
-        },
-        "slsx 2": {
-            "display": "MyMedicare login password",
-            "action": Action.FIND_SEND_KEY,
-            "params": [20, By.ID, SLSX_TXT_FLD_PASSWORD, SLSX_TXT_FLD_PASSWORD_VAL]
-        },
-        "slsx 3": {
-            "display": "Click 'submit' on SLSX login form",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.ID, SLSX_CSS_BUTTON]
-        },
+    "slsx 1": {
+        "display": "MyMedicare login username",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.ID, SLSX_TXT_FLD_USERNAME, SLSX_TXT_FLD_USERNAME_VAL]
+    },
+    "slsx 2": {
+        "display": "MyMedicare login password",
+        "action": Action.FIND_SEND_KEY,
+        "params": [20, By.ID, SLSX_TXT_FLD_PASSWORD, SLSX_TXT_FLD_PASSWORD_VAL]
+    },
+    "slsx 3": {
+        "display": "Click 'submit' on SLSX login form",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.ID, SLSX_CSS_BUTTON]
+    },
 }
 
 
