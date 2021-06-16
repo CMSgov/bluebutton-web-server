@@ -63,8 +63,6 @@ elif not args.selenium:
 
 if __name__ == '__main__':
     os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.test'
-    # print("DJANGO_USER_ID_ITERATIONS={}".format(os.environ['DJANGO_USER_ID_ITERATIONS']))
-    # print("DJANGO_USER_ID_SALT={}".format(os.environ['DJANGO_USER_ID_SALT']))
     django.setup()
     TestRunner = get_runner(settings)
     test_runner = TestRunner()
