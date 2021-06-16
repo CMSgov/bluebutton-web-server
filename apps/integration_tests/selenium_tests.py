@@ -1,3 +1,4 @@
+import os
 import time
 from django.conf import settings
 from django.test import TestCase
@@ -15,8 +16,11 @@ TESTCLIENT_RESOURCE_LABEL_FMT = "Response ({}), API version: {}"
 DISP_BACK = "Back to FHIR resource page"
 
 LNK_TXT_TESTCLIENT = "Test Client"
+LNK_TXT_GET_TOKEN_V1 = "Get a Sample Authorization Token"
 LNK_TXT_GET_TOKEN_V2 = "Get a Sample Authorization Token for v2"
 LNK_TXT_AUTH_AS_BENE = "Authorize as a Beneficiary"
+LNK_TXT_RESTART_TESTCLIENT = "restart testclient"
+
 MSLSX_TXT_FLD_SUB = "username"
 MSLSX_TXT_FLD_HICN = "hicn"
 MSLSX_TXT_FLD_MBI = "mbi"
@@ -24,6 +28,18 @@ MSLSX_TXT_FLD_SUB_VAL = "fred"
 MSLSX_TXT_FLD_HICN_VAL = "1000044680"
 MSLSX_TXT_FLD_MBI_VAL = "2SW4N00AA00"
 MSLSX_CSS_BUTTON = "button"
+
+# self.driver.find_element(By.LINK_TEXT, "ExplanationOfBenefit").click()
+# self.driver.find_element(By.LINK_TEXT, "next").click()
+# self.driver.find_element(By.LINK_TEXT, "last").click()
+# self.driver.find_element(By.LINK_TEXT, "Test Client").click()
+
+SLSX_TXT_FLD_USERNAME = "username-textbox"
+SLSX_TXT_FLD_PASSWORD = "password-textbox"
+SLSX_TXT_FLD_USERNAME_VAL = "BBUser00000"
+SLSX_TXT_FLD_PASSWORD_VAL = "PW00000!"
+SLSX_CSS_BUTTON = "#login-button > span"
+
 GRANT_DEMO_ACCESS = "approve"
 DENY_DEMO_ACCESS = "deny"
 FHIR_LNK_PATIENT = "Patient"
@@ -34,7 +50,7 @@ FHIR_LNK_METADATA = "FHIR Metadata"
 FHIR_LNK_OIDC_DISCOVERY = "OIDC Discovery"
 RESULT_PAGE_TITLE_H2 = "h2"
 API_V2 = "v2"
-API_V2 = "v2"
+API_V1 = "v1"
 
 
 class Action(Enum):
@@ -46,8 +62,161 @@ class Action(Enum):
     BACK = 6
 
 
+use_mslsx = os.environ['USE_MSLSX']
+
+
+BROWSER_BACK = {
+            "display": "Back to FHIR resource page",
+            "action": Action.BACK,
+            "params": []
+        }
+
+FLOW_MSLSX_LOGIN = {
+        "mslsx 1": {
+            "display": "Input SUB(username)",
+            "action": Action.FIND_SEND_KEY,
+            "params": [20, By.NAME, MSLSX_TXT_FLD_SUB, MSLSX_TXT_FLD_SUB_VAL]
+        },
+        "mslsx 2": {
+            "display": "Input hicn",
+            "action": Action.FIND_SEND_KEY,
+            "params": [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL]
+        },
+        "mslsx 3": {
+            "display": "Input mbi",
+            "action": Action.FIND_SEND_KEY,
+            "params": [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL]
+        },
+        "mslsx 4": {
+            "display": "Click 'submit' on MSLSX login form",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.CSS_SELECTOR, MSLSX_CSS_BUTTON]
+        },
+}
+
+
+FLOW_SLSX_LOGIN = {
+        "slsx 1": {
+            "display": "MyMedicare login username",
+            "action": Action.FIND_SEND_KEY,
+            "params": [20, By.ID, SLSX_TXT_FLD_USERNAME, SLSX_TXT_FLD_USERNAME_VAL]
+        },
+        "slsx 2": {
+            "display": "MyMedicare login password",
+            "action": Action.FIND_SEND_KEY,
+            "params": [20, By.NAME, SLSX_TXT_FLD_PASSWORD, SLSX_TXT_FLD_PASSWORD_VAL]
+        },
+        "slsx 3": {
+            "display": "Click 'submit' on MSLSX login form",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.CSS_SELECTOR, SLSX_CSS_BUTTON]
+        },
+}
+
+
 tests = {
-    "testcase_01": {
+    "testcase_v1_mslsx": {
+        "step 1": {
+            "display": "Load BB2 Landing Page ...",
+            "action": Action.LOAD_PAGE,
+            "params": [settings.HOSTNAME_URL]
+        },
+        "step 2": {
+            "display": "Click link 'Test Client'",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
+        },
+        "step 3": {
+            "display": "Click link to get sample token v2",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_GET_TOKEN_V1]
+        },
+        "step 4": {
+            "display": "Click link 'Authorize as a Beneficiary' - start authorization",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+        },
+        "step 5": FLOW_MSLSX_LOGIN,
+        "step 6": {
+            "display": "Click 'Agree' on DEMO info grant form",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.ID, GRANT_DEMO_ACCESS]
+        },
+        "step 7": {
+            "display": "Click 'Patient' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_PATIENT]
+        },
+        "step 8": {
+            "display": "Check Patient result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_PATIENT]
+        },
+        "step 9": BROWSER_BACK,
+        "step 10": {
+            "display": "Click 'Coverage' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_COVERAGE]
+        },
+        "step 11": {
+            "display": "Check Coverage result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE]
+        },
+        "step 12": BROWSER_BACK,
+        "step 13": {
+            "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
+        },
+        "step 14": {
+            "display": "Check ExplanationOfBenefit result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB]
+        },
+        "step 15": BROWSER_BACK,
+        "step 16": {
+            "display": "Click 'Profile' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
+        },
+        "step 17": {
+            "display": "Check Profile result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
+                       "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE)]
+        },
+        "step 18": BROWSER_BACK,
+        "step 19": {
+            "display": "Click 'FHIR Metadata' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
+        },
+        "step 20": {
+            "display": "Check FHIR Metadata result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA]
+        },
+        "step 21": BROWSER_BACK,
+        "step 22": {
+            "display": "Click 'OIDC Discovery' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
+        },
+        "step 23": {
+            "display": "Check OIDC Discovery result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY]
+        },
+        "step 24": BROWSER_BACK,
+    },
+    "testcase_v2_mslsx": {
         "step 1": {
             "display": "Load BB2 Landing Page ...",
             "action": Action.LOAD_PAGE,
@@ -68,122 +237,287 @@ tests = {
             "action": Action.FIND_CLICK,
             "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
         },
-        "step 5": {
-            "display": "Input SUB(username)",
-            "action": Action.FIND_SEND_KEY,
-            "params": [20, By.NAME, MSLSX_TXT_FLD_SUB, MSLSX_TXT_FLD_SUB_VAL]
-        },
+        "step 5": FLOW_MSLSX_LOGIN,
         "step 6": {
-            "display": "Input hicn",
-            "action": Action.FIND_SEND_KEY,
-            "params": [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL]
-        },
-        "step 7": {
-            "display": "Input mbi",
-            "action": Action.FIND_SEND_KEY,
-            "params": [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL]
-        },
-        "step 8": {
-            "display": "Click 'submit' on MSLSX login form",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.CSS_SELECTOR, MSLSX_CSS_BUTTON]
-        },
-        "step 9": {
             "display": "Click 'Agree' on DEMO info grant form",
             "action": Action.FIND_CLICK,
             "params": [20, By.ID, GRANT_DEMO_ACCESS]
         },
-        "step 10": {
+        "step 7": {
             "display": "Click 'Patient' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_PATIENT]
         },
-        "step 11": {
+        "step 8": {
             "display": "Check Patient result page title",
+            "api_ver": "v2",
             "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_PATIENT, API_V2]
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_PATIENT]
         },
-        "step 12": {
-            "display": "Back to FHIR resource page",
-            "action": Action.BACK,
-            "params": []
-        },
-        "step 13": {
+        "step 9": BROWSER_BACK,
+        "step 10": {
             "display": "Click 'Coverage' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_COVERAGE]
         },
-        "step 14": {
+        "step 11": {
             "display": "Check Coverage result page title",
+            "api_ver": "v2",
             "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE, API_V2]
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE]
         },
-        "step 15": {
-            "display": DISP_BACK,
-            "action": Action.BACK,
-            "params": []
-        },
-        "step 16": {
+        "step 12": BROWSER_BACK,
+        "step 13": {
             "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
         },
-        "step 17": {
+        "step 14": {
             "display": "Check ExplanationOfBenefit result page title",
+            "api_ver": "v2",
             "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB, API_V2]
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB]
         },
-        "step 18": {
-            "display": DISP_BACK,
-            "action": Action.BACK,
-            "params": []
-        },
-        "step 19": {
+        "step 15": BROWSER_BACK,
+        "step 16": {
             "display": "Click 'Profile' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
         },
-        "step 20": {
+        "step 17": {
             "display": "Check Profile result page title",
+            "api_ver": "v2",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
-                       "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE), API_V2]
+                       "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE)]
         },
-        "step 21": {
-            "display": DISP_BACK,
-            "action": Action.BACK,
-            "params": []
-        },
-        "step 22": {
+        "step 18": BROWSER_BACK,
+        "step 19": {
             "display": "Click 'FHIR Metadata' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
         },
-        "step 23": {
+        "step 20": {
             "display": "Check FHIR Metadata result page title",
+            "api_ver": "v2",
             "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA, API_V2]
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA]
         },
-        "step 24": {
-            "display": DISP_BACK,
-            "action": Action.BACK,
-            "params": []
-        },
-        "step 25": {
+        "step 21": BROWSER_BACK,
+        "step 22": {
             "display": "Click 'OIDC Discovery' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
         },
-        "step 26": {
+        "step 23": {
             "display": "Check OIDC Discovery result page title",
+            "api_ver": "v2",
             "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY, API_V2]
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY]
         },
-        "step 27": {
-            "display": DISP_BACK,
-            "action": Action.BACK,
-            "params": []
+        "step 24": BROWSER_BACK,
+    },
+    "testcase_v1_slsx": {
+        "step 1": {
+            "display": "Load BB2 Landing Page ...",
+            "action": Action.LOAD_PAGE,
+            "params": [settings.HOSTNAME_URL]
         },
+        "step 2": {
+            "display": "Click link 'Test Client'",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
+        },
+        "step 3": {
+            "display": "Click link to get sample token v2",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_GET_TOKEN_V1]
+        },
+        "step 4": {
+            "display": "Click link 'Authorize as a Beneficiary' - start authorization",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+        },
+        "step 5": FLOW_MSLSX_LOGIN,
+        "step 6": {
+            "display": "Click 'Agree' on DEMO info grant form",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.ID, GRANT_DEMO_ACCESS]
+        },
+        "step 7": {
+            "display": "Click 'Patient' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_PATIENT]
+        },
+        "step 8": {
+            "display": "Check Patient result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_PATIENT]
+        },
+        "step 9": BROWSER_BACK,
+        "step 10": {
+            "display": "Click 'Coverage' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_COVERAGE]
+        },
+        "step 11": {
+            "display": "Check Coverage result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE]
+        },
+        "step 12": BROWSER_BACK,
+        "step 13": {
+            "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
+        },
+        "step 14": {
+            "display": "Check ExplanationOfBenefit result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB]
+        },
+        "step 15": BROWSER_BACK,
+        "step 16": {
+            "display": "Click 'Profile' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
+        },
+        "step 17": {
+            "display": "Check Profile result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
+                       "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE)]
+        },
+        "step 18": BROWSER_BACK,
+        "step 19": {
+            "display": "Click 'FHIR Metadata' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
+        },
+        "step 20": {
+            "display": "Check FHIR Metadata result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA]
+        },
+        "step 21": BROWSER_BACK,
+        "step 22": {
+            "display": "Click 'OIDC Discovery' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
+        },
+        "step 23": {
+            "display": "Check OIDC Discovery result page title",
+            "api_ver": "v1",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY]
+        },
+        "step 24": BROWSER_BACK,
+    },
+    "testcase_v2_slsx": {
+        "step 1": {
+            "display": "Load BB2 Landing Page ...",
+            "action": Action.LOAD_PAGE,
+            "params": [settings.HOSTNAME_URL]
+        },
+        "step 2": {
+            "display": "Click link 'Test Client'",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
+        },
+        "step 3": {
+            "display": "Click link to get sample token v2",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_GET_TOKEN_V2]
+        },
+        "step 4": {
+            "display": "Click link 'Authorize as a Beneficiary' - start authorization",
+            "action": Action.FIND_CLICK,
+            "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+        },
+        "step 5": FLOW_MSLSX_LOGIN,
+        "step 6": {
+            "display": "Click 'Agree' on DEMO info grant form",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.ID, GRANT_DEMO_ACCESS]
+        },
+        "step 7": {
+            "display": "Click 'Patient' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_PATIENT]
+        },
+        "step 8": {
+            "display": "Check Patient result page title",
+            "api_ver": "v2",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_PATIENT]
+        },
+        "step 9": BROWSER_BACK,
+        "step 10": {
+            "display": "Click 'Coverage' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_COVERAGE]
+        },
+        "step 11": {
+            "display": "Check Coverage result page title",
+            "api_ver": "v2",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE]
+        },
+        "step 12": BROWSER_BACK,
+        "step 13": {
+            "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
+        },
+        "step 14": {
+            "display": "Check ExplanationOfBenefit result page title",
+            "api_ver": "v2",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB]
+        },
+        "step 15": BROWSER_BACK,
+        "step 16": {
+            "display": "Click 'Profile' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
+        },
+        "step 17": {
+            "display": "Check Profile result page title",
+            "api_ver": "v2",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
+                       "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE)]
+        },
+        "step 18": BROWSER_BACK,
+        "step 19": {
+            "display": "Click 'FHIR Metadata' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
+        },
+        "step 20": {
+            "display": "Check FHIR Metadata result page title",
+            "api_ver": "v2",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA]
+        },
+        "step 21": BROWSER_BACK,
+        "step 22": {
+            "display": "Click 'OIDC Discovery' on FHIR resources page",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
+        },
+        "step 23": {
+            "display": "Check OIDC Discovery result page title",
+            "api_ver": "v2",
+            "action": Action.CHECK,
+            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY]
+        },
+        "step 24": BROWSER_BACK,
     },
 }
 
@@ -222,6 +556,7 @@ class SeleniumTests(TestCase):
             Action.CHECK: self._check_page_title,
             Action.BACK: self._back,
         }
+        self.use_mslsx = os.environ['USE_MSLSX']
 
     def tearDown(self):
         self.driver.quit()
@@ -229,6 +564,12 @@ class SeleniumTests(TestCase):
 
     def _find_and_click(self, timeout_sec, by, by_expr):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
+        self.assertIsNotNone(elem)
+        elem.click()
+        return elem
+
+    def _testclient_home(self):
+        elem = WebDriverWait(self.driver, 30).until(EC.visibility_of_element_located((By.LINK_TEXT, LNK_TXT_RESTART_TESTCLIENT)))
         self.assertIsNotNone(elem)
         elem.click()
         return elem
@@ -247,7 +588,7 @@ class SeleniumTests(TestCase):
     def _load_page(self, url):
         self.driver.get(url)
 
-    def _check_page_title(self, timeout_sec, by, by_expr, fmt, resource_type, api_ver):
+    def _check_page_title(self, timeout_sec, by, by_expr, fmt, resource_type, api_ver=API_V1):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
         self.assertIsNotNone(elem)
         self.assertEqual(elem.text, fmt.format(resource_type, api_ver))
@@ -255,11 +596,25 @@ class SeleniumTests(TestCase):
     def _back(self):
         self.driver.back()
 
-    def _play(self, casename):
-        testcase = tests[casename]
-        for k, v in testcase.items():
-            print("{}:{}".format(k, v["display"]))
-            self.actions[v["action"]](*v["params"])
+    def _play(self, seq):
+        for k, v in seq.items():
+            disp = v.get("display", None)
+            if disp is not None:
+                api_ver = v.get("api_ver")
+                print("{}:{}:".format(k, disp))
+                if api_ver is not None:
+                    self.actions[v["action"]](*v["params"], api_ver=api_ver)
+                else:
+                    self.actions[v["action"]](*v["params"])
+            else:
+                self._play(v)
 
-    def test_testclient(self):
-        self._play("testcase_01")
+    def test_testclient_v1_mslsx(self):
+        # v1 mslsx
+        self._play(tests["testcase_v1_mslsx"])
+        self._testclient_home()
+
+    def test_testclient_v2_mslsx(self):
+        # v2 mslsx
+        self._play(tests["testcase_v2_mslsx"])
+        self._testclient_home()

@@ -51,6 +51,38 @@ DJANGO_SLSX_CLIENT_SECRET=$(ansible-vault view --vault-password-file=${BB20_TEAM
 # Set bash builtins for safety
 set -e -u -o pipefail
 
+USE_MSLSX=true
+DOCKER_COMPOSE_SERVICE="tests"
+
+# Parse command line option
+if [ $# -eq 0 ]
+then
+  echo "Use MSLSX for identity service."
+else
+  if [[ $1 != "slsx" && $1 != "mslsx" ]]
+  then
+    echo
+    echo "COMMAND USAGE HELP"
+    echo "------------------"
+    echo
+    echo "  Use one of the following command line options for the type of test to run:"
+    echo
+    echo "    slsx  = use SLSX for identity service."
+    echo
+    echo "    mslsx (default) = use MSLSX for identity service."
+    echo
+    exit 1
+  else
+    if [ $1 == "slsx" ]
+    then
+      USE_MSLSX=false
+      DOCKER_COMPOSE_SERVICE="tests_w_slsx"
+      HOSTNAME_URL="http://bb2slsx:8000"
+    fi
+  fi
+fi
+
+
 # Set KeyBase ENV path based on your type of system
 SYSTEM=$(uname -s)
 
@@ -149,6 +181,7 @@ export DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS}
 export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 export HOSTNAME_URL=${HOSTNAME_URL}
+export USE_MSLSX=${USE_MSLSX}
 
 echo "Selenium tests ..."
 
@@ -159,7 +192,8 @@ docker-compose -f docker-compose.selenium.yml run \
 -e DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID} \
 -e DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET} \
 -e HOSTNAME_URL=${HOSTNAME_URL} \
-tests bash -c "python runtests.py apps.integration_tests.selenium_tests.SeleniumTests"
+-e USE_MSLSX=${USE_MSLSX} \
+${DOCKER_COMPOSE_SERVICE} bash -c "python runtests.py apps.integration_tests.selenium_tests.SeleniumTests"
 
 # Remove certfiles from local directory
 echo_msg
