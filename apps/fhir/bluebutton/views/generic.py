@@ -1,6 +1,7 @@
 import logging
 import voluptuous
 import waffle
+
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
 from rest_framework.parsers import JSONParser
@@ -8,18 +9,20 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.authorization.permissions import DataAccessGrantPermission
+from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
-from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.server import connection as backend_connection
+from apps.fhir.bluebutton.loggers import log_v2_blocked
+
+from ..authentication import OAuth2ResourceOwner
+from ..exceptions import process_error_response
+from ..permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
 from ..signals import (
     pre_fetch,
     post_fetch
 )
-from apps.authorization.permissions import DataAccessGrantPermission
-from ..authentication import OAuth2ResourceOwner
-from ..permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
-from ..exceptions import process_error_response
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
@@ -97,8 +100,11 @@ class FhirDataView(APIView):
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
         # BB2-291 v2 switch enforced here, entry of all fhir resources queries
+        # TODO: waffle flag enforced, to be removed after v2 GA
         if self.version == 2 and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
-            raise exceptions.NotFound("bfd_v2_flag not active.")
+            err = exceptions.NotFound("bfd_v2_flag not active.")
+            log_v2_blocked(request.user, request.path, request.auth.application, err)
+            raise err
 
         target_url = self.build_url(resource_router,
                                     resource_type,
