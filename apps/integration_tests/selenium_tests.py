@@ -21,6 +21,11 @@ LNK_TXT_GET_TOKEN_V1 = "Get a Sample Authorization Token"
 LNK_TXT_GET_TOKEN_V2 = "Get a Sample Authorization Token for v2"
 LNK_TXT_AUTH_AS_BENE = "Authorize as a Beneficiary"
 LNK_TXT_RESTART_TESTCLIENT = "restart testclient"
+LNK_TXT_NAV_LAST = "last"
+LNK_TXT_NAV_FIRST = "first"
+LNK_TXT_NAV_NEXT = "next"
+LNK_TXT_NAV_PREV = "previous"
+LNK_TXT_NAV_SELF = "self"
 
 MSLSX_TXT_FLD_SUB = "username"
 MSLSX_TXT_FLD_HICN = "hicn"
@@ -63,6 +68,12 @@ BROWSER_BACK = {
     "display": "Back to FHIR resource page",
     "action": Action.BACK,
     "params": []
+}
+
+CLICK_TESTCLIENT = {
+    "display": "Click link 'Test Client'",
+    "action": Action.FIND_CLICK,
+    "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
 }
 
 FLOW_MSLSX_LOGIN = {
@@ -115,11 +126,7 @@ tests = {
             "action": Action.LOAD_PAGE,
             "params": [settings.HOSTNAME_URL]
         },
-        "step 2": {
-            "display": "Click link 'Test Client'",
-            "action": Action.FIND_CLICK,
-            "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
-        },
+        "step 2": CLICK_TESTCLIENT,
         "step 3": {
             "display": "Click link to get sample token v2",
             "action": Action.FIND_CLICK,
@@ -159,56 +166,66 @@ tests = {
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE]
         },
-        "step 12": BROWSER_BACK,
-        "step 13": {
+        "step 12": {
+            "display": "Check and click Coverage result page navigation links 'last'",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+        },
+        "step 13": CLICK_TESTCLIENT,
+        "step 14": {
             "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
         },
-        "step 14": {
+        "step 15": {
             "display": "Check ExplanationOfBenefit result page title",
             "api_ver": "v1",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB]
         },
-        "step 15": BROWSER_BACK,
         "step 16": {
+            "display": "Check and click ExplanationOfBenefit result page navigation links 'last'",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+        },
+        "step 17": CLICK_TESTCLIENT,
+        "step 18": {
             "display": "Click 'Profile' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
         },
-        "step 17": {
+        "step 19": {
             "display": "Check Profile result page title",
             "api_ver": "v1",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
                        "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE)]
         },
-        "step 18": BROWSER_BACK,
-        "step 19": {
+        "step 20": BROWSER_BACK,
+        "step 21": {
             "display": "Click 'FHIR Metadata' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
         },
-        "step 20": {
+        "step 22": {
             "display": "Check FHIR Metadata result page title",
             "api_ver": "v1",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA]
         },
-        "step 21": BROWSER_BACK,
-        "step 22": {
+        "step 23": BROWSER_BACK,
+        "step 24": {
             "display": "Click 'OIDC Discovery' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
         },
-        "step 23": {
+        "step 25": {
             "display": "Check OIDC Discovery result page title",
             "api_ver": "v1",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY]
         },
-        "step 24": BROWSER_BACK,
+        "step 26": BROWSER_BACK,
     },
     "testcase_v2": {
         "step 1": {
@@ -216,11 +233,7 @@ tests = {
             "action": Action.LOAD_PAGE,
             "params": [settings.HOSTNAME_URL]
         },
-        "step 2": {
-            "display": "Click link 'Test Client'",
-            "action": Action.FIND_CLICK,
-            "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
-        },
+        "step 2": CLICK_TESTCLIENT,
         "step 3": {
             "display": "Click link to get sample token v2",
             "action": Action.FIND_CLICK,
@@ -260,56 +273,66 @@ tests = {
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE]
         },
-        "step 12": BROWSER_BACK,
-        "step 13": {
+        "step 12": {
+            "display": "Check and click Coverage result page navigation links 'last'",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+        },
+        "step 13": CLICK_TESTCLIENT,
+        "step 14": {
             "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
         },
-        "step 14": {
+        "step 15": {
             "display": "Check ExplanationOfBenefit result page title",
             "api_ver": "v2",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB]
         },
-        "step 15": BROWSER_BACK,
         "step 16": {
+            "display": "Check and click ExplanationOfBenefit result page navigation links 'last'",
+            "action": Action.FIND_CLICK,
+            "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+        },
+        "step 17": CLICK_TESTCLIENT,
+        "step 18": {
             "display": "Click 'Profile' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
         },
-        "step 17": {
+        "step 19": {
             "display": "Check Profile result page title",
             "api_ver": "v2",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
                        "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE)]
         },
-        "step 18": BROWSER_BACK,
-        "step 19": {
+        "step 20": BROWSER_BACK,
+        "step 21": {
             "display": "Click 'FHIR Metadata' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
         },
-        "step 20": {
+        "step 22": {
             "display": "Check FHIR Metadata result page title",
             "api_ver": "v2",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA]
         },
-        "step 21": BROWSER_BACK,
-        "step 22": {
+        "step 23": BROWSER_BACK,
+        "step 24": {
             "display": "Click 'OIDC Discovery' on FHIR resources page",
             "action": Action.FIND_CLICK,
             "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
         },
-        "step 23": {
+        "step 25": {
             "display": "Check OIDC Discovery result page title",
             "api_ver": "v2",
             "action": Action.CHECK,
             "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY]
         },
-        "step 24": BROWSER_BACK,
+        "step 26": BROWSER_BACK,
     },
 }
 
