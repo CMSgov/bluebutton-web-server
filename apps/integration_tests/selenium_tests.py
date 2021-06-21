@@ -13,43 +13,51 @@ from selenium.webdriver.common.keys import Keys
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
 TESTCLIENT_RESOURCE_LABEL_FMT = "Response ({}), API version: {}"
-
-DISP_BACK = "Back to FHIR resource page"
-
+MESSAGE_NO_PERMISSION = "You do not have permission to perform this action."
+TESTCASE_BANNER_FMT = "** {} TEST: {}, API: {}, STEP: {}, {}"
+'''
+UI Widget text: texts on e.g. buttons, links, labels etc.
+'''
 LNK_TXT_TESTCLIENT = "Test Client"
 LNK_TXT_GET_TOKEN_V1 = "Get a Sample Authorization Token"
 LNK_TXT_GET_TOKEN_V2 = "Get a Sample Authorization Token for v2"
 LNK_TXT_AUTH_AS_BENE = "Authorize as a Beneficiary"
 LNK_TXT_RESTART_TESTCLIENT = "restart testclient"
-LNK_TXT_NAV_LAST = "last"
+# FHIR search result bundle pagination
 LNK_TXT_NAV_FIRST = "first"
 LNK_TXT_NAV_NEXT = "next"
 LNK_TXT_NAV_PREV = "previous"
+LNK_TXT_NAV_LAST = "last"
 LNK_TXT_NAV_SELF = "self"
-
-MSLSX_TXT_FLD_SUB = "username"
-MSLSX_TXT_FLD_HICN = "hicn"
-MSLSX_TXT_FLD_MBI = "mbi"
-MSLSX_TXT_FLD_SUB_VAL = "fred"
+# FHIR resources query page
+LNK_TXT_PATIENT = "Patient"
+LNK_TXT_EOB = "ExplanationOfBenefit"
+LNK_TXT_COVERAGE = "Coverage"
+LNK_TXT_PROFILE = "Profile"
+LNK_TXT_METADATA = "FHIR Metadata"
+LNK_TXT_OIDC_DISCOVERY = "OIDC Discovery"
+# FHIR result page label H2
+LAB_FHIR_RESULTPAGE_H2 = "h2"
+CONTENT_FHIR_RESULTPAGE_PRE = "pre"
+# MSLSX login form
+TXT_FLD_SUB_MSLSX = "username"
+TXT_FLD_HICN_MSLSX = "hicn"
+TXT_FLD_MBI_MSLSX = "mbi"
+TXT_FLD_VAL_SUB_MSLSX = "fred"
 MSLSX_TXT_FLD_HICN_VAL = "1000044680"
 MSLSX_TXT_FLD_MBI_VAL = "2SW4N00AA00"
 MSLSX_CSS_BUTTON = "button"
-
+# SLSX login form
 SLSX_TXT_FLD_USERNAME = "username-textbox"
 SLSX_TXT_FLD_PASSWORD = "password-textbox"
 SLSX_TXT_FLD_USERNAME_VAL = "BBUser00000"
 SLSX_TXT_FLD_PASSWORD_VAL = "PW00000!"
 SLSX_CSS_BUTTON = "login-button"
-
-GRANT_DEMO_ACCESS = "approve"
-DENY_DEMO_ACCESS = "deny"
-FHIR_LNK_PATIENT = "Patient"
-FHIR_LNK_EOB = "ExplanationOfBenefit"
-FHIR_LNK_COVERAGE = "Coverage"
-FHIR_LNK_PROFILE = "Profile"
-FHIR_LNK_METADATA = "FHIR Metadata"
-FHIR_LNK_OIDC_DISCOVERY = "OIDC Discovery"
-RESULT_PAGE_TITLE_H2 = "h2"
+# Demographic info access grant form
+BTN_ID_GRANT_DEMO_ACCESS = "approve"
+BTN_ID_DENY_DEMO_ACCESS = "deny"
+BTN_ID_RADIO_NOT_SHARE = "label:nth-child(5)"
+# API versions
 API_V2 = "v2"
 API_V1 = "v1"
 
@@ -62,12 +70,26 @@ class Action(Enum):
     CHECK = 5
     BACK = 6
     LOGIN = 7
+    CONTAIN_TEXT = 8
+    GET_SAMPLE_TOKEN_START = 9
+    SLEEP = 10
 
 
-BROWSER_BACK = {
+BROWSERBACK = {
     "display": "Back to FHIR resource page",
     "action": Action.BACK,
-    "params": []
+}
+
+WAIT_SECONDS = {
+    "display": "Sleep seconds...",
+    "action": Action.SLEEP,
+    "params": [3],
+}
+
+CHECK_TESTCLIENT_START_PAGE = {
+    "display": "Check it's on 'Test Client' start page",
+    "action": Action.FIND,
+    "params": [30, By.LINK_TEXT, LNK_TXT_GET_TOKEN_V1]
 }
 
 CLICK_TESTCLIENT = {
@@ -76,264 +98,271 @@ CLICK_TESTCLIENT = {
     "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
 }
 
-FLOW_MSLSX_LOGIN = {
-    "mslsx 1": {
+CLICK_RADIO_NOT_SHARE = {
+    "display": "Click 'Share healthcare data, but not your personal info' on DEMO info grant form",
+    "action": Action.FIND_CLICK,
+    "params": [20, By.CSS_SELECTOR, BTN_ID_RADIO_NOT_SHARE]
+}
+
+CLICK_AGREE_ACCESS = {
+    "display": "Click 'Agree' on DEMO info grant form",
+    "action": Action.FIND_CLICK,
+    "params": [20, By.ID, BTN_ID_GRANT_DEMO_ACCESS]
+}
+
+CLICK_DENY_ACCESS = {
+    "display": "Click 'Deny' on DEMO info grant form",
+    "action": Action.FIND_CLICK,
+    "params": [20, By.ID, BTN_ID_DENY_DEMO_ACCESS]
+}
+
+CALL_LOGIN = {
+    "display": "Start login ...",
+    "action": Action.LOGIN,
+}
+
+SEQ_LOGIN_MSLSX = [
+    {
         "display": "Input SUB(username)",
         "action": Action.FIND_SEND_KEY,
-        "params": [20, By.NAME, MSLSX_TXT_FLD_SUB, MSLSX_TXT_FLD_SUB_VAL]
+        "params": [20, By.NAME, TXT_FLD_SUB_MSLSX, TXT_FLD_VAL_SUB_MSLSX]
     },
-    "mslsx 2": {
+    {
         "display": "Input hicn",
         "action": Action.FIND_SEND_KEY,
-        "params": [20, By.NAME, MSLSX_TXT_FLD_HICN, MSLSX_TXT_FLD_HICN_VAL]
+        "params": [20, By.NAME, TXT_FLD_HICN_MSLSX, MSLSX_TXT_FLD_HICN_VAL]
     },
-    "mslsx 3": {
+    {
         "display": "Input mbi",
         "action": Action.FIND_SEND_KEY,
-        "params": [20, By.NAME, MSLSX_TXT_FLD_MBI, MSLSX_TXT_FLD_MBI_VAL]
+        "params": [20, By.NAME, TXT_FLD_MBI_MSLSX, MSLSX_TXT_FLD_MBI_VAL]
     },
-    "mslsx 4": {
+    {
         "display": "Click 'submit' on MSLSX login form",
         "action": Action.FIND_CLICK,
         "params": [20, By.CSS_SELECTOR, MSLSX_CSS_BUTTON]
     },
-}
+]
 
-
-FLOW_SLSX_LOGIN = {
-    "slsx 1": {
+SEQ_LOGIN_SLSX = [
+    {
         "display": "MyMedicare login username",
         "action": Action.FIND_SEND_KEY,
         "params": [20, By.ID, SLSX_TXT_FLD_USERNAME, SLSX_TXT_FLD_USERNAME_VAL]
     },
-    "slsx 2": {
+    {
         "display": "MyMedicare login password",
         "action": Action.FIND_SEND_KEY,
         "params": [20, By.ID, SLSX_TXT_FLD_PASSWORD, SLSX_TXT_FLD_PASSWORD_VAL]
     },
-    "slsx 3": {
+    {
         "display": "Click 'submit' on SLSX login form",
         "action": Action.FIND_CLICK,
         "params": [20, By.ID, SLSX_CSS_BUTTON]
     },
-}
+]
 
+SEQ_AUTHORIZE_START = [
+    {
+        "display": "Load BB2 Landing Page ...",
+        "action": Action.LOAD_PAGE,
+        "params": [settings.HOSTNAME_URL]
+    },
+    CLICK_TESTCLIENT,
+    {
+        "display": "Click link to get sample token v1/v2",
+        "action": Action.GET_SAMPLE_TOKEN_START,
+    },
+    {
+        "display": "Click link 'Authorize as a Beneficiary' - start authorization",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+    },
+]
 
-tests = {
-    "testcase_v1": {
-        "step 1": {
-            "display": "Load BB2 Landing Page ...",
-            "action": Action.LOAD_PAGE,
-            "params": [settings.HOSTNAME_URL]
-        },
-        "step 2": CLICK_TESTCLIENT,
-        "step 3": {
-            "display": "Click link to get sample token v2",
-            "action": Action.FIND_CLICK,
-            "params": [30, By.LINK_TEXT, LNK_TXT_GET_TOKEN_V1]
-        },
-        "step 4": {
-            "display": "Click link 'Authorize as a Beneficiary' - start authorization",
-            "action": Action.FIND_CLICK,
-            "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
-        },
-        "step 5": {"login": Action.LOGIN},
-        "step 6": {
-            "display": "Click 'Agree' on DEMO info grant form",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.ID, GRANT_DEMO_ACCESS]
-        },
-        "step 7": {
-            "display": "Click 'Patient' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_PATIENT]
-        },
-        "step 8": {
-            "display": "Check Patient result page title",
-            "api_ver": "v1",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_PATIENT]
-        },
-        "step 9": BROWSER_BACK,
-        "step 10": {
-            "display": "Click 'Coverage' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_COVERAGE]
-        },
-        "step 11": {
-            "display": "Check Coverage result page title",
-            "api_ver": "v1",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE]
-        },
-        "step 12": {
-            "display": "Check and click Coverage result page navigation links 'last'",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
-        },
-        "step 13": CLICK_TESTCLIENT,
-        "step 14": {
-            "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
-        },
-        "step 15": {
-            "display": "Check ExplanationOfBenefit result page title",
-            "api_ver": "v1",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB]
-        },
-        "step 16": {
-            "display": "Check and click ExplanationOfBenefit result page navigation links 'last'",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
-        },
-        "step 17": CLICK_TESTCLIENT,
-        "step 18": {
-            "display": "Click 'Profile' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
-        },
-        "step 19": {
-            "display": "Check Profile result page title",
-            "api_ver": "v1",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
-                       "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE)]
-        },
-        "step 20": BROWSER_BACK,
-        "step 21": {
-            "display": "Click 'FHIR Metadata' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
-        },
-        "step 22": {
-            "display": "Check FHIR Metadata result page title",
-            "api_ver": "v1",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA]
-        },
-        "step 23": BROWSER_BACK,
-        "step 24": {
-            "display": "Click 'OIDC Discovery' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
-        },
-        "step 25": {
-            "display": "Check OIDC Discovery result page title",
-            "api_ver": "v1",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY]
-        },
-        "step 26": BROWSER_BACK,
+SEQ_QUERY_FHIR_RESOURCES = [
+    {
+        "display": "Click 'Patient' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_PATIENT]
     },
-    "testcase_v2": {
-        "step 1": {
-            "display": "Load BB2 Landing Page ...",
-            "action": Action.LOAD_PAGE,
-            "params": [settings.HOSTNAME_URL]
-        },
-        "step 2": CLICK_TESTCLIENT,
-        "step 3": {
-            "display": "Click link to get sample token v2",
-            "action": Action.FIND_CLICK,
-            "params": [30, By.LINK_TEXT, LNK_TXT_GET_TOKEN_V2]
-        },
-        "step 4": {
-            "display": "Click link 'Authorize as a Beneficiary' - start authorization",
-            "action": Action.FIND_CLICK,
-            "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
-        },
-        "step 5": {"login": Action.LOGIN},
-        "step 6": {
-            "display": "Click 'Agree' on DEMO info grant form",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.ID, GRANT_DEMO_ACCESS]
-        },
-        "step 7": {
-            "display": "Click 'Patient' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_PATIENT]
-        },
-        "step 8": {
-            "display": "Check Patient result page title",
-            "api_ver": "v2",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_PATIENT]
-        },
-        "step 9": BROWSER_BACK,
-        "step 10": {
-            "display": "Click 'Coverage' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_COVERAGE]
-        },
-        "step 11": {
-            "display": "Check Coverage result page title",
-            "api_ver": "v2",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_COVERAGE]
-        },
-        "step 12": {
-            "display": "Check and click Coverage result page navigation links 'last'",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
-        },
-        "step 13": CLICK_TESTCLIENT,
-        "step 14": {
-            "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_EOB]
-        },
-        "step 15": {
-            "display": "Check ExplanationOfBenefit result page title",
-            "api_ver": "v2",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, FHIR_LNK_EOB]
-        },
-        "step 16": {
-            "display": "Check and click ExplanationOfBenefit result page navigation links 'last'",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
-        },
-        "step 17": CLICK_TESTCLIENT,
-        "step 18": {
-            "display": "Click 'Profile' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_PROFILE]
-        },
-        "step 19": {
-            "display": "Check Profile result page title",
-            "api_ver": "v2",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
-                       "{} (OIDC Userinfo)".format(FHIR_LNK_PROFILE)]
-        },
-        "step 20": BROWSER_BACK,
-        "step 21": {
-            "display": "Click 'FHIR Metadata' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_METADATA]
-        },
-        "step 22": {
-            "display": "Check FHIR Metadata result page title",
-            "api_ver": "v2",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_METADATA]
-        },
-        "step 23": BROWSER_BACK,
-        "step 24": {
-            "display": "Click 'OIDC Discovery' on FHIR resources page",
-            "action": Action.FIND_CLICK,
-            "params": [20, By.LINK_TEXT, FHIR_LNK_OIDC_DISCOVERY]
-        },
-        "step 25": {
-            "display": "Check OIDC Discovery result page title",
-            "api_ver": "v2",
-            "action": Action.CHECK,
-            "params": [20, By.TAG_NAME, RESULT_PAGE_TITLE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, FHIR_LNK_OIDC_DISCOVERY]
-        },
-        "step 26": BROWSER_BACK,
+    {
+        "display": "Check Patient result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_PATIENT]
     },
+    BROWSERBACK,
+    {
+        "display": "Click 'Coverage' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_COVERAGE]
+    },
+    {
+        "display": "Check Coverage result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, LNK_TXT_COVERAGE]
+    },
+    {
+        "display": "Check and click Coverage result page navigation links 'last'",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+    },
+    CLICK_TESTCLIENT,
+    {
+        "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_EOB]
+    },
+    {
+        "display": "Check ExplanationOfBenefit result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, LNK_TXT_EOB]
+    },
+    {
+        "display": "Check and click ExplanationOfBenefit result page navigation links 'last'",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+    },
+    WAIT_SECONDS,
+    CLICK_TESTCLIENT,
+    {
+        "display": "Click 'Profile' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_PROFILE]
+    },
+    {
+        "display": "Check Profile result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT,
+                   "{} (OIDC Userinfo)".format(LNK_TXT_PROFILE)]
+    },
+    BROWSERBACK,
+    {
+        "display": "Click 'FHIR Metadata' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_METADATA]
+    },
+    {
+        "display": "Check FHIR Metadata result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_METADATA]
+    },
+    BROWSERBACK,
+    {
+        "display": "Click 'OIDC Discovery' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_OIDC_DISCOVERY]
+    },
+    {
+        "display": "Check OIDC Discovery result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_OIDC_DISCOVERY]
+    },
+    BROWSERBACK,
+]
+
+SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
+    {
+        "display": "Click 'Patient' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_PATIENT]
+    },
+    {
+        "display": "Check Patient result page content (<pre>) expect no permission message",
+        "action": Action.CONTAIN_TEXT,
+        "params": [20, By.TAG_NAME, CONTENT_FHIR_RESULTPAGE_PRE, MESSAGE_NO_PERMISSION]
+    },
+    BROWSERBACK,
+    {
+        "display": "Click 'Coverage' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_COVERAGE]
+    },
+    {
+        "display": "Check Coverage result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, LNK_TXT_COVERAGE]
+    },
+    {
+        "display": "Check and click Coverage result page navigation links 'last'",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+    },
+    CLICK_TESTCLIENT,
+    {
+        "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_EOB]
+    },
+    {
+        "display": "Check ExplanationOfBenefit result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_BUNDLE_LABEL_FMT, LNK_TXT_EOB]
+    },
+    {
+        "display": "Check and click ExplanationOfBenefit result page navigation links 'last'",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
+    },
+    WAIT_SECONDS,
+    CLICK_TESTCLIENT,
+    WAIT_SECONDS,
+    {
+        "display": "Click 'Profile' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_PROFILE]
+    },
+    WAIT_SECONDS,
+    {
+        "display": "Check Profile result page content (<pre>) expect no permission message",
+        "action": Action.CONTAIN_TEXT,
+        "params": [20, By.TAG_NAME, CONTENT_FHIR_RESULTPAGE_PRE, MESSAGE_NO_PERMISSION]
+    },
+    BROWSERBACK,
+    {
+        "display": "Click 'FHIR Metadata' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_METADATA]
+    },
+    {
+        "display": "Check FHIR Metadata result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_METADATA]
+    },
+    BROWSERBACK,
+    {
+        "display": "Click 'OIDC Discovery' on FHIR resources page",
+        "action": Action.FIND_CLICK,
+        "params": [20, By.LINK_TEXT, LNK_TXT_OIDC_DISCOVERY]
+    },
+    {
+        "display": "Check OIDC Discovery result page title",
+        "action": Action.CHECK,
+        "params": [20, By.TAG_NAME, LAB_FHIR_RESULTPAGE_H2, TESTCLIENT_RESOURCE_LABEL_FMT, LNK_TXT_OIDC_DISCOVERY]
+    },
+    BROWSERBACK,
+]
+
+TESTS = {
+    "auth_grant_fhir_calls": [
+        {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        CLICK_AGREE_ACCESS,
+        {"sequence": SEQ_QUERY_FHIR_RESOURCES}
+    ],
+    "auth_deny_fhir_calls": [
+        {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        CLICK_DENY_ACCESS,
+        CHECK_TESTCLIENT_START_PAGE
+    ],
+    "auth_grant_w_no_demo": [
+        {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        CLICK_RADIO_NOT_SHARE,
+        CLICK_AGREE_ACCESS,
+        {"sequence": SEQ_QUERY_FHIR_RESOURCES_NO_DEMO}
+    ]
 }
 
 
@@ -369,76 +398,144 @@ class SeleniumTests(TestCase):
             Action.FIND: self._find_and_return,
             Action.FIND_SEND_KEY: self._find_and_sendkey,
             Action.CHECK: self._check_page_title,
+            Action.CONTAIN_TEXT: self._check_page_content,
+            Action.GET_SAMPLE_TOKEN_START: self._click_get_sample_token,
             Action.BACK: self._back,
             Action.LOGIN: self._login,
+            Action.SLEEP: self._sleep,
         }
         self.use_mslsx = os.environ['USE_MSLSX']
+        self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
 
     def tearDown(self):
         self.driver.quit()
         super(SeleniumTests, self).tearDown()
 
-    def _find_and_click(self, timeout_sec, by, by_expr):
+    def _find_and_click(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
         self.assertIsNotNone(elem)
         elem.click()
         return elem
 
-    def _testclient_home(self):
-        elem = WebDriverWait(self.driver, 30).until(EC.visibility_of_element_located((By.LINK_TEXT, LNK_TXT_RESTART_TESTCLIENT)))
-        self.assertIsNotNone(elem)
-        elem.click()
-        return elem
+    def _testclient_home(self, **kwargs):
+        return self._find_and_click(30, By.LINK_TEXT, LNK_TXT_RESTART_TESTCLIENT, **kwargs)
 
-    def _find_and_sendkey(self, timeout_sec, by, by_expr, txt):
+    def _find_and_sendkey(self, timeout_sec, by, by_expr, txt, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
         self.assertIsNotNone(elem)
         elem.send_keys(txt)
         return elem
 
-    def _find_and_return(self, timeout_sec, by, by_expr):
+    def _click_get_sample_token(self, **kwargs):
+        return self._find_and_click(30, By.LINK_TEXT,
+                                    LNK_TXT_GET_TOKEN_V2 if kwargs.get("api_ver", API_V1) == API_V2 else LNK_TXT_GET_TOKEN_V1)
+
+    def _find_and_return(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
         self.assertIsNotNone(elem)
         return elem
 
-    def _load_page(self, url):
+    def _load_page(self, url, **kwargs):
         self.driver.get(url)
 
-    def _check_page_title(self, timeout_sec, by, by_expr, fmt, resource_type, api_ver=API_V1):
-        elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
-        self.assertIsNotNone(elem)
-        self.assertEqual(elem.text, fmt.format(resource_type, api_ver))
+    def _check_page_title(self, timeout_sec, by, by_expr, fmt, resource_type, **kwargs):
+        elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
+        if not (elem.text == fmt.format(resource_type, kwargs.get("api_ver"))):
+            print("PAGE:{}".format(self.driver.page_source))
+        self.assertEqual(elem.text, fmt.format(resource_type, kwargs.get("api_ver")))
 
-    def _back(self):
+    def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
+        elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
+        self.assertIn(content_txt, elem.text)
+
+    def _back(self, **kwargs):
         self.driver.back()
 
-    def _login(self, flow):
-        self._play(flow)
+    def _sleep(self, sec, **kwargs):
+        time.sleep(sec)
 
-    def _play(self, seq):
-        for k, v in seq.items():
-            login_func = v.get("login", None)
-            if login_func is not None:
-                if self.use_mslsx == 'false':
-                    # dismiss popup if present
-                    webdriver.ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
-                    self.actions[login_func](FLOW_SLSX_LOGIN)
-                else:
-                    self.actions[login_func](FLOW_MSLSX_LOGIN)
+    def _login(self, step, **kwargs):
+        if self.use_mslsx == 'false':
+            # dismiss mymedicare popup if present
+            webdriver.ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
+        self._play(self.login_seq, step, **kwargs)
+
+    def _print_testcase_banner(self, test_name, api_ver, step_0, id_service, start=True):
+        print()
+        print("******************************************************************")
+        print(TESTCASE_BANNER_FMT.format(("START" if start else "END",
+                                          test_name, api_ver, step_0,
+                                          "MSLSX" if self.use_mslsx == 'true' else "SLSX")))
+        print("******************************************************************")
+        print()
+
+    def _play(self, lst, step, **kwargs):
+        for s in lst:
+            seq = s.get("sequence")
+            # expects sequence of actions or action
+            if seq is not None:
+                self._play(seq, step, **kwargs)
             else:
-                api_ver = v.get("api_ver")
-                print("{}:{}:".format(k, v["display"]))
-                if api_ver is not None:
-                    self.actions[v["action"]](*v["params"], api_ver=api_ver)
+                # single action
+                action = s.get('action', None)
+                step[0] = step[0] + 1
+                if action is not None:
+                    print("{}:{}:".format(step[0], s.get("display", "Not available")))
+                    if action == Action.LOGIN:
+                        self.actions[action](*s.get("params", []), step, **kwargs)
+                    else:
+                        self.actions[action](*s.get("params", []), **kwargs)
                 else:
-                    self.actions[v["action"]](*v["params"])
+                    raise ValueError("Invalid test case, expect dict with action...")
 
-    def test_testclient_v1(self):
-        # v1 mslsx/slsx
-        self._play(tests["testcase_v1"])
+    def test_auth_grant_fhir_calls_v1(self):
+        step = [0]
+        test_name = "auth_grant_fhir_calls"
+        api_ver = API_V1
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
         self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
 
-    def test_testclient_v2(self):
-        # v2 mslsx/slsx
-        self._play(tests["testcase_v2"])
+    def test_auth_grant_fhir_calls_v2(self):
+        step = [0]
+        test_name = "auth_grant_fhir_calls"
+        api_ver = API_V2
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
         self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    def test_auth_deny_fhir_calls_v1(self):
+        step = [0]
+        test_name = "auth_deny_fhir_calls"
+        api_ver = API_V1
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    def test_auth_deny_fhir_calls_v2(self):
+        step = [0]
+        test_name = "auth_deny_fhir_calls"
+        api_ver = API_V2
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    def test_auth_grant_w_no_demo_v1(self):
+        step = [0]
+        test_name = "auth_grant_w_no_demo"
+        api_ver = API_V1
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    def test_auth_grant_w_no_demo_v2(self):
+        step = [0]
+        test_name = "auth_grant_w_no_demo"
+        api_ver = API_V2
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
