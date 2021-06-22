@@ -225,11 +225,13 @@ SEQ_QUERY_FHIR_RESOURCES = [
     },
     WAIT_SECONDS,
     CLICK_TESTCLIENT,
+    WAIT_SECONDS,
     {
         "display": "Click 'Profile' on FHIR resources page",
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, LNK_TXT_PROFILE]
     },
+    WAIT_SECONDS,
     {
         "display": "Check Profile result page title",
         "action": Action.CHECK,
