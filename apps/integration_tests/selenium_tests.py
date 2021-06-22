@@ -463,9 +463,8 @@ class SeleniumTests(TestCase):
     def _print_testcase_banner(self, test_name, api_ver, step_0, id_service, start=True):
         print()
         print("******************************************************************")
-        print(TESTCASE_BANNER_FMT.format(("START" if start else "END",
-                                          test_name, api_ver, step_0,
-                                          "MSLSX" if self.use_mslsx == 'true' else "SLSX")))
+        print(TESTCASE_BANNER_FMT.format("START" if start else "END", test_name, api_ver, step_0,
+                                         "MSLSX" if id_service == 'true' else "SLSX"))
         print("******************************************************************")
         print()
 
