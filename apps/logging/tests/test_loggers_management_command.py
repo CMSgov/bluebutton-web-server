@@ -6,10 +6,9 @@ from django.test.client import Client
 from jsonschema import validate
 from io import StringIO
 
-from apps.dot_ext.tests.test_models import TestDotExtModels
 from apps.test import BaseApiTest
 
-from .audit_logger_schemas import GLOBAL_STATE_METRICS_LOG_SCHEMA
+from .audit_logger_schemas import GLOBAL_STATE_METRICS_LOG_SCHEMA, GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA
 
 
 loggers = [
@@ -40,41 +39,97 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         return True
 
     def test_management_command_logging(self):
-        # Run test method from apps/dot_ext/tests/test_models.py to populate DB with applicaiton entries.
-        TestDotExtModels().test_application_count_funcs()
+        # Setup variety of real/synth users, apps and grants to test with using BaseApiTest helper function.
+        for i in range(0, 3):
+            user, app, ac = self._create_user_app_token_grant(first_name="real",
+                                                              last_name="smith0" + str(i),
+                                                              fhir_id="2000000000000" + str(i),
+                                                              app_name="app0",
+                                                              app_username="user_app0")
+        for i in range(0, 2):
+            user, app, ac = self._create_user_app_token_grant(first_name="synth",
+                                                              last_name="smith0" + str(i),
+                                                              fhir_id="-2000000000000" + str(i),
+                                                              app_name="app0",
+                                                              app_username="user_app0")
+        for i in range(0, 2):
+            user, app, ac = self._create_user_app_token_grant(first_name="real",
+                                                              last_name="smith1" + str(i),
+                                                              fhir_id="2000000000001" + str(i),
+                                                              app_name="app1",
+                                                              app_username="user_app1")
+        for i in range(0, 3):
+            user, app, ac = self._create_user_app_token_grant(first_name="synth",
+                                                              last_name="smith1" + str(i),
+                                                              fhir_id="-2000000000001" + str(i),
+                                                              app_name="app1",
+                                                              app_username="user_app1")
+        for i in range(0, 5):
+            user, app, ac = self._create_user_app_token_grant(first_name="real",
+                                                              last_name="smith2" + str(i),
+                                                              fhir_id="2000000000002" + str(i),
+                                                              app_name="app2",
+                                                              app_username="user_app2")
+        app.require_demographic_scopes = False
+        app.save()
+        for i in range(0, 7):
+            user, app, ac = self._create_user_app_token_grant(first_name="synth",
+                                                              last_name="smith2" + str(i),
+                                                              fhir_id="-2000000000002" + str(i),
+                                                              app_name="app2",
+                                                              app_username="user_app2")
+        for i in range(0, 1):
+            user, app, ac = self._create_user_app_token_grant(first_name="synth",
+                                                              last_name="smith2" + str(i),
+                                                              fhir_id="-2000000000003" + str(i),
+                                                              app_name="app3",
+                                                              app_username="user_app3")
+        app.active = False
+        app.save()
 
-        # Create 5x Real (positive FHIR_ID) users
-        for cnt in range(5):
-            self._create_user('johnsmith' + str(cnt), 'password',
-                              first_name='John1' + str(cnt),
-                              last_name='Smith',
-                              email='john' + str(cnt) + '@smith.net',
-                              fhir_id='2000000000000' + str(cnt),
-                              user_hicn_hash='239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt),
-                              user_mbi_hash='9876543217ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
+        # Call management command
+        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
 
-        # Create 7x Synthetic (negative FHIR_ID) users and access tokens for application2
-        for cnt in range(7):
-            self._create_user('johndoe' + str(cnt), 'password',
-                              first_name='John' + str(cnt),
-                              last_name='Doe',
-                              email='john' + str(cnt) + '@doe.net',
-                              fhir_id='-2000000000000' + str(cnt),
-                              user_hicn_hash='255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt),
-                              user_mbi_hash='987654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
-
-        '''
-        Call management command that produces the following entry to be validated with JsonSchema:
-
-            {"type": "global_state_metrics", "group_timestamp": "2021-04-12T19:24:00+00:00",
-             "real_bene_cnt": 5, "synth_bene_cnt": 7, "global_apps_active_cnt": 7,
-             "global_apps_inactive_cnt": 3, "global_apps_require_demographic_scopes_cnt": 5}
-        '''
-        out = StringIO()
-        call_command("log_global_state_metrics", stdout=out, stderr=StringIO())
-
-        # Validate log entry
+        # Get all log entries
         log_content = self._get_log_content('audit.global_state_metrics')
         self.assertIsNotNone(log_content)
-        log_content_dict = json.loads(log_content)
-        self.assertTrue(self._validateJsonSchema(GLOBAL_STATE_METRICS_LOG_SCHEMA, log_content_dict))
+
+        # Set buffer to read log lines from
+        log_content_buf = StringIO(log_content)
+
+        '''
+        Validate 1st log line has:
+            {'type': 'global_state_metrics',
+              'group_timestamp': '2021-06-11T18:50:14+00:00',
+              'real_bene_cnt': 10,
+              'synth_bene_cnt': 12,
+              'global_apps_active_cnt': 3,
+              'global_apps_inactive_cnt': 1,
+              'global_apps_require_demographic_scopes_cnt': 2}
+        '''
+        log_line = json.loads(log_content_buf.readline())
+        self.assertTrue(self._validateJsonSchema(GLOBAL_STATE_METRICS_LOG_SCHEMA, log_line))
+
+        # Per app expected value LISTs
+        active_list = [True, True, True, False]
+        require_demographic_scopes_list = [True, True, False, True]
+        real_bene_cnt_list = [3, 2, 5, 0]
+        synth_bene_cnt_list = [2, 3, 7, 1]
+
+        # Validate per app log entries
+        cnt = 0
+        for log_line in log_content_buf.readlines():
+            log_dict = json.loads(log_line)
+
+            # Update Json Schema
+            GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["name"]["pattern"] = "app{}".format(cnt)
+            GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["active"]["enum"] = [active_list[cnt]]
+            GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["require_demographic_scopes"]["enum"] = [
+                require_demographic_scopes_list[cnt]
+            ]
+            GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["real_bene_cnt"]["enum"] = [real_bene_cnt_list[cnt]]
+            GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["synth_bene_cnt"]["enum"] = [synth_bene_cnt_list[cnt]]
+
+            # Validate with schema
+            self.assertTrue(self._validateJsonSchema(GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA, log_dict))
+            cnt = cnt + 1

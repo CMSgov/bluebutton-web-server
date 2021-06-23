@@ -1,12 +1,14 @@
 import io
 import json
 import logging
+import re
 
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
 from django.test import TestCase
 from django.utils.text import slugify
 from django.conf import settings
+from oauth2_provider.compat import parse_qs, urlparse
 
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.authorization.models import DataAccessGrant
@@ -77,6 +79,13 @@ class BaseApiTest(TestCase):
         Helper method that creates a ProtectedCapability instance
         that controls the access for the set of `urls`.
         """
+        # Create capability, if does not already exist
+        try:
+            capability = ProtectedCapability.objects.get(title=name)
+            return capability
+        except ProtectedCapability.DoesNotExist:
+            pass
+
         group = group or self._create_group('test')
         capability = ProtectedCapability.objects.create(
             default=default,
@@ -200,3 +209,102 @@ class BaseApiTest(TestCase):
 
         # Compare dictionaries for expected values
         self.assertDictEqual(copy_dict, compare_dict)
+
+    def _get_access_token_authcode_confidential(self, username, user_passwd, application):
+        """
+        Helper method that creates an access_token using the confidential client and auth_code grant.
+        """
+        # Dev user logs in
+        self.client.login(username=username, password=user_passwd)
+
+        # Authorize
+        code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': application.redirect_uris,
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
+        }
+        response = self.client.get('/v1/o/authorize', data=payload)
+
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': application.redirect_uris,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256',
+        }
+        response = self.client.post(response['Location'], data=payload)
+        self.assertEqual(response.status_code, 302)
+
+        # now extract the authorization code and use it to request an access_token
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': application.redirect_uris,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret,
+        }
+
+        # Test that request is successful WITH the client_secret and GOOD code_verifier
+        token_request_data.update({'code_verifier': 'test123456789123456789123456789123456789123456789'})
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
+        self.assertEqual(response.status_code, 200)
+
+        content = json.loads(response.content.decode("utf-8"))
+
+        return content["access_token"]
+
+    def _create_user_app_token_grant(self, first_name, last_name, fhir_id, app_name, app_username):
+        """
+        Helper method that creates a user connected to an application
+        with Crosswalk, Access Token, and Grant for use in tests.
+        """
+        # Create dev user for application, if it doesn't exist
+        try:
+            app_user = User.objects.get(username=app_username)
+        except User.DoesNotExist:
+            app_user = User.objects.create_user(app_username, password="xxx123")
+
+        # Create application, if it does not exist.
+        try:
+            application = Application.objects.get(name=app_name)
+        except Application.DoesNotExist:
+            application = self._create_application(app_name,
+                                                   client_type=Application.CLIENT_CONFIDENTIAL,
+                                                   grant_type=Application.GRANT_AUTHORIZATION_CODE,
+                                                   redirect_uris='com.custom.bluebutton://example.it',
+                                                   user=app_user)
+            # Add a few capabilities
+            capability_a = self._create_capability('Capability A', [])
+            capability_b = self._create_capability('Capability B', [])
+            application.scope.add(capability_a, capability_b)
+
+        # Create beneficiary user, if it doesn't exist
+        try:
+            username = first_name + last_name + "@example.com"
+
+            # Create unique hashes using FHIR_ID
+            hicn_hash = re.sub('[^A-Za-z0-9]+', 'a', fhir_id + self.test_hicn_hash[len(fhir_id):])
+            mbi_hash = re.sub('[^A-Za-z0-9]+', 'a', fhir_id + self.test_mbi_hash[len(fhir_id):])
+
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = self._create_user(username=username,
+                                     password="xxx123",
+                                     fhir_id=fhir_id,
+                                     user_hicn_hash=hicn_hash,
+                                     user_mbi_hash=mbi_hash)
+
+        access_token = self._get_access_token_authcode_confidential(username=username,
+                                                                    user_passwd="xxx123",
+                                                                    application=application)
+
+        return user, application, access_token
