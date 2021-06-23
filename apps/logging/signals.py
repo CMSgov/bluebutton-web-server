@@ -71,13 +71,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
     except Exception:
         # TODO consider logging exception name here
         # once we get the generic logger hooked up
-        crosswalk_log = {
-            "id": None,
-            "user_hicn_hash": None,
-            "user_mbi_hash": None,
-            "fhir_id": None,
-            "user_id_type": None
-        }
+        pass
 
     log_dict = {
         "type": "Authorization",
