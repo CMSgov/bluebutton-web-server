@@ -21,10 +21,17 @@
 {% endblock %}
 
 {% block bannerCallToActionButtons %}
+{% if 'apps.testclient' in settings.INSTALLED_APPS %}
+<a class="cta-button ds-u-margin-y--1" href="{% url 'accounts_create_account' %}" aria-label="Create an Account" target="_self">
+  Create an Account
+  <i data-feather="arrow-right"></i>
+</a>
+{% else %}
 <a class="cta-button ds-u-margin-y--1" href="https://sandbox.bluebutton.cms.gov/v1/accounts/create" aria-label="Create an Account" target="_self">
   Create an Account
   <i data-feather="arrow-right"></i>
 </a>
+{%  endif %}
    
 <a class="cta-button ds-u-margin-y--1" href="https://bluebutton.cms.gov/developers/" aria-label="Read Our Documentation" target="_self">
   Read our Documentation
