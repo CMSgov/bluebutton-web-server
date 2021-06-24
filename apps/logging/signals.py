@@ -52,6 +52,26 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
 
     # Get auth flow dict from session for logging
     auth_flow_dict = get_session_auth_flow_trace(request)
+    crosswalk_log = {
+        "id": None,
+        "user_hicn_hash": None,
+        "user_mbi_hash": None,
+        "fhir_id": None,
+        "user_id_type": None
+    }
+
+    try:
+        crosswalk_log = {
+            "id": user.crosswalk.id,
+            "user_hicn_hash": user.crosswalk.user_hicn_hash,
+            "user_mbi_hash": user.crosswalk.user_mbi_hash,
+            "fhir_id": user.crosswalk.fhir_id,
+            "user_id_type": user.crosswalk.user_id_type
+        }
+    except Exception:
+        # TODO consider logging exception name here
+        # once we get the generic logger hooked up
+        pass
 
     log_dict = {
         "type": "Authorization",
@@ -60,13 +80,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "user": {
             "id": user.id,
             "username": user.username,
-            "crosswalk": {
-                "id": user.crosswalk.id,
-                "user_hicn_hash": user.crosswalk.user_hicn_hash,
-                "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                "fhir_id": user.crosswalk.fhir_id,
-                "user_id_type": user.crosswalk.user_id_type,
-            },
+            "crosswalk": crosswalk_log,
         },
         "application": {
             "id": application.id,
