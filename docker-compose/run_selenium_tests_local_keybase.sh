@@ -91,9 +91,11 @@ SYSTEM=$(uname -s)
 echo_msg " - Setting Keybase location based on SYSTEM type: ${SYSTEM}"
 echo_msg
 
-if [[ ${SYSTEM} == "Linux" || ${SYSTEM} == "Darwin" ]]
+if [[ ${SYSTEM} == "Linux" ]]
 then
   keybase_env_path="/keybase"
+elif [[ ${SYSTEM} == "Darwin" ]]
+  keybase_env_path="/Volumes/keybase"
 else
   # support cygwin
   keybase_env_path="/cygdrive/k"
