@@ -288,16 +288,16 @@ You can run selenium tests by following below steps:
 
      use MSLSX (default)   
      ```
-     ./docker-compose/run_integration_tests_local_keybase.sh
+     ./docker-compose/run_selenium_tests_local_keybase.sh
      ```
 
      ```
-     ./docker-compose/run_integration_tests_local_keybase.sh mslsx
+     ./docker-compose/run_selenium_tests_local_keybase.sh mslsx
      ```
 
      use SLSX
      ```
-     ./docker-compose/run_integration_tests_local_keybase.sh slsx
+     ./docker-compose/run_selenium_tests_local_keybase.sh slsx
      ```
 
   3. To trouble shoot tests: point VNC client to localhost:6900
