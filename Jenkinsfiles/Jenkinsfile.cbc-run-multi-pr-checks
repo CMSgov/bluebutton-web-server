@@ -67,5 +67,14 @@ pipeline {
         """
       }
     }
+
+    stage("RUN selenium tests") {
+      steps{
+        sh """
+          . venv/bin/activate
+          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+        """
+      }
+    }
   }
 }
