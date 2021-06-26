@@ -663,25 +663,37 @@ class V2UsersViewerAdmin(ReadOnlyAdmin):
     list_filter = (UserTypeFilter, V2Filter)
 
     def get_type(self, obj):
-        return obj.userprofile.user_type
+        print("====================V2UsersViewerAdmin.get_type()==============================")
+        usr_type = obj.userprofile.user_type
+        print("====================V2UsersViewerAdmin.get_type()==============================usr_type={}".format(usr_type))
+        return usr_type
 
     get_type.short_description = 'Type'
     get_type.admin_order_field = 'userprofile__user_type'
 
     def get_organization(self, obj):
-        return obj.userprofile.organization_name
+        print("====================V2UsersViewerAdmin.get_organization()==============================")
+        org_name = obj.userprofile.organization_name
+        print("====================V2UsersViewerAdmin.get_organization()==============================org={}".format(org_name))
+        return org_name
 
     get_organization.short_description = 'Organization'
     get_organization.admin_order_field = 'userprofile__organization_name'
 
     def get_v2enabled(self, obj):
-        return True if obj.groups.filter(name="BFDV2Partners") else False
+        print("====================V2UsersViewerAdmin.get_v2enabled()==============================")
+        v2 = True if obj.groups.filter(name="BFDV2Partners") else False
+        print("====================V2UsersViewerAdmin.get_v2enabled()==============================v2={}".format(v2))
+        return v2
 
     get_v2enabled.short_description = 'V2 Enabled'
     get_v2enabled.admin_order_field = 'get_v2enabled'
 
     def get_apps(self, obj):
-        return obj.dot_ext_application.all() if obj.userprofile.user_type == 'DEV' else ""
+        print("====================V2UsersViewerAdmin.get_apps()==============================")
+        apps = obj.dot_ext_application.all() if obj.userprofile.user_type == 'DEV' else ""
+        print("====================V2UsersViewerAdmin.get_apps()==============================apps={}".format(apps))
+        return apps
 
     get_apps.short_description = 'Apps'
     get_apps.admin_order_field = 'get_apps'
