@@ -139,19 +139,10 @@ class Crosswalk(models.Model):
 
     @user_hicn_hash.setter
     def user_hicn_hash(self, value):
-        if self.pk:
-            raise ValidationError("this value cannot be modified.")
-        if self._user_id_hash:
-            raise ValidationError("this value cannot be modified.")
         self._user_id_hash = value
 
     @user_mbi_hash.setter
     def user_mbi_hash(self, value):
-        # Can update ONLY if previous hash value was None/Null.
-        if self.pk and self._user_mbi_hash is not None:
-            raise ValidationError("this value cannot be modified.")
-        if self._user_mbi_hash:
-            raise ValidationError("this value cannot be modified.")
         self._user_mbi_hash = value
 
     def get_fhir_resource_url(self, resource_type):
