@@ -95,6 +95,7 @@ if [[ ${SYSTEM} == "Linux" ]]
 then
   keybase_env_path="/keybase"
 elif [[ ${SYSTEM} == "Darwin" ]]
+then
   keybase_env_path="/Volumes/keybase"
 else
   # support cygwin
