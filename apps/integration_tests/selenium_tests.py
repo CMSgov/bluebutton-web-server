@@ -373,10 +373,18 @@ class SeleniumTests(TestCase):
     Test authorization and fhir flow through the built in testclient by
     leveraging selenium web driver (chrome is used)
     '''
+    wait_completed = False
 
     def setUp(self):
         super(SeleniumTests, self).setUp()
-        time.sleep(20)
+        # a bit waiting for selenium service ready for sure
+        if not SeleniumTests.wait_completed:
+            time.sleep(20)
+            SeleniumTests.wait_completed = True
+            print("set wait_completed={}".format(SeleniumTests.wait_completed))
+        else:
+            print("wait_completed={}".format(SeleniumTests.wait_completed))
+
         opt = webdriver.ChromeOptions()
         opt.add_argument('--headless')
         opt.add_argument("--disable-dev-shm-usage")
