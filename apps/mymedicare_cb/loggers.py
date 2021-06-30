@@ -12,7 +12,8 @@ mymedicare_cb_logger = logging.getLogger('audit.authenticate.mymedicare_cb')
 
 
 # For use in models.get_and_update_user()
-def log_get_and_update_user(auth_flow_dict, status, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, mesg):
+def log_get_and_update_user(auth_flow_dict, status, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type,
+                            crosswalk_updated, mesg):
     '''
         Logging for info or issue
         used in get_and_update_user()
@@ -32,6 +33,7 @@ def log_get_and_update_user(auth_flow_dict, status, user, fhir_id, mbi_hash, hic
             "fhir_id": user.crosswalk.fhir_id,
             "user_id_type": user.crosswalk.user_id_type,
         },
+        "crosswalk_updated": crosswalk_updated,
         "mesg": mesg,
     }
     # Update with auth flow session info

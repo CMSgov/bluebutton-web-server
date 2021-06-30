@@ -255,9 +255,10 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
                           "user_mbi_hash": {"pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"},
                           "fhir_id": {"pattern": "-20140000008325"},
                           "user_id_type": {"pattern": "M"}}},
+        "crosswalk_updated": {"type": "string"},
         "mesg": {"pattern": "CREATE beneficiary record"},
     },
-    "required": ["type", "status", "fhir_id", "hicn_hash", "mbi_hash", "crosswalk", "mesg"]
+    "required": ["type", "status", "fhir_id", "hicn_hash", "mbi_hash", "crosswalk", "crosswalk_updated", "mesg"]
 }
 
 REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA = {
