@@ -11,7 +11,6 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from apps.accounts.models import get_user_id_salt
-# from apps.fhir.server.settings import fhir_settings
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 
@@ -115,10 +114,6 @@ class Crosswalk(models.Model):
     def __str__(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
 
-    # @property
-    # def fhir_source(self):
-    #     return fhir_settings
-
     @property
     def fhir_id(self):
         return self._fhir_id
@@ -153,17 +148,6 @@ class Crosswalk(models.Model):
         if self._user_mbi_hash:
             raise ValidationError("this value cannot be modified.")
         self._user_mbi_hash = value
-
-    # def get_fhir_resource_url(self, resource_type):
-    #     # Return the fhir server url
-    #     full_url = self.fhir_source.fhir_url
-    #     if full_url.endswith('/'):
-    #         pass
-    #     else:
-    #         full_url += '/'
-    #     if resource_type:
-    #         full_url += resource_type + '/'
-    #     return full_url
 
 
 class Fhir_Response(Response):
