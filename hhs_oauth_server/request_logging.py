@@ -524,7 +524,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
         """
         --- Get request (pre-response) logging items
         """
-        request._logging_uuid = uuid.uuid1()
+        request._logging_uuid = str(uuid.uuid1())
         request._logging_start_dt = datetime.datetime.utcnow()
         request._logging_pass = 1
         request._logger = RequestLogger(request)
