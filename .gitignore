@@ -61,6 +61,7 @@ coverage.xml
 # Database
 *.db
 db.sqlite3
+migration.completed
 
 # System
 .DS_Store
@@ -88,3 +89,7 @@ bluebutton-css/
 # cert files
 docker-compose/certstore/
 */certstore/*
+
+# dev tools dir for placing scripts you don't want checked in
+dev-tools/
+
