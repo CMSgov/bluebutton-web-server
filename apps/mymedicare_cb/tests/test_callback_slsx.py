@@ -1,4 +1,5 @@
 import json
+import io
 import uuid
 
 from datetime import datetime
@@ -6,7 +7,7 @@ from django.contrib.auth.models import Group, User
 from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
 from django.urls import reverse
-from django.test import TestCase
+from django.test.client import Client
 from httmock import urlmatch, all_requests, HTTMock
 from requests.exceptions import HTTPError
 from rest_framework import status
@@ -19,13 +20,18 @@ from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
 from apps.mymedicare_cb.authorization import (BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException)
-
 from apps.mymedicare_cb.views import generate_nonce
+from apps.test import BaseApiTest
 
 from .responses import patient_response
 
 
-class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
+loggers = [
+    'audit.authenticate.mymedicare_cb',
+]
+
+
+class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     """
     Tests for the MyMedicare login and SLSx Callback
     """
@@ -34,6 +40,20 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
         self.callback_url = reverse('mymedicare-sls-callback')
         self.login_url = reverse('mymedicare-login')
         Group.objects.create(name='BlueButton')
+        # Setup the RequestFactory
+        self.client = Client()
+        self._redirect_loggers(loggers)
+
+    def tearDown(self):
+        self._cleanup_logger()
+
+    def _get_log_content(self, logger_name):
+        return self._collect_logs(loggers).get(logger_name)
+
+    def _get_log_lines_list(self, logger_name):
+        buf = io.StringIO(self._get_log_content(logger_name))
+        lines = buf.readlines()
+        return lines
 
     def _create_capability(self, name, urls, group=None, default=True):
         """
@@ -290,49 +310,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
-        # Change existing hash prior to test
+        # Change existing fhir_id prior to next test
         cw = Crosswalk.objects.get(id=1)
-        saved_hicn_hash = cw._user_id_hash
-        saved_mbi_hash = cw._user_mbi_hash
-        saved_fhir_id = cw.fhir_id
-        cw._user_id_hash = "XXX"
-        cw.save()
-
-        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
-                     MockUrlSLSxResponses.slsx_user_info_mock,
-                     MockUrlSLSxResponses.slsx_health_ok_mock,
-                     MockUrlSLSxResponses.slsx_signout_ok_mock,
-                     fhir_patient_info_mock,
-                     catchall):
-            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
-
-            # assert 500 exception
-            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-            content = json.loads(response.content)
-            self.assertEqual(content['error'], "Found user's hicn did not match")
-
-        # Restore hicn hash and change existing mbi hash prior to next test
-        cw = Crosswalk.objects.get(id=1)
-        cw._user_id_hash = saved_hicn_hash
-        cw._user_mbi_hash = "XXX"
-        cw.save()
-
-        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
-                     MockUrlSLSxResponses.slsx_user_info_mock,
-                     MockUrlSLSxResponses.slsx_health_ok_mock,
-                     MockUrlSLSxResponses.slsx_signout_ok_mock,
-                     fhir_patient_info_mock,
-                     catchall):
-            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
-
-            # assert 500 exception
-            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-            content = json.loads(response.content)
-            self.assertEqual(content['error'], "Found user's mbi did not match")
-
-        # Restore mbi hash and change existing fhir_id prior to next test
-        cw = Crosswalk.objects.get(id=1)
-        cw._user_mbi_hash = saved_mbi_hash
+        saved_fhir_id = cw._fhir_id
         cw._fhir_id = "XXX"
         cw.save()
 
@@ -434,3 +414,191 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(TestCase):
                      catchall):
             with self.assertRaises(BBMyMedicareSLSxSignoutException):
                 response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+
+    def test_callback_allow_slsx_changes_to_hicn_and_mbi(self):
+        '''
+        This tests changed made to the matching logic per Jira BB2-612.
+        This is to allow for MBI and HICN updates for beneficiaries as Long as the FHIR_ID still matches
+
+        Two related/opposite tests were removed from test_callback_exceptions() and relocted here.
+
+        TEST SUMMARY:
+
+            NOTE: The fhir_patient_info_mock always provides a BFD patient resource search match to
+                  a bene with fhir_id = -20140000008325
+
+            1. First successful matching for beneficiary. This creates a new Crosswalk entry
+               with hicn/mbi hash values used in the initial match.
+
+            2. The bene's HICN has been changed in the mock SLSx user_info response.
+
+               This is for the use case where a beneficary's HICN has been changed in the
+               SLSx/BEDAP upstream identity service.
+
+               This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn
+
+               This would previously FAIL with response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+               with error text: "Found user's hicn did not match".
+
+            3. Restore saved_hicn_hash in Crosswalk prior to next test. Restore crosswalk state to same as #1.
+
+            4. The bene's MBI has been changed in the mock SLSx user_info response.
+               This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_mbi
+
+            5. Restore saved_mbi_hash in Crosswalk prior to next test. Restore crosswalk state to same as #1.
+
+            6. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
+               This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn_mbi
+        '''
+        # create a state
+        state = generate_nonce()
+        AnonUserState.objects.create(
+            state=state,
+            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
+
+        # mock fhir user info endpoint with fhir_id == "-20140000008325"
+        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
+        def fhir_patient_info_mock(url, request):
+            return {
+                'status_code': status.HTTP_200_OK,
+                'content': patient_response,
+            }
+
+        @all_requests
+        def catchall(url, request):
+            raise Exception(url)
+
+        # 1. 1st sucessful matching for bene that creates a crosswalk entry
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            # assert http redirect
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        # Get crosswalk values.
+        cw = Crosswalk.objects.get(id=1)
+
+        # Assert correct crosswalk values:
+        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
+        self.assertEqual(cw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
+
+        # Save crosswalk values for restoring prior to later tests.
+        saved_hicn_hash = cw._user_id_hash
+        saved_mbi_hash = cw._user_mbi_hash
+
+        # 2. The bene's HICN has been changed in the mock SLSx user_info response.
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            # assert http redirect
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        # Get crosswalk values.
+        cw = Crosswalk.objects.get(id=1)
+
+        # Assert correct crosswalk values. Did the hicn update to new/changed value?
+        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw._user_id_hash, "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
+        self.assertEqual(cw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
+
+        # Validate crosswalk_updated in logging
+        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
+        self.assertEqual(len(log_list), 3)
+
+        # Get dict for last (3rd) log entry
+        log_dict = json.loads(log_list[2])
+
+        # Assert correct values
+        self.assertEqual(log_dict['fhir_id'], "-20140000008325")
+        self.assertEqual(log_dict['crosswalk_updated'], "H")
+        self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
+                         "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
+        self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
+                         "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
+
+        # 3. Restore crosswalk's hicn hash to original.
+        cw = Crosswalk.objects.get(id=1)
+        cw._user_id_hash = saved_hicn_hash
+        cw.save()
+
+        # 4. The bene's MBI has been changed in the mock SLSx user_info response.
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock_changed_mbi,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            # assert http redirect
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        # Get crosswalk values.
+        cw = Crosswalk.objects.get(id=1)
+
+        # Assert correct crosswalk values. Did the hicn update to new/changed value?
+        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
+        self.assertEqual(cw._user_mbi_hash, "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
+
+        # Validate crosswalk_updated in logging
+        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
+        self.assertEqual(len(log_list), 4)
+
+        # Get dict for last (4th) log entry
+        log_dict = json.loads(log_list[3])
+
+        # Assert correct values
+        self.assertEqual(log_dict['fhir_id'], "-20140000008325")
+        self.assertEqual(log_dict['crosswalk_updated'], "M")
+        self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
+                         "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
+        self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
+                         "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
+
+        # 5. Restore crosswalk's mbi hash to original.
+        cw = Crosswalk.objects.get(id=1)
+        cw._user_mbi_hash = saved_mbi_hash
+        cw.save()
+
+        # 6. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn_mbi,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
+                     fhir_patient_info_mock,
+                     catchall):
+            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            # assert http redirect
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        # Get crosswalk values.
+        cw = Crosswalk.objects.get(id=1)
+
+        # Assert correct crosswalk values. Did the hicn update to new/changed value?
+        self.assertEqual(cw.fhir_id, "-20140000008325")
+        self.assertEqual(cw._user_id_hash, "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
+        self.assertEqual(cw._user_mbi_hash, "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
+
+        # Validate crosswalk_updated in logging
+        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
+        self.assertEqual(len(log_list), 5)
+
+        # Get dict for last (5th) log entry
+        log_dict = json.loads(log_list[4])
+
+        # Assert correct values
+        self.assertEqual(log_dict['fhir_id'], "-20140000008325")
+        self.assertEqual(log_dict['crosswalk_updated'], "HM")
+        self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
+                         "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
+        self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
+                         "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")

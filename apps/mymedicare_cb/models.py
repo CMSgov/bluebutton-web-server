@@ -57,67 +57,47 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
     # Match a patient identifier via the backend FHIR server
     fhir_id, hash_lookup_type = match_fhir_id(mbi_hash=mbi_hash, hicn_hash=hicn_hash, request=request)
 
-    # Init for type of crosswalk update. "" = None
+    # Init for types of crosswalk updates. "" = None
     crosswalk_updated = ""
 
     try:
         # Does an existing user and crosswalk exist for SLSx username?
         user = User.objects.get(username=subject)
 
-        print("---")
-        print("--- FOUND EXISTING")
-        print("---")
-        print("---  fhir_id:  ", fhir_id)
-        print("---  hicn_hash: ", hicn_hash)
-        print("---  mbi_hash: ", mbi_hash)
-        print("---")
-        print("---")
-
-        if user.crosswalk.user_hicn_hash != hicn_hash:
-            mesg = "Found user's hicn did not match"
-            log_get_and_update_user(auth_flow_dict, "FAIL", user, fhir_id, mbi_hash, hicn_hash,
-                                    hash_lookup_type, crosswalk_updated, mesg)
-            raise BBMyMedicareCallbackCrosswalkUpdateException(mesg)
-
+        # fhir_id can not change for an existing user!
         if user.crosswalk.fhir_id != fhir_id:
             mesg = "Found user's fhir_id did not match"
             log_get_and_update_user(auth_flow_dict, "FAIL", user, fhir_id, mbi_hash, hicn_hash,
                                     hash_lookup_type, crosswalk_updated, mesg)
             raise BBMyMedicareCallbackCrosswalkUpdateException(mesg)
 
+        # Did the hicn change?
+        if user.crosswalk.user_hicn_hash != hicn_hash:
+            crosswalk_updated = crosswalk_updated + "H"
+
+        # Did the mbi change?
         if user.crosswalk.user_mbi_hash is not None:
             if user.crosswalk.user_mbi_hash != mbi_hash:
-                mesg = "Found user's mbi did not match"
-                log_get_and_update_user(auth_flow_dict, "FAIL", user, fhir_id, mbi_hash, hicn_hash,
-                                        hash_lookup_type, crosswalk_updated, mesg)
-                raise BBMyMedicareCallbackCrosswalkUpdateException(mesg)
+                crosswalk_updated = crosswalk_updated + "M"
         else:
-            # Previously stored value was None/Null and mbi_hash != None, update just the mbi hash.
+            # Did the mbi change from previously stored None/Null value?
             if mbi_hash is not None:
-                crosswalk_updated = "N"
-                user.crosswalk.user_mbi_hash = mbi_hash
-                user.crosswalk.user_id_type = hash_lookup_type
-                user.crosswalk.save()
+                crosswalk_updated = crosswalk_updated + "N"
 
-        # Update hash type used for lookup, if it has changed from last match.
-        if user.crosswalk.user_id_type != hash_lookup_type:
+        # Update Crosswalk if there are any allowed changes or hash_type used for lookup changed.
+        if user.crosswalk.user_id_type != hash_lookup_type or crosswalk_updated != "":
             user.crosswalk.user_id_type = hash_lookup_type
+            user.crosswalk.user_mbi_hash = mbi_hash
+            user.crosswalk.user_hicn_hash = hicn_hash
             user.crosswalk.save()
 
+        # Beneficiary has been successfully matched!
         mesg = "RETURN existing beneficiary record"
         log_get_and_update_user(auth_flow_dict, "OK", user, fhir_id, mbi_hash, hicn_hash,
                                 hash_lookup_type, crosswalk_updated, mesg)
         return user, "R"
     except User.DoesNotExist:
         pass
-        print("---")
-        print("--- CREATING NEW")
-        print("---")
-        print("---  fhir_id:  ", fhir_id)
-        print("---  hicn_hash: ", hicn_hash)
-        print("---  mbi_hash: ", mbi_hash)
-        print("---")
-        print("---")
 
     user = create_beneficiary_record(username=subject,
                                      user_hicn_hash=hicn_hash,
