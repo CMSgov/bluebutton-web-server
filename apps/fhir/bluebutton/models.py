@@ -157,6 +157,53 @@ class Crosswalk(models.Model):
         return full_url
 
 
+class ArchivedCrosswalk(models.Model):
+    """
+    This model is used to keep an audit copy of a Crosswalk record's
+    previous values when there are changes with a ForeignKeylink to the original.
+
+    This is performed via code in the `get_and_update_user()` function
+    in apps/mymedicare_cb/models.py
+    """
+    crosswalk = models.ForeignKey(
+        Crosswalk, on_delete=models.CASCADE, blank=True, null=True, db_constraint=False,
+    )
+
+    _fhir_id = models.CharField(max_length=80,
+                                null=False,
+                                unique=False,
+                                default=None,
+                                db_column="fhir_id",
+                                db_index=True)
+
+    # This value is to be set to the type of lookup used MBI or HICN
+    user_id_type = models.CharField(max_length=1,
+                                    verbose_name="Hash ID type last used for FHIR_ID lookup",
+                                    default=settings.USER_ID_TYPE_DEFAULT,
+                                    choices=settings.USER_ID_TYPE_CHOICES)
+    # This stores the HICN hash value.
+    # TODO: Maybe rename this to _user_hicn_hash in future.
+    #   Keeping the same to not break backwards migration compatibility.
+    _user_id_hash = models.CharField(max_length=64,
+                                     verbose_name="HASH of User HICN ID",
+                                     unique=False,
+                                     null=False,
+                                     default=None,
+                                     db_column="user_id_hash",
+                                     db_index=True)
+    # This stores the MBI hash value.
+    #     Can be null for backwards migration compatibility.
+    _user_mbi_hash = models.CharField(max_length=64,
+                                      verbose_name="HASH of User MBI ID",
+                                      unique=False,
+                                      null=True,
+                                      default=None,
+                                      db_column="user_mbi_hash",
+                                      db_index=True)
+
+    archived_at = models.DateTimeField(auto_now_add=True)
+
+
 class Fhir_Response(Response):
     """
     Build a more consistent Response object

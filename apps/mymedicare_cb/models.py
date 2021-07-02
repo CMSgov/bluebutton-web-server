@@ -8,7 +8,7 @@ from rest_framework.exceptions import APIException
 
 from apps.accounts.models import UserProfile
 from apps.dot_ext.loggers import get_session_auth_flow_trace
-from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
 from .loggers import log_get_and_update_user, log_create_beneficiary_record
 
@@ -86,9 +86,17 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
 
         # Update Crosswalk if there are any allowed changes or hash_type used for lookup changed.
         if user.crosswalk.user_id_type != hash_lookup_type or crosswalk_updated != "":
+            # Copy pre-save values to ArchivedCrosswalk instance
+            acw = ArchivedCrosswalk.objects.create(crosswalk=user.crosswalk,
+                                                   _fhir_id=user.crosswalk.fhir_id,
+                                                   user_id_type=user.crosswalk.user_id_type,
+                                                   _user_id_hash=user.crosswalk.user_hicn_hash,
+                                                   _user_mbi_hash=user.crosswalk.user_mbi_hash)
+            acw.save()
+
             user.crosswalk.user_id_type = hash_lookup_type
-            user.crosswalk.user_mbi_hash = mbi_hash
             user.crosswalk.user_hicn_hash = hicn_hash
+            user.crosswalk.user_mbi_hash = mbi_hash
             user.crosswalk.save()
 
         # Beneficiary has been successfully matched!

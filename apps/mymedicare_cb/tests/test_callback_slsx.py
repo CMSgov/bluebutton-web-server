@@ -15,7 +15,7 @@ from urllib.parse import urlparse, parse_qs
 
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Approval, Application
-from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
@@ -491,6 +491,9 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         saved_hicn_hash = cw._user_id_hash
         saved_mbi_hash = cw._user_mbi_hash
 
+        # Validate ArchiveCrosswalk values
+        self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
+
         # 2. The bene's HICN has been changed in the mock SLSx user_info response.
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
                      MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn,
@@ -524,6 +527,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                          "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
         self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
                          "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
+
+        # Assert correct archived crosswalk values:
+        self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
+        acw = ArchivedCrosswalk.objects.get(id=1)
+        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
+        self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
         # 3. Restore crosswalk's hicn hash to original.
         cw = Crosswalk.objects.get(id=1)
@@ -564,6 +574,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
                          "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
 
+        # Assert correct archived crosswalk values:
+        self.assertEqual(ArchivedCrosswalk.objects.count(), 2)
+        acw = ArchivedCrosswalk.objects.get(id=2)
+        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
+        self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
+
         # 5. Restore crosswalk's mbi hash to original.
         cw = Crosswalk.objects.get(id=1)
         cw._user_mbi_hash = saved_mbi_hash
@@ -602,3 +619,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                          "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
         self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
                          "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
+
+        # Assert correct archived crosswalk values:
+        self.assertEqual(ArchivedCrosswalk.objects.count(), 3)
+        acw = ArchivedCrosswalk.objects.get(id=3)
+        self.assertEqual(acw._fhir_id, "-20140000008325")
+        self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
+        self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
