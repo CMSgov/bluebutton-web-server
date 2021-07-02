@@ -43,6 +43,7 @@ loggers = [
     "audit.authenticate.mymedicare_cb",
     "audit.authenticate.match_fhir_id",
     "audit.hhs_oauth_server.request_logging",
+    "request_logger",
 ]
 
 
