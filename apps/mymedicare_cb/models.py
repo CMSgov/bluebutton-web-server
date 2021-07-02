@@ -65,6 +65,7 @@ def get_and_update_user(
         "mbi_hash": mbi_hash,
         "hicn_hash": hicn_hash,
         "hash_lookup_type": hash_lookup_type,
+        "crosswalk": {},
     }
 
     try:

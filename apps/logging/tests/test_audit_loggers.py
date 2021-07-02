@@ -43,7 +43,7 @@ loggers = [
     "audit.authenticate.mymedicare_cb",
     "audit.authenticate.match_fhir_id",
     "audit.hhs_oauth_server.request_logging",
-    "request_logger",
+    "audit.request_logger",
 ]
 
 
@@ -267,7 +267,7 @@ class TestAuditEventLoggers(BaseApiTest):
                 )
             )
 
-            mymedicare_cb_log_content = self.get_log_content("request_logger")
+            mymedicare_cb_log_content = self.get_log_content("audit.request_logger")
             log_entries = mymedicare_cb_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
 

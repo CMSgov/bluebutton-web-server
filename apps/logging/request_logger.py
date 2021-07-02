@@ -6,7 +6,7 @@ from apps.dot_ext.loggers import get_session_auth_flow_trace
 
 
 class BasicLogger:
-    def __init__(self, logger_name="basic_logger"):
+    def __init__(self, logger_name="audit.basic_logger"):
         self._logger = logging.getLogger(logger_name)
 
     def format_for_output(self, data_dict):
@@ -30,7 +30,7 @@ class BasicLogger:
 
 class RequestLogger(BasicLogger):
     def __init__(self, request):
-        super().__init__(logger_name="request_logger")
+        super().__init__(logger_name="audit.request_logger")
         self.standard_log_data = {}
         self.extract_request_data(request)
 
