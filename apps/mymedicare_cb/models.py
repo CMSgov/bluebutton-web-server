@@ -1,5 +1,3 @@
-import logging
-
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -9,9 +7,7 @@ from rest_framework.exceptions import APIException
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
-
-
-logger = logging.getLogger("hhs_server.%s" % __name__)
+from apps.logging.request_logger import BasicLogger
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
@@ -51,6 +47,9 @@ def get_and_update_user(
         KeyError: If response from fhir server is malformed.
         AssertionError: If a user is matched but not all identifiers match.
     """
+
+    logger = BasicLogger()
+
     # Set logger to request logger if available
     if request is not None:
         logger = request._logger
@@ -60,22 +59,23 @@ def get_and_update_user(
         mbi_hash=mbi_hash, hicn_hash=hicn_hash, request=request
     )
 
+    log_dict = {
+        "type": "mymedicare_cb:get_and_update_user",
+        "fhir_id": fhir_id,
+        "mbi_hash": mbi_hash,
+        "hicn_hash": hicn_hash,
+        "hash_lookup_type": hash_lookup_type,
+    }
+
     try:
         # Does an existing user and crosswalk exist for SLSx username?
         user = User.objects.get(username=subject)
-        log_dict = {
-            "type": "mymedicare_cb:get_and_update_user",
-            "fhir_id": fhir_id,
-            "mbi_hash": mbi_hash,
-            "hicn_hash": hicn_hash,
-            "hash_lookup_type": hash_lookup_type,
-            "crosswalk": {
-                "id": user.crosswalk.id,
-                "user_hicn_hash": user.crosswalk.user_hicn_hash,
-                "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                "fhir_id": user.crosswalk.fhir_id,
-                "user_id_type": user.crosswalk.user_id_type,
-            },
+        log_dict["crosswalk"] = {
+            "id": user.crosswalk.id,
+            "user_hicn_hash": user.crosswalk.user_hicn_hash,
+            "user_mbi_hash": user.crosswalk.user_mbi_hash,
+            "fhir_id": user.crosswalk.fhir_id,
+            "user_id_type": user.crosswalk.user_id_type,
         }
 
         if user.crosswalk.user_hicn_hash != hicn_hash:
@@ -160,6 +160,8 @@ def create_beneficiary_record(
     user_id_type="H",
     request=None,
 ):
+
+    logger = BasicLogger()
 
     if request is not None:
         logger = request._logger
