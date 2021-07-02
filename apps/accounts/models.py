@@ -148,6 +148,12 @@ class UserProfile(models.Model):
             'Check this to allow the account to authorize applications.'),
     )
 
+    mfa_login_mode = models.CharField(default="",
+                                      choices=[('', 'None'), ('EMAIL', 'Email'), ('SMS', 'Text Message (SMS)')],
+                                      blank=True,
+                                      null=True,
+                                      max_length=5)
+
     mobile_phone_number = models.CharField(
         max_length=12,
         blank=True,
@@ -395,3 +401,77 @@ class PasswordHasher(PBKDF2PasswordHasher):
     Therefore, special hasher.
     """
     iterations = settings.PASSWORD_HASH_ITERATIONS
+
+
+class Invitation(models.Model):
+    '''
+    BB2-146 added back to sync model and table so that migrate can proceed
+    '''
+    code = models.CharField(max_length=10, unique=True)
+    email = models.EmailField(blank=True, max_length=254)
+    valid = models.BooleanField(default=True)
+    added = models.DateField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Developer Invitation'
+
+
+class Mfacode(models.Model):
+    '''
+    BB2-146 added back to sync model and table so that migrate can proceed
+    '''
+    code = models.CharField(blank=True, editable=False, max_length=4)
+    mode = models.CharField(choices=[('', 'None'), ('EMAIL', 'Email'), ('SMS', 'Text Message (SMS)')], default='', max_length=5)
+    valid = models.BooleanField(default=True)
+    expires = models.DateTimeField(blank=True)
+    added = models.DateField(auto_now_add=True)
+    user = models.ForeignKey(null=True, on_delete=CASCADE, to=settings.AUTH_USER_MODEL)
+    uid = models.CharField(blank=True, default=uuid.uuid4, editable=False, max_length=36)
+    tries_counter = models.IntegerField(default=0, editable=False)
+
+
+class Emailwebhook(models.Model):
+    '''
+    BB2-146 added back to sync model and table so that migrate can proceed
+    '''
+    email = models.EmailField(blank=True, default='', max_length=150)
+    status = models.CharField(blank=True, default='', max_length=30)
+    details = models.TextField(blank=True, default='', max_length=2048)
+    added = models.DateField(auto_now_add=True)
+
+
+class Requestinvite(models.Model):
+    '''
+    BB2-146 added back to sync model and table so that migrate can proceed
+    '''
+    first_name = models.CharField(default='', max_length=150)
+    last_name = models.CharField(default='', max_length=150)
+    organization = models.CharField(blank=True, default='', max_length=150)
+    email = models.EmailField(max_length=150)
+    added = models.DateField(auto_now_add=True)
+    user_type = models.CharField(choices=[('BEN', 'Beneficiary'), ('DEV', 'Developer')], default='DEV', max_length=3)
+    invite_sent = models.BooleanField(default=False)
+    issue_invite = models.CharField(choices=[('', 'Not Set'),
+                                             ('YES', 'Yes - Send Invite'),
+                                             ('NO', 'NO - Do not send invite'),
+                                             ('DONE', 'Invite has been sent')],
+                                    default='',
+                                    max_length=4)
+
+    class Meta:
+        verbose_name = 'Invite Request'
+
+
+class Userregistercode(models.Model):
+    code = models.CharField(db_index=True, max_length=30)
+    username = models.CharField(max_length=40)
+    email = models.EmailField(max_length=150)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    sent = models.BooleanField(default=False, editable=False)
+    used = models.BooleanField(default=False)
+    resend = models.BooleanField(default=False, help_text='Check to resend')
+    added = models.DateField(auto_now_add=True)
+    sender = models.ForeignKey(blank=True, null=True, on_delete=CASCADE, to=settings.AUTH_USER_MODEL)
+    valid = models.BooleanField(default=False)
+    user_id_hash = models.CharField(blank=True, default='', max_length=64)
