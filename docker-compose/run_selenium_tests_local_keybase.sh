@@ -10,19 +10,16 @@
 #
 # SETTINGS:  You may need to customize these for your local setup.
 
-HOSTNAME_URL="http://bb2:8000"
-
 KEYBASE_ENV_FILE="team/bb20/infrastructure/creds/ENV_secrets_for_local_integration_tests.env"
 KEYBASE_CERTFILES_SUBPATH="team/bb20/infrastructure/certs/local_integration_tests/fhir_client/certstore/"
-
-BB20_TEAM_VAULT_PASSFILE="/cygdrive/k/team/bb20/infrastructure/creds/vault_pw.txt"
-BB20_DEPLOYMENT_VAULTFILE="../bluebutton-web-deployment/vault/env/test/vault.yml"
-BB20_ENABLE_REMOTE_DEBUG=True
 
 DJANGO_FHIR_CERTSTORE="/certstore"
 CERTSTORE_TEMPORARY_MOUNT_PATH="/tmp/certstore"
 CERT_FILENAME="client_data_server_bluebutton_local_integration_tests_certificate.pem"
 KEY_FILENAME="client_data_server_bluebutton_local_integration_tests_private_key.pem"
+
+# BB2 service end point default
+HOSTNAME_URL="http://bb2:8000"
 
 # Backend FHIR server to use for selenium tests with FHIR requests:
 FHIR_URL="https://prod-sbx.bfd.cms.gov"
@@ -40,13 +37,6 @@ echo_msg () {
 echo_msg
 echo_msg RUNNING SCRIPT:  ${0}
 echo_msg
-
-DJANGO_USER_ID_SALT=$(ansible-vault view --vault-password-file=${BB20_TEAM_VAULT_PASSFILE} ${BB20_DEPLOYMENT_VAULTFILE} | grep "^vault_env_django_user_id_salt" | awk '{print $2}')
-DJANGO_USER_ID_ITERATIONS=$(ansible-vault view --vault-password-file=${BB20_TEAM_VAULT_PASSFILE} ${BB20_DEPLOYMENT_VAULTFILE} | grep "^vault_env_django_user_id_iterations" | awk '{print $2}')
-
-DJANGO_PASSWORD_HASH_ITERATIONS=$(ansible-vault view --vault-password-file=${BB20_TEAM_VAULT_PASSFILE} ${BB20_DEPLOYMENT_VAULTFILE} | grep "^vault_env_django_password_hash_iterations" | awk '{print $2}')
-DJANGO_SLSX_CLIENT_ID=$(ansible-vault view --vault-password-file=${BB20_TEAM_VAULT_PASSFILE} ${BB20_DEPLOYMENT_VAULTFILE} | grep "^vault_env_slsx_client_id" | awk '{print $2}')
-DJANGO_SLSX_CLIENT_SECRET=$(ansible-vault view --vault-password-file=${BB20_TEAM_VAULT_PASSFILE} ${BB20_DEPLOYMENT_VAULTFILE} | grep "^vault_env_slsx_client_secret" | awk '{print $2}')
 
 # Set bash builtins for safety
 set -e -u -o pipefail
@@ -190,15 +180,7 @@ export USE_MSLSX=${USE_MSLSX}
 
 echo "Selenium tests ..."
 
-docker-compose -f docker-compose.selenium.yml run \
--e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
--e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
--e DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS} \
--e DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID} \
--e DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET} \
--e HOSTNAME_URL=${HOSTNAME_URL} \
--e USE_MSLSX=${USE_MSLSX} \
-${DOCKER_COMPOSE_SERVICE} bash -c "python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests"
+docker-compose -f docker-compose.selenium.yml run ${DOCKER_COMPOSE_SERVICE} bash -c "python runtests.py --selenium ${TESTS_LIST}"
 
 # Remove certfiles from local directory
 echo_msg
