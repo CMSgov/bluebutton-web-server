@@ -278,6 +278,13 @@ def create_beneficiary_record(
         group = Group.objects.get(name="BlueButton")  # TODO: these do not need a group
         user.groups.add(group)
 
+        log_dict["crosswalk"] = {
+            "id": cw.id,
+            "user_hicn_hash": cw.user_hicn_hash,
+            "user_mbi_hash": cw.user_mbi_hash,
+            "fhir_id": cw.fhir_id,
+            "user_id_type": cw.user_id_type,
+        }
         log_dict["status"] = "OK"
         log_dict["mesg"] = "CREATE beneficiary record"
         logger.info(log_dict)
