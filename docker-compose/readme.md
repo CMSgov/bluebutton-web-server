@@ -279,5 +279,25 @@ NOTES:
   * For the CBC related setup see these files for more details:
     * `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job. 
     * `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification.  These settings will also need to be updated when there are CBC image naming changes.
-   
 
+## Developing and Running Selenium tests in Local Development
+You can run selenium tests by following below steps:
+
+  1. Make sure there is no blue button server and its dependent services running
+  2. Go to the base directory of the local repo and run:
+
+     use MSLSX (default)   
+     ```
+     ./docker-compose/run_selenium_tests_local_keybase.sh
+     ```
+
+     ```
+     ./docker-compose/run_selenium_tests_local_keybase.sh mslsx
+     ```
+
+     use SLSX
+     ```
+     ./docker-compose/run_selenium_tests_local_keybase.sh slsx
+     ```
+
+  3. To trouble shoot tests: point VNC client to localhost:6900
