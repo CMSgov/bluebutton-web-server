@@ -263,7 +263,7 @@ def create_beneficiary_record(
         )
         user.set_unusable_password()
         user.save()
-        Crosswalk.objects.create(
+        cw = Crosswalk.objects.create(
             user=user,
             user_hicn_hash=user_hicn_hash,
             user_mbi_hash=user_mbi_hash,
