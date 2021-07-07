@@ -173,6 +173,7 @@ def create_beneficiary_record(
         "fhir_id": fhir_id,
         "user_mbi_hash": user_mbi_hash,
         "user_hicn_hash": user_hicn_hash,
+        "crosswalk": {},
     }
 
     if username is None:
