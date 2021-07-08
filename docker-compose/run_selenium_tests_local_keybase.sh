@@ -52,7 +52,7 @@ if [ $# -eq 0 ]
 then
   echo "Use MSLSX for identity service."
 else
-  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "loggingit" ]]
+  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" ]]
   then
     echo
     echo "COMMAND USAGE HELP"
@@ -60,7 +60,7 @@ else
     echo
     echo "  Use one of the following command line options for the type of test to run:"
     echo
-    echo "    loggingit  = run integration tests for bb2 loggings, MSLSX used as identity service."
+    echo "    logit  = run integration tests for bb2 loggings, MSLSX used as identity service."
     echo
     echo "    slsx  = use SLSX for identity service."
     echo
@@ -74,9 +74,9 @@ else
       DOCKER_COMPOSE_SERVICE="tests_w_slsx"
       HOSTNAME_URL="http://bb2slsx:8000"
     fi
-    if [ $1 == "loggingit" ]
+    if [ $1 == "logit" ]
     then
-      TEST_TYPE="--loggingit"
+      TEST_TYPE="--logit"
       TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests"
       export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.test_logging"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
