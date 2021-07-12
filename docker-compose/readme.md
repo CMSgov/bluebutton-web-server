@@ -300,4 +300,15 @@ You can run selenium tests by following below steps:
      ./docker-compose/run_selenium_tests_local_keybase.sh slsx
      ```
 
-  3. To trouble shoot tests: point VNC client to localhost:6900
+  3. To trouble shoot tests (visualize webUI interaction): point VNC client to localhost:6900
+     1. requires installation of vnc viewer, password (secret)
+     2. also need to comment out webdriver headless option, as shown below:
+     ```
+        ./apps/integration_tests/selenium_tests.py: setUp():
+        ...
+        opt = webdriver.ChromeOptions()
+        opt.add_argument('--headless')
+        opt.add_argument("--disable-dev-shm-usage")
+        ...
+     ```
+

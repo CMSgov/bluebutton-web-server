@@ -77,7 +77,7 @@ else
     if [ $1 == "logit" ]
     then
       TEST_TYPE="--logit"
-      TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests"
+      TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
       export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.test_logging"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
       mkdir -p docker-compose/tmp
