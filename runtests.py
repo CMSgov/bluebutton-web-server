@@ -7,7 +7,6 @@ import sys
 from django.conf import settings
 from django.test.utils import get_runner
 
-
 '''
     Reference: https://docs.djangoproject.com/en/3.0/topics/testing/advanced/#defining-a-test-runner
 
@@ -74,7 +73,6 @@ if __name__ == '__main__':
     django.setup()
     TestRunner = get_runner(settings)
     test_runner = TestRunner()
-
     # Is there a list of specific tests to run?
     if args.test:
         failures = test_runner.run_tests(args.test)
