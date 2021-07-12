@@ -3,6 +3,19 @@ from enum import Enum
 from selenium.webdriver.common.by import By
 
 
+class Action(Enum):
+    LOAD_PAGE = 1
+    FIND_CLICK = 2
+    FIND = 3
+    FIND_SEND_KEY = 4
+    CHECK = 5
+    BACK = 6
+    LOGIN = 7
+    CONTAIN_TEXT = 8
+    GET_SAMPLE_TOKEN_START = 9
+    SLEEP = 10
+
+
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
 TESTCLIENT_RESOURCE_LABEL_FMT = "Response ({}), API version: {}"
 MESSAGE_NO_PERMISSION = "You do not have permission to perform this action."
@@ -52,20 +65,6 @@ BTN_ID_RADIO_NOT_SHARE = "label:nth-child(5)"
 # API versions
 API_V2 = "v2"
 API_V1 = "v1"
-
-
-class Action(Enum):
-    LOAD_PAGE = 1
-    FIND_CLICK = 2
-    FIND = 3
-    FIND_SEND_KEY = 4
-    CHECK = 5
-    BACK = 6
-    LOGIN = 7
-    CONTAIN_TEXT = 8
-    GET_SAMPLE_TOKEN_START = 9
-    SLEEP = 10
-
 
 BROWSERBACK = {
     "display": "Back to FHIR resource page",
