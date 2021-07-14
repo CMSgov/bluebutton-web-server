@@ -300,7 +300,13 @@ You can run selenium tests by following below steps:
      ./docker-compose/run_selenium_tests_local_keybase.sh slsx
      ```
 
-  3. To trouble shoot tests (visualize webUI interaction): point VNC client to localhost:6900
+  3. when switch mode slsx vs mslsx, run below command to clean up services built with mode specific env then start selenium tests:
+
+     ```
+     docker-compose -f docker-compose.selenium.yml down
+     ```
+
+  4. To trouble shoot tests (visualize webUI interaction): point VNC client to localhost:6900
      1. requires installation of vnc viewer, password (secret)
      2. also need to comment out webdriver headless option, as shown below:
      ```

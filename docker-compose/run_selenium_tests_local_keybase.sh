@@ -19,7 +19,7 @@ CERT_FILENAME="client_data_server_bluebutton_local_integration_tests_certificate
 KEY_FILENAME="client_data_server_bluebutton_local_integration_tests_private_key.pem"
 
 # BB2 service end point default
-HOSTNAME_URL="http://bb2:8000"
+HOSTNAME_URL="http://bb2slsx:8000"
 
 # Backend FHIR server to use for selenium tests with FHIR requests:
 FHIR_URL="https://prod-sbx.bfd.cms.gov"
@@ -42,7 +42,14 @@ echo_msg
 set -e -u -o pipefail
 
 USE_MSLSX=true
-DOCKER_COMPOSE_SERVICE="tests"
+# DOCKER_COMPOSE_SERVICE="tests"
+
+DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
+DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
+DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
+DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
+DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
 
 # Parse command line option
 if [ $# -eq 0 ]
@@ -66,14 +73,15 @@ else
     if [ $1 == "slsx" ]
     then
       USE_MSLSX=false
-      DOCKER_COMPOSE_SERVICE="tests_w_slsx"
-      HOSTNAME_URL="http://bb2slsx:8000"
+      DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+      DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
+      DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
+      DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
+      DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
+      DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
     fi
   fi
 fi
-
-echo "DOCKER_COMPOSE_SERVICE: " ${DOCKER_COMPOSE_SERVICE}
-echo "HOSTNAME_URL: " ${HOSTNAME_URL}
 
 # Set KeyBase ENV path based on your type of system
 SYSTEM=$(uname -s)
@@ -177,10 +185,16 @@ export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 export HOSTNAME_URL=${HOSTNAME_URL}
 export USE_MSLSX=${USE_MSLSX}
+export DJANGO_MEDICARE_SLSX_REDIRECT_URI=${DJANGO_MEDICARE_SLSX_REDIRECT_URI}
+export DJANGO_MEDICARE_SLSX_LOGIN_URI=${DJANGO_MEDICARE_SLSX_LOGIN_URI}
+export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=${DJANGO_SLSX_HEALTH_CHECK_ENDPOINT}
+export DJANGO_SLSX_TOKEN_ENDPOINT=${DJANGO_SLSX_TOKEN_ENDPOINT}
+export DJANGO_SLSX_SIGNOUT_ENDPOINT=${DJANGO_SLSX_SIGNOUT_ENDPOINT}
+export DJANGO_SLSX_USERINFO_ENDPOINT=${DJANGO_SLSX_USERINFO_ENDPOINT}
 
 echo "Selenium tests ..."
 
-docker-compose -f docker-compose.selenium.yml run ${DOCKER_COMPOSE_SERVICE} bash -c "python runtests.py --selenium ${TESTS_LIST}"
+docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
 
 # Remove certfiles from local directory
 echo_msg
