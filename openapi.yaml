@@ -1,0 +1,499 @@
+openapi: 3.0.2
+info:
+  title: 'BlueButton 2.0'
+  version: '1.0.0'
+paths:
+  /v1/connect/userinfo:
+    get:
+      operationId: listopenidconnect_userinfos
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v1
+  /v1/fhir/Patient/{resource_id}:
+    get:
+      operationId: listReadViewPatients
+      description: ''
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v1
+  /v1/fhir/Patient/:
+    get:
+      operationId: listSearchViewPatients
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v1
+  /v1/fhir/Coverage/{resource_id}:
+    get:
+      operationId: listReadViewCoverages
+      description: ''
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v1
+  /v1/fhir/Coverage/:
+    get:
+      operationId: listSearchViewCoverages
+      description: ''
+      parameters:
+        - in: query
+          name: beneficiary
+          schema:
+            type: integer
+          required: false
+          description: fhir id to return results for 
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v1
+  /v1/fhir/ExplanationOfBenefit/{resource_id}:
+    get:
+      operationId: listReadViewExplanationOfBenefits
+      description: ''
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v1
+  /v1/fhir/ExplanationOfBenefit/:
+    get:
+      operationId: listSearchViewExplanationOfBenefits
+      description: ''
+      parameters:
+        - in: query
+          name: patient
+          schema:
+            type: integer
+          required: false
+          description: fhir id to return results for 
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v1
+  /v1/o/tokens/:
+    get:
+      operationId: listDataAccessGrants
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataAccessGrant'
+          description: ''
+      tags:
+      - v1
+  /v1/o/tokens/{id}/:
+    get:
+      operationId: retrieveDataAccessGrant
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataAccessGrant'
+          description: ''
+      tags:
+      - v1
+    delete:
+      operationId: destroyDataAccessGrant
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - v1
+  /v2/connect/userinfo:
+    get:
+      operationId: listopenidconnect_userinfos_v2
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v2
+  /v2/fhir/Patient/{resource_id}:
+    get:
+      operationId: listReadViewPatients_v2
+      description: ''
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v2
+  /v2/fhir/Patient/:
+    get:
+      operationId: listSearchViewPatients_v2
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v2
+  /v2/fhir/Coverage/{resource_id}:
+    get:
+      operationId: listReadViewCoverages_v2
+      description: ''
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v2
+  /v2/fhir/Coverage/:
+    get:
+      operationId: listSearchViewCoverages_v2
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v2
+  /v2/fhir/ExplanationOfBenefit/{resource_id}:
+    get:
+      operationId: listReadViewExplanationOfBenefits_v2
+      description: ''
+      parameters:
+      - name: resource_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v2
+  /v2/fhir/ExplanationOfBenefit/:
+    get:
+      operationId: listSearchViewExplanationOfBenefits_v2
+      description: ''
+      parameters:
+        - in: query
+          name: patient
+          schema:
+            type: integer
+          required: false
+          description: fhir id to return results for 
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - v2
+  /v2/o/tokens/:
+    get:
+      operationId: listDataAccessGrants_v2
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataAccessGrant'
+          description: ''
+      tags:
+      - v2
+  /v2/o/tokens/{id}/:
+    get:
+      operationId: retrieveDataAccessGrant_v2
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataAccessGrant'
+          description: ''
+      tags:
+      - v2
+    delete:
+      operationId: destroyDataAccessGrant_v2
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - v2
+components:
+  schemas:
+    DataAccessGrant:
+      type: object
+      properties:
+        beneficiary:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            username:
+              type: string
+              description: Required. 150 characters or fewer. Letters, digits and
+                @/./+/-/_ only.
+              pattern: ^[\w.@+-]+$
+              maxLength: 150
+            email:
+              type: string
+              format: email
+              maxLength: 254
+            date_joined:
+              type: string
+              format: date-time
+            last_login:
+              type: string
+              format: date-time
+              nullable: true
+            organization:
+              type: string
+          required:
+          - username
+          - organization
+          readOnly: true
+        application:
+          type: object
+          properties:
+            id:
+              type: integer
+              readOnly: true
+            name:
+              type: string
+              maxLength: 255
+            user:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  readOnly: true
+                username:
+                  type: string
+                  description: Required. 150 characters or fewer. Letters, digits
+                    and @/./+/-/_ only.
+                  pattern: ^[\w.@+-]+$
+                  maxLength: 150
+                email:
+                  type: string
+                  format: email
+                  maxLength: 254
+                date_joined:
+                  type: string
+                  format: date-time
+                last_login:
+                  type: string
+                  format: date-time
+                  nullable: true
+                organization:
+                  type: string
+              required:
+              - username
+              - organization
+              readOnly: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
