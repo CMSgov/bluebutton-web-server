@@ -144,15 +144,19 @@ class Crosswalk(models.Model):
 class ArchivedCrosswalk(models.Model):
     """
     This model is used to keep an audit copy of a Crosswalk record's
-    previous values when there are changes with a ForeignKeylink to the original.
+    previous values when there are changes to the original.
 
     This is performed via code in the `get_and_update_user()` function
     in apps/mymedicare_cb/models.py
     """
-    crosswalk = models.ForeignKey(
-        Crosswalk, on_delete=models.CASCADE, blank=True, null=True, db_constraint=False,
-    )
-
+    # SLSx sub/username
+    username = models.CharField(max_length=150,
+                                null=False,
+                                unique=False,
+                                default=None,
+                                db_column="username",
+                                db_index=True)
+    # BFD fhir/patient id
     _fhir_id = models.CharField(max_length=80,
                                 null=False,
                                 unique=False,
@@ -184,6 +188,9 @@ class ArchivedCrosswalk(models.Model):
                                       default=None,
                                       db_column="user_mbi_hash",
                                       db_index=True)
+
+    # Date/time that the Crosswalk instance was created
+    date_created = models.DateTimeField()
 
     archived_at = models.DateTimeField(auto_now_add=True)
 
