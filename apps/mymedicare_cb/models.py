@@ -86,18 +86,15 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
 
         # Update Crosswalk if there are any allowed changes or hash_type used for lookup changed.
         if user.crosswalk.user_id_type != hash_lookup_type or crosswalk_updated != "":
-            # Copy pre-save values to ArchivedCrosswalk instance
-            acw = ArchivedCrosswalk.objects.create(crosswalk=user.crosswalk,
-                                                   _fhir_id=user.crosswalk.fhir_id,
-                                                   user_id_type=user.crosswalk.user_id_type,
-                                                   _user_id_hash=user.crosswalk.user_hicn_hash,
-                                                   _user_mbi_hash=user.crosswalk.user_mbi_hash)
-            acw.save()
+            with transaction.atomic():
+                # Archive to audit crosswalk changes
+                ArchivedCrosswalk.create(user.crosswalk)
 
-            user.crosswalk.user_id_type = hash_lookup_type
-            user.crosswalk.user_hicn_hash = hicn_hash
-            user.crosswalk.user_mbi_hash = mbi_hash
-            user.crosswalk.save()
+                # Update crosswalk per changes
+                user.crosswalk.user_id_type = hash_lookup_type
+                user.crosswalk.user_hicn_hash = hicn_hash
+                user.crosswalk.user_mbi_hash = mbi_hash
+                user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
         mesg = "RETURN existing beneficiary record"

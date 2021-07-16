@@ -156,6 +156,7 @@ class ArchivedCrosswalk(models.Model):
                                 default=None,
                                 db_column="username",
                                 db_index=True)
+
     # BFD fhir/patient id
     _fhir_id = models.CharField(max_length=80,
                                 null=False,
@@ -169,6 +170,7 @@ class ArchivedCrosswalk(models.Model):
                                     verbose_name="Hash ID type last used for FHIR_ID lookup",
                                     default=settings.USER_ID_TYPE_DEFAULT,
                                     choices=settings.USER_ID_TYPE_CHOICES)
+
     # This stores the HICN hash value.
     # TODO: Maybe rename this to _user_hicn_hash in future.
     #   Keeping the same to not break backwards migration compatibility.
@@ -179,6 +181,7 @@ class ArchivedCrosswalk(models.Model):
                                      default=None,
                                      db_column="user_id_hash",
                                      db_index=True)
+
     # This stores the MBI hash value.
     #     Can be null for backwards migration compatibility.
     _user_mbi_hash = models.CharField(max_length=64,
@@ -193,6 +196,17 @@ class ArchivedCrosswalk(models.Model):
     date_created = models.DateTimeField()
 
     archived_at = models.DateTimeField(auto_now_add=True)
+
+    # Method to create archive of field values from a passed in Crosswalk instance
+    def create(crosswalk):
+        acw = ArchivedCrosswalk.objects.create(username=crosswalk.user.username,
+                                               _fhir_id=crosswalk.fhir_id,
+                                               user_id_type=crosswalk.user_id_type,
+                                               _user_id_hash=crosswalk.user_hicn_hash,
+                                               _user_mbi_hash=crosswalk.user_mbi_hash,
+                                               date_created=crosswalk.date_created)
+        acw.save()
+        return acw
 
 
 class Fhir_Response(Response):
