@@ -483,6 +483,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         cw = Crosswalk.objects.get(id=1)
 
         # Assert correct crosswalk values:
+        self.assertEqual(cw.user.id, 1)
+        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(cw.fhir_id, "-20140000008325")
         self.assertEqual(cw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(cw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
@@ -509,6 +511,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         cw = Crosswalk.objects.get(id=1)
 
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
+        self.assertEqual(cw.user.id, 1)
+        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(cw.fhir_id, "-20140000008325")
         self.assertEqual(cw._user_id_hash, "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
         self.assertEqual(cw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
@@ -521,6 +525,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_dict = json.loads(log_list[2])
 
         # Assert correct values
+        self.assertEqual(log_dict['user_id'], 1)
+        self.assertEqual(log_dict['username'], "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(log_dict['fhir_id'], "-20140000008325")
         self.assertEqual(log_dict['crosswalk_updated'], "H")
         self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
@@ -531,6 +537,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
         acw = ArchivedCrosswalk.objects.get(id=1)
+
+        self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(acw._fhir_id, "-20140000008325")
         self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
@@ -555,6 +563,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         cw = Crosswalk.objects.get(id=1)
 
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
+        self.assertEqual(cw.user.id, 1)
+        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(cw.fhir_id, "-20140000008325")
         self.assertEqual(cw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(cw._user_mbi_hash, "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
@@ -567,6 +577,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_dict = json.loads(log_list[3])
 
         # Assert correct values
+        self.assertEqual(log_dict['user_id'], 1)
+        self.assertEqual(log_dict['username'], "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(log_dict['fhir_id'], "-20140000008325")
         self.assertEqual(log_dict['crosswalk_updated'], "M")
         self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
@@ -577,6 +589,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 2)
         acw = ArchivedCrosswalk.objects.get(id=2)
+
+        self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(acw._fhir_id, "-20140000008325")
         self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
@@ -601,6 +615,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         cw = Crosswalk.objects.get(id=1)
 
         # Assert correct crosswalk values. Did the hicn update to new/changed value?
+        self.assertEqual(cw.user.id, 1)
+        self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(cw.fhir_id, "-20140000008325")
         self.assertEqual(cw._user_id_hash, "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
         self.assertEqual(cw._user_mbi_hash, "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
@@ -613,6 +629,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         log_dict = json.loads(log_list[4])
 
         # Assert correct values
+        self.assertEqual(log_dict['user_id'], 1)
+        self.assertEqual(log_dict['username'], "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(log_dict['fhir_id'], "-20140000008325")
         self.assertEqual(log_dict['crosswalk_updated'], "HM")
         self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
@@ -623,6 +641,8 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 3)
         acw = ArchivedCrosswalk.objects.get(id=3)
+
+        self.assertEqual(acw.username, "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(acw._fhir_id, "-20140000008325")
         self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")

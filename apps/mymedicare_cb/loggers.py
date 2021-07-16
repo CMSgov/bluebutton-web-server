@@ -22,6 +22,8 @@ def log_get_and_update_user(auth_flow_dict, status, user, fhir_id, mbi_hash, hic
     log_dict = {
         "type": "mymedicare_cb:get_and_update_user",
         "status": status,
+        "user_id": user.id,
+        "username": user.username,
         "fhir_id": fhir_id,
         "mbi_hash": mbi_hash,
         "hicn_hash": hicn_hash,
