@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run the selenium tests in docker
-# 
+#
 # NOTE:
 #
 #   1. You must be logged in to Keybase and have the BB2 team file system mounted.
@@ -19,7 +19,7 @@ CERT_FILENAME="client_data_server_bluebutton_local_integration_tests_certificate
 KEY_FILENAME="client_data_server_bluebutton_local_integration_tests_private_key.pem"
 
 # BB2 service end point default
-HOSTNAME_URL="http://bb2slsx:8000"
+export HOSTNAME_URL="http://bb2slsx:8000"
 
 # Backend FHIR server to use for selenium tests with FHIR requests:
 FHIR_URL="https://prod-sbx.bfd.cms.gov"
@@ -30,7 +30,7 @@ TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
-  echo "$(basename $0): $*"
+    echo "$(basename $0): $*"
 }
 
 # main
@@ -41,46 +41,45 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
-USE_MSLSX=true
-# DOCKER_COMPOSE_SERVICE="tests"
+export USE_MSLSX=true
 
-DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
-DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
-DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
-DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
-DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
-DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
+export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
+export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
+export DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
+export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
+export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
 
 # Parse command line option
 if [ $# -eq 0 ]
 then
-  echo "Use MSLSX for identity service."
+    echo "Use MSLSX for identity service."
 else
-  if [[ $1 != "slsx" && $1 != "mslsx" ]]
-  then
-    echo
-    echo "COMMAND USAGE HELP"
-    echo "------------------"
-    echo
-    echo "  Use one of the following command line options for the type of test to run:"
-    echo
-    echo "    slsx  = use SLSX for identity service."
-    echo
-    echo "    mslsx (default) = use MSLSX for identity service."
-    echo
-    exit 1
-  else
-    if [ $1 == "slsx" ]
+    if [[ $1 != "slsx" && $1 != "mslsx" ]]
     then
-      USE_MSLSX=false
-      DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
-      DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
-      DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
-      DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
-      DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
-      DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+        echo
+        echo "COMMAND USAGE HELP"
+        echo "------------------"
+        echo
+        echo "  Use one of the following command line options for the type of test to run:"
+        echo
+        echo "    slsx  = use SLSX for identity service."
+        echo
+        echo "    mslsx (default) = use MSLSX for identity service."
+        echo
+        exit 1
+    else
+        if [ $1 == "slsx" ]
+        then
+            export USE_MSLSX=false
+            export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+            export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
+            export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
+            export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
+            export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
+            export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+        fi
     fi
-  fi
 fi
 
 # Set KeyBase ENV path based on your type of system
@@ -91,15 +90,15 @@ echo_msg
 
 if [[ ${SYSTEM} == "Linux" ]]
 then
-  keybase_env_path="/keybase"
+    keybase_env_path="/keybase"
 elif [[ ${SYSTEM} == "Darwin" ]]
 then
-  keybase_env_path="/Volumes/keybase"
+    keybase_env_path="/Volumes/keybase"
 else
-  # support cygwin
-  keybase_env_path="/cygdrive/k"
-  CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
-  DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
+    # support cygwin
+    keybase_env_path="/cygdrive/k"
+    CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
+    DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
 fi
 
 # Keybase ENV file
@@ -111,10 +110,10 @@ echo_msg
 # Check that ENV file exists in correct location
 if [ ! -f "${keybase_env}" ]
 then
-echo_msg
-echo_msg "ERROR: The ENV secrets could NOT be found at: ${keybase_env}"
-echo_msg
-exit 1
+    echo_msg
+    echo_msg "ERROR: The ENV secrets could NOT be found at: ${keybase_env}"
+    echo_msg
+    exit 1
 fi
 
 # Source ENVs
@@ -123,25 +122,26 @@ source "${keybase_env}"
 # Check ENV vars have been sourced
 if [ -z "${DJANGO_USER_ID_SALT}" ]
 then
-echo_msg "ERROR: The DJANGO_USER_ID_SALT variable was not sourced!"
-exit 1
+    echo_msg "ERROR: The DJANGO_USER_ID_SALT variable was not sourced!"
+    exit 1
 fi
 if [ -z "${DJANGO_USER_ID_ITERATIONS}" ]
 then
-echo_msg "ERROR: The DJANGO_USER_ID_ITERATIONS variable was not sourced!"
-exit 1
+    echo_msg "ERROR: The DJANGO_USER_ID_ITERATIONS variable was not sourced!"
+    exit 1
 fi
 
 # Check temp certstore dir and create if not existing
 if [ -d "${CERTSTORE_TEMPORARY_MOUNT_PATH}" ]
 then
-echo_msg
-echo_msg "  - OK: The temporary certstore mount path is found at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
+    echo_msg
+    echo_msg "  - OK: The temporary certstore mount path is found at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
 else
-mkdir ${CERTSTORE_TEMPORARY_MOUNT_PATH}
-echo_msg
-echo_msg "  - OK: Created the temporary certstore mount path at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
+    mkdir ${CERTSTORE_TEMPORARY_MOUNT_PATH}
+    echo_msg
+    echo_msg "  - OK: Created the temporary certstore mount path at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
 fi
+
 
 # Keybase cert files
 keybase_certfiles="${keybase_env_path}/${KEYBASE_CERTFILES_SUBPATH}"
@@ -183,18 +183,17 @@ export DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS}
 export DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS}
 export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
-export HOSTNAME_URL=${HOSTNAME_URL}
-export USE_MSLSX=${USE_MSLSX}
-export DJANGO_MEDICARE_SLSX_REDIRECT_URI=${DJANGO_MEDICARE_SLSX_REDIRECT_URI}
-export DJANGO_MEDICARE_SLSX_LOGIN_URI=${DJANGO_MEDICARE_SLSX_LOGIN_URI}
-export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=${DJANGO_SLSX_HEALTH_CHECK_ENDPOINT}
-export DJANGO_SLSX_TOKEN_ENDPOINT=${DJANGO_SLSX_TOKEN_ENDPOINT}
-export DJANGO_SLSX_SIGNOUT_ENDPOINT=${DJANGO_SLSX_SIGNOUT_ENDPOINT}
-export DJANGO_SLSX_USERINFO_ENDPOINT=${DJANGO_SLSX_USERINFO_ENDPOINT}
 
 echo "Selenium tests ..."
 
 docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
+
+# Stop containers after use
+echo_msg
+echo_msg "Stopping containers..."
+echo_msg
+
+docker-compose -f docker-compose.selenium.yml stop
 
 # Remove certfiles from local directory
 echo_msg
@@ -203,9 +202,9 @@ echo_msg
 
 if which shred
 then
-  echo_msg "  - Shredding files"
-  shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
-  shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
+    echo_msg "  - Shredding files"
+    shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
+    shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
 fi
 
 echo_msg "  - Removing files"
