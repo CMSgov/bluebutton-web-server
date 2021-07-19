@@ -1,10 +1,10 @@
 import datetime
 import hashlib
 import json
-import logging
 import uuid
 
-from django.conf import settings
+import apps.logging.request_logger as logging
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
@@ -185,7 +185,7 @@ class RequestResponseLog(object):
         except AttributeError:
             self.log_msg[key] = "AttributeError exception for key " + key + ":" + qp_key
 
-    def __str__(self):
+    def to_dict(self):
         """
         --- Logging custom items ---
         """
@@ -407,7 +407,7 @@ class RequestResponseLog(object):
         """
         --- Logging items from a FHIR type response ---
         """
-        if type(self.response) == Response:
+        if type(self.response) == Response and isinstance(self.response.data, dict):
             self.log_msg["fhir_bundle_type"] = self.response.data.get("type", None)
             self.log_msg["fhir_resource_id"] = self.response.data.get("id", None)
             self.log_msg["fhir_resource_type"] = self.response.data.get(
@@ -488,11 +488,7 @@ class RequestResponseLog(object):
                 except ObjectDoesNotExist:
                     pass
 
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.log_msg, indent=2)
-        else:
-            return json.dumps(self.log_msg)
-
+        return self.log_msg
 
 ##############################################################################
 #

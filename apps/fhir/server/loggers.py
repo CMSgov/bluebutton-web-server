@@ -1,7 +1,4 @@
-import json
-import logging
-
-from django.conf import settings
+import apps.logging.request_logger as logging
 
 
 """
@@ -32,7 +29,4 @@ def log_match_fhir_id(auth_flow_dict, fhir_id, mbi_hash, hicn_hash,
         "hash_lookup_mesg": hash_lookup_mesg,
     }
 
-    if settings.LOG_JSON_FORMAT_PRETTY:
-        match_fhir_id_logger.info(json.dumps(log_dict, indent=2))
-    else:
-        match_fhir_id_logger.info(json.dumps(log_dict))
+    match_fhir_id_logger.info(log_dict)

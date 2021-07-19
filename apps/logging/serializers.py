@@ -4,6 +4,10 @@ import hashlib
 from django.conf import settings
 
 
+def json_str(data_dict):
+    return json.dumps(data_dict, indent=2 if settings.LOG_JSON_FORMAT_PRETTY else None)
+
+
 class DataAccessGrantSerializer:
     tkn = None
     action = None
@@ -12,12 +16,12 @@ class DataAccessGrantSerializer:
         self.tkn = obj
         self.action = action
 
-    def __str__(self):
+    def to_dict(self):
         # seems like this should be a serializer
         app = getattr(self.tkn, 'application', None)
         app_user = getattr(app, 'user', None)
         user = getattr(self.tkn, 'user', None)
-        result = {
+        return {
             "type": "DataAccessGrant",
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
@@ -34,10 +38,9 @@ class DataAccessGrantSerializer:
                 "username": getattr(user, 'username', None),
             }
         }
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(result, indent=2)
-        else:
-            return json.dumps(result)
+
+    def __str__(self):
+        return json_str(self.to_dict())
 
 
 class Token:
@@ -53,7 +56,7 @@ class Token:
         else:
             self.auth_flow_dict = {}
 
-    def __str__(self):
+    def to_dict(self):
         # seems like this should be a serializer
         app = getattr(self.tkn, 'application', None)
         app_user = getattr(app, 'user', None)
@@ -97,11 +100,10 @@ class Token:
 
         # Update with auth flow session info
         result.update(self.auth_flow_dict)
+        return result
 
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(result, indent=2)
-        else:
-            return json.dumps(result)
+    def __str__(self):
+        return json_str(self.to_dict())
 
 
 class Request:
@@ -124,10 +126,7 @@ class Request:
         }
 
     def __str__(self):
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.to_dict(), indent=2)
-        else:
-            return json.dumps(self.to_dict())
+        return json_str(self.to_dict())
 
 
 class SLSRequest(Request):
@@ -257,12 +256,7 @@ class Response:
         return resp_dict
 
     def __str__(self):
-        result = self.req.copy()
-        result.update(self.to_dict())
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(result, indent=2)
-        else:
-            return json.dumps(result)
+        return json_str(self.to_dict())
 
 
 class FHIRResponse(Response):
@@ -361,10 +355,7 @@ class SLSxTokenResponse(SLSResponse):
         return resp_dict
 
     def __str__(self):
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.to_dict(), indent=2)
-        else:
-            return json.dumps(self.to_dict())
+        return json_str(self.to_dict())
 
 
 class SLSxUserInfoResponse(SLSResponse):
@@ -411,7 +402,4 @@ class SLSxUserInfoResponse(SLSResponse):
         return resp_dict
 
     def __str__(self):
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.to_dict(), indent=2)
-        else:
-            return json.dumps(self.to_dict())
+        return json_str(self.to_dict())

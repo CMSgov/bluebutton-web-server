@@ -1,7 +1,9 @@
 import io
 import json
-import logging
+import logging as d_logging
 import re
+
+import apps.logging.request_logger as logging
 
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
@@ -158,10 +160,10 @@ class BaseApiTest(TestCase):
         for n in logger_names:
             logger = logging.getLogger(n)
             log_buffer = io.StringIO()
-            log_channel = logging.StreamHandler(log_buffer)
-            log_channel.setLevel(logging.INFO)
-            logger.setLevel(logging.INFO)
-            logger.addHandler(log_channel)
+            log_channel = d_logging.StreamHandler(log_buffer)
+            log_channel.setLevel(d_logging.INFO)
+            logger.logger().setLevel(d_logging.INFO)
+            logger.logger().addHandler(log_channel)
             self.logger_registry[n] = (log_buffer, log_channel)
 
     def _cleanup_logger(self):
