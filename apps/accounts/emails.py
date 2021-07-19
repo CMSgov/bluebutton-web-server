@@ -1,5 +1,4 @@
 import random
-# import logging
 import apps.logging.request_logger as logging
 from django.conf import settings
 from django.urls import reverse

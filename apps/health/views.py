@@ -1,4 +1,3 @@
-# import logging
 import apps.logging.request_logger as logging
 
 from django.core.exceptions import ImproperlyConfigured

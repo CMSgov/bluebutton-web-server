@@ -16,7 +16,6 @@ from apps.fhir.bluebutton.utils import get_fhir_now
 import csv
 import sys
 
-# import logging
 import apps.logging.request_logger as logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)

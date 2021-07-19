@@ -31,6 +31,9 @@ class BasicLogger:
         return self._logger
 
     def format_for_output(self, data_dict, cls=None):
+        # return str as is
+        if isinstance(data_dict, str):
+            return data_dict
         # expect data_dict as a dict, or a class that has to_dict() implemented
         tmp_dict = data_dict if isinstance(data_dict, dict) else data_dict.to_dict()
         try:
@@ -39,22 +42,22 @@ class BasicLogger:
             return "Could not turn the data_dict into a JSON dump"
 
     def debug(self, data_dict, cls=None):
-        self._logger.debug(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.debug(self.format_for_output(data_dict, cls=cls))
 
     def info(self, data_dict, cls=None):
-        self._logger.info(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.info(self.format_for_output(data_dict, cls=cls))
 
     def error(self, data_dict, cls=None):
-        self._logger.error(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.error(self.format_for_output(data_dict, cls=cls))
 
     def warning(self, data_dict, cls=None):
-        self._logger.warning(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.warning(self.format_for_output(data_dict, cls=cls))
 
     def critical(self, data_dict, cls=None):
-        self._logger.critical(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.critical(self.format_for_output(data_dict, cls=cls))
 
     def exception(self, data_dict, cls=None):
-        self._logger.exception(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.exception(self.format_for_output(data_dict, cls=cls))
 
 
 class RequestLogger(BasicLogger):
@@ -76,24 +79,27 @@ class RequestLogger(BasicLogger):
         self.standard_log_data.update(get_session_auth_flow_trace(request))
 
     def format_for_output(self, data_dict, cls=None):
+        # return str as is
+        if isinstance(data_dict, str):
+            return data_dict
         tmp_dict = data_dict if isinstance(data_dict, dict) else data_dict.to_dict()
         merged_dict = {**self.standard_log_data, **tmp_dict}
         return super().format_for_output(merged_dict, cls=cls)
 
     def debug(self, data_dict, request=None, cls=None):
-        self._logger.debug(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.debug(self.format_for_output(data_dict, cls=cls))
 
     def info(self, data_dict, request=None, cls=None):
-        self._logger.info(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.info(self.format_for_output(data_dict, cls=cls))
 
     def error(self, data_dict, request=None, cls=None):
-        self._logger.error(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.error(self.format_for_output(data_dict, cls=cls))
 
     def warning(self, data_dict, cls=None):
-        self._logger.warning(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.warning(self.format_for_output(data_dict, cls=cls))
 
     def critical(self, data_dict, cls=None):
-        self._logger.critical(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.critical(self.format_for_output(data_dict, cls=cls))
 
     def exception(self, data_dict, cls=None):
-        self._logger.exception(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+        self._logger.exception(self.format_for_output(data_dict, cls=cls))
