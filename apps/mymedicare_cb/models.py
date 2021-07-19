@@ -1,5 +1,3 @@
-import logging
-
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -7,13 +5,9 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from apps.accounts.models import UserProfile
-from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
-from .loggers import log_get_and_update_user, log_create_beneficiary_record
-
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
+from apps.logging.request_logger import BasicLogger
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
@@ -26,7 +20,9 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, email, request=None):
+def get_and_update_user(
+    subject, mbi_hash, hicn_hash, first_name, last_name, email, request=None
+):
     """
     Find or create the user associated
     with the identity information from the ID provider.
@@ -51,11 +47,27 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
         KeyError: If response from fhir server is malformed.
         AssertionError: If a user is matched but not all identifiers match.
     """
-    # Get auth flow session values.
-    auth_flow_dict = get_session_auth_flow_trace(request)
+
+    logger = BasicLogger()
+
+    # Set logger to request logger if available
+    if request is not None:
+        logger = request._logger
 
     # Match a patient identifier via the backend FHIR server
-    fhir_id, hash_lookup_type = match_fhir_id(mbi_hash=mbi_hash, hicn_hash=hicn_hash, request=request)
+    fhir_id, hash_lookup_type = match_fhir_id(
+        mbi_hash=mbi_hash, hicn_hash=hicn_hash, request=request
+    )
+
+    log_dict = {
+        "type": "mymedicare_cb:get_and_update_user",
+        "subject": subject,
+        "fhir_id": fhir_id,
+        "mbi_hash": mbi_hash,
+        "hicn_hash": hicn_hash,
+        "hash_lookup_type": hash_lookup_type,
+        "crosswalk": {},
+    }
 
     # Init for types of crosswalk updates. "" = None
     crosswalk_updated = ""
@@ -63,12 +75,25 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
     try:
         # Does an existing user and crosswalk exist for SLSx username?
         user = User.objects.get(username=subject)
+        log_dict["crosswalk"] = {
+            "id": user.crosswalk.id,
+            "user_hicn_hash": user.crosswalk.user_hicn_hash,
+            "user_mbi_hash": user.crosswalk.user_mbi_hash,
+            "fhir_id": user.crosswalk.fhir_id,
+            "user_id_type": user.crosswalk.user_id_type,
+        }
 
         # fhir_id can not change for an existing user!
         if user.crosswalk.fhir_id != fhir_id:
             mesg = "Found user's fhir_id did not match"
-            log_get_and_update_user(auth_flow_dict, "FAIL", user, fhir_id, mbi_hash, hicn_hash,
-                                    hash_lookup_type, crosswalk_updated, mesg)
+            log_dict.update({
+                "status": "FAIL",
+                "user_id": user.id,
+                "user_username": user.username,
+                "crosswalk_updated": crosswalk_updated,
+                "mesg": mesg,
+            })
+            logger.info(log_dict)
             raise BBMyMedicareCallbackCrosswalkUpdateException(mesg)
 
         # Did the hicn change?
@@ -97,130 +122,220 @@ def get_and_update_user(subject, mbi_hash, hicn_hash, first_name, last_name, ema
                 user.crosswalk.save()
 
         # Beneficiary has been successfully matched!
-        mesg = "RETURN existing beneficiary record"
-        log_get_and_update_user(auth_flow_dict, "OK", user, fhir_id, mbi_hash, hicn_hash,
-                                hash_lookup_type, crosswalk_updated, mesg)
+        log_dict.update({
+            "status": "OK",
+            "user_id": user.id,
+            "user_username": user.username,
+            "crosswalk_updated": crosswalk_updated,
+            "mesg": "RETURN existing beneficiary record",
+        })
+        logger.info(log_dict)
+
         return user, "R"
     except User.DoesNotExist:
         pass
 
-    user = create_beneficiary_record(username=subject,
-                                     user_hicn_hash=hicn_hash,
-                                     user_mbi_hash=mbi_hash,
-                                     fhir_id=fhir_id,
-                                     first_name=first_name,
-                                     last_name=last_name,
-                                     email=email,
-                                     user_id_type=hash_lookup_type,
-                                     auth_flow_dict=auth_flow_dict)
+    user = create_beneficiary_record(
+        username=subject,
+        user_hicn_hash=hicn_hash,
+        user_mbi_hash=mbi_hash,
+        fhir_id=fhir_id,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        user_id_type=hash_lookup_type,
+        request=request,
+    )
 
-    mesg = "CREATE beneficiary record"
-    log_get_and_update_user(auth_flow_dict, "OK", user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, crosswalk_updated, mesg)
+    log_dict.update({
+        "status": "OK",
+        "user_id": user.id,
+        "user_username": user.username,
+        "crosswalk_updated": crosswalk_updated,
+        "mesg": "CREATE beneficiary record",
+        "crosswalk": {
+            "id": user.crosswalk.id,
+            "user_hicn_hash": user.crosswalk.user_hicn_hash,
+            "user_mbi_hash": user.crosswalk.user_mbi_hash,
+            "fhir_id": user.crosswalk.fhir_id,
+            "user_id_type": user.crosswalk.user_id_type,
+        },
+    })
+    logger.info(log_dict)
+
     return user, "C"
 
 
 # TODO default empty strings to null, requires non-null constraints to be fixed
-def create_beneficiary_record(username=None,
-                              user_hicn_hash=None,
-                              user_mbi_hash=None,
-                              fhir_id=None,
-                              first_name="",
-                              last_name="",
-                              email="",
-                              user_id_type="H",
-                              auth_flow_dict=None):
+def create_beneficiary_record(
+    username=None,
+    user_hicn_hash=None,
+    user_mbi_hash=None,
+    fhir_id=None,
+    first_name="",
+    last_name="",
+    email="",
+    user_id_type="H",
+    request=None,
+):
 
-    if auth_flow_dict is None:
-        # If None, set empty dictionary.
-        auth_flow_dict = {}
+    logger = BasicLogger()
+
+    if request is not None:
+        logger = request._logger
+
+    log_dict = {
+        "type": "mymedicare_cb:create_beneficiary_record",
+        "username": username,
+        "fhir_id": fhir_id,
+        "user_mbi_hash": user_mbi_hash,
+        "user_hicn_hash": user_hicn_hash,
+        "crosswalk": {},
+    }
 
     if username is None:
         mesg = "username can not be None"
-        log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
+        logger.info(log_dict)
         raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if username == "":
         mesg = "username can not be an empty string"
-        log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
+        logger.info(log_dict)
         raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if user_hicn_hash is None:
         mesg = "user_hicn_hash can not be None"
-        log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
+        logger.info(log_dict)
         raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
     else:
         if len(user_hicn_hash) != 64:
             mesg = "incorrect user HICN hash format"
-            log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+            log_dict.update({
+                "status": "FAIL",
+                "mesg": mesg,
+            })
+            logger.info(log_dict)
             raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     # If mbi_hash is not NULL, perform length check.
     if user_mbi_hash is not None:
         if len(user_mbi_hash) != 64:
             mesg = "incorrect user MBI hash format"
-            log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+            log_dict.update({
+                "status": "FAIL",
+                "mesg": mesg,
+            })
+            logger.info(log_dict)
             raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if fhir_id is None:
         mesg = "fhir_id can not be None"
-        log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
+        logger.info(log_dict)
         raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if fhir_id == "":
         mesg = "fhir_id can not be an empty string"
-        log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
+        logger.info(log_dict)
         raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if User.objects.filter(username=username).exists():
         mesg = "user already exists"
-        log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
+        logger.info(log_dict)
         raise ValidationError(mesg, username)
 
     if Crosswalk.objects.filter(_user_id_hash=user_hicn_hash).exists():
         mesg = "user_hicn_hash already exists"
-        log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
+        logger.info(log_dict)
         raise ValidationError(mesg, user_hicn_hash)
 
     # If mbi_hash is not NULL, perform check for duplicate
     if user_mbi_hash is not None:
         if Crosswalk.objects.filter(_user_mbi_hash=user_mbi_hash).exists():
             mesg = "user_mbi_hash already exists"
-            log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+            log_dict.update({
+                "status": "FAIL",
+                "mesg": mesg,
+            })
+            logger.info(log_dict)
             raise ValidationError(mesg, user_hicn_hash)
 
     if fhir_id and Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
         mesg = "fhir_id already exists"
-        log_create_beneficiary_record(auth_flow_dict, "FAIL", username, fhir_id, user_mbi_hash, user_hicn_hash, mesg)
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
+        logger.info(log_dict)
         raise ValidationError(mesg, fhir_id)
 
     with transaction.atomic():
-        user = User(username=username,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email)
+        user = User(
+            username=username, first_name=first_name, last_name=last_name, email=email
+        )
         user.set_unusable_password()
         user.save()
-        Crosswalk.objects.create(user=user,
-                                 user_hicn_hash=user_hicn_hash,
-                                 user_mbi_hash=user_mbi_hash,
-                                 fhir_id=fhir_id,
-                                 user_id_type=user_id_type)
+        cw = Crosswalk.objects.create(
+            user=user,
+            user_hicn_hash=user_hicn_hash,
+            user_mbi_hash=user_mbi_hash,
+            fhir_id=fhir_id,
+            user_id_type=user_id_type,
+        )
 
         # Extra user information
         # TODO: remove the idea of UserProfile
-        UserProfile.objects.create(user=user, user_type='BEN')
+        UserProfile.objects.create(user=user, user_type="BEN")
         # TODO: magic strings are bad
-        group = Group.objects.get(name='BlueButton')  # TODO: these do not need a group
+        group = Group.objects.get(name="BlueButton")  # TODO: these do not need a group
         user.groups.add(group)
 
-        log_create_beneficiary_record(auth_flow_dict, "OK", username, fhir_id,
-                                      user_mbi_hash, user_hicn_hash, "CREATE beneficiary record")
+        log_dict.update({
+            "status": "OK",
+            "mesg": "CREATE beneficiary record",
+            "crosswalk": {
+                "id": cw.id,
+                "user_hicn_hash": cw.user_hicn_hash,
+                "user_mbi_hash": cw.user_mbi_hash,
+                "fhir_id": cw.fhir_id,
+                "user_id_type": cw.user_id_type,
+            },
+        })
+        logger.info(log_dict)
+
     return user
 
 
 class AnonUserState(models.Model):
-    state = models.CharField(default='', max_length=64, db_index=True)
-    next_uri = models.CharField(default='', max_length=512)
+    state = models.CharField(default="", max_length=64, db_index=True)
+    next_uri = models.CharField(default="", max_length=512)
 
     def __str__(self):
-        return '%s %s' % (self.state, self.next_uri)
+        return "%s %s" % (self.state, self.next_uri)
