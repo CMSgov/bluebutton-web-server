@@ -1,4 +1,5 @@
-import logging
+# import logging
+import apps.logging.request_logger as logging
 import json
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand

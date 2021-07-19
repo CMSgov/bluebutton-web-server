@@ -4,7 +4,8 @@ from django.urls import reverse
 from django.core.management.base import BaseCommand
 from ...models import ProtectedCapability
 
-import logging
+# import logging
+import apps.logging.request_logger as logging
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
 fhir_prefix = "/v1/fhir/"

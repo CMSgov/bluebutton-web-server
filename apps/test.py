@@ -1,6 +1,5 @@
 import io
 import json
-import logging as d_logging
 import re
 
 import apps.logging.request_logger as logging
@@ -160,9 +159,9 @@ class BaseApiTest(TestCase):
         for n in logger_names:
             logger = logging.getLogger(n)
             log_buffer = io.StringIO()
-            log_channel = d_logging.StreamHandler(log_buffer)
-            log_channel.setLevel(d_logging.INFO)
-            logger.logger().setLevel(d_logging.INFO)
+            log_channel = logging.StreamHandler(log_buffer)
+            log_channel.setLevel(logging.INFO)
+            logger.logger().setLevel(logging.INFO)
             logger.logger().addHandler(log_channel)
             self.logger_registry[n] = (log_buffer, log_channel)
 

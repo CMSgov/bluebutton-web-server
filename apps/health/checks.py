@@ -1,4 +1,6 @@
-import logging
+# import logging
+import apps.logging.request_logger as logging
+
 import requests
 
 from django.db import connection

@@ -1,4 +1,6 @@
-import logging
+# import logging
+import apps.logging.request_logger as logging
+
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView

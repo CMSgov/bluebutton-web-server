@@ -1,4 +1,6 @@
-import logging
+# import logging
+import apps.logging.request_logger as logging
+
 from django.dispatch import Signal
 from django.db.models.signals import post_save, pre_save
 from oauth2_provider.models import get_application_model, get_access_token_model

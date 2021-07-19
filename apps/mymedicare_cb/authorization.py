@@ -1,4 +1,3 @@
-import logging
 import requests
 import datetime
 
@@ -11,8 +10,6 @@ from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
 from .loggers import log_authenticate_start
 from .signals import response_hook_wrapper
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class BBMyMedicareSLSxSignoutException(APIException):

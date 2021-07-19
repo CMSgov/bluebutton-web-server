@@ -1,5 +1,7 @@
 import json
-import logging
+# import logging
+import apps.logging.request_logger as logging
+
 import waffle
 from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView

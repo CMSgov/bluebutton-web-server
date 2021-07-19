@@ -4,9 +4,23 @@ import json
 from django.conf import settings
 from apps.dot_ext.loggers import get_session_auth_flow_trace
 
+CRITICAL = logging.CRITICAL
+FATAL = logging.FATAL
+ERROR = logging.ERROR
+WARNING = logging.WARNING
+WARN = logging.WARN
+INFO = logging.INFO
+DEBUG = logging.DEBUG
+NOTSET = logging.NOTSET
+
 
 def getLogger(name=None):
     return RequestLogger(None, name) if name else BasicLogger()
+
+
+class StreamHandler(logging.StreamHandler):
+    # a trivial wrapper
+    pass
 
 
 class BasicLogger:
@@ -32,6 +46,15 @@ class BasicLogger:
 
     def error(self, data_dict, cls=None):
         self._logger.error(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+
+    def warning(self, data_dict, cls=None):
+        self._logger.warning(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+
+    def critical(self, data_dict, cls=None):
+        self._logger.critical(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+
+    def exception(self, data_dict, cls=None):
+        self._logger.exception(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
 
 
 class RequestLogger(BasicLogger):
@@ -65,3 +88,12 @@ class RequestLogger(BasicLogger):
 
     def error(self, data_dict, request=None, cls=None):
         self._logger.error(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+
+    def warning(self, data_dict, cls=None):
+        self._logger.warning(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+
+    def critical(self, data_dict, cls=None):
+        self._logger.critical(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))
+
+    def exception(self, data_dict, cls=None):
+        self._logger.exception(data_dict if isinstance(data_dict, str) else self.format_for_output(data_dict, cls=cls))

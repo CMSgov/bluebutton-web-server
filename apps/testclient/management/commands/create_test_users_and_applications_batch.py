@@ -1,8 +1,10 @@
-import logging
 import pytz
 import re
 import time
 import uuid
+
+import apps.logging.request_logger as logging
+
 from datetime import datetime, timedelta
 from os import listdir
 from random import randint, randrange, choice, sample

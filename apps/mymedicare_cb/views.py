@@ -1,4 +1,3 @@
-import logging
 import random
 import urllib.request as urllib_request
 
@@ -25,8 +24,6 @@ from .authorization import OAuth2ConfigSLSx
 from .loggers import log_authenticate_start, log_authenticate_success
 from .models import AnonUserState, get_and_update_user
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):

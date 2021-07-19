@@ -1,5 +1,7 @@
 import os
-import logging
+# import logging
+import apps.logging.request_logger as logging
+
 import pytz
 import requests
 import uuid

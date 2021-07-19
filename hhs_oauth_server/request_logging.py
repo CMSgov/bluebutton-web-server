@@ -10,8 +10,6 @@ from django.utils.deprecation import MiddlewareMixin
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from rest_framework.response import Response
 
-from apps.logging.request_logger import RequestLogger
-
 from apps.dot_ext.loggers import (
     SESSION_AUTH_FLOW_TRACE_KEYS,
     get_session_auth_flow_trace,
@@ -523,7 +521,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
         request._logging_uuid = str(uuid.uuid1())
         request._logging_start_dt = datetime.datetime.utcnow()
         request._logging_pass = 1
-        request._logger = RequestLogger(request)
+        request._logger = logging.RequestLogger(request)
 
         # Get access token to be refreshed pre-response, since it is removed
         if getattr(request, "body", False):

@@ -1,4 +1,5 @@
-import logging
+import apps.logging.request_logger as logging
+
 from rest_framework import (permissions, exceptions)
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import PermissionDenied

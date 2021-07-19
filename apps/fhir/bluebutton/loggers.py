@@ -1,5 +1,4 @@
-import json
-import logging
+import apps.logging.request_logger as logging
 
 
 """
@@ -19,4 +18,4 @@ def log_v2_blocked(user=None, path=None, app=None, err=None, **kwargs):
                 "response_code": err.status_code,
                 "message": str(err) if err else None}
     log_dict.update(kwargs)
-    waffle_event_logger.info(json.dumps(log_dict))
+    waffle_event_logger.info(log_dict)

@@ -1,4 +1,6 @@
-import logging
+# import logging
+import apps.logging.request_logger as logging
+
 from django import forms
 from django.conf import settings
 from django.utils.safestring import mark_safe
