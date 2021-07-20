@@ -7,6 +7,9 @@ from rest_framework.response import Response
 from .checks import (
     internal_services,
     external_services,
+    slsx_services,
+    bfd_services,
+    db_services,
 )
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -23,7 +26,7 @@ class Check(APIView):
     def get(self, request, format=None):
         try:
             for check in self.get_services():
-                v2 = True if request.path.endswith('external_v2') else False
+                v2 = True if request.path.endswith('external_v2') or request.path.endswith('bfd_v2') else False
                 if not check(v2):
                     raise ServiceUnavailable()
         except ServiceUnavailable:
@@ -49,3 +52,15 @@ class CheckInternal(Check):
 
 class CheckExternal(Check):
     services = external_services
+
+
+class CheckSLSX(Check):
+    services = slsx_services
+
+
+class CheckBFD(Check):
+    services = bfd_services
+
+
+class CheckDB(Check):
+    services = db_services
