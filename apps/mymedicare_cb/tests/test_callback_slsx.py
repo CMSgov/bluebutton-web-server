@@ -1,4 +1,5 @@
 import json
+import jsonschema
 import io
 import uuid
 
@@ -9,6 +10,7 @@ from django.utils.text import slugify
 from django.urls import reverse
 from django.test.client import Client
 from httmock import urlmatch, all_requests, HTTMock
+from jsonschema import validate
 from requests.exceptions import HTTPError
 from rest_framework import status
 from urllib.parse import urlparse, parse_qs
@@ -21,13 +23,14 @@ from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
 from apps.mymedicare_cb.authorization import (BBMyMedicareSLSxUserinfoException, BBMyMedicareSLSxSignoutException)
 from apps.mymedicare_cb.views import generate_nonce
+from apps.logging.tests.audit_logger_schemas import MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA
 from apps.test import BaseApiTest
 
 from .responses import patient_response
 
 
 loggers = [
-    'audit.authenticate.mymedicare_cb',
+    'audit.request_logger',
 ]
 
 
@@ -76,6 +79,15 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         """
         group, _ = Group.objects.get_or_create(name=name)
         return group
+
+    def validate_json_schema(self, schema, content):
+        try:
+            validate(instance=content, schema=schema)
+        except jsonschema.exceptions.ValidationError as e:
+            # Show error info for debugging
+            print("jsonschema.exceptions.ValidationError: ", e)
+            return False
+        return True
 
     def test_login_url_success(self):
         """
@@ -457,11 +469,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
 
         # mock fhir user info endpoint with fhir_id == "-20140000008325"
-        @urlmatch(netloc='fhir.backend.bluebutton.hhsdevcloud.us', path='/v1/fhir/Patient/')
+        @urlmatch(netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v1/fhir/Patient/")
         def fhir_patient_info_mock(url, request):
             return {
-                'status_code': status.HTTP_200_OK,
-                'content': patient_response,
+                "status_code": status.HTTP_200_OK,
+                "content": patient_response,
             }
 
         @all_requests
@@ -475,7 +487,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                      MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            response = self.client.get(self.callback_url, data={"req_token": "test", "relay": state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -489,12 +501,26 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(cw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(cw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
+        # Validate ArchiveCrosswalk count
+        self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
+
+        # Validate logging
+        log_list = self._get_log_lines_list("audit.request_logger")
+        self.assertEqual(len(log_list), 2)
+
+        #   Get last log line
+        log_dict = json.loads(log_list[len(log_list) - 1])
+
+        #   Assert correct log values using original json schema
+        self.assertTrue(
+            self.validate_json_schema(
+                MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, log_dict
+            )
+        )
+
         # Save crosswalk values for restoring prior to later tests.
         saved_hicn_hash = cw._user_id_hash
         saved_mbi_hash = cw._user_mbi_hash
-
-        # Validate ArchiveCrosswalk values
-        self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
 
         # 2. The bene's HICN has been changed in the mock SLSx user_info response.
         with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
@@ -503,36 +529,19 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                      MockUrlSLSxResponses.slsx_signout_ok_mock,
                      fhir_patient_info_mock,
                      catchall):
-            response = self.client.get(self.callback_url, data={'req_token': 'test', 'relay': state})
+            response = self.client.get(self.callback_url, data={"req_token": "test", "relay": state})
             # assert http redirect
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
         # Get crosswalk values.
         cw = Crosswalk.objects.get(id=1)
 
-        # Assert correct crosswalk values. Did the hicn update to new/changed value?
+        # Assert correct crosswalk values. Did the hicn update to new value?
         self.assertEqual(cw.user.id, 1)
         self.assertEqual(cw.user.username, "00112233-4455-6677-8899-aabbccddeeff")
         self.assertEqual(cw.fhir_id, "-20140000008325")
         self.assertEqual(cw._user_id_hash, "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
         self.assertEqual(cw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
-
-        # Validate crosswalk_updated in logging
-        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
-        self.assertEqual(len(log_list), 3)
-
-        # Get dict for last (3rd) log entry
-        log_dict = json.loads(log_list[2])
-
-        # Assert correct values
-        self.assertEqual(log_dict['user_id'], 1)
-        self.assertEqual(log_dict['username'], "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(log_dict['fhir_id'], "-20140000008325")
-        self.assertEqual(log_dict['crosswalk_updated'], "H")
-        self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
-                         "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
-        self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
-                         "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 1)
@@ -542,6 +551,42 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._fhir_id, "-20140000008325")
         self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
+
+        # Validate logging
+        log_list = self._get_log_lines_list('audit.request_logger')
+
+        #   Validate log lines count
+        self.assertEqual(len(log_list), 3)
+
+        #   Get last log line
+        log_dict = json.loads(log_list[len(log_list) - 1])
+
+        #   Update json schema for what changed (hicn). Add crosswalk_before to also be used later.
+        MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA["properties"]["crosswalk"]["properties"].update({
+            "user_hicn_hash": {"pattern": "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122"}})
+
+        MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA["properties"].update({
+            "mesg": {"pattern": "RETURN existing beneficiary record"},
+            "crosswalk_updated": {"pattern": "^H$"},
+            "hicn_hash": {"pattern": "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122"},
+            "crosswalk_before": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "user_hicn_hash": {"pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"},
+                    "user_mbi_hash": {"pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"},
+                    "fhir_id": {"pattern": "-20140000008325"},
+                    "user_id_type": {"pattern": "M"}
+                }
+            }
+        })
+
+        #   Assert correct log values using json schema
+        self.assertTrue(
+            self.validate_json_schema(
+                MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, log_dict
+            )
+        )
 
         # 3. Restore crosswalk's hicn hash to original.
         cw = Crosswalk.objects.get(id=1)
@@ -569,24 +614,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(cw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(cw._user_mbi_hash, "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
 
-        # Validate crosswalk_updated in logging
-        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
-        self.assertEqual(len(log_list), 4)
-
-        # Get dict for last (4th) log entry
-        log_dict = json.loads(log_list[3])
-
-        # Assert correct values
-        self.assertEqual(log_dict['user_id'], 1)
-        self.assertEqual(log_dict['username'], "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(log_dict['fhir_id'], "-20140000008325")
-        self.assertEqual(log_dict['crosswalk_updated'], "M")
-        self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
-                         "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
-        self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
-                         "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
-
-        # Assert correct archived crosswalk values:
+        # Assert correct archived crosswalk values
         self.assertEqual(ArchivedCrosswalk.objects.count(), 2)
         acw = ArchivedCrosswalk.objects.get(id=2)
 
@@ -594,6 +622,31 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._fhir_id, "-20140000008325")
         self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
+
+        # Validate logging
+        log_list = self._get_log_lines_list('audit.request_logger')
+        self.assertEqual(len(log_list), 4)
+
+        #   Get last log line
+        log_dict = json.loads(log_list[len(log_list) - 1])
+
+        #   Update json schema for what changed (mbi)
+        MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA["properties"]["crosswalk"]["properties"].update({
+            "user_hicn_hash": {"pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"},
+            "user_mbi_hash": {"pattern": "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0"}})
+
+        MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA["properties"].update({
+            "crosswalk_updated": {"pattern": "^M$"},
+            "hicn_hash": {"pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"},
+            "mbi_hash": {"pattern": "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0"},
+        })
+
+        #   Assert correct log values using json schema
+        self.assertTrue(
+            self.validate_json_schema(
+                MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, log_dict
+            )
+        )
 
         # 5. Restore crosswalk's mbi hash to original.
         cw = Crosswalk.objects.get(id=1)
@@ -621,23 +674,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(cw._user_id_hash, "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
         self.assertEqual(cw._user_mbi_hash, "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
 
-        # Validate crosswalk_updated in logging
-        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
-        self.assertEqual(len(log_list), 5)
-
-        # Get dict for last (5th) log entry
-        log_dict = json.loads(log_list[4])
-
-        # Assert correct values
-        self.assertEqual(log_dict['user_id'], 1)
-        self.assertEqual(log_dict['username'], "00112233-4455-6677-8899-aabbccddeeff")
-        self.assertEqual(log_dict['fhir_id'], "-20140000008325")
-        self.assertEqual(log_dict['crosswalk_updated'], "HM")
-        self.assertEqual(log_dict['crosswalk']['user_hicn_hash'],
-                         "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122")
-        self.assertEqual(log_dict['crosswalk']['user_mbi_hash'],
-                         "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0")
-
         # Assert correct archived crosswalk values:
         self.assertEqual(ArchivedCrosswalk.objects.count(), 3)
         acw = ArchivedCrosswalk.objects.get(id=3)
@@ -646,3 +682,28 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._fhir_id, "-20140000008325")
         self.assertEqual(acw._user_id_hash, "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948")
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
+
+        # Validate logging
+        log_list = self._get_log_lines_list('audit.request_logger')
+        self.assertEqual(len(log_list), 5)
+
+        #   Get last line
+        log_dict = json.loads(log_list[len(log_list) - 1])
+
+        #   Update json schema for what changed (mbi and hicn)
+        MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA["properties"]["crosswalk"]["properties"].update({
+            "user_hicn_hash": {"pattern": "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122"},
+            "user_mbi_hash": {"pattern": "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0"}})
+
+        MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA["properties"].update({
+            "crosswalk_updated": {"pattern": "^HM$"},
+            "hicn_hash": {"pattern": "55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122"},
+            "mbi_hash": {"pattern": "e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0"}
+        })
+
+        #   Assert correct log values using json schema
+        self.assertTrue(
+            self.validate_json_schema(
+                MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, log_dict
+            )
+        )

@@ -244,21 +244,30 @@ MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA = {
     "properties": {
         "type": {"pattern": "mymedicare_cb:get_and_update_user"},
         "status": {"pattern": "OK"},
+        "subject": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
+        "user_username": {"pattern": "00112233-4455-6677-8899-aabbccddeeff"},
         "fhir_id": {"pattern": "-20140000008325"},
         "hicn_hash": {"pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"},
         "mbi_hash": {"pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"},
         "hash_lookup_type": {"pattern": "M"},
-        "crosswalk": {"type": "object",
-                      "properties": {
-                          "id": {"type": "integer"},
-                          "user_hicn_hash": {"pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"},
-                          "user_mbi_hash": {"pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"},
-                          "fhir_id": {"pattern": "-20140000008325"},
-                          "user_id_type": {"pattern": "M"}}},
-        "crosswalk_updated": {"type": "string"},
+        "crosswalk": {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer"},
+                "user_hicn_hash": {"pattern": "f7dd6b126d55a6c49f05987f4aab450deae3f990dcb5697875fd83cc61583948"},
+                "user_mbi_hash": {"pattern": "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28"},
+                "fhir_id": {"pattern": "-20140000008325"},
+                "user_id_type": {"pattern": "M"}}},
+        "crosswalk_updated": {"pattern": "^$"},
         "mesg": {"pattern": "CREATE beneficiary record"},
+        "request_uuid": {"type": "string"},
+        "crosswalk_before": {
+            "type": "object",
+            "properties": {},
+        }
     },
-    "required": ["type", "status", "fhir_id", "hicn_hash", "mbi_hash", "crosswalk", "crosswalk_updated", "mesg"]
+    "required": ["type", "status", "subject", "user_username", "fhir_id", "hicn_hash", "mbi_hash", "crosswalk",
+                 "crosswalk_updated", "mesg", "request_uuid", "crosswalk_before"]
 }
 
 REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA = {

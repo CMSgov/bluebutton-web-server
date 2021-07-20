@@ -67,6 +67,7 @@ def get_and_update_user(
         "hicn_hash": hicn_hash,
         "hash_lookup_type": hash_lookup_type,
         "crosswalk": {},
+        "crosswalk_before": {},
     }
 
     # Init for types of crosswalk updates. "" = None
@@ -75,13 +76,6 @@ def get_and_update_user(
     try:
         # Does an existing user and crosswalk exist for SLSx username?
         user = User.objects.get(username=subject)
-        log_dict["crosswalk"] = {
-            "id": user.crosswalk.id,
-            "user_hicn_hash": user.crosswalk.user_hicn_hash,
-            "user_mbi_hash": user.crosswalk.user_mbi_hash,
-            "fhir_id": user.crosswalk.fhir_id,
-            "user_id_type": user.crosswalk.user_id_type,
-        }
 
         # fhir_id can not change for an existing user!
         if user.crosswalk.fhir_id != fhir_id:
@@ -111,6 +105,17 @@ def get_and_update_user(
 
         # Update Crosswalk if there are any allowed changes or hash_type used for lookup changed.
         if user.crosswalk.user_id_type != hash_lookup_type or crosswalk_updated != "":
+            # Add before crosswalk change info to log
+            log_dict.update({
+                "crosswalk_before": {
+                    "id": user.crosswalk.id,
+                    "user_hicn_hash": user.crosswalk.user_hicn_hash,
+                    "user_mbi_hash": user.crosswalk.user_mbi_hash,
+                    "fhir_id": user.crosswalk.fhir_id,
+                    "user_id_type": user.crosswalk.user_id_type,
+                },
+            })
+
             with transaction.atomic():
                 # Archive to audit crosswalk changes
                 ArchivedCrosswalk.create(user.crosswalk)
@@ -128,6 +133,13 @@ def get_and_update_user(
             "user_username": user.username,
             "crosswalk_updated": crosswalk_updated,
             "mesg": "RETURN existing beneficiary record",
+            "crosswalk": {
+                "id": user.crosswalk.id,
+                "user_hicn_hash": user.crosswalk.user_hicn_hash,
+                "user_mbi_hash": user.crosswalk.user_mbi_hash,
+                "fhir_id": user.crosswalk.fhir_id,
+                "user_id_type": user.crosswalk.user_id_type,
+            },
         })
         logger.info(log_dict)
 
