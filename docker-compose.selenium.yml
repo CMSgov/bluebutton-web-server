@@ -4,7 +4,7 @@ services:
   tests:
     build:
       context: ./
-      dockerfile: SeleniumDockerfile
+      dockerfile: Dockerfile.selenium
     command: python runtests.py apps.integration_tests.selenium_tests.SeleniumTests
     environment:
           - HOSTNAME_URL=${HOSTNAME_URL}

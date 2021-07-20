@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run the selenium tests in docker
-# 
+#
 # NOTE:
 #
 #   1. You must be logged in to Keybase and have the BB2 team file system mounted.
@@ -19,7 +19,7 @@ CERT_FILENAME="client_data_server_bluebutton_local_integration_tests_certificate
 KEY_FILENAME="client_data_server_bluebutton_local_integration_tests_private_key.pem"
 
 # BB2 service end point default
-HOSTNAME_URL="http://bb2slsx:8000"
+export HOSTNAME_URL="http://bb2slsx:8000"
 
 # Backend FHIR server to use for selenium tests with FHIR requests:
 FHIR_URL="https://prod-sbx.bfd.cms.gov"
@@ -41,16 +41,17 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
-USE_MSLSX=true
 TEST_TYPE="--selenium"
+
+export USE_MSLSX=true
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 
-DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
-DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
-DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
-DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
-DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
-DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
+export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
+export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
+export DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
+export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
+export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
 
 # Parse command line option
 if [ $# -eq 0 ]
@@ -75,13 +76,13 @@ else
   else
     if [ $1 == "slsx" ]
     then
-      USE_MSLSX=false
-      DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
-      DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
-      DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
-      DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
-      DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
-      DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+      export USE_MSLSX=false
+      export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+      export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
+      export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
+      export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
+      export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
+      export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
     fi
     if [ $1 == "logit" ]
     then
@@ -198,23 +199,21 @@ cp ${keybase_key_file} "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
 # stop all before run selenium tests
 docker-compose -f docker-compose.selenium.yml down
 
-export DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS}
 export DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT}
 export DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS}
 export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
-export HOSTNAME_URL=${HOSTNAME_URL}
-export USE_MSLSX=${USE_MSLSX}
-export DJANGO_MEDICARE_SLSX_REDIRECT_URI=${DJANGO_MEDICARE_SLSX_REDIRECT_URI}
-export DJANGO_MEDICARE_SLSX_LOGIN_URI=${DJANGO_MEDICARE_SLSX_LOGIN_URI}
-export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=${DJANGO_SLSX_HEALTH_CHECK_ENDPOINT}
-export DJANGO_SLSX_TOKEN_ENDPOINT=${DJANGO_SLSX_TOKEN_ENDPOINT}
-export DJANGO_SLSX_SIGNOUT_ENDPOINT=${DJANGO_SLSX_SIGNOUT_ENDPOINT}
-export DJANGO_SLSX_USERINFO_ENDPOINT=${DJANGO_SLSX_USERINFO_ENDPOINT}
 
 echo "Selenium tests ..."
 
 docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py ${TEST_TYPE} ${TESTS_LIST}"
+
+# Stop containers after use
+echo_msg
+echo_msg "Stopping containers..."
+echo_msg
+
+docker-compose -f docker-compose.selenium.yml stop
 
 # Remove certfiles from local directory
 echo_msg

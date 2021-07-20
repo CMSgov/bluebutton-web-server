@@ -197,7 +197,6 @@ class OAuth2ConfigSLSx(object):
         the BB2 /health/external check.
         """
         headers = self.slsx_common_headers(request)
-
         response = requests.get(self.healthcheck_endpoint,
                                 headers=headers,
                                 allow_redirects=False,
