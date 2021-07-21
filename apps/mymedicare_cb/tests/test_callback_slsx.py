@@ -28,7 +28,7 @@ from apps.mymedicare_cb.views import generate_nonce
 from apps.logging.tests.audit_logger_schemas import MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA
 from apps.test import BaseApiTest
 
-from .responses import patient_response, patient_not_found_response
+from .responses import patient_response
 
 
 loggers = [
@@ -485,14 +485,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             return {
                 "status_code": status.HTTP_200_OK,
                 "content": patient_response,
-            }
-
-        # mock fhir patient endpoint (back end bfd) with NOT FOUND (0 results)
-        @urlmatch(netloc="fhir.backend.bluebutton.hhsdevcloud.us", path="/v1/fhir/Patient/")
-        def fhir_patient_not_found_mock(url, request):
-            return {
-                "status_code": status.HTTP_200_OK,
-                "content": patient_not_found_response,
             }
 
         @all_requests
