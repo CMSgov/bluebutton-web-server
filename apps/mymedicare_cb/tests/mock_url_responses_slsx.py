@@ -143,6 +143,23 @@ class MockUrlSLSxResponses:
                                                   "customUserInfo": {"mbi": "1SA0A00AA00"},
                                                   "mbi": "1SA0A00AA00"}}}}
 
+    # mock sls user info endpoint with empty mbi
+    @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
+    def slsx_user_info_empty_mbi_mock(url, request):
+        if is_called_by_validate_user_signout():
+            return {"status_code": status.HTTP_403_FORBIDDEN}
+        else:
+            return {"status_code": status.HTTP_200_OK,
+                    "content": {"status": "ok",
+                                "code": status.HTTP_200_OK,
+                                "data": {"user": {"id": "00112233-4455-6677-8899-aabbccddeeff",
+                                                  "email": "bob@bobserver.bob",
+                                                  "firstName": None,
+                                                  "lastName": None,
+                                                  "hicn": "1234567890A",
+                                                  "customUserInfo": {"mbi": ""},
+                                                  "mbi": ""}}}}
+
     # mock sls user info endpoint with invalid MBI
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
     def slsx_user_info_invalid_mbi_mock(url, request):

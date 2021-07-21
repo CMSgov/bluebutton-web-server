@@ -70,8 +70,10 @@ def get_and_update_user(
         "crosswalk_before": {},
     }
 
-    # Init for types of crosswalk updates. "" = None
-    crosswalk_updated = ""
+    # Init for types of crosswalk updates.
+    hicn_updated = False
+    mbi_updated = False
+    mbi_updated_from_null = False
 
     try:
         # Does an existing user and crosswalk exist for SLSx username?
@@ -84,7 +86,6 @@ def get_and_update_user(
                 "status": "FAIL",
                 "user_id": user.id,
                 "user_username": user.username,
-                "crosswalk_updated": crosswalk_updated,
                 "mesg": mesg,
             })
             logger.info(log_dict)
@@ -92,20 +93,21 @@ def get_and_update_user(
 
         # Did the hicn change?
         if user.crosswalk.user_hicn_hash != hicn_hash:
-            crosswalk_updated = crosswalk_updated + "H"
+            hicn_updated = True
 
         # Did the mbi change?
         if user.crosswalk.user_mbi_hash is not None:
             if user.crosswalk.user_mbi_hash != mbi_hash:
-                crosswalk_updated = crosswalk_updated + "M"
+                mbi_updated = True
         else:
             # Did the mbi change from previously stored None/Null value?
             if mbi_hash is not None:
-                crosswalk_updated = crosswalk_updated + "N"
+                mbi_updated = True
+                mbi_updated_from_null = True
 
         # Update Crosswalk if there are any allowed changes or hash_type used for lookup changed.
-        if user.crosswalk.user_id_type != hash_lookup_type or crosswalk_updated != "":
-            # Add before crosswalk change info to log
+        if user.crosswalk.user_id_type != hash_lookup_type or hicn_updated or mbi_updated:
+            # Log crosswalk before state
             log_dict.update({
                 "crosswalk_before": {
                     "id": user.crosswalk.id,
@@ -131,7 +133,9 @@ def get_and_update_user(
             "status": "OK",
             "user_id": user.id,
             "user_username": user.username,
-            "crosswalk_updated": crosswalk_updated,
+            "hicn_updated": hicn_updated,
+            "mbi_updated": mbi_updated,
+            "mbi_updated_from_null": mbi_updated_from_null,
             "mesg": "RETURN existing beneficiary record",
             "crosswalk": {
                 "id": user.crosswalk.id,
@@ -163,7 +167,9 @@ def get_and_update_user(
         "status": "OK",
         "user_id": user.id,
         "user_username": user.username,
-        "crosswalk_updated": crosswalk_updated,
+        "hicn_updated": hicn_updated,
+        "mbi_updated": mbi_updated,
+        "mbi_updated_from_null": mbi_updated_from_null,
         "mesg": "CREATE beneficiary record",
         "crosswalk": {
             "id": user.crosswalk.id,
