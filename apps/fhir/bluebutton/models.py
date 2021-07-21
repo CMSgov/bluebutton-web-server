@@ -198,7 +198,7 @@ class ArchivedCrosswalk(models.Model):
     archived_at = models.DateTimeField(auto_now_add=True)
 
     # Method to create archive of field values from a passed in Crosswalk instance
-    def create(crosswalk):
+    def create(self, crosswalk):
         acw = ArchivedCrosswalk.objects.create(username=crosswalk.user.username,
                                                _fhir_id=crosswalk.fhir_id,
                                                user_id_type=crosswalk.user_id_type,
