@@ -46,3 +46,15 @@ external_services = (
     bfd_fhir_dataserver,
     slsx,
 )
+
+slsx_services = (
+    slsx,
+)
+
+bfd_services = (
+    bfd_fhir_dataserver,
+)
+
+db_services = (
+    django_rds_database,
+)

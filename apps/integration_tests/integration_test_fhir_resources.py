@@ -209,6 +209,56 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(msg, "all's well")
 
     @override_switch('require-scopes', active=True)
+    def test_health_bfd_endpoint(self):
+        self._call_health_bfd_endpoint(False)
+
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_health_bfd_endpoint_v2(self):
+        self._call_health_bfd_endpoint(True)
+
+    def _call_health_bfd_endpoint(self, v2=False):
+        client = APIClient()
+        # no authenticate needed
+        response = client.get(self.live_server_url + "/health/bfd_v2" if v2 else "/health/bfd")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
+
+    @override_switch('require-scopes', active=True)
+    def test_health_db_endpoint(self):
+        client = APIClient()
+        # no authenticate needed
+        response = client.get(self.live_server_url + "/health/db")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
+
+    @override_switch('require-scopes', active=True)
+    def test_health_sls_endpoint(self):
+        client = APIClient()
+        # no authenticate needed
+        response = client.get(self.live_server_url + "/health/sls")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
+
+    @override_switch('require-scopes', active=True)
     def test_userinfo_endpoint(self):
         self._call_userinfo_endpoint(False)
 
