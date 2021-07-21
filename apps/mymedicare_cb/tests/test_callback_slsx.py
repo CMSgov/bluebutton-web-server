@@ -432,25 +432,25 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
     def test_callback_allow_slsx_changes_to_hicn_and_mbi(self):
         '''
-        This tests changed made to the matching logic per Jira BB2-612.
-        This is to allow for MBI and HICN updates for beneficiaries as Long as the FHIR_ID still matches
+        This tests changes made to the matching logic per Jira BB2-612.
+        This is to allow for MBI and HICN updates for beneficiaries as long as the FHIR_ID still matches.
 
-        Two related/opposite tests were removed from test_callback_exceptions() and relocted here.
+        Two related/opposite tests were removed from test_callback_exceptions() and relocated here.
 
         TEST SUMMARY:
 
             NOTE: The fhir_patient_info_mock always provides a BFD patient resource search match to
                   a bene with fhir_id = -20140000008325
 
-
-            1. First successful matching for beneficiary having valid only hicn and EMPTY mbi.
-               This creates a new Crosswalk entry with hicn and NULL mbi hash values used in the initial match.
+            1. First successful matching for beneficiary having only a valid hicn and EMPTY mbi.
+               This creates a new Crosswalk entry with hicn and NULL mbi hash values in the crosswalk.
 
             2. The bene's MBI has been changed from empty to valid value in the mock SLSx user_info response.
+               The crosswalk is updated with the new MBI hash.
 
-            3. Remove Crosswalk and ArchivedCrosswalk entries to start fresh.
+            3. Remove Crosswalk and ArchivedCrosswalk entries for a start fresh.
 
-            4. First successful matching for beneficiary having valid hicn/mbi.
+            4. Successful matching for beneficiary having valid hicn/mbi.
                This creates a new Crosswalk entry with hicn/mbi hash values used in the initial match.
 
             5. The bene's HICN has been changed in the mock SLSx user_info response.
@@ -463,15 +463,21 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                This would previously FAIL with response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
                with error text: "Found user's hicn did not match".
 
-            6. Restore saved_hicn_hash in Crosswalk prior to next test. Restore crosswalk state to same as #3.
+               The new behavior updates the HICN hash in the crosswalk.
+
+            6. Restore saved_hicn_hash in Crosswalk prior to next test. Restore crosswalk state to same as #4.
 
             7. The bene's MBI has been changed in the mock SLSx user_info response.
                This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_mbi
 
-            8. Restore saved_mbi_hash in Crosswalk prior to next test. Restore crosswalk state to same as #3.
+               The new behavior updates the MBI hash in the crosswalk.
+
+            8. Restore saved_mbi_hash in Crosswalk prior to next test. Restore crosswalk state to same as #4.
 
             9. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
                This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn_mbi
+
+               The new behavior updates the HICN & MBI hash in the crosswalk.
         '''
         # create a state
         state = generate_nonce()
@@ -586,14 +592,16 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         #   Update json schema for what changed (mbi = None/Null).
         log_schema["properties"]["crosswalk"]["properties"].update({
             "user_id_type": {"pattern": "^M$"},
-            "user_mbi_hash": {"type": "string", "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$"},
+            "user_mbi_hash": {"type": "string",
+                              "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$"},
         })
 
         log_schema["properties"].update({
             "mesg": {"pattern": "^RETURN existing beneficiary record$"},
             "mbi_updated": {"enum": [True]},
             "mbi_updated_from_null": {"enum": [True]},
-            "mbi_hash": {"type": "string", "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$"},
+            "mbi_hash": {"type": "string",
+                         "pattern": "^4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28$"},
             "hash_lookup_type": {"type": "string", "pattern": "^M$"},
             "crosswalk_before": {
                 "type": "object",
@@ -864,15 +872,19 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         #   Update json schema for what changed (mbi and hicn)
         log_schema["properties"]["crosswalk"]["properties"].update({
-            "user_hicn_hash": {"type": "string", "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$"},
-            "user_mbi_hash": {"type": "string", "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$"}})
+            "user_hicn_hash": {"type": "string",
+                               "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$"},
+            "user_mbi_hash": {"type": "string",
+                              "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$"}})
 
         log_schema["properties"].update({
             "mesg": {"type": "string", "pattern": "^RETURN existing beneficiary record$"},
             "hicn_updated": {"enum": [True]},
             "mbi_updated": {"enum": [True]},
-            "hicn_hash": {"type": "string", "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$"},
-            "mbi_hash": {"type": "string", "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$"},
+            "hicn_hash": {"type": "string",
+                          "pattern": "^55accb0603dcca1fb171e86a3ded3ead1b9f12155cf3e41327c53730890e6122$"},
+            "mbi_hash": {"type": "string",
+                         "pattern": "^e9ae977f531e29e4a3cb4435984e78467ca816db18920de8d6e5056d424935a0$"},
             "crosswalk_before": {
                 "type": "object",
                 "properties": {
