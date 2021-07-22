@@ -1,6 +1,6 @@
 <form>
-  <label>BB2 DASG Metrics Dashboard Clone - BB2-706</label>
-  <description>Dashboard panels related to metrics for DASG reporting - DEV</description>
+  <label>BB2 DASG Metrics Dashboard</label>
+  <description>Dashboard panels related to metrics for DASG reporting</description>
   <fieldset submitButton="false"></fieldset>
   <row>
     <panel>
