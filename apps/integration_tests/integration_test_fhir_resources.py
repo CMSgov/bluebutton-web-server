@@ -1,15 +1,14 @@
 import json
-import jsonschema
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from jsonschema import validate
 from oauth2_provider.models import AccessToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch, override_flag
 
 from apps.test import BaseApiTest
 
+from .common_utils import validate_json_schema
 from .endpoint_schemas import (COVERAGE_READ_SCHEMA_V2,
                                EOB_READ_INPT_SCHEMA,
                                FHIR_META_SCHEMA,
@@ -89,15 +88,6 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Setup Bearer token:
         client.credentials(HTTP_AUTHORIZATION="Bearer " + at.token)
 
-    def _validateJsonSchema(self, schema, content):
-        try:
-            validate(instance=content, schema=schema)
-        except jsonschema.exceptions.ValidationError as e:
-            # Show error info for debugging
-            print("jsonschema.exceptions.ValidationError: ", e)
-            return False
-        return True
-
     def _assertHasC4BBProfile(self, resource, c4bb_profile, v2=False):
         meta_profile = None
         try:
@@ -161,7 +151,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             if schema is not None:
                 eob_profile = rs['meta']['profile'][0]
                 self.assertIsNotNone(eob_profile)
-                self.assertTrue(self._validateJsonSchema(schema, rs))
+                self.assertTrue(validate_json_schema(schema, rs))
 
             is_matched = False
 
@@ -209,6 +199,56 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(msg, "all's well")
 
     @override_switch('require-scopes', active=True)
+    def test_health_bfd_endpoint(self):
+        self._call_health_bfd_endpoint(False)
+
+    @override_flag('bfd_v2_flag', active=True)
+    @override_switch('require-scopes', active=True)
+    def test_health_bfd_endpoint_v2(self):
+        self._call_health_bfd_endpoint(True)
+
+    def _call_health_bfd_endpoint(self, v2=False):
+        client = APIClient()
+        # no authenticate needed
+        response = client.get(self.live_server_url + "/health/bfd_v2" if v2 else "/health/bfd")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
+
+    @override_switch('require-scopes', active=True)
+    def test_health_db_endpoint(self):
+        client = APIClient()
+        # no authenticate needed
+        response = client.get(self.live_server_url + "/health/db")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
+
+    @override_switch('require-scopes', active=True)
+    def test_health_sls_endpoint(self):
+        client = APIClient()
+        # no authenticate needed
+        response = client.get(self.live_server_url + "/health/sls")
+        self.assertEqual(response.status_code, 200)
+        content = json.loads(response.content)
+        msg = None
+        try:
+            msg = content['message']
+        except KeyError:
+            pass
+        self.assertEqual(msg, "all's well")
+
+    @override_switch('require-scopes', active=True)
     def test_userinfo_endpoint(self):
         self._call_userinfo_endpoint(False)
 
@@ -235,7 +275,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         #     Validate JSON Schema
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "userinfo_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(self._validateJsonSchema(USERINFO_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(USERINFO_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
     def test_fhir_meta_endpoint(self):
@@ -268,7 +308,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertIsNotNone(fhir_ver)
         self.assertEqual(fhir_ver, '4.0.0' if v2 else '3.0.2')
         # dump_content(json.dumps(content), "fhir_meta_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(self._validateJsonSchema(FHIR_META_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(FHIR_META_SCHEMA, content), True)
 
     @override_switch('require-scopes', active=True)
     def test_patient_endpoint(self):
@@ -300,7 +340,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "patient_search_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
-        self.assertEqual(self._validateJsonSchema(PATIENT_SEARCH_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(PATIENT_SEARCH_SCHEMA, content), True)
 
         for r in content['entry']:
             resource = r['resource']
@@ -317,7 +357,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # now v2 returns patient without identifier - think it's a bug, by-pass v2 assert to BB2 IT temporarily
         # until BFD resolve this.
         if not v2:
-            self.assertEqual(self._validateJsonSchema(PATIENT_READ_SCHEMA, content), True)
+            self.assertEqual(validate_json_schema(PATIENT_READ_SCHEMA, content), True)
 
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['PATIENT'], v2)
         # Assert there is no address lines and city in patient.address (BFD-379)
@@ -357,7 +397,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "coverage_search_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
-        self.assertEqual(self._validateJsonSchema(COVERAGE_SEARCH_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(COVERAGE_SEARCH_SCHEMA, content), True)
 
         # 3. Test READ VIEW endpoint
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-a-" + settings.DEFAULT_SAMPLE_FHIR_ID, v2))
@@ -366,7 +406,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # dump_content(json.dumps(content), "coverage_read_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['COVERAGE'], v2)
-        self.assertEqual(self._validateJsonSchema(COVERAGE_READ_SCHEMA_V2 if v2 else COVERAGE_READ_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(COVERAGE_READ_SCHEMA_V2 if v2 else COVERAGE_READ_SCHEMA, content), True)
 
         # 4. Test unauthorized READ request
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-a-99999999999999", v2))
@@ -401,7 +441,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # dump_content(json.dumps(content), "coverage_search_nav_p{}_{}.json".format(0, 'v2' if v2 else 'v1'))
 
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
-        self.assertEqual(self._validateJsonSchema(COVERAGE_SEARCH_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(COVERAGE_SEARCH_SCHEMA, content), True)
 
         total = content['total']
         count = 10
@@ -472,7 +512,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # dump_content(json.dumps(content), "eob_search_nav_p{}_{}.json".format(0, 'v2' if v2 else 'v1'))
 
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
-        self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
 
         total = content['total']
         count = 10
@@ -483,9 +523,8 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         for i in range(page_total):
             lnk = content.get('link', None)
-            self.assertIsNotNone(lnk,
-                                 ("Field 'link' expected, "
-                                  "containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "))
+            self.assertIsNotNone(lnk, ("Field 'link' expected, "
+                                 "containing page navigation urls e.g. 'first', 'next', 'self', 'previous', 'last' "))
             nav_info = self._extract_urls(lnk)
             if nav_info.get('next', None) is not None:
                 response = client.get(nav_info['next'])
@@ -524,7 +563,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
         # Validate JSON Schema: bundle with entries and link section with page navigation: first, next, previous, last, self
         # comment out since the C4BB EOB resources do not validate with FHIR R4 json schema
-        self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
 
         total = content['total']
         count = 10
@@ -587,7 +626,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_EOB, None, v2))
         self.assertEqual(response.status_code, 200)
         content = json.loads(response.content)
-        self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
         # dump_content(json.dumps(content), "eob_search_{}.json".format('v2' if v2 else 'v1'))
         # Validate JSON Schema
         for r in content['entry']:
@@ -602,7 +641,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         if not v2:
             # Validate JSON Schema
-            self.assertEqual(self._validateJsonSchema(EOB_READ_SCHEMA, content), True)
+            self.assertEqual(validate_json_schema(EOB_READ_SCHEMA, content), True)
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['NONCLINICIAN'], v2)
 
         # 4. Test SEARCH VIEW endpoint v1 and v2 (BB2-418 EOB V2 PDE profile)
@@ -611,7 +650,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         # Validate JSON Schema
         content = json.loads(response.content)
         # dump_content(json.dumps(content), "eob_search_pt_{}.json".format('v2' if v2 else 'v1'))
-        self.assertEqual(self._validateJsonSchema(EOB_SEARCH_SCHEMA, content), True)
+        self.assertEqual(validate_json_schema(EOB_SEARCH_SCHEMA, content), True)
         for r in content['entry']:
             self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['NONCLINICIAN'], v2)
 
@@ -646,7 +685,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         if not v2:
             # Validate JSON Schema for v1
-            self.assertEqual(self._validateJsonSchema(EOB_READ_INPT_SCHEMA, content), True)
+            self.assertEqual(validate_json_schema(EOB_READ_INPT_SCHEMA, content), True)
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['PHARMACY'], v2)
 
     @override_switch('require-scopes', active=True)
@@ -669,7 +708,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         if not v2:
             # Validate JSON Schema v1
-            self.assertEqual(self._validateJsonSchema(EOB_READ_INPT_SCHEMA, content), True)
+            self.assertEqual(validate_json_schema(EOB_READ_INPT_SCHEMA, content), True)
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['INPATIENT'], v2)
 
     @override_switch('require-scopes', active=True)
@@ -692,7 +731,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
         if not v2:
             # Validate JSON Schema v1
-            self.assertEqual(self._validateJsonSchema(EOB_READ_INPT_SCHEMA, content), True)
+            self.assertEqual(validate_json_schema(EOB_READ_INPT_SCHEMA, content), True)
         else:
             self.assertEqual(response.status_code, 200)
         self._assertHasC4BBProfile(content, C4BB_PROFILE_URLS['OUTPATIENT'], v2)
