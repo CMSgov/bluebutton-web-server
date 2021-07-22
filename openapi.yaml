@@ -2,8 +2,46 @@ openapi: 3.0.2
 info:
   title: BlueButton 2.0
   version: 1.0.0
-  description: "In order to try out the API you'll first need to get an access token and use it in the Authorize -> bearerAuth setting. To get one you can use the [test client](https://sandbox.bluebutton.cms.gov/testclient/), [postman](https://bluebutton.cms.gov/developers/#try-the-api), or your own local setup." 
+  description: "In order to try out the API you'll first need to get an access token and use it in the Authorize -> bearerAuth setting. To get one you can use the [test client](https://sandbox.bluebutton.cms.gov/testclient/), [postman](https://bluebutton.cms.gov/developers/#try-the-api), or your own local setup. The metadata endpoint is unprotected so you can use it without an access code. The metadata results will tell you what query parameters are available for the different fhir endpoints." 
 paths:
+  /.well-known/openid-configuration:
+    get:
+      operationId: openIdConfig
+      description: ''
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+        - v1
+  /v1/fhir/metadata:
+    get:
+      operationId: fhirMetaData
+      description: ''
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+        - v1
   /v1/connect/userinfo:
     get:
       operationId: listopenidconnect_userinfos
@@ -163,6 +201,44 @@ paths:
           description: ''
       tags:
         - v1
+  /.well-known/openid-configuration-v2:
+    get:
+      operationId: openIdConfig_v2
+      description: ''
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+        - v2
+  /v2/fhir/metadata:
+    get:
+      operationId: fhirMetaData_v2
+      description: ''
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+        - v2
   /v2/connect/userinfo:
     get:
       operationId: listopenidconnect_userinfos_v2
