@@ -70,7 +70,7 @@ class TestModels(BaseApiTest):
         with self.assertRaises(ValidationError):
             cw.fhir_id = "-20000000000002"
 
-    def test_muatble_user_hicn_hash(self):
+    def test_mutable_user_hicn_hash(self):
         user = self._create_user('john', 'password',
                                  first_name='John',
                                  last_name='Smith',
@@ -81,7 +81,7 @@ class TestModels(BaseApiTest):
         cw.user_hicn_hash = "239e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e0dd3f1130"
         cw.save()
 
-    def test_muatble_user_mbi_hash(self):
+    def test_mutable_user_mbi_hash(self):
         user = self._create_user('john', 'password',
                                  first_name='John',
                                  last_name='Smith',
