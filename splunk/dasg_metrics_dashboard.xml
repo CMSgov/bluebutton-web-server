@@ -446,7 +446,7 @@
     </panel>
     
     <panel>
-      <title>2b. TOTAL Dev w/ SBX Cred + Registered App + API Call</title>
+      <title>2. TOTAL Dev w/ SBX Cred + Registered App + API Call</title>
       <single>
         <!--<condition match=" $tokGroupTimestamp$ != null">-->
           <search>
