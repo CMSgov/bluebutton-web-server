@@ -86,7 +86,55 @@ paths:
     get:
       operationId: listSearchViewPatients
       description: ''
-      parameters: []
+      parameters:
+        - in: query
+          name: identifier
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+        - in: query
+          name: _has:Coverage
+          schema:
+            type: string
+          required: false
+          description: 'Part D coverage type/year'
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          required: false
+          description: 'The cursor used for result pagination'
+        - in: query
+          name: _id
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
       responses:
         '200':
           content:
@@ -134,9 +182,21 @@ paths:
         - in: query
           name: beneficiary
           schema:
-            type: integer
+            type: string
           required: false
-          description: fhir id to return results for
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
       responses:
         '200':
           content:
@@ -184,9 +244,39 @@ paths:
         - in: query
           name: patient
           schema:
-            type: integer
+            type: string
           required: false
-          description: fhir id to return results for
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: excludeSAMHSA
+          schema:
+            type: string
+          required: false
+          description: 'If true, exclude all SAMHSA-related resources'
+        - in: query
+          name: service-date
+          schema:
+            type: string
+          required: false
+          description: 'Include resources that completed in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: 'A list of claim types to include'
       responses:
         '200':
           content:
@@ -283,7 +373,55 @@ paths:
     get:
       operationId: listSearchViewPatients_v2
       description: ''
-      parameters: []
+      parameters:
+        - in: query
+          name: identifier
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+        - in: query
+          name: _has:Coverage
+          schema:
+            type: string
+          required: false
+          description: 'Part D coverage type/year'
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          required: false
+          description: 'The cursor used for result pagination'
+        - in: query
+          name: _id
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
       responses:
         '200':
           content:
@@ -327,7 +465,25 @@ paths:
     get:
       operationId: listSearchViewCoverages_v2
       description: ''
-      parameters: []
+      parameters:
+        - in: query
+          name: beneficiary
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
       responses:
         '200':
           content:
@@ -375,9 +531,39 @@ paths:
         - in: query
           name: patient
           schema:
-            type: integer
+            type: string
           required: false
-          description: fhir id to return results for
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: excludeSAMHSA
+          schema:
+            type: string
+          required: false
+          description: 'If true, exclude all SAMHSA-related resources'
+        - in: query
+          name: service-date
+          schema:
+            type: string
+          required: false
+          description: 'Include resources that completed in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: 'A list of claim types to include'
       responses:
         '200':
           content:
