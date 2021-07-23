@@ -13,8 +13,7 @@
 KEYBASE_ENV_FILE="team/bb20/infrastructure/creds/ENV_secrets_for_local_integration_tests.env"
 KEYBASE_CERTFILES_SUBPATH="team/bb20/infrastructure/certs/local_integration_tests/fhir_client/certstore/"
 
-DJANGO_FHIR_CERTSTORE="/certstore"
-CERTSTORE_TEMPORARY_MOUNT_PATH="/tmp/certstore"
+CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
 CERT_FILENAME="client_data_server_bluebutton_local_integration_tests_certificate.pem"
 KEY_FILENAME="client_data_server_bluebutton_local_integration_tests_private_key.pem"
 
@@ -45,6 +44,7 @@ TEST_TYPE="--selenium"
 
 export USE_MSLSX=true
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
+export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
 
 export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
 export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
