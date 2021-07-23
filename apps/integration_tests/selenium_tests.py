@@ -41,7 +41,7 @@ class SeleniumTests(TestCase):
             print("wait_completed={}".format(SeleniumTests.wait_completed))
 
         opt = webdriver.ChromeOptions()
-        # opt.add_argument('--headless')
+        opt.add_argument('--headless')
         opt.add_argument("--disable-dev-shm-usage")
         opt.add_argument("--disable-web-security")
         opt.add_argument("--allow-running-insecure-content")

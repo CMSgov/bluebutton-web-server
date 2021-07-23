@@ -18,9 +18,12 @@ from django.test.utils import get_runner
         --selenium  This optional flag indicates tests are to run in selenium test mode.
         Space separated list of Django tests to run.
 
+<<<<<<< HEAD
         --logit  This optional flag indicates tests are to run in logging integration test mode.
         Space separated list of Django tests to run.
 
+=======
+>>>>>>> origin/master
     For example:
 
         $ docker-compose exec web python runtests.py apps.dot_ext.tests

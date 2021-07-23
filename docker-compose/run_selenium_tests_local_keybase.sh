@@ -30,7 +30,7 @@ TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
-  echo "$(basename $0): $*"
+    echo "$(basename $0): $*"
 }
 
 # main
@@ -132,10 +132,10 @@ echo_msg
 # Check that ENV file exists in correct location
 if [ ! -f "${keybase_env}" ]
 then
-  echo_msg
-  echo_msg "ERROR: The ENV secrets could NOT be found at: ${keybase_env}"
-  echo_msg
-  exit 1
+    echo_msg
+    echo_msg "ERROR: The ENV secrets could NOT be found at: ${keybase_env}"
+    echo_msg
+    exit 1
 fi
 
 # Source ENVs
@@ -144,25 +144,26 @@ source "${keybase_env}"
 # Check ENV vars have been sourced
 if [ -z "${DJANGO_USER_ID_SALT}" ]
 then
-  echo_msg "ERROR: The DJANGO_USER_ID_SALT variable was not sourced!"
-  exit 1
+    echo_msg "ERROR: The DJANGO_USER_ID_SALT variable was not sourced!"
+    exit 1
 fi
 if [ -z "${DJANGO_USER_ID_ITERATIONS}" ]
 then
-  echo_msg "ERROR: The DJANGO_USER_ID_ITERATIONS variable was not sourced!"
-  exit 1
+    echo_msg "ERROR: The DJANGO_USER_ID_ITERATIONS variable was not sourced!"
+    exit 1
 fi
 
 # Check temp certstore dir and create if not existing
 if [ -d "${CERTSTORE_TEMPORARY_MOUNT_PATH}" ]
 then
-  echo_msg
-  echo_msg "  - OK: The temporary certstore mount path is found at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
+    echo_msg
+    echo_msg "  - OK: The temporary certstore mount path is found at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
 else
-  mkdir ${CERTSTORE_TEMPORARY_MOUNT_PATH}
-  echo_msg
-  echo_msg "  - OK: Created the temporary certstore mount path at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
+    mkdir ${CERTSTORE_TEMPORARY_MOUNT_PATH}
+    echo_msg
+    echo_msg "  - OK: Created the temporary certstore mount path at: ${CERTSTORE_TEMPORARY_MOUNT_PATH}"
 fi
+
 
 # Keybase cert files
 keybase_certfiles="${keybase_env_path}/${KEYBASE_CERTFILES_SUBPATH}"
@@ -201,6 +202,7 @@ docker-compose -f docker-compose.selenium.yml down
 
 export DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT}
 export DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS}
+export DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS}
 export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 
@@ -222,9 +224,9 @@ echo_msg
 
 if which shred
 then
-  echo_msg "  - Shredding files"
-  shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
-  shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
+    echo_msg "  - Shredding files"
+    shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
+    shred "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
 fi
 
 echo_msg "  - Removing files"
