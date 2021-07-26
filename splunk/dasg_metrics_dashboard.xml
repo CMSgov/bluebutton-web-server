@@ -124,16 +124,10 @@
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
         </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
       </single>
-      
-      <!--<single>-->
-      <!--  <search>-->
-      <!--    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod "message.type"="global_state_metrics" "message.group_timestamp"=$tokGroupTimestamp|s$ | table message.real_bene_cnt</query>-->
-      <!--  </search>-->
-      <!--  <option name="drilldown">all</option>-->
-      <!--  <option name="height">226</option>-->
-      <!--  <option name="refresh.display">progressbar</option>-->
-      <!--</single>-->
     </panel>
     
   </row>
@@ -218,8 +212,23 @@
           <done>
             <set token="tokFhirV1PatientOKCount">$result.count$</set>
           </done>
-           <!-- message.group_timestamp="2021-07-14T07:00:54+00:00" -->
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" "message.group_timestamp"=$tokGroupTimestamp|s$ message.active=True message.real_bene_cnt&lt;25 | stats count</query>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" "message.group_timestamp"=$tokGroupTimestamp|s$ message.active=True message.real_bene_cnt&lt;=25 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>3. Total Apps served</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokFhirV1PatientOKCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" "message.group_timestamp"=$tokGroupTimestamp|s$ message.active=True | stats count</query>
           <earliest>$t_local.earliest$</earliest>
           <latest>$t_local.latest$</latest>
         </search>
@@ -363,7 +372,7 @@
       </single>
     </panel>
     <panel>
-      <title>4. TOTAL V2 FHIR Calls Made (w/ successful status)</title>
+      <title>4. TOTAL FHIR Calls Made (w/ successful status)</title>
       <single>
         <search base="baseSearchFhirV2">
           <done>
@@ -470,11 +479,9 @@
         <latest>$t_local.latest$</latest>
       </search>
       <single>
-        <!--<condition match=" $tokGroupTimestamp$ != null">-->
           <search>
             <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics_per_app" | search "message.first_active"!="null" "message.group_timestamp"=$tokGroupTimestampSandbox|s$ | stats count</query>
           </search>
-        <!--</condition>-->
         <option name="drilldown">all</option>
         <option name="height">226</option>
         <option name="refresh.display">progressbar</option>
