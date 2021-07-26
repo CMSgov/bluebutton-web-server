@@ -447,9 +447,17 @@
   
   <row>
     <panel>
+      <search>
+        <done>
+          <set token="tokGroupTimestampSandbox">$result.message.group_timestamp$</set>
+        </done>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics" | head 1 | table message.group_timestamp</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+      </search>
       <html>
        <u1> <h3>
-            <b>SBX DASG Metrics Logging Event Counts for Group Timestamp - $tokGroupTimestamp$</b>
+            <b>SBX DASG Metrics Logging Event Counts for Group Timestamp - $tokGroupTimestampSandbox$</b>
           </h3>
         </u1>
      </html>
@@ -470,14 +478,6 @@
     
     <panel>
       <title>2. TOTAL Dev w/ SBX Cred + Registered App + API Call</title>
-      <search>
-        <done>
-          <set token="tokGroupTimestampSandbox">$result.message.group_timestamp$</set>
-        </done>
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics" | head 1 | table message.group_timestamp</query>
-        <earliest>$t_local.earliest$</earliest>
-        <latest>$t_local.latest$</latest>
-      </search>
       <single>
           <search>
             <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics_per_app" | search "message.first_active"!="null" "message.group_timestamp"=$tokGroupTimestampSandbox|s$ | stats count</query>
