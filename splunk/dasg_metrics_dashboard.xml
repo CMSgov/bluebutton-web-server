@@ -1,5 +1,5 @@
 <form>
-  <label>BB2 DASG Metrics Dashboard</label>
+  <label>BB2 DASG Metrics Dashboard Clone - BB2-706</label>
   <description>Dashboard panels related to metrics for DASG reporting</description>
   <fieldset submitButton="false"></fieldset>
   <row>
@@ -111,19 +111,29 @@
     <panel>
       <title>1c. Beneficiaries Served (life to date cumulative)</title>
       <search>
-          <init>
-            <set token="tokGroupTimestamp">$result.message.group_timestamp$</set>
-          </init>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics" | head 1 | table message.group_timestamp</query>
+        <done>
+          <set token="tokGroupTimestamp">$result.message.group_timestamp$</set>
+        </done>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics" | head 1 | table message.group_timestamp</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
       </search>
       <single>
         <search>
           <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod "message.type"="global_state_metrics" "message.group_timestamp"=$tokGroupTimestamp|s$ | table message.real_bene_cnt</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
         </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
       </single>
+      
+      <!--<single>-->
+      <!--  <search>-->
+      <!--    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod "message.type"="global_state_metrics" "message.group_timestamp"=$tokGroupTimestamp|s$ | table message.real_bene_cnt</query>-->
+      <!--  </search>-->
+      <!--  <option name="drilldown">all</option>-->
+      <!--  <option name="height">226</option>-->
+      <!--  <option name="refresh.display">progressbar</option>-->
+      <!--</single>-->
     </panel>
     
   </row>
@@ -192,7 +202,9 @@
             <set token="tokFhirV1PatientOKCount">$result.count$</set>
           </done>
            <!-- message.group_timestamp="2021-07-14T07:00:54+00:00" -->
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" message.group_timestamp="2021-07-14T07:00:54+00:00" message.active=True message.real_bene_cnt>25 | stats count</query>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" "message.group_timestamp"=$tokGroupTimestamp|s$ message.active=True message.real_bene_cnt>25 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -207,7 +219,9 @@
             <set token="tokFhirV1PatientOKCount">$result.count$</set>
           </done>
            <!-- message.group_timestamp="2021-07-14T07:00:54+00:00" -->
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" message.group_timestamp="2021-07-14T07:00:54+00:00" message.active=True message.real_bene_cnt&lt;25 | stats count</query>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" "message.group_timestamp"=$tokGroupTimestamp|s$ message.active=True message.real_bene_cnt&lt;25 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -425,9 +439,9 @@
   <row>
     <panel>
       <html>
-       <u1> <h1>
+       <u1> <h3>
             <b>SBX DASG Metrics Logging Event Counts for Group Timestamp - $tokGroupTimestamp$</b>
-          </h1>
+          </h3>
         </u1>
      </html>
     </panel>
@@ -447,10 +461,18 @@
     
     <panel>
       <title>2. TOTAL Dev w/ SBX Cred + Registered App + API Call</title>
+      <search>
+        <done>
+          <set token="tokGroupTimestampSandbox">$result.message.group_timestamp$</set>
+        </done>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics" | head 1 | table message.group_timestamp</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+      </search>
       <single>
         <!--<condition match=" $tokGroupTimestamp$ != null">-->
           <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics_per_app" | search "message.first_active"!="null" "message.group_timestamp"=$tokGroupTimestamp|s$ | stats count</query>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics_per_app" | search "message.first_active"!="null" "message.group_timestamp"=$tokGroupTimestampSandbox|s$ | stats count</query>
           </search>
         <!--</condition>-->
         <option name="drilldown">all</option>
