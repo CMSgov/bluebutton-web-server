@@ -13,29 +13,23 @@ echo "SUPER_USER_EMAIL =" ${SUPER_USER_EMAIL}
 echo "SUPER_USER_PASSWORD =" ${SUPER_USER_PASSWORD}
 echo "BB20_ENABLE_REMOTE_DEBUG =" ${BB20_ENABLE_REMOTE_DEBUG}
 echo "BB20_REMOTE_DEBUG_WAIT_ATTACH =" ${BB20_REMOTE_DEBUG_WAIT_ATTACH}
+echo "DJANGO_SETTINGS_MODULE=" ${DJANGO_SETTINGS_MODULE}
 
-if [ -f ./migration.completed ]
-    echo "DB image migrations seems performed in container, skip..."
+if [ "${DB_MIGRATIONS}" = true ]
 then
-    if [ "${DB_MIGRATIONS}" = true ]
-    then
-        echo "DB_MIGRATIONS is true, run db image migration and models initialization."
-        python manage.py migrate
+    echo "run db image migration and models initialization."
+    python manage.py migrate
 
-        echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
-        python manage.py create_admin_groups
-        python manage.py loaddata scopes.json
-        python manage.py create_blue_button_scopes
-        python manage.py create_test_user_and_application
-        python manage.py create_user_identification_label_selection
-        python manage.py create_test_feature_switches
-    else
-        echo "DB_MIGRATIONS is false, no db image migration and models initialization will run here, you might need to manually run DB image migrations ..."
-    fi
-    # this is to prevent restart doing migration again
-    touch migration.completed
+    echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPERUSER_NAME}', '${SUPERUSER_EMAIL}', '${SUPERUSER_PASSWORD}')" | python manage.py shell
+    python manage.py create_admin_groups
+    python manage.py loaddata scopes.json
+    python manage.py create_blue_button_scopes
+    python manage.py create_test_user_and_application
+    python manage.py create_user_identification_label_selection
+    python manage.py create_test_feature_switches
+else
+    echo "restarting blue button server, no db image migration and models initialization will run here, you might need to manually run DB image migrations."
 fi
-
 
 if [ ! -d 'bluebutton-css' ]
 then
