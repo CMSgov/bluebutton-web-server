@@ -123,18 +123,6 @@ paths:
             type: string
           required: false
           description: 'The patient identifier to search for'
-        - in: query
-          name: _lastUpdated
-          schema:
-            type: string
-          required: false
-          description: 'Include resources last updated in the given range'
-        - in: query
-          name: startIndex
-          schema:
-            type: string
-          required: false
-          description: 'The offset used for result pagination'
       responses:
         '200':
           content:
@@ -410,18 +398,6 @@ paths:
             type: string
           required: false
           description: 'The patient identifier to search for'
-        - in: query
-          name: _lastUpdated
-          schema:
-            type: string
-          required: false
-          description: 'Include resources last updated in the given range'
-        - in: query
-          name: startIndex
-          schema:
-            type: string
-          required: false
-          description: 'The offset used for result pagination'
       responses:
         '200':
           content:
