@@ -117,10 +117,8 @@ elif [[ ${SYSTEM} == "Darwin" ]]
 then
   keybase_env_path="/Volumes/keybase"
 else
-  # support cygwin
-  keybase_env_path="/cygdrive/k"
-  CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
-  DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
+    # support cygwin
+    keybase_env_path="/cygdrive/k"
 fi
 
 # Keybase ENV file
