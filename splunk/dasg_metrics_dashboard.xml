@@ -372,7 +372,7 @@
       </single>
     </panel>
     <panel>
-      <title>4. TOTAL FHIR Calls Made (w/ successful status)</title>
+      <title>4. TOTAL V2 FHIR Calls Made (w/ successful status)</title>
       <single>
         <search base="baseSearchFhirV2">
           <done>
@@ -431,7 +431,7 @@
       </single>
     </panel>
     <panel>
-      <title>4. TOTAL V2 FHIR Calls Made (w/ successful status)</title>
+      <title>4. TOTAL FHIR Calls Made (w/ successful status)</title>
       <single>
         <search>
           <query>| makeresults | eval total=$tokFhirV1OKCount$ + $tokFhirV2OKCount$ | table total</query>
