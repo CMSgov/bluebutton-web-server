@@ -59,6 +59,15 @@ pipeline {
       }
     }
 
+    stage("RUN docker info") {
+      steps{
+        sh """
+          . venv/bin/activate
+          docker info
+        """
+      }
+    }
+
     stage("RUN integration tests") {
       steps{
         sh """
