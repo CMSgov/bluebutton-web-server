@@ -13,7 +13,9 @@
 KEYBASE_ENV_FILE="team/bb20/infrastructure/creds/ENV_secrets_for_local_integration_tests.env"
 KEYBASE_CERTFILES_SUBPATH="team/bb20/infrastructure/certs/local_integration_tests/fhir_client/certstore/"
 
-CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
+export CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
+export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
+
 CERT_FILENAME="client_data_server_bluebutton_local_integration_tests_certificate.pem"
 KEY_FILENAME="client_data_server_bluebutton_local_integration_tests_private_key.pem"
 
@@ -41,7 +43,8 @@ echo_msg
 set -e -u -o pipefail
 
 export USE_MSLSX=true
-export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
+export USE_GRID=false
+
 export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
 export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
 export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
@@ -54,7 +57,7 @@ if [ $# -eq 0 ]
 then
     echo "Use MSLSX for identity service."
 else
-    if [[ $1 != "slsx" && $1 != "mslsx" ]]
+    if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "slsx-grid" && $1 != "mslsx-grid" && $1 != "grid" ]]
     then
         echo
         echo "COMMAND USAGE HELP"
@@ -64,11 +67,21 @@ else
         echo
         echo "    slsx  = use SLSX for identity service."
         echo
+        echo "    slsx-grid  = use SLSX for identity service, and start selenium grid."
+        echo
         echo "    mslsx (default) = use MSLSX for identity service."
+        echo
+        echo "    mslsx-grid = use MSLSX for identity service, and start selenium grid."
+        echo
+        echo "    grid = use MSLSX for identity service, and start selenium grid."
         echo
         exit 1
     else
-        if [ $1 == "slsx" ]
+        if [[ $1 == *grid ]]
+        then
+            export USE_GRID=true
+        fi
+        if [[ $1 == "slsx" || $1 == "slsx-grid" ]]
         then
             export USE_MSLSX=false
             export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
@@ -182,8 +195,14 @@ export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 
 echo "Selenium tests ..."
+echo "MSLSX=" ${USE_MSLSX}
 
-docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
+if [ "$USE_GRID" = true ]
+then
+    docker-compose -f docker-compose.selenium.yml --profile grid run tests-grid bash -c "python runtests.py --selenium ${TESTS_LIST}"
+else
+    docker-compose -f docker-compose.selenium.yml --profile lite run tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
+fi
 
 # Stop containers after use
 echo_msg

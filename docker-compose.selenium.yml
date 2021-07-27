@@ -9,11 +9,30 @@ services:
     environment:
           - HOSTNAME_URL=${HOSTNAME_URL}
           - USE_MSLSX=${USE_MSLSX}
+          - USE_GRID=${USE_GRID}
+    volumes:
+      - .:/code
+    depends_on:
+      - bb2slsx
+    profiles:
+      - lite
+    
+  tests-grid:
+    build:
+      context: ./
+      dockerfile: Dockerfile.selenium
+    command: python runtests.py apps.integration_tests.selenium_tests.SeleniumTests
+    environment:
+          - HOSTNAME_URL=${HOSTNAME_URL}
+          - USE_MSLSX=${USE_MSLSX}
+          - USE_GRID=${USE_GRID}
     volumes:
       - .:/code
     depends_on:
       - bb2slsx
       - chrome
+    profiles:
+      - grid
 
   chrome:
     image: selenium/node-chrome:4.0.0-beta-4-prerelease-20210517
@@ -27,7 +46,9 @@ services:
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
     ports:
       - "6900:5900"
-    
+    profiles:
+      - grid
+  
   # edge:
   #   image: selenium/node-edge:4.0.0-beta-4-prerelease-20210517
   #   volumes:
@@ -61,7 +82,9 @@ services:
       - "4442:4442"
       - "4443:4443"
       - "4444:4444"
-
+    profiles:
+      - grid
+    
   msls:
     build:
       context: ./dev-local/msls
