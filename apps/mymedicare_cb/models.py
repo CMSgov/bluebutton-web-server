@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from apps.accounts.models import UserProfile
-from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
 from apps.logging.request_logger import BasicLogger
 
@@ -61,71 +61,92 @@ def get_and_update_user(
 
     log_dict = {
         "type": "mymedicare_cb:get_and_update_user",
+        "subject": subject,
         "fhir_id": fhir_id,
         "mbi_hash": mbi_hash,
         "hicn_hash": hicn_hash,
         "hash_lookup_type": hash_lookup_type,
         "crosswalk": {},
+        "crosswalk_before": {},
     }
+
+    # Init for types of crosswalk updates.
+    hicn_updated = False
+    mbi_updated = False
+    mbi_updated_from_null = False
 
     try:
         # Does an existing user and crosswalk exist for SLSx username?
         user = User.objects.get(username=subject)
-        log_dict["crosswalk"] = {
-            "id": user.crosswalk.id,
-            "user_hicn_hash": user.crosswalk.user_hicn_hash,
-            "user_mbi_hash": user.crosswalk.user_mbi_hash,
-            "fhir_id": user.crosswalk.fhir_id,
-            "user_id_type": user.crosswalk.user_id_type,
-        }
 
-        if user.crosswalk.user_hicn_hash != hicn_hash:
-            err_msg = "Found user's hicn did not match"
-            log_dict["status"] = "FAIL"
-            log_dict["mesg"] = err_msg
-            logger.info(log_dict)
-            raise BBMyMedicareCallbackCrosswalkUpdateException(err_msg)
-
+        # fhir_id can not change for an existing user!
         if user.crosswalk.fhir_id != fhir_id:
-            err_msg = "Found user's fhir_id did not match"
-            log_dict["status"] = "FAIL"
-            log_dict["mesg"] = err_msg
+            mesg = "Found user's fhir_id did not match"
+            log_dict.update({
+                "status": "FAIL",
+                "user_id": user.id,
+                "user_username": user.username,
+                "mesg": mesg,
+            })
             logger.info(log_dict)
-            raise BBMyMedicareCallbackCrosswalkUpdateException(err_msg)
+            raise BBMyMedicareCallbackCrosswalkUpdateException(mesg)
 
+        # Did the hicn change?
+        if user.crosswalk.user_hicn_hash != hicn_hash:
+            hicn_updated = True
+
+        # Did the mbi change?
         if user.crosswalk.user_mbi_hash is not None:
             if user.crosswalk.user_mbi_hash != mbi_hash:
-                err_msg = "Found user's mbi did not match"
-                log_dict["status"] = "FAIL"
-                log_dict["mesg"] = err_msg
-                logger.info(log_dict)
-                raise BBMyMedicareCallbackCrosswalkUpdateException(err_msg)
+                mbi_updated = True
         else:
-            # Previously stored value was None/Null and mbi_hash != None, update just the mbi hash.
+            # Did the mbi change from previously stored None/Null value?
             if mbi_hash is not None:
-                err_msg = "UPDATE mbi_hash since previous value was NULL"
-                log_dict["status"] = "OK"
-                log_dict["mesg"] = err_msg
-                logger.info(log_dict)
-                user.crosswalk.user_mbi_hash = mbi_hash
+                mbi_updated = True
+                mbi_updated_from_null = True
+
+        # Update Crosswalk if there are any allowed changes or hash_type used for lookup changed.
+        if user.crosswalk.user_id_type != hash_lookup_type or hicn_updated or mbi_updated:
+            # Log crosswalk before state
+            log_dict.update({
+                "crosswalk_before": {
+                    "id": user.crosswalk.id,
+                    "user_hicn_hash": user.crosswalk.user_hicn_hash,
+                    "user_mbi_hash": user.crosswalk.user_mbi_hash,
+                    "fhir_id": user.crosswalk.fhir_id,
+                    "user_id_type": user.crosswalk.user_id_type,
+                },
+            })
+
+            with transaction.atomic():
+                # Archive to audit crosswalk changes
+                ArchivedCrosswalk.create(user.crosswalk)
+
+                # Update crosswalk per changes
                 user.crosswalk.user_id_type = hash_lookup_type
+                user.crosswalk.user_hicn_hash = hicn_hash
+                user.crosswalk.user_mbi_hash = mbi_hash
                 user.crosswalk.save()
 
-        # Update hash type used for lookup, if it has changed from last match.
-        if user.crosswalk.user_id_type != hash_lookup_type:
-            err_msg = (
-                "UPDATE user_id_type as it has changed from the previous lookup value"
-            )
-            log_dict["status"] = "OK"
-            log_dict["mesg"] = err_msg
-            logger.info(log_dict)
-            user.crosswalk.user_id_type = hash_lookup_type
-            user.crosswalk.save()
-
-        err_msg = "RETURN existing beneficiary record"
-        log_dict["status"] = "OK"
-        log_dict["mesg"] = err_msg
+        # Beneficiary has been successfully matched!
+        log_dict.update({
+            "status": "OK",
+            "user_id": user.id,
+            "user_username": user.username,
+            "hicn_updated": hicn_updated,
+            "mbi_updated": mbi_updated,
+            "mbi_updated_from_null": mbi_updated_from_null,
+            "mesg": "RETURN existing beneficiary record",
+            "crosswalk": {
+                "id": user.crosswalk.id,
+                "user_hicn_hash": user.crosswalk.user_hicn_hash,
+                "user_mbi_hash": user.crosswalk.user_mbi_hash,
+                "fhir_id": user.crosswalk.fhir_id,
+                "user_id_type": user.crosswalk.user_id_type,
+            },
+        })
         logger.info(log_dict)
+
         return user, "R"
     except User.DoesNotExist:
         pass
@@ -142,18 +163,24 @@ def get_and_update_user(
         request=request,
     )
 
-    err_msg = "CREATE beneficiary record"
-    log_dict["status"] = "OK"
-    log_dict["mesg"] = err_msg
-    log_dict["crosswalk"] = {
-        "id": user.crosswalk.id,
-        "user_hicn_hash": user.crosswalk.user_hicn_hash,
-        "user_mbi_hash": user.crosswalk.user_mbi_hash,
-        "fhir_id": user.crosswalk.fhir_id,
-        "user_id_type": user.crosswalk.user_id_type,
-    }
-
+    log_dict.update({
+        "status": "OK",
+        "user_id": user.id,
+        "user_username": user.username,
+        "hicn_updated": hicn_updated,
+        "mbi_updated": mbi_updated,
+        "mbi_updated_from_null": mbi_updated_from_null,
+        "mesg": "CREATE beneficiary record",
+        "crosswalk": {
+            "id": user.crosswalk.id,
+            "user_hicn_hash": user.crosswalk.user_hicn_hash,
+            "user_mbi_hash": user.crosswalk.user_mbi_hash,
+            "fhir_id": user.crosswalk.fhir_id,
+            "user_id_type": user.crosswalk.user_id_type,
+        },
+    })
     logger.info(log_dict)
+
     return user, "C"
 
 
@@ -185,85 +212,107 @@ def create_beneficiary_record(
     }
 
     if username is None:
-        err_msg = "username can not be None"
-        log_dict["status"] = "FAIL"
-        log_dict["mesg"] = err_msg
+        mesg = "username can not be None"
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
         logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
+        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if username == "":
-        err_msg = "username can not be an empty string"
-        log_dict["status"] = "FAIL"
-        log_dict["mesg"] = err_msg
+        mesg = "username can not be an empty string"
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
         logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
+        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if user_hicn_hash is None:
-        err_msg = "user_hicn_hash can not be None"
-        log_dict["status"] = "FAIL"
-        log_dict["mesg"] = err_msg
+        mesg = "user_hicn_hash can not be None"
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
         logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
+        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
     else:
         if len(user_hicn_hash) != 64:
-            err_msg = "incorrect user HICN hash format"
-            log_dict["status"] = "FAIL"
-            log_dict["mesg"] = err_msg
+            mesg = "incorrect user HICN hash format"
+            log_dict.update({
+                "status": "FAIL",
+                "mesg": mesg,
+            })
             logger.info(log_dict)
-            raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
+            raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     # If mbi_hash is not NULL, perform length check.
     if user_mbi_hash is not None:
         if len(user_mbi_hash) != 64:
-            err_msg = "incorrect user MBI hash format"
-            log_dict["status"] = "FAIL"
-            log_dict["mesg"] = err_msg
+            mesg = "incorrect user MBI hash format"
+            log_dict.update({
+                "status": "FAIL",
+                "mesg": mesg,
+            })
             logger.info(log_dict)
-            raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
+            raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if fhir_id is None:
-        err_msg = "fhir_id can not be None"
-        log_dict["status"] = "FAIL"
-        log_dict["mesg"] = err_msg
+        mesg = "fhir_id can not be None"
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
         logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
+        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if fhir_id == "":
-        err_msg = "fhir_id can not be an empty string"
-        log_dict["status"] = "FAIL"
-        log_dict["mesg"] = err_msg
+        mesg = "fhir_id can not be an empty string"
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
         logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(err_msg)
+        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
 
     if User.objects.filter(username=username).exists():
-        err_msg = "user already exists"
-        log_dict["status"] = "FAIL"
-        log_dict["mesg"] = err_msg
+        mesg = "user already exists"
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
         logger.info(log_dict)
-        raise ValidationError(err_msg, username)
+        raise ValidationError(mesg, username)
 
     if Crosswalk.objects.filter(_user_id_hash=user_hicn_hash).exists():
-        err_msg = "user_hicn_hash already exists"
-        log_dict["status"] = "FAIL"
-        log_dict["mesg"] = err_msg
+        mesg = "user_hicn_hash already exists"
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
         logger.info(log_dict)
-        raise ValidationError(err_msg, user_hicn_hash)
+        raise ValidationError(mesg, user_hicn_hash)
 
     # If mbi_hash is not NULL, perform check for duplicate
     if user_mbi_hash is not None:
         if Crosswalk.objects.filter(_user_mbi_hash=user_mbi_hash).exists():
-            err_msg = "user_mbi_hash already exists"
-            log_dict["status"] = "FAIL"
-            log_dict["mesg"] = err_msg
+            mesg = "user_mbi_hash already exists"
+            log_dict.update({
+                "status": "FAIL",
+                "mesg": mesg,
+            })
             logger.info(log_dict)
-            raise ValidationError(err_msg, user_hicn_hash)
+            raise ValidationError(mesg, user_hicn_hash)
 
     if fhir_id and Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
-        err_msg = "fhir_id already exists"
-        log_dict["status"] = "FAIL"
-        log_dict["mesg"] = err_msg
+        mesg = "fhir_id already exists"
+        log_dict.update({
+            "status": "FAIL",
+            "mesg": mesg,
+        })
         logger.info(log_dict)
-        raise ValidationError(err_msg, fhir_id)
+        raise ValidationError(mesg, fhir_id)
 
     with transaction.atomic():
         user = User(
@@ -286,15 +335,17 @@ def create_beneficiary_record(
         group = Group.objects.get(name="BlueButton")  # TODO: these do not need a group
         user.groups.add(group)
 
-        log_dict["crosswalk"] = {
-            "id": cw.id,
-            "user_hicn_hash": cw.user_hicn_hash,
-            "user_mbi_hash": cw.user_mbi_hash,
-            "fhir_id": cw.fhir_id,
-            "user_id_type": cw.user_id_type,
-        }
-        log_dict["status"] = "OK"
-        log_dict["mesg"] = "CREATE beneficiary record"
+        log_dict.update({
+            "status": "OK",
+            "mesg": "CREATE beneficiary record",
+            "crosswalk": {
+                "id": cw.id,
+                "user_hicn_hash": cw.user_hicn_hash,
+                "user_mbi_hash": cw.user_mbi_hash,
+                "fhir_id": cw.fhir_id,
+                "user_id_type": cw.user_id_type,
+            },
+        })
         logger.info(log_dict)
 
     return user
