@@ -34,7 +34,6 @@ pipeline {
     stage("RUN docker info") {
       steps{
         sh """
-          . venv/bin/activate
           docker info
         """
       }
