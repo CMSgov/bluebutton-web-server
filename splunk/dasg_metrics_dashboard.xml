@@ -7,7 +7,7 @@
       <input type="time" token="t_local" searchWhenChanged="true">
         <label>Select Time Range</label>
         <default>
-          <earliest>-60m@m</earliest>
+          <earliest>-7d@d</earliest>
           <latest>now</latest>
         </default>
       </input>
