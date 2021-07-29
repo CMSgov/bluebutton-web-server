@@ -8,59 +8,6 @@ authenticate_logger = logging.getLogger('audit.authenticate.sls')
 mymedicare_cb_logger = logging.getLogger('audit.authenticate.mymedicare_cb')
 
 
-# For use in models.get_and_update_user()
-def log_get_and_update_user(auth_flow_dict, status, user, fhir_id, mbi_hash, hicn_hash, hash_lookup_type, mesg):
-    '''
-        Logging for info or issue
-        used in get_and_update_user()
-        mesg = Description text.
-    '''
-    log_dict = {
-        "type": "mymedicare_cb:get_and_update_user",
-        "status": status,
-        "fhir_id": fhir_id,
-        "mbi_hash": mbi_hash,
-        "hicn_hash": hicn_hash,
-        "hash_lookup_type": hash_lookup_type,
-        "crosswalk": {
-            "id": user.crosswalk.id,
-            "user_hicn_hash": user.crosswalk.user_hicn_hash,
-            "user_mbi_hash": user.crosswalk.user_mbi_hash,
-            "fhir_id": user.crosswalk.fhir_id,
-            "user_id_type": user.crosswalk.user_id_type,
-        },
-        "mesg": mesg,
-    }
-
-    # Update with auth flow session info
-    log_dict.update(auth_flow_dict if auth_flow_dict else {})
-
-    mymedicare_cb_logger.info(log_dict)
-
-
-# For use in models.create_beneficiary_record()
-def log_create_beneficiary_record(auth_flow_dict, status, username, fhir_id, user_mbi_hash, user_hicn_hash, mesg):
-    '''
-        Logging for info or issue
-        used in create_beneficiary_record()
-        mesg = Description text.
-    '''
-    log_dict = {
-        "type": "mymedicare_cb:create_beneficiary_record",
-        "status": status,
-        "username": username,
-        "fhir_id": fhir_id,
-        "user_mbi_hash": user_mbi_hash,
-        "user_hicn_hash": user_hicn_hash,
-        "mesg": mesg,
-    }
-
-    # Update with auth flow session info
-    log_dict.update(auth_flow_dict if auth_flow_dict else {})
-
-    mymedicare_cb_logger.info(log_dict)
-
-
 # For use in views.authenticate()
 def log_authenticate_start(auth_flow_dict, sls_status, sls_status_mesg, sls_subject=None,
                            sls_mbi_format_valid=None, sls_mbi_format_msg=None,

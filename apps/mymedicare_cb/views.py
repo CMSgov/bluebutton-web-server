@@ -54,7 +54,7 @@ def authenticate(request):
     # Exchange req_token for access token
     slsx_client.exchange_for_access_token(request_token, request)
 
-    # Get user_info
+    # Get user_info. TODO: Move userinfo type validations in to this method.
     user_info = slsx_client.get_user_info(request)
 
     # Signout bene to prevent SSO issues per BB2-544
