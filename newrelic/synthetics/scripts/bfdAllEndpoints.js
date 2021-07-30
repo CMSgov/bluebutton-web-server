@@ -7,23 +7,22 @@
 const assert = require("assert");
 const BASE_URL = 'https://sandbox.bluebutton.cms.gov/';
 const VERSIONS = ['v1', 'v2'];
-const AUTH_TOKEN = '<Dont check in an access token for security purposes>';
-const PATIENT_ID = '<Patient ID should match the access token used>';
+const AUTH_TOKEN = $secure['Adjust Per Env'];
 
 const generatePatientUrl = (version) => {
-    return BASE_URL + version + '/fhir/Patient/' + PATIENT_ID;
+    return BASE_URL + version + '/fhir/Patient';
 }
 
 const generateCoverageUrl = (version) => {
-    return BASE_URL + version + '/fhir/Coverage?beneficiary=' + PATIENT_ID;
+    return BASE_URL + version + '/fhir/Coverage';
 }
 
 const generateEobUrl = (version) => {
-    return BASE_URL + version + '/fhir/ExplanationOfBenefit?patient' + PATIENT_ID;
+    return BASE_URL + version + '/fhir/ExplanationOfBenefit';
 }
 
 const patientSuccessEvaluation = (url, parsedBody) => {
-    assert.ok(parsedBody.id === PATIENT_ID, url + ': Expected the patient id to be the same but instead received: ' + parsedBody.id);
+    assert.ok(parsedBody.total > 0, url + ': Expected the total number of patients to be greater than zero but received: ' + parsedBody.total);
 }
 
 const coverageSuccessEvaluation = (url, parsedBody) => {
