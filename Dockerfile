@@ -1,4 +1,4 @@
-FROM python:3.7.10
+FROM python:buster
 ENV PYTHONUNBUFFERED 1
 # ENV PYTHONDEVMODE 1
 RUN mkdir /code
