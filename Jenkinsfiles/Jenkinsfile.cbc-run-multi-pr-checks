@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes {
-      defaultContainer "bb2-cbc-build-selenium"
+      defaultContainer "bb2-cbc-build"
       yamlFile "Jenkinsfiles/cbc-pod-deployment-config.yaml"
     }
   }
@@ -31,19 +31,20 @@ pipeline {
       }
     }
 
-    // stage("INSTALL Python Packages") {
-    //   steps {
-    //     sh """
-    //       python -m venv venv
-    //       . venv/bin/activate
-    //       make reqs-install-dev
-    //     """
-    //   }
-    // }
+    stage("INSTALL Python Packages") {
+      steps {
+        sh """
+          python -m venv venv
+          . venv/bin/activate
+          make reqs-install-dev
+        """
+      }
+    }
 
     stage("CHECK Flake8 Python Lint/Style") {
       steps{
         sh """
+          . venv/bin/activate
           flake8
         """
       }
@@ -52,6 +53,7 @@ pipeline {
     stage("RUN Django Unit Tests") {
       steps{
         sh """
+          . venv/bin/activate
           python runtests.py
         """
       }
@@ -60,6 +62,7 @@ pipeline {
     stage("RUN integration tests") {
       steps{
         sh """
+          . venv/bin/activate
           python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
         """
       }
