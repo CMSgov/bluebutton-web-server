@@ -41,9 +41,9 @@ class SeleniumTests(TestCase):
             print("wait_completed={}".format(SeleniumTests.wait_completed))
 
         self.use_mslsx = os.environ['USE_MSLSX']
-        self.use_grid = os.environ['USE_GRID']
+        self.use_debug = os.environ['USE_DEBUG']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
-        print("use_mslsx={}, use_grid={}".format(self.use_mslsx, self.use_grid))
+        print("use_mslsx={}, use_debug={}".format(self.use_mslsx, self.use_debug))
 
         opt = webdriver.ChromeOptions()
         opt.add_argument("--disable-dev-shm-usage")
@@ -58,9 +58,9 @@ class SeleniumTests(TestCase):
         opt.add_argument('--window-size=1920,1080')
         opt.add_argument("--whitelisted-ips=''")
 
-        if self.use_grid == 'true':
+        if self.use_debug == 'true':
             self.driver = webdriver.Remote(
-                command_executor='http://selenium-hub:4444',
+                command_executor='http://chrome:4444/wd/hub',
                 desired_capabilities=DesiredCapabilities.CHROME, options=opt)
         else:
             opt.add_argument('--headless')

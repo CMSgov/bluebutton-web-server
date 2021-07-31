@@ -1,4 +1,4 @@
-FROM selenium/standalone-chrome
+FROM selenium/standalone-chrome-debug
 
 ENV PYTHONUNBUFFERED 1
 USER root
@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -yq python3.7 python3-pip git
 RUN pip3 install --upgrade pip
 RUN pip3 install selenium psycopg2-binary==2.8.6 pyyaml==5.4.1 Pillow==8.3.1
 RUN mkdir /code
-RUN mkdir -p /code/docker-compose/certstore
 ADD . /code/
 WORKDIR /code
 RUN make reqs-install-dev

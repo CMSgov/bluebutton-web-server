@@ -1,0 +1,10 @@
+# exclude when build image
+apidocs/
+splunk/
+venv/
+bluebutton-css/
+dev-local/
+docker-compose/
+apidocs/
+bluebutton-openapi-doc/
+*.sh

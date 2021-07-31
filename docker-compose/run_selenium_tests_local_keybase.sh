@@ -43,7 +43,7 @@ echo_msg
 set -e -u -o pipefail
 
 export USE_MSLSX=true
-export USE_GRID=false
+export USE_DEBUG=false
 
 export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
 export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
@@ -57,7 +57,7 @@ if [ $# -eq 0 ]
 then
     echo "Use MSLSX for identity service."
 else
-    if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "slsx-grid" && $1 != "mslsx-grid" && $1 != "grid" ]]
+    if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "slsx-debug" && $1 != "mslsx-debug" && $1 != "debug" ]]
     then
         echo
         echo "COMMAND USAGE HELP"
@@ -65,23 +65,23 @@ else
         echo
         echo "  Use one of the following command line options for the type of test to run:"
         echo
-        echo "    slsx  = use SLSX for identity service."
+        echo "    slsx  = use SLSX for identity service with webdriver in headless mode."
         echo
-        echo "    slsx-grid  = use SLSX for identity service, and start selenium grid."
+        echo "    slsx-debug  = use SLSX for identity service, and start selenium standalone chrome debug mode (visualized browser interactions)."
         echo
-        echo "    mslsx (default) = use MSLSX for identity service."
+        echo "    mslsx (default) = use MSLSX for identity service with webdriver in headless mode."
         echo
-        echo "    mslsx-grid = use MSLSX for identity service, and start selenium grid."
+        echo "    mslsx-debug = use MSLSX for identity service with selenium chrome standalone debug mode."
         echo
-        echo "    grid = use MSLSX for identity service, and start selenium grid."
+        echo "    debug = same as 'mslsx-debug'"
         echo
         exit 1
     else
-        if [[ $1 == *grid ]]
+        if [[ $1 == *debug ]]
         then
-            export USE_GRID=true
+            export USE_DEBUG=true
         fi
-        if [[ $1 == "slsx" || $1 == "slsx-grid" ]]
+        if [[ $1 == "slsx" || $1 == "slsx-debug" ]]
         then
             export USE_MSLSX=false
             export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
@@ -196,12 +196,13 @@ export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 
 echo "Selenium tests ..."
 echo "MSLSX=" ${USE_MSLSX}
+echo "DEBUG=" ${USE_DEBUG}
 
-if [ "$USE_GRID" = true ]
+if [ "$USE_DEBUG" = true ]
 then
-    docker-compose -f docker-compose.selenium.yml --profile grid run tests-grid bash -c "python runtests.py --selenium ${TESTS_LIST}"
+    docker-compose -f docker-compose.selenium.yml run tests-debug bash -c "python runtests.py --selenium ${TESTS_LIST}"
 else
-    docker-compose -f docker-compose.selenium.yml --profile lite run tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
+    docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
 fi
 
 # Stop containers after use
