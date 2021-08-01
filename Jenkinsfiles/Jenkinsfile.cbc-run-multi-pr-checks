@@ -31,15 +31,15 @@ pipeline {
       }
     }
 
-    // stage("INSTALL Python Packages") {
-    //   steps {
-    //     sh """
-    //       python -m venv venv
-    //       . venv/bin/activate
-    //       make reqs-install-dev
-    //     """
-    //   }
-    // }
+    stage("INSTALL Python Packages") {
+      steps {
+        sh """
+          python -m venv venv
+          . venv/bin/activate
+          make reqs-install-dev
+        """
+      }
+    }
 
     stage("CHECK Flake8 Python Lint/Style") {
       steps{
