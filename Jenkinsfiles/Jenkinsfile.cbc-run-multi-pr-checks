@@ -7,21 +7,21 @@ pipeline {
   }
 
   environment {
-    USE_MSLSX=false
-    USE_DEBUG=false
-    DJANGO_SLSX_VERIFY_SSL_INTERNAL=False
-    DJANGO_SLSX_VERIFY_SSL_EXTERNAL=True
-    DJANGO_LOG_JSON_FORMAT_PRETTY=True
-    DJANGO_SETTINGS_MODULE=:"hhs_oauth_server.settings.dev"
-    OAUTHLIB_INSECURE_TRANSPORT=true
-    DJANGO_SECURE_SESSION=False
+    USE_MSLSX = false
+    USE_DEBUG = false
+    DJANGO_SLSX_VERIFY_SSL_INTERNAL = False
+    DJANGO_SLSX_VERIFY_SSL_EXTERNAL = True
+    DJANGO_LOG_JSON_FORMAT_PRETTY = True
+    DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.dev"
+    OAUTHLIB_INSECURE_TRANSPORT = true
+    DJANGO_SECURE_SESSION = False
     DJANGO_FHIR_CERTSTORE = "./certstore/"
-    DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
-    DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
-    DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
-    DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
-    DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
-    DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+    DJANGO_MEDICARE_SLSX_REDIRECT_URI = "http://localhost:8000/mymedicare/sls-callback"
+    DJANGO_MEDICARE_SLSX_LOGIN_URI = "https://test.medicare.gov/sso/authorize?client_id=bb2api"
+    DJANGO_SLSX_HEALTH_CHECK_ENDPOINT = "https://test.accounts.cms.gov/health"
+    DJANGO_SLSX_TOKEN_ENDPOINT = "https://test.medicare.gov/sso/session"
+    DJANGO_SLSX_SIGNOUT_ENDPOINT = "https://test.medicare.gov/sso/signout"
+    DJANGO_SLSX_USERINFO_ENDPOINT = "https://test.accounts.cms.gov/v1/users"
     DJANGO_SLSX_CLIENT_ID = credentials("bb2-selenium-tests-slsx-client-id")
     DJANGO_SLSX_CLIENT_SECRET = credentials("bb2-selenium-tests-slsx-client-secret")
     DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
