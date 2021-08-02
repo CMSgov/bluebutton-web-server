@@ -2,7 +2,6 @@
 apidocs/
 splunk/
 bluebutton-css/
-dev-local/
 apidocs/
 bluebutton-openapi-doc/
 *.sh
