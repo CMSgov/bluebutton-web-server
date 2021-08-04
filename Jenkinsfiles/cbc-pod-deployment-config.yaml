@@ -3,7 +3,7 @@ kind: Pod
 spec:
   containers:
     - name: bb2-cbc-build
-      image: "public.ecr.aws/f5g8o1y9/bb2-cbc-build:py36-an27-tf11"
+      image: "public.ecr.aws/f5g8o1y9/bb2-cbc-build:py37-an27-tf11"
       tty: true
       command: ["tail", "-f", "/dev/null"]
       imagePullPolicy: Always
