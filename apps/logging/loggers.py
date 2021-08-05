@@ -11,7 +11,7 @@ from apps.fhir.bluebutton.models import check_crosswalks, Crosswalk
 """
   Logger functions for logging module
 """
-logger = logging.getLogger('audit.global_state_metrics')
+logger = logging.getLogger(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
 
 
 def log_global_state_metrics(group_timestamp=None):

@@ -127,17 +127,4 @@ def sls_hook(sender, response=None, auth_flow_dict=None, **kwargs):
     sls_logger.info(sender(response, auth_flow_dict))
 
 
-# def get_event(event):
-#     '''
-#     helper to evaluate event and supress any error
-#     '''
-#     event_str = None
-#     try:
-#         event_str = str(event)
-#     except Exception:
-#         exc_type, exc_value, exc_traceback = sys.exc_info()
-#         event_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
-#     return event_str
-
-
 post_sls.connect(sls_hook)

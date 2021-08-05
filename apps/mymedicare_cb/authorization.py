@@ -1,15 +1,35 @@
 import requests
 import datetime
 
+import apps.logging.request_logger as logging
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from enum import Enum
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
-from .loggers import log_authenticate_start
 from .signals import response_hook_wrapper
+
+MSG_SLS_RESP_MISSING_AUTHTOKEN = "Exchange auth_token is missing in response error"
+MSG_SLS_RESP_MISSING_USERID = "Exchange user_id is missing in response error"
+MSG_SLS_RESP_MISSING_USERINFO_USERID = "SLSx userinfo user_id is missing in response error"
+MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID = "SLSx userinfo user_id is not equal in response error"
+
+
+class MedicareCallbackExceptionType(Enum):
+    TOKEN = 1
+    USERINFO = 2
+    SIGNOUT = 3
+    VALIDATE_SIGNOUT = 4
+    VALUEERROR = 5
+    AUTHN_USERINFO = 6
+
+
+authenticate_logger = logging.getLogger('audit.authenticate.sls')
 
 
 class BBMyMedicareSLSxSignoutException(APIException):
@@ -35,6 +55,11 @@ class BBMyMedicareSLSxValidateSignoutException(APIException):
 class BBSLSxHealthCheckFailedException(APIException):
     # BB2-391 custom exception
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+
+class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 class OAuth2ConfigSLSx(object):
@@ -121,24 +146,12 @@ class OAuth2ConfigSLSx(object):
         token_response = response.json()
 
         self.auth_token = token_response.get('auth_token', None)
-        if self.auth_token is None:
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "Exchange auth_token is missing in response error",
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
-
         self.user_id = token_response.get('user_id', None)
-        if self.user_id is None:
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "Exchange user_id is missing in response error",
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
 
-        if self.user_id is None:
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "Exchange user_id is missing in response error",
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
+        self.validate_asserts(request, [
+            (self.auth_token is None, MSG_SLS_RESP_MISSING_AUTHTOKEN),
+            (self.user_id is None, MSG_SLS_RESP_MISSING_USERID)
+        ], MedicareCallbackExceptionType.TOKEN)
 
     def auth_header(self):
         return {"Authorization": "Bearer %s" % (self.auth_token)}
@@ -164,25 +177,12 @@ class OAuth2ConfigSLSx(object):
         response.raise_for_status()
 
         # Get data.user part of response
-        try:
-            data_user_response = response.json().get('data').get('user')
-        except KeyError:
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx userinfo issue with data.user sub fields in response error",
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
+        data_user_response = response.json().get('data', {}).get('user', None)
 
-        if data_user_response.get('id', None) is None:
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx userinfo user_id is missing in response error",
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
-
-        if self.user_id != data_user_response.get('id', None):
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx userinfo user_id is not equal in response error",
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
+        self.validate_asserts(request, [
+            (data_user_response is None or data_user_response.get('id', None) is None, MSG_SLS_RESP_MISSING_USERINFO_USERID),
+            (self.user_id != data_user_response.get('id', None), MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID)
+        ], MedicareCallbackExceptionType.USERINFO)
 
         return data_user_response
 
@@ -215,8 +215,6 @@ class OAuth2ConfigSLSx(object):
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
-        auth_flow_dict = get_session_auth_flow_trace(request)
-
         response = requests.get(self.signout_endpoint,
                                 headers=headers,
                                 allow_redirects=False,
@@ -224,12 +222,10 @@ class OAuth2ConfigSLSx(object):
         self.signout_status_code = response.status_code
         response.raise_for_status()
 
-        if self.signout_status_code != status.HTTP_302_FOUND:
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx signout response_code = {code}."
-                                   " Expecting HTTP_302_FOUND.".format(code=self.signout_status_code),
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
+        self.validate_asserts(request, [
+            (self.signout_status_code != status.HTTP_302_FOUND,
+             "SLSx signout response_code = {code}. Expecting HTTP_302_FOUND.".format(code=self.signout_status_code))
+        ], MedicareCallbackExceptionType.SIGNOUT)
 
     def validate_user_signout(self, request):
         """
@@ -252,9 +248,84 @@ class OAuth2ConfigSLSx(object):
                                                              auth_flow_dict=auth_flow_dict)]})
         self.validate_signout_status_code = response.status_code
 
-        if self.validate_signout_status_code != status.HTTP_403_FORBIDDEN:
-            log_authenticate_start(auth_flow_dict, "FAIL",
-                                   "SLSx validate signout response_code = {code}."
-                                   " Expecting HTTP_403_FORBIDDEN.".format(code=self.validate_signout_status_code),
-                                   slsx_client=self)
-            raise BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)
+        self.validate_asserts(request, [
+            (self.validate_signout_status_code != status.HTTP_403_FORBIDDEN,
+             "SLSx validate signout response_code = {code}. Expecting HTTP_403_FORBIDDEN.".format(
+                 code=self.validate_signout_status_code))
+        ], MedicareCallbackExceptionType.VALIDATE_SIGNOUT)
+
+    def validate_asserts(self, request, asserts, err_enum):
+        # asserts is a list of tuple : (boolean expression, err message)
+        # iterate boolean expressions and log err message if the expression evalaute to true
+        logger = logging.getLogger('audit.authenticate.sls', request)
+
+        log_dict = {
+            "type": "Authentication:start",
+            "sls_status": "FAIL",
+            "sls_status_mesg": None,
+            "sls_signout_status_code": self.signout_status_code,
+            "sls_token_status_code": self.token_status_code,
+            "sls_userinfo_status_code": self.userinfo_status_code,
+            "sls_validate_signout_status_code": self.validate_signout_status_code,
+            "sub": None,
+            "sls_mbi_format_valid": None,
+            "sls_mbi_format_msg": None,
+            "sls_mbi_format_synthetic": None,
+            "sls_hicn_hash": None,
+            "sls_mbi_hash": None,
+        }
+
+        for t in asserts:
+            bexp = t[0]
+            msg = t[1]
+            if bexp:
+                log_dict.update({"sls_status_mesg": msg})
+                logger.info(log_dict)
+                err = None
+                if err_enum == MedicareCallbackExceptionType.TOKEN:
+                    err = BBMyMedicareSLSxTokenException(settings.MEDICARE_ERROR_MSG)
+                elif err_enum == MedicareCallbackExceptionType.USERINFO:
+                    err = BBMyMedicareSLSxUserinfoException(settings.MEDICARE_ERROR_MSG)
+                elif err_enum == MedicareCallbackExceptionType.SIGNOUT:
+                    err = BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
+                elif err_enum == MedicareCallbackExceptionType.VALIDATE_SIGNOUT:
+                    err = BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)
+                elif err_enum == MedicareCallbackExceptionType.VALUEERROR:
+                    err = ValidationError(settings.MEDICARE_ERROR_MSG)
+                elif err_enum == MedicareCallbackExceptionType.AUTHN_USERINFO:
+                    err = BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
+                else:
+                    err = Exception("Unkown medicare callback exception type: {}".format(err_enum))
+                raise err
+
+    def log_event(self, request, extra):
+        logger = logging.getLogger('audit.authenticate.sls', request)
+
+        log_dict = {
+            "type": "Authentication:start",
+            "sls_status": "FAIL",
+            "sls_status_mesg": None,
+            "sls_signout_status_code": self.signout_status_code,
+            "sls_token_status_code": self.token_status_code,
+            "sls_userinfo_status_code": self.userinfo_status_code,
+            "sls_validate_signout_status_code": self.validate_signout_status_code,
+            "sub": None,
+            "sls_mbi_format_valid": None,
+            "sls_mbi_format_msg": None,
+            "sls_mbi_format_synthetic": None,
+            "sls_hicn_hash": None,
+            "sls_mbi_hash": None,
+        }
+
+        log_dict.update(extra)
+        logger.info(log_dict)
+
+    def log_authn_success(self, request, extra):
+        logger = logging.getLogger('audit.authenticate.sls', request)
+        log_dict = {
+            "type": "Authentication:success",
+            "sub": None,
+            "user": None,
+        }
+        log_dict.update(extra)
+        logger.info(log_dict)

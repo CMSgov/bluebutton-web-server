@@ -8,11 +8,10 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from rest_framework import status
-from rest_framework.exceptions import NotFound, APIException
+from rest_framework.exceptions import NotFound
 from urllib.parse import urlsplit, urlunsplit
 
 from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
-                                  get_session_auth_flow_trace,
                                   set_session_auth_flow_trace_value,
                                   update_session_auth_flow_trace_from_state,
                                   update_instance_auth_flow_trace_with_state)
@@ -20,15 +19,11 @@ from apps.dot_ext.models import Approval
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from apps.mymedicare_cb.models import (BBMyMedicareCallbackCrosswalkCreateException,
                                        BBMyMedicareCallbackCrosswalkUpdateException)
-from .authorization import OAuth2ConfigSLSx
-from .loggers import log_authenticate_start, log_authenticate_success
+from .authorization import (OAuth2ConfigSLSx,
+                            MedicareCallbackExceptionType,
+                            BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException)
 from .models import AnonUserState, get_and_update_user
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
-
-
-class BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(APIException):
-    # BB2-237 custom exception
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
@@ -40,16 +35,16 @@ def authenticate(request):
     update_session_auth_flow_trace_from_state(request, request_state)
 
     # Get auth flow session values.
-    auth_flow_dict = get_session_auth_flow_trace(request)
+    # auth_flow_dict = get_session_auth_flow_trace(request)
 
     # SLSx client instance
     slsx_client = OAuth2ConfigSLSx()
 
     request_token = request.GET.get('req_token', None)
-    if request_token is None:
-        log_authenticate_start(auth_flow_dict, "FAIL",
-                               "SLSx request_token is missing in callback error.", slsx_client=slsx_client)
-        raise ValidationError(settings.MEDICARE_ERROR_MSG)
+
+    slsx_client.validate_asserts(request, [
+        (request_token is None, "SLSx request_token is missing in callback error.")
+    ], MedicareCallbackExceptionType.VALUEERROR)
 
     # Exchange req_token for access token
     slsx_client.exchange_for_access_token(request_token, request)
@@ -83,16 +78,14 @@ def authenticate(request):
         sls_mbi = None
 
     # Validate: sls_subject cannot be empty. TODO: Validate format too.
-    if sls_subject == "":
-        err_msg = "User info sub cannot be empty"
-        log_authenticate_start(auth_flow_dict, "FAIL", err_msg, slsx_client=slsx_client)
-        raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
+    slsx_client.validate_asserts(request, [
+        (sls_subject == "", "User info sub cannot be empty")
+    ], MedicareCallbackExceptionType.AUTHN_USERINFO)
 
     # Validate: sls_hicn cannot be empty.
-    if sls_hicn == "":
-        err_msg = "User info HICN cannot be empty."
-        log_authenticate_start(auth_flow_dict, "FAIL", err_msg, sls_subject, slsx_client=slsx_client)
-        raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
+    slsx_client.validate_asserts(request, [
+        (sls_hicn == "", "User info HICN cannot be empty.")
+    ], MedicareCallbackExceptionType.AUTHN_USERINFO)
 
     # Set Hash values once here for performance and logging.
     sls_hicn_hash = hash_hicn(sls_hicn)
@@ -102,18 +95,21 @@ def authenticate(request):
     #    NOTE: mbi return from SLS can be empty/None (so can use hicn for matching later)
     sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
     sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
-    if not sls_mbi_format_valid and sls_mbi is not None:
-        err_msg = "User info MBI format is not valid. "
-        log_authenticate_start(auth_flow_dict, "FAIL", err_msg,
-                               sls_subject, sls_mbi_format_valid,
-                               sls_mbi_format_msg, sls_mbi_format_synthetic,
-                               sls_hicn_hash, sls_mbi_hash, slsx_client)
-        raise BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
+
+    slsx_client.validate_asserts(request, [
+        (not sls_mbi_format_valid and sls_mbi is not None, "User info MBI format is not valid.")
+    ], MedicareCallbackExceptionType.AUTHN_USERINFO)
 
     # Log successful identity information gathered.
-    log_authenticate_start(auth_flow_dict, "OK", None, sls_subject,
-                           sls_mbi_format_valid, sls_mbi_format_msg,
-                           sls_mbi_format_synthetic, sls_hicn_hash, sls_mbi_hash, slsx_client)
+    slsx_client.log_event(request, {
+        "sls_status": "OK",
+        "sub": sls_subject,
+        "sls_mbi_format_valid": sls_mbi_format_valid,
+        "sls_mbi_format_msg": sls_mbi_format_msg,
+        "sls_mbi_format_synthetic": sls_mbi_format_synthetic,
+        "sls_hicn_hash": sls_hicn_hash,
+        "sls_mbi_hash": sls_mbi_hash,
+    })
 
     # Find or create the user associated with the identity information from SLS.
     user, crosswalk_action = get_and_update_user(subject=sls_subject,
@@ -125,10 +121,22 @@ def authenticate(request):
 
     # Set crosswalk_action and get auth flow session values.
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
-    auth_flow_dict = get_session_auth_flow_trace(request)
 
     # Log successful authentication with beneficiary when we return back here.
-    log_authenticate_success(auth_flow_dict, sls_subject, user)
+    slsx_client.log_authn_success(request, {
+        "sub": sls_subject,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "crosswalk": {
+                "id": user.crosswalk.id,
+                "user_hicn_hash": user.crosswalk.user_hicn_hash,
+                "user_mbi_hash": user.crosswalk.user_mbi_hash,
+                "fhir_id": user.crosswalk.fhir_id,
+                "user_id_type": user.crosswalk.user_id_type,
+            },
+        },
+    })
 
     # Update request user.
     request.user = user

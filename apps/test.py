@@ -154,9 +154,9 @@ class BaseApiTest(TestCase):
                                       passwd,
                                       application)
 
-    def _redirect_loggers(self, logger_names):
+    def _redirect_loggers(self):
         self.logger_registry = {}
-        for n in logger_names:
+        for n in logging.LOGGER_NAMES:
             logger = logging.getLogger(n)
             log_buffer = io.StringIO()
             log_channel = logging.StreamHandler(log_buffer)
@@ -171,9 +171,9 @@ class BaseApiTest(TestCase):
             v[1].close()
         self.logger_registry.clear()
 
-    def _collect_logs(self, logger_names):
+    def _collect_logs(self):
         log_contents = {}
-        for n in logger_names:
+        for n in logging.LOGGER_NAMES:
             v = self.logger_registry.get(n)
             log_contents[n] = v[0].getvalue()
         return log_contents

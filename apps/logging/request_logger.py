@@ -13,9 +13,31 @@ INFO = logging.INFO
 DEBUG = logging.DEBUG
 NOTSET = logging.NOTSET
 
+AUDIT_AUTHZ_TOKEN_LOGGER = "audit.authorization.token"
+AUDIT_AUTHZ_SLS_LOGGER = "audit.authorization.sls"
+AUDIT_DATA_FHIR_LOGGER = "audit.data.fhir"
+AUDIT_AUTHN_SLS_LOGGER = "audit.authenticate.sls"
+AUDIT_AUTHN_MED_CALLBACK_LOGGER = "audit.authenticate.mymedicare_cb"
+AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER = "audit.authenticate.match_fhir_id"
+AUDIT_HHS_AUTH_SERVER_REQ_LOGGER = "audit.hhs_oauth_server.request_logging"
+AUDIT_GLOBAL_STATE_METRICS_LOGGER = "audit.global_state_metrics"
+AUDIT_REQUEST_LOGGER = "audit.request_logger"
 
-def getLogger(name=None):
-    return RequestLogger(None, name) if name else BasicLogger()
+LOGGER_NAMES = [
+    AUDIT_AUTHZ_TOKEN_LOGGER,
+    AUDIT_AUTHZ_SLS_LOGGER,
+    AUDIT_DATA_FHIR_LOGGER,
+    AUDIT_AUTHN_SLS_LOGGER,
+    AUDIT_AUTHN_MED_CALLBACK_LOGGER,
+    AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER,
+    AUDIT_HHS_AUTH_SERVER_REQ_LOGGER,
+    AUDIT_GLOBAL_STATE_METRICS_LOGGER,
+    AUDIT_REQUEST_LOGGER
+]
+
+
+def getLogger(name=None, request=None):
+    return RequestLogger(request, name) if request else BasicLogger(name)
 
 
 class StreamHandler(logging.StreamHandler):
@@ -61,7 +83,7 @@ class BasicLogger:
 
 
 class RequestLogger(BasicLogger):
-    def __init__(self, request, logger_name="audit.request_logger"):
+    def __init__(self, request, logger_name=AUDIT_REQUEST_LOGGER):
         super().__init__(logger_name=logger_name)
         self.standard_log_data = {}
         if request:

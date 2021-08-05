@@ -200,7 +200,7 @@ class ApprovalView(AuthorizationView):
     def dispatch(self, request, uuid, *args, **kwargs):
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
-        # trows DoesNotExist
+        # throws DoesNotExist
         try:
             approval = Approval.objects.get(uuid=uuid)
             if approval.expired:

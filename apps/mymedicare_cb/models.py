@@ -1,3 +1,6 @@
+
+import apps.logging.request_logger as logging
+
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -7,7 +10,6 @@ from rest_framework.exceptions import APIException
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
-from apps.logging.request_logger import BasicLogger
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
@@ -48,11 +50,7 @@ def get_and_update_user(
         AssertionError: If a user is matched but not all identifiers match.
     """
 
-    logger = BasicLogger()
-
-    # Set logger to request logger if available
-    if request is not None:
-        logger = request._logger
+    logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     # Match a patient identifier via the backend FHIR server
     fhir_id, hash_lookup_type = match_fhir_id(
@@ -197,10 +195,7 @@ def create_beneficiary_record(
     request=None,
 ):
 
-    logger = BasicLogger()
-
-    if request is not None:
-        logger = request._logger
+    logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     log_dict = {
         "type": "mymedicare_cb:create_beneficiary_record",
