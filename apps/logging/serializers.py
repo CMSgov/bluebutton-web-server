@@ -3,8 +3,6 @@ import hashlib
 
 from django.conf import settings
 
-# from apps.dot_ext.loggers import get_session_auth_flow_trace
-
 
 def json_str(data_dict):
     return json.dumps(data_dict, indent=2 if settings.LOG_JSON_FORMAT_PRETTY else None)
@@ -48,16 +46,10 @@ class DataAccessGrantSerializer:
 class Token:
     tkn = None
     action = None
-    # auth_flow_dict = {}
 
-    # def __init__(self, obj, action=None, auth_flow_dict=None):
     def __init__(self, obj, action=None):
         self.tkn = obj
         self.action = action
-        # if auth_flow_dict:
-        #     self.auth_flow_dict = auth_flow_dict
-        # else:
-        #     self.auth_flow_dict = {}
 
     def to_dict(self):
         # seems like this should be a serializer
@@ -101,8 +93,6 @@ class Token:
             },
         }
 
-        # # Update with auth flow session info
-        # result.update(self.auth_flow_dict)
         return result
 
     def __str__(self):
@@ -201,13 +191,8 @@ class FHIRRequest(Request):
 
 
 class FHIRRequestForAuth(Request):
-    # def __init__(self, request, auth_flow_dict=None, api_ver=None):
     def __init__(self, request, api_ver=None):
         self.api_ver = api_ver
-        # if auth_flow_dict:
-        #     self.auth_flow_dict = auth_flow_dict
-        # else:
-        #     self.auth_flow_dict = {}
         super().__init__(request)
 
     def includeAddressFields(self):
@@ -228,8 +213,6 @@ class FHIRRequestForAuth(Request):
             "path": "patient search",
             "start_time": self.start_time(),
         }
-        # # Update with auth flow session info
-        # result.update(self.auth_flow_dict)
         return result
 
 
@@ -282,13 +265,8 @@ class FHIRResponse(Response):
 class FHIRResponseForAuth(Response):
     request_class = FHIRRequestForAuth
 
-    # def __init__(self, response, auth_flow_dict=None, api_ver=None):
     def __init__(self, response, api_ver=None):
         self.api_ver = api_ver
-        # if auth_flow_dict:
-        #     self.auth_flow_dict = auth_flow_dict
-        # else:
-        #     self.auth_flow_dict = {}
         super().__init__(response)
 
     def to_dict(self):
@@ -297,8 +275,6 @@ class FHIRResponseForAuth(Response):
         super_dict.update({"api_ver": self.api_ver if self.api_ver is not None else 'v1'})
         # over write type
         super_dict.update({"type": "fhir_auth_post_fetch"})
-        # # Update with auth flow session info
-        # super_dict.update(self.auth_flow_dict)
         return super_dict
 
 
@@ -350,8 +326,6 @@ class SLSxTokenResponse(SLSResponse):
 
         # update json parse err if any
         resp_dict.update(json_exception)
-        # # Update with auth flow session info
-        # resp_dict.update(self.auth_flow_dict)
 
         return resp_dict
 

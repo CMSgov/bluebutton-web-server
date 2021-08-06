@@ -20,6 +20,8 @@ from apps.dot_ext.models import Application, ArchivedToken
 from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import update_grants
 from apps.mymedicare_cb.models import create_beneficiary_record
+from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
+
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 
 mymedicare_cb_logger = logging.getLogger('audit.authenticate.mymedicare_cb')
@@ -87,7 +89,8 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                         "last_name": ln,
                         "email": fn + '.' + ln + "@xyz.net",
                     }
-                    u = create_beneficiary_record(**args)
+                    slsx_client = OAuth2ConfigSLSx(args)
+                    u = create_beneficiary_record(slsx_client, fhir_id)
                     date_picked = datetime.utcnow() - timedelta(days=randrange(700))
                     u.date_joined = date_picked.replace(tzinfo=pytz.utc)
                     u.save()

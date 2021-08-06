@@ -60,7 +60,6 @@ class BasicLogger:
         # return str as is
         if isinstance(data_dict, str):
             return data_dict
-        # expect data_dict as a dict, or a class that has to_dict() implemented
         tmp_dict = data_dict if isinstance(data_dict, dict) else data_dict.to_dict()
         try:
             return json.dumps(tmp_dict, indent=2 if settings.LOG_JSON_FORMAT_PRETTY else None, cls=cls)
@@ -85,6 +84,8 @@ class BasicLogger:
     def exception(self, data_dict, cls=None):
         self._logger.exception(self.format_for_output(data_dict, cls=cls))
 
+    def setLevel(self, lvl):
+        self._logger.setLevel(lvl)
 
 class RequestLogger(BasicLogger):
     def __init__(self, request, logger_name=AUDIT_REQUEST_LOGGER):

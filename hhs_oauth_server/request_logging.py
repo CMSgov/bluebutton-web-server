@@ -510,7 +510,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
     def log_message(request, response):
-        audit.info(RequestResponseLog(request, response))
+        audit.info(RequestResponseLog(request, response).to_dict())
         request._logging_pass += 1
 
     def process_request(self, request):
@@ -520,7 +520,6 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
         request._logging_uuid = str(uuid.uuid1())
         request._logging_start_dt = datetime.datetime.utcnow()
         request._logging_pass = 1
-        # request._logger = logging.RequestLogger(request)
         request._logger = audit
 
         # Get access token to be refreshed pre-response, since it is removed

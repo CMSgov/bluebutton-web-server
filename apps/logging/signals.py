@@ -9,7 +9,6 @@ from oauth2_provider.signals import app_authorized
 
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.admin import MyAccessToken
-# from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.fhir.bluebutton.signals import (
     pre_fetch,
@@ -29,16 +28,12 @@ from .serializers import (
     FHIRResponseForAuth,
 )
 
-# token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
-# sls_logger = logging.getLogger(logging.AUDIT_AUTHZ_SLS_LOGGER)
-# fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER)
-
 
 @receiver(app_authorized)
 def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow dict from session for logging
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
-    token_logger.info(Token(token, action="authorized"))
+    token_logger.info(Token(token, action="authorized").to_dict())
 
 
 @receiver(beneficiary_authorized_application)
@@ -47,8 +42,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
                           refresh_token_delete_cnt, data_access_grant_delete_cnt, **kwargs):
 
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
-    # # Get auth flow dict from session for logging
-    # auth_flow_dict = get_session_auth_flow_trace(request)
     crosswalk_log = {
         "id": None,
         "user_hicn_hash": None,
@@ -91,8 +84,6 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "data_access_grant_delete_cnt": data_access_grant_delete_cnt,
     }
 
-    # # Update with auth flow session info
-    # log_dict.update(auth_flow_dict)
     token_logger.info(log_dict)
 
 
@@ -101,40 +92,38 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
-    token_logger.info(Token(instance, action="revoked"))
+    token_logger.info(Token(instance, action="revoked").to_dict())
 
 
 @receiver(post_delete, sender=DataAccessGrant)
 def log_grant_removed(sender, instance=None, **kwargs):
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
-    token_logger.info(DataAccessGrantSerializer(instance, action="revoked"))
+    token_logger.info(DataAccessGrantSerializer(instance, action="revoked").to_dict())
 
 
 @receiver(pre_fetch, sender=FhirDataView)
 @receiver(pre_fetch, sender=FhirServerAuth)
 def fetching_data(sender, request=None, auth_request=None, api_ver=None, **kwargs):
     fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
-    fhir_logger.info(FHIRRequest(request, api_ver)
+    fhir_logger.info(FHIRRequest(request, api_ver).to_dict()
                      if sender == FhirDataView
-                     else FHIRRequestForAuth(request, api_ver))
+                     else FHIRRequestForAuth(request, api_ver).to_dict())
 
 
 @receiver(post_fetch, sender=FhirDataView)
 @receiver(post_fetch, sender=FhirServerAuth)
-# def fetched_data(sender, request=None, response=None, auth_flow_dict=None, api_ver=None, **kwargs):
 def fetched_data(sender, request=None, auth_request=None, response=None, api_ver=None, **kwargs):
     fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
-    fhir_logger.info(FHIRResponse(response, api_ver)
+    fhir_logger.info(FHIRResponse(response, api_ver).to_dict()
                      if sender == FhirDataView
-                     else FHIRResponseForAuth(response, api_ver))
-#  else FHIRResponseForAuth(response, auth_flow_dict, api_ver))
+                     else FHIRResponseForAuth(response, api_ver).to_dict())
 
 
 def sls_hook(sender, response=None, request=None, **kwargs):
     # Handles sender for SLSxUserInfoResponse, or SLSxTokenResponse
     # here request - callback request
     sls_logger = logging.getLogger(logging.AUDIT_AUTHZ_SLS_LOGGER, request)
-    sls_logger.info(sender(response))
+    sls_logger.info(sender(response).to_dict())
 
 
 post_sls.connect(sls_hook)
