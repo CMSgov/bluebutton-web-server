@@ -10,9 +10,12 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from apps.dot_ext.loggers import get_session_auth_flow_trace
+from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
 from .signals import response_hook_wrapper
+from .validators import is_mbi_format_valid, is_mbi_format_synthetic
+
 
 MSG_SLS_RESP_MISSING_AUTHTOKEN = "Exchange auth_token is missing in response error"
 MSG_SLS_RESP_MISSING_USERID = "Exchange user_id is missing in response error"
@@ -80,13 +83,24 @@ class OAuth2ConfigSLSx(object):
     verify_ssl_internal = settings.SLSX_VERIFY_SSL_INTERNAL
     verify_ssl_external = settings.SLSX_VERIFY_SSL_EXTERNAL
 
-    def __init__(self):
+    def __init__(self, args_dict=None):
+        # args_dict added for legacy tests adaption
         self.auth_token = None
-        self.user_id = None
+        self.user_id = args_dict.get("username", None) if args_dict else None
         self.signout_status_code = None
         self.token_status_code = None
         self.userinfo_status_code = None
         self.validate_signout_status_code = None
+        self.mbi = None
+        self.mbi_hash = args_dict.get("user_mbi_hash", None) if args_dict else None
+        self.hicn = None
+        self.hicn_hash = args_dict.get("user_hicn_hash", None) if args_dict else None
+        self.mbi_format_valid = None
+        self.mbi_format_synthetic = None
+        self.mbi_format_msg = None
+        self.firstname = args_dict.get("first_name", "") if args_dict else ""
+        self.lastname = args_dict.get("last_name", "") if args_dict else ""
+        self.email = args_dict.get("email", "") if args_dict else ""
         super().__init__()
 
     @property
@@ -183,6 +197,41 @@ class OAuth2ConfigSLSx(object):
             (data_user_response is None or data_user_response.get('id', None) is None, MSG_SLS_RESP_MISSING_USERINFO_USERID),
             (self.user_id != data_user_response.get('id', None), MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID)
         ], MedicareCallbackExceptionType.USERINFO)
+
+        # canonicallize mbi, hicn and validate
+        self.user_id = self.user_id.strip()
+        self.hicn = data_user_response.get("hicn", "").strip()
+        #     Convert SLS's mbi to UPPER case.
+        self.mbi = data_user_response.get("mbi", "").strip().upper()
+        fn = data_user_response.get("firstName", "")
+        self.firstname = fn if fn else ""
+        ln = data_user_response.get("lastName", "")
+        self.lastname = ln if ln else ""
+        em = data_user_response.get("email", "")
+        self.email = em if em else ""
+
+        # If MBI returned from SLSx is blank, set to None for hash logging
+        if self.mbi == "":
+            self.mbi = None
+
+        # Validate: sls_subject (self.user_id) cannot be empty. TODO: Validate format too.
+        self.validate_asserts(request, [
+            (self.user_id == "", "User info sub cannot be empty")
+        ], MedicareCallbackExceptionType.AUTHN_USERINFO)
+
+        # Validate: sls_hicn cannot be empty.
+        self.validate_asserts(request, [
+            (self.hicn == "", "User info HICN cannot be empty.")
+        ], MedicareCallbackExceptionType.AUTHN_USERINFO)
+
+        self.mbi_format_synthetic = is_mbi_format_synthetic(self.mbi)
+        self.mbi_format_valid, self.mbi_format_msg = is_mbi_format_valid(self.mbi)
+        self.validate_asserts(request, [
+            (not self.mbi_format_valid and self.mbi is not None, "User info MBI format is not valid.")
+        ], MedicareCallbackExceptionType.AUTHN_USERINFO)
+
+        self.hicn_hash = hash_hicn(self.hicn)
+        self.mbi_hash = hash_mbi(self.mbi)
 
         return data_user_response
 
@@ -303,18 +352,18 @@ class OAuth2ConfigSLSx(object):
 
         log_dict = {
             "type": "Authentication:start",
-            "sls_status": "FAIL",
+            "sub": self.user_id,
+            "sls_status": "OK",
             "sls_status_mesg": None,
             "sls_signout_status_code": self.signout_status_code,
             "sls_token_status_code": self.token_status_code,
             "sls_userinfo_status_code": self.userinfo_status_code,
             "sls_validate_signout_status_code": self.validate_signout_status_code,
-            "sub": None,
-            "sls_mbi_format_valid": None,
-            "sls_mbi_format_msg": None,
-            "sls_mbi_format_synthetic": None,
-            "sls_hicn_hash": None,
-            "sls_mbi_hash": None,
+            "sls_mbi_format_valid": self.mbi_format_valid,
+            "sls_mbi_format_msg": self.mbi_format_msg,
+            "sls_mbi_format_synthetic": self.mbi_format_synthetic,
+            "sls_hicn_hash": self.hicn_hash,
+            "sls_mbi_hash": self.mbi_hash,
         }
 
         log_dict.update(extra)
@@ -324,7 +373,7 @@ class OAuth2ConfigSLSx(object):
         logger = logging.getLogger('audit.authenticate.sls', request)
         log_dict = {
             "type": "Authentication:success",
-            "sub": None,
+            "sub": self.user_id,
             "user": None,
         }
         log_dict.update(extra)

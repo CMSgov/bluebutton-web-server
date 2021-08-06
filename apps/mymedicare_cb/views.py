@@ -16,14 +16,12 @@ from apps.dot_ext.loggers import (clear_session_auth_flow_trace,
                                   update_session_auth_flow_trace_from_state,
                                   update_instance_auth_flow_trace_with_state)
 from apps.dot_ext.models import Approval
-from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from apps.mymedicare_cb.models import (BBMyMedicareCallbackCrosswalkCreateException,
                                        BBMyMedicareCallbackCrosswalkUpdateException)
 from .authorization import (OAuth2ConfigSLSx,
                             MedicareCallbackExceptionType,
                             BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException)
 from .models import AnonUserState, get_and_update_user
-from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 
 
 # For SLSx auth workflow info, see apps/mymedicare_db/README.md
@@ -33,9 +31,6 @@ def authenticate(request):
 
     clear_session_auth_flow_trace(request)
     update_session_auth_flow_trace_from_state(request, request_state)
-
-    # Get auth flow session values.
-    # auth_flow_dict = get_session_auth_flow_trace(request)
 
     # SLSx client instance
     slsx_client = OAuth2ConfigSLSx()
@@ -50,7 +45,9 @@ def authenticate(request):
     slsx_client.exchange_for_access_token(request_token, request)
 
     # Get user_info. TODO: Move userinfo type validations in to this method.
-    user_info = slsx_client.get_user_info(request)
+    # get_user_info() will do validation, and then populate values from user info
+    # e.g. first last name, email, sub (user_id), hicn, mbi, and their hashes etc.
+    slsx_client.get_user_info(request)
 
     # Signout bene to prevent SSO issues per BB2-544
     slsx_client.user_signout(request)
@@ -58,73 +55,17 @@ def authenticate(request):
     # Validate bene is signed out per BB2-544
     slsx_client.validate_user_signout(request)
 
-    # Set identity values from userinfo response.
-    sls_subject = slsx_client.user_id.strip()
-    sls_hicn = user_info.get("hicn", "").strip()
-    #     Convert SLS's mbi to UPPER case.
-    sls_mbi = user_info.get("mbi", "").strip().upper()
-    sls_first_name = user_info.get('firstName', "")
-    if sls_first_name is None:
-        sls_first_name = ""
-    sls_last_name = user_info.get('lastName', "")
-    if sls_last_name is None:
-        sls_last_name = ""
-    sls_email = user_info.get('email', "")
-    if sls_email is None:
-        sls_email = ""
-
-    # If MBI returned from SLSx is blank, set to None for hash logging
-    if sls_mbi == "":
-        sls_mbi = None
-
-    # Validate: sls_subject cannot be empty. TODO: Validate format too.
-    slsx_client.validate_asserts(request, [
-        (sls_subject == "", "User info sub cannot be empty")
-    ], MedicareCallbackExceptionType.AUTHN_USERINFO)
-
-    # Validate: sls_hicn cannot be empty.
-    slsx_client.validate_asserts(request, [
-        (sls_hicn == "", "User info HICN cannot be empty.")
-    ], MedicareCallbackExceptionType.AUTHN_USERINFO)
-
-    # Set Hash values once here for performance and logging.
-    sls_hicn_hash = hash_hicn(sls_hicn)
-    sls_mbi_hash = hash_mbi(sls_mbi)
-
-    # Validate: sls_mbi format.
-    #    NOTE: mbi return from SLS can be empty/None (so can use hicn for matching later)
-    sls_mbi_format_valid, sls_mbi_format_msg = is_mbi_format_valid(sls_mbi)
-    sls_mbi_format_synthetic = is_mbi_format_synthetic(sls_mbi)
-
-    slsx_client.validate_asserts(request, [
-        (not sls_mbi_format_valid and sls_mbi is not None, "User info MBI format is not valid.")
-    ], MedicareCallbackExceptionType.AUTHN_USERINFO)
-
     # Log successful identity information gathered.
-    slsx_client.log_event(request, {
-        "sls_status": "OK",
-        "sub": sls_subject,
-        "sls_mbi_format_valid": sls_mbi_format_valid,
-        "sls_mbi_format_msg": sls_mbi_format_msg,
-        "sls_mbi_format_synthetic": sls_mbi_format_synthetic,
-        "sls_hicn_hash": sls_hicn_hash,
-        "sls_mbi_hash": sls_mbi_hash,
-    })
+    slsx_client.log_event(request, {})
 
     # Find or create the user associated with the identity information from SLS.
-    user, crosswalk_action = get_and_update_user(subject=sls_subject,
-                                                 mbi_hash=sls_mbi_hash,
-                                                 hicn_hash=sls_hicn_hash,
-                                                 first_name=sls_first_name,
-                                                 last_name=sls_last_name,
-                                                 email=sls_email, request=request)
+    user, crosswalk_action = get_and_update_user(slsx_client, request=request)
 
     # Set crosswalk_action and get auth flow session values.
     set_session_auth_flow_trace_value(request, 'auth_crosswalk_action', crosswalk_action)
 
     # Log successful authentication with beneficiary when we return back here.
     slsx_client.log_authn_success(request, {
-        "sub": sls_subject,
         "user": {
             "id": user.id,
             "username": user.username,
