@@ -302,12 +302,11 @@ class RequestResponseLog(object):
         """
         --- Logging items from request.session for Auth Flow Tracing ---
         """
-        if getattr(self.request, "session", False):
-            if is_path_part_of_auth_flow_trace(self.request.path):
-                auth_flow_dict = get_session_auth_flow_trace(self.request)
-                for k in SESSION_AUTH_FLOW_TRACE_KEYS:
-                    if auth_flow_dict.get(k, None):
-                        self.log_msg[k] = auth_flow_dict.get(k, None)
+        if getattr(self.request, "session", False) and is_path_part_of_auth_flow_trace(self.request.path):
+            auth_flow_dict = get_session_auth_flow_trace(self.request)
+            for k in SESSION_AUTH_FLOW_TRACE_KEYS:
+                if auth_flow_dict.get(k, None):
+                    self.log_msg[k] = auth_flow_dict.get(k, None)
 
         """
         --- Logging items from request.GET for query params ---

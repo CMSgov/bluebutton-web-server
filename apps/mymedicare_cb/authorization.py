@@ -9,7 +9,7 @@ from enum import Enum
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-from apps.dot_ext.loggers import get_session_auth_flow_trace
+# from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
@@ -28,11 +28,10 @@ class MedicareCallbackExceptionType(Enum):
     USERINFO = 2
     SIGNOUT = 3
     VALIDATE_SIGNOUT = 4
-    VALUEERROR = 5
+    VALIDATION_ERROR = 5
     AUTHN_USERINFO = 6
-
-
-authenticate_logger = logging.getLogger('audit.authenticate.sls')
+    CALLBACK_CW_CREATE = 7
+    CALLBACK_CW_UPDATE = 8
 
 
 class BBMyMedicareSLSxSignoutException(APIException):
@@ -143,7 +142,7 @@ class OAuth2ConfigSLSx(object):
 
         headers = self.slsx_common_headers(request)
 
-        auth_flow_dict = get_session_auth_flow_trace(request)
+        # auth_flow_dict = get_session_auth_flow_trace(request)
 
         response = requests.post(self.token_endpoint,
                                  auth=self.basic_auth(),
@@ -153,7 +152,7 @@ class OAuth2ConfigSLSx(object):
                                  verify=self.verify_ssl_external,
                                  hooks={'response': [
                                         response_hook_wrapper(sender=SLSxTokenResponse,
-                                                              auth_flow_dict=auth_flow_dict)]})
+                                                              request=request)]})
         self.token_status_code = response.status_code
         response.raise_for_status()
 
@@ -178,7 +177,7 @@ class OAuth2ConfigSLSx(object):
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
-        auth_flow_dict = get_session_auth_flow_trace(request)
+        # auth_flow_dict = get_session_auth_flow_trace(request)
 
         response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                 headers=headers,
@@ -186,7 +185,7 @@ class OAuth2ConfigSLSx(object):
                                 verify=self.verify_ssl_internal,
                                 hooks={'response': [
                                        response_hook_wrapper(sender=SLSxUserInfoResponse,
-                                                             auth_flow_dict=auth_flow_dict)]})
+                                                             request=request)]})
         self.userinfo_status_code = response.status_code
         response.raise_for_status()
 
@@ -286,7 +285,7 @@ class OAuth2ConfigSLSx(object):
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
-        auth_flow_dict = get_session_auth_flow_trace(request)
+        # auth_flow_dict = get_session_auth_flow_trace(request)
 
         response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                 headers=headers,
@@ -294,7 +293,7 @@ class OAuth2ConfigSLSx(object):
                                 verify=self.verify_ssl_internal,
                                 hooks={'response': [
                                        response_hook_wrapper(sender=SLSxUserInfoResponse,
-                                                             auth_flow_dict=auth_flow_dict)]})
+                                                             request=request)]})
         self.validate_signout_status_code = response.status_code
 
         self.validate_asserts(request, [
@@ -306,7 +305,7 @@ class OAuth2ConfigSLSx(object):
     def validate_asserts(self, request, asserts, err_enum):
         # asserts is a list of tuple : (boolean expression, err message)
         # iterate boolean expressions and log err message if the expression evalaute to true
-        logger = logging.getLogger('audit.authenticate.sls', request)
+        logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
 
         log_dict = {
             "type": "Authentication:start",
@@ -339,7 +338,7 @@ class OAuth2ConfigSLSx(object):
                     err = BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
                 elif err_enum == MedicareCallbackExceptionType.VALIDATE_SIGNOUT:
                     err = BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)
-                elif err_enum == MedicareCallbackExceptionType.VALUEERROR:
+                elif err_enum == MedicareCallbackExceptionType.VALIDATION_ERROR:
                     err = ValidationError(settings.MEDICARE_ERROR_MSG)
                 elif err_enum == MedicareCallbackExceptionType.AUTHN_USERINFO:
                     err = BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
@@ -348,7 +347,7 @@ class OAuth2ConfigSLSx(object):
                 raise err
 
     def log_event(self, request, extra):
-        logger = logging.getLogger('audit.authenticate.sls', request)
+        logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
 
         log_dict = {
             "type": "Authentication:start",
@@ -370,7 +369,7 @@ class OAuth2ConfigSLSx(object):
         logger.info(log_dict)
 
     def log_authn_success(self, request, extra):
-        logger = logging.getLogger('audit.authenticate.sls', request)
+        logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
         log_dict = {
             "type": "Authentication:success",
             "sub": self.user_id,

@@ -13,7 +13,7 @@ from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
 
-waffle_event_logger = logging.getLogger('audit.waffle.event')
+waffle_event_logger = logging.getLogger(logging.AUDIT_WAFFLE_EVENT_LOGGER)
 
 
 def get_userinfo(user):

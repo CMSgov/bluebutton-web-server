@@ -13,6 +13,7 @@ INFO = logging.INFO
 DEBUG = logging.DEBUG
 NOTSET = logging.NOTSET
 
+AUDIT_BASIC_LOGGER = "audit.basic_logger"
 AUDIT_AUTHZ_TOKEN_LOGGER = "audit.authorization.token"
 AUDIT_AUTHZ_SLS_LOGGER = "audit.authorization.sls"
 AUDIT_DATA_FHIR_LOGGER = "audit.data.fhir"
@@ -22,8 +23,10 @@ AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER = "audit.authenticate.match_fhir_id"
 AUDIT_HHS_AUTH_SERVER_REQ_LOGGER = "audit.hhs_oauth_server.request_logging"
 AUDIT_GLOBAL_STATE_METRICS_LOGGER = "audit.global_state_metrics"
 AUDIT_REQUEST_LOGGER = "audit.request_logger"
+AUDIT_WAFFLE_EVENT_LOGGER = "audit.waffle.event"
 
 LOGGER_NAMES = [
+    AUDIT_BASIC_LOGGER,
     AUDIT_AUTHZ_TOKEN_LOGGER,
     AUDIT_AUTHZ_SLS_LOGGER,
     AUDIT_DATA_FHIR_LOGGER,
@@ -32,7 +35,8 @@ LOGGER_NAMES = [
     AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER,
     AUDIT_HHS_AUTH_SERVER_REQ_LOGGER,
     AUDIT_GLOBAL_STATE_METRICS_LOGGER,
-    AUDIT_REQUEST_LOGGER
+    AUDIT_REQUEST_LOGGER,
+    AUDIT_WAFFLE_EVENT_LOGGER
 ]
 
 
@@ -46,7 +50,7 @@ class StreamHandler(logging.StreamHandler):
 
 
 class BasicLogger:
-    def __init__(self, logger_name="audit.basic_logger"):
+    def __init__(self, logger_name=AUDIT_BASIC_LOGGER):
         self._logger = logging.getLogger(logger_name)
 
     def logger(self):

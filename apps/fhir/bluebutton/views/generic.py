@@ -1,7 +1,7 @@
-import apps.logging.request_logger as logging
-
 import voluptuous
 import waffle
+
+import apps.logging.request_logger as logging
 
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
@@ -15,7 +15,6 @@ from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
 from apps.fhir.server import connection as backend_connection
-# from apps.fhir.bluebutton.loggers import log_v2_blocked
 
 from ..authentication import OAuth2ResourceOwner
 from ..exceptions import process_error_response
@@ -29,7 +28,7 @@ from ..utils import (build_fhir_response,
                      get_resourcerouter)
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
-waffle_event_logger = logging.getLogger('audit.waffle.event')
+waffle_event_logger = logging.getLogger(logging.AUDIT_WAFFLE_EVENT_LOGGER)
 
 
 class FhirDataView(APIView):
@@ -141,14 +140,15 @@ class FhirDataView(APIView):
         s = Session()
         prepped = s.prepare_request(req)
         # Send signal
-        pre_fetch.send_robust(FhirDataView, request=req, api_ver='v2' if self.version == 2 else 'v1')
+        pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2' if self.version == 2 else 'v1')
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
             verify=FhirServerVerify(crosswalk=request.crosswalk))
         # Send signal
-        post_fetch.send_robust(FhirDataView, request=prepped, response=r, api_ver='v2' if self.version == 2 else 'v1')
+        post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request,
+                               response=r, api_ver='v2' if self.version == 2 else 'v1')
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128

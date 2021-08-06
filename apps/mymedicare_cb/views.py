@@ -39,7 +39,7 @@ def authenticate(request):
 
     slsx_client.validate_asserts(request, [
         (request_token is None, "SLSx request_token is missing in callback error.")
-    ], MedicareCallbackExceptionType.VALUEERROR)
+    ], MedicareCallbackExceptionType.VALIDATION_ERROR)
 
     # Exchange req_token for access token
     slsx_client.exchange_for_access_token(request_token, request)

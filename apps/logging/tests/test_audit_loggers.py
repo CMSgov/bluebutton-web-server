@@ -139,18 +139,16 @@ class TestAuditEventLoggers(BaseApiTest):
             log_entries = fhir_log_content.splitlines()
 
             # Validate fhir_pre_fetch entry
-            log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(
                 self._validateJsonSchema(
-                    get_pre_fetch_fhir_log_entry_schema(2 if v2 else 1), log_entry_dict
+                    get_pre_fetch_fhir_log_entry_schema(2 if v2 else 1), json.loads(log_entries[0])
                 )
             )
 
             # Validate fhir_post_fetch entry
-            log_entry_dict = json.loads(log_entries[1])
             self.assertTrue(
                 self._validateJsonSchema(
-                    get_post_fetch_fhir_log_entry_schema(2 if v2 else 1), log_entry_dict
+                    get_post_fetch_fhir_log_entry_schema(2 if v2 else 1), json.loads(log_entries[1])
                 )
             )
 
@@ -159,10 +157,9 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertIsNotNone(token_log_content)
             log_entries = token_log_content.splitlines()
 
-            log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(
                 self._validateJsonSchema(
-                    ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, log_entry_dict
+                    ACCESS_TOKEN_AUTHORIZED_LOG_SCHEMA, json.loads(log_entries[0])
                 )
             )
 
@@ -226,9 +223,8 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(len(quoted_strings), 2)
 
             # Validate token response
-            slsx_token_dict = json.loads(quoted_strings[0])
             self.assertTrue(
-                self._validateJsonSchema(SLSX_TOKEN_LOG_SCHEMA, slsx_token_dict)
+                self._validateJsonSchema(SLSX_TOKEN_LOG_SCHEMA, json.loads(quoted_strings[0]))
             )
 
             # Validate userinfo response
@@ -242,18 +238,16 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(len(log_entries), 2)
 
             # Validate Authentication:start entry
-            log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(
                 self._validateJsonSchema(
-                    AUTHENTICATION_START_LOG_SCHEMA, log_entry_dict
+                    AUTHENTICATION_START_LOG_SCHEMA, json.loads(log_entries[0])
                 )
             )
 
             # Validate Authentication:success entry
-            log_entry_dict = json.loads(log_entries[1])
             self.assertTrue(
                 self._validateJsonSchema(
-                    AUTHENTICATION_SUCCESS_LOG_SCHEMA, log_entry_dict
+                    AUTHENTICATION_SUCCESS_LOG_SCHEMA, json.loads(log_entries[1])
                 )
             )
 
@@ -262,18 +256,16 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(len(log_entries), 2)
 
             # Validate mymedicare_cb:create_beneficiary_record entry
-            log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(
                 self._validateJsonSchema(
-                    MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, log_entry_dict
+                    MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA, json.loads(log_entries[0])
                 )
             )
 
             # Validate mymedicare_cb:get_and_update_user entry
-            log_entry_dict = json.loads(log_entries[1])
             self.assertTrue(
                 self._validateJsonSchema(
-                    MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, log_entry_dict
+                    MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA, json.loads(log_entries[1])
                 )
             )
 
@@ -282,16 +274,14 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertEqual(len(log_entries), 2)
 
             # Validate fhir_auth_pre_fetch entry
-            log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(
-                self._validateJsonSchema(FHIR_AUTH_PRE_FETCH_LOG_SCHEMA, log_entry_dict)
+                self._validateJsonSchema(FHIR_AUTH_PRE_FETCH_LOG_SCHEMA, json.loads(log_entries[0]))
             )
 
             # Validate fhir_auth_post_fetch entry
-            log_entry_dict = json.loads(log_entries[1])
             self.assertTrue(
                 self._validateJsonSchema(
-                    FHIR_AUTH_POST_FETCH_LOG_SCHEMA, log_entry_dict
+                    FHIR_AUTH_POST_FETCH_LOG_SCHEMA, json.loads(log_entries[1])
                 )
             )
 
@@ -301,9 +291,8 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertGreater(len(log_entries), 0)
 
             # Validate fhir.server.authentication.match_fhir_id entry
-            log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(
-                self._validateJsonSchema(MATCH_FHIR_ID_LOG_SCHEMA, log_entry_dict)
+                self._validateJsonSchema(MATCH_FHIR_ID_LOG_SCHEMA, json.loads(log_entries[0]))
             )
 
             hhs_oauth_server_log_content = self.get_log_content(logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
@@ -312,10 +301,9 @@ class TestAuditEventLoggers(BaseApiTest):
             self.assertGreater(len(log_entries), 0)
 
             # Validate hhs_oauth_server request/response custom middleware log entry
-            log_entry_dict = json.loads(log_entries[0])
             self.assertTrue(
                 self._validateJsonSchema(
-                    REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA, log_entry_dict
+                    REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA, json.loads(log_entries[0])
                 )
             )
 

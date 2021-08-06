@@ -4,7 +4,7 @@ import apps.logging.request_logger as logging
 """
   Logger and logging function for waffle flags, switches
 """
-waffle_event_logger = logging.getLogger('audit.waffle.event')
+waffle_event_logger = logging.getLogger(logging.AUDIT_WAFFLE_EVENT_LOGGER)
 
 
 def log_v2_blocked(user=None, path=None, app=None, err=None, **kwargs):

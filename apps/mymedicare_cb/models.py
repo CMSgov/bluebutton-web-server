@@ -1,4 +1,3 @@
-
 import apps.logging.request_logger as logging
 
 from django.contrib.auth.models import User, Group
@@ -11,7 +10,7 @@ from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
 
-from .authorization import OAuth2ConfigSLSx
+from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
@@ -187,99 +186,38 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
         "crosswalk": {},
     }
 
-    if slsx_client.user_id is None or slsx_client.user_id == "":
-        mesg = "username can not be None or empty string"
-        log_dict.update({
-            "status": "FAIL",
-            "mesg": mesg,
-        })
-        logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
-
-    if slsx_client.hicn_hash is None:
-        mesg = "user_hicn_hash can not be None"
-        log_dict.update({
-            "status": "FAIL",
-            "mesg": mesg,
-        })
-        logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
-    else:
-        if len(slsx_client.hicn_hash) != 64:
-            mesg = "incorrect user HICN hash format"
-            log_dict.update({
-                "status": "FAIL",
-                "mesg": mesg,
-            })
-            logger.info(log_dict)
-            raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
-
-    # If mbi_hash is not NULL, perform length check.
-    if slsx_client.mbi_hash is not None:
-        if len(slsx_client.mbi_hash) != 64:
-            mesg = "incorrect user MBI hash format"
-            log_dict.update({
-                "status": "FAIL",
-                "mesg": mesg,
-            })
-            logger.info(log_dict)
-            raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
-
-    if fhir_id is None:
-        mesg = "fhir_id can not be None"
-        log_dict.update({
-            "status": "FAIL",
-            "mesg": mesg,
-        })
-        logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
-
-    if fhir_id == "":
-        mesg = "fhir_id can not be an empty string"
-        log_dict.update({
-            "status": "FAIL",
-            "mesg": mesg,
-        })
-        logger.info(log_dict)
-        raise BBMyMedicareCallbackCrosswalkCreateException(mesg)
-
-    if User.objects.filter(username=slsx_client.user_id).exists():
-        mesg = "user already exists"
-        log_dict.update({
-            "status": "FAIL",
-            "mesg": mesg,
-        })
-        logger.info(log_dict)
-        raise ValidationError(mesg, slsx_client.user_id)
-
-    if Crosswalk.objects.filter(_user_id_hash=slsx_client.hicn_hash).exists():
-        mesg = "user_hicn_hash already exists"
-        log_dict.update({
-            "status": "FAIL",
-            "mesg": mesg,
-        })
-        logger.info(log_dict)
-        raise ValidationError(mesg, slsx_client.hicn_hash)
-
-    # If mbi_hash is not NULL, perform check for duplicate
-    if slsx_client.mbi_hash is not None:
-        if Crosswalk.objects.filter(_user_mbi_hash=slsx_client.mbi_hash).exists():
-            mesg = "user_mbi_hash already exists"
-            log_dict.update({
-                "status": "FAIL",
-                "mesg": mesg,
-            })
-            logger.info(log_dict)
-            raise ValidationError(mesg, slsx_client.hicn_hash)
-
-    if fhir_id and Crosswalk.objects.filter(_fhir_id=fhir_id).exists():
-        mesg = "fhir_id already exists"
-        log_dict.update({
-            "status": "FAIL",
-            "mesg": mesg,
-        })
-        logger.info(log_dict)
-        raise ValidationError(mesg, fhir_id)
+    _validate_asserts(logger, log_dict, [
+        (slsx_client.user_id is None or slsx_client.user_id == "",
+         "username can not be None or empty string",
+         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
+        (slsx_client.hicn_hash is None,
+         "user_hicn_hash can not be None",
+         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
+        (slsx_client.hicn_hash is not None and len(slsx_client.hicn_hash) != 64,
+         "incorrect user HICN hash format",
+         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
+        (slsx_client.mbi_hash is not None and len(slsx_client.mbi_hash) != 64,
+         "incorrect user MBI hash format",
+         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
+        (fhir_id is None,
+         "fhir_id can not be None",
+         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
+        (fhir_id == "",
+         "fhir_id can not be an empty string",
+         MedicareCallbackExceptionType.CALLBACK_CW_CREATE),
+        (User.objects.filter(username=slsx_client.user_id).exists(),
+         "user already exists",
+         MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.user_id),
+        (Crosswalk.objects.filter(_user_id_hash=slsx_client.hicn_hash).exists(),
+         "user_hicn_hash already exists",
+         MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.hicn_hash),
+        (slsx_client.mbi_hash is not None and Crosswalk.objects.filter(_user_mbi_hash=slsx_client.mbi_hash).exists(),
+         "user_mbi_hash already exists",
+         MedicareCallbackExceptionType.VALIDATION_ERROR, slsx_client.mbi_hash),
+        (fhir_id and Crosswalk.objects.filter(_fhir_id=fhir_id).exists(),
+         "fhir_id already exists",
+         MedicareCallbackExceptionType.VALIDATION_ERROR, fhir_id),
+    ])
 
     with transaction.atomic():
         user = User(username=slsx_client.user_id,
@@ -317,6 +255,28 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
         logger.info(log_dict)
 
     return user
+
+
+def _validate_asserts(logger, log_dict, asserts):
+    # asserts is a list of tuple : (boolean expression, err message, exception type)
+    # iterate boolean expressions and log err message if the expression evalaute to true
+    for t in asserts:
+        bexp = t[0]
+        mesg = t[1]
+        err_enum = t[2]
+        if bexp:
+            log_dict.update({"status": "FAIL", "mesg": mesg})
+            logger.info(log_dict)
+            err = None
+            if err_enum == MedicareCallbackExceptionType.CALLBACK_CW_CREATE:
+                err = BBMyMedicareCallbackCrosswalkCreateException(mesg)
+            elif err_enum == MedicareCallbackExceptionType.CALLBACK_CW_UPDATE:
+                err = BBMyMedicareCallbackCrosswalkUpdateException(mesg)
+            elif err_enum == MedicareCallbackExceptionType.VALIDATION_ERROR:
+                err = ValidationError(mesg, t[3])
+            else:
+                err = Exception("Unkown medicare callback crosswalk exception type: {}".format(err_enum))
+            raise err
 
 
 class AnonUserState(models.Model):
