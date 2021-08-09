@@ -87,6 +87,7 @@ class BasicLogger:
     def setLevel(self, lvl):
         self._logger.setLevel(lvl)
 
+
 class RequestLogger(BasicLogger):
     def __init__(self, request, logger_name=AUDIT_REQUEST_LOGGER):
         super().__init__(logger_name=logger_name)
