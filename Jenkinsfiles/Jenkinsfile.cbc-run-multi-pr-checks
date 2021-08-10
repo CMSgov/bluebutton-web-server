@@ -15,7 +15,7 @@ pipeline {
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.dev"
     OAUTHLIB_INSECURE_TRANSPORT = true
     DJANGO_SECURE_SESSION = false
-    DJANGO_FHIR_CERTSTORE = "./certstore/"
+    DJANGO_FHIR_CERTSTORE = "/code/docker-compose/certstore"
     DJANGO_MEDICARE_SLSX_REDIRECT_URI = "http://localhost:8000/mymedicare/sls-callback"
     DJANGO_MEDICARE_SLSX_LOGIN_URI = "http://localhost:8080/sso/authorize?client_id=bb2api"
     DJANGO_SLSX_HEALTH_CHECK_ENDPOINT = "http://localhost:8080/health"
@@ -42,8 +42,8 @@ pipeline {
   stages {
     stage("SETUP FHIR cert and key") {
       steps {
-        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
-        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
       }
     }
 
