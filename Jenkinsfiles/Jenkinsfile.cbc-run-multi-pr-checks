@@ -17,11 +17,11 @@ pipeline {
     DJANGO_SECURE_SESSION = false
     DJANGO_FHIR_CERTSTORE = "./certstore/"
     DJANGO_MEDICARE_SLSX_REDIRECT_URI = "http://localhost:8000/mymedicare/sls-callback"
-    DJANGO_MEDICARE_SLSX_LOGIN_URI = "https://test.medicare.gov/sso/authorize?client_id=bb2api"
-    DJANGO_SLSX_HEALTH_CHECK_ENDPOINT = "https://test.accounts.cms.gov/health"
-    DJANGO_SLSX_TOKEN_ENDPOINT = "https://test.medicare.gov/sso/session"
-    DJANGO_SLSX_SIGNOUT_ENDPOINT = "https://test.medicare.gov/sso/signout"
-    DJANGO_SLSX_USERINFO_ENDPOINT = "https://test.accounts.cms.gov/v1/users"
+    DJANGO_MEDICARE_SLSX_LOGIN_URI = "http://localhost:8080/sso/authorize?client_id=bb2api"
+    DJANGO_SLSX_HEALTH_CHECK_ENDPOINT = "http://localhost:8080/health"
+    DJANGO_SLSX_TOKEN_ENDPOINT = "http://localhost:8080/sso/session"
+    DJANGO_SLSX_SIGNOUT_ENDPOINT = "http://localhost:8080/sso/signout"
+    DJANGO_SLSX_USERINFO_ENDPOINT = "http://localhost:8080/v1/users"
     DJANGO_SLSX_CLIENT_ID = credentials("bb2-selenium-tests-slsx-client-id")
     DJANGO_SLSX_CLIENT_SECRET = credentials("bb2-selenium-tests-slsx-client-secret")
     DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
