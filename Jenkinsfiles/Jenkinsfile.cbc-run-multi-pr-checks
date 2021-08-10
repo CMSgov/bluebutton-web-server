@@ -7,7 +7,7 @@ pipeline {
   }
 
   environment {
-    USE_MSLSX = false
+    USE_MSLSX = true
     USE_DEBUG = false
     DJANGO_SLSX_VERIFY_SSL_INTERNAL = false
     DJANGO_SLSX_VERIFY_SSL_EXTERNAL = true
