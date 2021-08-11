@@ -89,5 +89,16 @@ pipeline {
         """
       }
     }
+
+    stage("POST selenium tests log check") {
+      steps{
+        sh """
+          . venv/bin/activate
+          echo "PWD=" $pwd ", WORKSAPCE=" ${WORKSPACE}
+          cat ${WORKSPACE}/bb2_server_output.log
+          ls -alR ${WORKSPACE}
+        """
+      }
+    }
   }
 }
