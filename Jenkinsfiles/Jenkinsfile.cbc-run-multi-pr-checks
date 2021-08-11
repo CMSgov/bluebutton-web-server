@@ -58,29 +58,29 @@ pipeline {
       }
     }
 
-    stage("CHECK Flake8 Python Lint/Style") {
-      steps{
-        sh """
-          . venv/bin/activate
-          flake8
-        """
-      }
-    }
+    // stage("CHECK Flake8 Python Lint/Style") {
+    //   steps{
+    //     sh """
+    //       . venv/bin/activate
+    //       flake8
+    //     """
+    //   }
+    // }
 
-    stage("RUN Django Unit Tests") {
-      steps{
-        sh """
-          . venv/bin/activate
-          python runtests.py
-        """
-      }
-    }
+    // stage("RUN Django Unit Tests") {
+    //   steps{
+    //     sh """
+    //       . venv/bin/activate
+    //       python runtests.py
+    //     """
+    //   }
+    // }
 
     stage("START MSLSX in background") {
       steps{
         sh """
           . venv/bin/activate
-          cd dev-local/django/mslsx && export DJANGO_SETTINGS_MODULE=mslsx.settings && python manage.py migrate && echo 'starting mslsx ...' && (python manage.py runserver 0.0.0.0:8080 &)
+          ls ./docker-compose/certstore && cd dev-local/django/mslsx && export DJANGO_SETTINGS_MODULE=mslsx.settings && python manage.py migrate && echo 'starting mslsx ...' && (python manage.py runserver 0.0.0.0:8080 &)
         """
       }
     }
