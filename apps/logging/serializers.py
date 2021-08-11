@@ -1,12 +1,6 @@
 import json
 import hashlib
 
-from django.conf import settings
-
-
-def json_str(data_dict):
-    return json.dumps(data_dict, indent=2 if settings.LOG_JSON_FORMAT_PRETTY else None)
-
 
 class DataAccessGrantSerializer:
     tkn = None
@@ -38,9 +32,6 @@ class DataAccessGrantSerializer:
                 "username": getattr(user, 'username', None),
             }
         }
-
-    def __str__(self):
-        return json_str(self.to_dict())
 
 
 class Token:
@@ -95,9 +86,6 @@ class Token:
 
         return result
 
-    def __str__(self):
-        return json_str(self.to_dict())
-
 
 class Request:
     # requests.PrepairedRequest
@@ -117,9 +105,6 @@ class Request:
             "application": self.application(),
             "path": self.path(),
         }
-
-    def __str__(self):
-        return json_str(self.to_dict())
 
 
 class SLSRequest(Request):
@@ -242,9 +227,6 @@ class Response:
         resp_dict.update(self.req)
         return resp_dict
 
-    def __str__(self):
-        return json_str(self.to_dict())
-
 
 class FHIRResponse(Response):
     request_class = FHIRRequest
@@ -329,9 +311,6 @@ class SLSxTokenResponse(SLSResponse):
 
         return resp_dict
 
-    def __str__(self):
-        return json_str(self.to_dict())
-
 
 class SLSxUserInfoResponse(SLSResponse):
     request_class = SLSRequest
@@ -373,6 +352,3 @@ class SLSxUserInfoResponse(SLSResponse):
         resp_dict.update(json_exception)
 
         return resp_dict
-
-    def __str__(self):
-        return json_str(self.to_dict())

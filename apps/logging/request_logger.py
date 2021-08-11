@@ -62,7 +62,11 @@ class BasicLogger:
             return data_dict
         tmp_dict = data_dict if isinstance(data_dict, dict) else data_dict.to_dict()
         try:
-            return json.dumps(tmp_dict, indent=2 if settings.LOG_JSON_FORMAT_PRETTY else None, cls=cls)
+            if settings.LOG_JSON_FORMAT_PRETTY:
+                args = {"sort_keys": True, "indent": 2, "cls": cls}
+            else:
+                args = {"cls": cls}
+            return json.dumps(tmp_dict, **args)
         except Exception:
             return "Could not turn the data_dict into a JSON dump"
 

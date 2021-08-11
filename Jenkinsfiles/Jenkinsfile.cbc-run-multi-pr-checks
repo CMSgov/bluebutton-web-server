@@ -63,7 +63,7 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          echo "PWD=" $PWD ", WORKSPACE=" $WORKSPACE"
+          echo "PWD=" ${PWD} ", WORKSPACE=" ${WORKSPACE}
           ls -alR ./certstore
           python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
         """
