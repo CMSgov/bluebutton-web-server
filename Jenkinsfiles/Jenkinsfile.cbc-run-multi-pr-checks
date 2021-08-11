@@ -62,23 +62,18 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          ls ./docker-compose/certstore && cd dev-local/django/mslsx && export DJANGO_SETTINGS_MODULE=mslsx.settings && python manage.py migrate && echo 'starting mslsx ...' && (python manage.py runserver 0.0.0.0:8080 &)
+          cd dev-local/django/mslsx && export DJANGO_SETTINGS_MODULE=mslsx.settings && python manage.py migrate && echo 'starting mslsx ...' && (python manage.py runserver 0.0.0.0:8080 &)
         """
       }
     }
 
     stage("START BB2 server in background") {
       steps{
-        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.cert.pem", text: readFile(env.FHIR_CERT))
-        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
         sh """
           echo "PWD=" $pwd ", WORKSAPCE=" ${WORKSPACE}
           . venv/bin/activate
           ls docker-compose/certstore
-          echo "=================================="
-          find /home/jenkins "ca.cert.pem"
-          echo "=================================="
-          cd /code && echo $DJANGO_FHIR_CERTSTORE && export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev && python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (python manage.py runserver 0.0.0.0:8000 &)
+          export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev && python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (python manage.py runserver 0.0.0.0:8000 &)
         """
       }
     }
@@ -87,7 +82,7 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          ls ./docker-compose/certstore && python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
         """
       }
     }
