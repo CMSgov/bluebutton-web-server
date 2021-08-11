@@ -73,7 +73,7 @@ pipeline {
           echo "PWD=" $pwd ", WORKSAPCE=" ${WORKSPACE}
           . venv/bin/activate
           ls docker-compose/certstore
-          export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev && python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (python manage.py runserver 0.0.0.0:8000 &)
+          export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev && python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (python manage.py runserver 0.0.0.0:8000 2>&1 > bb2_server_output.log &)
         """
       }
     }
