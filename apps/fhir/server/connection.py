@@ -8,6 +8,7 @@ from apps.fhir.bluebutton.utils import (
 # return certs
 def certs(crosswalk=None):
     auth_state = FhirServerAuth(crosswalk)
+    print("CERT FILE={}".format(auth_state.get('cert_file', None)))
     return (auth_state.get('cert_file', None), auth_state.get('key_file', None))
 
 
