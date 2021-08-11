@@ -5,7 +5,7 @@ spec:
     - name: bb2-cbc-build-selenium
       image: "public.ecr.aws/f5g8o1y9/bb2-cbc-build-selenium:latest"
       tty: true
-      command: ["tail", "-f", "/dev/null"]
+      command: ["tail", "-f"]
       imagePullPolicy: Always
   nodeSelector:
       Agents: true
