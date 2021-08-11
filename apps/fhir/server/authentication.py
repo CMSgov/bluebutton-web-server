@@ -1,4 +1,6 @@
+import os
 import requests
+
 from django.conf import settings
 from rest_framework import exceptions
 from apps.dot_ext.loggers import get_session_auth_flow_trace
@@ -48,6 +50,8 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     """
     # Get certs from FHIR server settings
     auth_settings = FhirServerAuth(None)
+    apath = os.path.abspath(auth_settings['cert_file'])
+    print("AUTH FHIR SRCH CERT FILE={}, ABS PATH={}".format(auth_settings['cert_file'], apath))
     certs = (auth_settings['cert_file'], auth_settings['key_file'])
 
     # Add headers for FHIR backend logging, including auth_flow_dict
