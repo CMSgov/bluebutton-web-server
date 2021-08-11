@@ -82,7 +82,11 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
+          echo "PWD=" $pwd ", WORKSAPCE=" ${WORKSPACE}
           python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+          echo "PWD=" $pwd ", WORKSAPCE=" ${WORKSPACE}
+          cat ${WORKSPACE}/bb2_server_output.log
+          ls -alR ${WORKSPACE}
         """
       }
     }
