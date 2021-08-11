@@ -85,6 +85,13 @@ pipeline {
       }
     }
 
+    stage("SETUP FHIR cert and key AGAIN") {
+      steps {
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+      }
+    }
+
     stage("START BB2 server in background") {
       steps{
         sh """
@@ -94,11 +101,18 @@ pipeline {
       }
     }
 
+    stage("SETUP FHIR cert and key AGAIN and AGAIN") {
+      steps {
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+      }
+    }
+
     stage("RUN selenium tests") {
       steps{
         sh """
           . venv/bin/activate
-          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+          ls ./docker-compose/certstore && python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
         """
       }
     }
