@@ -83,22 +83,10 @@ pipeline {
         sh """
           . venv/bin/activate
           echo "PWD=" $pwd ", WORKSAPCE=" ${WORKSPACE}
-          cat ${WORKSPACE}/bb2_server_output.log
-          ls -alR ${WORKSPACE}
-          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests ; ls -alR ${WORKSPACE} ; echo `cat ${WORKSPACE}/bb2_server_output.log`
         """
       }
     }
 
-    stage("POST selenium tests log check") {
-      steps{
-        sh """
-          . venv/bin/activate
-          echo "PWD=" $pwd ", WORKSAPCE=" ${WORKSPACE}
-          cat ${WORKSPACE}/bb2_server_output.log
-          ls -alR ${WORKSPACE}
-        """
-      }
-    }
   }
 }
