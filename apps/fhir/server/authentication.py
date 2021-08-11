@@ -48,7 +48,6 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     """
     # Get certs from FHIR server settings
     auth_settings = FhirServerAuth(None)
-    print("CERT FILE={}, KEY FILE={}".format(auth_settings['cert_file'], auth_settings['key_file']))
     certs = (auth_settings['cert_file'], auth_settings['key_file'])
 
     # Add headers for FHIR backend logging, including auth_flow_dict
