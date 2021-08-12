@@ -66,7 +66,6 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         headers['BlueButton-AuthClientId'] = auth_flow_dict.get('auth_client_id', '')
     else:
         headers = None
-        auth_flow_dict = None
 
     # Build URL with patient ID search by identifier.
     ver = "v{}".format(request.session.get('version', 1))
