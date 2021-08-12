@@ -234,19 +234,19 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
             pass
         self.assertEqual(msg, "all's well")
 
-    @override_switch('require-scopes', active=True)
-    def test_health_sls_endpoint(self):
-        client = APIClient()
-        # no authenticate needed
-        response = client.get(self.live_server_url + "/health/sls")
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        msg = None
-        try:
-            msg = content['message']
-        except KeyError:
-            pass
-        self.assertEqual(msg, "all's well")
+    # @override_switch('require-scopes', active=True)
+    # def test_health_sls_endpoint(self):
+    #     client = APIClient()
+    #     # no authenticate needed
+    #     response = client.get(self.live_server_url + "/health/sls")
+    #     self.assertEqual(response.status_code, 200)
+    #     content = json.loads(response.content)
+    #     msg = None
+    #     try:
+    #         msg = content['message']
+    #     except KeyError:
+    #         pass
+    #     self.assertEqual(msg, "all's well")
 
     @override_switch('require-scopes', active=True)
     def test_userinfo_endpoint(self):
