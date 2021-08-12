@@ -42,8 +42,8 @@ pipeline {
   stages {
     stage("SETUP FHIR cert and key") {
       steps {
-        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.cert.pem", text: readFile(env.FHIR_CERT))
-        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
       }
     }
 
