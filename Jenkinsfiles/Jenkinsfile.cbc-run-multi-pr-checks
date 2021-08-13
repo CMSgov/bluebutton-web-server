@@ -113,7 +113,7 @@ pipeline {
         sh """
           . venv/bin/activate
           echo "RUN_SELENIUM_TESTS=" ${params.RUN_SELENIUM_TESTS}
-          if [ "${params.RUN_SELENIUM_TESTS}" == "true" ]; then python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests ; else echo 'Skip selenium tests...' ; fi
+          if [[ "${params.RUN_SELENIUM_TESTS}" == "true" ]]; then python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests ; else echo 'Skip selenium tests...' ; fi
         """
       }
     }
