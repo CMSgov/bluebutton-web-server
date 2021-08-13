@@ -5,6 +5,7 @@ from django.db import connection
 
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.fhir.server import connection as backend_connection
+from apps.logging.firehoses import BFDInsightsFirehoseDeliveryStreamHandler
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
 
@@ -38,6 +39,12 @@ def slsx(v2=False):
     return slsx_client.service_health_check(None)
 
 
+def firehose_check(v2=False):
+    # Perform health check on firehose service
+    firehose = BFDInsightsFirehoseDeliveryStreamHandler()
+    return firehose.service_health_check()
+
+
 internal_services = (
     django_rds_database,
 )
@@ -57,4 +64,8 @@ bfd_services = (
 
 db_services = (
     django_rds_database,
+)
+
+firehose_services = (
+    firehose_check,
 )

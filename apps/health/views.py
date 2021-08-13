@@ -9,6 +9,7 @@ from .checks import (
     slsx_services,
     bfd_services,
     db_services,
+    firehose_services,
 )
 
 logger = logging.getLogger('hhs_server.%s' % __name__)
@@ -63,3 +64,7 @@ class CheckBFD(Check):
 
 class CheckDB(Check):
     services = db_services
+
+
+class CheckFirehose(Check):
+    services = firehose_services
