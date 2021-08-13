@@ -29,6 +29,7 @@ pipeline {
     FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
     FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
     FHIR_URL = "${params.FHIR_URL}"
+    RUN_SELENIUM = "${params.RUN_SELENIUM_TESTS}"
   }
 
   parameters {
@@ -112,8 +113,8 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          echo "RUN_SELENIUM_TESTS=" ${params.RUN_SELENIUM_TESTS}
-          if ${params.RUN_SELENIUM_TESTS}; then python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests ; else echo 'Skip selenium tests...' ; fi
+          echo "RUN SELENIUM TESTS=" ${RUN_SELENIUM}
+          if ${RUN_SELENIUM}; then python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests ; else echo 'Skip selenium tests...' ; fi
         """
       }
     }
