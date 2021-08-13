@@ -1,19 +1,20 @@
-import os
 import requests
 
 from django.conf import settings
 from rest_framework import exceptions
+
 from apps.dot_ext.loggers import get_session_auth_flow_trace
-from apps.fhir.bluebutton.utils import (generate_info_headers,
-                                        set_default_header)
-from ..bluebutton.exceptions import UpstreamServerException
-from ..bluebutton.utils import (FhirServerAuth,
-                                get_resourcerouter)
-from .loggers import log_match_fhir_id
 from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
 )
+from apps.fhir.bluebutton.utils import (generate_info_headers,
+                                        set_default_header)
+
+from ..bluebutton.exceptions import UpstreamServerException
+from ..bluebutton.utils import (FhirServerAuth,
+                                get_resourcerouter)
+from .loggers import log_match_fhir_id
 
 
 def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
@@ -50,8 +51,6 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     """
     # Get certs from FHIR server settings
     auth_settings = FhirServerAuth(None)
-    apath = os.path.abspath(auth_settings['cert_file'])
-    print("AUTH FHIR SRCH CERT FILE={}, ABS PATH={}".format(auth_settings['cert_file'], apath))
     certs = (auth_settings['cert_file'], auth_settings['key_file'])
 
     # Add headers for FHIR backend logging, including auth_flow_dict

@@ -1,5 +1,3 @@
-import os
-
 from apps.fhir.bluebutton.utils import (
     FhirServerAuth,
     generate_info_headers,
@@ -10,8 +8,6 @@ from apps.fhir.bluebutton.utils import (
 # return certs
 def certs(crosswalk=None):
     auth_state = FhirServerAuth(crosswalk)
-    apath = os.path.abspath(auth_state.get('cert_file', None))
-    print("SRV CONN CERT FILE={}, ABS PATH={}".format(auth_state.get('cert_file', None), apath))
     return (auth_state.get('cert_file', None), auth_state.get('key_file', None))
 
 

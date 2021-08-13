@@ -20,9 +20,10 @@ RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`cu
 RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 RUN chmod +x /usr/local/bin/chromedriver
 
-RUN pip install --upgrade pip
-RUN pip install pip-tools selenium
-RUN python -m venv venv
-RUN make reqs-install-dev
+# uncomment to build an image for local testing, cbc jenkins pipeline has steps to provision below
+# RUN pip install --upgrade pip
+# RUN pip install pip-tools selenium
+# RUN python -m venv venv
+# RUN make reqs-install-dev
 
 
