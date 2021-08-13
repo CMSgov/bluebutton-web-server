@@ -39,7 +39,7 @@ pipeline {
     )
     booleanParam(
         name: 'RUN_SELENIUM_TESTS', 
-        defaultValue: true, 
+        defaultValue: false, 
         description: 'Set to true, selenium tests will be run as part of integration tests'
     )
   }
