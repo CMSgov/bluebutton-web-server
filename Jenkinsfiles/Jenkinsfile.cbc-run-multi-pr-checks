@@ -37,6 +37,11 @@ pipeline {
       defaultValue: "https://prod-sbx.bfd.cms.gov",
       description: 'The default FHIR URL for the back end BFD service.'
     )
+    booleanParam(
+        name: 'RUN_SELENIUM_TESTS', 
+        defaultValue: false, 
+        description: 'Set to true, selenium tests will be run as part of integration tests'
+    )
   }
 
   stages {
@@ -107,7 +112,8 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+          echo "RUN_SELENIUM_TESTS=" ${params.RUN_SELENIUM_TESTS}
+          if [ "${params.RUN_SELENIUM_TESTS}" == "true" ]; then python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests ; else echo 'Skip selenium tests...' ; fi
         """
       }
     }
