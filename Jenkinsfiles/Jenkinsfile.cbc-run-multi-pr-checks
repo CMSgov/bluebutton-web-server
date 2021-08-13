@@ -103,7 +103,8 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+          echo "RUN_SELENIUM_TESTS=" ${params.RUN_SELENIUM_TESTS}
+          if ${params.RUN_SELENIUM_TESTS}; then python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests ; else echo 'Skip selenium tests...' ; fi
         """
       }
     }
