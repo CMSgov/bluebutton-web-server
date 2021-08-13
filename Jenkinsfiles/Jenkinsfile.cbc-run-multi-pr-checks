@@ -37,6 +37,11 @@ pipeline {
       defaultValue: "https://prod-sbx.bfd.cms.gov",
       description: 'The default FHIR URL for the back end BFD service.'
     )
+    booleanParam(
+        name: 'RUN_SELENIUM_TESTS', 
+        defaultValue: true, 
+        description: 'Set to true, selenium tests will be run as part of integration tests'
+    )
   }
 
   stages {
