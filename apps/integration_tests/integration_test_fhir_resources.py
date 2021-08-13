@@ -1,5 +1,5 @@
 import json
-import os
+# import os
 
 from django.conf import settings
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
