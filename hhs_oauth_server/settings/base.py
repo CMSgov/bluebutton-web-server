@@ -360,6 +360,7 @@ LOGGING = env("DJANGO_LOGGING", {
         #     'level': 'DEBUG',
         #     'handlers': ['console'],
         # },
+        # NOTE: DO NOT add the kinesis handler to the core "hhs_server" type logging!
         'hhs_server': {
             'handlers': ['console'],
             'level': 'DEBUG',
