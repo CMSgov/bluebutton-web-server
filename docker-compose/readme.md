@@ -140,6 +140,55 @@ then run the migrate script again:
 ```
 docker-compose exec web chmod +x docker-compose/migrate.sh
 ```
+
+## DB Migrations
+
+To check and see if any migrations have been added that haven't been applied to your local DB you can run the following command:
+```
+python manage.py showmigrations
+```
+NOTE: Make sure to run within the venv
+
+To then apply any missing migrations you can run the following command:
+```
+python manage.py migrate
+```
+
+You can also undo a single migration, or group of migrations.
+To do so you run the following command:
+```
+python manage.py migrate <app-name> <previous-migration-number>
+```
+
+Here's an example:
+Migrations are run and here is the output:
+```
+Running migrations:
+  Applying accounts.0002_auto_20210624_1454... OK
+  Applying bb2_tools.0001_initial... OK
+  Applying bb2_tools.0002_v2user... OK
+  Applying bluebutton.0002_remove_resourcerouter_fld_20210624_0826... OK
+  Applying bluebutton.0003_archivedcrosswalk... OK
+  Applying server.0002_deprecate_resourcerouter_20210624_1454... OK
+```
+
+In this example lets pretend that the migration `bb2_tools.0002_v2user` ended up being a bad one and you would like to roll back just that migration.
+
+To do so you'd run the following command:
+```
+python manage.py migrate bb2_tools 0001
+```
+NOTE: The number corresponds to the value right before the migration that you want to remove. You can also use `zero` and that will remove all migrations for that app.
+
+The output would look like the following:
+```
+Operations to perform:
+  Target specific migration: 0001_initial, from bb2_tools
+Running migrations:
+  Rendering model states... DONE
+  Unapplying bb2_tools.0002_v2user... OK
+```
+
 ## Populate BB2 Django models with large number of records
 
 Run migrate.sh will in turn execute a django command among other things:
