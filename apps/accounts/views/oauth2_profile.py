@@ -1,4 +1,5 @@
 import waffle
+
 import apps.logging.request_logger as logging
 
 from collections import OrderedDict
@@ -11,9 +12,6 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
-
-
-waffle_event_logger = logging.getLogger(logging.AUDIT_WAFFLE_EVENT_LOGGER)
 
 
 def get_userinfo(user):
@@ -44,6 +42,7 @@ def openidconnect_userinfo(request, **kwargs):
     if request.path.startswith('/v2') and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
         # TODO: waffle flag enforced, to be removed after v2 GA
         err = exceptions.NotFound("bfd_v2_flag not active.")
+        waffle_event_logger = logging.getLogger(logging.AUDIT_WAFFLE_EVENT_LOGGER, request)
         log_dict = {"type": "v2_blocked",
                     "user": str(request.user) if request.user else None,
                     "path": request.path if request.path else None,

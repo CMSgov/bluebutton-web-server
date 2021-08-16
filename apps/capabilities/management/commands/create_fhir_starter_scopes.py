@@ -1,11 +1,12 @@
-import apps.logging.request_logger as logging
+import logging
 
 import json
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from ...models import ProtectedCapability
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 fhir_prefix = "/v1/fhir/"
 

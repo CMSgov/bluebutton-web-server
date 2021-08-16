@@ -1,14 +1,15 @@
-import apps.logging.request_logger as logging
+import logging
 
 from rest_framework import (permissions, exceptions)
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import PermissionDenied
 from .constants import ALLOWED_RESOURCE_TYPES
 from django.conf import settings
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
+
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 User = get_user_model()
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class ResourcePermission(permissions.BasePermission):

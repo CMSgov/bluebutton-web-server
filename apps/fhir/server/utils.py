@@ -1,7 +1,8 @@
 import re
 import logging
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def text_to_list(t_in='[]'):

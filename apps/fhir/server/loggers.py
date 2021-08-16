@@ -21,9 +21,4 @@ def log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash,
         "match_found": match_found,
         "hash_lookup_type": hash_lookup_type,
         "hash_lookup_mesg": hash_lookup_mesg,
-        # pre populate with auth_xxx to satisfy unittests
-        "auth_app_id": None,
-        "auth_app_name": None,
-        "auth_client_id": None,
-        "auth_pkce_method": None,
     })

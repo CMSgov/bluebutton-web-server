@@ -1,7 +1,8 @@
 import voluptuous
 import waffle
+import logging
 
-import apps.logging.request_logger as logging
+import apps.logging.request_logger as bb2logging
 
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
@@ -26,9 +27,9 @@ from ..signals import (
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
-waffle_event_logger = logging.getLogger(logging.AUDIT_WAFFLE_EVENT_LOGGER)
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class FhirDataView(APIView):
@@ -104,6 +105,7 @@ class FhirDataView(APIView):
         # TODO: waffle flag enforced, to be removed after v2 GA
         if self.version == 2 and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
             err = exceptions.NotFound("bfd_v2_flag not active.")
+            waffle_event_logger = bb2logging.getLogger(bb2logging.AUDIT_WAFFLE_EVENT_LOGGER, request)
             log_dict = {"type": "v2_blocked",
                         "user": str(request.user) if request.user else None,
                         "path": request.path if request.path else None,

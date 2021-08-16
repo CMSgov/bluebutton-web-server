@@ -1,5 +1,5 @@
 import json
-import apps.logging.request_logger as logging
+import logging
 
 import waffle
 from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
@@ -27,9 +27,9 @@ from ..utils import validate_app_is_active
 from rest_framework.exceptions import PermissionDenied
 from django.template.response import TemplateResponse
 from django.shortcuts import HttpResponse
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-
-log = logging.getLogger('hhs_server.%s' % __name__)
+log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class AuthorizationView(DotAuthorizationView):

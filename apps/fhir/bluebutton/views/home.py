@@ -1,6 +1,5 @@
 import json
-
-import apps.logging.request_logger as logging
+import logging
 
 from collections import OrderedDict
 from urllib.parse import urlencode
@@ -13,9 +12,9 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_resourcerouter,
                                         get_response_text,
                                         build_oauth_resource)
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def fhir_conformance_v2(request, via_oauth=False):

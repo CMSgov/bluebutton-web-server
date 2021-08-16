@@ -1,6 +1,7 @@
 import os
+import logging
 
-import apps.logging.request_logger as logging
+import apps.logging.request_logger as bb2logging
 
 import pytz
 import requests
@@ -18,9 +19,9 @@ from oauth2_provider.models import AccessToken
 
 from apps.wellknown.views import (base_issuer, build_endpoint_info)
 from .models import Crosswalk, Fhir_Response
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
-logger_perf = logging.getLogger('performance')
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def get_user_from_request(request):
@@ -214,6 +215,8 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
        values in the linked fhir_server model.
 
     """
+
+    logger_perf = bb2logging.getLogger(bb2logging.PERFORMANCE_LOGGER, request)
 
     # Updated to receive crosswalk (Crosswalk entry for user)
     # call FhirServer_Auth(crosswalk) to get authentication

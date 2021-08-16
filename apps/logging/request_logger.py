@@ -24,6 +24,7 @@ AUDIT_HHS_AUTH_SERVER_REQ_LOGGER = "audit.hhs_oauth_server.request_logging"
 AUDIT_GLOBAL_STATE_METRICS_LOGGER = "audit.global_state_metrics"
 AUDIT_REQUEST_LOGGER = "audit.request_logger"
 AUDIT_WAFFLE_EVENT_LOGGER = "audit.waffle.event"
+PERFORMANCE_LOGGER = 'performance'
 
 LOGGER_NAMES = [
     AUDIT_BASIC_LOGGER,
@@ -38,6 +39,8 @@ LOGGER_NAMES = [
     AUDIT_REQUEST_LOGGER,
     AUDIT_WAFFLE_EVENT_LOGGER
 ]
+
+HHS_SERVER_LOGNAME_FMT = "hhs_server.%s"
 
 
 def getLogger(name=None, request=None):
@@ -57,16 +60,12 @@ class BasicLogger:
         return self._logger
 
     def format_for_output(self, data_dict, cls=None):
-        # return str as is
-        if isinstance(data_dict, str):
-            return data_dict
-        tmp_dict = data_dict if isinstance(data_dict, dict) else data_dict.to_dict()
         try:
             if settings.LOG_JSON_FORMAT_PRETTY:
                 args = {"sort_keys": True, "indent": 2, "cls": cls}
             else:
                 args = {"cls": cls}
-            return json.dumps(tmp_dict, **args)
+            return json.dumps(data_dict, **args)
         except Exception:
             return "Could not turn the data_dict into a JSON dump"
 
@@ -108,14 +107,27 @@ class RequestLogger(BasicLogger):
             self.standard_log_data["auth_uuid"] = request.session["auth_uuid"]
         except Exception:
             self.standard_log_data["auth_uuid"] = None
+        try:
+            self.standard_log_data["auth_app_id"] = request.session["auth_app_id"]
+        except Exception:
+            self.standard_log_data["auth_app_id"] = None
+        try:
+            self.standard_log_data["auth_app_name"] = request.session["auth_app_name"]
+        except Exception:
+            self.standard_log_data["auth_app_name"] = None
+        try:
+            self.standard_log_data["auth_client_id"] = request.session["auth_client_id"]
+        except Exception:
+            self.standard_log_data["auth_client_id"] = None
+        try:
+            self.standard_log_data["auth_pkce_method"] = request.session["auth_pkce_method"]
+        except Exception:
+            self.standard_log_data["auth_pkce_method"] = None
+
         self.standard_log_data.update(get_session_auth_flow_trace(request))
 
     def format_for_output(self, data_dict, cls=None):
-        # return str as is
-        if isinstance(data_dict, str):
-            return data_dict
-        tmp_dict = data_dict if isinstance(data_dict, dict) else data_dict.to_dict()
-        merged_dict = {**self.standard_log_data, **tmp_dict}
+        merged_dict = {**self.standard_log_data, **data_dict}
         return super().format_for_output(merged_dict, cls=cls)
 
     def debug(self, data_dict, request=None, cls=None):

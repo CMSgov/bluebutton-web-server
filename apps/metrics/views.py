@@ -1,4 +1,4 @@
-import apps.logging.request_logger as logging
+import logging
 
 from django.contrib.auth.models import User
 from django.db.models import (
@@ -36,9 +36,9 @@ from apps.dot_ext.models import Application, ArchivedToken
 from apps.fhir.bluebutton.models import (
     Crosswalk,
     check_crosswalks)
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-
-log = logging.getLogger('hhs_server.%s' % __name__)
+log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 STREAM_SERIALIZER_KWARGS = LIST_SERIALIZER_KWARGS
 

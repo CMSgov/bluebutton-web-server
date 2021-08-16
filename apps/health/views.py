@@ -1,4 +1,4 @@
-import apps.logging.request_logger as logging
+import logging
 
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework.exceptions import APIException
@@ -11,8 +11,9 @@ from .checks import (
     bfd_services,
     db_services,
 )
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class ServiceUnavailable(APIException):

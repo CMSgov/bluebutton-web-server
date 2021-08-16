@@ -1,10 +1,12 @@
+import logging
+
 from getenv import env
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-import apps.logging.request_logger as logging
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def create_superuser(username, password, email):

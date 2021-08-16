@@ -11,14 +11,14 @@ Prints CSV of all fields of a model.
 from django.core.management.base import BaseCommand
 from django.apps import apps
 
-from apps.fhir.bluebutton.utils import get_fhir_now
-
 import csv
+import logging
 import sys
 
-import apps.logging.request_logger as logging
+from apps.fhir.bluebutton.utils import get_fhir_now
+from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def exportcsv(app_name, model_name, add_name, field_export):
