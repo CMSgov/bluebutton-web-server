@@ -24,7 +24,7 @@ from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 
-mymedicare_cb_logger = logging.getLogger('audit.authenticate.mymedicare_cb')
+mymedicare_cb_logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
 outreach_logger = logging.getLogger('hhs_server.apps.dot_ext.signals')
 
 APPLICATION_SCOPES_FULL = ['patient/Patient.read', 'profile',

@@ -142,8 +142,6 @@ class OAuth2ConfigSLSx(object):
 
         headers = self.slsx_common_headers(request)
 
-        # auth_flow_dict = get_session_auth_flow_trace(request)
-
         response = requests.post(self.token_endpoint,
                                  auth=self.basic_auth(),
                                  json=data_dict,
@@ -176,8 +174,6 @@ class OAuth2ConfigSLSx(object):
         """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
-
-        # auth_flow_dict = get_session_auth_flow_trace(request)
 
         response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                 headers=headers,
@@ -284,8 +280,6 @@ class OAuth2ConfigSLSx(object):
         """
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
-
-        # auth_flow_dict = get_session_auth_flow_trace(request)
 
         response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
                                 headers=headers,

@@ -705,7 +705,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
         # Validate logging
-        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
 
         #   Validate log lines count
         self.assertEqual(len(log_list), 6)
@@ -783,7 +783,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
         # Validate logging
-        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 7)
 
         #   Get last log line
@@ -857,7 +857,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
         # Validate logging
-        log_list = self._get_log_lines_list('audit.authenticate.mymedicare_cb')
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 8)
 
         #   Get last line
