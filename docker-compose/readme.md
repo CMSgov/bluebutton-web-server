@@ -7,7 +7,7 @@ To enable usage of the SLSx TEST env locally, do the following. Skip if using MS
   * Sign in to Keybase and have the /keybase file system mounted.
   * Source the BFD prod-sbx hashing and SLSx TEST credentials ENV variables in to your shell:
     ```
-    source <path-to source_ENV_secrets_for_local_development.env>
+    source <path-to/source_ENV_secrets_for_local_development.env>
     ```
 
 To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis Firehose).
