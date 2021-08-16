@@ -84,7 +84,7 @@ python manage.py migrate
 You can also undo a single migration, or group of migrations.
 To do so you run the following command:
 ```
-python manage.py migrate <model-name> <previous-migration-number>
+python manage.py migrate <app-name> <previous-migration-number>
 ```
 
 Here's an example:
