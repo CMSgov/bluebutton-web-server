@@ -2,7 +2,7 @@
 
 To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker-compose/certstore` location to support the connection to the BFD FHIR server.
 
-To enable usage of the SLSx TEST env locally, do the following. Skip if using MSLS.
+To enable usage of the SLSx TEST environment locally, do the following. Skip if using MSLS (mock service) mode.
 
   * Sign in to Keybase and have the /keybase file system mounted.
   * Source the BFD prod-sbx hashing and SLSx TEST credentials ENV variables in to your shell:
@@ -12,7 +12,7 @@ To enable usage of the SLSx TEST env locally, do the following. Skip if using MS
 
 To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis Firehose).
 
-  * Source ENV variables using your script (differs per OS):
+  * Source ENV variables using your script (differs per local OS type and should utilize MFA):
     ```
     source ~/bin/source_aws.sh
     ```
@@ -27,7 +27,7 @@ To startup the Docker containerized BB2 server in SLSx mode (default), run the f
   docker-compose down
   ```
 
-Alternately, to startup the Docker containerized BB2 server in MSLS mode, run the following command: 
+Alternately, to startup the Docker containerized BB2 server in MSLS (mock service) mode, run the following command: 
 
   ```
   docker-compose -f docker-compose.msls.yml up -d
