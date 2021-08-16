@@ -1,6 +1,13 @@
 version: '3'
 
 services:
+  msls:
+    build:
+      context: ./dev-local/msls
+      dockerfile: Dockerfile
+    command: msls
+    ports:
+      - "8080:8080"
   db:
     image: postgres
     environment:
@@ -17,21 +24,20 @@ services:
             - OAUTHLIB_INSECURE_TRANSPORT=true
             - DJANGO_SECURE_SESSION=False
             - DJANGO_LOG_JSON_FORMAT_PRETTY=True
-            # SLSx settings:
-            - DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN=${DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN}
+            # MSLS settings:
             - DJANGO_MEDICARE_SLSX_REDIRECT_URI=http://localhost:8000/mymedicare/sls-callback
-            - DJANGO_MEDICARE_SLSX_LOGIN_URI=https://test.medicare.gov/sso/authorize?client_id=bb2api
-            - DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=https://test.accounts.cms.gov/health
-            - DJANGO_SLSX_TOKEN_ENDPOINT=https://test.medicare.gov/sso/session
-            - DJANGO_SLSX_SIGNOUT_ENDPOINT=https://test.medicare.gov/sso/signout
-            - DJANGO_SLSX_USERINFO_ENDPOINT=https://test.accounts.cms.gov/v1/users
-            #   SLSx credentials
+            - DJANGO_MEDICARE_SLSX_LOGIN_URI=http://localhost:8080/sso/authorize?client_id=bb2api
+            - DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=http://msls:8080/health
+            - DJANGO_SLSX_TOKEN_ENDPOINT=http://msls:8080/sso/session
+            - DJANGO_SLSX_SIGNOUT_ENDPOINT=http://msls:8080/sso/signout
+            - DJANGO_SLSX_USERINFO_ENDPOINT=http://msls:8080/v1/users
+            #   SLS credentials
             - DJANGO_SLSX_CLIENT_ID=bb2api
             - DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
-            #     SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
+            #   SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
             - DJANGO_SLSX_VERIFY_SSL_INTERNAL=False
             - DJANGO_SLSX_VERIFY_SSL_EXTERNAL=True
-            # End SLSx
+            # End MSLS
             # AWS credentials
             - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -52,6 +58,7 @@ services:
       - "5678:5678"
     depends_on:
       - db
+      - msls
   unittests:
     build: .
     command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
