@@ -105,7 +105,7 @@ To do so you'd run the following command:
 ```
 python manage.py migrate bb2_tools 0001
 ```
-NOTE: The number corresponds to the value right before the migration that you want to remove. You can also use `zero` and that will remove all migrations for that model.
+NOTE: The number corresponds to the value right before the migration that you want to remove. You can also use `zero` and that will remove all migrations for that app.
 
 The output would look like the following:
 ```
