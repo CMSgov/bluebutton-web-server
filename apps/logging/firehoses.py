@@ -2,11 +2,18 @@ import boto3
 import logging
 
 from django.conf import settings
+from rest_framework import status
+from rest_framework.exceptions import APIException
 
 
 """
   Firehose class for BFD-Insights connectivity
 """
+
+
+class BFDInsightsFirehoseException(APIException):
+    # BB2-130 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 class BFDInsightsFirehoseDeliveryStreamHandler(logging.StreamHandler):
@@ -23,7 +30,8 @@ class BFDInsightsFirehoseDeliveryStreamHandler(logging.StreamHandler):
         try:
             self.__firehose = boto3.client('firehose')
         except Exception as err:
-            print('Firehose client initialization failed. err: ', err)
+            mesg = "Firehose client initialization failed. err: " + str(err)
+            raise BFDInsightsFirehoseException(mesg)
 
         self.__delivery_stream_name = settings.LOG_FIREHOSE_STREAM_NAME
 
@@ -55,10 +63,9 @@ class BFDInsightsFirehoseDeliveryStreamHandler(logging.StreamHandler):
                 )
 
                 self.__stream_buffer.clear()
-        except Exception as e:
-            print("An error occurred during flush operation.")
-            print(f"Exception: {e}")
-            print(f"Stream buffer: {self.__stream_buffer}")
+        except Exception as err:
+            mesg = "Flush operation error:  " + str(err)
+            raise BFDInsightsFirehoseException(mesg)
         finally:
             if self.stream and hasattr(self.stream, "flush"):
                 self.stream.flush()
@@ -70,6 +77,6 @@ class BFDInsightsFirehoseDeliveryStreamHandler(logging.StreamHandler):
         response = self.__firehose.list_delivery_streams()
 
         if self.__delivery_stream_name not in response['DeliveryStreamNames']:
-            raise Exception("Delivery stream name not found for: " + self.__delivery_stream_name)
+            raise BFDInsightsFirehoseException("Delivery stream name not found for: " + self.__delivery_stream_name)
 
         return True
