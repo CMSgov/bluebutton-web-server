@@ -561,8 +561,8 @@ components:
         scheme: bearer
           
   schemas: {}
-servers:
-  - url: 'http://localhost:8000/'
-    variables: {}
+# servers:
+#   - url: 'http://localhost:8000/'
+#     variables: {}
 security:
     - bearerAuth: []
