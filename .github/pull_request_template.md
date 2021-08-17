@@ -71,6 +71,18 @@ Common items include:
 This PR cannot be either merged or deployed until the following pre-requisite changes have been fully deployed:
 
 * CMSgov/some_repo#42
+  
+### Any Migrations?
+
+<!--
+Make sure to work with whoever is doing the deploy so they are aware of any migrations that may need to be run
+-->
+
+* [ ] Yes, there are migrations
+  * [ ] The migrations should be run PRIOR to the code being deployed
+  * [ ] The migrations should be run AFTER the code is deployed
+  * [ ] There is a more complicated migration plan (downtime, etc) <!-- Make sure to include the details of the plan below -->
+* [ ] No migrations
 
 
 ### Submitter Checklist
