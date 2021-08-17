@@ -562,7 +562,7 @@ components:
           
   schemas: {}
 servers:
-  - url: 'https://sandbox.bluebutton.cms.gov/'
+  - url: 'http://localhost:8000/'
     variables: {}
 security:
     - bearerAuth: []
