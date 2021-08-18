@@ -148,8 +148,7 @@ with open(INPUT_FILE_NAME, newline="") as input_csvfile:
             for row in reader:
                 bedap_bene = convert_to_bedap_bene(row)
                 sls_bene = convert_to_sls_bene(row, str(new_bene_count))
-                print(bedap_bene)
-                print(sls_bene)
+
                 bedap_writer.writerow(bedap_bene)
                 sls_writer.writerow(sls_bene)
                 new_bene_count += 1
