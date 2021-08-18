@@ -317,6 +317,11 @@ EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', None)
 EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', None)
 EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 
+# Set aws EC2 region, if not set.
+region = env("AWS_DEFAULT_REGION", None)
+if region is None:
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+
 # Get aws EC2 instance metadata for logging, if available
 if bool_env(env('DJANGO_GET_EC2_METADATA', True)):
     ec2_metadata_dict = get_aws_ec2_instance_metadata()
