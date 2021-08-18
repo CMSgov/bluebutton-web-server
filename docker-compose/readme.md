@@ -17,6 +17,11 @@ To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis
     source ~/bin/source_aws.sh
     ```
 
+  * If you are getting AWS region type errors, set the following:
+    ```
+    export AWS_DEFAULT_REGION=us-east-1
+    ```
+
 To startup the Docker containerized BB2 server in SLSx mode (default), run the following command: 
 
   ```
