@@ -49,6 +49,18 @@ To monitor BB2 server logging:
   ```
 press Ctrl C will stop monitor logging.
 
+
+To start with a clean docker setup do the following:
+
+  NOTE: This is often needed when switching betwen PR branches where migrations were added.
+
+  ```
+  docker-compose down
+  docker images
+  docker rmi bluebutton-web-server_unittests
+  docker rmi bluebutton-web-server_web bluebutton-web-server_msls postgres
+  ```
+
 ## Setting up Pre Commit
 Precommit config has been setup inside the repo which will make sure that the code is properly formatted prior to commiting. To setup run as follows:
 
