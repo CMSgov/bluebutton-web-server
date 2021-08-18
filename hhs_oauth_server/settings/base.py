@@ -3,7 +3,7 @@ import dj_database_url
 import socket
 import datetime
 from getenv import env
-from ..utils import bool_env, int_env
+from ..utils import bool_env, int_env, get_aws_ec2_instance_metadata
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import ugettext_lazy as _
@@ -317,6 +317,16 @@ EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', None)
 EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', None)
 EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 
+# Get aws EC2 instance metadata for logging, if available
+if bool_env(env('DJANGO_GET_EC2_METADATA', True)):
+    ec2_metadata_dict = get_aws_ec2_instance_metadata()
+
+    AWS_EC2_IMAGE_ID = ec2_metadata_dict.get("imageId", "")
+    AWS_EC2_INSTANCE_ID = ec2_metadata_dict.get("instanceId", "")
+else:
+    AWS_EC2_IMAGE_ID = "ami-00000000000000000"
+    AWS_EC2_INSTANCE_ID = "i-00000000000000000"
+
 # Use env-specific logging config if present
 LOGGING = env("DJANGO_LOGGING", {
     'version': 1,
@@ -336,8 +346,8 @@ LOGGING = env("DJANGO_LOGGING", {
         },
         'firehose_jsonout': {
             'format': '{'
-                      '"instance_id": "i-000000000000000",'
-                      '"image_id": "ami-00000000000000",'
+                      '"instance_id": "' + AWS_EC2_INSTANCE_ID + '",'
+                      '"image_id": "' + AWS_EC2_IMAGE_ID + '",'
                       '"vpc": "' + env('TARGET_ENV', 'DEV') + '",'
                       '"log_name": "%(name)s",'
                       '"message": %(message)s}',
