@@ -25,6 +25,7 @@
       <a href="https://bluebutton.cms.gov/developers/">Documentation</a>
       <a href="https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api">Support</a>
       {% if 'apps.testclient' in settings.INSTALLED_APPS %}
+      <a href="{% url 'bluebutton_openapi' %}" target='_blank'>Open API</a>
       <a href="{% url 'test_links' %}">Test Client</a>
       {%  endif %}
       {% if user.is_authenticated %}
