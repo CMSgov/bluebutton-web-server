@@ -3,10 +3,9 @@ from .views import (authorize_link, authorize_link_v2, restart, callback, test_e
                     test_userinfo, test_userinfo_v2,
                     test_metadata, test_metadata_v2,
                     test_openid_config, test_openid_config_v2,
-                    test_coverage, test_coverage_v2, test_patient, test_patient_v2, test_links, openapi)
+                    test_coverage, test_coverage_v2, test_patient, test_patient_v2, test_links)
 
 urlpatterns = [
-    url(r'^openapi$', openapi, name='bluebutton_openapi'),
     url(r'^restart$', restart, name='testclient-restart'),
     url(r'^callback$', callback, name='testclient-callback'),
     url(r'^authorize-link$', authorize_link, name='authorize_link'),

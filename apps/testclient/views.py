@@ -19,7 +19,6 @@ logger = logging.getLogger('hhs_server.%s' % __name__)
 
 HOME_PAGE = "home.html"
 RESULTS_PAGE = "results.html"
-OPENAPI_PAGE = "openapi.html"
 
 ENDPOINT_URL_FMT = {
     "userinfo": "{}/{}/connect/userinfo",
@@ -95,11 +94,6 @@ def _get_oauth2_session_with_token(request):
 def _get_oauth2_session_with_redirect(request):
     return OAuth2Session(
         request.session['client_id'], redirect_uri=request.session['redirect_uri'])
-
-
-def openapi(request):
-    # serve swagger ui landing page
-    return render(request, OPENAPI_PAGE)
 
 
 def restart(request):
