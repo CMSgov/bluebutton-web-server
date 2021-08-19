@@ -36,6 +36,10 @@ DEFAULT_MIDDLE_NAME = "Synthetic"
 DEFAULT_EFFECTIVE_DATE_PART = "a"
 DEFAULT_MAX_YEARS_AGO_FOR_EFFECTIVE_DATE = 20
 DEFAULT_EFFECTIVE_DATE = "2015-05-12"
+BASELINE_SYNTHETIC_BENE_COUNT = 30000
+STARTING_NEW_BEDAP_BENE_KEY = 999000001 + (
+    INITIAL_SYNTHETIC_BENE_COUNT - BASELINE_SYNTHETIC_BENE_COUNT
+)
 
 BFD_DATE_FORMAT = "%d-%b-%Y"
 SLS_DATE_FORMAT = "%Y-%m-%d"
@@ -85,6 +89,7 @@ BEDAP_FIELDS = [
     "part_" + DEFAULT_EFFECTIVE_DATE_PART + "_effective_date",
     "date_of_birth",
     "zip_code",
+    "beneficiary_key",
 ]
 
 SLS_FIELDS = [
@@ -100,11 +105,12 @@ SLS_FIELDS = [
 ]
 
 
-def convert_to_bedap_bene(bfd_bene, effective_date=DEFAULT_EFFECTIVE_DATE):
+def convert_to_bedap_bene(bfd_bene, bene_key, effective_date=DEFAULT_EFFECTIVE_DATE):
     effective_part_key_name = "part_" + DEFAULT_EFFECTIVE_DATE_PART + "_effective_date"
     bedap_bene = {
         "email_suppressed": DEFAULT_EMAIL_SUPPRESSED,
         "middle_name": DEFAULT_MIDDLE_NAME,
+        "beneficiary_key": bene_key,
     }
     bedap_bene[effective_part_key_name] = effective_date
 
@@ -157,10 +163,13 @@ with open(INPUT_FILE_NAME, newline="") as input_csvfile:
             sls_writer.writeheader()
 
             new_bene_count = INITIAL_SYNTHETIC_BENE_COUNT
+            new_bene_key = STARTING_NEW_BEDAP_BENE_KEY
             effective_date = random_date().strftime(SLS_DATE_FORMAT)
 
             for row in reader:
-                bedap_bene = convert_to_bedap_bene(row, effective_date=effective_date)
+                bedap_bene = convert_to_bedap_bene(
+                    row, str(new_bene_key), effective_date=effective_date
+                )
                 sls_bene = convert_to_sls_bene(
                     row, str(new_bene_count), effective_date=effective_date
                 )
@@ -168,3 +177,4 @@ with open(INPUT_FILE_NAME, newline="") as input_csvfile:
                 bedap_writer.writerow(bedap_bene)
                 sls_writer.writerow(sls_bene)
                 new_bene_count += 1
+                new_bene_key += 1
