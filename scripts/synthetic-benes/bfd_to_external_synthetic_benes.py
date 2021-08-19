@@ -34,7 +34,8 @@ INITIAL_SYNTHETIC_BENE_COUNT = args.benecount
 DEFAULT_EMAIL_SUPPRESSED = "FALSE"
 DEFAULT_MIDDLE_NAME = "Synthetic"
 DEFAULT_EFFECTIVE_DATE_PART = "a"
-DEFAULT_MAX_YEARS_AGO_FOR_EFFECTIVE_DATE = 30
+DEFAULT_MAX_YEARS_AGO_FOR_EFFECTIVE_DATE = 20
+DEFAULT_EFFECTIVE_DATE = "2015-05-12"
 
 BFD_DATE_FORMAT = "%d-%b-%Y"
 SLS_DATE_FORMAT = "%Y-%m-%d"
@@ -61,7 +62,9 @@ BEDAP_FIELD_MAPPING = {
     "MBI_NUM": "mbi",
     "BENE_SRNM_NAME": "first_name",
     "BENE_GVN_NAME": "last_name",
-    "BENE_ID": "beneficiary_key",
+    "BENE_ID": "bene_id",
+    "BENE_BIRTH_DT": {"name": "date_of_birth", "value": bfd_to_sls_date},
+    "BENE_ZIP_CD": "zip_code",
 }
 
 SLS_FIELD_MAPPING = {
@@ -78,7 +81,10 @@ BEDAP_FIELDS = [
     "last_name",
     "middle_name",
     "email_suppressed",
-    "beneficiary_key",
+    "bene_id",
+    "part_" + DEFAULT_EFFECTIVE_DATE_PART + "_effective_date",
+    "date_of_birth",
+    "zip_code",
 ]
 
 SLS_FIELDS = [
@@ -94,19 +100,26 @@ SLS_FIELDS = [
 ]
 
 
-def convert_to_bedap_bene(bfd_bene):
+def convert_to_bedap_bene(bfd_bene, effective_date=DEFAULT_EFFECTIVE_DATE):
+    effective_part_key_name = "part_" + DEFAULT_EFFECTIVE_DATE_PART + "_effective_date"
     bedap_bene = {
         "email_suppressed": DEFAULT_EMAIL_SUPPRESSED,
         "middle_name": DEFAULT_MIDDLE_NAME,
     }
+    bedap_bene[effective_part_key_name] = effective_date
 
     for key in BEDAP_FIELD_MAPPING:
-        bedap_bene[BEDAP_FIELD_MAPPING[key]] = bfd_bene[key]
+        if isinstance(BEDAP_FIELD_MAPPING[key], str):
+            bedap_bene[BEDAP_FIELD_MAPPING[key]] = bfd_bene[key]
+        else:
+            bedap_bene[BEDAP_FIELD_MAPPING[key]["name"]] = BEDAP_FIELD_MAPPING[key][
+                "value"
+            ](bfd_bene[key])
 
     return bedap_bene
 
 
-def convert_to_sls_bene(bfd_bene, bene_count):
+def convert_to_sls_bene(bfd_bene, bene_count, effective_date=DEFAULT_EFFECTIVE_DATE):
     sls_bene = {
         "challengeQuestionAndAnswers": [
             {
@@ -116,7 +129,7 @@ def convert_to_sls_bene(bfd_bene, bene_count):
         ],
         "username": "BBUser" + bene_count,
         "password": "PW" + bene_count + "!",
-        "effectiveDate": random_date().strftime(SLS_DATE_FORMAT),
+        "effectiveDate": effective_date,
         "effectiveDatePart": DEFAULT_EFFECTIVE_DATE_PART,
     }
 
@@ -144,10 +157,13 @@ with open(INPUT_FILE_NAME, newline="") as input_csvfile:
             sls_writer.writeheader()
 
             new_bene_count = INITIAL_SYNTHETIC_BENE_COUNT
+            effective_date = random_date().strftime(SLS_DATE_FORMAT)
 
             for row in reader:
-                bedap_bene = convert_to_bedap_bene(row)
-                sls_bene = convert_to_sls_bene(row, str(new_bene_count))
+                bedap_bene = convert_to_bedap_bene(row, effective_date=effective_date)
+                sls_bene = convert_to_sls_bene(
+                    row, str(new_bene_count), effective_date=effective_date
+                )
 
                 bedap_writer.writerow(bedap_bene)
                 sls_writer.writerow(sls_bene)
