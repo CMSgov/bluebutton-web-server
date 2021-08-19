@@ -428,7 +428,7 @@ You can run selenium tests by following below steps:
         ./apps/integration_tests/selenium_tests.py: setUp():
         ...
         opt = webdriver.ChromeOptions()
-        opt.add_argument('--headless')
+        # opt.add_argument('--headless')
         opt.add_argument("--disable-dev-shm-usage")
         ...
      ```
