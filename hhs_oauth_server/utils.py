@@ -1,13 +1,9 @@
-import apps.logging.request_logger as logging
 import requests
 
 from decimal import Decimal
 
 TRUE_LIST = [1, "1", "true", "True", "TRUE", "YES", "Yes", "yes", True]
 FALSE_LIST = [0, "0", "False", "FALSE", "false", "NO", "No", "no", False]
-
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def bool_env(env_val):
