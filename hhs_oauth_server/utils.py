@@ -1,4 +1,4 @@
-import logging
+import apps.logging.request_logger as logging
 import requests
 
 from decimal import Decimal
