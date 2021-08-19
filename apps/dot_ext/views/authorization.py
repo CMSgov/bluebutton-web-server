@@ -27,9 +27,10 @@ from ..utils import validate_app_is_active
 from rest_framework.exceptions import PermissionDenied
 from django.template.response import TemplateResponse
 from django.shortcuts import HttpResponse
-from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+import apps.logging.request_logger as bb2logging
+
+log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class AuthorizationView(DotAuthorizationView):

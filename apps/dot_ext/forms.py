@@ -7,9 +7,10 @@ from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.dot_ext.validators import validate_logo_image, validate_notags
-from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+import apps.logging.request_logger as bb2logging
+
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):

@@ -14,9 +14,10 @@ from .utils import test_setup, get_client_secret
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
 from apps.wellknown.views.openid import openid_configuration
-from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+import apps.logging.request_logger as bb2logging
+
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 HOME_PAGE = "home.html"
 RESULTS_PAGE = "results.html"

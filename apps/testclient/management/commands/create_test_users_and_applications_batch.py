@@ -101,7 +101,7 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                     synthetic_bene_cnt += 1
                     print(".", end="", flush=True)
                     time.sleep(.05)
-                    if count > 3000:
+                    if count > 100:
                         break
         bene_rif.close()
         file_cnt += 1

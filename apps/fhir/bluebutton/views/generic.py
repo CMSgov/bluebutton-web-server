@@ -27,9 +27,8 @@ from ..signals import (
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
-from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-logger = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class FhirDataView(APIView):

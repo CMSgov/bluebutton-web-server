@@ -36,9 +36,10 @@ from apps.dot_ext.models import Application, ArchivedToken
 from apps.fhir.bluebutton.models import (
     Crosswalk,
     check_crosswalks)
-from apps.logging.request_logger import HHS_SERVER_LOGNAME_FMT
 
-log = logging.getLogger(HHS_SERVER_LOGNAME_FMT.format(__name__))
+import apps.logging.request_logger as bb2logging
+
+log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 STREAM_SERIALIZER_KWARGS = LIST_SERIALIZER_KWARGS
 
