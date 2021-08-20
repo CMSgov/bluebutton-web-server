@@ -1,5 +1,5 @@
 FROM python:3.7.10
-
+# For build CBC Jenkins job ECR image
 ENV PYTHONUNBUFFERED 1
 # ENV PYTHONDEVMODE 1
 

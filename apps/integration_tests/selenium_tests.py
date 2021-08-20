@@ -32,7 +32,7 @@ class SeleniumTests(TestCase):
 
     def setUp(self):
         super(SeleniumTests, self).setUp()
-        # a bit waiting for selenium service ready for sure
+        # a bit waiting for selenium services ready for sure
         if not SeleniumTests.wait_completed:
             time.sleep(20)
             SeleniumTests.wait_completed = True
