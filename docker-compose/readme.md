@@ -2,7 +2,7 @@
 
 To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker-compose/certstore` location to support the connection to the BFD FHIR server.
 
-To enable usage of the SLSx TEST environment locally, do the following. Skip if using MSLS (mock service) mode.
+To enable usage of the SLSx TEST environment locally, do the following or skip if using the MSLS (mock service) mode.
 
   * Sign in to Keybase and have the /keybase file system mounted.
   * Source the BFD prod-sbx hashing and SLSx TEST credentials ENV variables in to your shell:
@@ -10,36 +10,46 @@ To enable usage of the SLSx TEST environment locally, do the following. Skip if 
     source <path-to/source_ENV_secrets_for_local_development.env>
     ```
 
-To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis Firehose).
+To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis Firehose) or skip if not needing this.
 
   * Source ENV variables using your script (differs per local OS type and should utilize MFA):
     ```
     source ~/bin/source_aws.sh
     ```
 
-  * If you are getting AWS region type errors, set the following:
-    ```
-    export AWS_DEFAULT_REGION=us-east-1
-    ```
+To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker-compose/bluebutton_server_start.sh` web server startup script.
 
-To startup the Docker containerized BB2 server in SLSx mode (default), run the following command: 
+Edit the `docker-compose.yml` file to choose between SLSx (default) or MSLS mode:
+
+  To run the web server in SLSx mode (default), un-comment/comment the following lines like so: 
+
+  ```
+            # Uncomment line below to use SLSx as the identity service.
+            - docker-compose/slsx-env-vars.env
+            #
+            # Uncomment line below to use MSLS as a MOCK SLSx identity service.
+            #- docker-compose/msls-env-vars.env
+  ```
+
+  Alternately, to run the web server in MSLS (mock service) mode, edit like so: 
+  ```
+            # Uncomment line below to use SLSx as the identity service.
+            #- docker-compose/slsx-env-vars.env
+            #
+            # Uncomment line below to use MSLS as a MOCK SLSx identity service.
+            - docker-compose/msls-env-vars.env
+  ```
+
+
+To startup the Docker containerized BB2 server:
 
   ```
   docker-compose up -d
   ```
-  - Or to shutdown:
+
+To shutdown the Docker containerized BB2 server (this is needed when switching between SLSx and MSLS modes):
   ```
   docker-compose down
-  ```
-
-Alternately, to startup the Docker containerized BB2 server in MSLS (mock service) mode, run the following command: 
-
-  ```
-  docker-compose -f docker-compose.msls.yml up -d
-  ```
-  - Or to shutdown:
-  ```
-  docker-compose -f docker-compose.msls.yml down
   ```
 
 To monitor BB2 server logging:
@@ -47,7 +57,7 @@ To monitor BB2 server logging:
   ```
   docker-compose logs -f | grep web
   ```
-press Ctrl C will stop monitor logging.
+Press Ctrl C will stop monitor logging.
 
 
 To start with a clean docker setup do the following:
