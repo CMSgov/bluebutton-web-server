@@ -86,7 +86,7 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          cd dev-local/django/mslsx && export DJANGO_SETTINGS_MODULE=mslsx.settings && python manage.py migrate && echo 'starting mslsx ...' && (python manage.py runserver 0.0.0.0:8080 &)
+          cd dev-local && export DJANGO_SETTINGS_MODULE=mslsx_django.settings && python manage.py migrate && echo 'starting mslsx ...' && (python manage.py runserver 0.0.0.0:8080 &)
         """
       }
     }
