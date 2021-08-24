@@ -1,5 +1,3 @@
-import json
-
 from django.conf import settings
 
 import apps.logging.request_logger as logging
@@ -31,7 +29,7 @@ def log_global_state_metrics_top_level(group_timestamp, firehose=None):
     require_demographic_scopes_count = get_application_require_demographic_scopes_count()
 
     log_dict = {"type": "global_state_metrics",
-                "group_timestamp": group_timestamp,
+                "group_timestamp": str(group_timestamp),
                 "real_bene_cnt": crosswalk_counts.get('real', None),
                 "synth_bene_cnt": crosswalk_counts.get('synthetic', None),
                 "global_apps_active_cnt": application_counts.get('active_cnt', None),
@@ -39,10 +37,7 @@ def log_global_state_metrics_top_level(group_timestamp, firehose=None):
                 "global_apps_require_demographic_scopes_cnt": require_demographic_scopes_count, }
 
     if firehose is None:
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            logger.info(json.dumps(log_dict, indent=2))
-        else:
-            logger.info(json.dumps(log_dict))
+        logger.info(log_dict)
     else:
         firehose.put_message(log_dict)
 
@@ -96,10 +91,7 @@ def log_global_state_metrics_applications(group_timestamp, firehose=None):
                     "user_organization": getattr(user_profile, "organization_name", None), }
 
         if firehose is None:
-            if settings.LOG_JSON_FORMAT_PRETTY:
-                logger.info(json.dumps(log_dict, indent=2))
-            else:
-                logger.info(json.dumps(log_dict))
+            logger.info(log_dict)
         else:
             firehose.put_message(log_dict)
 
