@@ -3,6 +3,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Group
 
 from apps.mymedicare_cb.models import BBMyMedicareCallbackCrosswalkCreateException
+from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
+
 from ..models import create_beneficiary_record
 
 
@@ -22,7 +24,8 @@ class BeneficiaryLoginTest(TestCase):
             "last_name": "World",
             "email": "fu@bar.bar",
         }
-        bene = create_beneficiary_record(**args)
+        slsx_client = OAuth2ConfigSLSx(args)
+        bene = create_beneficiary_record(slsx_client, args["fhir_id"])
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args["username"])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args["user_hicn_hash"])
@@ -44,7 +47,8 @@ class BeneficiaryLoginTest(TestCase):
             "last_name": "World",
             "email": "fu@bar.bar",
         }
-        bene = create_beneficiary_record(**args)
+        slsx_client = OAuth2ConfigSLSx(args)
+        bene = create_beneficiary_record(slsx_client, args["fhir_id"])
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args["username"])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args["user_hicn_hash"])
@@ -65,7 +69,8 @@ class BeneficiaryLoginTest(TestCase):
             "last_name": "World",
             "email": "fu@bar.bar",
         }
-        bene = create_beneficiary_record(**args)
+        slsx_client = OAuth2ConfigSLSx(args)
+        bene = create_beneficiary_record(slsx_client, args["fhir_id"])
         self.assertTrue(bene.pk > 0)  # asserts that it was saved to the db
         self.assertEqual(bene.username, args["username"])
         self.assertEqual(bene.crosswalk.user_hicn_hash, args["user_hicn_hash"])
@@ -88,7 +93,7 @@ class BeneficiaryLoginTest(TestCase):
                     "email": "fu@bar.bar",
                 },
                 "exception": BBMyMedicareCallbackCrosswalkCreateException,
-                "exception_mesg": "username can not be an empty string",
+                "exception_mesg": "username can not be None or empty string",
             },
             "missing username": {
                 "args": {
@@ -188,8 +193,9 @@ class BeneficiaryLoginTest(TestCase):
             },
         }
         for name, case in cases.items():
+            slsx_client = OAuth2ConfigSLSx(case["args"])
             with self.assertRaisesRegex(case["exception"], case["exception_mesg"]):
-                create_beneficiary_record(**case["args"])
+                create_beneficiary_record(slsx_client, case["args"].get("fhir_id", None))
 
     def test_fail_create_multiple_beneficiary_record(self):
         cases = {
@@ -272,7 +278,12 @@ class BeneficiaryLoginTest(TestCase):
                 "exception_mesg": "fhir_id already exists",
             },
         }
+
         for name, case in cases.items():
-            create_beneficiary_record(**case["args"][0])
+            arg0 = case["args"][0]
+            slsx_client0 = OAuth2ConfigSLSx(case["args"][0])
+            create_beneficiary_record(slsx_client0, arg0["fhir_id"])
             with self.assertRaisesRegex(case["exception"], case["exception_mesg"]):
-                create_beneficiary_record(**case["args"][1])
+                arg1 = case["args"][1]
+                slsx_client1 = OAuth2ConfigSLSx(arg1)
+                create_beneficiary_record(slsx_client1, arg1["fhir_id"])
