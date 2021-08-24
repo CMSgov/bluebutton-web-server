@@ -1,5 +1,4 @@
 import binascii
-import logging
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -11,8 +10,6 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from apps.accounts.models import get_user_id_salt
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class BBFhirBluebuttonModelException(APIException):
