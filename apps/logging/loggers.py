@@ -1,5 +1,4 @@
-import json
-import logging
+import apps.logging.request_logger as logging
 
 from django.conf import settings
 
@@ -13,7 +12,7 @@ from apps.logging.firehoses import BFDInsightsFirehose
 """
   Logger functions for logging module
 """
-logger = logging.getLogger('audit.global_state_metrics')
+logger = logging.getLogger(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
 
 
 def format_timestamp(dt):

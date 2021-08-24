@@ -1,5 +1,4 @@
 import hashlib
-import logging
 import sys
 import uuid
 
@@ -20,9 +19,6 @@ from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
 
 from apps.capabilities.models import ProtectedCapability
-
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class Application(AbstractApplication):
