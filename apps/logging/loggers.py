@@ -1,6 +1,8 @@
-import apps.logging.request_logger as logging
+import json
 
 from django.conf import settings
+
+import apps.logging.request_logger as logging
 
 from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant
