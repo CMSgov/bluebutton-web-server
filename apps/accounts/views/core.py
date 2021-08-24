@@ -1,4 +1,3 @@
-import logging
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
@@ -11,8 +10,6 @@ from ..models import UserProfile
 from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def create_account(request):

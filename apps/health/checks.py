@@ -7,8 +7,9 @@ from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.fhir.server import connection as backend_connection
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
+import apps.logging.request_logger as bb2logging
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def django_rds_database(v2=False):
