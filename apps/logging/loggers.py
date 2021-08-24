@@ -1,7 +1,5 @@
-import json
-import logging
+import apps.logging.request_logger as logging
 
-from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 
 from apps.accounts.models import UserProfile
@@ -13,7 +11,7 @@ from apps.fhir.bluebutton.models import check_crosswalks, Crosswalk
 """
   Logger functions for logging module
 """
-logger = logging.getLogger('audit.global_state_metrics')
+logger = logging.getLogger(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
 
 
 def log_global_state_metrics(group_timestamp=None):
@@ -37,10 +35,7 @@ def log_global_state_metrics(group_timestamp=None):
                 "global_apps_inactive_cnt": application_counts.get('inactive_cnt', None),
                 "global_apps_require_demographic_scopes_cnt": require_demographic_scopes_count, }
 
-    if settings.LOG_JSON_FORMAT_PRETTY:
-        logger.info(json.dumps(log_dict, indent=2))
-    else:
-        logger.info(json.dumps(log_dict))
+    logger.info(log_dict)
 
     print("---")
     print("---    Wrote top level log entry: ", log_dict)
@@ -85,10 +80,7 @@ def log_global_state_metrics(group_timestamp=None):
                     "user_last_login": app.user.last_login,
                     "user_organization": getattr(user_profile, "organization_name", None), }
 
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            logger.info(json.dumps(log_dict, indent=2, cls=DjangoJSONEncoder))
-        else:
-            logger.info(json.dumps(log_dict, cls=DjangoJSONEncoder))
+        logger.info(log_dict, cls=DjangoJSONEncoder)
 
         count = count + 1
 

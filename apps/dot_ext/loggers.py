@@ -112,15 +112,15 @@ def get_session_auth_flow_trace(request):
 
     Returns a auth_flow_dict type DICT of values for logging.
     '''
-    if request:
-        auth_flow_dict = {}
+    auth_flow_dict = {}
+
+    # Some unit test calls to this have request=None, or request without session attribute, so return empty dict.
+    if request and hasattr(request, "session") and request.session:
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
             if k in request.session:
                 auth_flow_dict[k] = request.session.get(k)
-        return auth_flow_dict
-    else:
-        # Some unit test calls to this have request=None, so return empty dict.
-        return {}
+
+    return auth_flow_dict
 
 
 def set_session_auth_flow_trace(request, auth_flow_dict):

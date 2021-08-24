@@ -66,7 +66,6 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         headers['BlueButton-AuthClientId'] = auth_flow_dict.get('auth_client_id', '')
     else:
         headers = None
-        auth_flow_dict = None
 
     # Build URL with patient ID search by identifier.
     ver = "v{}".format(request.session.get('version', 1))
@@ -78,9 +77,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     req = requests.Request('GET', url, headers=headers)
     prepped = req.prepare()
-    pre_fetch.send_robust(FhirServerAuth, request=req, auth_flow_dict=auth_flow_dict, api_ver=ver)
+    pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
     response = s.send(prepped, cert=certs, verify=False)
-    post_fetch.send_robust(FhirServerAuth, request=req, response=response, auth_flow_dict=auth_flow_dict, api_ver=ver)
+    post_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, response=response, api_ver=ver)
     response.raise_for_status()
     backend_data = response.json()
 
@@ -137,21 +136,18 @@ def match_fhir_id(mbi_hash, hicn_hash, request=None):
         UpstreamServerException: If hicn_hash or mbi_hash search found duplicates.
         NotFound: If both searches did not match a fhir_id.
     """
-    # Get auth flow session values.
-    auth_flow_dict = get_session_auth_flow_trace(request)
-
     # Perform primary lookup using MBI_HASH
     if mbi_hash:
         try:
             fhir_id = search_fhir_id_by_identifier_mbi_hash(mbi_hash, request)
         except UpstreamServerException as err:
-            log_match_fhir_id(auth_flow_dict, None, mbi_hash, hicn_hash, False, "M", str(err))
+            log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "M", str(err))
             # Don't return a 404 because retrying later will not fix this.
             raise UpstreamServerException(str(err))
 
         if fhir_id:
             # Found beneficiary!
-            log_match_fhir_id(auth_flow_dict, fhir_id, mbi_hash, hicn_hash, True, "M",
+            log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, True, "M",
                               "FOUND beneficiary via mbi_hash")
             return fhir_id, "M"
 
@@ -159,16 +155,16 @@ def match_fhir_id(mbi_hash, hicn_hash, request=None):
     try:
         fhir_id = search_fhir_id_by_identifier_hicn_hash(hicn_hash, request)
     except UpstreamServerException as err:
-        log_match_fhir_id(auth_flow_dict, None, mbi_hash, hicn_hash, False, "H", str(err))
+        log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "H", str(err))
         # Don't return a 404 because retrying later will not fix this.
         raise UpstreamServerException(str(err))
 
     if fhir_id:
         # Found beneficiary!
-        log_match_fhir_id(auth_flow_dict, fhir_id, mbi_hash, hicn_hash, True, "H",
+        log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, True, "H",
                           "FOUND beneficiary via hicn_hash")
         return fhir_id, "H"
     else:
-        log_match_fhir_id(auth_flow_dict, fhir_id, mbi_hash, hicn_hash, False, None,
+        log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash, False, None,
                           "FHIR ID NOT FOUND for both mbi_hash and hicn_hash")
         raise exceptions.NotFound("The requested Beneficiary has no entry, however this may change")

@@ -1,8 +1,6 @@
 import json
 import hashlib
 
-from django.conf import settings
-
 
 class DataAccessGrantSerializer:
     tkn = None
@@ -12,12 +10,12 @@ class DataAccessGrantSerializer:
         self.tkn = obj
         self.action = action
 
-    def __str__(self):
+    def to_dict(self):
         # seems like this should be a serializer
         app = getattr(self.tkn, 'application', None)
         app_user = getattr(app, 'user', None)
         user = getattr(self.tkn, 'user', None)
-        result = {
+        return {
             "type": "DataAccessGrant",
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
@@ -34,26 +32,17 @@ class DataAccessGrantSerializer:
                 "username": getattr(user, 'username', None),
             }
         }
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(result, indent=2)
-        else:
-            return json.dumps(result)
 
 
 class Token:
     tkn = None
     action = None
-    auth_flow_dict = {}
 
-    def __init__(self, obj, action=None, auth_flow_dict=None):
+    def __init__(self, obj, action=None):
         self.tkn = obj
         self.action = action
-        if auth_flow_dict:
-            self.auth_flow_dict = auth_flow_dict
-        else:
-            self.auth_flow_dict = {}
 
-    def __str__(self):
+    def to_dict(self):
         # seems like this should be a serializer
         app = getattr(self.tkn, 'application', None)
         app_user = getattr(app, 'user', None)
@@ -95,13 +84,7 @@ class Token:
             },
         }
 
-        # Update with auth flow session info
-        result.update(self.auth_flow_dict)
-
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(result, indent=2)
-        else:
-            return json.dumps(result)
+        return result
 
 
 class Request:
@@ -122,12 +105,6 @@ class Request:
             "application": self.application(),
             "path": self.path(),
         }
-
-    def __str__(self):
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.to_dict(), indent=2)
-        else:
-            return json.dumps(self.to_dict())
 
 
 class SLSRequest(Request):
@@ -199,12 +176,8 @@ class FHIRRequest(Request):
 
 
 class FHIRRequestForAuth(Request):
-    def __init__(self, request, auth_flow_dict=None, api_ver=None):
+    def __init__(self, request, api_ver=None):
         self.api_ver = api_ver
-        if auth_flow_dict:
-            self.auth_flow_dict = auth_flow_dict
-        else:
-            self.auth_flow_dict = {}
         super().__init__(request)
 
     def includeAddressFields(self):
@@ -225,8 +198,6 @@ class FHIRRequestForAuth(Request):
             "path": "patient search",
             "start_time": self.start_time(),
         }
-        # Update with auth flow session info
-        result.update(self.auth_flow_dict)
         return result
 
 
@@ -256,14 +227,6 @@ class Response:
         resp_dict.update(self.req)
         return resp_dict
 
-    def __str__(self):
-        result = self.req.copy()
-        result.update(self.to_dict())
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(result, indent=2)
-        else:
-            return json.dumps(result)
-
 
 class FHIRResponse(Response):
     request_class = FHIRRequest
@@ -284,12 +247,8 @@ class FHIRResponse(Response):
 class FHIRResponseForAuth(Response):
     request_class = FHIRRequestForAuth
 
-    def __init__(self, response, auth_flow_dict=None, api_ver=None):
+    def __init__(self, response, api_ver=None):
         self.api_ver = api_ver
-        if auth_flow_dict:
-            self.auth_flow_dict = auth_flow_dict
-        else:
-            self.auth_flow_dict = {}
         super().__init__(response)
 
     def to_dict(self):
@@ -298,18 +257,12 @@ class FHIRResponseForAuth(Response):
         super_dict.update({"api_ver": self.api_ver if self.api_ver is not None else 'v1'})
         # over write type
         super_dict.update({"type": "fhir_auth_post_fetch"})
-        # Update with auth flow session info
-        super_dict.update(self.auth_flow_dict)
         return super_dict
 
 
 class SLSResponse(Response):
 
-    def __init__(self, response, auth_flow_dict=None):
-        if auth_flow_dict:
-            self.auth_flow_dict = auth_flow_dict
-        else:
-            self.auth_flow_dict = {}
+    def __init__(self, response, request=None):
         super().__init__(response)
 
     def to_dict(self):
@@ -355,16 +308,8 @@ class SLSxTokenResponse(SLSResponse):
 
         # update json parse err if any
         resp_dict.update(json_exception)
-        # Update with auth flow session info
-        resp_dict.update(self.auth_flow_dict)
 
         return resp_dict
-
-    def __str__(self):
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.to_dict(), indent=2)
-        else:
-            return json.dumps(self.to_dict())
 
 
 class SLSxUserInfoResponse(SLSResponse):
@@ -405,13 +350,5 @@ class SLSxUserInfoResponse(SLSResponse):
 
         # update json parse err if any
         resp_dict.update(json_exception)
-        # Update with auth flow session info
-        resp_dict.update(self.auth_flow_dict)
 
         return resp_dict
-
-    def __str__(self):
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            return json.dumps(self.to_dict(), indent=2)
-        else:
-            return json.dumps(self.to_dict())

@@ -4,6 +4,8 @@ import jsonschema
 import io
 import uuid
 
+import apps.logging.request_logger as logging
+
 from datetime import datetime
 from django.contrib.auth.models import Group, User
 from django.utils.dateparse import parse_duration
@@ -31,12 +33,6 @@ from apps.test import BaseApiTest
 from .responses import patient_response
 
 
-loggers = [
-    "audit.request_logger",
-    "audit.authenticate.match_fhir_id"
-]
-
-
 class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     """
     Tests for the MyMedicare login and SLSx Callback
@@ -48,13 +44,13 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         Group.objects.create(name='BlueButton')
         # Setup the RequestFactory
         self.client = Client()
-        self._redirect_loggers(loggers)
+        self._redirect_loggers()
 
     def tearDown(self):
         self._cleanup_logger()
 
     def _get_log_content(self, logger_name):
-        return self._collect_logs(loggers).get(logger_name)
+        return self._collect_logs().get(logger_name)
 
     def _get_log_lines_list(self, logger_name):
         buf = io.StringIO(self._get_log_content(logger_name))
@@ -522,7 +518,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
 
         # Validate logging
-        log_list = self._get_log_lines_list("audit.request_logger")
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 2)
 
         #   Get last log line
@@ -580,7 +576,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._user_mbi_hash, None)
 
         # Validate logging
-        log_list = self._get_log_lines_list("audit.request_logger")
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 3)
 
         #   Get last log line
@@ -658,7 +654,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
 
         # Validate logging
-        log_list = self._get_log_lines_list("audit.request_logger")
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 5)
 
         #   Get last log line
@@ -709,7 +705,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
         # Validate logging
-        log_list = self._get_log_lines_list('audit.request_logger')
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
 
         #   Validate log lines count
         self.assertEqual(len(log_list), 6)
@@ -787,7 +783,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
         # Validate logging
-        log_list = self._get_log_lines_list('audit.request_logger')
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 7)
 
         #   Get last log line
@@ -861,7 +857,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._user_mbi_hash, "4da2e5f86b900604651c89e51a68d421612e8013b6e3b4d5df8339d1de345b28")
 
         # Validate logging
-        log_list = self._get_log_lines_list('audit.request_logger')
+        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 8)
 
         #   Get last line

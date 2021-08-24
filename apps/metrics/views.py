@@ -1,4 +1,5 @@
 import logging
+
 from django.contrib.auth.models import User
 from django.db.models import (
     Count,
@@ -36,8 +37,9 @@ from apps.fhir.bluebutton.models import (
     Crosswalk,
     check_crosswalks)
 
+import apps.logging.request_logger as bb2logging
 
-log = logging.getLogger('hhs_server.%s' % __name__)
+log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 STREAM_SERIALIZER_KWARGS = LIST_SERIALIZER_KWARGS
 

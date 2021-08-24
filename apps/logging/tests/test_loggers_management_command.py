@@ -1,6 +1,8 @@
 import json
 import jsonschema
 
+import apps.logging.request_logger as logging
+
 from django.core.management import call_command
 from django.test.client import Client
 from jsonschema import validate
@@ -11,23 +13,18 @@ from apps.test import BaseApiTest
 from .audit_logger_schemas import GLOBAL_STATE_METRICS_LOG_SCHEMA, GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA
 
 
-loggers = [
-    'audit.global_state_metrics'
-]
-
-
 class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
     def setUp(self):
         # Setup the RequestFactory
         self.client = Client()
-        self._redirect_loggers(loggers)
+        self._redirect_loggers()
 
     def tearDown(self):
         self._cleanup_logger()
 
     def _get_log_content(self, logger_name):
-        return self._collect_logs(loggers).get(logger_name)
+        return self._collect_logs().get(logger_name)
 
     def _validateJsonSchema(self, schema, content):
         try:
@@ -91,7 +88,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
 
         # Get all log entries
-        log_content = self._get_log_content('audit.global_state_metrics')
+        log_content = self._get_log_content(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
         self.assertIsNotNone(log_content)
 
         # Set buffer to read log lines from
