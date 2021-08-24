@@ -2,12 +2,12 @@ import json
 import logging
 
 from django.conf import settings
-from django.core.serializers.json import DjangoJSONEncoder
 
 from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.models import Application, get_application_counts, get_application_require_demographic_scopes_count
 from apps.fhir.bluebutton.models import check_crosswalks, Crosswalk
+from apps.logging.firehoses import BFDInsightsFirehose
 
 
 """
@@ -16,15 +16,15 @@ from apps.fhir.bluebutton.models import check_crosswalks, Crosswalk
 logger = logging.getLogger('audit.global_state_metrics')
 
 
-def log_global_state_metrics(group_timestamp=None):
-    '''
-    For use in apps/logging/management/commands/log_global_metrics.py management command
-    NOTE:  print statements are for output when run via Jenkins
-    '''
-    print("---")
-    print("---RUNNING DJANGO COMMAND:  log_global_state_metrics")
-    print("---")
+def format_timestamp(dt):
+    return dt.astimezone().replace(microsecond=0).isoformat() if dt is not None else None
 
+
+def log_global_state_metrics_top_level(group_timestamp, firehose=None):
+    '''
+    Used in log_global_state_metrics() to log the top level event.
+    If firehose object is set, this selects output to the firehose.
+    '''
     crosswalk_counts = check_crosswalks()
     application_counts = get_application_counts()
     require_demographic_scopes_count = get_application_require_demographic_scopes_count()
@@ -37,15 +37,24 @@ def log_global_state_metrics(group_timestamp=None):
                 "global_apps_inactive_cnt": application_counts.get('inactive_cnt', None),
                 "global_apps_require_demographic_scopes_cnt": require_demographic_scopes_count, }
 
-    if settings.LOG_JSON_FORMAT_PRETTY:
-        logger.info(json.dumps(log_dict, indent=2))
+    if firehose is None:
+        if settings.LOG_JSON_FORMAT_PRETTY:
+            logger.info(json.dumps(log_dict, indent=2))
+        else:
+            logger.info(json.dumps(log_dict))
     else:
-        logger.info(json.dumps(log_dict))
+        firehose.put_message(log_dict)
 
     print("---")
     print("---    Wrote top level log entry: ", log_dict)
     print("---")
 
+
+def log_global_state_metrics_applications(group_timestamp, firehose=None):
+    '''
+    Used in log_global_state_metrics() to log per application events.
+    If firehose object is set, this selects output to the firehose.
+    '''
     applications = Application.objects.all()
 
     count = 0
@@ -71,28 +80,62 @@ def log_global_state_metrics(group_timestamp=None):
                     "group_timestamp": group_timestamp,
                     "id": app.id,
                     "name": app.name,
-                    "created": app.created,
-                    "updated": app.updated,
+                    "created": format_timestamp(app.created),
+                    "updated": format_timestamp(app.updated),
                     "active": app.active,
-                    "first_active": app.first_active,
-                    "last_active": app.last_active,
+                    "first_active": format_timestamp(app.first_active),
+                    "last_active": format_timestamp(app.last_active),
                     "require_demographic_scopes": app.require_demographic_scopes,
                     "real_bene_cnt": real_cnt,
                     "synth_bene_cnt": synth_cnt,
                     "user_id": app.user.id,
                     "user_username": app.user.username,
-                    "user_date_joined": app.user.date_joined,
-                    "user_last_login": app.user.last_login,
+                    "user_date_joined": format_timestamp(app.user.date_joined),
+                    "user_last_login": format_timestamp(app.user.last_login),
                     "user_organization": getattr(user_profile, "organization_name", None), }
 
-        if settings.LOG_JSON_FORMAT_PRETTY:
-            logger.info(json.dumps(log_dict, indent=2, cls=DjangoJSONEncoder))
+        if firehose is None:
+            if settings.LOG_JSON_FORMAT_PRETTY:
+                logger.info(json.dumps(log_dict, indent=2))
+            else:
+                logger.info(json.dumps(log_dict))
         else:
-            logger.info(json.dumps(log_dict, cls=DjangoJSONEncoder))
+            firehose.put_message(log_dict)
 
         count = count + 1
 
     print("---")
     print("---    Wrote per application log entries: ", count)
     print("---")
+
+
+def log_global_state_metrics(group_timestamp=None):
+    '''
+    For use in apps/logging/management/commands/log_global_metrics.py management command
+    NOTE:  print statements are for output when run via Jenkins
+    '''
+    print("---")
+    print("---RUNNING DJANGO COMMAND:  log_global_state_metrics")
+    print("---")
+    print("---")
+    print("---    settings.LOG_FIREHOSE_ENABLE: ", settings.LOG_FIREHOSE_ENABLE)
+    print("---")
+    print("---")
+    print("---  SENDING EVENTS TO STANDARD LOGGING:")
+    print("---")
+
+    log_global_state_metrics_top_level(group_timestamp=group_timestamp, firehose=None)
+
+    log_global_state_metrics_applications(group_timestamp=group_timestamp, firehose=None)
+
+    if settings.LOG_FIREHOSE_ENABLE:
+        print("---")
+        print("---  SENDING EVENTS TO BFD-INSIGHTS FIREHOSE:")
+        print("---")
+        firehose = BFDInsightsFirehose()
+
+        log_global_state_metrics_top_level(group_timestamp=group_timestamp, firehose=firehose)
+
+        log_global_state_metrics_applications(group_timestamp=group_timestamp, firehose=firehose)
+
     print("SUCCESS")

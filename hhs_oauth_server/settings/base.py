@@ -317,6 +317,9 @@ EMAIL_HOST_PASSWORD = env('DJANGO_EMAIL_HOST_PASSWORD', None)
 EMAIL_SSL_KEYFILE = env('DJANGO_EMAIL_SSL_KEYFILE', None)
 EMAIL_SSL_CERTFILE = env('DJANGO_EMAIL_SSL_CERTFILE', None)
 
+# Get target environment (IE: DEV, TEST, IMPL, PROD)
+TARGET_ENV = env('TARGET_ENV', 'DEV')
+
 # Get aws EC2 instance metadata for logging, if available
 if bool_env(env('DJANGO_GET_EC2_METADATA', True)):
     ec2_metadata_dict = get_aws_ec2_instance_metadata()
@@ -326,6 +329,10 @@ if bool_env(env('DJANGO_GET_EC2_METADATA', True)):
 else:
     AWS_EC2_IMAGE_ID = "ami-00000000000000000"
     AWS_EC2_INSTANCE_ID = "i-00000000000000000"
+
+# BFD-Insights Firehose settings
+LOG_FIREHOSE_ENABLE = bool_env(env('DJANGO_LOG_FIREHOSE_ENABLE', 'False'))
+LOG_FIREHOSE_STREAM_NAME = env("DJANGO_LOG_FIREHOSE_STREAM_NAME", "bfd-insights-bb2-events")
 
 # Use env-specific logging config if present
 LOGGING = env("DJANGO_LOGGING", {
@@ -344,25 +351,12 @@ LOGGING = env("DJANGO_LOGGING", {
                       '"name": "%(name)s", "message": "%(message)s"}',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         },
-        'firehose_jsonout': {
-            'format': '{'
-                      '"instance_id": "' + AWS_EC2_INSTANCE_ID + '",'
-                      '"image_id": "' + AWS_EC2_IMAGE_ID + '",'
-                      '"vpc": "' + env('TARGET_ENV', 'DEV') + '",'
-                      '"log_name": "%(name)s",'
-                      '"message": %(message)s}',
-            'datefmt': '%Y-%m-%d %H:%M:%S'
-        },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'kinesis': {
-            'class': 'apps.logging.firehoses.BFDInsightsFirehoseDeliveryStreamHandler',
-            'formatter': 'firehose_jsonout',
-        }
     },
     'loggers': {
         # handy for sql trouble shooting
@@ -370,7 +364,6 @@ LOGGING = env("DJANGO_LOGGING", {
         #     'level': 'DEBUG',
         #     'handlers': ['console'],
         # },
-        # NOTE: DO NOT add the kinesis handler to the core "hhs_server" type logging!
         'hhs_server': {
             'handlers': ['console'],
             'level': 'DEBUG',
@@ -401,10 +394,6 @@ LOGGING = env("DJANGO_LOGGING", {
         },
         'audit': {
             'handlers': ['console'],
-            'level': 'INFO',
-        },
-        'audit.global_state_metrics': {
-            'handlers': ['console', 'kinesis'],
             'level': 'INFO',
         },
         'performance': {
@@ -609,9 +598,6 @@ MEDICARE_ERROR_MSG = "An error occurred connecting to account.mymedicare.gov"
 
 AUTHENTICATION_BACKENDS = ('apps.accounts.backends.EmailAuthBackend',
                            'django.contrib.auth.backends.ModelBackend')
-
-# BFD-Insights Firehose setting
-LOG_FIREHOSE_STREAM_NAME = env("DJANGO_LOG_FIREHOSE_STREAM_NAME", "bfd-insights-bb2-events")
 
 # Change these for production
 USER_ID_SALT = env('DJANGO_USER_ID_SALT', "6E6F747468657265616C706570706572")

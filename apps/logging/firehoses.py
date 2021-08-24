@@ -1,7 +1,8 @@
 import boto3
-import logging
+import json
 
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
@@ -16,67 +17,48 @@ class BFDInsightsFirehoseException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-class BFDInsightsFirehoseDeliveryStreamHandler(logging.StreamHandler):
+class BFDInsightsFirehose():
     """
-    Firehose stream handler class for use in Python logging and /health/firehose health check.
+    Firehose class for use in apps.logging.loggers.log_global_state_metrics().
     """
     def __init__(self):
-        # By default, logging.StreamHandler uses sys.stderr if stream parameter is not specified
-        logging.StreamHandler.__init__(self)
-
+        self.__enabled = settings.LOG_FIREHOSE_ENABLE
         self.__firehose = None
-        self.__stream_buffer = []
 
-        try:
-            self.__firehose = boto3.client('firehose')
-        except Exception as err:
-            mesg = "Firehose client initialization failed. err: " + str(err)
-            raise BFDInsightsFirehoseException(mesg)
+        if self.__enabled:
+            self.__delivery_stream_name = settings.LOG_FIREHOSE_STREAM_NAME
 
-        self.__delivery_stream_name = settings.LOG_FIREHOSE_STREAM_NAME
+            try:
+                self.__firehose = boto3.client('firehose')
+            except Exception as err:
+                mesg = "Firehose client initialization failed. err: " + str(err)
+                raise BFDInsightsFirehoseException(mesg)
 
-    def emit(self, record):
-        try:
-            msg = self.format(record)
-
-            if self.__firehose:
-                self.__stream_buffer.append({
-                    'Data': msg.encode(encoding="UTF-8", errors="strict")
-                })
-            else:
-                stream = self.stream
-                stream.write(msg)
-                stream.write(self.terminator)
-
-            self.flush()
-        except Exception:
-            self.handleError(record)
-
-    def flush(self):
-        self.acquire()
-
-        try:
-            if self.__firehose and self.__stream_buffer:
-                self.__firehose.put_record_batch(
-                    DeliveryStreamName=self.__delivery_stream_name,
-                    Records=self.__stream_buffer
-                )
-
-                self.__stream_buffer.clear()
-        except Exception as err:
-            mesg = "Flush operation error:  " + str(err)
-            raise BFDInsightsFirehoseException(mesg)
-        finally:
-            if self.stream and hasattr(self.stream, "flush"):
-                self.stream.flush()
-
-            self.release()
+    def put_message(self, message: dict):
+        if self.__enabled:
+            try:
+                event = {
+                    "instance_id": settings.AWS_EC2_INSTANCE_ID,
+                    "image_id": settings.AWS_EC2_IMAGE_ID,
+                    "component": "bb2.web",
+                    "vpc": settings.TARGET_ENV,
+                    "log_name": "audit.global_state_metrics",
+                    "message": message,
+                }
+                self.__firehose.put_record(DeliveryStreamName=self.__delivery_stream_name,
+                                           Record={'Data': json.dumps(event, cls=DjangoJSONEncoder) + '\n'})
+            except Exception as err:
+                mesg = "Firehose put_message() failed. err: " + str(err)
+                raise BFDInsightsFirehoseException(mesg)
 
     def service_health_check(self):
-        # Check for delivery stream in list as a health check.
-        response = self.__firehose.list_delivery_streams()
+        if self.__enabled:
+            # Check for delivery stream in list as a health check.
+            response = self.__firehose.list_delivery_streams()
 
-        if self.__delivery_stream_name not in response['DeliveryStreamNames']:
-            raise BFDInsightsFirehoseException("Delivery stream name not found for: " + self.__delivery_stream_name)
+            if self.__delivery_stream_name not in response['DeliveryStreamNames']:
+                raise BFDInsightsFirehoseException("Delivery stream name not found for: " + self.__delivery_stream_name)
 
-        return True
+            return True
+        else:
+            raise BFDInsightsFirehoseException("Firehose is disabled in settings.LOG_FIREHOSE_ENABLE")
