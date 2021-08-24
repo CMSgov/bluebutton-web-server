@@ -13,8 +13,9 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_response_text,
                                         build_oauth_resource)
 
+import apps.logging.request_logger as bb2logging
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def fhir_conformance_v2(request, via_oauth=False):

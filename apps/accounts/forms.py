@@ -1,4 +1,3 @@
-import logging
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
@@ -6,9 +5,6 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from .models import UserProfile, create_activation_key, UserIdentificationLabel
 from django.contrib.auth.forms import AuthenticationForm, UsernameField
-
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class IdentificationModelChoiceField(forms.ModelChoiceField):
