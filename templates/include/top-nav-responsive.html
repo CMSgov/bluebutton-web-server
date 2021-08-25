@@ -1,5 +1,7 @@
 {% load i18n %}
 {% load static %}
+{% load waffle_tags %}
+
 <!-- Header -->
 <header id="site-top">
   <!-- Desktop Navigation -->
@@ -25,7 +27,9 @@
       <a href="https://bluebutton.cms.gov/developers/">Documentation</a>
       <a href="https://groups.google.com/forum/#!forum/Developer-group-for-cms-blue-button-api">Support</a>
       {% if 'apps.testclient' in settings.INSTALLED_APPS %}
-      <a href="{% url 'bluebutton_openapi' %}" target='_blank'>Open API</a>
+        {% switch "enable_swaggerui" %}
+            <a href="{% url 'bluebutton_openapi' %}" target='_blank'>Open API</a>
+        {% endswitch %}
       <a href="{% url 'test_links' %}">Test Client</a>
       {%  endif %}
       {% if user.is_authenticated %}
