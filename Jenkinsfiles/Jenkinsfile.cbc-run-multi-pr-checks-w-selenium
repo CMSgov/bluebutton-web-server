@@ -29,7 +29,6 @@ pipeline {
     FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
     FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
     FHIR_URL = "${params.FHIR_URL}"
-    RUN_SELENIUM = "${params.RUN_SELENIUM_TESTS}"
   }
 
   parameters {
@@ -83,7 +82,10 @@ pipeline {
     }
 
     stage("START MSLSX in background") {
-      steps{
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
         sh """
           . venv/bin/activate
           cd dev-local && export DJANGO_SETTINGS_MODULE=mslsx_django.settings && python manage.py migrate && echo 'starting mslsx ...' && (python manage.py runserver 0.0.0.0:8080 &)
@@ -92,12 +94,15 @@ pipeline {
     }
 
     stage("START BB2 server in background") {
-      steps{
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
         sh """
           . venv/bin/activate
           export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev && python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (python manage.py runserver 0.0.0.0:8000 &)
         """
-      }
+       }
     }
 
     stage("RUN integration tests") {
@@ -110,13 +115,15 @@ pipeline {
     }
 
     stage("RUN selenium tests") {
-      steps{
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
         sh """
           . venv/bin/activate
-          echo "RUN SELENIUM TESTS=" ${RUN_SELENIUM}
-          if ${RUN_SELENIUM}; then python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests ; else echo 'Skip selenium tests...' ; fi
+          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
         """
-      }
+       }
     }
 
   }
