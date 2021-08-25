@@ -13,6 +13,7 @@ def interim_prod_access_view(request):
         if form.is_valid():
             new_interim_prod_access_model = Forms(
                 form_data=form.cleaned_data,
+                user=request.user,
                 type=INTERIM_PROD_ACCESS_FORM_TYPE,
                 status=IN_PROGRESS_STATUS,
             )
