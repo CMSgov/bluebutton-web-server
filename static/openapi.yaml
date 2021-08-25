@@ -564,10 +564,6 @@ components:
 servers:
   - url: 'https://sandbox.bluebutton.cms.gov/'
     description: Sandbox server
-  - url: 'https://test.bluebutton.cms.gov/'
-    description: TEST server 
-  - url: 'http://localhost:8000/'
-    description: Local server 
     variables: {}
 security:
     - bearerAuth: []
