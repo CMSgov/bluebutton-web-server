@@ -355,7 +355,7 @@ There are ways to test locally using the `docker-compose/run_integration_tests_l
      docker-compose/run_integration_tests_local_keybase.sh dc-debug
      ```
 
-  2. Using a Doocker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
+  2. Using a Docker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
 
      The currently checked out (or working branch) will be used.
 
