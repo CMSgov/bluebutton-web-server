@@ -158,7 +158,6 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.wellknown",
     "apps.health",
-    "apps.forms",
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
@@ -167,6 +166,7 @@ INSTALLED_APPS = [
     "apps.dot_ext.apps.dot_extConfig",
     "apps.pkce",
     "apps.home",
+    "apps.forms",
     "apps.fhir.server",
     "apps.fhir.bluebutton",
     "apps.mymedicare_cb",
