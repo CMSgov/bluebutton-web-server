@@ -1,7 +1,7 @@
 Interim Prod Access
 
-{% for key in form_data %}
+{% for key, value in form_data.items %}
 {{ key }}:
-{{ form_data[key] }}
+{{ value }}
 
 {% endfor %}

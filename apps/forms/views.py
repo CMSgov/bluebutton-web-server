@@ -10,7 +10,7 @@ from apps.forms.models import (
 from django.shortcuts import render
 from .django_forms import InterimProdAccessForm
 
-DEFAULT_EMAIL_SEND_ADDRESS = "nick.bragdon@adhocteam.us"
+DEFAULT_EMAIL_SEND_ADDRESS = "bluebuttonapi@cms.hhs.gov"
 
 
 class InterimProdAccessView(LoginRequiredMixin, TemplateView):
@@ -28,9 +28,9 @@ class InterimProdAccessView(LoginRequiredMixin, TemplateView):
 
         return form_differences
 
-    def send_mail(self, context):
+    def send_mail(self, context, app_name="Unknown"):
         mailer = Mailer(
-            subject="Interim Prod Access: ",
+            subject="Interim Prod Access: " + app_name,
             template_text="interim_prod_access_email.txt",
             template_html="interim_prod_access_email.html",
             to=[
@@ -58,7 +58,10 @@ class InterimProdAccessView(LoginRequiredMixin, TemplateView):
                 )
                 interim_prod_access_model.save()
                 context["action"] = "created"
-                self.send_mail({"form_data": form.cleaned_data})
+                self.send_mail(
+                    {"form_data": form.cleaned_data},
+                    form.cleaned_data["application_name"],
+                )
             else:
                 if context["form_model"].status is SUBMITTED_STATUS:
                     context["action"] = "submitted"
@@ -69,8 +72,10 @@ class InterimProdAccessView(LoginRequiredMixin, TemplateView):
                     context["form_model"].save()
                     context["action"] = "updated"
                     form_data_diff = self.form_diff(original_data, form.cleaned_data)
-                    print(form_data_diff)
-                    # self.send_mail({"form_data": form_data_diff})
+                    self.send_mail(
+                        {"form_data": form_data_diff},
+                        form.cleaned_data["application_name"],
+                    )
 
             return self.render_to_response(context)
 
