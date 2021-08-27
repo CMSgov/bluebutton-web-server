@@ -1,0 +1,1011 @@
+openapi: 3.0.2
+info:
+  title: BlueButton 2.0
+  version: 1.0.0
+  description: "In order to try out the API you'll first need to get an access token and use it in the Authorize -> bearerAuth setting. To get one you can use the [test client](https://sandbox.bluebutton.cms.gov/testclient/), [postman](https://bluebutton.cms.gov/developers/#try-the-api), or your own local setup. The metadata endpoint is unprotected so you can use it without an access code. The metadata results will tell you what query parameters are available for the different fhir endpoints." 
+paths:
+  /.well-known/openid-configuration:
+    get:
+      operationId: openIdConfig
+      description: ''
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims'
+      tags:
+        - v1
+  /v1/fhir/metadata:
+    get:
+      operationId: fhirMetaData
+      description: ''
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'FHIR CapabilityStatement resource'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v1
+  /v1/connect/userinfo:
+    get:
+      operationId: listopenidconnect_userinfos
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'OIDC userinfo'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '403':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Forbidden, e.g. beneficiary does not grant access to PII.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v1
+  '/v1/fhir/Patient/{resource_id}':
+    get:
+      operationId: listReadViewPatients
+      description: ''
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: 'Pateint FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)'
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Patient FHIR resource'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '403':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Forbidden, e.g. beneficiary does not grant access to PII.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. The requested resource does not exist.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v1
+  /v1/fhir/Patient/:
+    get:
+      operationId: listSearchViewPatients
+      description: ''
+      parameters:
+        - in: query
+          name: identifier
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+        - in: query
+          name: _has:Coverage
+          schema:
+            type: string
+          required: false
+          description: 'Part D coverage type/year'
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          required: false
+          description: 'The cursor used for result pagination'
+        - in: query
+          name: _id
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Patient FHIR resources bundle'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. the _lastUpdated operator is not valid.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '403':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Forbidden, e.g. beneficiary does not grant access to PII.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v1
+  '/v1/fhir/Coverage/{resource_id}':
+    get:
+      operationId: listReadViewCoverages
+      description: ''
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: 'Coverage FHIR resource id, e.g. part-a--20140000000001'
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Coverage FHIR resource'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. Unsupported ID pattern: partd-889999ddddddddddddddddddddd.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. The requested resource does not exist.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v1
+  /v1/fhir/Coverage/:
+    get:
+      operationId: listSearchViewCoverages
+      description: ''
+      parameters:
+        - in: query
+          name: beneficiary
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Coverage FHIR resources bundle'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. the _lastUpdated operator is not valid.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v1
+  '/v1/fhir/ExplanationOfBenefit/{resource_id}':
+    get:
+      operationId: listReadViewExplanationOfBenefits
+      description: ''
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: 'ExplanationOfBenefit FHIR resource id, e.g. pde--105966977'
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'ExplanationOfBenefit FHIR resource'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. Unsupported ID pattern: partd238900099.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. The requested resource does not exist.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v1
+  /v1/fhir/ExplanationOfBenefit/:
+    get:
+      operationId: listSearchViewExplanationOfBenefits
+      description: ''
+      parameters:
+        - in: query
+          name: patient
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: excludeSAMHSA
+          schema:
+            type: string
+          required: false
+          description: 'If true, exclude all SAMHSA-related resources'
+        - in: query
+          name: service-date
+          schema:
+            type: string
+          required: false
+          description: 'Include resources that completed in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: 'A list of claim types to include'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'ExplanationOfBenefit FHIR resources bundle'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. the _lastUpdated operator is not valid.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v1
+  /.well-known/openid-configuration-v2:
+    get:
+      operationId: openIdConfig_v2
+      description: ''
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims'
+      tags:
+        - v2
+  /v2/fhir/metadata:
+    get:
+      operationId: fhirMetaData_v2
+      description: ''
+      security: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'FHIR CapabilityStatement resource'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v2
+  /v2/connect/userinfo:
+    get:
+      operationId: listopenidconnect_userinfos_v2
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'OIDC userinfo'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '403':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Forbidden, e.g. beneficiary does not grant access to PII.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v2
+  '/v2/fhir/Patient/{resource_id}':
+    get:
+      operationId: listReadViewPatients_v2
+      description: ''
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: 'Pateint FHIR resource id, e.g. -20140000000001 (synthetic beneficiary)'
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Patient FHIR resource'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '403':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Forbidden, e.g. beneficiary does not grant access to PII.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. The requested resource does not exist.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v2
+  /v2/fhir/Patient/:
+    get:
+      operationId: listSearchViewPatients_v2
+      description: ''
+      parameters:
+        - in: query
+          name: identifier
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+        - in: query
+          name: _has:Coverage
+          schema:
+            type: string
+          required: false
+          description: 'Part D coverage type/year'
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          required: false
+          description: 'The cursor used for result pagination'
+        - in: query
+          name: _id
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Patient FHIR resources bundle'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. the _lastUpdated operator is not valid.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '403':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Forbidden, e.g. beneficiary does not grant access to PII.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. bfd_v2_flag not active.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v2
+  '/v2/fhir/Coverage/{resource_id}':
+    get:
+      operationId: listReadViewCoverages_v2
+      description: ''
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: 'Coverage FHIR resource id, e.g. part-a--20140000000001'
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Coverage FHIR resource'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. Unsupported ID pattern: partparta_20140000000001.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. The requested resource does not exist.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v2
+  /v2/fhir/Coverage/:
+    get:
+      operationId: listSearchViewCoverages_v2
+      description: ''
+      parameters:
+        - in: query
+          name: beneficiary
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Coverage FHIR resources bundle'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. the _lastUpdated operator is not valid.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. bfd_v2_flag not active.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v2
+  '/v2/fhir/ExplanationOfBenefit/{resource_id}':
+    get:
+      operationId: listReadViewExplanationOfBenefits_v2
+      description: ''
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          description: 'ExplanationOfBenefit FHIR resource id, e.g. pde--105966977'
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'ExplanationOfBenefit FHIR resource'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. The requested resource does not exist.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v2
+  /v2/fhir/ExplanationOfBenefit/:
+    get:
+      operationId: listSearchViewExplanationOfBenefits_v2
+      description: ''
+      parameters:
+        - in: query
+          name: patient
+          schema:
+            type: string
+          required: false
+          description: 'The patient identifier to search for'
+        - in: query
+          name: _lastUpdated
+          schema:
+            type: string
+          required: false
+          description: 'Include resources last updated in the given range'
+        - in: query
+          name: excludeSAMHSA
+          schema:
+            type: string
+          required: false
+          description: 'If true, exclude all SAMHSA-related resources'
+        - in: query
+          name: service-date
+          schema:
+            type: string
+          required: false
+          description: 'Include resources that completed in the given range'
+        - in: query
+          name: startIndex
+          schema:
+            type: string
+          required: false
+          description: 'The offset used for result pagination'
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: 'A list of claim types to include'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'ExplanationOfBenefit FHIR resources bundle'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Request, e.g. the _lastUpdated operator is not valid.'
+        '401':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
+        '404':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Not Found, e.g. bfd_v2_flag not active.'
+        '502':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+            application/fhir+json:
+              schema:
+                type: array
+                items: {}
+          description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
+      tags:
+        - v2
+components:
+  securitySchemes:
+      bearerAuth:            # arbitrary name for the security scheme
+        type: http
+        scheme: bearer
+          
+  schemas: {}
+servers:
+  - url: 'https://sandbox.bluebutton.cms.gov/'
+    description: Sandbox server
+    variables: {}
+security:
+    - bearerAuth: []
