@@ -1,8 +1,10 @@
-import logging
 import pytz
 import re
 import time
 import uuid
+
+import apps.logging.request_logger as logging
+
 from datetime import datetime, timedelta
 from os import listdir
 from random import randint, randrange, choice, sample
@@ -18,9 +20,11 @@ from apps.dot_ext.models import Application, ArchivedToken
 from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import update_grants
 from apps.mymedicare_cb.models import create_beneficiary_record
+from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
+
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 
-mymedicare_cb_logger = logging.getLogger('audit.authenticate.mymedicare_cb')
+mymedicare_cb_logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
 outreach_logger = logging.getLogger('hhs_server.apps.dot_ext.signals')
 
 APPLICATION_SCOPES_FULL = ['patient/Patient.read', 'profile',
@@ -85,7 +89,8 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                         "last_name": ln,
                         "email": fn + '.' + ln + "@xyz.net",
                     }
-                    u = create_beneficiary_record(**args)
+                    slsx_client = OAuth2ConfigSLSx(args)
+                    u = create_beneficiary_record(slsx_client, fhir_id)
                     date_picked = datetime.utcnow() - timedelta(days=randrange(700))
                     u.date_joined = date_picked.replace(tzinfo=pytz.utc)
                     u.save()
@@ -96,7 +101,7 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                     synthetic_bene_cnt += 1
                     print(".", end="", flush=True)
                     time.sleep(.05)
-                    if count > 3000:
+                    if count > 100:
                         break
         bene_rif.close()
         file_cnt += 1

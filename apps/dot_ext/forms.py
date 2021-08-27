@@ -1,4 +1,5 @@
 import logging
+
 from django import forms
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -7,7 +8,9 @@ from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.dot_ext.validators import validate_logo_image, validate_notags
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+import apps.logging.request_logger as bb2logging
+
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class CustomRegisterApplicationForm(forms.ModelForm):
