@@ -57,15 +57,15 @@ class InterimProdAccessView(LoginRequiredMixin, TemplateView):
                     status=IN_PROGRESS_STATUS,
                 )
                 interim_prod_access_model.save()
-                context["action"] = "created"
                 self.send_mail(
                     {"form_data": form.cleaned_data},
                     form.cleaned_data["application_name"],
                 )
+                self.update_context_display(context, form.cleaned_data)
+                context["action"] = "created"
             else:
                 if context["form_model"].status is SUBMITTED_STATUS:
                     context["action"] = "submitted"
-                    return self.render_to_response(context)
                 else:
                     original_data = context["form_model"].form_data
                     context["form_model"].form_data = form.cleaned_data
@@ -76,8 +76,12 @@ class InterimProdAccessView(LoginRequiredMixin, TemplateView):
                         {"form_data": form_data_diff},
                         form.cleaned_data["application_name"],
                     )
+                    self.update_context_display(context, form.cleaned_data)
 
             return self.render_to_response(context)
+
+    def update_context_display(self, context, new_form_data):
+        context["form_display"] = InterimProdAccessForm(new_form_data)
 
     def get_context_data(self, **kwargs):
         request = self.request
