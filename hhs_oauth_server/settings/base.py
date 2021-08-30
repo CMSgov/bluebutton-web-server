@@ -153,6 +153,7 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.wellknown',
     'apps.health',
+    'apps.docs',
 
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
