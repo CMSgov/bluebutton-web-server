@@ -32,7 +32,7 @@ class SeleniumTests(TestCase):
 
     def setUp(self):
         super(SeleniumTests, self).setUp()
-        # a bit waiting for selenium service ready for sure
+        # a bit waiting for selenium services ready for sure
         if not SeleniumTests.wait_completed:
             time.sleep(20)
             SeleniumTests.wait_completed = True
@@ -40,8 +40,12 @@ class SeleniumTests(TestCase):
         else:
             print("wait_completed={}".format(SeleniumTests.wait_completed))
 
+        self.use_mslsx = os.environ['USE_MSLSX']
+        self.use_debug = os.environ['USE_DEBUG']
+        self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
+        print("use_mslsx={}, use_debug={}".format(self.use_mslsx, self.use_debug))
+
         opt = webdriver.ChromeOptions()
-        opt.add_argument('--headless')
         opt.add_argument("--disable-dev-shm-usage")
         opt.add_argument("--disable-web-security")
         opt.add_argument("--allow-running-insecure-content")
@@ -54,9 +58,13 @@ class SeleniumTests(TestCase):
         opt.add_argument('--window-size=1920,1080')
         opt.add_argument("--whitelisted-ips=''")
 
-        self.driver = webdriver.Remote(
-            command_executor='http://selenium-hub:4444',
-            desired_capabilities=DesiredCapabilities.CHROME, options=opt)
+        if self.use_debug == 'true':
+            self.driver = webdriver.Remote(
+                command_executor='http://chrome:4444/wd/hub',
+                desired_capabilities=DesiredCapabilities.CHROME, options=opt)
+        else:
+            opt.add_argument('--headless')
+            self.driver = webdriver.Chrome(options=opt)
 
         self.actions = {
             Action.LOAD_PAGE: self._load_page,
@@ -70,8 +78,6 @@ class SeleniumTests(TestCase):
             Action.LOGIN: self._login,
             Action.SLEEP: self._sleep,
         }
-        self.use_mslsx = os.environ['USE_MSLSX']
-        self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
 
     def tearDown(self):
         self.driver.quit()

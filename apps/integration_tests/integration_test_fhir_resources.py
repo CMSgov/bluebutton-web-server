@@ -186,17 +186,20 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._call_health_external_endpoint(True)
 
     def _call_health_external_endpoint(self, v2=False):
-        client = APIClient()
-        # no authenticate needed
-        response = client.get(self.live_server_url + "/health/external_v2" if v2 else "/health/external")
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        msg = None
-        try:
-            msg = content['message']
-        except KeyError:
-            pass
-        self.assertEqual(msg, "all's well")
+        use_mslsx = os.environ.get('USE_MSLSX', None)
+        if use_mslsx is not None and not use_mslsx == 'true':
+            # do not ping health end point if using MSLSX
+            client = APIClient()
+            # no authenticate needed
+            response = client.get(self.live_server_url + "/health/external_v2" if v2 else "/health/external")
+            self.assertEqual(response.status_code, 200)
+            content = json.loads(response.content)
+            msg = None
+            try:
+                msg = content['message']
+            except KeyError:
+                pass
+            self.assertEqual(msg, "all's well")
 
     @override_switch('require-scopes', active=True)
     def test_health_bfd_endpoint(self):
@@ -236,17 +239,20 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
 
     @override_switch('require-scopes', active=True)
     def test_health_sls_endpoint(self):
-        client = APIClient()
-        # no authenticate needed
-        response = client.get(self.live_server_url + "/health/sls")
-        self.assertEqual(response.status_code, 200)
-        content = json.loads(response.content)
-        msg = None
-        try:
-            msg = content['message']
-        except KeyError:
-            pass
-        self.assertEqual(msg, "all's well")
+        use_mslsx = os.environ.get('USE_MSLSX', None)
+        if use_mslsx is not None and not use_mslsx == 'true':
+            # do not ping health end point if using MSLSX
+            client = APIClient()
+            # no authenticate needed
+            response = client.get(self.live_server_url + "/health/sls")
+            self.assertEqual(response.status_code, 200)
+            content = json.loads(response.content)
+            msg = None
+            try:
+                msg = content['message']
+            except KeyError:
+                pass
+            self.assertEqual(msg, "all's well")
 
     @override_switch('require-scopes', active=True)
     def test_userinfo_endpoint(self):

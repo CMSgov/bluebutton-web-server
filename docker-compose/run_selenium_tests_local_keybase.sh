@@ -13,7 +13,9 @@
 KEYBASE_ENV_FILE="team/bb20/infrastructure/creds/ENV_secrets_for_local_integration_tests.env"
 KEYBASE_CERTFILES_SUBPATH="team/bb20/infrastructure/certs/local_integration_tests/fhir_client/certstore/"
 
-CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
+export CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
+export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
+
 CERT_FILENAME="client_data_server_bluebutton_local_integration_tests_certificate.pem"
 KEY_FILENAME="client_data_server_bluebutton_local_integration_tests_private_key.pem"
 
@@ -43,6 +45,7 @@ set -e -u -o pipefail
 TEST_TYPE="--selenium"
 
 export USE_MSLSX=true
+export USE_DEBUG=false
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
 
@@ -58,7 +61,7 @@ if [ $# -eq 0 ]
 then
   echo "Use MSLSX for identity service."
 else
-  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" ]]
+  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "slsx-debug" && $1 != "mslsx-debug" && $1 != "debug" && $1 != "logit" ]]
   then
     echo
     echo "COMMAND USAGE HELP"
@@ -66,15 +69,25 @@ else
     echo
     echo "  Use one of the following command line options for the type of test to run:"
     echo
+    echo "    slsx  = use SLSX for identity service with webdriver in headless mode."
+    echo
+    echo "    slsx-debug  = use SLSX for identity service, and start selenium standalone chrome debug mode (visualized browser interactions)."
+    echo
+    echo "    mslsx (default) = use MSLSX for identity service with webdriver in headless mode."
+    echo
+    echo "    mslsx-debug = use MSLSX for identity service with selenium chrome standalone debug mode."
+    echo
+    echo "    debug = same as 'mslsx-debug'"
+    echo
     echo "    logit  = run integration tests for bb2 loggings, MSLSX used as identity service."
-    echo
-    echo "    slsx  = use SLSX for identity service."
-    echo
-    echo "    mslsx (default) = use MSLSX for identity service."
     echo
     exit 1
   else
-    if [ $1 == "slsx" ]
+    if [[ $1 == *debug ]]
+    then
+        export USE_DEBUG=true
+    fi
+    if [[ $1 == "slsx" || $1 == "slsx-debug" ]]
     then
       export USE_MSLSX=false
       export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
@@ -84,7 +97,7 @@ else
       export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
       export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
     fi
-    if [ $1 == "logit" ]
+    if [[ $1 == "logit" ]]
     then
       TEST_TYPE="--logit"
       TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
@@ -205,8 +218,15 @@ export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 
 echo "Selenium tests ..."
+echo "MSLSX=" ${USE_MSLSX}
+echo "DEBUG=" ${USE_DEBUG}
 
-docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py ${TEST_TYPE} ${TESTS_LIST}"
+if [ "$USE_DEBUG" = true ]
+then
+    docker-compose -f docker-compose.selenium.yml run tests-debug bash -c "python runtests.py ${TEST_TYPE} ${TESTS_LIST}"
+else
+    docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py ${TEST_TYPE} ${TESTS_LIST}"
+fi
 
 # Stop containers after use
 echo_msg
