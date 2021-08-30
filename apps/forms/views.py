@@ -64,7 +64,7 @@ class InterimProdAccessView(LoginRequiredMixin, TemplateView):
                 self.update_context_display(context, form.cleaned_data)
                 context["action"] = "created"
             else:
-                if context["form_model"].status is SUBMITTED_STATUS:
+                if context["form_model"].status == SUBMITTED_STATUS:
                     context["action"] = "submitted"
                 else:
                     original_data = context["form_model"].form_data
