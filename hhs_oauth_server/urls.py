@@ -32,6 +32,8 @@ urlpatterns = [
     url(r'^v2/o/', include('apps.authorization.v2.urls')),
     url(r'^v2/', include('apps.openapi.urls')),
 
+    url(r'^docs/', include('apps.docs.urls')),
+
     url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
 
 
