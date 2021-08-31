@@ -46,10 +46,6 @@ paths:
               schema:
                 type: array
                 items: {}
-            application/fhir+json:
-              schema:
-                type: array
-                items: {}
           description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
       tags:
         - v1
@@ -83,10 +79,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
@@ -140,10 +132,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
@@ -230,10 +218,6 @@ paths:
               schema:
                 type: array
                 items: {}
-            application/fhir+json:
-              schema:
-                type: array
-                items: {}
           description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
       tags:
         - v1
@@ -284,10 +268,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
@@ -349,10 +329,6 @@ paths:
               schema:
                 type: array
                 items: {}
-            application/fhir+json:
-              schema:
-                type: array
-                items: {}
           description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
       tags:
         - v1
@@ -403,10 +379,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
@@ -486,10 +458,6 @@ paths:
               schema:
                 type: array
                 items: {}
-            application/fhir+json:
-              schema:
-                type: array
-                items: {}
           description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
       tags:
         - v1
@@ -535,10 +503,6 @@ paths:
               schema:
                 type: array
                 items: {}
-            application/fhir+json:
-              schema:
-                type: array
-                items: {}
           description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
       tags:
         - v2
@@ -572,10 +536,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
@@ -629,10 +589,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
@@ -726,10 +682,6 @@ paths:
               schema:
                 type: array
                 items: {}
-            application/fhir+json:
-              schema:
-                type: array
-                items: {}
           description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
       tags:
         - v2
@@ -780,10 +732,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
@@ -852,10 +800,6 @@ paths:
               schema:
                 type: array
                 items: {}
-            application/fhir+json:
-              schema:
-                type: array
-                items: {}
           description: 'Error: Bad Gateway, e.g. An error occurred contacting the FHIR server'
       tags:
         - v2
@@ -899,10 +843,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
@@ -986,10 +926,6 @@ paths:
         '502':
           content:
             application/json:
-              schema:
-                type: array
-                items: {}
-            application/fhir+json:
               schema:
                 type: array
                 items: {}
