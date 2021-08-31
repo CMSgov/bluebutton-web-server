@@ -66,10 +66,10 @@ elif not args.selenium and not args.logit:
             del os.environ[env_var]
 
 if __name__ == '__main__':
-    if not args.logit:
+    if not args.selenium and not args.logit:
         os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.test'
     else:
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.test_logging'
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.dev'
     django.setup()
     TestRunner = get_runner(settings)
     test_runner = TestRunner()
