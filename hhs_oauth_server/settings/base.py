@@ -153,11 +153,13 @@ INSTALLED_APPS = [
     "rest_framework_csv",
     "django_filters",
     # 1st Party (in-house) ----------
-    "apps.accounts",
-    "apps.capabilities",
-    "apps.core",
-    "apps.wellknown",
-    "apps.health",
+    'apps.accounts',
+    'apps.capabilities',
+    'apps.core',
+    'apps.wellknown',
+    'apps.health',
+    'apps.docs',
+
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split

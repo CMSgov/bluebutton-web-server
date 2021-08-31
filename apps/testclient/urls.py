@@ -6,7 +6,6 @@ from .views import (authorize_link, authorize_link_v2, restart, callback, test_e
                     test_coverage, test_coverage_v2, test_patient, test_patient_v2, test_links)
 
 urlpatterns = [
-
     url(r'^restart$', restart, name='testclient-restart'),
     url(r'^callback$', callback, name='testclient-callback'),
     url(r'^authorize-link$', authorize_link, name='authorize_link'),
