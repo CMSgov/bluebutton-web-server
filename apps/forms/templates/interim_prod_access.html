@@ -1,6 +1,6 @@
 <h1>{{ action }}</h1>
 <form action="" method="post">
     {% csrf_token %}
-    {{ form_display }}
+    {{ form_display.as_ul }}
     <input type="submit" value="Submit">
 </form>

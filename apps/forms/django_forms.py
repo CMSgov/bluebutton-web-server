@@ -23,7 +23,7 @@ WITHDRAWN_CONSENT_CHOICES = [
 
 class InterimProdAccessForm(forms.Form):
     application_name = forms.CharField()
-    application_description = forms.Textarea()
+    application_description = forms.CharField()
     application_url = forms.URLField()
     terms_of_service_url = forms.URLField()
     privacy_policy_url = forms.URLField()
