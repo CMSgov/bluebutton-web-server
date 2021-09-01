@@ -78,7 +78,7 @@ class InterimProdAccessView(LoginRequiredMixin, TemplateView):
                     )
                     self.update_context_display(context, form.cleaned_data)
 
-            return self.render_to_response(context)
+        return self.render_to_response(context)
 
     def update_context_display(self, context, new_form_data):
         context["form_display"] = InterimProdAccessForm(new_form_data)
