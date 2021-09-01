@@ -197,7 +197,6 @@ class LoggingTests(SeleniumTests):
             self.assertEqual(len(expected_events), 0)
 
     def test_auth_fhir_flows_logging(self):
-        # direct relevant log records to the file
         audit_logger = logging.getLogger("audit")
         file_handler = logging.FileHandler(TEST_LOGGING_FILE)
         for h in audit_logger.handlers[:]:
