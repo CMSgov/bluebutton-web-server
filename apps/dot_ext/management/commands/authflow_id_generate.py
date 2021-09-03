@@ -38,7 +38,7 @@ def generate_authflowuuid_records(start_date_str, sample_size):
         print(i, end='\r')
     
     end_t = time.time()
-    print("start date = {}, insert_delete = {}, insert_only = {}, time elapsed (sec) = {}".format(the_date, insert_delete, insert_only, end_t - start_t))
+    print("start date = {}, end_date = {}, insert_delete = {}, insert_only = {}, time elapsed (sec) = {}".format(start_date, the_date, insert_delete, insert_only, end_t - start_t))
 
 
 class Command(BaseCommand):
