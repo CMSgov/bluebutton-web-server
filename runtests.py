@@ -18,9 +18,6 @@ from django.test.utils import get_runner
         --selenium  This optional flag indicates tests are to run in selenium test mode.
         Space separated list of Django tests to run.
 
-        --logit  This optional flag indicates tests are to run in logging integration test mode.
-        Space separated list of Django tests to run.
-
     For example:
 
         $ docker-compose exec web python runtests.py apps.dot_ext.tests
@@ -42,7 +39,6 @@ from django.test.utils import get_runner
 parser = argparse.ArgumentParser()
 parser.add_argument('--integration', help='Integration tests mode', action='store_true')
 parser.add_argument('--selenium', help='Selenium tests mode', action='store_true')
-parser.add_argument('--logit', help='Logging tests mode (use selenium as driver)', action='store_true')
 parser.add_argument('test', nargs='*')
 args = parser.parse_args()
 
@@ -54,7 +50,7 @@ if args.integration:
                     'DATABASES_CUSTOM', 'DJANGO_LOG_JSON_FORMAT_PRETTY']:
         if env_var in os.environ:
             del os.environ[env_var]
-elif not args.selenium and not args.logit:
+elif not args.selenium:
     # For tests using selenium, inherit SLSX config from context;
     # Unset ENV variables for Django unit type tests so default values get set.
     for env_var in ['FHIR_URL', 'DJANGO_MEDICARE_SLSX_LOGIN_URI', 'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
@@ -66,10 +62,7 @@ elif not args.selenium and not args.logit:
             del os.environ[env_var]
 
 if __name__ == '__main__':
-    if not args.selenium and not args.logit:
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.test'
-    else:
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.dev'
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'hhs_oauth_server.settings.test'
     django.setup()
     TestRunner = get_runner(settings)
     test_runner = TestRunner()

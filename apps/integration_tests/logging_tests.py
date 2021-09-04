@@ -1,7 +1,6 @@
 import copy
 import json
 import re
-import logging
 
 from json.decoder import JSONDecodeError
 
@@ -197,12 +196,6 @@ class LoggingTests(SeleniumTests):
             self.assertEqual(len(expected_events), 0)
 
     def test_auth_fhir_flows_logging(self):
-        audit_logger = logging.getLogger("audit")
-        file_handler = logging.FileHandler(TEST_LOGGING_FILE)
-        for h in audit_logger.handlers[:]:
-            audit_logger.removeHandler(h)
-        audit_logger.addHandler(file_handler)
-        audit_logger.setLevel(logging.INFO)
         self.test_auth_grant_fhir_calls_v1()
         print("validating logging events in log...")
         self._validate_events()

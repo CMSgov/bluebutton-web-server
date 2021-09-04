@@ -42,8 +42,6 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
-TEST_TYPE="--selenium"
-
 export USE_MSLSX=true
 export USE_DEBUG=false
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
@@ -99,9 +97,8 @@ else
     fi
     if [[ $1 == "logit" ]]
     then
-      TEST_TYPE="--logit"
       TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
-      export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.test_logging"
+      export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
       mkdir -p docker-compose/tmp
       if [ -f docker-compose/tmp/bb2_logging_test.log ]
@@ -114,7 +111,6 @@ fi
 
 echo "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
 echo "HOSTNAME_URL: " ${HOSTNAME_URL}
-echo "TEST_TYPE: " ${TEST_TYPE}
 echo "TESTS: " ${TESTS_LIST}
 
 # Set KeyBase ENV path based on your type of system
@@ -217,16 +213,18 @@ export DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS}
 export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 
-echo "Selenium tests ..."
-echo "MSLSX=" ${USE_MSLSX}
-echo "DEBUG=" ${USE_DEBUG}
-
-if [ "$USE_DEBUG" = true ]
+TEST_SERVICE_NAME="tests"
+if [[ "$USE_DEBUG" = true ]]
 then
-    docker-compose -f docker-compose.selenium.yml run tests-debug bash -c "python runtests.py ${TEST_TYPE} ${TESTS_LIST}"
-else
-    docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py ${TEST_TYPE} ${TESTS_LIST}"
+    TEST_SERVICE_NAME="tests-debug"
 fi
+
+echo "Selenium tests ..."
+echo "MSLSX =" ${USE_MSLSX}
+echo "DEBUG =" ${USE_DEBUG}
+echo "DOCKER COMPOSE TEST SERVICE NAME =" ${TEST_SERVICE_NAME}
+
+docker-compose -f docker-compose.selenium.yml run ${TEST_SERVICE_NAME} bash -c "python runtests.py --selenium ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg
