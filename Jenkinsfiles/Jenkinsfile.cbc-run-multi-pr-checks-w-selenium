@@ -136,6 +136,7 @@ pipeline {
           ls -al docker-compose/tmp
           cat docker-compose/tmp/bb2_logging_test.log
           python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+          cat docker-compose/tmp/bb2_logging_test.log
         """
        }
     }
