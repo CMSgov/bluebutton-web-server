@@ -31,4 +31,10 @@ if loggers:
     if logging_logger_audit_handlers is None:
         raise ValueError("Bad settings, expecting handlers defined in settings.LOGGING for 'audit' logger")
 
+    print("------------ append file handler------------")
     logging_logger_audit_handlers.append('file')
+    print("------------ LOGGING begin ------------")
+    print("{}".format(LOGGING))
+    print("------------ LOGGING end ------------")
+else:
+    print("------------ no loggers found ------------")
