@@ -91,7 +91,6 @@ def login(request):
         "req_token": req_token,
         "relay": request.POST.get("relay", "")
     }
-    print("redirect={}?{}".format(redirect_url, urlencode(qparams)))
     return redirect("{}?{}".format(redirect_url, urlencode(qparams)))
 
 
