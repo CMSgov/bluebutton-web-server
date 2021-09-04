@@ -7,7 +7,7 @@ if logging_handlers is None:
     raise ValueError("Bad settings, expecting handlers defined in settings.LOGGING")
 
 logging_handlers['file'] = {'class': 'logging.FileHandler',
-                            'filename': '/code/docker-compose/tmp/bb2_logging_test.log', }
+                            'filename': './docker-compose/tmp/bb2_logging_test.log', }
 
 loggers = LOGGING.get('loggers')
 
