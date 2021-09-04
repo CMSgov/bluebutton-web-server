@@ -100,11 +100,6 @@ else
       TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
       export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
-      mkdir -p docker-compose/tmp
-      if [ -f docker-compose/tmp/bb2_logging_test.log ]
-      then
-        rm -f docker-compose/tmp/bb2_logging_test.log
-      fi
     fi
   fi
 fi

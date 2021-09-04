@@ -167,7 +167,6 @@ class LoggingTests(SeleniumTests):
     the driver (selenium)
     '''
     def _validate_events(self):
-        # validate middleware logging records in log file ./docker-compose/tmp/bb2_logging_test.log
         with open(TEST_LOGGING_FILE, 'r') as f:
             log_records = f.readlines()
             start_validation = False
