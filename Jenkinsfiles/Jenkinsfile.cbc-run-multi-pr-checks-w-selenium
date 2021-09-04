@@ -133,6 +133,7 @@ pipeline {
        steps{
         sh """
           . venv/bin/activate
+          ls -al .
           python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
         """
        }
