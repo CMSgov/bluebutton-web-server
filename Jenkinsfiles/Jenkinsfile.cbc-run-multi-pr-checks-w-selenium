@@ -112,6 +112,7 @@ pipeline {
        steps{
         sh """
           . venv/bin/activate
+          ls -al ./docker-compose/tmp
           python runtests.py --selenium apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging
         """
        }
