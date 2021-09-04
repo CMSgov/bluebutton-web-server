@@ -3,11 +3,13 @@ from .dev import *
 # Override audit logging handler with a file handler
 logging_handlers = LOGGING['handlers']
 
+logfile_path = os.path.abspath(os.getcwd() + "/docker-compose/tmp/bb2_logging_test.log")
+
 if logging_handlers is None:
     raise ValueError("Bad settings, expecting handlers defined in settings.LOGGING")
 
 logging_handlers['file'] = {'class': 'logging.FileHandler',
-                            'filename': './docker-compose/tmp/bb2_logging_test.log', }
+                            'filename': logfile_path, }
 
 loggers = LOGGING.get('loggers')
 
