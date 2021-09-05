@@ -192,7 +192,7 @@ class LoggingTests(SeleniumTests):
                     pass
 
             # all log events present and validated
-            # self.assertEqual(len(expected_events), 0)
+            self.assertEqual(len(expected_events), 0)
 
     def test_auth_fhir_flows_logging(self):
         self.test_auth_grant_fhir_calls_v1()
