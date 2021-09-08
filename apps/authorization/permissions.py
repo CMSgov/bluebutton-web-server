@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.db.models import Q
 from rest_framework import permissions, exceptions
 from .models import DataAccessGrant
 
@@ -9,11 +10,16 @@ class DataAccessGrantPermission(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        return DataAccessGrant.objects.filter(
-            beneficiary=request.auth.user,
-            application=request.auth.application,
-            grant_expiration_timestamp__gte=datetime.now(),
-        ).exists()
+        return (
+            DataAccessGrant.objects.filter(
+                beneficiary=request.auth.user, application=request.auth.application
+            )
+            .filter(
+                Q(grant_expiration_timestamp__gte=datetime.now())
+                | Q(grant_expiration_timestamp=None)
+            )
+            .exists()
+        )
 
     def has_object_permission(self, request, view, obj):
         # Now check that the user has permission to access the data
