@@ -1,8 +1,12 @@
 import json
 import logging
+import datetime
+from dateutil.relativedelta import relativedelta
 
 import waffle
-from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
+from oauth2_provider.views.introspect import (
+    IntrospectTokenView as DotIntrospectTokenView,
+)
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
@@ -17,9 +21,14 @@ from django.views.decorators.debug import sensitive_post_parameters
 from urllib.parse import urlparse, parse_qs
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
-from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
-                       get_session_auth_flow_trace, set_session_auth_flow_trace,
-                       set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
+from ..loggers import (
+    create_session_auth_flow_trace,
+    cleanup_session_auth_flow_trace,
+    get_session_auth_flow_trace,
+    set_session_auth_flow_trace,
+    set_session_auth_flow_trace_value,
+    update_instance_auth_flow_trace_with_code,
+)
 from ..models import Approval
 from ..utils import remove_application_user_pair_tokens_data_access
 from ..utils import validate_app_is_active
@@ -33,11 +42,24 @@ import apps.logging.request_logger as bb2logging
 log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
+def date_string_to_value(date_string):
+    mapper = {
+        "forever": None,
+        "two_years": datetime.datetime.now() + relativedelta(years=2),
+        "one_year": datetime.datetime.now() + relativedelta(years=1),
+        "six_months": datetime.datetime.now() + relativedelta(months=6),
+        "two_months": datetime.datetime.now() + relativedelta(months=2),
+    }
+
+    return mapper[date_string]
+
+
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+
     version = None
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
@@ -53,7 +75,7 @@ class AuthorizationView(DotAuthorizationView):
         flow tracing in logs.
         """
         # TODO: Should the client_id match a valid application here before continuing, instead of after matching to FHIR_ID?
-        if not kwargs.get('is_subclass_approvalview', False):
+        if not kwargs.get("is_subclass_approvalview", False):
             # Create new authorization flow trace UUID in session and AuthFlowUuid instance, if subclass is not ApprovalView
             create_session_auth_flow_trace(request)
 
@@ -66,14 +88,15 @@ class AuthorizationView(DotAuthorizationView):
                 context={
                     "detail": error.detail,
                 },
-                status=error.status_code)
+                status=error.status_code,
+            )
 
-        request.session['version'] = self.version
+        request.session["version"] = self.version
         return super().dispatch(request, *args, **kwargs)
 
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
-        if waffle.switch_is_active('require-scopes'):
+        if waffle.switch_is_active("require-scopes"):
             return ["design_system/authorize_v2.html"]
         else:
             return ["design_system/authorize.html"]
@@ -81,12 +104,14 @@ class AuthorizationView(DotAuthorizationView):
     def get_initial(self):
         initial_data = super().get_initial()
         initial_data["code_challenge"] = self.oauth2_data.get("code_challenge", None)
-        initial_data["code_challenge_method"] = self.oauth2_data.get("code_challenge_method", None)
+        initial_data["code_challenge_method"] = self.oauth2_data.get(
+            "code_challenge_method", None
+        )
         return initial_data
 
     def get(self, request, *args, **kwargs):
-        kwargs['code_challenge'] = request.GET.get('code_challenge', None)
-        kwargs['code_challenge_method'] = request.GET.get('code_challenge_method', None)
+        kwargs["code_challenge"] = request.GET.get("code_challenge", None)
+        kwargs["code_challenge_method"] = request.GET.get("code_challenge_method", None)
         return super().get(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -98,21 +123,31 @@ class AuthorizationView(DotAuthorizationView):
             "response_type": form.cleaned_data.get("response_type", None),
             "state": form.cleaned_data.get("state", None),
             "code_challenge": form.cleaned_data.get("code_challenge", None),
-            "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
+            "code_challenge_method": form.cleaned_data.get(
+                "code_challenge_method", None
+            ),
         }
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
 
         # Get beneficiary demographic scopes sharing choice
         share_demographic_scopes = form.cleaned_data.get("share_demographic_scopes")
-        set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
+        data_access_expiration_time = date_string_to_value(
+            form.cleaned_data.get("data_access_duration")
+        )
+        set_session_auth_flow_trace_value(
+            self.request, "auth_share_demographic_scopes", share_demographic_scopes
+        )
 
         # Get scopes list available to the application
-        application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
+        application_available_scopes = CapabilitiesScopes().get_available_scopes(
+            application=application
+        )
 
         # Set scopes to those available to application and beneficiary demographic info choices
-        scopes = ' '.join([s for s in scopes.split(" ")
-                          if s in application_available_scopes])
+        scopes = " ".join(
+            [s for s in scopes.split(" ") if s in application_available_scopes]
+        )
 
         # Init deleted counts
         data_access_grant_delete_cnt = 0
@@ -121,15 +156,22 @@ class AuthorizationView(DotAuthorizationView):
 
         try:
             uri, headers, body, status = self.create_authorization_response(
-                request=self.request, scopes=scopes, credentials=credentials, allow=allow
+                request=self.request,
+                scopes=scopes,
+                credentials=credentials,
+                allow=allow,
             )
         except OAuthToolkitError as error:
             response = self.error_response(error, application)
 
             if allow is False:
-                (data_access_grant_delete_cnt,
-                 access_token_delete_cnt,
-                 refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+                (
+                    data_access_grant_delete_cnt,
+                    access_token_delete_cnt,
+                    refresh_token_delete_cnt,
+                ) = remove_application_user_pair_tokens_data_access(
+                    application, self.request.user
+                )
 
             beneficiary_authorized_application.send(
                 sender=self,
@@ -139,18 +181,26 @@ class AuthorizationView(DotAuthorizationView):
                 user=self.request.user,
                 application=application,
                 share_demographic_scopes=share_demographic_scopes,
+                data_access_expiration_time=data_access_expiration_time,
                 scopes=scopes,
                 allow=allow,
                 access_token_delete_cnt=access_token_delete_cnt,
                 refresh_token_delete_cnt=refresh_token_delete_cnt,
-                data_access_grant_delete_cnt=data_access_grant_delete_cnt)
+                data_access_grant_delete_cnt=data_access_grant_delete_cnt,
+            )
             return response
 
         # Did the beneficiary choose not to share demographic scopes, or the application does not require them?
-        if share_demographic_scopes == "False" or (allow is True and application.require_demographic_scopes is False):
-            (data_access_grant_delete_cnt,
-             access_token_delete_cnt,
-             refresh_token_delete_cnt) = remove_application_user_pair_tokens_data_access(application, self.request.user)
+        if share_demographic_scopes == "False" or (
+            allow is True and application.require_demographic_scopes is False
+        ):
+            (
+                data_access_grant_delete_cnt,
+                access_token_delete_cnt,
+                refresh_token_delete_cnt,
+            ) = remove_application_user_pair_tokens_data_access(
+                application, self.request.user
+            )
 
         beneficiary_authorized_application.send(
             sender=self,
@@ -160,18 +210,20 @@ class AuthorizationView(DotAuthorizationView):
             user=self.request.user,
             application=application,
             share_demographic_scopes=share_demographic_scopes,
+            data_access_expiration_time=data_access_expiration_time,
             scopes=scopes,
             allow=allow,
             access_token_delete_cnt=access_token_delete_cnt,
             refresh_token_delete_cnt=refresh_token_delete_cnt,
-            data_access_grant_delete_cnt=data_access_grant_delete_cnt)
+            data_access_grant_delete_cnt=data_access_grant_delete_cnt,
+        )
 
         self.success_url = uri
         log.debug("Success url for the request: {0}".format(self.success_url))
 
         # Extract code from url
         url_query = parse_qs(urlparse(self.success_url).query)
-        code = url_query.get('code', [None])[0]
+        code = url_query.get("code", [None])[0]
 
         # Get auth flow trace session values dict.
         auth_dict = get_session_auth_flow_trace(self.request)
@@ -190,6 +242,7 @@ class ApprovalView(AuthorizationView):
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+
     version = None
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
@@ -205,25 +258,28 @@ class ApprovalView(AuthorizationView):
             approval = Approval.objects.get(uuid=uuid)
             if approval.expired:
                 raise Approval.DoesNotExist
-            if approval.application\
-                    and approval.application.client_id != request.GET.get('client_id', None)\
-                    and approval.application.client_id != request.POST.get('client_id', None):
+            if (
+                approval.application
+                and approval.application.client_id != request.GET.get("client_id", None)
+                and approval.application.client_id
+                != request.POST.get("client_id", None)
+            ):
                 raise Approval.DoesNotExist
             request.user = approval.user
         except Approval.DoesNotExist:
             pass
 
         # Set flag to let super method know who's calling, so auth_uuid doesn't get reset.
-        kwargs['is_subclass_approvalview'] = True
+        kwargs["is_subclass_approvalview"] = True
 
-        request.session['version'] = self.version
+        request.session["version"] = self.version
 
         result = super().dispatch(request, *args, **kwargs)
 
-        if hasattr(self, 'oauth2_data'):
-            application = self.oauth2_data.get('application', None)
+        if hasattr(self, "oauth2_data"):
+            application = self.oauth2_data.get("application", None)
             if application is not None:
-                approval.application = self.oauth2_data.get('application', None)
+                approval.application = self.oauth2_data.get("application", None)
                 approval.save()
 
         # Set auth_uuid after super() return
@@ -235,47 +291,62 @@ class ApprovalView(AuthorizationView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
-
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
         except PermissionDenied as error:
-            return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
-                                status=error.status_code,
-                                content_type='application/json')
+            return HttpResponse(
+                json.dumps(
+                    {
+                        "status_code": error.status_code,
+                        "detail": error.detail,
+                    }
+                ),
+                status=error.status_code,
+                content_type="application/json",
+            )
 
         return super().post(request, args, kwargs)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class RevokeTokenView(DotRevokeTokenView):
-
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
         except PermissionDenied as error:
-            return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
-                                status=error.status_code,
-                                content_type='application/json')
+            return HttpResponse(
+                json.dumps(
+                    {
+                        "status_code": error.status_code,
+                        "detail": error.detail,
+                    }
+                ),
+                status=error.status_code,
+                content_type="application/json",
+            )
 
         return super().post(request, args, kwargs)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class IntrospectTokenView(DotIntrospectTokenView):
-
     def get(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
         except PermissionDenied as error:
-            return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
-                                status=error.status_code,
-                                content_type='application/json')
+            return HttpResponse(
+                json.dumps(
+                    {
+                        "status_code": error.status_code,
+                        "detail": error.detail,
+                    }
+                ),
+                status=error.status_code,
+                content_type="application/json",
+            )
 
         return super(IntrospectTokenView, self).get(request, args, kwargs)
 
@@ -283,9 +354,15 @@ class IntrospectTokenView(DotIntrospectTokenView):
         try:
             validate_app_is_active(request)
         except PermissionDenied as error:
-            return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
-                                status=error.status_code,
-                                content_type='application/json')
+            return HttpResponse(
+                json.dumps(
+                    {
+                        "status_code": error.status_code,
+                        "detail": error.detail,
+                    }
+                ),
+                status=error.status_code,
+                content_type="application/json",
+            )
 
         return super(IntrospectTokenView, self).post(request, args, kwargs)

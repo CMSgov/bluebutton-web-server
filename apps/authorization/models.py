@@ -15,6 +15,7 @@ class DataAccessGrant(models.Model):
         on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    grant_expiration_timestamp = models.DateTimeField(null=True)
 
     class Meta:
         unique_together = ("beneficiary", "application")
@@ -70,9 +71,14 @@ def update_grants(*args, **kwargs):
 
 def check_grants():
     AccessToken = get_access_token_model()
-    token_count = AccessToken.objects.filter(
-        expires__gt=timezone.now(),
-    ).values('user', 'application').distinct().count()
+    token_count = (
+        AccessToken.objects.filter(
+            expires__gt=timezone.now(),
+        )
+        .values("user", "application")
+        .distinct()
+        .count()
+    )
     grant_count = DataAccessGrant.objects.all().count()
     return {
         "unique_tokens": token_count,
