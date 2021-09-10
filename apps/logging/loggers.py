@@ -7,16 +7,13 @@ from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.models import Application, get_application_counts, get_application_require_demographic_scopes_count
 from apps.fhir.bluebutton.models import check_crosswalks, Crosswalk
 from apps.logging.firehoses import BFDInsightsFirehose
+from apps.logging.utils import format_timestamp
 
 
 """
   Logger functions for logging module
 """
 logger = logging.getLogger(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
-
-
-def format_timestamp(dt):
-    return dt.astimezone().replace(microsecond=0).isoformat() if dt is not None else None
 
 
 def log_global_state_metrics_top_level(group_timestamp, firehose=None):
@@ -29,7 +26,7 @@ def log_global_state_metrics_top_level(group_timestamp, firehose=None):
     require_demographic_scopes_count = get_application_require_demographic_scopes_count()
 
     log_dict = {"type": "global_state_metrics",
-                "group_timestamp": str(group_timestamp),
+                "group_timestamp": group_timestamp,
                 "real_bene_cnt": crosswalk_counts.get('real', None),
                 "synth_bene_cnt": crosswalk_counts.get('synthetic', None),
                 "global_apps_active_cnt": application_counts.get('active_cnt', None),
@@ -123,12 +120,14 @@ def log_global_state_metrics(group_timestamp=None):
 
     if settings.LOG_FIREHOSE_ENABLE:
         print("---")
-        print("---  SENDING EVENTS TO BFD-INSIGHTS FIREHOSE:")
+        print("---  SENDING EVENTS TO BFD-INSIGHTS FIREHOSE DELIVERY STREAMS:")
         print("---")
-        firehose = BFDInsightsFirehose()
-
+        # Send top level state
+        firehose = BFDInsightsFirehose("global-state")
         log_global_state_metrics_top_level(group_timestamp=group_timestamp, firehose=firehose)
 
+        # Send per application state
+        firehose = BFDInsightsFirehose("global-state-apps")
         log_global_state_metrics_applications(group_timestamp=group_timestamp, firehose=firehose)
 
     print("SUCCESS")

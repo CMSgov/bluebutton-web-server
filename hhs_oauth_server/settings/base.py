@@ -332,8 +332,10 @@ else:
     AWS_EC2_INSTANCE_ID = "i-00000000000000000"
 
 # BFD-Insights Firehose settings
+AWS_DEFAULT_REGION = env("AWS_DEFAULT_REGION", "us-east-1")
 LOG_FIREHOSE_ENABLE = bool_env(env('DJANGO_LOG_FIREHOSE_ENABLE', 'False'))
-LOG_FIREHOSE_STREAM_NAME = env("DJANGO_LOG_FIREHOSE_STREAM_NAME", "bfd-insights-bb2-events")
+LOG_FIREHOSE_STREAM_NAME_PREFIX = env("DJANGO_LOG_FIREHOSE_STREAM_NAME_PREFIX", "bfd-insights-bb2-")
+LOG_FIREHOSE_CROSSOVER_ROLE_ARN = env("DJANGO_LOG_FIREHOSE_CROSSOVER_ROLE_ARN", "role-ENV-is-not-set")
 
 # Use env-specific logging config if present
 LOGGING = env("DJANGO_LOGGING", {
