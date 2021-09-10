@@ -89,7 +89,7 @@ class MyApplicationAdmin(admin.ModelAdmin):
         "authorization_grant_type": admin.VERTICAL,
     }
 
-    search_fields = ('^name', 'user__username', '=client_id', '=require_demographic_scopes', '=authorization_grant_type')
+    search_fields = ('name', 'user__username', '=client_id', '=require_demographic_scopes', '=authorization_grant_type')
 
     raw_id_fields = ("user", )
 
