@@ -98,7 +98,6 @@ class MyApplicationAdmin(admin.ModelAdmin):
 class MyAccessTokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'application', 'expires', 'scope')
     search_fields = ('user__username', 'application__name',)
-    list_filter = ("user", "application")
     raw_id_fields = ("user", 'application')
 
 
