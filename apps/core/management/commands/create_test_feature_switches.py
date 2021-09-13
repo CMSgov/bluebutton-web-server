@@ -10,6 +10,7 @@ WAFFLE_FEATURE_SWITCHES = (
     ("signup", True),
     ("require-scopes", True),
     ("testclient_v2", True),
+    ("enable_testclient", True),
     ("interim-prod-access", True),
     ("enable_swaggerui", True),
 )

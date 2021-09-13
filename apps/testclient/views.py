@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 from requests_oauthlib import OAuth2Session
+from waffle.decorators import waffle_switch
 
 from .utils import test_setup, get_client_secret
 from apps.dot_ext.loggers import cleanup_session_auth_flow_trace
@@ -98,6 +99,7 @@ def _get_oauth2_session_with_redirect(request):
         request.session['client_id'], redirect_uri=request.session['redirect_uri'])
 
 
+@waffle_switch('enable_testclient')
 def restart(request):
     # restart link clicked on API try out page
     if 'token' in request.session:
@@ -106,6 +108,7 @@ def restart(request):
     return render(request, HOME_PAGE, context={"session_token": None})
 
 
+@waffle_switch('enable_testclient')
 def callback(request):
     # Authorization has been denied or another error has occured, remove token if existing
     # and redirect to home page view to force re-authorization
@@ -155,6 +158,7 @@ def callback(request):
 
 
 # New home page view consolidates separate success, error, and access denied views
+@waffle_switch('enable_testclient')
 def test_links(request, **kwargs):
     # If authorization was successful, pass token to template
     if 'token' in request.session:
@@ -166,11 +170,13 @@ def test_links(request, **kwargs):
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_userinfo_v2(request):
     return test_userinfo(request, 2)
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_userinfo(request, version=1):
 
     if 'token' not in request.session:
@@ -187,11 +193,13 @@ def test_userinfo(request, version=1):
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_metadata_v2(request):
     return test_metadata(request, True)
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_metadata(request, v2=False):
     json_response = _convert_to_json(fhir_conformance_v2(request) if v2 else fhir_conformance(request))
     return render(request, RESULTS_PAGE,
@@ -201,11 +209,13 @@ def test_metadata(request, v2=False):
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_openid_config_v2(request):
     return test_openid_config(request, True)
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_openid_config(request, v2=False):
     # api ver agnostic for now, but show version any way on page
     json_response = _convert_to_json(openid_configuration(request))
@@ -216,11 +226,13 @@ def test_openid_config(request, v2=False):
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_coverage_v2(request):
     return test_coverage(request, 2)
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_coverage(request, version=1):
 
     if 'token' not in request.session:
@@ -244,11 +256,13 @@ def test_coverage(request, version=1):
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_patient_v2(request):
     return test_patient(request, 2)
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_patient(request, version=1):
 
     if 'token' not in request.session:
@@ -265,11 +279,13 @@ def test_patient(request, version=1):
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_eob_v2(request):
     return test_eob(request, 2)
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def test_eob(request, version=1):
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
@@ -294,11 +310,13 @@ def test_eob(request, version=1):
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def authorize_link_v2(request):
     return authorize_link(request, True)
 
 
 @never_cache
+@waffle_switch('enable_testclient')
 def authorize_link(request, v2=False):
     request.session.update(test_setup(v2=v2))
     oas = _get_oauth2_session_with_redirect(request)
