@@ -29,6 +29,7 @@ def create_user(group, usr):
     email = "fred@example.com"
     password = "foobarfoobarfoobar"
     user_type = "BEN"
+    
     if usr is not None:
         u_name = usr
         first_name = "{}{}".format(usr, "First") 
@@ -40,11 +41,22 @@ def create_user(group, usr):
     if User.objects.filter(username=u_name).exists():
         User.objects.filter(username=u_name).delete()
 
-    u = User.objects.create_user(username=u_name,
-                                 first_name=first_name,
-                                 last_name=last_name,
-                                 email=email,
-                                 password=password,)
+    u = None
+
+    if usr is not None:
+        u = User.objects.create_user(username=u_name,
+                                    first_name=first_name,
+                                    last_name=last_name,
+                                    email=email)
+        u.set_unusable_password()
+    else:
+        # create a sample user 'fred' for dev local that has a usable password
+        u = User.objects.create_user(username=u_name,
+                                    first_name=first_name,
+                                    last_name=last_name,
+                                    email=email,
+                                    password=password,)
+
     UserProfile.objects.create(user=u,
                                user_type=user_type,
                                create_applications=True,
