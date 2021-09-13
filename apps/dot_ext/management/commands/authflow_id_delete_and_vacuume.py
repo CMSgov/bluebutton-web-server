@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 
 from apps.dot_ext.models import AuthFlowUuidCopy
 
+TARGET_TABLE = "dot_ext_authflowuuidcopy"
 DELETE_WITH_LIMIT = "DELETE FROM {table_name} WHERE auth_uuid IN (SELECT auth_uuid FROM {table_name} WHERE created < '{age_date}'::date ORDER BY created LIMIT {limit_on_delete})"
 VACUUM_TABLE = "VACUUM FULL {table_name}"
 
@@ -18,8 +19,8 @@ def delete_and_vacuume_auth_uuid_table(age, limit_on_delete, run_vacuum, dry_run
 
     days_before = date.today()-timedelta(days=age)
     # change table name dot_ext_authflowuuidcopy to dot_ext_authflowuuid before merge
-    delete_sql = DELETE_WITH_LIMIT.format(table_name="dot_ext_authflowuuidcopy", age_date=days_before.strftime("%m/%d/%Y"), limit_on_delete=limit_on_delete)
-    vacuum_sql = VACUUM_TABLE.format(table_name="dot_ext_authflowuuidcopy")
+    delete_sql = DELETE_WITH_LIMIT.format(table_name=TARGET_TABLE, age_date=days_before.strftime("%m/%d/%Y"), limit_on_delete=limit_on_delete)
+    vacuum_sql = VACUUM_TABLE.format(table_name=TARGET_TABLE)
 
     start_t = time.time()
 
