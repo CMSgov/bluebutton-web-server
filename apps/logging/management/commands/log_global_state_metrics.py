@@ -9,8 +9,7 @@ class Command(BaseCommand):
     help = 'Managment command to log global state type metrics when called on a schedule.'
 
     def handle(self, *args, **options):
-        # Timestamp used to group multiple logging events from this command
-        #group_timestamp = datetime.now(timezone.utc).astimezone().replace(microsecond=0).isoformat()
+        # Timestamp used to group both types of logging events from this command
         group_timestamp = format_timestamp(datetime.now())
 
         log_global_state_metrics(group_timestamp)

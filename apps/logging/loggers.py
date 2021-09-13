@@ -19,7 +19,8 @@ logger = logging.getLogger(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
 def log_global_state_metrics_top_level(group_timestamp, firehose=None):
     '''
     Used in log_global_state_metrics() to log the top level event.
-    If firehose object is set, this selects output to the firehose.
+    If firehose object is set, this selects output to a specific stream.
+    NOTE:  print statements are for output when run via Jenkins to provide job info on success/fail.
     '''
     crosswalk_counts = check_crosswalks()
     application_counts = get_application_counts()
@@ -46,7 +47,8 @@ def log_global_state_metrics_top_level(group_timestamp, firehose=None):
 def log_global_state_metrics_applications(group_timestamp, firehose=None):
     '''
     Used in log_global_state_metrics() to log per application events.
-    If firehose object is set, this selects output to the firehose.
+    If firehose object is set, this selects output to a specific stream.
+    NOTE:  print statements are for output when run via Jenkins to provide job info on success/fail.
     '''
     applications = Application.objects.all()
 
@@ -102,7 +104,7 @@ def log_global_state_metrics_applications(group_timestamp, firehose=None):
 def log_global_state_metrics(group_timestamp=None):
     '''
     For use in apps/logging/management/commands/log_global_metrics.py management command
-    NOTE:  print statements are for output when run via Jenkins
+    NOTE:  print statements are for output when run via Jenkins to provide job info on success/fail.
     '''
     print("---")
     print("---RUNNING DJANGO COMMAND:  log_global_state_metrics")

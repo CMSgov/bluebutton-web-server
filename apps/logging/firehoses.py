@@ -7,6 +7,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
+from apps.logging.request_logger import AUDIT_GLOBAL_STATE_METRICS_LOGGER
 from apps.logging.utils import format_timestamp
 
 """
@@ -23,12 +24,19 @@ class BFDInsightsFirehose():
     """
     Firehose class for use in apps.logging.loggers.log_global_state_metrics().
     """
-    def __init__(self, firehose_name_postfix):
+    def __init__(self, stream_name_postfix):
+        self.__aws_default_region = settings.AWS_DEFAULT_REGION
+        self.__component = "bb2.web"
+        self.__crossover_arn = settings.LOG_FIREHOSE_CROSSOVER_ROLE_ARN
         self.__enabled = settings.LOG_FIREHOSE_ENABLE
         self.__firehose = None
+        self.__image_id = settings.AWS_EC2_IMAGE_ID
+        self.__instance_id = settings.AWS_EC2_INSTANCE_ID
+        self.__log_name = AUDIT_GLOBAL_STATE_METRICS_LOGGER
+        self.__vpc = settings.TARGET_ENV
 
         if self.__enabled:
-            self.__delivery_stream_name = settings.LOG_FIREHOSE_STREAM_NAME_PREFIX + firehose_name_postfix
+            self.__delivery_stream_name = settings.LOG_FIREHOSE_STREAM_NAME_PREFIX + stream_name_postfix
 
             try:
                 # create an STS client object that represents a live connection to the STS service
@@ -36,7 +44,7 @@ class BFDInsightsFirehose():
 
                 # Call the assume_role method
                 assumed_role_object = sts_client.assume_role(
-                    RoleArn=settings.LOG_FIREHOSE_CROSSOVER_ROLE_ARN,
+                    RoleArn=self.__crossover_arn,
                     RoleSessionName="AssumeRoleSession"
                 )
 
@@ -45,7 +53,7 @@ class BFDInsightsFirehose():
 
                 # Use the temporary credentials that AssumeRole returns to make a connection to firehose
                 self.__firehose = boto3.client(
-                    'firehose', region_name=settings.AWS_DEFAULT_REGION,
+                    'firehose', region_name=self.__aws_default_region,
                     aws_access_key_id=credentials['AccessKeyId'],
                     aws_secret_access_key=credentials['SecretAccessKey'],
                     aws_session_token=credentials['SessionToken'],
@@ -61,11 +69,11 @@ class BFDInsightsFirehose():
             try:
                 event = {
                     "time_of_event": time_of_event,
-                    "instance_id": settings.AWS_EC2_INSTANCE_ID,
-                    "image_id": settings.AWS_EC2_IMAGE_ID,
-                    "component": "bb2.web",
-                    "vpc": settings.TARGET_ENV,
-                    "log_name": "audit.global_state_metrics",
+                    "instance_id": self.__instance_id,
+                    "image_id": self.__image_id,
+                    "component": self.__component,
+                    "vpc": self.__vpc,
+                    "log_name": self.__log_name,
                 }
                 event.update(message)
                 self.__firehose.put_record(DeliveryStreamName=self.__delivery_stream_name,
