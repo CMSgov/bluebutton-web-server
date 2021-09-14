@@ -1,27 +1,24 @@
-import sys
 import hashlib
-import logging
+import sys
 import uuid
+
 from datetime import datetime
-from urllib.parse import urlparse
-from django.utils.dateparse import parse_duration
-from django.urls import reverse
-from django.db import models
-from django.db.models.signals import post_delete
-from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
-from apps.capabilities.models import ProtectedCapability
-from oauth2_provider.models import (
-    AbstractApplication,
-)
-from oauth2_provider.settings import oauth2_settings
 from django.conf import settings
-from django.template.defaultfilters import truncatechars
+from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
+from django.core.validators import RegexValidator
+from django.db import models
+from django.db.models import Q
+from django.db.models.signals import post_delete
+from django.template.defaultfilters import truncatechars
+from django.urls import reverse
+from django.utils.dateparse import parse_duration
+from django.utils.translation import ugettext_lazy as _
+from oauth2_provider.models import AbstractApplication, get_application_model
+from oauth2_provider.settings import oauth2_settings
+from urllib.parse import urlparse
 
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
+from apps.capabilities.models import ProtectedCapability
 
 
 class Application(AbstractApplication):
@@ -133,7 +130,7 @@ class ApplicationLabel(models.Model):
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(db_index=True, unique=True)
     description = models.TextField()
-    applications = models.ManyToManyField(Application, null=True, blank=True)
+    applications = models.ManyToManyField(Application, blank=True)
 
     @property
     def short_description(self):
@@ -274,6 +271,47 @@ class AuthFlowUuid(models.Model):
 
     def __str__(self):
         return str(self.auth_uuid)
+
+
+def get_application_counts():
+    '''
+    Get the active and inactive counts of applications.
+    '''
+    Application = get_application_model()
+
+    try:
+        active_cnt = Application.objects.filter(active=True).count()
+        inactive_cnt = Application.objects.filter(active=False).count()
+        return {
+            "active_cnt": active_cnt,
+            "inactive_cnt": inactive_cnt,
+        }
+    except ValueError:
+        pass
+    except Application.DoesNotExist:
+        pass
+
+    return {
+        "active_cnt": None,
+        "inactive_cnt": None,
+    }
+
+
+def get_application_require_demographic_scopes_count():
+    '''
+    Get the count of active applications requiring demographic scopes.
+    '''
+    Application = get_application_model()
+
+    try:
+        cnt = Application.objects.filter(Q(active=True) & Q(require_demographic_scopes=True)).count()
+        return cnt
+    except ValueError:
+        pass
+    except Application.DoesNotExist:
+        pass
+
+    return None
 
 
 post_delete.connect(archive_token, sender='oauth2_provider.AccessToken')

@@ -1,5 +1,6 @@
 import json
 import logging
+
 import waffle
 from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
@@ -27,8 +28,9 @@ from rest_framework.exceptions import PermissionDenied
 from django.template.response import TemplateResponse
 from django.shortcuts import HttpResponse
 
+import apps.logging.request_logger as bb2logging
 
-log = logging.getLogger('hhs_server.%s' % __name__)
+log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class AuthorizationView(DotAuthorizationView):
@@ -36,8 +38,13 @@ class AuthorizationView(DotAuthorizationView):
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+    version = None
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
+
+    def __init__(self, version=1):
+        self.version = version
+        super().__init__()
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -61,6 +68,7 @@ class AuthorizationView(DotAuthorizationView):
                 },
                 status=error.status_code)
 
+        request.session['version'] = self.version
         return super().dispatch(request, *args, **kwargs)
 
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
@@ -182,14 +190,17 @@ class ApprovalView(AuthorizationView):
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+    version = None
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
+
+    def __init__(self, version=1):
+        self.version = version
+        super().__init__()
 
     def dispatch(self, request, uuid, *args, **kwargs):
         # Get auth_uuid to set again after super() return. It gets cleared out otherwise.
         auth_flow_dict = get_session_auth_flow_trace(request)
-
-        # trows DoesNotExist
         try:
             approval = Approval.objects.get(uuid=uuid)
             if approval.expired:
@@ -204,6 +215,8 @@ class ApprovalView(AuthorizationView):
 
         # Set flag to let super method know who's calling, so auth_uuid doesn't get reset.
         kwargs['is_subclass_approvalview'] = True
+
+        request.session['version'] = self.version
 
         result = super().dispatch(request, *args, **kwargs)
 

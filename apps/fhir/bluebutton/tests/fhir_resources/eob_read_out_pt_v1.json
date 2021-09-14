@@ -1,0 +1,1842 @@
+{
+    "resourceType": "ExplanationOfBenefit",
+    "id": "outpatient-4412920419",
+    "meta": {
+        "lastUpdated": "2020-11-09T22:52:24.690+00:00"
+    },
+    "extension": [
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_profnl_cmpnt_chrg_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_bene_ptb_ddctbl_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_bene_ptb_coinsrnc_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_op_prvdr_pmt_amt",
+            "valueMoney": {
+                "value": 20.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/clm_op_bene_pmt_amt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/nch_bene_blood_ddctbl_lblty_am",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/prpayamt",
+            "valueMoney": {
+                "value": 0.0,
+                "system": "urn:iso:std:iso:4217",
+                "code": "USD"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/fi_num",
+            "valueIdentifier": {
+                "system": "https://bluebutton.cms.gov/resources/variables/fi_num",
+                "value": "99999"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/fi_doc_clm_cntl_num",
+            "valueIdentifier": {
+                "system": "https://bluebutton.cms.gov/resources/variables/fi_doc_clm_cntl_num",
+                "value": "00000000000000000000000"
+            }
+        },
+        {
+            "url": "https://bluebutton.cms.gov/resources/variables/fi_orig_clm_cntl_num",
+            "valueIdentifier": {
+                "system": "https://bluebutton.cms.gov/resources/variables/fi_orig_clm_cntl_num",
+                "value": "00000000000000000000000"
+            }
+        }
+    ],
+    "identifier": [
+        {
+            "system": "https://bluebutton.cms.gov/resources/variables/clm_id",
+            "value": "4412920419"
+        },
+        {
+            "system": "https://bluebutton.cms.gov/resources/identifier/claim-group",
+            "value": "52241843218"
+        }
+    ],
+    "status": "active",
+    "type": {
+        "coding": [
+            {
+                "system": "https://bluebutton.cms.gov/resources/variables/nch_clm_type_cd",
+                "code": "40",
+                "display": "Hospital Outpatient claim"
+            },
+            {
+                "system": "https://bluebutton.cms.gov/resources/codesystem/eob-type",
+                "code": "OUTPATIENT"
+            },
+            {
+                "system": "http://hl7.org/fhir/ex-claimtype",
+                "code": "professional",
+                "display": "Professional"
+            },
+            {
+                "system": "https://bluebutton.cms.gov/resources/variables/nch_near_line_rec_ident_cd",
+                "code": "W",
+                "display": "Part B institutional claim record (outpatient [HOP], HHA)"
+            },
+            {
+                "system": "https://bluebutton.cms.gov/resources/variables/clm_srvc_clsfctn_type_cd",
+                "code": "4"
+            }
+        ]
+    },
+    "patient": {
+        "reference": "Patient/-20140000008325"
+    },
+    "billablePeriod": {
+        "extension": [
+            {
+                "url": "https://bluebutton.cms.gov/resources/variables/claim_query_cd",
+                "valueCoding": {
+                    "system": "https://bluebutton.cms.gov/resources/variables/claim_query_cd",
+                    "code": "3",
+                    "display": "Final bill"
+                }
+            }
+        ],
+        "start": "2015-02-01",
+        "end": "2015-02-01"
+    },
+    "provider": {
+        "identifier": {
+            "system": "https://bluebutton.cms.gov/resources/variables/prvdr_num",
+            "value": "999999"
+        }
+    },
+    "organization": {
+        "identifier": {
+            "system": "http://hl7.org/fhir/sid/us-npi",
+            "value": "9999999999"
+        }
+    },
+    "facility": {
+        "extension": [
+            {
+                "url": "https://bluebutton.cms.gov/resources/variables/clm_fac_type_cd",
+                "valueCoding": {
+                    "system": "https://bluebutton.cms.gov/resources/variables/clm_fac_type_cd",
+                    "code": "1",
+                    "display": "Hospital"
+                }
+            }
+        ],
+        "identifier": {
+            "system": "http://hl7.org/fhir/sid/us-npi",
+            "value": "9999999999"
+        }
+    },
+    "information": [
+        {
+            "sequence": 1,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/nch_wkly_proc_dt",
+                        "display": "NCH Weekly Claim Processing Date"
+                    }
+                ]
+            },
+            "timingDate": "2015-04-17"
+        },
+        {
+            "sequence": 2,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/clm_freq_cd",
+                        "display": "Claim Frequency Code"
+                    }
+                ]
+            },
+            "code": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/clm_freq_cd",
+                        "code": "1",
+                        "display": "Admit thru discharge claim"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 3,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/information",
+                        "code": "https://bluebutton.cms.gov/resources/variables/ptnt_dschrg_stus_cd",
+                        "display": "Patient Discharge Status Code"
+                    }
+                ]
+            },
+            "code": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/ptnt_dschrg_stus_cd",
+                        "code": "01",
+                        "display": "Discharged to home/self-care (routine charge)."
+                    }
+                ]
+            }
+        }
+    ],
+    "careTeam": [
+        {
+            "sequence": 2,
+            "provider": {
+                "identifier": {
+                    "system": "http://hl7.org/fhir/sid/us-npi",
+                    "value": "9999999999"
+                }
+            },
+            "role": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/claimcareteamrole",
+                        "code": "assist",
+                        "display": "Assisting Provider"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 3,
+            "provider": {
+                "identifier": {
+                    "system": "http://hl7.org/fhir/sid/us-npi",
+                    "value": "9999999999"
+                }
+            },
+            "role": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/claimcareteamrole",
+                        "code": "other",
+                        "display": "Other"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 4,
+            "provider": {
+                "identifier": {
+                    "system": "http://hl7.org/fhir/sid/us-npi",
+                    "value": "9999999999"
+                }
+            },
+            "role": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/claimcareteamrole",
+                        "code": "primary",
+                        "display": "Primary provider"
+                    }
+                ]
+            }
+        },
+        {
+            "sequence": 5,
+            "provider": {
+                "identifier": {
+                    "system": "http://hl7.org/fhir/sid/us-npi",
+                    "value": "999999999999"
+                }
+            },
+            "role": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/claimcareteamrole",
+                        "code": "primary",
+                        "display": "Primary provider"
+                    }
+                ]
+            }
+        }
+    ],
+    "diagnosis": [
+        {
+            "sequence": 1,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "4019",
+                        "display": "HYPERTENSION NOS"
+                    }
+                ]
+            },
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": "https://bluebutton.cms.gov/resources/codesystem/diagnosis-type",
+                            "code": "principal",
+                            "display": "The single medical diagnosis that is most relevant to the patient's chief complaint or need for treatment."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "sequence": 2,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/sid/icd-9-cm",
+                        "code": "2724",
+                        "display": "HYPERLIPIDEMIA NEC/NOS"
+                    }
+                ]
+            }
+        }
+    ],
+    "insurance": {
+        "coverage": {
+            "reference": "Coverage/part-b--20140000008325"
+        }
+    },
+    "item": [
+        {
+            "sequence": 1,
+            "careTeamLinkId": [
+                5
+            ],
+            "revenue": {
+                "extension": [
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                            "code": "S",
+                            "display": "Significant procedure not subject to multiple procedure discounting"
+                        }
+                    }
+                ],
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0301",
+                        "display": "Laboratory-chemistry"
+                    }
+                ]
+            },
+            "service": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/hcpcs",
+                        "code": "80048"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 1
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_blood_ddctbl_amt",
+                                "display": "Revenue Center Blood Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_cash_ddctbl_amt",
+                                "display": "Revenue Center Cash Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_coinsrnc_wge_adjstd_c",
+                                "display": "Revenue Center Coinsurance/Wage Adjusted Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rdcd_coinsrnc_amt",
+                                "display": "Revenue Center Reduced Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_1st_msp_pd_amt",
+                                "display": "Revenue Center 1st Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_2nd_msp_pd_amt",
+                                "display": "Revenue Center 2nd Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_prvdr_pmt_amt",
+                                "display": "Revenue Center (Medicare) Provider Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_bene_pmt_amt",
+                                "display": "Revenue Center Payment Amount to Beneficiary"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ptnt_rspnsblty_pmt",
+                                "display": "Revenue Center Patient Responsibility Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_pmt_amt_amt",
+                                "display": "Revenue Center (Medicare) Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 10.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 60.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 2,
+            "careTeamLinkId": [
+                5
+            ],
+            "revenue": {
+                "extension": [
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                            "code": "A",
+                            "display": "Services not paid under OPPS; uses a different fee schedule (e.g., ambulance, PT, mammography)"
+                        }
+                    }
+                ],
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0301",
+                        "display": "Laboratory-chemistry"
+                    }
+                ]
+            },
+            "service": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/hcpcs",
+                        "code": "80061"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 1
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_blood_ddctbl_amt",
+                                "display": "Revenue Center Blood Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_cash_ddctbl_amt",
+                                "display": "Revenue Center Cash Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_coinsrnc_wge_adjstd_c",
+                                "display": "Revenue Center Coinsurance/Wage Adjusted Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rdcd_coinsrnc_amt",
+                                "display": "Revenue Center Reduced Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_1st_msp_pd_amt",
+                                "display": "Revenue Center 1st Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_2nd_msp_pd_amt",
+                                "display": "Revenue Center 2nd Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_prvdr_pmt_amt",
+                                "display": "Revenue Center (Medicare) Provider Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_bene_pmt_amt",
+                                "display": "Revenue Center Payment Amount to Beneficiary"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ptnt_rspnsblty_pmt",
+                                "display": "Revenue Center Patient Responsibility Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_pmt_amt_amt",
+                                "display": "Revenue Center (Medicare) Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 20.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 80.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 3,
+            "careTeamLinkId": [
+                5
+            ],
+            "revenue": {
+                "extension": [
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                            "code": "A",
+                            "display": "Services not paid under OPPS; uses a different fee schedule (e.g., ambulance, PT, mammography)"
+                        }
+                    }
+                ],
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0301",
+                        "display": "Laboratory-chemistry"
+                    }
+                ]
+            },
+            "service": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/hcpcs",
+                        "code": "83036"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 1
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_blood_ddctbl_amt",
+                                "display": "Revenue Center Blood Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_cash_ddctbl_amt",
+                                "display": "Revenue Center Cash Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_coinsrnc_wge_adjstd_c",
+                                "display": "Revenue Center Coinsurance/Wage Adjusted Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rdcd_coinsrnc_amt",
+                                "display": "Revenue Center Reduced Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_1st_msp_pd_amt",
+                                "display": "Revenue Center 1st Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_2nd_msp_pd_amt",
+                                "display": "Revenue Center 2nd Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_prvdr_pmt_amt",
+                                "display": "Revenue Center (Medicare) Provider Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_bene_pmt_amt",
+                                "display": "Revenue Center Payment Amount to Beneficiary"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ptnt_rspnsblty_pmt",
+                                "display": "Revenue Center Patient Responsibility Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_pmt_amt_amt",
+                                "display": "Revenue Center (Medicare) Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 10.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 70.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 70.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 4,
+            "careTeamLinkId": [
+                5
+            ],
+            "revenue": {
+                "extension": [
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                            "code": "N",
+                            "display": "Packaged incidental service (no separate APC payment)"
+                        }
+                    }
+                ],
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0301",
+                        "display": "Laboratory-chemistry"
+                    }
+                ]
+            },
+            "service": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/hcpcs",
+                        "code": "84450"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 1
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_blood_ddctbl_amt",
+                                "display": "Revenue Center Blood Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_cash_ddctbl_amt",
+                                "display": "Revenue Center Cash Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_coinsrnc_wge_adjstd_c",
+                                "display": "Revenue Center Coinsurance/Wage Adjusted Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rdcd_coinsrnc_amt",
+                                "display": "Revenue Center Reduced Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_1st_msp_pd_amt",
+                                "display": "Revenue Center 1st Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_2nd_msp_pd_amt",
+                                "display": "Revenue Center 2nd Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_prvdr_pmt_amt",
+                                "display": "Revenue Center (Medicare) Provider Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_bene_pmt_amt",
+                                "display": "Revenue Center Payment Amount to Beneficiary"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ptnt_rspnsblty_pmt",
+                                "display": "Revenue Center Patient Responsibility Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_pmt_amt_amt",
+                                "display": "Revenue Center (Medicare) Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 10.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 50.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 5,
+            "careTeamLinkId": [
+                5
+            ],
+            "revenue": {
+                "extension": [
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                            "code": "A",
+                            "display": "Services not paid under OPPS; uses a different fee schedule (e.g., ambulance, PT, mammography)"
+                        }
+                    }
+                ],
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0301",
+                        "display": "Laboratory-chemistry"
+                    }
+                ]
+            },
+            "service": {
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/codesystem/hcpcs",
+                        "code": "84460"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 1
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_blood_ddctbl_amt",
+                                "display": "Revenue Center Blood Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_cash_ddctbl_amt",
+                                "display": "Revenue Center Cash Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_coinsrnc_wge_adjstd_c",
+                                "display": "Revenue Center Coinsurance/Wage Adjusted Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rdcd_coinsrnc_amt",
+                                "display": "Revenue Center Reduced Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_1st_msp_pd_amt",
+                                "display": "Revenue Center 1st Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_2nd_msp_pd_amt",
+                                "display": "Revenue Center 2nd Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_prvdr_pmt_amt",
+                                "display": "Revenue Center (Medicare) Provider Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_bene_pmt_amt",
+                                "display": "Revenue Center Payment Amount to Beneficiary"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ptnt_rspnsblty_pmt",
+                                "display": "Revenue Center Patient Responsibility Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_pmt_amt_amt",
+                                "display": "Revenue Center (Medicare) Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 10.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 50.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        },
+        {
+            "sequence": 6,
+            "careTeamLinkId": [
+                5
+            ],
+            "revenue": {
+                "extension": [
+                    {
+                        "url": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                        "valueCoding": {
+                            "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr_stus_ind_cd",
+                            "code": "N",
+                            "display": "Packaged incidental service (no separate APC payment)"
+                        }
+                    }
+                ],
+                "coding": [
+                    {
+                        "system": "https://bluebutton.cms.gov/resources/variables/rev_cntr",
+                        "code": "0001",
+                        "display": "Total charge"
+                    }
+                ]
+            },
+            "locationAddress": {
+                "state": "99"
+            },
+            "quantity": {
+                "value": 5
+            },
+            "adjudication": [
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_blood_ddctbl_amt",
+                                "display": "Revenue Center Blood Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_cash_ddctbl_amt",
+                                "display": "Revenue Center Cash Deductible Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_coinsrnc_wge_adjstd_c",
+                                "display": "Revenue Center Coinsurance/Wage Adjusted Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rdcd_coinsrnc_amt",
+                                "display": "Revenue Center Reduced Coinsurance Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_1st_msp_pd_amt",
+                                "display": "Revenue Center 1st Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_2nd_msp_pd_amt",
+                                "display": "Revenue Center 2nd Medicare Secondary Payer (MSP) Paid Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_prvdr_pmt_amt",
+                                "display": "Revenue Center (Medicare) Provider Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_bene_pmt_amt",
+                                "display": "Revenue Center Payment Amount to Beneficiary"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ptnt_rspnsblty_pmt",
+                                "display": "Revenue Center Patient Responsibility Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_pmt_amt_amt",
+                                "display": "Revenue Center (Medicare) Payment Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_rate_amt",
+                                "display": "Revenue Center Rate Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 0.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_tot_chrg_amt",
+                                "display": "Revenue Center Total Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 300.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                },
+                {
+                    "category": {
+                        "coding": [
+                            {
+                                "system": "https://bluebutton.cms.gov/resources/codesystem/adjudication",
+                                "code": "https://bluebutton.cms.gov/resources/variables/rev_cntr_ncvrd_chrg_amt",
+                                "display": "Revenue Center Non-Covered Charge Amount"
+                            }
+                        ]
+                    },
+                    "amount": {
+                        "value": 70.0,
+                        "system": "urn:iso:std:iso:4217",
+                        "code": "USD"
+                    }
+                }
+            ]
+        }
+    ],
+    "totalCost": {
+        "value": 300.0,
+        "system": "urn:iso:std:iso:4217",
+        "code": "USD"
+    },
+    "payment": {
+        "amount": {
+            "value": 20.0,
+            "system": "urn:iso:std:iso:4217",
+            "code": "USD"
+        }
+    }
+}

@@ -1,12 +1,15 @@
-import random
 import logging
+import random
+
+import apps.logging.request_logger as bb2logging
+
 from django.conf import settings
 from django.urls import reverse
 from libs.decorators import waffle_function_switch
 from libs.mail import Mailer
 
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 def random_secret(y=40):

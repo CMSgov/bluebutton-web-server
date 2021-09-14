@@ -10,12 +10,12 @@ class DataAccessGrantSerializer:
         self.tkn = obj
         self.action = action
 
-    def __str__(self):
+    def to_dict(self):
         # seems like this should be a serializer
         app = getattr(self.tkn, 'application', None)
         app_user = getattr(app, 'user', None)
         user = getattr(self.tkn, 'user', None)
-        result = {
+        return {
             "type": "DataAccessGrant",
             "action": self.action,
             "id": getattr(self.tkn, 'pk', None),
@@ -32,28 +32,23 @@ class DataAccessGrantSerializer:
                 "username": getattr(user, 'username', None),
             }
         }
-        return json.dumps(result)
 
 
 class Token:
     tkn = None
     action = None
-    auth_flow_dict = {}
 
-    def __init__(self, obj, action=None, auth_flow_dict=None):
+    def __init__(self, obj, action=None):
         self.tkn = obj
         self.action = action
-        if auth_flow_dict:
-            self.auth_flow_dict = auth_flow_dict
-        else:
-            self.auth_flow_dict = {}
 
-    def __str__(self):
+    def to_dict(self):
         # seems like this should be a serializer
         app = getattr(self.tkn, 'application', None)
         app_user = getattr(app, 'user', None)
         user = getattr(self.tkn, 'user', None)
         scopes_dict = getattr(self.tkn, 'scopes', None)
+        crosswalk = getattr(user, 'crosswalk', None)
 
         if scopes_dict:
             # Convert dict keys list to str
@@ -79,13 +74,17 @@ class Token:
             "user": {
                 "id": getattr(user, 'id', None),
                 "username": getattr(user, 'username', None),
-            }
+            },
+            "crosswalk": {
+                "id": getattr(crosswalk, 'id', None),
+                "user_hicn_hash": getattr(crosswalk, "user_hicn_hash", None),
+                "user_mbi_hash": getattr(crosswalk, "user_mbi_hash", None),
+                "fhir_id": getattr(crosswalk, "fhir_id", None),
+                "user_id_type": getattr(crosswalk, "user_id_type", None),
+            },
         }
 
-        # Update with auth flow session info
-        result.update(self.auth_flow_dict)
-
-        return json.dumps(result)
+        return result
 
 
 class Request:
@@ -107,9 +106,6 @@ class Request:
             "path": self.path(),
         }
 
-    def __str__(self):
-        return json.dumps(self.to_dict())
-
 
 class SLSRequest(Request):
 
@@ -130,7 +126,8 @@ class SLSRequest(Request):
 
 
 class FHIRRequest(Request):
-    def __init__(self, request):
+    def __init__(self, request, api_ver=None):
+        self.api_ver = api_ver
         super().__init__(request)
 
     def includeAddressFields(self):
@@ -169,6 +166,7 @@ class FHIRRequest(Request):
             "type": "fhir_pre_fetch",
             "uuid": self.uuid(),
             "fhir_id": self.fhir_id(),
+            "api_ver": self.api_ver if self.api_ver is not None else 'v1',
             "includeAddressFields": self.includeAddressFields(),
             "user": self.user(),
             "application": self.application(),
@@ -178,11 +176,8 @@ class FHIRRequest(Request):
 
 
 class FHIRRequestForAuth(Request):
-    def __init__(self, request, auth_flow_dict=None):
-        if auth_flow_dict:
-            self.auth_flow_dict = auth_flow_dict
-        else:
-            self.auth_flow_dict = {}
+    def __init__(self, request, api_ver=None):
+        self.api_ver = api_ver
         super().__init__(request)
 
     def includeAddressFields(self):
@@ -198,12 +193,11 @@ class FHIRRequestForAuth(Request):
         result = {
             "type": "fhir_auth_pre_fetch",
             "uuid": self.uuid(),
+            "api_ver": self.api_ver if self.api_ver is not None else 'v1',
             "includeAddressFields": self.includeAddressFields(),
             "path": "patient search",
             "start_time": self.start_time(),
         }
-        # Update with auth flow session info
-        result.update(self.auth_flow_dict)
         return result
 
 
@@ -233,20 +227,18 @@ class Response:
         resp_dict.update(self.req)
         return resp_dict
 
-    def __str__(self):
-        result = self.req.copy()
-        result.update(self.to_dict())
-        return json.dumps(result)
-
 
 class FHIRResponse(Response):
     request_class = FHIRRequest
 
-    def __init__(self, response):
+    def __init__(self, response, api_ver):
+        self.api_ver = api_ver
         super().__init__(response)
 
     def to_dict(self):
         super_dict = super().to_dict()
+        # add fhir version info
+        super_dict.update({"api_ver": self.api_ver if self.api_ver is not None else 'v1'})
         # over write type
         super_dict.update({"type": "fhir_post_fetch"})
         return super_dict
@@ -255,29 +247,22 @@ class FHIRResponse(Response):
 class FHIRResponseForAuth(Response):
     request_class = FHIRRequestForAuth
 
-    def __init__(self, response, auth_flow_dict=None):
-        if auth_flow_dict:
-            self.auth_flow_dict = auth_flow_dict
-        else:
-            self.auth_flow_dict = {}
+    def __init__(self, response, api_ver=None):
+        self.api_ver = api_ver
         super().__init__(response)
 
     def to_dict(self):
         super_dict = super().to_dict()
+        # add fhir version info
+        super_dict.update({"api_ver": self.api_ver if self.api_ver is not None else 'v1'})
         # over write type
         super_dict.update({"type": "fhir_auth_post_fetch"})
-        # Update with auth flow session info
-        super_dict.update(self.auth_flow_dict)
         return super_dict
 
 
 class SLSResponse(Response):
 
-    def __init__(self, response, auth_flow_dict=None):
-        if auth_flow_dict:
-            self.auth_flow_dict = auth_flow_dict
-        else:
-            self.auth_flow_dict = {}
+    def __init__(self, response, request=None):
         super().__init__(response)
 
     def to_dict(self):
@@ -295,84 +280,36 @@ class SLSxTokenResponse(SLSResponse):
         return 'SLSx_token'
 
     def to_dict(self):
-        # TODO: Handle exception json.decoder.JSONDecodeError
-        event_dict = json.loads(self.resp.text)
+
+        event_dict = {}
+        json_exception = {}
+
+        if self.resp.text:
+            try:
+                event_dict = json.loads(self.resp.text)
+            except json.decoder.JSONDecodeError:
+                json_exception = {
+                    "message": "JSONDecodeError thrown when parsing response text."
+                }
+
         event_dict.update(super().to_dict().copy())
+
         resp_dict = {
-            "uuid": event_dict['uuid'],
-            "type": event_dict['type'],
-            "path": event_dict['path'],
-            "auth_token": hashlib.sha256(
-                str(event_dict['auth_token']).encode('utf-8')).hexdigest(),
-            "code": event_dict['code'],
-            "size": event_dict['size'],
-            "start_time": event_dict['start_time'],
-            "elapsed": event_dict['elapsed'],
+            "type": event_dict.get('type', 'unknown'),
+            "uuid": event_dict.get('uuid', ''),
+            "path": event_dict.get('path', ''),
+            "auth_token": 'Not available' if event_dict.get('auth_token') is None else hashlib.sha256(
+                str(event_dict.get('auth_token')).encode('utf-8')).hexdigest(),
+            "code": event_dict.get('code', 306),
+            "size": event_dict.get('size', 0),
+            "start_time": event_dict.get('start_time', ''),
+            "elapsed": event_dict.get('elapsed', 0.0),
         }
-        # Update with auth flow session info
-        resp_dict.update(self.auth_flow_dict)
+
+        # update json parse err if any
+        resp_dict.update(json_exception)
 
         return resp_dict
-
-    def __str__(self):
-        return json.dumps(self.to_dict())
-
-
-class SLSTokenResponse(SLSResponse):
-    request_class = SLSRequest
-
-    def get_type(self):
-        return 'SLS_token'
-
-    def to_dict(self):
-        event_dict = json.loads(self.resp.text)
-        event_dict.update(super().to_dict().copy())
-        resp_dict = {
-            "uuid": event_dict['uuid'],
-            "type": event_dict['type'],
-            "path": event_dict['path'],
-            "access_token": hashlib.sha256(
-                str(event_dict['access_token']).encode('utf-8')).hexdigest(),
-            "code": event_dict['code'],
-            "size": event_dict['size'],
-            "start_time": event_dict['start_time'],
-            "elapsed": event_dict['elapsed'],
-        }
-        # Update with auth flow session info
-        resp_dict.update(self.auth_flow_dict)
-
-        return resp_dict
-
-    def __str__(self):
-        return json.dumps(self.to_dict())
-
-
-class SLSUserInfoResponse(SLSResponse):
-    request_class = SLSRequest
-
-    def get_type(self):
-        return 'SLS_userinfo'
-
-    def to_dict(self):
-        event_dict = json.loads(self.resp.text)
-        event_dict.update(super().to_dict().copy())
-        resp_dict = {
-            "uuid": event_dict['uuid'],
-            "type": event_dict['type'],
-            "path": event_dict['path'],
-            "sub": event_dict['sub'],
-            "code": event_dict['code'],
-            "size": event_dict['size'],
-            "start_time": event_dict['start_time'],
-            "elapsed": event_dict['elapsed'],
-        }
-        # Update with auth flow session info
-        resp_dict.update(self.auth_flow_dict)
-
-        return resp_dict
-
-    def __str__(self):
-        return json.dumps(self.to_dict())
 
 
 class SLSxUserInfoResponse(SLSResponse):
@@ -382,22 +319,36 @@ class SLSxUserInfoResponse(SLSResponse):
         return 'SLSx_userinfo'
 
     def to_dict(self):
-        event_dict = json.loads(self.resp.text)
+        # handle case where response text is empty or none json,
+        # e.g. reconcile with additional slsx flow singout validation
+        # added to slsx flow
+
+        event_dict = {}
+        json_exception = {}
+
+        if self.resp.text:
+            try:
+                event_dict = json.loads(self.resp.text)
+            except json.decoder.JSONDecodeError:
+                json_exception = {
+                    "message": "JSONDecodeError thrown when parsing response text."
+                }
+
         event_dict.update(super().to_dict().copy())
+
         resp_dict = {
-            "uuid": event_dict['uuid'],
-            "type": event_dict['type'],
-            "path": event_dict['path'],
-            "sub": event_dict['data']['user']['id'],
-            "code": event_dict['code'],
-            "size": event_dict['size'],
-            "start_time": event_dict['start_time'],
-            "elapsed": event_dict['elapsed'],
+            "type": event_dict.get('type', ''),
+            "uuid": event_dict.get('uuid', ''),
+            "path": event_dict.get('path', ''),
+            "sub": event_dict.get('data', {}).get('user', {}).get('id', 'Not available'),
+            # use http unused code as place holder - unittests now check schema
+            "code": event_dict.get('code', 306),
+            "size": event_dict.get('size', 0),
+            "start_time": event_dict.get('start_time', ''),
+            "elapsed": event_dict.get('elapsed', 0.0),
         }
-        # Update with auth flow session info
-        resp_dict.update(self.auth_flow_dict)
+
+        # update json parse err if any
+        resp_dict.update(json_exception)
 
         return resp_dict
-
-    def __str__(self):
-        return json.dumps(self.to_dict())

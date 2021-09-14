@@ -1,13 +1,16 @@
 import logging
+
 from rest_framework import (permissions, exceptions)
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import PermissionDenied
 from .constants import ALLOWED_RESOURCE_TYPES
 from django.conf import settings
 
-User = get_user_model()
+import apps.logging.request_logger as bb2logging
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+
+User = get_user_model()
 
 
 class ResourcePermission(permissions.BasePermission):

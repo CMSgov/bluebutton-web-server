@@ -1,10 +1,14 @@
 import logging
+
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from collections import OrderedDict
 from django.conf import settings
 from django.urls import reverse
-logger = logging.getLogger('hhs_server.%s' % __name__)
+
+import apps.logging.request_logger as bb2logging
+
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 @require_GET
@@ -14,7 +18,8 @@ def openid_configuration(request):
     """
     data = OrderedDict()
     issuer = base_issuer(request)
-    data = build_endpoint_info(data, issuer=issuer)
+    v2 = request.path.endswith('openid-configuration-v2') or request.path.endswith('openidConfigV2')
+    data = build_endpoint_info(data, issuer=issuer, v2=v2)
     return JsonResponse(data)
 
 
@@ -45,7 +50,7 @@ def base_issuer(request):
     return issuer
 
 
-def build_endpoint_info(data=OrderedDict(), issuer=""):
+def build_endpoint_info(data=OrderedDict(), v2=False, issuer=""):
     """
     construct the data package
     issuer should be http: or https:// prefixed url.
@@ -55,21 +60,26 @@ def build_endpoint_info(data=OrderedDict(), issuer=""):
     """
     data["issuer"] = issuer
     data["authorization_endpoint"] = issuer + \
-        reverse('oauth2_provider:authorize')
+        reverse('oauth2_provider:authorize' if not v2 else 'oauth2_provider_v2:authorize-v2')
     data["token_endpoint"] = issuer + \
-        reverse('oauth2_provider:token')
+        reverse('oauth2_provider:token' if not v2 else 'oauth2_provider_v2:token-v2')
     data["userinfo_endpoint"] = issuer + \
-        reverse('openid_connect_userinfo')
+        reverse('openid_connect_userinfo' if not v2 else 'openid_connect_userinfo_v2')
     data["ui_locales_supported"] = ["en-US", ]
     data["service_documentation"] = getattr(settings,
                                             'DEVELOPER_DOCS_URI',
                                             "https://cmsgov.github.io/bluebutton-developer-help/")
     data["op_tos_uri"] = settings.TOS_URI
     data["grant_types_supported"] = []
+
     for i in settings.GRANT_TYPES:
         data["grant_types_supported"].append(i[0])
+
     data["grant_types_supported"].append("refresh_token")
+
+    data["grant_types_supported"].remove("implicit")
+
     data["response_types_supported"] = ["code", "token"]
     data["fhir_metadata_uri"] = issuer + \
-        reverse('fhir_conformance_metadata')
+        reverse('fhir_conformance_metadata' if not v2 else 'fhir_conformance_metadata_v2')
     return data

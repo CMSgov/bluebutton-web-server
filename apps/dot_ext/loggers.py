@@ -22,7 +22,9 @@ SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type'
                                 'auth_share_demographic_scopes', 'auth_require_demographic_scopes']
 
 # REGEX of paths that should be updated with auth flow info in hhs_oauth_server.request_logging.py
-AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = "(^/v1/o/authorize/.*|^/mymedicare/login$|^/mymedicare/sls-callback$|^/v1/o/token/$)"
+AUTH_FLOW_REQUEST_LOGGING_PATHS_REGEX = ("(^/v[1|2]/o/authorize/.*"
+                                         "|^/mymedicare/login$|^/mymedicare/sls-callback$"
+                                         "|^/v[1|2]/o/token/$)")
 
 
 def is_path_part_of_auth_flow_trace(path):
@@ -110,15 +112,15 @@ def get_session_auth_flow_trace(request):
 
     Returns a auth_flow_dict type DICT of values for logging.
     '''
-    if request:
-        auth_flow_dict = {}
+    auth_flow_dict = {}
+
+    # Some unit test calls to this have request=None, or request without session attribute, so return empty dict.
+    if request and hasattr(request, "session") and request.session:
         for k in SESSION_AUTH_FLOW_TRACE_KEYS:
             if k in request.session:
                 auth_flow_dict[k] = request.session.get(k)
-        return auth_flow_dict
-    else:
-        # Some unit test calls to this have request=None, so return empty dict.
-        return {}
+
+    return auth_flow_dict
 
 
 def set_session_auth_flow_trace(request, auth_flow_dict):

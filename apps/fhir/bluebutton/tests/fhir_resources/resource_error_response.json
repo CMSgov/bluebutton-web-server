@@ -1,0 +1,10 @@
+{
+    "resourceType": "OperationOutcome",
+    "issue": [
+        {
+            "severity": "error",
+            "code": "processing",
+            "diagnostics": "Failed to call access method: java.lang.IllegalArgumentException: Unsupported ID pattern: part-d____--20140000008325"
+        }
+    ]
+}

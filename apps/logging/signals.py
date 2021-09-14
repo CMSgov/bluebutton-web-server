@@ -1,7 +1,5 @@
-import json
-import logging
-import sys
-import traceback
+import apps.logging.request_logger as logging
+
 from django.db.models.signals import (
     post_delete,
 )
@@ -11,7 +9,6 @@ from oauth2_provider.signals import app_authorized
 
 from apps.authorization.models import DataAccessGrant
 from apps.dot_ext.admin import MyAccessToken
-from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.dot_ext.signals import beneficiary_authorized_application
 from apps.fhir.bluebutton.signals import (
     pre_fetch,
@@ -19,8 +16,8 @@ from apps.fhir.bluebutton.signals import (
 )
 
 from apps.fhir.bluebutton.views.generic import FhirDataView
-from apps.mymedicare_cb.signals import post_sls
 from apps.fhir.bluebutton.utils import FhirServerAuth
+from apps.mymedicare_cb.signals import post_sls
 
 from .serializers import (
     Token,
@@ -31,17 +28,12 @@ from .serializers import (
     FHIRResponseForAuth,
 )
 
-token_logger = logging.getLogger('audit.authorization.token')
-sls_logger = logging.getLogger('audit.authorization.sls')
-fhir_logger = logging.getLogger('audit.data.fhir')
-
 
 @receiver(app_authorized)
 def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow dict from session for logging
-    auth_flow_dict = get_session_auth_flow_trace(request)
-
-    token_logger.info(get_event(Token(token, action="authorized", auth_flow_dict=auth_flow_dict)))
+    token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
+    token_logger.info(Token(token, action="authorized").to_dict())
 
 
 @receiver(beneficiary_authorized_application)
@@ -49,8 +41,27 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
                           share_demographic_scopes, scopes, allow, access_token_delete_cnt,
                           refresh_token_delete_cnt, data_access_grant_delete_cnt, **kwargs):
 
-    # Get auth flow dict from session for logging
-    auth_flow_dict = get_session_auth_flow_trace(request)
+    token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
+    crosswalk_log = {
+        "id": None,
+        "user_hicn_hash": None,
+        "user_mbi_hash": None,
+        "fhir_id": None,
+        "user_id_type": None
+    }
+
+    try:
+        crosswalk_log = {
+            "id": user.crosswalk.id,
+            "user_hicn_hash": user.crosswalk.user_hicn_hash,
+            "user_mbi_hash": user.crosswalk.user_mbi_hash,
+            "fhir_id": user.crosswalk.fhir_id,
+            "user_id_type": user.crosswalk.user_id_type
+        }
+    except Exception:
+        # TODO consider logging exception name here
+        # once we get the generic logger hooked up
+        pass
 
     log_dict = {
         "type": "Authorization",
@@ -59,13 +70,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "user": {
             "id": user.id,
             "username": user.username,
-            "crosswalk": {
-                "id": user.crosswalk.id,
-                "user_hicn_hash": user.crosswalk.user_hicn_hash,
-                "user_mbi_hash": user.crosswalk.user_mbi_hash,
-                "fhir_id": user.crosswalk.fhir_id,
-                "user_id_type": user.crosswalk.user_id_type,
-            },
+            "crosswalk": crosswalk_log,
         },
         "application": {
             "id": application.id,
@@ -79,53 +84,46 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "data_access_grant_delete_cnt": data_access_grant_delete_cnt,
     }
 
-    # Update with auth flow session info
-    if auth_flow_dict:
-        log_dict.update(auth_flow_dict)
-    token_logger.info(get_event(json.dumps(log_dict)))
+    token_logger.info(log_dict)
 
 
 # BB2-218 also capture delete MyAccessToken
 @receiver(post_delete, sender=MyAccessToken)
 @receiver(post_delete, sender=AccessToken)
 def token_removed(sender, instance=None, **kwargs):
-    token_logger.info(get_event(Token(instance, action="revoked", auth_flow_dict=None)))
+    token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
+    token_logger.info(Token(instance, action="revoked").to_dict())
 
 
 @receiver(post_delete, sender=DataAccessGrant)
 def log_grant_removed(sender, instance=None, **kwargs):
-    token_logger.info(get_event(DataAccessGrantSerializer(instance, action="revoked")))
+    token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
+    token_logger.info(DataAccessGrantSerializer(instance, action="revoked").to_dict())
 
 
 @receiver(pre_fetch, sender=FhirDataView)
 @receiver(pre_fetch, sender=FhirServerAuth)
-def fetching_data(sender, request=None, auth_flow_dict=None, **kwargs):
-    fhir_logger.info(get_event(FHIRRequest(request) if sender == FhirDataView else FHIRRequestForAuth(request, auth_flow_dict)))
+def fetching_data(sender, request=None, auth_request=None, api_ver=None, **kwargs):
+    fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
+    fhir_logger.info(FHIRRequest(request, api_ver).to_dict()
+                     if sender == FhirDataView
+                     else FHIRRequestForAuth(request, api_ver).to_dict())
 
 
 @receiver(post_fetch, sender=FhirDataView)
 @receiver(post_fetch, sender=FhirServerAuth)
-def fetched_data(sender, request=None, response=None, auth_flow_dict=None, **kwargs):
-    fhir_logger.info(get_event(FHIRResponse(response) if sender == FhirDataView else FHIRResponseForAuth(response,
-                                                                                                         auth_flow_dict)))
+def fetched_data(sender, request=None, auth_request=None, response=None, api_ver=None, **kwargs):
+    fhir_logger = logging.getLogger(logging.AUDIT_DATA_FHIR_LOGGER, auth_request)
+    fhir_logger.info(FHIRResponse(response, api_ver).to_dict()
+                     if sender == FhirDataView
+                     else FHIRResponseForAuth(response, api_ver).to_dict())
 
 
-def sls_hook(sender, response=None, auth_flow_dict=None, **kwargs):
-    # Handles sender for SLSUserInfoResponse,SLSxUserInfoResponse, or SLSTokenResponse
-    sls_logger.info(get_event(sender(response, auth_flow_dict)))
-
-
-def get_event(event):
-    '''
-    helper to evaluate event and supress any error
-    '''
-    event_str = None
-    try:
-        event_str = str(event)
-    except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        event_str = traceback.format_exception(exc_type, exc_value, exc_traceback)
-    return event_str
+def sls_hook(sender, response=None, request=None, **kwargs):
+    # Handles sender for SLSxUserInfoResponse, or SLSxTokenResponse
+    # here request - callback request
+    sls_logger = logging.getLogger(logging.AUDIT_AUTHZ_SLS_LOGGER, request)
+    sls_logger.info(sender(response).to_dict())
 
 
 post_sls.connect(sls_hook)

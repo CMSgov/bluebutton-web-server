@@ -1,0 +1,254 @@
+<form>
+    <label>BB2 V2 Activities Dashboard</label>
+    <description>Dashboard panels related to metrics for V2 stats reporting</description>
+    <fieldset submitButton="false"></fieldset>
+    <row>
+      <panel>
+        <input type="dropdown" token="bbEnvLabel" searchWhenChanged="true">
+          <label>Select Environment (by Label)</label>
+          <default>impl</default>
+          <choice value="impl">Sandbox env=impl</choice>
+          <choice value="prod">Prod env=prod</choice>
+          <choice value="*">ALL env=*</choice>
+          <initialValue>prod</initialValue>
+        </input>
+      </panel>
+      <panel>
+        <input type="dropdown" token="bbEnv" searchWhenChanged="true">
+          <label>Select Environment (by IP Range)</label>
+          <default>ALL</default>
+          <choice value="*">ALL</choice>
+          <choice value="ip-10-246-44-*">Sandbox</choice>
+          <choice value="ip-10-244-140-*">Prod</choice>
+          <initialValue>ALL</initialValue>
+        </input>
+      </panel>
+      <panel>
+        <input type="time" token="t_local" searchWhenChanged="true">
+          <label>Select Time Range</label>
+          <default>
+            <earliest>-7d@d</earliest>
+            <latest>now</latest>
+          </default>
+        </input>
+      </panel>
+      <panel>
+        <input type="dropdown" token="bbAppName" searchWhenChanged="true">
+          <label>Select Application Name</label>
+          <default>ALL</default>
+          <choice value="*">ALL</choice>
+          <initialValue>ALL</initialValue>
+          <fieldForLabel>AppName</fieldForLabel>
+          <fieldForValue>name</fieldForValue>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=$bbEnvLabel$ host=$bbEnv$ | spath output=name path="message.app_name" | table name | dedup name | sort name</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+          </search>
+        </input>
+      </panel>
+    </row>
+    <row>
+      <panel>
+        <html>
+         <u1> <h1>
+              <b>V2 Activities Stats</b>
+            </h1>
+          </u1>
+       </html>
+      </panel>
+    </row>
+
+    <!-- Setup of BASE searches to be used in panels -->
+    <search id="baseSearchFhirV1">
+        <!-- BASE search for FHIR V1 events -->
+       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ message.path="/v1/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
+       <earliest>$t_local.earliest$</earliest>
+       <latest>$t_local.latest$</latest>
+       <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearchFhirV2">
+        <!-- BASE search for FHIR V2 events -->
+       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ message.path="/v2/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
+       <earliest>$t_local.earliest$</earliest>
+       <latest>$t_local.latest$</latest>
+       <sampleRatio>1</sampleRatio>
+    </search>
+  
+    <row>
+      <panel>
+        <html>
+         <u1> <h1>
+              <b>FHIR V2 Events</b>
+            </h1>
+          </u1>
+       </html>
+      </panel>
+    </row>
+    <row>
+      <panel>
+        <title>1. V2 FHIR Patient Calls Made (w/ successful status)</title>
+        <single>
+          <search base="baseSearchFhirV2">
+            <done>
+              <set token="tokFhirV2PatientOKCount">$result.count$</set>
+            </done>
+            <query>search message.path="/v2/fhir/Patient*" | search message.response_code=200 | stats count</query>
+          </search>
+          <option name="drilldown">all</option>
+          <option name="height">226</option>
+          <option name="refresh.display">progressbar</option>
+        </single>
+      </panel>
+      <panel>
+        <title>2. V2 FHIR Coverage Calls Made (w/ successful status)</title>
+        <single>
+          <search base="baseSearchFhirV2">
+            <done>
+              <set token="tokFhirV2CoverageOKCount">$result.count$</set>
+            </done>
+            <query>search message.path="/v2/fhir/Coverage*" | search message.response_code=200 | stats count</query>
+          </search>
+          <option name="drilldown">all</option>
+          <option name="height">226</option>
+          <option name="refresh.display">progressbar</option>
+        </single>
+      </panel>
+      <panel>
+        <title>3. V2 FHIR EOB Calls Made (w/ successful status)</title>
+        <single>
+          <search base="baseSearchFhirV2">
+            <done>
+              <set token="tokFhirV2EobOKCount">$result.count$</set>
+            </done>
+            <query>search message.path="/v2/fhir/ExplanationOfBenefit*" | search message.response_code=200 | stats count</query>
+          </search>
+          <option name="drilldown">all</option>
+          <option name="height">226</option>
+          <option name="refresh.display">progressbar</option>
+        </single>
+      </panel>
+      <panel>
+        <title>4. TOTAL V2 FHIR Calls Made (w/ successful status, might include fhir requests other than Patient, EOB, Coverage, e.g. metadata)</title>
+        <single>
+          <search base="baseSearchFhirV2">
+            <done>
+              <set token="tokFhirV2OKCount">$result.count$</set>
+            </done>
+            <query>search message.response_code=200 | stats count</query>
+          </search>
+          <option name="drilldown">all</option>
+          <option name="height">226</option>
+          <option name="refresh.display">progressbar</option>
+        </single>
+      </panel>
+    </row>
+  
+    <row>
+      <panel>
+        <title>Active Apps (Accessed V2 API)</title>
+        <single>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ message.path="/v2/*" message.response_code=200 | spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+          </search>
+          <option name="height">137</option>
+          <option name="refresh.display">progressbar</option>
+        </single>
+      </panel>
+      <panel>
+        <title>V2 Requests By App</title>
+        <table>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ message.response_code=200 message.path="/v2/*" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+          </search>
+          <option name="count">10</option>
+          <option name="dataOverlayMode">none</option>
+          <option name="drilldown">none</option>
+          <option name="percentagesRow">false</option>
+          <option name="refresh.display">progressbar</option>
+          <option name="rowNumbers">false</option>
+          <option name="totalsRow">false</option>
+          <option name="wrap">true</option>
+        </table>
+      </panel>
+    </row>
+
+    <row>
+      <panel>
+        <chart>
+          <title>Total V2 Requests OK (200) TIME-CHART</title>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" message.response_code=200 | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+            <sampleRatio>1</sampleRatio>
+          </search>
+          <option name="charting.chart">column</option>
+          <option name="charting.drilldown">none</option>
+          <option name="height">199</option>
+          <option name="refresh.display">progressbar</option>
+        </chart>
+      </panel>
+    </row>
+
+    <row>
+      <panel>
+        <chart>
+          <title>V2 Requests Blocked By bfd_v2_flag TIME-CHART</title>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" message.type="v2_blocked" | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+            <sampleRatio>1</sampleRatio>
+          </search>
+          <option name="charting.chart">column</option>
+          <option name="charting.drilldown">none</option>
+          <option name="height">199</option>
+          <option name="refresh.display">progressbar</option>
+        </chart>
+      </panel>
+    </row>
+
+    <row>
+      <panel>
+        <title>Count Requests Blocked By V2 Flag Per App</title>
+        <table>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.app_name=$bbAppName$ "message.type"=v2_blocked message.path="/v2/*" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+          </search>
+          <option name="count">10</option>
+          <option name="dataOverlayMode">none</option>
+          <option name="drilldown">none</option>
+          <option name="percentagesRow">false</option>
+          <option name="refresh.display">progressbar</option>
+          <option name="rowNumbers">false</option>
+          <option name="totalsRow">false</option>
+          <option name="wrap">true</option>
+        </table>
+      </panel>
+    </row>
+
+    <row>
+      <panel>
+        <chart>
+          <title>Total V2 Requests TIME-CHART</title>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
+            <earliest>$t_local.earliest$</earliest>
+            <latest>$t_local.latest$</latest>
+            <sampleRatio>1</sampleRatio>
+          </search>
+          <option name="charting.chart">column</option>
+          <option name="charting.drilldown">none</option>
+          <option name="height">199</option>
+          <option name="refresh.display">progressbar</option>
+        </chart>
+      </panel>
+    </row>
+</form>

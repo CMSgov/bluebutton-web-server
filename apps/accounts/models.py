@@ -1,4 +1,5 @@
-import logging
+import apps.logging.request_logger as logging
+
 import binascii
 import pytz
 import random
@@ -249,7 +250,7 @@ class UserIdentificationLabel(models.Model):
     slug = models.SlugField(db_index=True, unique=True)
     weight = models.IntegerField(verbose_name="List Weight", null=False, default=0,
                                  help_text="Integer value controlling the position of the label in lists.")
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL, null=True, blank=True)
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
 
     def __str__(self):
         return self.slug + " - " + self.name

@@ -18,6 +18,17 @@ docker-compose logs -f | grep web
 ```
 press Ctrl C will stop monitor logging.
 
+## Setting up Pre Commit
+Precommit config has been setup inside the repo which will make sure that the code is properly formatted prior to commiting. To setup run as follows:
+
+```
+source venv/bin/activate (unless already done)
+pip install pre-commit
+pre-commit install
+```
+
+Once that is setup the pre commit tooling should be run prior to every commit to ensure everything is formatted correctly.
+
 ## Blue Button DB image migrations
 
 DB image migrations is done in docker container before blue button server is started.
@@ -56,6 +67,55 @@ then run the migrate script again:
 ```
 docker-compose exec web chmod +x docker-compose/migrate.sh
 ```
+
+## DB Migrations
+
+To check and see if any migrations have been added that haven't been applied to your local DB you can run the following command:
+```
+python manage.py showmigrations
+```
+NOTE: Make sure to run within the venv
+
+To then apply any missing migrations you can run the following command:
+```
+python manage.py migrate
+```
+
+You can also undo a single migration, or group of migrations.
+To do so you run the following command:
+```
+python manage.py migrate <app-name> <previous-migration-number>
+```
+
+Here's an example:
+Migrations are run and here is the output:
+```
+Running migrations:
+  Applying accounts.0002_auto_20210624_1454... OK
+  Applying bb2_tools.0001_initial... OK
+  Applying bb2_tools.0002_v2user... OK
+  Applying bluebutton.0002_remove_resourcerouter_fld_20210624_0826... OK
+  Applying bluebutton.0003_archivedcrosswalk... OK
+  Applying server.0002_deprecate_resourcerouter_20210624_1454... OK
+```
+
+In this example lets pretend that the migration `bb2_tools.0002_v2user` ended up being a bad one and you would like to roll back just that migration.
+
+To do so you'd run the following command:
+```
+python manage.py migrate bb2_tools 0001
+```
+NOTE: The number corresponds to the value right before the migration that you want to remove. You can also use `zero` and that will remove all migrations for that app.
+
+The output would look like the following:
+```
+Operations to perform:
+  Target specific migration: 0001_initial, from bb2_tools
+Running migrations:
+  Rendering model states... DONE
+  Unapplying bb2_tools.0002_v2user... OK
+```
+
 ## Populate BB2 Django models with large number of records
 
 Run migrate.sh will in turn execute a django command among other things:
@@ -136,18 +196,18 @@ COMPOSE_CONVERT_WINDOWS_PATHS=1
 
 ## Remote debugging BB2 server
 
-Add the line below to the .env file to enable remote PTVSD debugging
+Add the line below to the .env file to enable remote debugging
 of BB2 server in a docker container:
 
 ```
 BB20_ENABLE_REMOTE_DEBUG=true
 ```
 
-After BB2 server is up, ptvsd is listening on port 5678.
+After BB2 server is up, debugpy is listening on port 5678.
 Afterward, attach to it from your IDE (e.g. VSCode) and put break 
 points on the execution path. You can now start debugging.
 
-Add the line below to the .env file to make ptvsd agent wait on attaching, before execute
+Add the line below to the .env file to make debugpy wait on attaching, before execute
 bluebutton server, this is needed when debugging logic during bluebutton server bootstrap.
 
 ```
@@ -156,7 +216,7 @@ BB2_REMOTE_DEBUG_WAIT_ATTACH=true
 
 ## Remote debugging Blue Button unit tests
 
-Run the docker-compose command below to start the unittests with PTVSD and for it to wait on port 6789 for the debugger to attach.
+Run the docker-compose command below to start the unittests with debugpy and for it to wait on port 6789 for the debugger to attach.
 Attach to the unittests from an IDE (e.g. VSCode), then put break points in the test cases and debugging.
 
 ```
@@ -221,14 +281,13 @@ Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for G
 
 The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local_keybase.sh` script that performs pre-setup and sources environment variables from Keybase needed to utilize a live BFD back end system.
 
-There are two ways to test locally using the `docker-compose/run_integration_tests_local_keybase.sh` script:
+There are ways to test locally using the `docker-compose/run_integration_tests_local_keybase.sh` script:
 
   To get usage help use the following command:
 
   ```
   docker-compose/run_integration_tests_local_keybase.sh
   ```
-
 
   1. Using the docker-compose local development setup and containers. This is the quickest!
 
@@ -237,7 +296,11 @@ There are two ways to test locally using the `docker-compose/run_integration_tes
      ```
      docker-compose/run_integration_tests_local_keybase.sh dc
      ```
+     To debug integration tests:
 
+     ```
+     docker-compose/run_integration_tests_local_keybase.sh dc-debug
+     ```
 
   2. Using a Doocker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
 
@@ -247,8 +310,54 @@ There are two ways to test locally using the `docker-compose/run_integration_tes
      docker-compose/run_integration_tests_local_keybase.sh cbc
      ```
 
+  3. Using the docker-compose local development setup and containers with local bfd as backend.
+
+     The currently checked out (or working branch) will be used.
+
+     ```
+     docker-compose/run_integration_tests_local_keybase.sh local
+     ```
+     To debug integration tests:
+
+     ```
+     docker-compose/run_integration_tests_local_keybase.sh local-debug
+     ```
+
 NOTES:
   * The settings variables in the `docker-compose/run_integration_tests_local_keybase.sh cbc` may need to be updated to match your local development platform.
   * For the CBC related setup see these files for more details:
     * `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job. 
     * `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification.  These settings will also need to be updated when there are CBC image naming changes.
+
+## Developing and Running Selenium tests in Local Development
+You can run selenium tests by following below steps:
+
+  1. Make sure there is no blue button server and its dependent services running
+  2. Go to the base directory of the local repo and run:
+
+     use MSLSX (default)   
+     ```
+     ./docker-compose/run_selenium_tests_local_keybase.sh
+     ```
+
+     ```
+     ./docker-compose/run_selenium_tests_local_keybase.sh mslsx
+     ```
+
+     use SLSX
+     ```
+     ./docker-compose/run_selenium_tests_local_keybase.sh slsx
+     ```
+
+  3. To trouble shoot tests (visualize webUI interaction): point VNC client to localhost:6900
+     1. requires installation of vnc viewer, password (secret)
+     2. also need to comment out webdriver headless option, as shown below:
+     ```
+        ./apps/integration_tests/selenium_tests.py: setUp():
+        ...
+        opt = webdriver.ChromeOptions()
+        opt.add_argument('--headless')
+        opt.add_argument("--disable-dev-shm-usage")
+        ...
+     ```
+

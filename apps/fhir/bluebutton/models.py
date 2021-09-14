@@ -1,5 +1,4 @@
 import binascii
-import logging
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -11,9 +10,6 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from apps.accounts.models import get_user_id_salt
-from apps.fhir.server.settings import fhir_settings
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class BBFhirBluebuttonModelException(APIException):
@@ -116,10 +112,6 @@ class Crosswalk(models.Model):
         return '%s %s' % (self.user.first_name, self.user.last_name)
 
     @property
-    def fhir_source(self):
-        return fhir_settings
-
-    @property
     def fhir_id(self):
         return self._fhir_id
 
@@ -139,31 +131,80 @@ class Crosswalk(models.Model):
 
     @user_hicn_hash.setter
     def user_hicn_hash(self, value):
-        if self.pk:
-            raise ValidationError("this value cannot be modified.")
-        if self._user_id_hash:
-            raise ValidationError("this value cannot be modified.")
         self._user_id_hash = value
 
     @user_mbi_hash.setter
     def user_mbi_hash(self, value):
-        # Can update ONLY if previous hash value was None/Null.
-        if self.pk and self._user_mbi_hash is not None:
-            raise ValidationError("this value cannot be modified.")
-        if self._user_mbi_hash:
-            raise ValidationError("this value cannot be modified.")
         self._user_mbi_hash = value
 
-    def get_fhir_resource_url(self, resource_type):
-        # Return the fhir server url
-        full_url = self.fhir_source.fhir_url
-        if full_url.endswith('/'):
-            pass
-        else:
-            full_url += '/'
-        if resource_type:
-            full_url += resource_type + '/'
-        return full_url
+
+class ArchivedCrosswalk(models.Model):
+    """
+    This model is used to keep an audit copy of a Crosswalk record's
+    previous values when there are changes to the original.
+
+    This is performed via code in the `get_and_update_user()` function
+    in apps/mymedicare_cb/models.py
+    """
+    # SLSx sub/username
+    username = models.CharField(max_length=150,
+                                null=False,
+                                unique=False,
+                                default=None,
+                                db_column="username",
+                                db_index=True)
+
+    # BFD fhir/patient id
+    _fhir_id = models.CharField(max_length=80,
+                                null=False,
+                                unique=False,
+                                default=None,
+                                db_column="fhir_id",
+                                db_index=True)
+
+    # This value is to be set to the type of lookup used MBI or HICN
+    user_id_type = models.CharField(max_length=1,
+                                    verbose_name="Hash ID type last used for FHIR_ID lookup",
+                                    default=settings.USER_ID_TYPE_DEFAULT,
+                                    choices=settings.USER_ID_TYPE_CHOICES)
+
+    # This stores the HICN hash value.
+    # TODO: Maybe rename this to _user_hicn_hash in future.
+    #   Keeping the same to not break backwards migration compatibility.
+    _user_id_hash = models.CharField(max_length=64,
+                                     verbose_name="HASH of User HICN ID",
+                                     unique=False,
+                                     null=False,
+                                     default=None,
+                                     db_column="user_id_hash",
+                                     db_index=True)
+
+    # This stores the MBI hash value.
+    #     Can be null for backwards migration compatibility.
+    _user_mbi_hash = models.CharField(max_length=64,
+                                      verbose_name="HASH of User MBI ID",
+                                      unique=False,
+                                      null=True,
+                                      default=None,
+                                      db_column="user_mbi_hash",
+                                      db_index=True)
+
+    # Date/time that the Crosswalk instance was created
+    date_created = models.DateTimeField()
+
+    archived_at = models.DateTimeField(auto_now_add=True)
+
+    # Static method utility to create archive of field values from a passed in Crosswalk instance
+    @staticmethod
+    def create(crosswalk):
+        acw = ArchivedCrosswalk.objects.create(username=crosswalk.user.username,
+                                               _fhir_id=crosswalk.fhir_id,
+                                               user_id_type=crosswalk.user_id_type,
+                                               _user_id_hash=crosswalk.user_hicn_hash,
+                                               _user_mbi_hash=crosswalk.user_mbi_hash,
+                                               date_created=crosswalk.date_created)
+        acw.save()
+        return acw
 
 
 class Fhir_Response(Response):

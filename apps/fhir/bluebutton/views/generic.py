@@ -1,5 +1,9 @@
-import logging
 import voluptuous
+import waffle
+import logging
+
+import apps.logging.request_logger as bb2logging
+
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
 from rest_framework.parsers import JSONParser
@@ -7,27 +11,28 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.authorization.permissions import DataAccessGrantPermission
+from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
-from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.server import connection as backend_connection
+
+from ..authentication import OAuth2ResourceOwner
+from ..exceptions import process_error_response
+from ..permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
 from ..signals import (
     pre_fetch,
     post_fetch
 )
-from apps.authorization.permissions import DataAccessGrantPermission
-from ..authentication import OAuth2ResourceOwner
-from ..permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
-from ..exceptions import process_error_response
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class FhirDataView(APIView):
-
+    version = None
     parser_classes = [JSONParser, FHIRParser]
     renderer_classes = [JSONRenderer, FHIRRenderer]
     throttle_classes = [TokenRateThrottle]
@@ -39,6 +44,10 @@ class FhirDataView(APIView):
         HasCrosswalk,
         ResourcePermission,
         DataAccessGrantPermission]
+
+    def __init__(self, version=1):
+        self.version = version
+        super().__init__()
 
     # Must return a Crosswalk
     def check_resource_permission(self, request, **kwargs):
@@ -91,10 +100,27 @@ class FhirDataView(APIView):
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
+        # BB2-291 v2 switch enforced here, entry of all fhir resources queries
+        # TODO: waffle flag enforced, to be removed after v2 GA
+        if self.version == 2 and (not waffle.flag_is_active(request, 'bfd_v2_flag')):
+            err = exceptions.NotFound("bfd_v2_flag not active.")
+            waffle_event_logger = bb2logging.getLogger(bb2logging.AUDIT_WAFFLE_EVENT_LOGGER, request)
+            log_dict = {"type": "v2_blocked",
+                        "user": str(request.user) if request.user else None,
+                        "path": request.path if request.path else None,
+                        "app_id": request.auth.application.id if request.auth.application else None,
+                        "app_name": str(request.auth.application.name) if request.auth.application else None,
+                        "dev_id": str(request.auth.application.user.id) if request.auth.application else None,
+                        "dev_name": str(request.auth.application.user.username) if request.auth.application else None,
+                        "response_code": err.status_code,
+                        "message": str(err)}
+            log_dict.update(kwargs)
+            waffle_event_logger.info(log_dict)
+            raise err
+
         target_url = self.build_url(resource_router,
                                     resource_type,
-                                    *args,
-                                    **kwargs)
+                                    *args, **kwargs)
 
         logger.debug('FHIR URL with key:%s' % target_url)
 
@@ -115,14 +141,15 @@ class FhirDataView(APIView):
         s = Session()
         prepped = s.prepare_request(req)
         # Send signal
-        pre_fetch.send_robust(FhirDataView, request=req)
+        pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2' if self.version == 2 else 'v1')
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
             verify=FhirServerVerify(crosswalk=request.crosswalk))
         # Send signal
-        post_fetch.send_robust(FhirDataView, request=prepped, response=r)
+        post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request,
+                               response=r, api_ver='v2' if self.version == 2 else 'v1')
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
         # BB2-128

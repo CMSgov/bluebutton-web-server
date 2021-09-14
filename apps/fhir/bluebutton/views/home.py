@@ -5,6 +5,7 @@ from collections import OrderedDict
 from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
+from oauth2_provider.compat import urlparse
 from apps.fhir.bluebutton import constants
 from apps.fhir.bluebutton.utils import (request_call,
                                         prepend_q,
@@ -12,11 +13,16 @@ from apps.fhir.bluebutton.utils import (request_call,
                                         get_response_text,
                                         build_oauth_resource)
 
+import apps.logging.request_logger as bb2logging
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
-def fhir_conformance(request, via_oauth=False, *args, **kwargs):
+def fhir_conformance_v2(request, via_oauth=False):
+    return fhir_conformance(request, via_oauth, True)
+
+
+def fhir_conformance(request, via_oauth=False, v2=False, *args):
     """ Pull and filter fhir Conformance statement
 
     BaseStu3 = "CapabilityStatement"
@@ -29,12 +35,13 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     """
     crosswalk = None
     resource_router = get_resourcerouter()
-    call_to = resource_router.fhir_url
-
-    if call_to.endswith('/'):
-        call_to += 'metadata'
+    parsed_url = urlparse(resource_router.fhir_url)
+    call_to = None
+    if parsed_url.path is not None:
+        call_to = '{}://{}/{}/fhir/metadata'.format(parsed_url.scheme, parsed_url.netloc, 'v2' if v2 else 'v1')
     else:
-        call_to += '/metadata'
+        # url with no path
+        call_to = '{}/{}/fhir/metadata'.format(resource_router.fhir_url, 'v2' if v2 else 'v1')
 
     pass_params = {'_format': 'json'}
 
@@ -58,7 +65,7 @@ def fhir_conformance(request, via_oauth=False, *args, **kwargs):
     od = conformance_filter(text_out)
 
     # Append Security to ConformanceStatement
-    security_endpoint = build_oauth_resource(request, format_type="json")
+    security_endpoint = build_oauth_resource(request, v2, format_type="json")
     od['rest'][0]['security'] = security_endpoint
     # Fix format values
     od['format'] = ['application/json', 'application/fhir+json']

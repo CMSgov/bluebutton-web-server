@@ -1,4 +1,5 @@
 import logging
+
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView
@@ -6,9 +7,14 @@ from rest_framework.response import Response
 from .checks import (
     internal_services,
     external_services,
+    slsx_services,
+    bfd_services,
+    db_services,
 )
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+import apps.logging.request_logger as bb2logging
+
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class ServiceUnavailable(APIException):
@@ -22,7 +28,8 @@ class Check(APIView):
     def get(self, request, format=None):
         try:
             for check in self.get_services():
-                if not check():
+                v2 = True if request.path.endswith('external_v2') or request.path.endswith('bfd_v2') else False
+                if not check(v2):
                     raise ServiceUnavailable()
         except ServiceUnavailable:
             raise
@@ -47,3 +54,15 @@ class CheckInternal(Check):
 
 class CheckExternal(Check):
     services = external_services
+
+
+class CheckSLSX(Check):
+    services = slsx_services
+
+
+class CheckBFD(Check):
+    services = bfd_services
+
+
+class CheckDB(Check):
+    services = db_services
