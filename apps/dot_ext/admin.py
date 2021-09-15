@@ -96,8 +96,8 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(MyAccessToken)
 class MyAccessTokenAdmin(admin.ModelAdmin):
-    list_display = ('user', 'application', 'expires', 'scope')
-    search_fields = ('user__username', 'application__name',)
+    list_display = ('user', 'application', 'expires', 'scope', 'token',)
+    search_fields = ('user__username', 'application__name', 'token', 'source_refresh_token__token')
     raw_id_fields = ("user", 'application')
 
 
