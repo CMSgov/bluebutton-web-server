@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from oauthlib.oauth2.rfc6749.errors import MissingTokenError
 from requests_oauthlib import OAuth2Session
+from rest_framework import status
 from waffle.decorators import waffle_switch
 
 from .utils import test_setup, get_client_secret
@@ -139,6 +140,17 @@ def callback(request):
         return JsonResponse({'error': 'Failed to get token from',
                              'code': 'MissingTokenError',
                              'help': 'Try authorizing again.'}, status=500)
+
+    # For test client allow only authorize on synthetic beneficiaries
+    patient = token.get("patient", None)
+    if patient is not None and not patient.startswith("-"):
+        logmsg = "Failed token is for a non-synthetic patient ID = %s" % (token.get("patient", ""))
+        logger.error(logmsg)
+        if 'token' in request.session:
+            del request.session['token']
+        return JsonResponse({'error': logmsg,
+                             'code': 'NonSyntheticTokenError',
+                             'help': 'Try authorizing again.'}, status=status.HTTP_403_FORBIDDEN)
 
     request.session['token'] = token
 

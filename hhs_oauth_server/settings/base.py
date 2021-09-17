@@ -185,6 +185,16 @@ INSTALLED_APPS = [
     "apps.openapi",
 ]
 
+DEV_SPECIFIC_APPS = [
+    # Installation/Site Specific apps based on  -----------------
+    # 'storages',
+    # A test client - moved to aws-test / dev /impl settings
+    'apps.testclient',
+
+]
+
+INSTALLED_APPS += DEV_SPECIFIC_APPS
+
 if env("ENV_SPECIFIC_APPS", False):
     INSTALLED_APPS += env("ENV_SPECIFIC_APPS")
 
