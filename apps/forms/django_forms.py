@@ -22,12 +22,25 @@ WITHDRAWN_CONSENT_CHOICES = [
 
 
 class InterimProdAccessForm(forms.Form):
+
+
+    # card_name = forms.CharField(max_length=100, label="Cardholder Name")
+    # card_number = forms.CharField(max_length=50, label="Card Number")
+    # card_code = forms.CharField(max_length=20, label="Security Code")
+    # card_expirate_time = forms.CharField(max_length=100, label="Expiration (MM/YYYY)")
+
+    # Fields needed compared to https://airtable.com/app4N2CBNxgseqVyq/tbl61MNkxjOG19Aiz/viw1R5g2rbE7S2YFr?blocks=hide
+    # Application Category
+
     application_name = forms.CharField()
     application_description = forms.CharField()
     application_url = forms.URLField()
     terms_of_service_url = forms.URLField()
     privacy_policy_url = forms.URLField()
     us_based = forms.BooleanField()
+    # Trying to add class to checkbox but not having luck  ¯\_(ツ)_/¯ https://design.cms.gov/components/choice/
+    us_based.widget.attrs.update({'class': 'ds-c-choice'})
+
     point_of_contact_email = forms.EmailField()
     point_of_contact_phone_number = forms.CharField(
         max_length=17,
