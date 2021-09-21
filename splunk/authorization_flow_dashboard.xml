@@ -357,9 +357,10 @@
       <chart>
         <title>12. Authorized Application Receives Token Events TIME-CHART</title>
         <search base="baseSearch12">
-          <query>search message.auth_grant_type=authorization_code | stats count</query>
+          <query>search message.auth_grant_type=authorization_code | timechart count</query>
         </search>
         <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
         <option name="height">199</option>
         <option name="refresh.display">progressbar</option>
         <option name="charting.chart.showPercent">true</option>
