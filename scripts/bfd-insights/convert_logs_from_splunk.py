@@ -69,7 +69,7 @@ def file_output(out_dict, time_of_event):
             time_str + \
             "-" + str(uuid.uuid1())
 
-    print("- Appending to OUTFILE:  ", out_filename)
+    print("- Appending to OUTFILE:  ", out_filename)  # lgtm [py/clear-text-logging-sensitive-data]
 
     # Make directories in path, if they don't exist.
     if not os.path.exists(os.path.dirname(out_filename)):
