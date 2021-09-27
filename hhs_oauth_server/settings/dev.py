@@ -6,14 +6,6 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', '1234567890')
 
 HOSTNAME_URL = env('HOSTNAME_URL', 'http://localhost:8000')
 
-DEV_SPECIFIC_APPS = [
-    # Installation/Site Specific apps based on  -----------------
-    # 'storages',
-    # A test client - moved to aws-test / dev /impl settings
-    'apps.testclient',
-]
-INSTALLED_APPS += DEV_SPECIFIC_APPS
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
