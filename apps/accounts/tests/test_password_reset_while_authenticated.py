@@ -147,6 +147,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         # sleep 3 sec to let min password age of 3 sec elapse
         time.sleep(3)
         response = self.client.post(url, form_data, follow=True)
+        print("CHANGE PASSWORD RESPONSE={}".format(response))
         self.assertContains(response,
                             ("You can not use a password that is already used"
                              " in this application within password re-use interval"))
