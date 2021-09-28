@@ -10,7 +10,7 @@ pipeline {
     USE_MSLSX = false
     USE_DEBUG = false
     DJANGO_SLSX_VERIFY_SSL_INTERNAL = false
-    DJANGO_SLSX_VERIFY_SSL_EXTERNAL = false
+    DJANGO_SLSX_VERIFY_SSL_EXTERNAL = true
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.dev"
     OAUTHLIB_INSECURE_TRANSPORT = true
