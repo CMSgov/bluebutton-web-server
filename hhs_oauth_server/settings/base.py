@@ -214,14 +214,6 @@ AXES_LOCK_OUT_AT_FAILURE = True
 AXES_ONLY_USER_FAILURES = True
 AXES_USERNAME_FORM_FIELD = "username"
 
-# Used for testing for optional apps in templates without causing a crash
-# used in SETTINGS_EXPORT below.
-OPTIONAL_INSTALLED_APPS = [
-    "",
-]
-if env("OPTIONAL_INSTALLED_APPS", False):
-    OPTIONAL_INSTALLED_APPS += env("OPTIONAL_INSTALLED_APPS")
-
 
 MIDDLEWARE = [
     # Middleware that adds headers to the resposne
@@ -522,7 +514,6 @@ SETTINGS_EXPORT = [
     "EXPLAINATION_LINE",
     "EXTERNAL_AUTH_NAME",
     "ALLOW_END_USER_EXTERNAL_AUTH",
-    "OPTIONAL_INSTALLED_APPS",
     "INSTALLED_APPS",
 ]
 
