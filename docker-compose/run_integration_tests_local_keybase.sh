@@ -236,6 +236,7 @@ else
                 -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
                 -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
+                -e DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS} \
                 -e FHIR_URL=${FHIR_URL} \
                 -e HOSTNAME_URL=${HOSTNAME_URL} \
                 -v "${CERTSTORE_TEMPORARY_MOUNT_PATH}:${DJANGO_FHIR_CERTSTORE}" \
@@ -249,6 +250,7 @@ else
                 -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
                 -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
+                -e DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS} \
                 -e FHIR_URL=${FHIR_URL} \
                 -e HOSTNAME_URL=${HOSTNAME_URL} \
                 web bash -c "python ${DEBUG_OPTS} runtests.py --integration ${INTEGRATION_TESTS_LIST}"
@@ -266,6 +268,7 @@ else
         docker run \
             -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
             -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
+            -e DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS} \
             -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
             -e FHIR_URL=${FHIR_URL} \
             --env-file ${keybase_env} \
