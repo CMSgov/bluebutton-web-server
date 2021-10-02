@@ -10,7 +10,7 @@ pipeline {
     USE_MSLSX = false
     USE_DEBUG = false
     DJANGO_SLSX_VERIFY_SSL_INTERNAL = false
-    DJANGO_SLSX_VERIFY_SSL_EXTERNAL = "./venv/lib/python3.7/site-packages/certifi/cacert.pem"
+    DJANGO_SLSX_VERIFY_SSL_EXTERNAL = false
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.dev"
     OAUTHLIB_INSECURE_TRANSPORT = true
@@ -90,7 +90,7 @@ pipeline {
        steps{
         sh """
           . venv/bin/activate
-          export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev && python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (python manage.py runserver 0.0.0.0:8000 &)
+          export DJANGO_SLSX_VERIFY_SSL_EXTERNAL=False && export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev && python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (python manage.py runserver 0.0.0.0:8000 &)
         """
        }
     }
