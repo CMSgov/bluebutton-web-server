@@ -59,6 +59,8 @@ pipeline {
           . venv/bin/activate
           make reqs-install-dev
           pip install selenium
+          pwd
+          find . -name "cacert.pem"
         """
       }
     }
