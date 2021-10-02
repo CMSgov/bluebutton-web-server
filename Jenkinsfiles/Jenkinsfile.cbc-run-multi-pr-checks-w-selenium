@@ -9,8 +9,6 @@ pipeline {
   environment {
     USE_MSLSX = false
     USE_DEBUG = false
-    DJANGO_SLSX_VERIFY_SSL_INTERNAL = false
-    DJANGO_SLSX_VERIFY_SSL_EXTERNAL = false
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.dev"
     OAUTHLIB_INSECURE_TRANSPORT = true
@@ -99,7 +97,7 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          export DJANGO_SLSX_VERIFY_SSL_INTERNAL=False && python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+          python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
         """
       }
     }
