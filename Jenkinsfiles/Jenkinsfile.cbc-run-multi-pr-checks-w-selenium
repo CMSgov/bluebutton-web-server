@@ -105,6 +105,9 @@ pipeline {
         expression { params.RUN_SELENIUM_TESTS == true }
        }
        steps{
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh "exit 1"
+                }
         sh """
           . venv/bin/activate
           python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
