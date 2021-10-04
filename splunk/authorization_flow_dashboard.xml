@@ -1,5 +1,5 @@
 <form>
-    <label>BB2 Authorization Flow Dashboard BB2-804</label>
+    <label>BB2 Authorization Flow Dashboard</label>
     <description>Dashboard panels related to the authorization flow log tracing</description>
     <fieldset submitButton="false"></fieldset>
     <row>
@@ -7,7 +7,6 @@
         <input type="dropdown" token="bbEnvLabel" searchWhenChanged="true">
           <label>Select Environment (by Label)</label>
           <default>impl</default>
-          <choice value="dev">Dev env=dev</choice>
           <choice value="test">Test env=test</choice>
           <choice value="impl">Sandbox env=impl</choice>
           <choice value="prod">Prod env=prod</choice>
