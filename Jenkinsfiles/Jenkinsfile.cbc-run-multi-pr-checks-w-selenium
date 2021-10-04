@@ -108,11 +108,21 @@ pipeline {
         sh """
           . venv/bin/activate
           python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+        """
+       }
+    }
+
+    stage("POST RUN selenium tests log check") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh """
+          . venv/bin/activate
           ls /tmp/bb2_server.log
           cat /tmp/bb2_server.log
         """
        }
     }
-
   }
 }
