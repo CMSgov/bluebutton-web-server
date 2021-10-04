@@ -1,5 +1,5 @@
 <form>
-  <label>API Big Stats Dashboard - Structured BB2-804</label>
+  <label>API Big Stats Dashboard - Structured</label>
   <description>Top level API stats related to requests, result codes and client info.</description>
   <fieldset submitButton="false"></fieldset>
   <row>

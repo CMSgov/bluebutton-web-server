@@ -1,5 +1,5 @@
 <form>
-    <label>BB2 V2 Activities Dashboard BB2-804</label>
+    <label>BB2 V2 Activities Dashboard</label>
     <description>Dashboard panels related to metrics for V2 stats reporting</description>
     <fieldset submitButton="false"></fieldset>
     <row>
