@@ -150,6 +150,7 @@ class SeleniumTests(TestCase):
                 # single action
                 action = s.get('action', None)
                 step[0] = step[0] + 1
+                # Click 'Deny' on DEMO info grant form:
                 if action is not None:
                     print("{}:{}:".format(step[0], s.get("display", "Not available")))
                     if action == Action.LOGIN:

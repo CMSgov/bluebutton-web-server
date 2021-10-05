@@ -44,8 +44,6 @@ set -e -u -o pipefail
 
 export USE_MSLSX=true
 export USE_DEBUG=false
-export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
-export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
 
 export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
 export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
@@ -215,11 +213,15 @@ then
 fi
 
 echo "Selenium tests ..."
-echo "MSLSX =" ${USE_MSLSX}
-echo "DEBUG =" ${USE_DEBUG}
-echo "DOCKER COMPOSE TEST SERVICE NAME =" ${TEST_SERVICE_NAME}
+echo "MSLSX=" ${USE_MSLSX}
+echo "DEBUG=" ${USE_DEBUG}
 
-docker-compose -f docker-compose.selenium.yml run ${TEST_SERVICE_NAME} bash -c "python runtests.py --selenium ${TESTS_LIST}"
+if [ "$USE_DEBUG" = true ]
+then
+    docker-compose -f docker-compose.selenium.yml run tests-debug bash -c "python runtests.py --selenium ${TESTS_LIST}"
+else
+    docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
+fi
 
 # Stop containers after use
 echo_msg
