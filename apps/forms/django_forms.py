@@ -20,7 +20,14 @@ WITHDRAWN_CONSENT_CHOICES = [
     ("other", "Other"),
 ]
 
-APPLICATION_CATEGORIES = []
+APPLICATION_CATEGORIES = [
+    ("research", "Research"),
+    ("plan_finders", "Plan Finders"),
+    ("agent_brokers", "Agent Brokers"),
+    ("symptom_checker", "Symptom Checker"),
+    ("organize_share_medical_claims", "Organize & Share Medical Claims"),
+    ("other", "Other"),
+]
 
 
 class InterimProdAccessForm(forms.Form):

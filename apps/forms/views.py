@@ -46,7 +46,9 @@ class InterimProdAccessView(LoginRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         form = InterimProdAccessForm(request.POST)
+        print(form)
         context = self.get_context_data()
+        print(context)
 
         if form.is_valid():
             if context["form_model"] is None:
