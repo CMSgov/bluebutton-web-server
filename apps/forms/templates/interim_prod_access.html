@@ -15,9 +15,11 @@ Interim production access form
 {% block Content %}
 
 <style>
-    label, .ds-c-label {
+    label,
+    .ds-c-label {
         max-width: inherit;
     }
+
     .ds-c-label .ds-c-field__hint {
         padding: 5px 0;
     }
@@ -26,7 +28,7 @@ Interim production access form
 <div class="container">
     <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
         <div class="ds-l-lg-col--9 ds-l-md-col--12">
-            
+
             <h1>{{ action }}</h1>
             <form action="" method="post">
                 {% csrf_token %}
@@ -47,13 +49,14 @@ Interim production access form
                             A brief summary of your application
                         </span>
                     </label>
-                        {{ form_display.application_description }}
+                    {{ form_display.application_description }}
                 </div>
 
                 <div>
-                    <label class="ds-c-label">
-                        <span class="ds-u-color--error">Need Application Category</span>
+                    <label class="ds-c-label" for="{{ form_display.application_category.id_for_label }}">
+                        <span>Application Category</span>
                     </label>
+                    {{ form_display.application_category }}
                 </div>
 
                 <div>
@@ -63,7 +66,7 @@ Interim production access form
                             This should be a URL where users can go to download or learn more about your application.
                         </span>
                     </label>
-                        {{ form_display.application_url }}
+                    {{ form_display.application_url }}
                 </div>
 
                 <div>
@@ -73,7 +76,7 @@ Interim production access form
                             The URL for your proposed application
                         </span>
                     </label>
-                        {{ form_display.application_url }}
+                    {{ form_display.application_url }}
                 </div>
 
                 <div>
@@ -83,7 +86,7 @@ Interim production access form
                             The URL where you will house your HTML-formatted Privacy Policy
                         </span>
                     </label>
-                        {{ form_display.privacy_policy_url }}
+                    {{ form_display.privacy_policy_url }}
                 </div>
 
                 <div>
@@ -93,7 +96,7 @@ Interim production access form
                             The URL where you will house your HTML-formatted Terms of Service
                         </span>
                     </label>
-                        {{ form_display.terms_of_service_url }}
+                    {{ form_display.terms_of_service_url }}
                 </div>
 
                 <div class="ds-u-margin-top--2">
@@ -126,11 +129,12 @@ Interim production access form
                 <div class="ds-u-margin-top--2">
                     <span class="ds-u-float--left ds-u-padding-right--2">{{ form_display.adheres_to_bb2_tos }}</span>
                     <label class="ds-c-label" for="{{ form_display.adheres_to_bb2_tos.id_for_label }}">
-                        <span>My application adheres to the <a href="https://bluebutton.cms.gov/terms/">Blue Button Terms of Service</a>?</span>
+                        <span>My application adheres to the <a href="https://bluebutton.cms.gov/terms/">Blue Button
+                                Terms of Service</a>?</span>
                     </label>
                 </div>
-                
-                <div>  
+
+                <div>
                     <label class="ds-c-label" for="{{ form_display.user_discovery_path.id_for_label }}">
                         <span>Describe your application's discovery path</span>
                         <span class="ds-c-field__hint">
@@ -139,152 +143,185 @@ Interim production access form
                     </label>
                     {{ form_display.user_discovery_path }}
                 </div>
-                
+
                 <div class="ds-u-margin-top--2">
                     <div class="ds-u-margin-top--2">
                         <span class="ds-u-float--left ds-u-padding-right--2">{{ form_display.easy_to_read_pp }}</span>
-                    <label class="ds-c-label" for="{{ form_display.easy_to_read_pp.id_for_label }}">
-                        <span>Is your privacy policy in plain English (easy to read)?</span>
-                        <span class="ds-c-field__hint">
-                            Especially from the perspective of a Medicare beneficiary?
-                        </span>
-                    </label>
-                </div>
-                
-                <div>  
-                    <label class="ds-c-label" for="missing">
-                        <span class="">Please list all the Sandbox users associated with your application</span>
-                        <span class="ds-c-field__hint ds-u-color--error">
-                            Missing?
-                        </span>
-                    </label>
-                    <textarea></textarea>
-                </div>
-                
-                <div class="ds-u-margin-top--2">
-                    <div class="ds-u-margin-top--2">
-                        <span class="ds-u-float--left ds-u-padding-right--2">{{ form_display.does_pp_follow_bb2_guidelines }}</span>
-                    <label class="ds-c-label" for="{{ form_display.does_pp_follow_bb2_guidelines.id_for_label }}">
-                        <span>Does your privacy policy do all the following things?</span>
-                        <span class="ds-c-field__hint">
-                            <ul>
-                                <li>Specify your company’s data collection practice?</li>
-                                <li>Specify your company’s user consent practice?</li>
-                                <li>Specify your company’s data disclosure practice?</li>
-                                <li>Specify your company’s data access practice?</li>
-                                <li>Specify your company’s security practice?</li>
-                                <li>Specify your company’s retention/deletion practice?</li>
-                                <li>State whether data is collected by or shared with third parties?</li>
-                                <li>State the application’s policy regarding dormant or closed accounts?</li>
-                                <li>Address when data sharing might have an impact on others (such as the impact of sharing genetic or family history</li>
-                                information on relatives)?
-                                <li>Explain what happens to a user’s data if they withdraw their consent?</li>
-                            </ul>
-                        </span>
-                    </label>
-                </div>
-                
-                <div>  
-                    <label class="ds-c-label" for="{{ form_display.doesnt_follow_pp_guidelines_reason.id_for_label }}">
-                        <span>If privacy policy doesn't meet the requirements of the previous questions, then please explain why any of these items are omitted from your privacy policy.</span>
-                    </label>
-                    {{ form_display.doesnt_follow_pp_guidelines_reason }}
-                </div>
-
-                <div>
-                    <label class="ds-c-label" for="{{ form_display.third_party_app_data_sharing_frequency.id_for_label }}">
-                        <span>If data is shared with third-parties, is that on a one-time basis or persistently collected?</span>
-                        <span class="ds-c-field__hint">
-                            Leave blank if data is not shared with third-parties
-                        </span>
-                    </label>
-                    {{ form_display.third_party_app_data_sharing_frequency }}
-                </div>
-                
-                <div>
-                    <label class="ds-c-label" for="{{ form_display.data_sharing_consent_method.id_for_label }}">
-                        <span>If data is shared with third-parties, how will you obtain users' informed, proactive consent in advance of data sharing?</span>
-                        <span class="ds-c-field__hint">
-                            The consent must clearly describe how user data will be collected, used, and shared. If applicable, please also explain
-                            how you would obtain consent for separate individuals identified in the protected health information of the user.
-                        </span>
-                    </label>
-                    {{ form_display.data_sharing_consent_method }}
-                </div>
-                
-                <div>
-                    <label class="ds-c-label" for="{{ form_display.vendor_data_protection.id_for_label }}">
-                        <span>If your application works with third-party vendors, do your third-party vendors commit to data protection data
-                            requirements consistent with the law and your expectations, both based on the sensitivity of PII/PHI?</span>
+                        <label class="ds-c-label" for="{{ form_display.easy_to_read_pp.id_for_label }}">
+                            <span>Is your privacy policy in plain English (easy to read)?</span>
                             <span class="ds-c-field__hint">
-                                Note: "We don't work with third-party vendors" is an acceptable answer. If applicable, please also explain how your
-                                policy will work to prohibit third-parties from disclosing user data without user consent.
+                                Especially from the perspective of a Medicare beneficiary?
                             </span>
                         </label>
-                        {{ form_display.vendor_data_protection }}
                     </div>
 
-                <div>
-                    <label class="ds-c-label" for="{{ form_display.action_for_withdrawn_consent.id_for_label }}">
-                        <span>What do you do when a user withdraws their consent for your application?</span>
-                    </label>
-                    {{ form_display.action_for_withdrawn_consent }}
-                </div>
+                    <div>
+                        <label class="ds-c-label" for="missing">
+                            <span class="">Please list all the Sandbox users associated with your application</span>
+                        </label>
+                        {{ form_display.associated_sandbox_users }}
+                    </div>
 
-                <div>
-                    <label class="ds-c-label" for="{{ form_display.data_use_post_sale.id_for_label }}">
-                        <span>What happens if your company is sold and the use of user's data could change in a material way? Are beneficiaries and
-                        CMS notified?</span>
-                        <span class="ds-c-field__hint">
-                            Note: We understand that when your company is being purchased, you may have very little power over these decisions. The
-                            responsibility of informing users about material changes to the way their data is used belongs to the acquiring company.
-                            We would, however, like to see some indication of this in your privacy policy to ensure that the burden is not on the
-                            beneficiary to find that out on their own.
-                        </span>
-                    </label>
-                    {{ form_display.data_use_post_sale }}
-                </div>
-
-                <div class="ds-u-margin-top--2">
                     <div class="ds-u-margin-top--2">
-                        <span class="ds-u-float--left ds-u-padding-right--2">{{ form_display.partner_requirements_consent }}</span>
-                    <label class="ds-c-label" for="{{ form_display.partner_requirements_consent.id_for_label }}">
-                        <span>Does your privacy policy do all the following things?</span>
-                        <span class="ds-c-field__hint">
-                            <ul>
-                                <li>Your application may only collect health information that a user expressly consents to?</li>
-                                <li>Your application may only collect, use, and disclose health information in ways that are consistent with user</li>
-                                expectation and consent?
-                                <li>You commit to following laws and best-practices to minimize the risk of unauthorized access, use, destruction,</li>
-                                unauthorized annotation or disclosure of user data?
-                                <li>You agree to comply with applicable breach notification laws and provide meaningful remedies to address security breaches, privacy, or other violations incurred because of misuse of the user’s health information?</li>
-                            </ul>
-                        </span>
-                    </label>
-                </div>
+                        <div class="ds-u-margin-top--2">
+                            <span class="ds-u-float--left ds-u-padding-right--2">
+                                {{ form_display.does_pp_follow_bb2_guidelines }}
+                            </span>
+                            <label class="ds-c-label"
+                                for="{{ form_display.does_pp_follow_bb2_guidelines.id_for_label }}">
+                                <span>Does your privacy policy do all the following things?</span>
+                                <span class="ds-c-field__hint">
+                                    <ul>
+                                        <li>Specify your company’s data collection practice?</li>
+                                        <li>Specify your company’s user consent practice?</li>
+                                        <li>Specify your company’s data disclosure practice?</li>
+                                        <li>Specify your company’s data access practice?</li>
+                                        <li>Specify your company’s security practice?</li>
+                                        <li>Specify your company’s retention/deletion practice?</li>
+                                        <li>State whether data is collected by or shared with third parties?</li>
+                                        <li>State the application’s policy regarding dormant or closed accounts?</li>
+                                        <li>Address when data sharing might have an impact on others (such as the impact
+                                            of sharing genetic or family history</li>
+                                        information on relatives)?
+                                        <li>Explain what happens to a user’s data if they withdraw their consent?</li>
+                                    </ul>
+                                </span>
+                            </label>
+                        </div>
 
-                <div>
-                    <label class="ds-c-label" for="{{ form_display.data_storage_technique.id_for_label }}">
-                        <span>How will you store and retain health information in a manner consistent with best practices associated with the
-                        protection of personally identifiable health information?</span>
-                    </label>
-                    {{ form_display.data_storage_technique }}
-                </div>
+                        <div>
+                            <label class="ds-c-label"
+                                for="{{ form_display.doesnt_follow_pp_guidelines_reason.id_for_label }}">
+                                <span>If privacy policy doesn't meet the requirements of the previous questions, then
+                                    please explain why any of these items are omitted from your privacy policy.</span>
+                            </label>
+                            {{ form_display.doesnt_follow_pp_guidelines_reason }}
+                        </div>
 
-                <div class="ds-u-margin-top--2">
-                    <div class="ds-u-margin-top--2">
-                        <span class="ds-u-float--left ds-u-padding-right--2">{{ form_display.organization_authority_assertion }}</span>
-                    <label class="ds-c-label" for="{{ form_display.organization_authority_assertion.id_for_label }}">
-                        <span>Confirmation of User Authorization</span>
-                        <span class="ds-c-field__hint">
-                            Authorization: I certify that I am authorized to provide this information on behalf of my organization, the information
-                            I provided is accurate, and CMS is authorized to share the information provided through publicly-available sources, such
-                            as Medicare.gov
-                        </span>
-                    </label>
-                </div>
+                        <div>
+                            <label class="ds-c-label"
+                                for="{{ form_display.third_party_app_data_sharing_frequency.id_for_label }}">
+                                <span>If data is shared with third-parties, is that on a one-time basis or persistently
+                                    collected?</span>
+                                <span class="ds-c-field__hint">
+                                    Leave blank if data is not shared with third-parties
+                                </span>
+                            </label>
+                            {{ form_display.third_party_app_data_sharing_frequency }}
+                        </div>
 
-                <input type="submit" value="Submit" class="ds-c-button ds-c-button--primary ds-u-margin-top--2">
+                        <div>
+                            <label class="ds-c-label" for="{{ form_display.data_sharing_consent_method.id_for_label }}">
+                                <span>If data is shared with third-parties, how will you obtain users' informed,
+                                    proactive consent in advance of data sharing?</span>
+                                <span class="ds-c-field__hint">
+                                    The consent must clearly describe how user data will be collected, used, and shared.
+                                    If applicable, please also explain
+                                    how you would obtain consent for separate individuals identified in the protected
+                                    health information of the user.
+                                </span>
+                            </label>
+                            {{ form_display.data_sharing_consent_method }}
+                        </div>
+
+                        <div>
+                            <label class="ds-c-label" for="{{ form_display.vendor_data_protection.id_for_label }}">
+                                <span>If your application works with third-party vendors, do your third-party vendors
+                                    commit to data protection data
+                                    requirements consistent with the law and your expectations, both based on the
+                                    sensitivity of PII/PHI?</span>
+                                <span class="ds-c-field__hint">
+                                    Note: "We don't work with third-party vendors" is an acceptable answer. If
+                                    applicable, please also explain how your
+                                    policy will work to prohibit third-parties from disclosing user data without user
+                                    consent.
+                                </span>
+                            </label>
+                            {{ form_display.vendor_data_protection }}
+                        </div>
+
+                        <div>
+                            <label class="ds-c-label"
+                                for="{{ form_display.action_for_withdrawn_consent.id_for_label }}">
+                                <span>What do you do when a user withdraws their consent for your application?</span>
+                            </label>
+                            {{ form_display.action_for_withdrawn_consent }}
+                        </div>
+
+                        <div>
+                            <label class="ds-c-label" for="{{ form_display.data_use_post_sale.id_for_label }}">
+                                <span>What happens if your company is sold and the use of user's data could change in a
+                                    material way? Are beneficiaries and
+                                    CMS notified?</span>
+                                <span class="ds-c-field__hint">
+                                    Note: We understand that when your company is being purchased, you may have very
+                                    little power over these decisions. The
+                                    responsibility of informing users about material changes to the way their data is
+                                    used belongs to the acquiring company.
+                                    We would, however, like to see some indication of this in your privacy policy to
+                                    ensure that the burden is not on the
+                                    beneficiary to find that out on their own.
+                                </span>
+                            </label>
+                            {{ form_display.data_use_post_sale }}
+                        </div>
+
+                        <div class="ds-u-margin-top--2">
+                            <div class="ds-u-margin-top--2">
+                                <span class="ds-u-float--left ds-u-padding-right--2">
+                                    {{ form_display.partner_requirements_consent }}
+                                </span>
+                                <label class="ds-c-label"
+                                    for="{{ form_display.partner_requirements_consent.id_for_label }}">
+                                    <span>Does your privacy policy do all the following things?</span>
+                                    <span class="ds-c-field__hint">
+                                        <ul>
+                                            <li>Your application may only collect health information that a user
+                                                expressly consents to?</li>
+                                            <li>Your application may only collect, use, and disclose health information
+                                                in ways that are consistent with user</li>
+                                            expectation and consent?
+                                            <li>You commit to following laws and best-practices to minimize the risk of
+                                                unauthorized access, use, destruction,</li>
+                                            unauthorized annotation or disclosure of user data?
+                                            <li>You agree to comply with applicable breach notification laws and provide
+                                                meaningful remedies to address security breaches, privacy, or other
+                                                violations incurred because of misuse of the user’s health information?
+                                            </li>
+                                        </ul>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div>
+                                <label class="ds-c-label" for="{{ form_display.data_storage_technique.id_for_label }}">
+                                    <span>How will you store and retain health information in a manner consistent with
+                                        best practices associated with the
+                                        protection of personally identifiable health information?</span>
+                                </label>
+                                {{ form_display.data_storage_technique }}
+                            </div>
+
+                            <div class="ds-u-margin-top--2">
+                                <div class="ds-u-margin-top--2">
+                                    <span class="ds-u-float--left ds-u-padding-right--2">
+                                        {{ form_display.organization_authority_assertion }}
+                                    </span>
+                                    <label class="ds-c-label"
+                                        for="{{ form_display.organization_authority_assertion.id_for_label }}">
+                                        <span>Confirmation of User Authorization</span>
+                                        <span class="ds-c-field__hint">
+                                            Authorization: I certify that I am authorized to provide this information on
+                                            behalf of my organization, the information
+                                            I provided is accurate, and CMS is authorized to share the information
+                                            provided through publicly-available sources, such
+                                            as Medicare.gov
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <input type="submit" value="Submit"
+                                    class="ds-c-button ds-c-button--primary ds-u-margin-top--2">
             </form>
 
         </div>
