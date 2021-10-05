@@ -24,7 +24,7 @@ dj-database-url
 pyjwt
 newrelic
 psycopg2-binary
-sqlparse
+sqlparse==0.4.2
 Pillow==8.3.2
 boto3==1.17.93
 djangorestframework-yaml==2.0.0
