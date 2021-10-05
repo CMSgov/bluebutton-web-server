@@ -84,9 +84,7 @@ class SeleniumTests(TestCase):
         super(SeleniumTests, self).tearDown()
 
     def _find_and_click(self, timeout_sec, by, by_expr, **kwargs):
-        print("PAGE BEFORE={}".format(self.driver.page_source.encode("utf-8")))
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
-        print("PAGE AFTER={}".format(self.driver.page_source.encode("utf-8")))
         self.assertIsNotNone(elem)
         elem.click()
         return elem

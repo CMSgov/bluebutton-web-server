@@ -105,16 +105,10 @@ pipeline {
         expression { params.RUN_SELENIUM_TESTS == true }
        }
        steps{
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
             sh """
             . venv/bin/activate
             python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
             """
-        }
-        sh """
-        ls /tmp/bb2_server.log
-        cat /tmp/bb2_server.log
-        """
        }
     }
   }
