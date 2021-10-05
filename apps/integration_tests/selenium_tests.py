@@ -84,7 +84,9 @@ class SeleniumTests(TestCase):
         super(SeleniumTests, self).tearDown()
 
     def _find_and_click(self, timeout_sec, by, by_expr, **kwargs):
+        print("PAGE BEFORE={}".format(self.driver.page_source.encode("utf-8")))
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
+        print("PAGE AFTER={}".format(self.driver.page_source.encode("utf-8")))
         self.assertIsNotNone(elem)
         elem.click()
         return elem
@@ -150,6 +152,7 @@ class SeleniumTests(TestCase):
                 # single action
                 action = s.get('action', None)
                 step[0] = step[0] + 1
+                # Click 'Deny' on DEMO info grant form:
                 if action is not None:
                     print("{}:{}:".format(step[0], s.get("display", "Not available")))
                     if action == Action.LOGIN:
