@@ -69,7 +69,7 @@
     </row>
 
     <search id="baseSearchFhirSynthetic">
-       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-\d+" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | fields time message.path message.response_code message.fhir_id</query>
+       <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\ddddd|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | fields time message.path message.response_code message.fhir_id</query>
        <earliest>$t_local.earliest$</earliest>
        <latest>$t_local.latest$</latest>
        <sampleRatio>1</sampleRatio>
@@ -93,7 +93,7 @@
             <done>
               <set token="tokSynthPatOKCount">$result.count$</set>
             </done>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-\d+" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | search message.response_code=200 | stats count</query>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\ddddd|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Patient.*" | search message.response_code=200 | stats count</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
             <sampleRatio>1</sampleRatio>
@@ -110,7 +110,7 @@
             <done>
               <set token="tokSynthCoverageOKCount">$result.count$</set>
             </done>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-\d+" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | search message.response_code=200 | stats count</query>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\ddddd|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/Coverage.*" | search message.response_code=200 | stats count</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
             <sampleRatio>1</sampleRatio>
@@ -127,7 +127,7 @@
             <done>
               <set token="tokSynthEobOKCount">$result.count$</set>
             </done>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-\d+" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | search message.response_code=200 | stats count</query>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\ddddd|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit.*" | search message.response_code=200 | stats count</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
             <sampleRatio>1</sampleRatio>
@@ -187,7 +187,7 @@
         <chart>
           <title>Total Synthetic FHIR Requests OK (200) TIME-CHART</title>
           <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-\d+" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | timechart count</query>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\ddddd|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | regex fhir_id="-\d+" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | timechart count</query>
             <earliest>$t_local.earliest$</earliest>
             <latest>$t_local.latest$</latest>
             <sampleRatio>1</sampleRatio>
