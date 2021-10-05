@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: bb2-cbc-build-selenium
+      image: "public.ecr.aws/f5g8o1y9/bb2-cbc-build-selenium:latest"
+      tty: true
+      command: ["tail", "-f"]
+      imagePullPolicy: Always
+  nodeSelector:
+      Agents: true

@@ -4,12 +4,12 @@ from django.conf import settings
 from rest_framework import exceptions
 
 from apps.dot_ext.loggers import get_session_auth_flow_trace
-from apps.fhir.bluebutton.utils import (generate_info_headers,
-                                        set_default_header)
 from apps.fhir.bluebutton.signals import (
     pre_fetch,
     post_fetch
 )
+from apps.fhir.bluebutton.utils import (generate_info_headers,
+                                        set_default_header)
 
 from ..bluebutton.exceptions import UpstreamServerException
 from ..bluebutton.utils import (FhirServerAuth,
