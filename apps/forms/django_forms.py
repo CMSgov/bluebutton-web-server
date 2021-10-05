@@ -20,9 +20,10 @@ WITHDRAWN_CONSENT_CHOICES = [
     ("other", "Other"),
 ]
 
+APPLICATION_CATEGORIES = []
+
 
 class InterimProdAccessForm(forms.Form):
-
 
     # card_name = forms.CharField(max_length=100, label="Cardholder Name")
     # card_number = forms.CharField(max_length=50, label="Card Number")
@@ -37,10 +38,11 @@ class InterimProdAccessForm(forms.Form):
     application_url = forms.URLField()
     terms_of_service_url = forms.URLField()
     privacy_policy_url = forms.URLField()
-    us_based = forms.BooleanField()
-    # Trying to add class to checkbox but not having luck  ¯\_(ツ)_/¯ https://design.cms.gov/components/choice/
-    us_based.widget.attrs.update({'class': 'ds-c-choice'})
-
+    us_based = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
+    associated_sandbox_users = forms.CharField(widget=forms.Textarea())
+    application_category = forms.ChoiceField(choices=APPLICATION_CATEGORIES)
     point_of_contact_email = forms.EmailField()
     point_of_contact_phone_number = forms.CharField(
         max_length=17,
@@ -52,17 +54,17 @@ class InterimProdAccessForm(forms.Form):
         ],
     )
     adheres_to_bb2_tos = forms.BooleanField()
-    user_discovery_path = forms.Textarea()
+    user_discovery_path = forms.CharField(widget=forms.Textarea())
     easy_to_read_pp = forms.BooleanField()
     does_pp_follow_bb2_guidelines = forms.BooleanField()
-    doesnt_follow_pp_guidelines_reason = forms.Textarea()
+    doesnt_follow_pp_guidelines_reason = forms.CharField(widget=forms.Textarea())
     third_party_app_data_sharing_frequency = forms.ChoiceField(
         choices=SHARING_FREQUENCY_CHOICES
     )
     action_for_withdrawn_consent = forms.ChoiceField(choices=WITHDRAWN_CONSENT_CHOICES)
-    data_sharing_consent_method = forms.Textarea()
-    vendor_data_protection = forms.Textarea()
-    data_use_post_sale = forms.Textarea()
+    data_sharing_consent_method = forms.CharField(widget=forms.Textarea())
+    vendor_data_protection = forms.CharField(widget=forms.Textarea())
+    data_use_post_sale = forms.CharField(widget=forms.Textarea())
     partner_requirements_consent = forms.BooleanField()
-    data_storage_technique = forms.Textarea()
+    data_storage_technique = forms.CharField(widget=forms.Textarea())
     organization_authority_assertion = forms.BooleanField()
