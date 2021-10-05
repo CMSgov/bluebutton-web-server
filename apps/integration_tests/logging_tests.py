@@ -186,6 +186,7 @@ class LoggingTests(SeleniumTests):
                                 self.assertTrue(re.match(event_desc.get('path_regex'), p))
                             else:
                                 self.assertEqual(p, event_desc.get('path'))
+                            print("SCHEMA={}".format(event_desc.get('schema')))
                             self.assertTrue(validate_json_schema(event_desc.get('schema'), event_json))
                 except JSONDecodeError:
                     # skip non json line
