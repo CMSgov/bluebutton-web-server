@@ -45,7 +45,6 @@ Interim production access form
                 <div>
                     <label class="ds-c-label" for="{{ form_display.application_description.id_for_label }}">
                         <span>Application Description</span>
-                        <div>{{ form_display.application_description.error_messages }}</div>
                         <span class="ds-c-field__hint">
                             A brief summary of your application
                         </span>
@@ -101,9 +100,9 @@ Interim production access form
                 </div>
 
                 <div class="ds-u-margin-top--2">
-                    <span class="ds-u-float--left ds-u-padding-right--2">{{ form_display.us_based }}</span>
+                    {{ form_display.us_based }}
                     <label class="ds-c-label" for="{{ form_display.us_based.id_for_label }}">
-                        <span>My company is based in the United States</span>
+                        <span>My company is based in the United States.</span>
                     </label>
                 </div>
 
@@ -128,10 +127,10 @@ Interim production access form
                 </div>
 
                 <div class="ds-u-margin-top--2">
-                    <span class="ds-u-float--left ds-u-padding-right--2">{{ form_display.adheres_to_bb2_tos }}</span>
+                    {{ form_display.adheres_to_bb2_tos }}
                     <label class="ds-c-label" for="{{ form_display.adheres_to_bb2_tos.id_for_label }}">
                         <span>My application adheres to the <a href="https://bluebutton.cms.gov/terms/">Blue Button
-                                Terms of Service</a>?</span>
+                                Terms of Service</a>.</span>
                     </label>
                 </div>
 
@@ -147,12 +146,9 @@ Interim production access form
 
                 <div class="ds-u-margin-top--2">
                     <div class="ds-u-margin-top--2">
-                        <span class="ds-u-float--left ds-u-padding-right--2">{{ form_display.easy_to_read_pp }}</span>
+                        {{ form_display.easy_to_read_pp }}
                         <label class="ds-c-label" for="{{ form_display.easy_to_read_pp.id_for_label }}">
-                            <span>Is your privacy policy in plain English (easy to read)?</span>
-                            <span class="ds-c-field__hint">
-                                Especially from the perspective of a Medicare beneficiary?
-                            </span>
+                            <span>My privacy policy uses plain language, especially from the perspective of a Medicare beneficiary.</span>
                         </label>
                     </div>
 
@@ -165,26 +161,24 @@ Interim production access form
 
                     <div class="ds-u-margin-top--2">
                         <div class="ds-u-margin-top--2">
-                            <span class="ds-u-float--left ds-u-padding-right--2">
-                                {{ form_display.does_pp_follow_bb2_guidelines }}
-                            </span>
+                            {{ form_display.does_pp_follow_bb2_guidelines }}
                             <label class="ds-c-label"
                                 for="{{ form_display.does_pp_follow_bb2_guidelines.id_for_label }}">
-                                <span>Does your privacy policy do all the following things?</span>
+                                <span>My privacy policy does all the following things...</span>
                                 <span class="ds-c-field__hint">
                                     <ul>
-                                        <li>Specify your company’s data collection practice?</li>
-                                        <li>Specify your company’s user consent practice?</li>
-                                        <li>Specify your company’s data disclosure practice?</li>
-                                        <li>Specify your company’s data access practice?</li>
-                                        <li>Specify your company’s security practice?</li>
-                                        <li>Specify your company’s retention/deletion practice?</li>
-                                        <li>State whether data is collected by or shared with third parties?</li>
-                                        <li>State the application’s policy regarding dormant or closed accounts?</li>
+                                        <li>Specify my company’s data collection practice.</li>
+                                        <li>Specify my company’s user consent practice.</li>
+                                        <li>Specify my company’s data disclosure practice.</li>
+                                        <li>Specify my company’s data access practice.</li>
+                                        <li>Specify my company’s security practice.</li>
+                                        <li>Specify my company’s retention/deletion practice.</li>
+                                        <li>State whether data is collected by or shared with third parties.</li>
+                                        <li>State the application’s policy regarding dormant or closed accounts.</li>
                                         <li>Address when data sharing might have an impact on others (such as the impact
                                             of sharing genetic or family history</li>
-                                        information on relatives)?
-                                        <li>Explain what happens to a user’s data if they withdraw their consent?</li>
+                                        information on relatives).
+                                        <li>Explain what happens to a user’s data if they withdraw their consent.</li>
                                     </ul>
                                 </span>
                             </label>
@@ -269,23 +263,21 @@ Interim production access form
 
                         <div class="ds-u-margin-top--2">
                             <div class="ds-u-margin-top--2">
-                                <span class="ds-u-float--left ds-u-padding-right--2">
-                                    {{ form_display.partner_requirements_consent }}
-                                </span>
+                                {{ form_display.partner_requirements_consent }}
                                 <label class="ds-c-label"
                                     for="{{ form_display.partner_requirements_consent.id_for_label }}">
-                                    <span>Does your privacy policy do all the following things?</span>
+                                    <span>My privacy policy does all the following things...</span>
                                     <span class="ds-c-field__hint">
                                         <ul>
-                                            <li>Your application may only collect health information that a user
-                                                expressly consents to?</li>
-                                            <li>Your application may only collect, use, and disclose health information
+                                            <li>Only collect health information that a user
+                                                expressly consents to.</li>
+                                            <li>Only collect, use, and disclose health information
                                                 in ways that are consistent with user</li>
-                                            expectation and consent?
-                                            <li>You commit to following laws and best-practices to minimize the risk of
+                                            expectation and consent
+                                            <li>Commit to following laws and best-practices to minimize the risk of
                                                 unauthorized access, use, destruction,</li>
                                             unauthorized annotation or disclosure of user data?
-                                            <li>You agree to comply with applicable breach notification laws and provide
+                                            <li>Agree to comply with applicable breach notification laws and provide
                                                 meaningful remedies to address security breaches, privacy, or other
                                                 violations incurred because of misuse of the user’s health information?
                                             </li>
@@ -305,9 +297,7 @@ Interim production access form
 
                             <div class="ds-u-margin-top--2">
                                 <div class="ds-u-margin-top--2">
-                                    <span class="ds-u-float--left ds-u-padding-right--2">
-                                        {{ form_display.organization_authority_assertion }}
-                                    </span>
+                                    {{ form_display.organization_authority_assertion }}
                                     <label class="ds-c-label"
                                         for="{{ form_display.organization_authority_assertion.id_for_label }}">
                                         <span>Confirmation of User Authorization</span>

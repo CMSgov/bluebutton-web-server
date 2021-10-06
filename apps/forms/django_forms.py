@@ -60,10 +60,16 @@ class InterimProdAccessForm(forms.Form):
             )
         ],
     )
-    adheres_to_bb2_tos = forms.BooleanField()
+    adheres_to_bb2_tos = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
     user_discovery_path = forms.CharField(widget=forms.Textarea())
-    easy_to_read_pp = forms.BooleanField()
-    does_pp_follow_bb2_guidelines = forms.BooleanField()
+    easy_to_read_pp = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
+    does_pp_follow_bb2_guidelines = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
     doesnt_follow_pp_guidelines_reason = forms.CharField(widget=forms.Textarea())
     third_party_app_data_sharing_frequency = forms.ChoiceField(
         choices=SHARING_FREQUENCY_CHOICES
@@ -72,6 +78,10 @@ class InterimProdAccessForm(forms.Form):
     data_sharing_consent_method = forms.CharField(widget=forms.Textarea())
     vendor_data_protection = forms.CharField(widget=forms.Textarea())
     data_use_post_sale = forms.CharField(widget=forms.Textarea())
-    partner_requirements_consent = forms.BooleanField()
+    partner_requirements_consent = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
     data_storage_technique = forms.CharField(widget=forms.Textarea())
-    organization_authority_assertion = forms.BooleanField()
+    organization_authority_assertion = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
