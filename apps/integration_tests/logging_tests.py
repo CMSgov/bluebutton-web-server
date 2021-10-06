@@ -80,7 +80,7 @@ EXPECTED_LOGGING_EVENTS = [
     },
     {
         "schema": LOG_MIDDLEWARE_FHIR_READ_EVENT_SCHEMA,
-        "path": "/v1/fhir/Patient/-20140000008325"
+        "path_regex": "/v1/fhir/Patient/-20140000008325|/v1/fhir/Patient/-19990000000001"
     },
     {
         "schema": LOG_MIDDLEWARE_TESTCLIENT_FHIR_READ_EVENT_SCHEMA,
