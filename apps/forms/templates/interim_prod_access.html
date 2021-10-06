@@ -30,6 +30,24 @@ Interim production access form
         <div class="ds-l-lg-col--9 ds-l-md-col--12">
 
             <h1>{{ action }}</h1>
+            
+            <div class="ds-c-alert">
+                <div class="ds-c-alert__body">
+                    <h2 class="ds-c-alert__heading">Informative status</h2>
+                    <p class="ds-c-alert__text">
+                        Will use this with status of created and/or updated.
+                    </p>
+                </div>
+            </div>
+            <div class="ds-c-alert ds-c-alert--success">
+                <div class="ds-c-alert__body">
+                    <h2 class="ds-c-alert__heading">Success status</h2>
+                    <p class="ds-c-alert__text">
+                        Will use this with status of submitted.
+                    </p>
+                </div>
+            </div>
+
             <form action="" method="post">
                 {% csrf_token %}
                 {{ form_display.non_field_errors }}
