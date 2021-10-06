@@ -182,7 +182,6 @@ class LoggingTests(SeleniumTests):
                                 start_validation = True
                         else:
                             event_desc = expected_events.pop(0)
-                            print("SCHEMA={}".format(event_desc.get('schema')))
                             if event_desc.get('path_regex') is not None:
                                 self.assertTrue(re.match(event_desc.get('path_regex'), p))
                             else:
