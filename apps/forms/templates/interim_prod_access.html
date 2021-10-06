@@ -28,25 +28,34 @@ Interim production access form
 <div class="container">
     <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
         <div class="ds-l-lg-col--9 ds-l-md-col--12">
-
-            <h1>{{ action }}</h1>
-            
+            {% if action == "created" %}
             <div class="ds-c-alert">
                 <div class="ds-c-alert__body">
-                    <h2 class="ds-c-alert__heading">Informative status</h2>
+                    <h2 class="ds-c-alert__heading">Created</h2>
                     <p class="ds-c-alert__text">
-                        Will use this with status of created and/or updated.
+                        Created a new prod access request.
                     </p>
                 </div>
             </div>
+            {% elif action == "updated" %}
+            <div class="ds-c-alert">
+                <div class="ds-c-alert__body">
+                    <h2 class="ds-c-alert__heading">Updated</h2>
+                    <p class="ds-c-alert__text">
+                        Updated prod access responses.
+                    </p>
+                </div>
+            </div>
+            {% elif action == "submitted" %}
             <div class="ds-c-alert ds-c-alert--success">
                 <div class="ds-c-alert__body">
-                    <h2 class="ds-c-alert__heading">Success status</h2>
+                    <h2 class="ds-c-alert__heading">Submitted</h2>
                     <p class="ds-c-alert__text">
-                        Will use this with status of submitted.
+                        Your prod access request has been submitted. You can no longer make edits to this form.
                     </p>
                 </div>
             </div>
+            {% endif %}
 
             <form action="" method="post">
                 {% csrf_token %}
@@ -166,7 +175,8 @@ Interim production access form
                     <div class="ds-u-margin-top--2">
                         {{ form_display.easy_to_read_pp }}
                         <label class="ds-c-label" for="{{ form_display.easy_to_read_pp.id_for_label }}">
-                            <span>My privacy policy uses plain language, especially from the perspective of a Medicare beneficiary.</span>
+                            <span>My privacy policy uses plain language, especially from the perspective of a Medicare
+                                beneficiary.</span>
                         </label>
                     </div>
 
