@@ -31,27 +31,31 @@ Interim production access form
             {% if action == "created" %}
             <div class="ds-c-alert">
                 <div class="ds-c-alert__body">
-                    <h2 class="ds-c-alert__heading">Created</h2>
-                    <p class="ds-c-alert__text">
-                        Created a new prod access request.
+                    <h2 class="ds-c-alert__heading">Thank you for creating a production access request!</h2>
+                    <p class="ds-c-alert__text ds-u-leading--base">
+                        You can edit and update the form as needed. Once submitted you will no longer be able to make edits to your submission.<br />
+                        Email us at <a href="mailto:BlueButtonAPI@cms.hhs.gov">BlueButtonAPI@cms.hhs.gov</a> if you questions.
                     </p>
                 </div>
             </div>
             {% elif action == "updated" %}
             <div class="ds-c-alert">
                 <div class="ds-c-alert__body">
-                    <h2 class="ds-c-alert__heading">Updated</h2>
-                    <p class="ds-c-alert__text">
-                        Updated prod access responses.
+                    <h2 class="ds-c-alert__heading">Your production access request as been updated!</h2>
+                    <p class="ds-c-alert__text ds-u-leading--base">
+                        You can edit and update the form as needed. Once submitted you will no longer be able to make edits to your
+                        submission.<br />
+                        Email us at <a href="mailto:BlueButtonAPI@cms.hhs.gov">BlueButtonAPI@cms.hhs.gov</a> if you questions.
                     </p>
                 </div>
             </div>
             {% elif action == "submitted" %}
             <div class="ds-c-alert ds-c-alert--success">
                 <div class="ds-c-alert__body">
-                    <h2 class="ds-c-alert__heading">Submitted</h2>
-                    <p class="ds-c-alert__text">
-                        Your prod access request has been submitted. You can no longer make edits to this form.
+                    <h2 class="ds-c-alert__heading">Your production access request as been submitted</h2>
+                    <p class="ds-c-alert__text ds-u-leading--base">
+                        You can no longer make edits to this form. We will be in contact soon to schedule your production access demo.<br />
+                        Email us at <a href="mailto:BlueButtonAPI@cms.hhs.gov">BlueButtonAPI@cms.hhs.gov</a> if you questions.
                     </p>
                 </div>
             </div>
