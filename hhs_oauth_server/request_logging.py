@@ -21,7 +21,6 @@ from apps.fhir.bluebutton.utils import (
     get_access_token_from_request,
 )
 
-
 audit = logging.getLogger("audit.%s" % __name__)
 
 
@@ -240,14 +239,16 @@ class RequestResponseLog(object):
                 )
 
                 if self.log_msg.get("req_client_id", False):
-                    Application = get_application_model()
-                    application = Application.objects.get(
-                        client_id=self.log_msg.get("req_client_id")
-                    )
-                    self._log_msg_update_from_object(
-                        application, "req_app_name", "name"
-                    )
-                    self._log_msg_update_from_object(application, "req_app_id", "id")
+                    # capture does not exist here to continue log more
+                    try:
+                        application = get_application_model().objects.get(
+                            client_id=self.log_msg.get("req_client_id")
+                        )
+                        self._log_msg_update_from_object(application, "req_app_name", "name")
+                        self._log_msg_update_from_object(application, "req_app_id", "id")
+                    except ObjectDoesNotExist:
+                        self.log_msg["req_app_name"] = ""
+                        self.log_msg["req_app_id"] = ""
 
                 refresh_token = request_body_dict.get("refresh_token", None)
                 if refresh_token is not None:
@@ -323,21 +324,26 @@ class RequestResponseLog(object):
             self._log_msg_update_from_querydict(
                 "req_qparam_lastupdated", "_lastUpdated"
             )
+
             self._log_msg_update_from_querydict("req_qparam_patient", "patient")
             self._log_msg_update_from_querydict("req_qparam_patient", "Patient")
             self._log_msg_update_from_querydict(
                 "req_qparam_response_type", "response_type"
             )
+
             self._log_msg_update_from_querydict("req_qparam_startindex", "startIndex")
             self._log_msg_update_from_querydict("req_qparam_type", "type")
 
             if self.log_msg.get("req_qparam_client_id", False):
-                Application = get_application_model()
-                application = Application.objects.get(
-                    client_id=self.log_msg.get("req_qparam_client_id")
-                )
-                self._log_msg_update_from_object(application, "req_app_name", "name")
-                self._log_msg_update_from_object(application, "req_app_id", "id")
+                try:
+                    application = get_application_model().objects.get(
+                        client_id=self.log_msg.get("req_qparam_client_id")
+                    )
+                    self._log_msg_update_from_object(application, "req_app_name", "name")
+                    self._log_msg_update_from_object(application, "req_app_id", "id")
+                except ObjectDoesNotExist:
+                    self.log_msg["req_app_name"] = ""
+                    self.log_msg["req_app_id"] = ""
 
         """
         --- Logging items from request ---
@@ -363,7 +369,11 @@ class RequestResponseLog(object):
         access_token = getattr(
             self.request, "auth", get_access_token_from_request(self.request)
         )
-        if AccessToken.objects.filter(token=access_token).exists():
+
+        # check and get does not prevent model not found, so remove it
+        # if AccessToken.objects.filter(token=access_token).exists():
+        # keep capture does not exist for the whole block since all log fields are related to access token
+        if access_token:
             try:
                 at = AccessToken.objects.get(token=access_token)
 
@@ -433,7 +443,8 @@ class RequestResponseLog(object):
             if (
                 self.log_msg["req_post_grant_type"] == "refresh_token"
                 and self.log_msg["request_method"] == "POST"
-                and AccessToken.objects.filter(token=resp_access_token).exists()
+                # remove exist checking since it does not prevent check and fetch race cond
+                # and AccessToken.objects.filter(token=resp_access_token).exists()
             ):
 
                 self._log_msg_update_from_dict(
@@ -451,39 +462,42 @@ class RequestResponseLog(object):
                     str(response_content.get("refresh_token", None)).encode("utf-8")
                 ).hexdigest()
 
-                try:
-                    at = AccessToken.objects.get(token=resp_access_token)
-                    self.log_msg["resp_access_token_hash"] = hashlib.sha256(
-                        str(access_token).encode("utf-8")
-                    ).hexdigest()
-                    self.log_msg["resp_access_token_scopes"] = " ".join(
-                        [s for s in at.scopes]
-                    )
+                # keep the corse try except since if access token does not exist, there is no need
+                # to continue collect related log event fields
+                if resp_access_token:
+                    try:
+                        at = AccessToken.objects.get(token=resp_access_token)
+                        self.log_msg["resp_access_token_hash"] = hashlib.sha256(
+                            str(access_token).encode("utf-8")
+                        ).hexdigest()
+                        self.log_msg["resp_access_token_scopes"] = " ".join(
+                            [s for s in at.scopes]
+                        )
 
-                    self._log_msg_update_from_object(
-                        at.application, "resp_app_id", "id"
-                    )
-                    self._log_msg_update_from_object(
-                        at.application, "resp_app_name", "name"
-                    )
-                    self._log_msg_update_from_object(
-                        at.application,
-                        "resp_app_require_demographic_scopes",
-                        "require_demographic_scopes",
-                    )
-                    self._log_msg_update_from_object(
-                        at.application.user, "resp_dev_id", "id"
-                    )
-                    self._log_msg_update_from_object(
-                        at.application.user, "resp_dev_name", "username"
-                    )
+                        self._log_msg_update_from_object(
+                            at.application, "resp_app_id", "id"
+                        )
+                        self._log_msg_update_from_object(
+                            at.application, "resp_app_name", "name"
+                        )
+                        self._log_msg_update_from_object(
+                            at.application,
+                            "resp_app_require_demographic_scopes",
+                            "require_demographic_scopes",
+                        )
+                        self._log_msg_update_from_object(
+                            at.application.user, "resp_dev_id", "id"
+                        )
+                        self._log_msg_update_from_object(
+                            at.application.user, "resp_dev_name", "username"
+                        )
 
-                    self._log_msg_update_from_object(at.user, "resp_user_id", "id")
-                    self._log_msg_update_from_object(
-                        at.user, "resp_user_username", "username"
-                    )
-                except ObjectDoesNotExist:
-                    pass
+                        self._log_msg_update_from_object(at.user, "resp_user_id", "id")
+                        self._log_msg_update_from_object(
+                            at.user, "resp_user_username", "username"
+                        )
+                    except ObjectDoesNotExist:
+                        pass
 
         return self.log_msg
 
