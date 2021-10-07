@@ -96,6 +96,22 @@ class MockUrlSLSxResponses:
                                                   "mbi": "1SA0A00AA00"}}}}
 
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
+    def slsx_user_info_none_hicn_mock(url, request):
+        if is_called_by_validate_user_signout():
+            return {"status_code": status.HTTP_403_FORBIDDEN}
+        else:
+            return {"status_code": status.HTTP_200_OK,
+                    "content": {"status": "ok",
+                                "code": status.HTTP_200_OK,
+                                "data": {"user": {"id": "00112233-4455-6677-8899-aabbccddeeff",
+                                                  "email": "bob@bobserver.bob",
+                                                  "firstName": None,
+                                                  "lastName": None,
+                                                  "hicn": None,
+                                                  "customUserInfo": {"mbi": "1SA0A00AA00"},
+                                                  "mbi": "1SA0A00AA00"}}}}
+
+    @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
     def slsx_user_info_non_json_response_mock(url, request):
         # pick a non 2XX non 3XX error 403 with non json content html frag,
         # which will raise_status in slsx user_info call

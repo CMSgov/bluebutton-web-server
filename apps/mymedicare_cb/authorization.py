@@ -193,21 +193,28 @@ class OAuth2ConfigSLSx(object):
             (self.user_id != data_user_response.get('id', None), MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID)
         ], MedicareCallbackExceptionType.USERINFO)
 
-        # canonicallize mbi, hicn and validate
         self.user_id = self.user_id.strip()
-        self.hicn = data_user_response.get("hicn", "").strip()
-        #     Convert SLS's mbi to UPPER case.
-        self.mbi = data_user_response.get("mbi", "").strip().upper()
+
+        # per BB2-850, need to handle the case where data_user_response has 'hicn', 'mbi' but the value is None.
+        # canonicallize mbi, hicn and validate
+        self.hicn = data_user_response.get("hicn")
+        if self.hicn is not None:
+            self.hicn = self.hicn.strip()
+
+        self.mbi = data_user_response.get("mbi")
+        # Convert SLS's mbi to UPPER case.
+        if not self.mbi:
+            self.mbi = self.mbi.strip().upper()
+        # If MBI returned from SLSx is blank, set to None for hash logging
+        if self.mbi == "":
+            self.mbi = None
+
         fn = data_user_response.get("firstName", "")
         self.firstname = fn if fn else ""
         ln = data_user_response.get("lastName", "")
         self.lastname = ln if ln else ""
         em = data_user_response.get("email", "")
         self.email = em if em else ""
-
-        # If MBI returned from SLSx is blank, set to None for hash logging
-        if self.mbi == "":
-            self.mbi = None
 
         # Validate: sls_subject (self.user_id) cannot be empty. TODO: Validate format too.
         self.validate_asserts(request, [
@@ -216,7 +223,7 @@ class OAuth2ConfigSLSx(object):
 
         # Validate: sls_hicn cannot be empty.
         self.validate_asserts(request, [
-            (self.hicn == "", "User info HICN cannot be empty.")
+            (not self.hicn, "User info HICN cannot be empty or None.")
         ], MedicareCallbackExceptionType.AUTHN_USERINFO)
 
         self.mbi_format_synthetic = is_mbi_format_synthetic(self.mbi)

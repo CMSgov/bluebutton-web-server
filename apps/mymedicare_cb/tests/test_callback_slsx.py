@@ -1,7 +1,7 @@
 import copy
 import json
 import jsonschema
-import io
+import re
 import uuid
 
 import apps.logging.request_logger as logging
@@ -48,14 +48,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
     def tearDown(self):
         self._cleanup_logger()
-
-    def _get_log_content(self, logger_name):
-        return self._collect_logs().get(logger_name)
-
-    def _get_log_lines_list(self, logger_name):
-        buf = io.StringIO(self._get_log_content(logger_name))
-        lines = buf.readlines()
-        return lines
 
     def _create_capability(self, name, urls, group=None, default=True):
         """
@@ -901,3 +893,42 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 log_schema, log_dict
             )
         )
+
+    def test_callback_usr_info_hicn_none(self):
+        # BB2-850
+        # create a state
+        state = generate_nonce()
+        AnonUserState.objects.create(
+            state=state,
+            next_uri="http://www.google.com?client_id=test&redirect_uri=test.com&response_type=token&state=test")
+
+        @all_requests
+        def catchall(url, request):
+            raise Exception(url)
+
+        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
+                     MockUrlSLSxResponses.slsx_user_info_none_hicn_mock,
+                     MockUrlSLSxResponses.slsx_health_ok_mock,
+                     MockUrlSLSxResponses.slsx_signout_ok_mock,
+                     catchall):
+            s = self.client.session
+            s.update({"auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
+                      "auth_app_id": "2",
+                      "auth_app_name": "TestApp-001",
+                      "auth_client_id": "uouIr1mnblrv3z0PJHgmeHiYQmGVgmk5DZPDNfop"})
+            s.save()
+            response = self.client.get(self.callback_url, data={'req_token': '0000-test_req_token-0000', 'relay': state})
+            resp_json = response.json()
+            self.assertEqual(response.status_code, 500)
+            self.assertIsNotNone(resp_json)
+            self.assertIsNotNone(resp_json.get("error"))
+            self.assertEqual(resp_json.get("error"), "An error occurred connecting to account.mymedicare.gov")
+            # further check log for root cause
+            sls_authn_log_content = self._get_log_content(logging.AUDIT_AUTHN_SLS_LOGGER)
+            self.assertIsNotNone(sls_authn_log_content)
+            quoted_strings = re.findall("{[^{}]+}", sls_authn_log_content)
+            # expect one log record
+            self.assertEqual(len(quoted_strings), 1)
+            log_rec_json = json.loads(quoted_strings[0])
+            self.assertIsNotNone(log_rec_json)
+            self.assertEqual(log_rec_json.get("sls_status_mesg"), "User info HICN cannot be empty or None.")
