@@ -38,14 +38,13 @@ services:
       - "5900:5900"
 
   msls:
-    build: .
-    command: bash -c "cd dev-local ; python manage.py migrate ; python3 -m debugpy --listen 0.0.0.0:7890 manage.py runserver 0.0.0.0:8080 --noreload"
-    environment:
-        - DJANGO_SETTINGS_MODULE=mslsx_django.settings
+    build:
+      context: ./dev-local/msls
+      dockerfile: Dockerfile
+    command: msls
     ports:
-        - "8080:8080"
-        - "7890:7890"
-      
+      - "8080:8080"
+  
   db:
     image: postgres
     environment:
