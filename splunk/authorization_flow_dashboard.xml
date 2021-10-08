@@ -884,8 +884,7 @@
       <chart>
         <title>Events by user_id_type (Previously stored crosswalk type)</title>
         <search base="baseSearch5">
-          <query>
-stats count by message.crosswalk.user_id_type</query>
+          <query>stats count by message.crosswalk.user_id_type</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
