@@ -128,7 +128,7 @@ class SeleniumTests(TestCase):
 
     def _login(self, step, **kwargs):
         if self.use_mslsx == 'false':
-            # dismiss mymedicare popup if present
+            # dismiss Medicare.gov popup if present
             webdriver.ActionChains(self.driver).send_keys(Keys.ESCAPE).perform()
         self._play(self.login_seq, step, **kwargs)
 
