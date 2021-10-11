@@ -454,9 +454,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                     self.callback_url, data={"req_token": "test", "relay": state}
                 )
 
-            content = json.loads(response.content)
-            self.assertEqual(content["error"], ERROR_MSG_MYMEDICARE)
-
         # With HTTMock sls_user_info_http_error_mock
         with HTTMock(
             MockUrlSLSxResponses.slsx_token_mock,
