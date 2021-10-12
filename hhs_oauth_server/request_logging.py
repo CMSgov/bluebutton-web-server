@@ -239,7 +239,6 @@ class RequestResponseLog(object):
                 )
 
                 if self.log_msg.get("req_client_id", False):
-                    # capture does not exist here to continue log more
                     try:
                         application = get_application_model().objects.get(
                             client_id=self.log_msg.get("req_client_id")
@@ -370,9 +369,6 @@ class RequestResponseLog(object):
             self.request, "auth", get_access_token_from_request(self.request)
         )
 
-        # check and get does not prevent model not found, so remove it
-        # if AccessToken.objects.filter(token=access_token).exists():
-        # keep capture does not exist for the whole block since all log fields are related to access token
         if access_token:
             try:
                 at = AccessToken.objects.get(token=access_token)
@@ -443,8 +439,6 @@ class RequestResponseLog(object):
             if (
                 self.log_msg["req_post_grant_type"] == "refresh_token"
                 and self.log_msg["request_method"] == "POST"
-                # remove exist checking since it does not prevent check and fetch race cond
-                # and AccessToken.objects.filter(token=resp_access_token).exists()
             ):
 
                 self._log_msg_update_from_dict(
@@ -462,8 +456,6 @@ class RequestResponseLog(object):
                     str(response_content.get("refresh_token", None)).encode("utf-8")
                 ).hexdigest()
 
-                # keep the corse try except since if access token does not exist, there is no need
-                # to continue collect related log event fields
                 if resp_access_token:
                     try:
                         at = AccessToken.objects.get(token=resp_access_token)
