@@ -583,7 +583,7 @@ LOGOUT_REDIRECT_URL = "/"
 ADMIN_PREPEND_URL = env("DJANGO_ADMIN_PREPEND_URL", "")
 
 ALLOW_END_USER_EXTERNAL_AUTH = "B"
-EXTERNAL_AUTH_NAME = "MyMedicare.gov"
+EXTERNAL_AUTH_NAME = "Medicare.gov"
 
 # SLSx settings
 SLSX_CLIENT_ID = env("DJANGO_SLSX_CLIENT_ID")
@@ -618,7 +618,7 @@ SLSX_VERIFY_SSL_INTERNAL = env("DJANGO_SLSX_VERIFY_SSL_INTERNAL", False)
 SLSX_VERIFY_SSL_EXTERNAL = env("DJANGO_SLSX_VERIFY_SSL_EXTERNAL", False)
 
 # Message returned to bene for API exceptions related to medicare login/SLS
-MEDICARE_ERROR_MSG = "An error occurred connecting to account.mymedicare.gov"
+MEDICARE_ERROR_MSG = "An error occurred connecting to medicare.gov account"
 
 AUTHENTICATION_BACKENDS = (
     "apps.accounts.backends.EmailAuthBackend",

@@ -9,7 +9,6 @@ from enum import Enum
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-# from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
@@ -19,8 +18,12 @@ from .validators import is_mbi_format_valid, is_mbi_format_synthetic
 
 MSG_SLS_RESP_MISSING_AUTHTOKEN = "Exchange auth_token is missing in response error"
 MSG_SLS_RESP_MISSING_USERID = "Exchange user_id is missing in response error"
-MSG_SLS_RESP_MISSING_USERINFO_USERID = "SLSx userinfo user_id is missing in response error"
-MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID = "SLSx userinfo user_id is not equal in response error"
+MSG_SLS_RESP_MISSING_USERINFO_USERID = (
+    "SLSx userinfo user_id is missing in response error"
+)
+MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID = (
+    "SLSx userinfo user_id is not equal in response error"
+)
 
 
 class MedicareCallbackExceptionType(Enum):
@@ -70,6 +73,7 @@ class OAuth2ConfigSLSx(object):
     See the following for more details about the endpoint usage:
     https://confluence.cms.gov/pages/viewpage.action?spaceKey=SLS&title=SLSx%3A+Client+Onboarding+Guide
     """
+
     redirect_uri = settings.MEDICARE_SLSX_REDIRECT_URI
 
     healthcheck_endpoint = settings.SLSX_HEALTH_CHECK_ENDPOINT
@@ -104,11 +108,11 @@ class OAuth2ConfigSLSx(object):
 
     @property
     def client_id(self):
-        return getattr(settings, 'SLSX_CLIENT_ID', False)
+        return getattr(settings, "SLSX_CLIENT_ID", False)
 
     @property
     def client_secret(self):
-        return getattr(settings, 'SLSX_CLIENT_SECRET', False)
+        return getattr(settings, "SLSX_CLIENT_SECRET", False)
 
     def basic_auth(self):
         if self.client_id and self.client_secret:
@@ -120,13 +124,22 @@ class OAuth2ConfigSLSx(object):
         Common headers used for all endpoint requests
         """
         # keep using deprecated conv - no conflict issue
-        headers = {"Content-Type": "application/json",
-                   "Cookie": self.token_endpoint_aca_token,
-                   "X-SLS-starttime": str(datetime.datetime.utcnow())}
+        headers = {
+            "Content-Type": "application/json",
+            "Cookie": self.token_endpoint_aca_token,
+            "X-SLS-starttime": str(datetime.datetime.utcnow()),
+        }
 
         if request is not None:
-            headers.update({"X-Request-ID": str(getattr(request, '_logging_uuid', None)
-                            if hasattr(request, '_logging_uuid') else '')})
+            headers.update(
+                {
+                    "X-Request-ID": str(
+                        getattr(request, "_logging_uuid", None)
+                        if hasattr(request, "_logging_uuid")
+                        else ""
+                    )
+                }
+            )
         return headers
 
     def exchange_for_access_token(self, req_token, request):
@@ -142,27 +155,35 @@ class OAuth2ConfigSLSx(object):
 
         headers = self.slsx_common_headers(request)
 
-        response = requests.post(self.token_endpoint,
-                                 auth=self.basic_auth(),
-                                 json=data_dict,
-                                 headers=headers,
-                                 allow_redirects=False,
-                                 verify=self.verify_ssl_external,
-                                 hooks={'response': [
-                                        response_hook_wrapper(sender=SLSxTokenResponse,
-                                                              request=request)]})
+        response = requests.post(
+            self.token_endpoint,
+            auth=self.basic_auth(),
+            json=data_dict,
+            headers=headers,
+            allow_redirects=False,
+            verify=self.verify_ssl_external,
+            hooks={
+                "response": [
+                    response_hook_wrapper(sender=SLSxTokenResponse, request=request)
+                ]
+            },
+        )
         self.token_status_code = response.status_code
         response.raise_for_status()
 
         token_response = response.json()
 
-        self.auth_token = token_response.get('auth_token', None)
-        self.user_id = token_response.get('user_id', None)
+        self.auth_token = token_response.get("auth_token", None)
+        self.user_id = token_response.get("user_id", None)
 
-        self.validate_asserts(request, [
-            (self.auth_token is None, MSG_SLS_RESP_MISSING_AUTHTOKEN),
-            (self.user_id is None, MSG_SLS_RESP_MISSING_USERID)
-        ], MedicareCallbackExceptionType.TOKEN)
+        self.validate_asserts(
+            request,
+            [
+                (self.auth_token is None, MSG_SLS_RESP_MISSING_AUTHTOKEN),
+                (self.user_id is None, MSG_SLS_RESP_MISSING_USERID),
+            ],
+            MedicareCallbackExceptionType.TOKEN,
+        )
 
     def auth_header(self):
         return {"Authorization": "Bearer %s" % (self.auth_token)}
@@ -175,23 +196,38 @@ class OAuth2ConfigSLSx(object):
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
-        response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
-                                headers=headers,
-                                allow_redirects=False,
-                                verify=self.verify_ssl_internal,
-                                hooks={'response': [
-                                       response_hook_wrapper(sender=SLSxUserInfoResponse,
-                                                             request=request)]})
+        response = requests.get(
+            self.userinfo_endpoint + "/" + self.user_id,
+            headers=headers,
+            allow_redirects=False,
+            verify=self.verify_ssl_internal,
+            hooks={
+                "response": [
+                    response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)
+                ]
+            },
+        )
         self.userinfo_status_code = response.status_code
         response.raise_for_status()
 
         # Get data.user part of response
-        data_user_response = response.json().get('data', {}).get('user', None)
+        data_user_response = response.json().get("data", {}).get("user", None)
 
-        self.validate_asserts(request, [
-            (data_user_response is None or data_user_response.get('id', None) is None, MSG_SLS_RESP_MISSING_USERINFO_USERID),
-            (self.user_id != data_user_response.get('id', None), MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID)
-        ], MedicareCallbackExceptionType.USERINFO)
+        self.validate_asserts(
+            request,
+            [
+                (
+                    data_user_response is None
+                    or data_user_response.get("id", None) is None,
+                    MSG_SLS_RESP_MISSING_USERINFO_USERID,
+                ),
+                (
+                    self.user_id != data_user_response.get("id", None),
+                    MSG_SLS_RESP_NOT_MATCHED_USERINFO_USERID,
+                ),
+            ],
+            MedicareCallbackExceptionType.USERINFO,
+        )
 
         self.user_id = self.user_id.strip()
 
@@ -217,9 +253,11 @@ class OAuth2ConfigSLSx(object):
         self.email = em if em else ""
 
         # Validate: sls_subject (self.user_id) cannot be empty. TODO: Validate format too.
-        self.validate_asserts(request, [
-            (self.user_id == "", "User info sub cannot be empty")
-        ], MedicareCallbackExceptionType.AUTHN_USERINFO)
+        self.validate_asserts(
+            request,
+            [(self.user_id == "", "User info sub cannot be empty")],
+            MedicareCallbackExceptionType.AUTHN_USERINFO,
+        )
 
         # Validate: sls_hicn cannot be empty.
         self.validate_asserts(request, [
@@ -228,9 +266,6 @@ class OAuth2ConfigSLSx(object):
 
         self.mbi_format_synthetic = is_mbi_format_synthetic(self.mbi)
         self.mbi_format_valid, self.mbi_format_msg = is_mbi_format_valid(self.mbi)
-        self.validate_asserts(request, [
-            (not self.mbi_format_valid and self.mbi is not None, "User info MBI format is not valid.")
-        ], MedicareCallbackExceptionType.AUTHN_USERINFO)
 
         self.hicn_hash = hash_hicn(self.hicn)
         self.mbi_hash = hash_mbi(self.mbi)
@@ -246,11 +281,13 @@ class OAuth2ConfigSLSx(object):
         """
         headers = self.slsx_common_headers(request)
 
-        response = requests.get(self.healthcheck_endpoint,
-                                headers=headers,
-                                allow_redirects=False,
-                                verify=self.verify_ssl_internal,
-                                timeout=5)
+        response = requests.get(
+            self.healthcheck_endpoint,
+            headers=headers,
+            allow_redirects=False,
+            verify=self.verify_ssl_internal,
+            timeout=5,
+        )
         response.raise_for_status()
         return True
 
@@ -266,17 +303,27 @@ class OAuth2ConfigSLSx(object):
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
-        response = requests.get(self.signout_endpoint,
-                                headers=headers,
-                                allow_redirects=False,
-                                verify=self.verify_ssl_external)
+        response = requests.get(
+            self.signout_endpoint,
+            headers=headers,
+            allow_redirects=False,
+            verify=self.verify_ssl_external,
+        )
         self.signout_status_code = response.status_code
         response.raise_for_status()
 
-        self.validate_asserts(request, [
-            (self.signout_status_code != status.HTTP_302_FOUND,
-             "SLSx signout response_code = {code}. Expecting HTTP_302_FOUND.".format(code=self.signout_status_code))
-        ], MedicareCallbackExceptionType.SIGNOUT)
+        self.validate_asserts(
+            request,
+            [
+                (
+                    self.signout_status_code != status.HTTP_302_FOUND,
+                    "SLSx signout response_code = {code}. Expecting HTTP_302_FOUND.".format(
+                        code=self.signout_status_code
+                    ),
+                )
+            ],
+            MedicareCallbackExceptionType.SIGNOUT,
+        )
 
     def validate_user_signout(self, request):
         """
@@ -288,20 +335,31 @@ class OAuth2ConfigSLSx(object):
         headers = self.slsx_common_headers(request)
         headers.update(self.auth_header())
 
-        response = requests.get(self.userinfo_endpoint + "/" + self.user_id,
-                                headers=headers,
-                                allow_redirects=False,
-                                verify=self.verify_ssl_internal,
-                                hooks={'response': [
-                                       response_hook_wrapper(sender=SLSxUserInfoResponse,
-                                                             request=request)]})
+        response = requests.get(
+            self.userinfo_endpoint + "/" + self.user_id,
+            headers=headers,
+            allow_redirects=False,
+            verify=self.verify_ssl_internal,
+            hooks={
+                "response": [
+                    response_hook_wrapper(sender=SLSxUserInfoResponse, request=request)
+                ]
+            },
+        )
         self.validate_signout_status_code = response.status_code
 
-        self.validate_asserts(request, [
-            (self.validate_signout_status_code != status.HTTP_403_FORBIDDEN,
-             "SLSx validate signout response_code = {code}. Expecting HTTP_403_FORBIDDEN.".format(
-                 code=self.validate_signout_status_code))
-        ], MedicareCallbackExceptionType.VALIDATE_SIGNOUT)
+        self.validate_asserts(
+            request,
+            [
+                (
+                    self.validate_signout_status_code != status.HTTP_403_FORBIDDEN,
+                    "SLSx validate signout response_code = {code}. Expecting HTTP_403_FORBIDDEN.".format(
+                        code=self.validate_signout_status_code
+                    ),
+                )
+            ],
+            MedicareCallbackExceptionType.VALIDATE_SIGNOUT,
+        )
 
     def validate_asserts(self, request, asserts, err_enum):
         # asserts is a list of tuple : (boolean expression, err message)
@@ -338,13 +396,19 @@ class OAuth2ConfigSLSx(object):
                 elif err_enum == MedicareCallbackExceptionType.SIGNOUT:
                     err = BBMyMedicareSLSxSignoutException(settings.MEDICARE_ERROR_MSG)
                 elif err_enum == MedicareCallbackExceptionType.VALIDATE_SIGNOUT:
-                    err = BBMyMedicareSLSxValidateSignoutException(settings.MEDICARE_ERROR_MSG)
+                    err = BBMyMedicareSLSxValidateSignoutException(
+                        settings.MEDICARE_ERROR_MSG
+                    )
                 elif err_enum == MedicareCallbackExceptionType.VALIDATION_ERROR:
                     err = ValidationError(settings.MEDICARE_ERROR_MSG)
                 elif err_enum == MedicareCallbackExceptionType.AUTHN_USERINFO:
-                    err = BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(settings.MEDICARE_ERROR_MSG)
+                    err = BBMyMedicareCallbackAuthenticateSlsUserInfoValidateException(
+                        settings.MEDICARE_ERROR_MSG
+                    )
                 else:
-                    err = Exception("Unkown medicare callback exception type: {}".format(err_enum))
+                    err = Exception(
+                        "Unkown medicare callback exception type: {}".format(err_enum)
+                    )
                 raise err
 
     def log_event(self, request, extra):

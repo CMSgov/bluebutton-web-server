@@ -32,6 +32,7 @@ from .audit_logger_schemas import (
     MYMEDICARE_CB_CREATE_BENE_LOG_SCHEMA,
     MYMEDICARE_CB_GET_UPDATE_BENE_LOG_SCHEMA,
     REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA,
+    REQUEST_PARTIAL_LOG_REC_SCHEMA,
     SLSX_TOKEN_LOG_SCHEMA,
     SLSX_USERINFO_LOG_SCHEMA,
 )
@@ -490,3 +491,47 @@ class TestAuditEventLoggers(BaseApiTest):
         self.assertTrue(
             self._validateJsonSchema(AUTHORIZATION_LOG_SCHEMA, token_log_dict)
         )
+
+    def test_request_logger_app_not_exist(self):
+        self._request_logger_app_not_exist(False)
+
+    @override_flag("bfd_v2_flag", active=True)
+    def test_request_logger_app_not_exist_v2(self):
+        self._request_logger_app_not_exist(True)
+
+    def _request_logger_app_not_exist(self, v2=False):
+        # copy and adapted to test token logger
+        redirect_uri = "http://localhost"
+        self._create_user("anna", "123456")
+        capability_a = self._create_capability("Capability A", [])
+        capability_b = self._create_capability("Capability B", [])
+        application = self._create_application(
+            "an app",
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect_uri,
+        )
+
+        application.scope.add(capability_a, capability_b)
+        api_ver = "v1" if not v2 else "v2"
+
+        self.client.login(username="anna", password="123456")
+
+        non_exist_client_id = application.client_id + "_non_exist"
+
+        payload = {
+            "client_id": non_exist_client_id,
+            "response_type": "code",
+            "redirect_uri": redirect_uri,
+        }
+
+        response = self.client.get("/{}/o/authorize/".format(api_ver), data=payload)
+
+        self.assertNotEqual(response.status_code, 500)
+        # assert request logger record exist and app name, app id has expected value ""
+        request_log_content = self.get_log_content(logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
+        self.assertIsNotNone(request_log_content)
+        json_rec = json.loads(request_log_content)
+        self.assertTrue(self._validateJsonSchema(REQUEST_PARTIAL_LOG_REC_SCHEMA, json_rec))
+        self.assertEqual(json_rec.get("req_qparam_client_id"), non_exist_client_id)
+        self.assertEqual(json_rec.get("req_app_name"), "")
+        self.assertEqual(json_rec.get("req_app_id"), "")
