@@ -300,6 +300,29 @@ REQUEST_RESPONSE_MIDDLEWARE_LOG_SCHEMA = {
                  "path", "request_method", "request_scheme", "user", "fhir_id", "response_code"]
 }
 
+REQUEST_PARTIAL_LOG_REC_SCHEMA = {
+    "title": "RequestResponseLogSchemaPartial",
+    "type": "object",
+    "properties": {
+        "type": {"pattern": "request_response_middleware"},
+        "size": {"type": "integer"},
+        "start_time": {"type": "number"},
+        "end_time": {"type": "number"},
+        "ip_addr": {"type": "string", "format": "ip-address"},
+        "request_uuid": {"type": "string", "format": "uuid"},
+        "req_qparam_client_id": {"type": "string"},
+        "req_app_id": {"type": "string"},
+        "req_app_name": {"type": "string"},
+        "path": {"enum": ["/v1/o/authorize/", "/v2/o/authorize/"]},
+        "request_method": {"pattern": "GET"},
+        "request_scheme": {"pattern": "http"},
+        "response_code": {"type": "integer"},
+    },
+    "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
+                 "req_qparam_client_id", "req_app_id", "req_app_name",
+                 "path", "request_method", "request_scheme", "response_code"]
+}
+
 SLSX_TOKEN_LOG_SCHEMA = {
     "title": "SlsxTokenLogSchema",
     "type": "object",
