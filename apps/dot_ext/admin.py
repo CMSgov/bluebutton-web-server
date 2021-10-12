@@ -76,47 +76,41 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         return self.cleaned_data.get('agree')
 
 
+@admin.register(MyApplication)
 class MyApplicationAdmin(admin.ModelAdmin):
     form = CustomAdminApplicationForm
     list_display = ("name", "user", "authorization_grant_type", "client_id",
                     "require_demographic_scopes", "scopes",
                     "created", "updated", "active", "skip_authorization")
-    list_filter = ("name", "user", "client_type", "authorization_grant_type",
+    list_filter = ("client_type", "authorization_grant_type",
                    "require_demographic_scopes", "active", "skip_authorization")
     radio_fields = {
         "client_type": admin.HORIZONTAL,
         "authorization_grant_type": admin.VERTICAL,
     }
+
+    search_fields = ('name', 'user__username', '=client_id', '=require_demographic_scopes', '=authorization_grant_type')
+
     raw_id_fields = ("user", )
 
 
-admin.site.register(MyApplication, MyApplicationAdmin)
-
-
+@admin.register(MyAccessToken)
 class MyAccessTokenAdmin(admin.ModelAdmin):
-    list_display = ('user', 'application', 'expires', 'scope')
-    search_fields = ('user__username', 'application__name',)
-    list_filter = ("user", "application")
+    list_display = ('user', 'application', 'expires', 'scope', 'token',)
+    search_fields = ('user__username', 'application__name', 'token', 'source_refresh_token__token')
     raw_id_fields = ("user", 'application')
 
 
-admin.site.register(MyAccessToken, MyAccessTokenAdmin)
-
-
+@admin.register(MyAuthFlowUuid)
 class MyAuthFlowUuidAdmin(admin.ModelAdmin):
     list_display = ('created', 'auth_uuid', 'state', 'code', 'client_id',
                     'auth_pkce_method', 'auth_crosswalk_action', 'auth_share_demographic_scopes')
     search_fields = ('auth_uuid', 'state', 'code')
 
 
-admin.site.register(MyAuthFlowUuid, MyAuthFlowUuidAdmin)
-
-
+@admin.register(ApplicationLabel)
 class ApplicationLabelAdmin(admin.ModelAdmin):
     model = ApplicationLabel
     filter_horizontal = ('applications',)
     list_display = ("name", "slug", "short_description")
     list_filter = ("name", "slug")
-
-
-admin.site.register(ApplicationLabel, ApplicationLabelAdmin)
