@@ -37,26 +37,28 @@ The following is a general procedure for updating Athena views and QuickSight da
 
 2. In the AWS Athena console, open up the "Query editor".
 
-3. Under the "Data" panel, select the "bb2" database.
+3. Select "bb2" from the workgroup drop-down on the query editor.
 
-4. Under the "Data" panel, locate the "Views" section.
+4. Under the "Data" panel, select the "bb2" database.
 
-5. Select the "Show/edit query" action for the target view to be changed.
+5. Under the "Data" panel, locate the "Views" section.
 
-6. Copy and paste the edited SQL to replace the "CREATE OR REPLACE" block contents. NOTE: This may be enclosed in "()". 
+6. Select the "Show/edit query" action for the target view to be changed.
 
-7. RUN the query. This will replace it.
+7. Copy and paste the edited SQL to replace the "CREATE OR REPLACE" block contents. NOTE: This may be enclosed in "()". 
 
-8. Login to AWS Quicksight.
+8. RUN the query. This will replace it.
 
-9. Go to the `Datasets` section.
+9. Login to AWS Quicksight.
 
-10. Select the data set related to the view that was modified. You can also create a new view in a similar way.
+10. Go to the `Datasets` section.
 
-11. Click on the `Refresh now` button. This start a refresh for the dataset.
+11. Select the data set related to the view that was modified. You can also create a new view in a similar way.
 
-12. If there are changes to field names, you will be prompted to map the old fields to the new ones.
+12. Click on the `Refresh now` button. This start a refresh for the dataset.
 
-13. Edit your existing Analyses that are utlizing the dataset related to the changes.
+13. If there are changes to field names, you will be prompted to map the old fields to the new ones.
 
-14. Commit your SQL file changes back to the repository via PR.
+14. Edit your existing Analyses that are utlizing the dataset related to the changes.
+
+15. Commit your SQL file changes back to the repository via PR.
