@@ -72,7 +72,7 @@
                 <table>
                 <tr>
                 <td>1. Initial Authorization</td>
-                <td>2. MyMedicare Login Redirect</td>
+                <td>2. Medicare.gov Login Redirect</td>
                 <td>3. Authentication Start</td>
                 <td>4. FHIR_ID Matched</td>
                 </tr>
@@ -81,7 +81,7 @@
                 <td>6a. Existing Beneficiary found in BB2 User/Crosswalk Record</td>
                 <td>6b. New Beneficiary Created in BB2 User/Crosswalk Record</td>
                 <td>7. Authentication Success - SLS-to-FHIR_ID Matched</td>
-                <td>8. MyMedicare SLS-Callback COMPLETE</td>
+                <td>8. Medicare.gov SLS-Callback COMPLETE</td>
                 </tr>
                 <tr>
                 <td>9.  Authorization ApprovalView</td>
@@ -191,7 +191,7 @@
         </single>
       </panel>
       <panel>
-        <title>2. MyMedicare Login Redirect</title>
+        <title>2. Medicare.gov Login Redirect</title>
         <single>
           <search base="baseSearch2">
             <query>stats count</query>
@@ -270,7 +270,7 @@
         </single>
       </panel>
       <panel>
-        <title>8. MyMedicare SLS-Callback COMPLETE</title>
+        <title>8. Medicare.gov SLS-Callback COMPLETE</title>
         <single>
           <search base="baseSearch8">
             <query>stats count</query>
@@ -487,7 +487,7 @@
       <panel>
         <html>
          <u1> <h1>
-              <b>2. MyMedicare Login Redirect Events: Events from the apps.mymedicare_cb.views.mymedicare_login() request used to redirect the beneficiary to the MyMedicare login page</b>
+              <b>2. Medicare.gov Login Redirect Events: Events from the apps.mymedicare_cb.views.mymedicare_login() request used to redirect the beneficiary to the Medicare.gov login page</b>
             </h1>
           </u1>
        </html>
@@ -590,7 +590,7 @@
       <panel>
         <html>
          <u1> <h1>
-              <b>3. Authentication Start Events: After beneficiary MyMedicare login. Events from the apps.mymedicare_cb.views.authenticate() function AFTER receiving a response from the SLS userinfo end point and BEFORE the beneficiary has been matched to a FHIR_ID with the BFD back end.</b>
+              <b>3. Authentication Start Events: After beneficiary Medicare.gov login. Events from the apps.mymedicare_cb.views.authenticate() function AFTER receiving a response from the SLS userinfo end point and BEFORE the beneficiary has been matched to a FHIR_ID with the BFD back end.</b>
             </h1>
           </u1>
        </html>
@@ -1279,7 +1279,7 @@
       <panel>
         <html>
          <u1> <h1>
-              <b>8. MyMedicare SLS-Callback COMPLETE Request Events: Events for calls to the apps.mymedicare_cb.views.callback() view at completion. To reach this part of the flow, the beneficiary successfully authenticated with SLS after logging in to the MyMedicare site.  PATH=/mymedicare/sls-callback</b>
+              <b>8. Medicare.gov SLS-Callback COMPLETE Request Events: Events for calls to the apps.mymedicare_cb.views.callback() view at completion. To reach this part of the flow, the beneficiary successfully authenticated with SLS after logging in to the Medicare.gov site.  PATH=/mymedicare/sls-callback</b>
             </h1>
           </u1>
        </html>
