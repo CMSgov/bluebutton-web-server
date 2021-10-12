@@ -28,6 +28,7 @@ FHIR_URL="https://prod-sbx.bfd.cms.gov"
 # List of tests to run. To be passed in to runtests.py.
 TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
 
+export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
@@ -96,7 +97,6 @@ else
     if [[ $1 == "logit" ]]
     then
       TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
-      export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
     fi
   fi
