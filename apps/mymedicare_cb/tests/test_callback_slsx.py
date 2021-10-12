@@ -1121,7 +1121,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertEqual(response.status_code, 500)
             self.assertIsNotNone(resp_json)
             self.assertIsNotNone(resp_json.get("error"))
-            self.assertEqual(resp_json.get("error"), "An error occurred connecting to account.mymedicare.gov")
+            self.assertEqual(resp_json.get("error"), settings.MEDICARE_ERROR_MSG)
             # further check log for root cause
             sls_authn_log_content = self._get_log_content(logging.AUDIT_AUTHN_SLS_LOGGER)
             self.assertIsNotNone(sls_authn_log_content)

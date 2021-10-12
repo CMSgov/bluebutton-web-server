@@ -528,7 +528,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         self.assertNotEqual(response.status_code, 500)
         # assert request logger record exist and app name, app id has expected value ""
-        request_log_content = self.get_log_content(logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
+        request_log_content = self._get_log_content(logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
         self.assertIsNotNone(request_log_content)
         json_rec = json.loads(request_log_content)
         self.assertTrue(self._validateJsonSchema(REQUEST_PARTIAL_LOG_REC_SCHEMA, json_rec))
