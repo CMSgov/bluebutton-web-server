@@ -137,12 +137,12 @@ SEQ_LOGIN_MSLSX = [
 
 SEQ_LOGIN_SLSX = [
     {
-        "display": "MyMedicare login username",
+        "display": "Medicare.gov login username",
         "action": Action.FIND_SEND_KEY,
         "params": [20, By.ID, SLSX_TXT_FLD_USERNAME, SLSX_TXT_FLD_USERNAME_VAL]
     },
     {
-        "display": "MyMedicare login password",
+        "display": "Medicare.gov login password",
         "action": Action.FIND_SEND_KEY,
         "params": [20, By.ID, SLSX_TXT_FLD_PASSWORD, SLSX_TXT_FLD_PASSWORD_VAL]
     },
