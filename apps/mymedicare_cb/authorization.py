@@ -9,7 +9,6 @@ from enum import Enum
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-# from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.fhir.bluebutton.models import hash_hicn, hash_mbi
 from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 

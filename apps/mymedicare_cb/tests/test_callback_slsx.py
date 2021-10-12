@@ -7,6 +7,7 @@ import uuid
 import apps.logging.request_logger as logging
 
 from datetime import datetime
+from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.utils.dateparse import parse_duration
 from django.utils.text import slugify
@@ -323,7 +324,6 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     def test_callback_exceptions(self):
         # BB2-237: Added to test ASSERTS replaced with exceptions.
         #          These are typically for conditions that should never be reached, so generate a 500.
-        ERROR_MSG_MYMEDICARE = "An error occurred connecting to account.mymedicare.gov"
 
         # create a state
         state = generate_nonce()
@@ -422,7 +422,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
                 response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
             )
             content = json.loads(response.content)
-            self.assertEqual(content["error"], ERROR_MSG_MYMEDICARE)
+            self.assertEqual(content["error"], settings.MEDICARE_ERROR_MSG)
 
         # With HTTMock sls_user_info_invalid_mbi_mock test User info MBI is not in valid format.
         with HTTMock(
