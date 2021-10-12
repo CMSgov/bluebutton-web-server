@@ -2,11 +2,11 @@ MyMedicare Callback
 ===================
 
 
-Docs for the MyMedicare (SLSx) authentication flow can be found in Confluence: https://confluence.cms.gov/display/BB2/BB2+SLSx+Integration+and+Implementation?src=contextnavpagetreemode
+Docs for the Medicare.gov (SLSx) authentication flow can be found in Confluence: https://confluence.cms.gov/display/BB2/BB2+SLSx+Integration+and+Implementation?src=contextnavpagetreemode
 
 In 1/2021 we will be migrating from using SLS to the new SLSx endpoints!
 
-Docs for the MyMedicare (SLS) authentication flow can be found in Confluence: https://confluence.cms.gov/display/BB/OpenID+Connect+%28OIDC%29+for+SLS
+Docs for the Medicare.gov (SLS) authentication flow can be found in Confluence: https://confluence.cms.gov/display/BB/OpenID+Connect+%28OIDC%29+for+SLS
 
 Adjust the following settings for environments.  Below the DEV defaults are given, but must be updated for production.
 

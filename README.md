@@ -5,7 +5,7 @@ Blue Button Web Server
 [![Coverage Status](https://coveralls.io/repos/github/CMSgov/bluebutton-web-server/badge.svg?branch=develop)](https://coveralls.io/github/CMSgov/bluebutton-web-server?branch=develop)
 
 This server serves as a data provider for sharing Medicare claims data with third parties.
-The server connects to MyMedicare.gov for authentication, and uses OAuth2 to confirm permission
+The server connects to Medicare.gov for authentication, and uses OAuth2 to confirm permission
 grants to external app developers. The data itself comes from a back end FHIR server
 (https://github.com/CMSgov/bluebutton-data-server), which in turn pulls data from the CMS
 Chronic Conditions Warehouse (https://www.ccwdata.org)
