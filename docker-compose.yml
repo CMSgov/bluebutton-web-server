@@ -12,6 +12,7 @@ services:
             - SAMPLE_HICN_LIST=${SAMPLE_HICN_LIST}
     ports:
       - "8080:8080"
+      - "7890:7890"
   db:
     image: postgres
     environment:
