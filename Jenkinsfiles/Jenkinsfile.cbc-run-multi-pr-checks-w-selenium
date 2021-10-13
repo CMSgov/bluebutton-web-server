@@ -1,0 +1,128 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer "bb2-cbc-build-selenium"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium.yaml"
+    }
+  }
+
+  environment {
+    USE_MSLSX = false
+    USE_DEBUG = false
+    DJANGO_LOG_JSON_FORMAT_PRETTY = true
+    DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.dev"
+    OAUTHLIB_INSECURE_TRANSPORT = true
+    DJANGO_SECURE_SESSION = false
+    DJANGO_FHIR_CERTSTORE = "./certstore"
+    DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://localhost:8000/mymedicare/sls-callback"
+    DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
+    DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
+    DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
+    DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
+    DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+    DJANGO_SLSX_CLIENT_ID = credentials("bb2-selenium-tests-slsx-client-id")
+    DJANGO_SLSX_CLIENT_SECRET = credentials("bb2-selenium-tests-slsx-client-secret")
+    DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
+    DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
+    FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
+    FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
+    FHIR_URL = "${params.FHIR_URL}"
+  }
+
+  parameters {
+    string(
+      name: 'FHIR_URL',
+      defaultValue: "https://prod-sbx.bfd.cms.gov",
+      description: 'The default FHIR URL for the back end BFD service.'
+    )
+    booleanParam(
+        name: 'RUN_SELENIUM_TESTS', 
+        defaultValue: true, 
+        description: 'Set to true, selenium tests will be run as part of integration tests'
+    )
+  }
+
+  stages {
+    stage("SETUP FHIR cert and key") {
+      steps {
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+      }
+    }
+
+    stage("INSTALL Python Packages") {
+      steps {
+        sh """
+          python -m venv venv
+          . venv/bin/activate
+          make reqs-install-dev
+          pip install selenium
+        """
+      }
+    }
+
+    stage("CHECK Flake8 Python Lint/Style") {
+      steps{
+        sh """
+          . venv/bin/activate
+          flake8
+        """
+      }
+    }
+
+    stage("RUN Django Unit Tests") {
+      steps{
+        sh """
+          . venv/bin/activate
+          python runtests.py
+        """
+      }
+    }
+
+    stage("START BB2 server in background") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh """
+          . venv/bin/activate
+          python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.logging_it && python manage.py runserver 0.0.0.0:8000 &)
+        """
+       }
+    }
+
+    stage("RUN logging integration tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh """
+          . venv/bin/activate
+          python runtests.py --selenium apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging
+        """
+       }
+    }
+
+    stage("RUN integration tests") {
+      steps{
+        sh """
+          . venv/bin/activate
+          python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+        """
+      }
+    }
+
+    stage("RUN selenium tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh """
+          . venv/bin/activate
+          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+        """
+       }
+    }
+
+  }
+}

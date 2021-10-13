@@ -62,7 +62,7 @@
               <table>
               <tr>
               <td>1. Initial Authorization</td>
-              <td>2. MyMedicare Login Redirect</td>
+              <td>2. Medicare Login Redirect</td>
               <td>3. Authentication Start</td>
               <td>4. FHIR_ID Matched</td>
               </tr>
@@ -71,7 +71,7 @@
               <td>6a. Existing Beneficiary found in BB2 User/Crosswalk Record</td>
               <td>6b. New Beneficiary Created in BB2 User/Crosswalk Record</td>
               <td>7. Authentication Success - SLS-to-FHIR_ID Matched</td>
-              <td>8. MyMedicare SLS-Callback COMPLETE</td>
+              <td>8. Medicare SLS-Callback COMPLETE</td>
               </tr>
               <tr>
               <td>9.  Authorization ApprovalView</td>
@@ -160,7 +160,7 @@
      <sampleRatio>1</sampleRatio>
   </search>
   <search id="baseSearch12">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes</query>
+     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.application.name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.crosswalk.fhir_id message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes message.scopes</query>
      <earliest>$t_local.earliest$</earliest>
      <latest>$t_local.latest$</latest>
      <sampleRatio>1</sampleRatio>
@@ -181,7 +181,7 @@
       </single>
     </panel>
     <panel>
-      <title>2. MyMedicare Login Redirect</title>
+      <title>2. Medicare Login Redirect</title>
       <single>
         <search base="baseSearch2">
           <query>stats count</query>
@@ -260,7 +260,7 @@
       </single>
     </panel>
     <panel>
-      <title>8. MyMedicare SLS-Callback COMPLETE</title>
+      <title>8. Medicare SLS-Callback COMPLETE</title>
       <single>
         <search base="baseSearch8">
           <query>stats count</query>
@@ -312,7 +312,7 @@
           <done>
             <set token="tokTcCount">$result.count$</set>
           </done>
-          <query>stats count</query>
+          <query>search message.auth_grant_type=authorization_code | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -357,9 +357,10 @@
       <chart>
         <title>12. Authorized Application Receives Token Events TIME-CHART</title>
         <search base="baseSearch12">
-          <query>timechart count</query>
+          <query>search message.auth_grant_type=authorization_code | timechart count</query>
         </search>
         <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
         <option name="height">199</option>
         <option name="refresh.display">progressbar</option>
         <option name="charting.chart.showPercent">true</option>
@@ -476,7 +477,7 @@
     <panel>
       <html>
        <u1> <h1>
-            <b>2. MyMedicare Login Redirect Events: Events from the apps.mymedicare_cb.views.mymedicare_login() request used to redirect the beneficiary to the MyMedicare login page</b>
+            <b>2. Medicare Login Redirect Events: Events from the apps.mymedicare_cb.views.mymedicare_login() request used to redirect the beneficiary to the Medicare login page</b>
           </h1>
         </u1>
      </html>
@@ -579,7 +580,7 @@
     <panel>
       <html>
        <u1> <h1>
-            <b>3. Authentication Start Events: After beneficiary MyMedicare login. Events from the apps.mymedicare_cb.views.authenticate() function AFTER receiving a response from the SLS userinfo end point and BEFORE the beneficiary has been matched to a FHIR_ID with the BFD back end.</b>
+            <b>3. Authentication Start Events: After beneficiary Medicare login. Events from the apps.mymedicare_cb.views.authenticate() function AFTER receiving a response from the SLS userinfo end point and BEFORE the beneficiary has been matched to a FHIR_ID with the BFD back end.</b>
           </h1>
         </u1>
      </html>
@@ -1268,7 +1269,7 @@ stats count by message.crosswalk.user_id_type</query>
     <panel>
       <html>
        <u1> <h1>
-            <b>8. MyMedicare SLS-Callback COMPLETE Request Events: Events for calls to the apps.mymedicare_cb.views.callback() view at completion. To reach this part of the flow, the beneficiary successfully authenticated with SLS after logging in to the MyMedicare site.  PATH=/mymedicare/sls-callback</b>
+            <b>8. Medicare SLS-Callback COMPLETE Request Events: Events for calls to the apps.mymedicare_cb.views.callback() view at completion. To reach this part of the flow, the beneficiary successfully authenticated with SLS after logging in to the Medicare site.  PATH=/mymedicare/sls-callback</b>
           </h1>
         </u1>
      </html>
@@ -1791,7 +1792,7 @@ stats count by message.crosswalk.user_id_type</query>
       <chart>
         <title>Events by PKCE method (MOBILE vs. WEB).</title>
         <search base="baseSearch12">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+          <query>search message.auth_grant_type=authorization_code | eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1801,7 +1802,7 @@ stats count by message.crosswalk.user_id_type</query>
       <chart>
         <title>Events by Application</title>
         <search base="baseSearch12">
-          <query>stats count by message.auth_app_name</query>
+          <query>search message.auth_grant_type=authorization_code | stats count by message.auth_app_name</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1813,17 +1814,7 @@ stats count by message.crosswalk.user_id_type</query>
       <chart>
         <title>Events by Crosswalk Action (R = Returning/Existing in BB2, C = Created/New to BB2).</title>
         <search base="baseSearch12">
-          <query>stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Grant Type</title>
-        <search base="baseSearch12">
-          <query>stats count by message.auth_grant_type</query>
+          <query>search message.auth_grant_type=authorization_code | stats count by message.auth_crosswalk_action</query>
         </search>
         <option name="charting.chart">pie</option>
         <option name="charting.chart.showPercent">true</option>
@@ -1834,7 +1825,7 @@ stats count by message.crosswalk.user_id_type</query>
     <panel>
       <table>
         <search base="baseSearch12">
-          <query>table time message.auth_uuid message.application.name message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes</query>
+          <query>search message.auth_grant_type=authorization_code | table time message.auth_uuid message.application.name message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
@@ -2176,6 +2167,110 @@ stats count by message.crosswalk.user_id_type</query>
       <table>
         <search base="baseSearch11">
           <query>search message.auth_share_demographic_scopes="False" | stats count by "message.auth_app_name" | table message.auth_app_name count</query>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h1>
+            <b>ALL UN-SUCCESSFUL TOKEN ENDPOINT STATS: For all /v*/o/token/ endpoint requests</b>
+          </h1>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events by response_code</title>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.response_code</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.req_grant_type message.response_code</query>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h1>
+            <b>TOKEN REFRESH STATS: Events from applications requesting a new access token using the refresh_token.</b>
+          </h1>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Token via authorized signal event TOTAL</title>
+      <single>
+        <search base="baseSearch12">
+          <query>search message.auth_grant_type=refresh_token | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>Events by Application</title>
+        <search base="baseSearch12">
+          <query>search message.auth_grant_type=authorization_code | stats count by message.application.name</query>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Request Events TIME-CHART</title>
+        <search base="baseSearch12">
+          <query>search message.auth_grant_type=refresh_token | timechart count</query>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">all</option>
+        <option name="height">199</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="charting.chart.showPercent">true</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <search base="baseSearch12">
+          <query>search message.auth_grant_type=refresh_token | table time message.application.name message.crosswalk.fhir_id message.user.username message.access_token message.action message.auth_grant_type message.scopes</query>
         </search>
         <option name="count">10</option>
         <option name="dataOverlayMode">none</option>

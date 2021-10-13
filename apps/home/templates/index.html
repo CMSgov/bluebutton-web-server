@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load waffle_tags %}
 {% block title %}{{ settings.APPLICATION_TITLE }}{% endblock %}
 {% block pretitle %}{% endblock %}
 {% block extra_head %}
@@ -22,16 +23,23 @@
 
 {% block bannerCallToActionButtons %}
 {% if 'apps.testclient' in settings.INSTALLED_APPS %}
+{% switch "show_testclient_link" %}
 <a class="cta-button ds-u-margin-y--1" href="{% url 'accounts_create_account' %}" aria-label="Create an Account" target="_self">
   Create an Account
   <i data-feather="arrow-right"></i>
 </a>
 {% else %}
 <a class="cta-button ds-u-margin-y--1" href="https://sandbox.bluebutton.cms.gov/v1/accounts/create" aria-label="Create an Account" target="_self">
+    Create an Account
+    <i data-feather="arrow-right"></i>
+  </a>
+{% endswitch %}
+{% else %}
+<a class="cta-button ds-u-margin-y--1" href="https://sandbox.bluebutton.cms.gov/v1/accounts/create" aria-label="Create an Account" target="_self">
   Create an Account
   <i data-feather="arrow-right"></i>
 </a>
-{%  endif %}
+{% endif %}
    
 <a class="cta-button ds-u-margin-y--1" href="https://bluebutton.cms.gov/developers/" aria-label="Read Our Documentation" target="_self">
   Read our Documentation
@@ -47,9 +55,9 @@
         <div class="bb-width--75">
             <h2 class="ds-u-margin-bottom--2">What is Blue Button?</h2>
             <p class="ds-u-margin-bottom--4">
-              Blue Button 2.0 from CMS is an API that contains four years of Medicare Part A, B and D data for 53 million Medicare beneficiaries.
+              Blue Button 2.0 is a standards-based application programming interface (API) that delivers Medicare Part A, B, and D data for over 60 million people with Medicare.
     
-              This data reveals a variety of information about a beneficiary’s health, including type of Medicare coverage, drug prescriptions, primary care treatment and cost. Beneficiaries also have full control over how their data can be used and by whom, with identity and authorization controlled by MyMedicare.gov.
+              This data reveals a variety of information about a beneficiary’s health, including type of Medicare coverage, drug prescriptions, primary care treatment and cost. Beneficiaries also have full control over how their data can be used and by whom, with identity and authorization controlled by Medicare.gov.
               
               Blue Button 2.0 uses the HL7 FHIR standard for beneficiary data and the OAuth 2.0 standard for beneficiary authorization.
             </p>
