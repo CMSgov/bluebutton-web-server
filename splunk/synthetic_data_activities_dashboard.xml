@@ -395,6 +395,62 @@
             </single>
         </panel>
     </row>
+    <row>
+        <panel>
+            <title>Synthetic FHIR Requests (Legacy) By App</title>
+            <table>
+                <search base="baseSearchFhirSyntheticLegacy">
+                    <query>| spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">none</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+        <panel>
+            <title>Active Apps (Accessed Legacy Syntheitc Data)</title>
+            <single>
+                <search base="baseSearchFhirSyntheticLegacy">
+                    <query>| spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
+                </search>
+                <option name="height">137</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Synthetic FHIR Requests (New) By App</title>
+            <table>
+                <search base="baseSearchFhirSyntheticNew">
+                    <query>| spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">none</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+        <panel>
+            <title>Active Apps (Accessed New Syntheitc Data)</title>
+            <single>
+                <search base="baseSearchFhirSyntheticNew">
+                    <query>| spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
+                </search>
+                <option name="height">137</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+    </row>
 
     <row>
         <panel>
@@ -419,7 +475,7 @@
             <chart>
                 <title>Total FHIR Requests TIME-CHART</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | spath output=fhir_id path="message.fhir_id" | eval synthetic_type=case(match(fhir_id, "-100000000\d\d\d\d\d"), "New", match(fhir_id, "-199900000\ddddd|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d"), "Legacy", 1=1, "Other") | timechart count by synthetic_type</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | spath output=fhir_id path="message.fhir_id" | eval synthetic_type=case(match(fhir_id, "-100000000\d\d\d\d\d"), "New", match(fhir_id, "-199900000\d\d\d\d\d|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d"), "Legacy", 1=1, "Other") | timechart count by synthetic_type</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
