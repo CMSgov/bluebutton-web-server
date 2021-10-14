@@ -28,6 +28,7 @@ FHIR_URL="https://prod-sbx.bfd.cms.gov"
 # List of tests to run. To be passed in to runtests.py.
 TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
 
+export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
 
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
@@ -55,44 +56,55 @@ export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
 # Parse command line option
 if [ $# -eq 0 ]
 then
-    echo "Use MSLSX for identity service."
+  echo "Use MSLSX for identity service."
 else
-    if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "slsx-debug" && $1 != "mslsx-debug" && $1 != "debug" ]]
+  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "slsx-debug" && $1 != "mslsx-debug" && $1 != "debug" && $1 != "logit" ]]
+  then
+    echo
+    echo "COMMAND USAGE HELP"
+    echo "------------------"
+    echo
+    echo "  Use one of the following command line options for the type of test to run:"
+    echo
+    echo "    slsx  = use SLSX for identity service with webdriver in headless mode."
+    echo
+    echo "    slsx-debug  = use SLSX for identity service, and start selenium standalone chrome debug mode (visualized browser interactions)."
+    echo
+    echo "    mslsx (default) = use MSLSX for identity service with webdriver in headless mode."
+    echo
+    echo "    mslsx-debug = use MSLSX for identity service with selenium chrome standalone debug mode."
+    echo
+    echo "    debug = same as 'mslsx-debug'"
+    echo
+    echo "    logit  = run integration tests for bb2 loggings, MSLSX used as identity service."
+    echo
+    exit 1
+  else
+    if [[ $1 == *debug ]]
     then
-        echo
-        echo "COMMAND USAGE HELP"
-        echo "------------------"
-        echo
-        echo "  Use one of the following command line options for the type of test to run:"
-        echo
-        echo "    slsx  = use SLSX for identity service with webdriver in headless mode."
-        echo
-        echo "    slsx-debug  = use SLSX for identity service, and start selenium standalone chrome debug mode (visualized browser interactions)."
-        echo
-        echo "    mslsx (default) = use MSLSX for identity service with webdriver in headless mode."
-        echo
-        echo "    mslsx-debug = use MSLSX for identity service with selenium chrome standalone debug mode."
-        echo
-        echo "    debug = same as 'mslsx-debug'"
-        echo
-        exit 1
-    else
-        if [[ $1 == *debug ]]
-        then
-            export USE_DEBUG=true
-        fi
-        if [[ $1 == "slsx" || $1 == "slsx-debug" ]]
-        then
-            export USE_MSLSX=false
-            export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
-            export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
-            export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
-            export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
-            export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
-            export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
-        fi
+        export USE_DEBUG=true
     fi
+    if [[ $1 == "slsx" || $1 == "slsx-debug" ]]
+    then
+      export USE_MSLSX=false
+      export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+      export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
+      export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
+      export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
+      export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
+      export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+    fi
+    if [[ $1 == "logit" ]]
+    then
+      TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
+      export DJANGO_LOG_JSON_FORMAT_PRETTY=False
+    fi
+  fi
 fi
+
+echo "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
+echo "HOSTNAME_URL: " ${HOSTNAME_URL}
+echo "TESTS: " ${TESTS_LIST}
 
 # Set KeyBase ENV path based on your type of system
 SYSTEM=$(uname -s)
@@ -102,10 +114,10 @@ echo_msg
 
 if [[ ${SYSTEM} == "Linux" ]]
 then
-    keybase_env_path="/keybase"
+  keybase_env_path="/keybase"
 elif [[ ${SYSTEM} == "Darwin" ]]
 then
-    keybase_env_path="/Volumes/keybase"
+  keybase_env_path="/Volumes/keybase"
 else
     # support cygwin
     keybase_env_path="/cygdrive/k"
@@ -193,6 +205,12 @@ export DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS}
 export DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS}
 export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
+
+TEST_SERVICE_NAME="tests"
+if [[ "$USE_DEBUG" = true ]]
+then
+    TEST_SERVICE_NAME="tests-debug"
+fi
 
 echo "Selenium tests ..."
 echo "MSLSX=" ${USE_MSLSX}
