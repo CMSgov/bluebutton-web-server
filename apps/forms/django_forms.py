@@ -20,14 +20,36 @@ WITHDRAWN_CONSENT_CHOICES = [
     ("other", "Other"),
 ]
 
+APPLICATION_CATEGORIES = [
+    ("research", "Research"),
+    ("plan_finders", "Plan Finders"),
+    ("agent_brokers", "Agent Brokers"),
+    ("symptom_checker", "Symptom Checker"),
+    ("organize_share_medical_claims", "Organize & Share Medical Claims"),
+    ("other", "Other"),
+]
+
 
 class InterimProdAccessForm(forms.Form):
+
+    # card_name = forms.CharField(max_length=100, label="Cardholder Name")
+    # card_number = forms.CharField(max_length=50, label="Card Number")
+    # card_code = forms.CharField(max_length=20, label="Security Code")
+    # card_expirate_time = forms.CharField(max_length=100, label="Expiration (MM/YYYY)")
+
+    # Fields needed compared to https://airtable.com/app4N2CBNxgseqVyq/tbl61MNkxjOG19Aiz/viw1R5g2rbE7S2YFr?blocks=hide
+    # Application Category
+
     application_name = forms.CharField()
     application_description = forms.CharField()
     application_url = forms.URLField()
     terms_of_service_url = forms.URLField()
     privacy_policy_url = forms.URLField()
-    us_based = forms.BooleanField()
+    us_based = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
+    associated_sandbox_users = forms.CharField(widget=forms.Textarea())
+    application_category = forms.ChoiceField(choices=APPLICATION_CATEGORIES)
     point_of_contact_email = forms.EmailField()
     point_of_contact_phone_number = forms.CharField(
         max_length=17,
@@ -38,18 +60,28 @@ class InterimProdAccessForm(forms.Form):
             )
         ],
     )
-    adheres_to_bb2_tos = forms.BooleanField()
-    user_discovery_path = forms.Textarea()
-    easy_to_read_pp = forms.BooleanField()
-    does_pp_follow_bb2_guidelines = forms.BooleanField()
-    doesnt_follow_pp_guidelines_reason = forms.Textarea()
+    adheres_to_bb2_tos = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
+    user_discovery_path = forms.CharField(widget=forms.Textarea())
+    easy_to_read_pp = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
+    does_pp_follow_bb2_guidelines = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
+    doesnt_follow_pp_guidelines_reason = forms.CharField(widget=forms.Textarea())
     third_party_app_data_sharing_frequency = forms.ChoiceField(
         choices=SHARING_FREQUENCY_CHOICES
     )
     action_for_withdrawn_consent = forms.ChoiceField(choices=WITHDRAWN_CONSENT_CHOICES)
-    data_sharing_consent_method = forms.Textarea()
-    vendor_data_protection = forms.Textarea()
-    data_use_post_sale = forms.Textarea()
-    partner_requirements_consent = forms.BooleanField()
-    data_storage_technique = forms.Textarea()
-    organization_authority_assertion = forms.BooleanField()
+    data_sharing_consent_method = forms.CharField(widget=forms.Textarea())
+    vendor_data_protection = forms.CharField(widget=forms.Textarea())
+    data_use_post_sale = forms.CharField(widget=forms.Textarea())
+    partner_requirements_consent = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
+    data_storage_technique = forms.CharField(widget=forms.Textarea())
+    organization_authority_assertion = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "ds-c-choice"})
+    )
