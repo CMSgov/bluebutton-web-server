@@ -369,6 +369,24 @@
     </row>
     <row>
         <panel>
+            <chart>
+                <title>Total Synthetic FHIR Requests OK (200) TIME-CHART</title>
+                <search>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\ddddd|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | timechart count by synthetic_type</query>
+                    <earliest>$t_local.earliest$</earliest>
+                    <latest>$t_local.latest$</latest>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">column</option>
+                <option name="charting.chart.stackMode">stacked</option>
+                <option name="charting.drilldown">none</option>
+                <option name="height">199</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
             <title>Synthetic FHIR Requests By App</title>
             <table>
                 <search base="baseSearchFhirSynthetic">
@@ -451,26 +469,7 @@
             </single>
         </panel>
     </row>
-
-    <row>
-        <panel>
-            <chart>
-                <title>Total Synthetic FHIR Requests OK (200) TIME-CHART</title>
-                <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | spath output=fhir_id path="message.fhir_id" | regex fhir_id="-199900000\ddddd|-200000000\d\d\d\d\d|-201400000\d\d\d\d\d|-100000000\d\d\d\d\d" | eval synthetic_type=if(match(fhir_id, "-100000000\d\d\d\d\d"), "New", "Legacy") | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/.*" | timechart count by synthetic_type</query>
-                    <earliest>$t_local.earliest$</earliest>
-                    <latest>$t_local.latest$</latest>
-                    <sampleRatio>1</sampleRatio>
-                </search>
-                <option name="charting.chart">column</option>
-                <option name="charting.chart.stackMode">stacked</option>
-                <option name="charting.drilldown">none</option>
-                <option name="height">199</option>
-                <option name="refresh.display">progressbar</option>
-            </chart>
-        </panel>
-    </row>
-    <row>
+    <!--row>
         <panel>
             <chart>
                 <title>Total FHIR Requests TIME-CHART</title>
@@ -487,5 +486,5 @@
                 <option name="refresh.display">progressbar</option>
             </chart>
         </panel>
-    </row>
+    </row-->
 </form>
