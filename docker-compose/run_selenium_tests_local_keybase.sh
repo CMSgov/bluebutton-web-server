@@ -198,7 +198,7 @@ cp ${keybase_cert_file} "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.cert.pem"
 cp ${keybase_key_file} "${CERTSTORE_TEMPORARY_MOUNT_PATH}/ca.key.nocrypt.pem"
 
 # stop all before run selenium tests
-docker-compose -f docker-compose.selenium.yml down
+docker-compose -f docker-compose.selenium.yml down --remove-orphans
 
 export DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT}
 export DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS}
