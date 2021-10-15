@@ -234,13 +234,14 @@ class OAuth2ConfigSLSx(object):
         # per BB2-850, need to handle the case where data_user_response has 'hicn', 'mbi' but the value is None.
         # canonicallize mbi, hicn and validate
         self.hicn = data_user_response.get("hicn")
-        if self.hicn is not None:
+        if self.hicn is not None and isinstance(self.hicn, str):
             self.hicn = self.hicn.strip()
 
         self.mbi = data_user_response.get("mbi")
         # Convert SLS's mbi to UPPER case.
-        if not self.mbi:
+        if self.mbi is not None and isinstance(self.mbi, str):
             self.mbi = self.mbi.strip().upper()
+
         # If MBI returned from SLSx is blank, set to None for hash logging
         if self.mbi == "":
             self.mbi = None

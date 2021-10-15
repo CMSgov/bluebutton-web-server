@@ -81,9 +81,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def tearDown(self):
         self._cleanup_logger()
 
-    # def get_log_content(self, logger_name):
-    #     return self._collect_logs().get(logger_name)
-
     def _validateJsonSchema(self, schema, content):
         try:
             validate(instance=content, schema=schema)
