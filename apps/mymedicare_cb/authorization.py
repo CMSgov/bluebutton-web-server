@@ -253,16 +253,15 @@ class OAuth2ConfigSLSx(object):
         em = data_user_response.get("email", "")
         self.email = em if em else ""
 
-        # Validate: sls_subject (self.user_id) cannot be empty. TODO: Validate format too.
-        self.validate_asserts(
-            request,
-            [(self.user_id == "", "User info sub cannot be empty")],
-            MedicareCallbackExceptionType.AUTHN_USERINFO,
-        )
-
-        # Validate: sls_hicn cannot be empty.
+        # Validate:
+        # 1. sls_subject (self.user_id) cannot be empty. TODO: Validate format too.
+        # 2. sls_hicn cannot be empty or None
+        # 3. sls_hicn must be str.
         self.validate_asserts(request, [
-            (not self.hicn, "User info HICN cannot be empty or None.")
+            (self.user_id == "", "User info sub cannot be empty"),
+            (not self.hicn, "User info HICN cannot be empty or None."),
+            (not isinstance(self.hicn, str), "User info HICN must be str."),
+            (self.mbi is not None and not isinstance(self.mbi, str), "User info MBI must be str."),
         ], MedicareCallbackExceptionType.AUTHN_USERINFO)
 
         self.mbi_format_synthetic = is_mbi_format_synthetic(self.mbi)

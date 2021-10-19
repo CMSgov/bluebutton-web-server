@@ -32,33 +32,33 @@ class MockUrlSLSxResponses:
     '''
     # mock sls health check endpoint
     @urlmatch(netloc=NETLOC_REGEX, path='/health')
-    def slsx_health_ok_mock(url, request):
+    def slsx_health_ok_mock(self, url, request):
         return {"status_code": status.HTTP_200_OK}
 
     # mock sls health check endpoint with http error
     @urlmatch(netloc=NETLOC_REGEX, path='/health')
-    def slsx_health_fail_mock(url, request):
+    def slsx_health_fail_mock(self, url, request):
         raise requests.exceptions.HTTPError
 
     # mock sls signout endpoint OK
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
-    def slsx_signout_ok_mock(url, request):
+    def slsx_signout_ok_mock(self, url, request):
         return {'status_code': status.HTTP_302_FOUND,
                 'Location': 'https://test.medicare.gov/mbp/signout.aspx'}
 
     # mock sls signout endpoint not-found
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
-    def slsx_signout_fail_mock(url, request):
+    def slsx_signout_fail_mock(self, url, request):
         return {"status_code": status.HTTP_404_NOT_FOUND}
 
     # mock sls signout endpoint OK
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/signout')
-    def slsx_signout_fail2_mock(url, request):
+    def slsx_signout_fail2_mock(self, url, request):
         return {"status_code": status.HTTP_200_OK}
 
     # mock sls token endpoint OK
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/session')
-    def slsx_token_mock(url, request):
+    def slsx_token_mock(self, url, request):
         return {"status_code": status.HTTP_200_OK,
                 "content": {"auth_token": "tqXFB/j2OR9Fx7aDowGasMZGqoWmwcihNzMdaW2gpEmV",
                             "role": "consumer",
@@ -66,7 +66,7 @@ class MockUrlSLSxResponses:
                             "session_id": "47dc2799838c4a3cb0ad55c688f6de07"}}
 
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/session')
-    def slsx_token_non_json_response_mock(url, request):
+    def slsx_token_non_json_response_mock(self, url, request):
         # pick a non 2XX non 3XX, error code 403 with non json content
         # this response to slsx token endpoint call will raise_status
         return {"status_code": status.HTTP_403_FORBIDDEN,
@@ -74,13 +74,13 @@ class MockUrlSLSxResponses:
 
     # mock sls token endpoint with http error
     @urlmatch(netloc=NETLOC_REGEX_SSO_SESSION, path='/sso/session')
-    def slsx_token_http_error_mock(url, request):
+    def slsx_token_http_error_mock(self, url, request):
         raise requests.exceptions.HTTPError
 
     # below urlmatch still use /v1/users..., since SLSX endpoints use v1 in path
     # mock sls user info endpoint
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_mock(url, request):
+    def slsx_user_info_mock(self, url, request):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
@@ -96,7 +96,22 @@ class MockUrlSLSxResponses:
                                                   "mbi": "1SA0A00AA00"}}}}
 
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_none_hicn_mock(url, request):
+    def slsx_user_info_empty_hicn_mock(self, url, request):
+        return self._mock_slsx_user_info_hicn_mbi("   ", "1SA0A00AA00")
+
+    @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
+    def slsx_user_info_none_hicn_mock(self, url, request):
+        return self._mock_slsx_user_info_hicn_mbi(None, "1SA0A00AA00")
+
+    @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
+    def slsx_user_info_non_str_hicn_mock(self, url, request):
+        return self._mock_slsx_user_info_hicn_mbi(["a list as hicn"], "1SA0A00AA00")
+
+    @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
+    def slsx_user_info_non_str_mbi_mock(self, url, request):
+        return self._mock_slsx_user_info_hicn_mbi("1234567890A", {"key": "value"})
+
+    def _mock_slsx_user_info_hicn_mbi(self, hicn_value, mbi_value):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
@@ -107,12 +122,12 @@ class MockUrlSLSxResponses:
                                                   "email": "bob@bobserver.bob",
                                                   "firstName": None,
                                                   "lastName": None,
-                                                  "hicn": None,
+                                                  "hicn": hicn_value,
                                                   "customUserInfo": {"mbi": "1SA0A00AA00"},
-                                                  "mbi": "1SA0A00AA00"}}}}
+                                                  "mbi": mbi_value}}}}
 
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_non_json_response_mock(url, request):
+    def slsx_user_info_non_json_response_mock(self, url, request):
         # pick a non 2XX non 3XX error 403 with non json content html frag,
         # which will raise_status in slsx user_info call
         return {"status_code": status.HTTP_403_FORBIDDEN,
@@ -120,7 +135,7 @@ class MockUrlSLSxResponses:
 
     # mock sls user info endpoint with http error
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_http_error_mock(url, request):
+    def slsx_user_info_http_error_mock(self, url, request):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
@@ -128,7 +143,7 @@ class MockUrlSLSxResponses:
 
     # mock sls user info endpoint with out a sub/username
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_no_username_mock(url, request):
+    def slsx_user_info_no_username_mock(self, url, request):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
@@ -142,26 +157,9 @@ class MockUrlSLSxResponses:
                                                   "customUserInfo": {"mbi": "1SA0A00AA00"},
                                                   "mbi": "1SA0A00AA00"}}}}
 
-    # mock sls user info endpoint with missing hicn
-    @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_empty_hicn_mock(url, request):
-        if is_called_by_validate_user_signout():
-            return {"status_code": status.HTTP_403_FORBIDDEN}
-        else:
-            return {"status_code": status.HTTP_200_OK,
-                    "content": {"status": "ok",
-                                "code": status.HTTP_200_OK,
-                                "data": {"user": {"id": "00112233-4455-6677-8899-aabbccddeeff",
-                                                  "email": "bob@bobserver.bob",
-                                                  "firstName": None,
-                                                  "lastName": None,
-                                                  "hicn": "",
-                                                  "customUserInfo": {"mbi": "1SA0A00AA00"},
-                                                  "mbi": "1SA0A00AA00"}}}}
-
     # mock sls user info endpoint with empty mbi
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_empty_mbi_mock(url, request):
+    def slsx_user_info_empty_mbi_mock(self, url, request):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
@@ -178,7 +176,7 @@ class MockUrlSLSxResponses:
 
     # mock sls user info endpoint with invalid MBI
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_invalid_mbi_mock(url, request):
+    def slsx_user_info_invalid_mbi_mock(self, url, request):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
@@ -195,7 +193,7 @@ class MockUrlSLSxResponses:
 
     # mock sls user info endpoint with changed HICN (assume was updated in SLSx/BEDAP for bene acct)
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_mock_changed_hicn(url, request):
+    def slsx_user_info_mock_changed_hicn(self, url, request):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
@@ -212,7 +210,7 @@ class MockUrlSLSxResponses:
 
     # mock sls user info endpoint with changed MBI (assume was updated in SLSx/BEDAP for bene acct)
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_mock_changed_mbi(url, request):
+    def slsx_user_info_mock_changed_mbi(self, url, request):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:
@@ -229,7 +227,7 @@ class MockUrlSLSxResponses:
 
     # mock sls user info endpoint with both changed HICN & MBI (assume was updated in SLSx/BEDAP for bene acct)
     @urlmatch(netloc=NETLOC_REGEX, path='/v1/users/00112233-4455-6677-8899-aabbccddeeff')
-    def slsx_user_info_mock_changed_hicn_mbi(url, request):
+    def slsx_user_info_mock_changed_hicn_mbi(self, url, request):
         if is_called_by_validate_user_signout():
             return {"status_code": status.HTTP_403_FORBIDDEN}
         else:

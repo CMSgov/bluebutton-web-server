@@ -77,6 +77,7 @@ class TestAuditEventLoggers(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
         self._redirect_loggers()
+        self.mock_response = MockUrlSLSxResponses()
 
     def tearDown(self):
         self._cleanup_logger()
@@ -192,9 +193,9 @@ class TestAuditEventLoggers(BaseApiTest):
             raise Exception(url)
 
         with HTTMockWithResponseHook(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -335,8 +336,8 @@ class TestAuditEventLoggers(BaseApiTest):
             raise Exception(url)
 
         with HTTMockWithResponseHook(
-            MockUrlSLSxResponses.slsx_token_non_json_response_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
+            self.mock_response.slsx_token_non_json_response_mock,
+            self.mock_response.slsx_user_info_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -403,8 +404,8 @@ class TestAuditEventLoggers(BaseApiTest):
             raise Exception(url)
 
         with HTTMockWithResponseHook(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_non_json_response_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_non_json_response_mock,
             fhir_patient_info_mock,
             catchall,
         ):

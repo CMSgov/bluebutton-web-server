@@ -38,6 +38,10 @@ from apps.test import BaseApiTest
 
 from .responses import patient_response
 
+ERR_MSG_HICN_EMPTY_OR_NONE = "User info HICN cannot be empty or None."
+ERR_MSG_HICN_NOT_STR = "User info HICN must be str."
+ERR_MSG_MBI_NOT_STR = "User info MBI must be str."
+
 
 class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
     """
@@ -51,6 +55,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
         self._redirect_loggers()
+        self.mock_response = MockUrlSLSxResponses()
 
     def tearDown(self):
         self._cleanup_logger()
@@ -95,7 +100,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         with self.settings(
             MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI="/123"
         ):
-            with HTTMock(MockUrlSLSxResponses.slsx_health_ok_mock):
+            with HTTMock(self.mock_response.slsx_health_ok_mock):
                 response = self.client.get(self.login_url + "?next=/")
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             query = parse_qs(urlparse(response["Location"]).query)
@@ -112,7 +117,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         with self.settings(
             MEDICARE_SLSX_LOGIN_URI=fake_login_url, MEDICARE_SLSX_REDIRECT_URI="/123"
         ):
-            with HTTMock(MockUrlSLSxResponses.slsx_health_fail_mock):
+            with HTTMock(self.mock_response.slsx_health_fail_mock):
                 with self.assertRaises(HTTPError):
                     self.client.get(self.login_url + "?next=/")
 
@@ -217,10 +222,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             raise Exception(url)
 
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -339,10 +344,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             raise Exception(url)
 
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -359,10 +364,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         cw.save()
 
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -384,10 +389,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # With HTTMock sls_user_info_no_sub_mock that has no sub/username
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_no_username_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_no_username_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -398,10 +403,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # With HTTMock sls_user_info_empty_hicn_mock test User info HICN cannot be empty.
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_empty_hicn_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_empty_hicn_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -418,10 +423,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # With HTTMock sls_user_info_invalid_mbi_mock test User info MBI is not in valid format.
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_invalid_mbi_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_invalid_mbi_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -434,10 +439,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # With HTTMock sls_token_http_error_mock
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_http_error_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_http_error_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -448,10 +453,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # With HTTMock sls_user_info_http_error_mock
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_http_error_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_http_error_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -462,10 +467,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail_mock has exception
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_fail_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_fail_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -476,10 +481,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # With HTTMock MockUrlSLSxResponses.slsx_signout_fail2_mock has exception
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_fail2_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_fail2_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -560,10 +565,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # 1. First successful matching for beneficiary having valid only hicn and EMPTY mbi.
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_empty_mbi_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_empty_mbi_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -619,10 +624,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # 2. The bene's MBI has been changed from empty to valid value in the mock SLSx user_info response.
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -722,10 +727,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # 4. 1st sucessful matching for bene that creates a new crosswalk entry
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -777,10 +782,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # 5. The bene's HICN has been changed in the mock SLSx user_info response.
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock_changed_hicn,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -883,10 +888,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # 7. The bene's MBI has been changed in the mock SLSx user_info response.
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock_changed_mbi,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock_changed_mbi,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -987,10 +992,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
         # 9. The bene's HICN & MBI (both) have been changed in the mock SLSx user_info response.
         with HTTMock(
-            MockUrlSLSxResponses.slsx_token_mock,
-            MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn_mbi,
-            MockUrlSLSxResponses.slsx_health_ok_mock,
-            MockUrlSLSxResponses.slsx_signout_ok_mock,
+            self.mock_response.slsx_token_mock,
+            self.mock_response.slsx_user_info_mock_changed_hicn_mbi,
+            self.mock_response.slsx_health_ok_mock,
+            self.mock_response.slsx_signout_ok_mock,
             fhir_patient_info_mock,
             catchall,
         ):
@@ -1093,7 +1098,19 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         #   Assert correct log values using json schema
         self.assertTrue(self.validate_json_schema(log_schema, log_dict))
 
-    def test_callback_usr_info_hicn_none(self):
+    def test_callback_usrinfo_invalid_hicn_none(self):
+        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_none_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE)
+
+    def test_callback_usrinfo_invalid_hicn_empty(self):
+        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_empty_hicn_mock, ERR_MSG_HICN_EMPTY_OR_NONE)
+
+    def test_callback_usrinfo_invalid_hicn_non_str(self):
+        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_non_str_hicn_mock, ERR_MSG_HICN_NOT_STR)
+
+    def test_callback_usrinfo_invalid_mbi_non_str(self):
+        self._callback_usrinfo_invalid_hicn_mbi(self.mock_response.slsx_user_info_non_str_mbi_mock, ERR_MSG_MBI_NOT_STR)
+
+    def _callback_usrinfo_invalid_hicn_mbi(self, mock_response_func, err_msg):
         # BB2-850
         # create a state
         state = generate_nonce()
@@ -1105,10 +1122,10 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         def catchall(url, request):
             raise Exception(url)
 
-        with HTTMock(MockUrlSLSxResponses.slsx_token_mock,
-                     MockUrlSLSxResponses.slsx_user_info_none_hicn_mock,
-                     MockUrlSLSxResponses.slsx_health_ok_mock,
-                     MockUrlSLSxResponses.slsx_signout_ok_mock,
+        with HTTMock(self.mock_response.slsx_token_mock,
+                     mock_response_func,
+                     self.mock_response.slsx_health_ok_mock,
+                     self.mock_response.slsx_signout_ok_mock,
                      catchall):
             s = self.client.session
             s.update({"auth_uuid": "84b4afdc-d85d-4ea4-b44c-7bde77634429",
@@ -1130,4 +1147,4 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertEqual(len(quoted_strings), 1)
             log_rec_json = json.loads(quoted_strings[0])
             self.assertIsNotNone(log_rec_json)
-            self.assertEqual(log_rec_json.get("sls_status_mesg"), "User info HICN cannot be empty or None.")
+            self.assertEqual(log_rec_json.get("sls_status_mesg"), err_msg)
