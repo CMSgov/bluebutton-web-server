@@ -229,11 +229,23 @@ class OAuth2ConfigSLSx(object):
             MedicareCallbackExceptionType.USERINFO,
         )
 
-        # canonicallize mbi, hicn and validate
         self.user_id = self.user_id.strip()
-        self.hicn = data_user_response.get("hicn", "").strip()
-        #     Convert SLS's mbi to UPPER case.
-        self.mbi = data_user_response.get("mbi", "").strip().upper()
+
+        # per BB2-850, need to handle the case where data_user_response has 'hicn', 'mbi' but the value is None.
+        # canonicallize mbi, hicn and validate
+        self.hicn = data_user_response.get("hicn")
+        if self.hicn is not None and isinstance(self.hicn, str):
+            self.hicn = self.hicn.strip()
+
+        self.mbi = data_user_response.get("mbi")
+        # Convert SLS's mbi to UPPER case.
+        if self.mbi is not None and isinstance(self.mbi, str):
+            self.mbi = self.mbi.strip().upper()
+
+        # If MBI returned from SLSx is blank, set to None for hash logging
+        if self.mbi == "":
+            self.mbi = None
+
         fn = data_user_response.get("firstName", "")
         self.firstname = fn if fn else ""
         ln = data_user_response.get("lastName", "")
@@ -241,23 +253,16 @@ class OAuth2ConfigSLSx(object):
         em = data_user_response.get("email", "")
         self.email = em if em else ""
 
-        # If MBI returned from SLSx is blank, set to None for hash logging
-        if self.mbi == "":
-            self.mbi = None
-
-        # Validate: sls_subject (self.user_id) cannot be empty. TODO: Validate format too.
-        self.validate_asserts(
-            request,
-            [(self.user_id == "", "User info sub cannot be empty")],
-            MedicareCallbackExceptionType.AUTHN_USERINFO,
-        )
-
-        # Validate: sls_hicn cannot be empty.
-        self.validate_asserts(
-            request,
-            [(self.hicn == "", "User info HICN cannot be empty.")],
-            MedicareCallbackExceptionType.AUTHN_USERINFO,
-        )
+        # Validate:
+        # 1. sls_subject (self.user_id) cannot be empty. TODO: Validate format too.
+        # 2. sls_hicn cannot be empty or None
+        # 3. sls_hicn must be str.
+        self.validate_asserts(request, [
+            (self.user_id == "", "User info sub cannot be empty"),
+            (not self.hicn, "User info HICN cannot be empty or None."),
+            (not isinstance(self.hicn, str), "User info HICN must be str."),
+            (self.mbi is not None and not isinstance(self.mbi, str), "User info MBI must be str."),
+        ], MedicareCallbackExceptionType.AUTHN_USERINFO)
 
         self.mbi_format_synthetic = is_mbi_format_synthetic(self.mbi)
         self.mbi_format_valid, self.mbi_format_msg = is_mbi_format_valid(self.mbi)
