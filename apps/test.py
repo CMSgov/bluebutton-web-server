@@ -171,6 +171,14 @@ class BaseApiTest(TestCase):
             v[1].close()
         self.logger_registry.clear()
 
+    def _get_log_lines_list(self, logger_name):
+        buf = io.StringIO(self._get_log_content(logger_name))
+        lines = buf.readlines()
+        return lines
+
+    def _get_log_content(self, logger_name):
+        return self._collect_logs().get(logger_name)
+
     def _collect_logs(self):
         log_contents = {}
         for n in logging.LOGGER_NAMES:
