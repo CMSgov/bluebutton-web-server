@@ -61,6 +61,35 @@
                 </change>
             </input>
         </panel>
+        <panel>
+            <input type="dropdown" searchWhenChanged="true">
+                <label>Select API versions</label>
+                <default>V1+V2</default>
+                <choice value="V1+V2">V1+V2</choice>
+                <choice value="V1">V1</choice>
+                <choice value="V2">V2</choice>
+                <initialValue>V1+V2</initialValue>
+                <fieldForLabel>APIVersion</fieldForLabel>
+                <fieldForValue>APIVersion</fieldForValue>
+                <change>
+                    <condition value="V1+V2">
+                        <set token="apiVersionsPattern">v*</set>
+                        <set token="apiVersionsRegex">v[12]</set>
+                        <set token="apiVersionsLabel">V1+V2</set>
+                    </condition>
+                    <condition value="V1">
+                        <set token="apiVersionsPattern">v1</set>
+                        <set token="apiVersionsRegex">v1</set>
+                        <set token="apiVersionsLabel">V1</set>
+                    </condition>
+                    <condition value="V2">
+                        <set token="apiVersionsPattern">v2</set>
+                        <set token="apiVersionsRegex">v2</set>
+                        <set token="apiVersionsLabel">V2</set>
+                    </condition>
+                </change>
+            </input>
+        </panel>
     </row>
     <row>
         <panel>
@@ -99,7 +128,7 @@
     </row>
     <!-- Setup of BASE searches to be used in panels -->
     <search id="baseSearch1">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/v1/o/authorize/" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/$apiVersionsPattern$/o/authorize/" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
@@ -153,13 +182,13 @@
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch9">
-        <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method ]]></query>
+        <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"="^/$apiVersionsRegex$/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method ]]></query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch10">
-        <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location]]></query>
+        <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"="^/$apiVersionsRegex$/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location]]></query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
@@ -383,7 +412,7 @@
             <html>
                 <u1>
                     <h1>
-                        <b>1. Initial Authorization Request Events: Events for the iniital link given to the beneficiary to authorize an application by making a request to the /v1/o/authorize/ end point. This is the start of the authorization flow. The built-in testclient events are excluded (response_code=200)</b>
+                        <b>1. Initial Authorization Request Events: Events for the iniital link given to the beneficiary to authorize an application by making a request to the /$apiVersionsPattern$/o/authorize/ end point. This is the start of the authorization flow. The built-in testclient events are excluded (response_code=200)</b>
                     </h1>
                 </u1>
             </html>
