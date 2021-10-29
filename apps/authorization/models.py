@@ -1,6 +1,9 @@
+from datetime import datetime
 from django.utils import timezone
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
+
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.models import get_access_token_model
 
@@ -70,11 +73,217 @@ def update_grants(*args, **kwargs):
 
 def check_grants():
     AccessToken = get_access_token_model()
-    token_count = AccessToken.objects.filter(
-        expires__gt=timezone.now(),
-    ).values('user', 'application').distinct().count()
+    token_count = (
+        AccessToken.objects.filter(
+            expires__gt=timezone.now(),
+        )
+        .values("user", "application")
+        .distinct()
+        .count()
+    )
     grant_count = DataAccessGrant.objects.all().count()
     return {
         "unique_tokens": token_count,
         "grants": grant_count,
+    }
+
+
+def get_grant_counts():
+    # Grant real/synth bene counts (includes granted to multiple apps)
+    start_time = datetime.utcnow().timestamp()
+
+    real_bene_cnt = DataAccessGrant.objects.filter(
+        ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+        & ~Q(beneficiary__crosswalk___fhir_id="")
+    ).count()
+
+    synth_bene_cnt = DataAccessGrant.objects.filter(
+        Q(beneficiary__crosswalk___fhir_id__startswith="-")
+        & ~Q(beneficiary__crosswalk___fhir_id="")
+    ).count()
+
+    bene_cnt_elapsed = round(datetime.utcnow().timestamp() - start_time, 3)
+
+    # Grant real/synth bene distinct counts (excludes granted to multiple apps)
+    start_time = datetime.utcnow().timestamp()
+
+    real_bene_distinct_cnt = (
+        DataAccessGrant.objects.order_by("beneficiary__username")
+        .filter(
+            ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .values("beneficiary__username")
+        .distinct()
+        .count()
+    )
+
+    synth_bene_distinct_cnt = (
+        DataAccessGrant.objects.order_by("beneficiary__username")
+        .filter(
+            Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .values("beneficiary__username")
+        .distinct()
+        .count()
+    )
+
+    bene_distinct_cnt_elapsed = round(datetime.utcnow().timestamp() - start_time, 3)
+
+    # Archived grant real/synth bene distinct counts (excludes granted to multiple apps and multiple archived records)
+    start_time = datetime.utcnow().timestamp()
+
+    real_bene_arch_distinct_cnt = (
+        ArchivedDataAccessGrant.objects.filter(
+            ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .distinct()
+        .count()
+    )
+
+    synth_bene_arch_distinct_cnt = (
+        ArchivedDataAccessGrant.objects.filter(
+            Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .distinct()
+        .count()
+    )
+
+    bene_arch_distinct_cnt_elapsed = round(
+        datetime.utcnow().timestamp() - start_time, 3
+    )
+
+    # Both Grant and Archived grant (UNION) real/synth bene distinct counts
+    start_time = datetime.utcnow().timestamp()
+
+    real_bene_union_cnt = (
+        DataAccessGrant.objects.filter(
+            ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .values("beneficiary__username")
+        .union(
+            ArchivedDataAccessGrant.objects.filter(
+                ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+                & ~Q(beneficiary__crosswalk___fhir_id="")
+            ).values("beneficiary__username")
+        )
+        .count()
+    )
+
+    synth_bene_union_cnt = (
+        DataAccessGrant.objects.filter(
+            Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .values("beneficiary__username")
+        .union(
+            ArchivedDataAccessGrant.objects.filter(
+                Q(beneficiary__crosswalk___fhir_id__startswith="-")
+                & ~Q(beneficiary__crosswalk___fhir_id="")
+            ).values("beneficiary__username")
+        )
+        .count()
+    )
+
+    bene_union_cnt_elapsed = round(datetime.utcnow().timestamp() - start_time, 3)
+
+    return {
+        "real_bene_cnt": real_bene_cnt,
+        "synth_bene_cnt": synth_bene_cnt,
+        "bene_cnt_elapsed": bene_cnt_elapsed,
+        "real_bene_distinct_cnt": real_bene_distinct_cnt,
+        "synth_bene_distinct_cnt": synth_bene_distinct_cnt,
+        "bene_distinct_cnt_elapsed": bene_distinct_cnt_elapsed,
+        "real_bene_arch_distinct_cnt": real_bene_arch_distinct_cnt,
+        "synth_bene_arch_distinct_cnt": synth_bene_arch_distinct_cnt,
+        "bene_arch_distinct_cnt_elapsed": bene_arch_distinct_cnt_elapsed,
+        "real_bene_union_cnt": real_bene_union_cnt,
+        "synth_bene_union_cnt": synth_bene_union_cnt,
+        "bene_union_cnt_elapsed": bene_union_cnt_elapsed,
+    }
+
+
+def get_grant_by_app_counts(application):
+    """
+    Get grant related counts for a single application
+    """
+
+    # Grant real/synth bene counts
+    real_bene_cnt = DataAccessGrant.objects.filter(
+        Q(application=application)
+        & ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+        & ~Q(beneficiary__crosswalk___fhir_id="")
+    ).count()
+
+    synth_bene_cnt = DataAccessGrant.objects.filter(
+        Q(application=application)
+        & Q(beneficiary__crosswalk___fhir_id__startswith="-")
+        & ~Q(beneficiary__crosswalk___fhir_id="")
+    ).count()
+
+    # Archived grant real/synth bene distinct counts
+    real_bene_arch_distinct_cnt = (
+        ArchivedDataAccessGrant.objects.filter(
+            Q(application=application)
+            & ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .distinct()
+        .count()
+    )
+    synth_bene_arch_distinct_cnt = (
+        ArchivedDataAccessGrant.objects.filter(
+            Q(application=application)
+            & Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .distinct()
+        .count()
+    )
+
+    # Both Grant and Archived grant (UNION) real/synth bene distinct counts
+    real_bene_union_cnt = (
+        DataAccessGrant.objects.filter(
+            Q(application=application)
+            & ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .values("beneficiary__username")
+        .union(
+            ArchivedDataAccessGrant.objects.filter(
+                Q(application=application)
+                & ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
+                & ~Q(beneficiary__crosswalk___fhir_id="")
+            ).values("beneficiary__username")
+        )
+        .count()
+    )
+    synth_bene_union_cnt = (
+        DataAccessGrant.objects.filter(
+            Q(application=application)
+            & Q(beneficiary__crosswalk___fhir_id__startswith="-")
+            & ~Q(beneficiary__crosswalk___fhir_id="")
+        )
+        .values("beneficiary__username")
+        .union(
+            ArchivedDataAccessGrant.objects.filter(
+                Q(application=application)
+                & Q(beneficiary__crosswalk___fhir_id__startswith="-")
+                & ~Q(beneficiary__crosswalk___fhir_id="")
+            ).values("beneficiary__username")
+        )
+        .count()
+    )
+
+    return {
+        "real_bene_cnt": real_bene_cnt,
+        "synth_bene_cnt": synth_bene_cnt,
+        "real_bene_arch_distinct_cnt": real_bene_arch_distinct_cnt,
+        "synth_bene_arch_distinct_cnt": synth_bene_arch_distinct_cnt,
+        "real_bene_union_cnt": real_bene_union_cnt,
+        "synth_bene_union_cnt": synth_bene_union_cnt,
     }
