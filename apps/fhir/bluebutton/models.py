@@ -1,9 +1,10 @@
 import binascii
 
+from datetime import datetime
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import (CASCADE, Q)
+from django.db.models import CASCADE, Q
 from django.utils.crypto import pbkdf2
 from requests import Response
 from rest_framework import status
@@ -20,13 +21,17 @@ class BBFhirBluebuttonModelException(APIException):
 # Real fhir_id Manager subclass
 class RealCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(~Q(_fhir_id__startswith='-') & ~Q(_fhir_id=''))
+        return (
+            super()
+            .get_queryset()
+            .filter(~Q(_fhir_id__startswith="-") & ~Q(_fhir_id=""))
+        )
 
 
 # Synthetic fhir_id Manager subclass
 class SynthCrosswalkManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(Q(_fhir_id__startswith='-'))
+        return super().get_queryset().filter(Q(_fhir_id__startswith="-"))
 
 
 def hash_id_value(hicn):
@@ -35,9 +40,9 @@ def hash_id_value(hicn):
     Both currently use the same hash salt ENV values.
     https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-pipeline/bfd-pipeline-rif-load/src/main/java/gov/cms/bfd/pipeline/rif/load/RifLoader.java#L665-L706
     """
-    return binascii.hexlify(pbkdf2(hicn,
-                            get_user_id_salt(),
-                            settings.USER_ID_ITERATIONS)).decode("ascii")
+    return binascii.hexlify(
+        pbkdf2(hicn, get_user_id_salt(), settings.USER_ID_ITERATIONS)
+    ).decode("ascii")
 
 
 def hash_hicn(hicn):
@@ -70,46 +75,57 @@ class Crosswalk(models.Model):
     MBI, HICN and BeneID added
     """
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=CASCADE,)
-    _fhir_id = models.CharField(max_length=80,
-                                null=False,
-                                unique=True,
-                                default=None,
-                                db_column="fhir_id",
-                                db_index=True)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=CASCADE,
+    )
+    _fhir_id = models.CharField(
+        max_length=80,
+        null=False,
+        unique=True,
+        default=None,
+        db_column="fhir_id",
+        db_index=True,
+    )
     date_created = models.DateTimeField(auto_now_add=True)
 
     # This value is to be set to the type of lookup used MBI or HICN
-    user_id_type = models.CharField(max_length=1,
-                                    verbose_name="Hash ID type last used for FHIR_ID lookup",
-                                    default=settings.USER_ID_TYPE_DEFAULT,
-                                    choices=settings.USER_ID_TYPE_CHOICES)
+    user_id_type = models.CharField(
+        max_length=1,
+        verbose_name="Hash ID type last used for FHIR_ID lookup",
+        default=settings.USER_ID_TYPE_DEFAULT,
+        choices=settings.USER_ID_TYPE_CHOICES,
+    )
     # This stores the HICN hash value.
     # TODO: Maybe rename this to _user_hicn_hash in future.
     #   Keeping the same to not break backwards migration compatibility.
-    _user_id_hash = models.CharField(max_length=64,
-                                     verbose_name="HASH of User HICN ID",
-                                     unique=True,
-                                     null=False,
-                                     default=None,
-                                     db_column="user_id_hash",
-                                     db_index=True)
+    _user_id_hash = models.CharField(
+        max_length=64,
+        verbose_name="HASH of User HICN ID",
+        unique=True,
+        null=False,
+        default=None,
+        db_column="user_id_hash",
+        db_index=True,
+    )
     # This stores the MBI hash value.
     #     Can be null for backwards migration compatibility.
-    _user_mbi_hash = models.CharField(max_length=64,
-                                      verbose_name="HASH of User MBI ID",
-                                      unique=True,
-                                      null=True,
-                                      default=None,
-                                      db_column="user_mbi_hash",
-                                      db_index=True)
+    _user_mbi_hash = models.CharField(
+        max_length=64,
+        verbose_name="HASH of User MBI ID",
+        unique=True,
+        null=True,
+        default=None,
+        db_column="user_mbi_hash",
+        db_index=True,
+    )
 
     objects = models.Manager()  # Default manager
     real_objects = RealCrosswalkManager()  # Real bene manager
     synth_objects = SynthCrosswalkManager()  # Synth bene manager
 
     def __str__(self):
-        return '%s %s' % (self.user.first_name, self.user.last_name)
+        return "%s %s" % (self.user.first_name, self.user.last_name)
 
     @property
     def fhir_id(self):
@@ -146,48 +162,59 @@ class ArchivedCrosswalk(models.Model):
     This is performed via code in the `get_and_update_user()` function
     in apps/mymedicare_cb/models.py
     """
+
     # SLSx sub/username
-    username = models.CharField(max_length=150,
-                                null=False,
-                                unique=False,
-                                default=None,
-                                db_column="username",
-                                db_index=True)
+    username = models.CharField(
+        max_length=150,
+        null=False,
+        unique=False,
+        default=None,
+        db_column="username",
+        db_index=True,
+    )
 
     # BFD fhir/patient id
-    _fhir_id = models.CharField(max_length=80,
-                                null=False,
-                                unique=False,
-                                default=None,
-                                db_column="fhir_id",
-                                db_index=True)
+    _fhir_id = models.CharField(
+        max_length=80,
+        null=False,
+        unique=False,
+        default=None,
+        db_column="fhir_id",
+        db_index=True,
+    )
 
     # This value is to be set to the type of lookup used MBI or HICN
-    user_id_type = models.CharField(max_length=1,
-                                    verbose_name="Hash ID type last used for FHIR_ID lookup",
-                                    default=settings.USER_ID_TYPE_DEFAULT,
-                                    choices=settings.USER_ID_TYPE_CHOICES)
+    user_id_type = models.CharField(
+        max_length=1,
+        verbose_name="Hash ID type last used for FHIR_ID lookup",
+        default=settings.USER_ID_TYPE_DEFAULT,
+        choices=settings.USER_ID_TYPE_CHOICES,
+    )
 
     # This stores the HICN hash value.
     # TODO: Maybe rename this to _user_hicn_hash in future.
     #   Keeping the same to not break backwards migration compatibility.
-    _user_id_hash = models.CharField(max_length=64,
-                                     verbose_name="HASH of User HICN ID",
-                                     unique=False,
-                                     null=False,
-                                     default=None,
-                                     db_column="user_id_hash",
-                                     db_index=True)
+    _user_id_hash = models.CharField(
+        max_length=64,
+        verbose_name="HASH of User HICN ID",
+        unique=False,
+        null=False,
+        default=None,
+        db_column="user_id_hash",
+        db_index=True,
+    )
 
     # This stores the MBI hash value.
     #     Can be null for backwards migration compatibility.
-    _user_mbi_hash = models.CharField(max_length=64,
-                                      verbose_name="HASH of User MBI ID",
-                                      unique=False,
-                                      null=True,
-                                      default=None,
-                                      db_column="user_mbi_hash",
-                                      db_index=True)
+    _user_mbi_hash = models.CharField(
+        max_length=64,
+        verbose_name="HASH of User MBI ID",
+        unique=False,
+        null=True,
+        default=None,
+        db_column="user_mbi_hash",
+        db_index=True,
+    )
 
     # Date/time that the Crosswalk instance was created
     date_created = models.DateTimeField()
@@ -197,12 +224,14 @@ class ArchivedCrosswalk(models.Model):
     # Static method utility to create archive of field values from a passed in Crosswalk instance
     @staticmethod
     def create(crosswalk):
-        acw = ArchivedCrosswalk.objects.create(username=crosswalk.user.username,
-                                               _fhir_id=crosswalk.fhir_id,
-                                               user_id_type=crosswalk.user_id_type,
-                                               _user_id_hash=crosswalk.user_hicn_hash,
-                                               _user_mbi_hash=crosswalk.user_mbi_hash,
-                                               date_created=crosswalk.date_created)
+        acw = ArchivedCrosswalk.objects.create(
+            username=crosswalk.user.username,
+            _fhir_id=crosswalk.fhir_id,
+            user_id_type=crosswalk.user_id_type,
+            _user_id_hash=crosswalk.user_hicn_hash,
+            _user_mbi_hash=crosswalk.user_mbi_hash,
+            date_created=crosswalk.date_created,
+        )
         acw.save()
         return acw
 
@@ -224,18 +253,19 @@ class Fhir_Response(Response):
         for k, v in req_response.__dict__.items():
             self.__dict__[k] = v
 
-        extend_response = {"_response": req_response,
-                           "_text": "",
-                           "_json": "{}",
-                           "_xml": "</>",
-                           "_status_code": "",
-                           "_call_url": "",
-                           "_cx": Crosswalk,
-                           "_result": "",
-                           "_owner": "",
-                           "encoding": "utf-8",
-                           "_content": ""
-                           }
+        extend_response = {
+            "_response": req_response,
+            "_text": "",
+            "_json": "{}",
+            "_xml": "</>",
+            "_status_code": "",
+            "_call_url": "",
+            "_cx": Crosswalk,
+            "_result": "",
+            "_owner": "",
+            "encoding": "utf-8",
+            "_content": "",
+        }
 
         # Add extra fields to Response Object
         for k, v in extend_response.items():
@@ -243,9 +273,15 @@ class Fhir_Response(Response):
 
 
 def check_crosswalks():
+    start_time = datetime.utcnow().timestamp()
+
     synth_count = Crosswalk.synth_objects.count()
     real_count = Crosswalk.real_objects.count()
+
+    elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
+
     return {
         "synthetic": synth_count,
         "real": real_count,
+        "elapsed": elapsed_time,
     }
