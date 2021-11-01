@@ -160,8 +160,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     if line_dict["name"] == app_name:
                         log_dict = line_dict
 
-            print("-----  FOUND FOR APP:  ", log_dict)
-
             # Update Json Schema
             TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["name"][
                 "pattern"
@@ -384,7 +382,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                  NOTE:  The real_bene_cnt and synth_bene_cnt are crosswalk counts.
         """
         for app, user in remove_grant_access_list:
-            print("--- Revoking:  ", app, " - ", user)
             remove_application_user_pair_tokens_data_access(app, user)
 
         call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
@@ -425,15 +422,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             Create overlappiing benes connected to app0, app1 and app3
             with 7x synth and 10x real benes.
         """
-        print(
-            "================================================================================================="
-        )
-        print(
-            "=======================TEST #4==================================================================="
-        )
-        print(
-            "================================================================================================="
-        )
         # Create 7x synth benes -60000000000000 thru -60000000000006 connected to app0, app1 and app3
         app, user_dict = self._create_range_users_app_token_grant(
             start_fhir_id="-6000000000000", count=7, app_name="app0"
