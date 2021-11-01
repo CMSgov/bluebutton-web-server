@@ -36,10 +36,8 @@ def log_global_state_metrics(group_timestamp=None):
 
     start_time = datetime.utcnow().timestamp()
 
-    # Get Crosswalk table counts
     crosswalk_counts = check_crosswalks()
 
-    # Get AccessToken counts
     access_token_counts = get_access_token_counts()
 
     grant_counts = get_grant_counts()
