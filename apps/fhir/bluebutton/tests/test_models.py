@@ -138,7 +138,9 @@ class TestModels(BaseApiTest):
                               user_hicn_hash='255e178537ed3bc486e6a7195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt),
                               user_mbi_hash='987654321aaaa11111aaaa195a47a82a2cd6f46e911660fe9775f6e00000000' + str(cnt))
 
-        self.assertEqual("{'synthetic': 7, 'real': 5}", str(check_crosswalks()))
+        cc = check_crosswalks()
+        self.assertEqual(cc["synthetic"], 7)
+        self.assertEqual(cc["real"], 5)
 
     def test_hash_hicn_empty_string(self):
         '''
