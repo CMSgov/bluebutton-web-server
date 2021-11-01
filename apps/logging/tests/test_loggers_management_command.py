@@ -272,11 +272,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "synth_bene_cnt": 7,
                 "real_bene_grant_cnt": 8,
                 "synth_bene_grant_cnt": 7,
-
                 "real_bene_token_distinct_cnt": 8,
                 "synth_bene_token_distinct_cnt": 7,
-
-
                 "real_bene_grant_distinct_cnt": 8,
                 "synth_bene_grant_distinct_cnt": 7,
                 "real_bene_grant_arch_distinct_cnt": 0,
