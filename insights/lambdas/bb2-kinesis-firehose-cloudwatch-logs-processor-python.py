@@ -125,7 +125,7 @@ def transformLogEvent(log_event):
     # Update with message fields
     out_dict.update(message_dict)
 
-    return str(out_dict) + "\n"
+    return json.dumps(out_dict) + "\n"
 
 
 def processRecords(records):
