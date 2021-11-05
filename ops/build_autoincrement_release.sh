@@ -38,7 +38,7 @@ fi
 #
 git pull --quiet --all --tags
 LOCAL_TAGS="$(git tag | sort -u -V)"
-REMOTE_TAGS="$(git ls-remote --quiet --tags | grep -o 'r[0-9]\{1,\}' | sort -u -V)"
+REMOTE_TAGS="$(git ls-remote --quiet --tags | grep -o 'r[0-9]\{1,\}[-hotfix]*' | sort -u -V)"
 
 if [[ "${LOCAL_TAGS}" != "${REMOTE_TAGS}" ]]; then
     echo "Please reconcile your local repository tags, they do not match tags on the remote repository!"
@@ -80,7 +80,7 @@ EOF
 # with newline literals
 #
 NEW_RELEASE_HISTORY="${NEW_RELEASE_HISTORY//[\'\"]/}"
-NEW_RELEASE_HISTORY="${NEW_RELEASE_HISTORY//$'\n'/\\n}"
+NEW_RELEASE_HISTORY="${NEW_RELEASE_HISTORY//$'\n'/<br />}"
 
 sed -i.bak "s|NEW_RELEASE_TAG|${NEW_RELEASE_TAG}|g" "${GITHUB_RELEASE_PAYLOAD}"
 sed -i.bak "s|NEW_RELEASE_DATE|${NEW_RELEASE_DATE}|g" "${GITHUB_RELEASE_PAYLOAD}"
