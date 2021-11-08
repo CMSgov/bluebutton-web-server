@@ -95,11 +95,13 @@ def get_grant_counts():
     real_bene_cnt = DataAccessGrant.objects.filter(
         ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
         & ~Q(beneficiary__crosswalk___fhir_id="")
+        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
     ).count()
 
     synth_bene_cnt = DataAccessGrant.objects.filter(
         Q(beneficiary__crosswalk___fhir_id__startswith="-")
         & ~Q(beneficiary__crosswalk___fhir_id="")
+        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
     ).count()
 
     bene_cnt_elapsed = round(datetime.utcnow().timestamp() - start_time, 3)
@@ -112,6 +114,7 @@ def get_grant_counts():
         .filter(
             ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .values("beneficiary__username")
         .distinct()
@@ -123,6 +126,7 @@ def get_grant_counts():
         .filter(
             Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .values("beneficiary__username")
         .distinct()
@@ -138,6 +142,7 @@ def get_grant_counts():
         ArchivedDataAccessGrant.objects.filter(
             ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .distinct()
         .count()
@@ -147,6 +152,7 @@ def get_grant_counts():
         ArchivedDataAccessGrant.objects.filter(
             Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .distinct()
         .count()
@@ -163,12 +169,14 @@ def get_grant_counts():
         DataAccessGrant.objects.filter(
             ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .values("beneficiary__username")
         .union(
             ArchivedDataAccessGrant.objects.filter(
                 ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
                 & ~Q(beneficiary__crosswalk___fhir_id="")
+                & Q(beneficiary__crosswalk___fhir_id__isnull=False)
             ).values("beneficiary__username")
         )
         .count()
@@ -178,12 +186,14 @@ def get_grant_counts():
         DataAccessGrant.objects.filter(
             Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .values("beneficiary__username")
         .union(
             ArchivedDataAccessGrant.objects.filter(
                 Q(beneficiary__crosswalk___fhir_id__startswith="-")
                 & ~Q(beneficiary__crosswalk___fhir_id="")
+                & Q(beneficiary__crosswalk___fhir_id__isnull=False)
             ).values("beneficiary__username")
         )
         .count()
@@ -217,12 +227,14 @@ def get_grant_by_app_counts(application):
         Q(application=application)
         & ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
         & ~Q(beneficiary__crosswalk___fhir_id="")
+        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
     ).count()
 
     synth_bene_cnt = DataAccessGrant.objects.filter(
         Q(application=application)
         & Q(beneficiary__crosswalk___fhir_id__startswith="-")
         & ~Q(beneficiary__crosswalk___fhir_id="")
+        & Q(beneficiary__crosswalk___fhir_id__isnull=False)
     ).count()
 
     # Archived grant real/synth bene distinct counts
@@ -231,6 +243,7 @@ def get_grant_by_app_counts(application):
             Q(application=application)
             & ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .distinct()
         .count()
@@ -240,6 +253,7 @@ def get_grant_by_app_counts(application):
             Q(application=application)
             & Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .distinct()
         .count()
@@ -251,6 +265,7 @@ def get_grant_by_app_counts(application):
             Q(application=application)
             & ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .values("beneficiary__username")
         .union(
@@ -258,6 +273,7 @@ def get_grant_by_app_counts(application):
                 Q(application=application)
                 & ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
                 & ~Q(beneficiary__crosswalk___fhir_id="")
+                & Q(beneficiary__crosswalk___fhir_id__isnull=False)
             ).values("beneficiary__username")
         )
         .count()
@@ -267,6 +283,7 @@ def get_grant_by_app_counts(application):
             Q(application=application)
             & Q(beneficiary__crosswalk___fhir_id__startswith="-")
             & ~Q(beneficiary__crosswalk___fhir_id="")
+            & Q(beneficiary__crosswalk___fhir_id__isnull=False)
         )
         .values("beneficiary__username")
         .union(
@@ -274,6 +291,7 @@ def get_grant_by_app_counts(application):
                 Q(application=application)
                 & Q(beneficiary__crosswalk___fhir_id__startswith="-")
                 & ~Q(beneficiary__crosswalk___fhir_id="")
+                & Q(beneficiary__crosswalk___fhir_id__isnull=False)
             ).values("beneficiary__username")
         )
         .count()

@@ -12,6 +12,7 @@ from oauth2_provider.models import get_access_token_model, get_application_model
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
+from apps.fhir.bluebutton.models import Crosswalk
 import apps.logging.request_logger as logging
 from apps.test import BaseApiTest
 
@@ -426,6 +427,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         app, user_dict = self._create_range_users_app_token_grant(
             start_fhir_id="-6000000000000", count=7, app_name="app1"
         )
+
+        # Keep user_dict for TEST #5
+        save_synth_user_dict = user_dict
+
         app, user_dict = self._create_range_users_app_token_grant(
             start_fhir_id="-6000000000000", count=7, app_name="app3"
         )
@@ -437,6 +442,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         app, user_dict = self._create_range_users_app_token_grant(
             start_fhir_id="6000000000000", count=10, app_name="app1"
         )
+
+        # Keep user_dict for TEST #6
+        save_real_user_dict = user_dict
+
         app, user_dict = self._create_range_users_app_token_grant(
             start_fhir_id="6000000000000", count=10, app_name="app3"
         )
@@ -492,5 +501,98 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 }
             }
         )
+
+        self._validate_global_state_per_app_metrics_log(validate_apps_dict)
+
+        """
+        TEST #5:
+
+        Test that crosswalk record with fhir_id = "" is not counted.
+
+        NOTE: Due to a unique constraint on the fhir_id, there can only be one of these in the system.
+
+        Setting one synth bene crosswalk fhir_id = "" should reduce synth counts by 1.
+        """
+        # Setting synth user crosswalk entry to fhir_id=""
+        cw = Crosswalk.objects.get(user=save_synth_user_dict["-60000000000003"])
+        cw._fhir_id = ""
+        cw.save()
+
+        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+
+        self._validate_global_state_metrics_log(
+            {
+                "real_bene_cnt": 18,
+                "synth_bene_cnt": 15,  # Count reduced by 1
+                "real_bene_grant_cnt": 36,
+                "synth_bene_grant_cnt": 24,  # Count is reduced by 3 (1 x 3 app grants)
+                "real_bene_token_distinct_cnt": 16,
+                "synth_bene_token_distinct_cnt": 12,  # Count reduced by 1
+                "real_bene_grant_distinct_cnt": 16,
+                "synth_bene_grant_distinct_cnt": 12,  # Count reduced by 1
+                "real_bene_grant_arch_distinct_cnt": 2,
+                "synth_bene_grant_arch_distinct_cnt": 3,
+                "real_bene_grant_and_arch_union_cnt": 18,
+                "synth_bene_grant_and_arch_union_cnt": 15,  # Count reduced by 1
+                "global_apps_active_cnt": 3,
+                "global_apps_inactive_cnt": 1,
+                "global_apps_require_demographic_scopes_cnt": 3,
+            }
+        )
+
+        # Validate per app count changes
+        validate_apps_dict["app0"]["synth_bene_cnt"] = 8
+        validate_apps_dict["app0"]["synth_bene_grant_and_arch_union_cnt"] = 11
+
+        validate_apps_dict["app1"]["synth_bene_cnt"] = 8
+        validate_apps_dict["app1"]["synth_bene_grant_and_arch_union_cnt"] = 8
+
+        validate_apps_dict["app3"]["synth_bene_cnt"] = 6
+        validate_apps_dict["app3"]["synth_bene_grant_and_arch_union_cnt"] = 6
+
+        self._validate_global_state_per_app_metrics_log(validate_apps_dict)
+
+        """
+        TEST #6:
+
+        Test that missing/NULL crosswalk record is not counted.
+
+        Removing one real bene crosswalk should reduce real counts by 1.
+        """
+        # Removing one real bene crosswalk
+        cw = Crosswalk.objects.get(user=save_real_user_dict["60000000000001"])
+        cw.delete()
+
+        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+
+        self._validate_global_state_metrics_log(
+            {
+                "real_bene_cnt": 17,  # Count reduced by 1
+                "synth_bene_cnt": 15,
+                "real_bene_grant_cnt": 33,  # Count is reduced by 3 (1 x 3 app grants)
+                "synth_bene_grant_cnt": 24,
+                "real_bene_token_distinct_cnt": 15,  # Count reduced by 1
+                "synth_bene_token_distinct_cnt": 12,
+                "real_bene_grant_distinct_cnt": 15,  # Count reduced by 1
+                "synth_bene_grant_distinct_cnt": 12,
+                "real_bene_grant_arch_distinct_cnt": 2,
+                "synth_bene_grant_arch_distinct_cnt": 3,
+                "real_bene_grant_and_arch_union_cnt": 17,  # Count reduced by 1
+                "synth_bene_grant_and_arch_union_cnt": 15,
+                "global_apps_active_cnt": 3,
+                "global_apps_inactive_cnt": 1,
+                "global_apps_require_demographic_scopes_cnt": 3,
+            }
+        )
+
+        # Validate per app count changes
+        validate_apps_dict["app0"]["real_bene_cnt"] = 12
+        validate_apps_dict["app0"]["real_bene_grant_and_arch_union_cnt"] = 12
+
+        validate_apps_dict["app1"]["real_bene_cnt"] = 12
+        validate_apps_dict["app1"]["real_bene_grant_and_arch_union_cnt"] = 14
+
+        validate_apps_dict["app3"]["real_bene_cnt"] = 9
+        validate_apps_dict["app3"]["real_bene_grant_and_arch_union_cnt"] = 9
 
         self._validate_global_state_per_app_metrics_log(validate_apps_dict)

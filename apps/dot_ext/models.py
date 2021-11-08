@@ -417,6 +417,7 @@ def get_access_token_counts():
         .filter(
             ~Q(user__crosswalk___fhir_id__startswith="-")
             & ~Q(user__crosswalk___fhir_id="")
+            & Q(user__crosswalk___fhir_id__isnull=False)
         )
         .values("user__username")
         .distinct()
@@ -427,6 +428,7 @@ def get_access_token_counts():
         .filter(
             Q(user__crosswalk___fhir_id__startswith="-")
             & ~Q(user__crosswalk___fhir_id="")
+            & Q(user__crosswalk___fhir_id__isnull=False)
         )
         .values("user__username")
         .distinct()
@@ -456,6 +458,7 @@ def get_access_token_by_app_counts(application):
             Q(application=application)
             & ~Q(user__crosswalk___fhir_id__startswith="-")
             & ~Q(user__crosswalk___fhir_id="")
+            & Q(user__crosswalk___fhir_id__isnull=False)
         )
         .values("user__username")
         .distinct()
@@ -467,6 +470,7 @@ def get_access_token_by_app_counts(application):
             Q(application=application)
             & Q(user__crosswalk___fhir_id__startswith="-")
             & ~Q(user__crosswalk___fhir_id="")
+            & Q(user__crosswalk___fhir_id__isnull=False)
         )
         .values("user__username")
         .distinct()
