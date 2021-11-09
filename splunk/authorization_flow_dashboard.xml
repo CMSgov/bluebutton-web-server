@@ -1,2285 +1,2349 @@
 <form>
-  <label>BB2 Authorization Flow Dashboard</label>
-  <description>Dashboard panels related to the authorization flow log tracing</description>
-  <fieldset submitButton="false"></fieldset>
-  <row>
-    <panel>
-      <input type="dropdown" token="bbEnvLabel" searchWhenChanged="true">
-        <label>Select Environment (by Label)</label>
-        <default>impl</default>
-        <choice value="dev">Dev env=dev</choice>
-        <choice value="test">Test env=test</choice>
-        <choice value="impl">Sandbox env=impl</choice>
-        <choice value="prod">Prod env=prod</choice>
-        <choice value="*">ALL env=*</choice>
-        <initialValue>prod</initialValue>
-      </input>
-    </panel>
-    <panel>
-      <input type="dropdown" token="bbEnv" searchWhenChanged="true">
-        <label>Select Environment (by IP Range)</label>
-        <default>ALL</default>
-        <choice value="*">ALL</choice>
-        <choice value="ip-10-224-78-*">Dev</choice>
-        <choice value="ip-10-224-90-*">Test</choice>
-        <choice value="ip-10-246-44-*">Sandbox</choice>
-        <choice value="ip-10-244-140-*">Prod</choice>
-        <initialValue>ALL</initialValue>
-      </input>
-    </panel>
-    <panel>
-      <input type="time" token="t_local" searchWhenChanged="true">
-        <label>Select Time Range</label>
-        <default>
-          <earliest>-60m@m</earliest>
-          <latest>now</latest>
-        </default>
-      </input>
-    </panel>
-    <panel>
-      <input type="dropdown" token="bbAppName" searchWhenChanged="true">
-        <label>Select Application Name</label>
-        <default>ALL</default>
-        <choice value="*">ALL</choice>
-        <initialValue>ALL</initialValue>
-        <fieldForLabel>AppName</fieldForLabel>
-        <fieldForValue>name</fieldForValue>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=$bbEnvLabel$ host=$bbEnv$ |spath output=name path="message.auth_app_name" | table name | dedup name | sort name</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-        </search>
-      </input>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>Authorization Flow Logging Event Counts -  Start to Completed</b>
-            <h2>Event Ordering:</h2>
-            <h3>
-              <table>
-              <tr>
-              <td>1. Initial Authorization</td>
-              <td>2. Medicare Login Redirect</td>
-              <td>3. Authentication Start</td>
-              <td>4. FHIR_ID Matched</td>
-              </tr>
-              <tr>
-              <td>5. Beneficiary User/Crosswalk Retreivals</td>
-              <td>6a. Existing Beneficiary found in BB2 User/Crosswalk Record</td>
-              <td>6b. New Beneficiary Created in BB2 User/Crosswalk Record</td>
-              <td>7. Authentication Success - SLS-to-FHIR_ID Matched</td>
-              <td>8. Medicare SLS-Callback COMPLETE</td>
-              </tr>
-              <tr>
-              <td>9.  Authorization ApprovalView</td>
-              <td>10. Authorization ApprovalView (redirect to bene consent form)</td>
-              <td>11. Beneficiary Authorized Application - via consent form</td>
-              <td>12. Authorized Application Receives Access Token</td>
-              </tr>
-              </table>
-            </h3>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <!-- Setup of BASE searches to be used in panels -->
-  <search id="baseSearch1">
-    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/v1/o/authorize/" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch2">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/login" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch3">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch4">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | fields time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch5">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch6a">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch6b">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch7">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authentication:success" | fields time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch8">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | fields time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch9">
-     <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method ]]></query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch10">
-     <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.path" | regex "message.path"="^/v1/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location]]> </query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch11">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.auth_app_name=$bbAppName$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <search id="baseSearch12">
-     <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.application.name=$bbAppName$ | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.crosswalk.fhir_id message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes message.scopes</query>
-     <earliest>$t_local.earliest$</earliest>
-     <latest>$t_local.latest$</latest>
-     <sampleRatio>1</sampleRatio>
-  </search>
-  <row>
-    <panel>
-      <title>1. Initial Authorization</title>
-      <single>
-        <search base="baseSearch1">
-          <done>
-            <set token="tokEpCount">$result.count$</set>
-          </done>
-          <query>search "message.response_code"!="200" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>2. Medicare Login Redirect</title>
-      <single>
-        <search base="baseSearch2">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>3. Authentication Start</title>
-      <single>
-        <search base="baseSearch3">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>4. FHIR_ID Matched</title>
-      <single>
-        <search base="baseSearch4">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>5. Beneficiary User/Crosswalk Retreivals</title>
-      <single>
-        <search base="baseSearch5">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>6a. Existing Beneficiary record FOUND in BB2 User/Crosswalk</title>
-      <single>
-        <search base="baseSearch6a">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>6b. New Beneficiary record CREATED in BB2 User/Crosswalk</title>
-      <single>
-        <search base="baseSearch6b">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>7. Authentication Success - SLS-to-FHIR_ID Matched</title>
-      <single>
-        <search base="baseSearch7">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>8. Medicare SLS-Callback COMPLETE</title>
-      <single>
-        <search base="baseSearch8">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>9. Authorization ApprovalView</title>
-      <single>
-        <search base="baseSearch9">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>10. Authorization ApprovalView (redirect to bene consent form)</title>
-      <single>
-        <search base="baseSearch10">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>11. Beneficiary Authorized Application - via consent form</title>
-      <single>
-        <search base="baseSearch11">
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>12. Authorized Application Receives Token</title>
-      <single>
-        <search base="baseSearch12">
-          <done>
-            <set token="tokTcCount">$result.count$</set>
-          </done>
-          <query>search message.auth_grant_type=authorization_code | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-  </row>
-  <row>
- 
-    <panel>
-      <chart>
-        <title>Initial Authorization Request / Authorization Completed %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>1. Initial Authorization Request Events TIME-CHART</title>
-        <search base="baseSearch1">
-          <query>timechart count</query>
-        </search>
-        <option name="charting.chart">column</option>
-        <option name="charting.drilldown">all</option>
-        <option name="height">199</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>12. Authorized Application Receives Token Events TIME-CHART</title>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=authorization_code | timechart count</query>
-        </search>
-        <option name="charting.chart">column</option>
-        <option name="charting.drilldown">all</option>
-        <option name="height">199</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>1. Initial Authorization Request Events: Events for the iniital link given to the beneficiary to authorize an application by making a request to the /v1/o/authorize/ end point. This is the start of the authorization flow. The built-in testclient events are excluded (response_code=200)</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search>
-          <done>
-            <set token="tokInitTotalCount">$result.count$</set>
-          </done>
-          <query>| makeresults | eval Total1=$tokEpCount$ | table Total1</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (response_code == "302")</title>
-      <single>
-        <search base="baseSearch1">
-          <done>
-            <set token="tokInitOkCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokInitOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by response_code</title>
-        <search base="baseSearch1">
-          <query>stats count by message.response_code</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch1">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch1">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch1">
-          <query>table time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>2. Medicare Login Redirect Events: Events from the apps.mymedicare_cb.views.mymedicare_login() request used to redirect the beneficiary to the Medicare login page</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch2">
-          <done>
-            <set token="tokMyMedTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (response_code == "302")</title>
-      <single>
-        <search base="baseSearch2">
-          <done>
-            <set token="tokMyMedOkCount">$result.count$</set>
-          </done>
-          <query>search "message.response_code"="302" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokMyMedTotalCount$, Total2=$tokMyMedOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by response_code</title>
-        <search base="baseSearch2">
-          <query>stats count by message.response_code</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch2">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch2">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch2">
-          <query>table time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>3. Authentication Start Events: After beneficiary Medicare login. Events from the apps.mymedicare_cb.views.authenticate() function AFTER receiving a response from the SLS userinfo end point and BEFORE the beneficiary has been matched to a FHIR_ID with the BFD back end.</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch3">
-          <done>
-            <set token="tokStartTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (sls_status == "OK")</title>
-      <single>
-        <search base="baseSearch3">
-          <done>
-            <set token="tokStartOkCount">$result.count$</set>
-          </done>
-          <query>search message.sls_status="OK" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokStartTotalCount$, Total2=$tokStartOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events with SLS MBI FORMAT VALID (true vs. false)</title>
-        <search base="baseSearch3">
-          <query>stats count by message.sls_mbi_format_valid</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events with SLS MBI FORMAT SYNTHETIC (true vs. false)</title>
-        <search base="baseSearch3">
-          <query>stats count by message.sls_mbi_format_synthetic</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by sls_mbi_format_msg</title>
-        <search base="baseSearch3">
-          <query>stats count by message.sls_mbi_format_msg</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch3">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch3">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch3">
-          <query>table time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>4. FHIR_ID Matched Events: Events from the match_fhir_id() function used to match either MBI or HICN hash to a FHIR_ID via the BFD backend.</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch4">
-          <done>
-            <set token="tokFhirMatchTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (match_found == "true")</title>
-      <single>
-        <search base="baseSearch4">
-          <done>
-            <set token="tokFhirMatchOkCount">$result.count$</set>
-          </done>
-          <query>search "message.match_found"="true" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokFhirMatchTotalCount$, Total2=$tokFhirMatchOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by match_found</title>
-        <search base="baseSearch4">
-          <query>search "message.match_found"="true" | stats count by message.match_found</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by hash_lookup_type</title>
-        <search base="baseSearch4">
-          <query>search "message.match_found"="true" | stats count by message.hash_lookup_type</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by hash_lookup_mesg</title>
-        <search base="baseSearch4">
-          <query>search "message.match_found"="true" | stats count by message.hash_lookup_mesg</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch4">
-          <query>search "message.match_found"="true" | eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch4">
-          <query>search "message.match_found"="true" | stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch4">
-          <query>table time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>5. Beneficiary User/Crosswalk Retreival Events: Events using the get_and_update_user() to FIND User/Crosswalk associated with the identity information from the ID provider (SLS).</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch5">
-          <done>
-            <set token="tokGetUpdateTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (status="OK")</title>
-      <single>
-        <search base="baseSearch5">
-          <done>
-            <set token="tokGetUpdateOkCount">$result.count$</set>
-          </done>
-          <query>search "message.status"="OK" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokGetUpdateTotalCount$, Total2=$tokGetUpdateOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by user_id_type (Previously stored crosswalk type)</title>
-        <search base="baseSearch5">
-          <query>stats count by message.crosswalk.user_id_type</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by hash_lookup_type (type used to match FHIR_ID)</title>
-        <search base="baseSearch5">
-          <query>stats count by message.hash_lookup_type</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by mesg</title>
-        <search base="baseSearch5">
-          <query>stats count by message.mesg</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch5">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch5">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch5">
-          <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>6a. Existing Beneficiary record FOUND in User/Crosswalk Events: Events from the get_and_update_user() function that found and/or updated an existing User/Crosswalk entry.</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch6a">
-          <done>
-            <set token="tokGetExistingTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (status="OK"))</title>
-      <single>
-        <search base="baseSearch6a">
-          <done>
-            <set token="tokGetExistingOkCount">$result.count$</set>
-          </done>
-          <query>search "message.status"="OK" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokGetExistingTotalCount$, Total2=$tokGetExistingOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by user_id_type (BEFORE: Previously stored crosswalk type)</title>
-        <search base="baseSearch6a">
-          <query>stats count by message.crosswalk.user_id_type</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by hash_lookup_type (AFTER: type used to match FHIR_ID)</title>
-        <search base="baseSearch6a">
-          <query>stats count by message.hash_lookup_type</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by mesg</title>
-        <search base="baseSearch6a">
-          <query>stats count by message.mesg</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch6a">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch6a">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch6a">
-          <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>6b. New Beneficiary User/Crosswalk Created Record Events: Events from the create_beneficiary_record() function used to create a new User/Crosswalk associated with the identity information from the ID provider (SLS). New records are created for a beneficiaries first matching with the BB2 system (for their first application).</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch6b">
-          <done>
-            <set token="tokCreateBeneTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (status="OK")</title>
-      <single>
-        <search base="baseSearch6b">
-          <done>
-            <set token="tokCreateBeneOkCount">$result.count$</set>
-          </done>
-          <query>search "message.status"="OK" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokCreateBeneTotalCount$, Total2=$tokCreateBeneOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by  by message.mesg</title>
-        <search base="baseSearch6b">
-          <query>stats count by message.mesg</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch6b">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch6b">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch6b">
-          <query>table time message.auth_uuid message.status message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>7. Authentication Success - SLS-to-FHIR_ID Matched Events: Events from the apps.mymedicare_cb.views.authenticate() function AFTER the beneficiary has been successfully matched and a User/Crosswalk instance has been retreived or created.</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch7">
-          <done>
-            <set token="tokAuthSuccTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by user_id_type (hash type used to match FHIR_ID)</title>
-        <search base="baseSearch7">
-          <query>stats count by message.user.crosswalk.user_id_type</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch7">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by Crosswalk Action (R = Returning/Existing in BB2, C = Created/New to BB2).</title>
-        <search base="baseSearch7">
-          <query>stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch7">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch7">
-          <query>table time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>8. Medicare SLS-Callback COMPLETE Request Events: Events for calls to the apps.mymedicare_cb.views.callback() view at completion. To reach this part of the flow, the beneficiary successfully authenticated with SLS after logging in to the Medicare site.  PATH=/mymedicare/sls-callback</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch8">
-          <done>
-            <set token="tokSlsCbTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (response_code=302)</title>
-      <single>
-        <search base="baseSearch8">
-          <done>
-            <set token="tokSlsCbOkCount">$result.count$</set>
-          </done>
-          <query>search "message.response_code"="302" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokSlsCbTotalCount$, Total2=$tokSlsCbOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by response_code</title>
-        <search base="baseSearch8">
-          <query>stats count by message.response_code</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch8">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch8">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch8">
-          <query>table time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>9. Authorization ApprovalView Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView(). At this step the beneficiary is presented with the consent form web page. This can have multiple events when a beneficiary refreshes the consent page.</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch9">
-          <done>
-            <set token="tokApprovalVaTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (response_code=200)</title>
-      <single>
-        <search base="baseSearch9">
-          <done>
-            <set token="tokApprovalVaOkCount">$result.count$</set>
-          </done>
-          <query>search "message.response_code"="200" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokApprovalVaTotalCount$, Total2=$tokApprovalVaOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by response_code</title>
-        <search base="baseSearch9">
-          <query>stats count by message.response_code</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch9">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch9">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch9">
-          <query>table time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>10. Authorization ApprovalView (redirect to bene consent form) Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView().  </b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch10">
-          <done>
-            <set token="tokAuthVbTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>SUCCESSFUL Events (response_code=302)</title>
-      <single>
-        <search base="baseSearch10">
-          <done>
-            <set token="tokAuthVbOkCount">$result.count$</set>
-          </done>
-          <query>search "message.response_code"="302" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SUCCESSFUL vs. TOTAL Percentage %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokAuthVbTotalCount$, Total2=$tokAuthVbOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by response_code</title>
-        <search base="baseSearch10">
-          <query>stats count by message.response_code</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch10">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch10">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch10">
-          <query>table time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>11. Beneficiary Authorized Application Events: Events from the apps.dot_ext.views.authorization.AuthorizationView.form_valid() method. A signal is sent to the beneficiary_authorized_application handler after the beneficiary has interacted with the consent form page. At this step the beneficiary has POSTed the consent form response to BB2.</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>TOTAL Events</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokAuthAppTotalCount">$result.count$</set>
-          </done>
-          <query>stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by auth_status (OK/FAIL)</title>
-        <search base="baseSearch11">
-          <query>stats count by message.auth_status</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by user_id_type (hash type used for FHIR_ID match)</title>
-        <search base="baseSearch11">
-          <query>stats count by message.user.crosswalk.user_id_type</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch11">
-          <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch11">
-          <query>stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Beneficiary ALLOW total</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokAllowTotalCount">$result.count$</set>
-          </done>
-          <query>search "message.allow"="true" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>Beneficiary DENY total</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokDenyTotalCount">$result.count$</set>
-          </done>
-          <query>search "message.allow"="false" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Beneficiary Allow/Deny</title>
-        <search base="baseSearch11">
-          <query>stats count by message.allow</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Beneficiary SHARE_DEMOGRAPHIC_SCOPES = TRUE choice total</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokDemoScopesTrueTotalCount">$result.count$</set>
-          </done>
-          <query>search "message.allow"="True" | search "message.auth_share_demographic_scopes"="True" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>Beneficiary SHARE_DEMOGRAPHIC_SCOPES = FALSE choice total</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokDemoScopesFalseTotalCount">$result.count$</set>
-          </done>
-          <query>search "message.allow"="True" | search "message.auth_share_demographic_scopes"="False" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Beneficiary SHARE_DEMOGRAPHIC_SCOPES</title>
-        <search base="baseSearch11">
-          <query>search "message.allow"="True" | stats count by message.auth_share_demographic_scopes</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch11">
-          <query>table time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>12. Authorized Application Receives Access Token Events: Events from the oauth2_provider.signals.app_authorized signal handler when a app_authorized signal is sent. This is the final step in the authorization flow.</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Authorized Application Receives Token TOTAL Events</title>
-      <single>
-        <search>
-          <query>| makeresults | eval Total1=$tokTcCount$ | table Total1</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <title>1. Initial Authorization TOTAL Events</title>
-      <single>
-        <search>
-          <query>| makeresults | eval Total1=$tokEpCount$ | table Total1</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>Initial Authorization Request / Authorization Completed %</title>
-        <search>
-          <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">radialGauge</option>
-        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
-        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by PKCE method (MOBILE vs. WEB).</title>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=authorization_code | eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=authorization_code | stats count by message.auth_app_name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by Crosswalk Action (R = Returning/Existing in BB2, C = Created/New to BB2).</title>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=authorization_code | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=authorization_code | table time message.auth_uuid message.application.name message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>DEMOGRAPHIC SCOPES STATISTICS - By Beneficiary and Application Consent Page Choices</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>Beneficiary Consent Form ALLOW/DENY Choices</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row> 
-  <row>
-    <panel>
-      <html>
-       <u1> <h2>
-            <b>ALL - Beneficiary Consent Form ALLOW/DENY Choices</b>
-          </h2>
-        </u1>
-     </html>
-    </panel>
-  </row> 
-  <row>
-    <panel>
-      <title>ALLOW total</title>
-      <single>
-        <search>
-          <query>| makeresults | eval Total1=$tokAllowTotalCount$ | table Total1</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>ALLOW by New vs. Returning Bene</title>
-        <search base="baseSearch11">
-          <query>search message.allow="True" | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <title>DENY total</title>
-      <single>
-        <search>
-          <query>| makeresults | eval Total1=$tokDenyTotalCount$ | table Total1</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>DENY by New vs. Returning Bene</title>
-        <search base="baseSearch11">
-          <query>search message.allow="False" | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Percentage by Allow vs. Deny</title>
-        <search>
-          <query>| makeresults | eval totalAllow=$tokAllowTotalCount$, totalDeny=$tokDenyTotalCount$ | table totalAllowDenyChoices totalDeny totalAllow | transpose header_field="totalAllowDenyChoices" column_name="AllowDenyChoice"</query>
-          <earliest>$t_local.earliest$</earliest>
-          <latest>$t_local.latest$</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h2>
-            <b>Application Requires Demographic -  Beneficiary Consent Form ALLOW/DENY Choices</b>
-          </h2>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Beneficiary ALLOW total</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokAppTrueAllowTotalCount">$result.count$</set>
-          </done>
-          <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="true" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>ALLOW by New vs. Returning Bene</title>
-        <search base="baseSearch11">
-          <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="true" | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <title>Beneficiary DENY total</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokAppTrueDenyTotalCount">$result.count$</set>
-          </done>
-          <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="false" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>DENY by New vs. Returning Bene</title>
-        <search base="baseSearch11">
-          <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="false" | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Beneficiary Allow/Deny</title>
-        <search base="baseSearch11">
-          <query>search message.auth_require_demographic_scopes="True" | stats count by message.allow</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h2>
-            <b>Application DOES NOT Require Demographic - Beneficiary Consent Form ALLOW/DENY Choices</b>
-          </h2>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Beneficiary ALLOW total</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokAppFalseAllowTotalCount">$result.count$</set>
-          </done>
-          <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="True" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>ALLOW by New vs. Returning Bene</title>
-        <search base="baseSearch11">
-          <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="True" | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <title>Beneficiary DENY total</title>
-      <single>
-        <search base="baseSearch11">
-          <done>
-            <set token="tokAppFalseDenyTotalCount">$result.count$</set>
-          </done>
-          <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="False" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>DENY by New vs. Returning Bene</title>
-        <search base="baseSearch11">
-          <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="False" | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Beneficiary Allow/Deny</title>
-        <search base="baseSearch11">
-          <query>search message.auth_require_demographic_scopes="False" | stats count by message.allow</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>Beneficiary Consent Form SHARE_DEMOGRAPHC Information Choices</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row> 
-  <row>
-    <panel>
-      <html>
-       <u1> <h2>
-            <b>Beneficiary Consent Form SHARE_DEMOGRAPHIC_SCOPES (True/False) Choices (NOTE: Only when Application require_demographic_scopes = "True")</b>
-          </h2>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Beneficiary SHARE=True</title>
-      <single>
-        <search base="baseSearch11">
-          <query>search message.auth_share_demographic_scopes="True" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SHARE=True by New vs. Returning Bene</title>
-        <search base="baseSearch11">
-          <query>search message.auth_share_demographic_scopes="True" | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-    <panel>
-      <title>Beneficiary SHARE=False</title>
-      <single>
-        <search base="baseSearch11">
-          <query>search message.auth_share_demographic_scopes="False" | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>SHARE=False by New vs. Returning Bene</title>
-        <search base="baseSearch11">
-          <query>search message.auth_share_demographic_scopes="False" | stats count by message.auth_crosswalk_action</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Total Events</title>
-      <single>
-        <search base="baseSearch11">
-          <query>search (message.auth_share_demographic_scopes="True" OR message.auth_share_demographic_scopes="False") | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>Percentage by SHARE_DEMOGRAPHIC_SCOPES (True/False)</title>
-        <search base="baseSearch11">
-          <query>search (message.auth_share_demographic_scopes="True" OR message.auth_share_demographic_scopes="False") | stats count by message.auth_share_demographic_scopes</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h2>
-            <b>Application Breakdown of Beneficiary NOT SHARING via Consent Form</b>
-          </h2>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch11">
-          <query>search message.auth_share_demographic_scopes="False" | stats count by "message.auth_app_name" | table message.auth_app_name count</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>ALL UN-SUCCESSFUL TOKEN ENDPOINT STATS: For all /v*/o/token/ endpoint requests</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Events by response_code</title>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.response_code</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search>
-          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.req_grant_type message.response_code</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <html>
-       <u1> <h1>
-            <b>TOKEN REFRESH STATS: Events from applications requesting a new access token using the refresh_token.</b>
-          </h1>
-        </u1>
-     </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Token via authorized signal event TOTAL</title>
-      <single>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=refresh_token | stats count</query>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="height">226</option>
-        <option name="refresh.display">progressbar</option>
-      </single>
-    </panel>
-    <panel>
-      <chart>
-        <title>Events by Application</title>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=authorization_code | stats count by message.application.name</query>
-        </search>
-        <option name="charting.chart">pie</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <chart>
-        <title>Request Events TIME-CHART</title>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=refresh_token | timechart count</query>
-        </search>
-        <option name="charting.chart">column</option>
-        <option name="charting.drilldown">all</option>
-        <option name="height">199</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="charting.chart.showPercent">true</option>
-      </chart>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <table>
-        <search base="baseSearch12">
-          <query>search message.auth_grant_type=refresh_token | table time message.application.name message.crosswalk.fhir_id message.user.username message.access_token message.action message.auth_grant_type message.scopes</query>
-        </search>
-        <option name="count">10</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">cell</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
+    <label>BB2 Authorization Flow Dashboard</label>
+    <description>Dashboard panels related to the authorization flow log tracing</description>
+    <fieldset submitButton="false"></fieldset>
+    <row>
+        <panel>
+            <input type="dropdown" token="bbEnvLabel" searchWhenChanged="true">
+                <label>Select Environment (by Label)</label>
+                <default>impl</default>
+                <choice value="test">Test env=test</choice>
+                <choice value="impl">Sandbox env=impl</choice>
+                <choice value="prod">Prod env=prod</choice>
+                <choice value="*">ALL env=*</choice>
+                <initialValue>prod</initialValue>
+            </input>
+        </panel>
+        <panel>
+            <input type="dropdown" token="bbEnv" searchWhenChanged="true">
+                <label>Select Environment (by IP Range)</label>
+                <default>ALL</default>
+                <choice value="*">ALL</choice>
+                <choice value="ip-10-224-78-*">Dev</choice>
+                <choice value="ip-10-224-90-*">Test</choice>
+                <choice value="ip-10-246-44-*">Sandbox</choice>
+                <choice value="ip-10-244-140-*">Prod</choice>
+                <initialValue>ALL</initialValue>
+            </input>
+        </panel>
+        <panel>
+            <input type="time" token="t_local" searchWhenChanged="true">
+                <label>Select Time Range</label>
+                <default>
+                    <earliest>-60m@m</earliest>
+                    <latest>now</latest>
+                </default>
+            </input>
+        </panel>
+        <panel>
+            <input type="dropdown" searchWhenChanged="true">
+                <label>Select Application Name</label>
+                <default>ALL</default>
+                <choice value="*">ALL</choice>
+                <choice value="excludeInternalApps">ExcludeInternalApps</choice>
+                <initialValue>ALL</initialValue>
+                <fieldForLabel>AppName</fieldForLabel>
+                <fieldForValue>name</fieldForValue>
+                <search>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=$bbEnvLabel$ host=$bbEnv$ |spath output=name path="message.auth_app_name" | table name | dedup name | sort name</query>
+                    <earliest>$t_local.earliest$</earliest>
+                    <latest>$t_local.latest$</latest>
+                </search>
+                <change>
+                    <condition value="excludeInternalApps">
+                        <set token="authAppNameExpr">message.auth_app_name!=&quot;TestApp&quot; AND message.auth_app_name!=&quot;new-relic&quot;</set>
+                        <set token="authApplicationNameExpr">message.application.name!=&quot;TestApp&quot; AND message.application.name!=&quot;new-relic&quot;</set>
+                    </condition>
+                    <condition>
+                        <set token="authAppNameExpr">message.auth_app_name=&quot;$value$&quot;</set>
+                        <set token="authApplicationNameExpr">message.auth_app_name=&quot;$value$&quot;</set>
+                    </condition>
+                </change>
+            </input>
+        </panel>
+        <panel>
+            <input type="dropdown" searchWhenChanged="true">
+                <label>Select API versions</label>
+                <default>V1+V2</default>
+                <choice value="V1+V2">V1+V2</choice>
+                <choice value="V1">V1</choice>
+                <choice value="V2">V2</choice>
+                <initialValue>V1+V2</initialValue>
+                <fieldForLabel>APIVersion</fieldForLabel>
+                <fieldForValue>APIVersion</fieldForValue>
+                <change>
+                    <condition value="V1+V2">
+                        <set token="apiVersionsPattern">v*</set>
+                        <set token="apiVersionsRegex">v[12]</set>
+                        <set token="apiVersionsLabel">V1+V2</set>
+                    </condition>
+                    <condition value="V1">
+                        <set token="apiVersionsPattern">v1</set>
+                        <set token="apiVersionsRegex">v1</set>
+                        <set token="apiVersionsLabel">V1</set>
+                    </condition>
+                    <condition value="V2">
+                        <set token="apiVersionsPattern">v2</set>
+                        <set token="apiVersionsRegex">v2</set>
+                        <set token="apiVersionsLabel">V2</set>
+                    </condition>
+                </change>
+            </input>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>Authorization Flow Logging Event Counts -  Start to Completed</b>
+                        <h2>Event Ordering:</h2>
+                        <h3>
+                            <table>
+                                <tr>
+                                    <td>1. Initial Authorization</td>
+                                    <td>2. Medicare.gov Login Redirect</td>
+                                    <td>3. Authentication Start</td>
+                                    <td>4. FHIR_ID Matched</td>
+                                </tr>
+                                <tr>
+                                    <td>5. Beneficiary User/Crosswalk Retreivals</td>
+                                    <td>6a. Existing Beneficiary found in BB2 User/Crosswalk Record</td>
+                                    <td>6b. New Beneficiary Created in BB2 User/Crosswalk Record</td>
+                                    <td>7. Authentication Success - SLS-to-FHIR_ID Matched</td>
+                                    <td>8. Medicare.gov SLS-Callback COMPLETE</td>
+                                </tr>
+                                <tr>
+                                    <td>9.  Authorization ApprovalView</td>
+                                    <td>10. Authorization ApprovalView (redirect to bene consent form)</td>
+                                    <td>11. Beneficiary Authorized Application - via consent form</td>
+                                    <td>12. Authorized Application Receives Access Token</td>
+                                </tr>
+                            </table>
+                        </h3>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <!-- Setup of BASE searches to be used in panels -->
+    <search id="baseSearch1">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/$apiVersionsPattern$/o/authorize/" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch2">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/mymedicare/login" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch3">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch4">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | fields time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch5">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch6a">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch6b">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch7">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:success" | fields time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch8">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | fields time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch9">
+        <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"="^/$apiVersionsRegex$/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method ]]></query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch10">
+        <query><![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"="^/$apiVersionsRegex$/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location]]></query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch11">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <search id="baseSearch12">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authApplicationNameExpr$ | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.crosswalk.fhir_id message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes message.scopes</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
+    <row>
+        <panel>
+            <title>1. Initial Authorization</title>
+            <single>
+                <search base="baseSearch1">
+                    <done>
+                        <set token="tokEpCount">$result.count$</set>
+                    </done>
+                    <query>search "message.response_code"!="200" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>2. Medicare.gov Login Redirect</title>
+            <single>
+                <search base="baseSearch2">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>3. Authentication Start</title>
+            <single>
+                <search base="baseSearch3">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>4. FHIR_ID Matched</title>
+            <single>
+                <search base="baseSearch4">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>5. Beneficiary User/Crosswalk Retreivals</title>
+            <single>
+                <search base="baseSearch5">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>6a. Existing Beneficiary record FOUND in BB2 User/Crosswalk</title>
+            <single>
+                <search base="baseSearch6a">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>6b. New Beneficiary record CREATED in BB2 User/Crosswalk</title>
+            <single>
+                <search base="baseSearch6b">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>7. Authentication Success - SLS-to-FHIR_ID Matched</title>
+            <single>
+                <search base="baseSearch7">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>8. Medicare.gov SLS-Callback COMPLETE</title>
+            <single>
+                <search base="baseSearch8">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>9. Authorization ApprovalView</title>
+            <single>
+                <search base="baseSearch9">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>10. Authorization ApprovalView (redirect to bene consent form)</title>
+            <single>
+                <search base="baseSearch10">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>11. Beneficiary Authorized Application - via consent form</title>
+            <single>
+                <search base="baseSearch11">
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>12. Authorized Application Receives Token</title>
+            <single>
+                <search base="baseSearch12">
+                    <done>
+                        <set token="tokTcCount">$result.count$</set>
+                    </done>
+                    <query>search message.auth_grant_type=authorization_code | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+    </row>
+    <row>
+
+        <panel>
+            <chart>
+                <title>Initial Authorization Request / Authorization Completed %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>1. Initial Authorization Request Events TIME-CHART</title>
+                <search base="baseSearch1">
+                    <query>timechart count</query>
+                </search>
+                <option name="charting.chart">column</option>
+                <option name="charting.drilldown">all</option>
+                <option name="height">199</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>12. Authorized Application Receives Token Events TIME-CHART</title>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=authorization_code | timechart count</query>
+                </search>
+                <option name="charting.chart">column</option>
+                <option name="charting.drilldown">all</option>
+                <option name="height">199</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>1. Initial Authorization Request Events: Events for the iniital link given to the beneficiary to authorize an application by making a request to the /$apiVersionsPattern$/o/authorize/ end point. This is the start of the authorization flow. The built-in testclient events are excluded (response_code=200)</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search>
+                    <done>
+                        <set token="tokInitTotalCount">$result.count$</set>
+                    </done>
+                    <query>| makeresults | eval Total1=$tokEpCount$ | table Total1</query>
+                    <earliest>$t_local.earliest$</earliest>
+                    <latest>$t_local.latest$</latest>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (response_code == "302")</title>
+            <single>
+                <search base="baseSearch1">
+                    <done>
+                        <set token="tokInitOkCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokInitOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by response_code</title>
+                <search base="baseSearch1">
+                    <query>stats count by message.response_code</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch1">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch1">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch1">
+                    <query>table time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>2. Medicare.gov Login Redirect Events: Events from the apps.mymedicare_cb.views.mymedicare_login() request used to redirect the beneficiary to the Medicare.gov login page</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch2">
+                    <done>
+                        <set token="tokMyMedTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (response_code == "302")</title>
+            <single>
+                <search base="baseSearch2">
+                    <done>
+                        <set token="tokMyMedOkCount">$result.count$</set>
+                    </done>
+                    <query>search "message.response_code"="302" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokMyMedTotalCount$, Total2=$tokMyMedOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by response_code</title>
+                <search base="baseSearch2">
+                    <query>stats count by message.response_code</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch2">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch2">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch2">
+                    <query>table time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>3. Authentication Start Events: After beneficiary Medicare.gov login. Events from the apps.mymedicare_cb.views.authenticate() function AFTER receiving a response from the SLS userinfo end point and BEFORE the beneficiary has been matched to a FHIR_ID with the BFD back end.</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch3">
+                    <done>
+                        <set token="tokStartTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (sls_status == "OK")</title>
+            <single>
+                <search base="baseSearch3">
+                    <done>
+                        <set token="tokStartOkCount">$result.count$</set>
+                    </done>
+                    <query>search message.sls_status="OK" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokStartTotalCount$, Total2=$tokStartOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events with SLS MBI FORMAT VALID (true vs. false)</title>
+                <search base="baseSearch3">
+                    <query>stats count by message.sls_mbi_format_valid</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events with SLS MBI FORMAT SYNTHETIC (true vs. false)</title>
+                <search base="baseSearch3">
+                    <query>stats count by message.sls_mbi_format_synthetic</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by sls_mbi_format_msg</title>
+                <search base="baseSearch3">
+                    <query>stats count by message.sls_mbi_format_msg</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch3">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch3">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch3">
+                    <query>table time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>4. FHIR_ID Matched Events: Events from the match_fhir_id() function used to match either MBI or HICN hash to a FHIR_ID via the BFD backend.</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch4">
+                    <done>
+                        <set token="tokFhirMatchTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (match_found == "true")</title>
+            <single>
+                <search base="baseSearch4">
+                    <done>
+                        <set token="tokFhirMatchOkCount">$result.count$</set>
+                    </done>
+                    <query>search "message.match_found"="true" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokFhirMatchTotalCount$, Total2=$tokFhirMatchOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by match_found</title>
+                <search base="baseSearch4">
+                    <query>search "message.match_found"="true" | stats count by message.match_found</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by hash_lookup_type</title>
+                <search base="baseSearch4">
+                    <query>search "message.match_found"="true" | stats count by message.hash_lookup_type</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by hash_lookup_mesg</title>
+                <search base="baseSearch4">
+                    <query>search "message.match_found"="true" | stats count by message.hash_lookup_mesg</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch4">
+                    <query>search "message.match_found"="true" | eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch4">
+                    <query>search "message.match_found"="true" | stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch4">
+                    <query>table time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>5. Beneficiary User/Crosswalk Retreival Events: Events using the get_and_update_user() to FIND User/Crosswalk associated with the identity information from the ID provider (SLS).</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch5">
+                    <done>
+                        <set token="tokGetUpdateTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (status="OK")</title>
+            <single>
+                <search base="baseSearch5">
+                    <done>
+                        <set token="tokGetUpdateOkCount">$result.count$</set>
+                    </done>
+                    <query>search "message.status"="OK" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokGetUpdateTotalCount$, Total2=$tokGetUpdateOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by user_id_type (Previously stored crosswalk type)</title>
+                <search base="baseSearch5">
+                    <query>
+  stats count by message.crosswalk.user_id_type</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by hash_lookup_type (type used to match FHIR_ID)</title>
+                <search base="baseSearch5">
+                    <query>stats count by message.hash_lookup_type</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by mesg</title>
+                <search base="baseSearch5">
+                    <query>stats count by message.mesg</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch5">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch5">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch5">
+                    <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>6a. Existing Beneficiary record FOUND in User/Crosswalk Events: Events from the get_and_update_user() function that found and/or updated an existing User/Crosswalk entry.</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch6a">
+                    <done>
+                        <set token="tokGetExistingTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (status="OK"))</title>
+            <single>
+                <search base="baseSearch6a">
+                    <done>
+                        <set token="tokGetExistingOkCount">$result.count$</set>
+                    </done>
+                    <query>search "message.status"="OK" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokGetExistingTotalCount$, Total2=$tokGetExistingOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by user_id_type (BEFORE: Previously stored crosswalk type)</title>
+                <search base="baseSearch6a">
+                    <query>stats count by message.crosswalk.user_id_type</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by hash_lookup_type (AFTER: type used to match FHIR_ID)</title>
+                <search base="baseSearch6a">
+                    <query>stats count by message.hash_lookup_type</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by mesg</title>
+                <search base="baseSearch6a">
+                    <query>stats count by message.mesg</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch6a">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch6a">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch6a">
+                    <query>table time message.auth_uuid message.status message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>6b. New Beneficiary User/Crosswalk Created Record Events: Events from the create_beneficiary_record() function used to create a new User/Crosswalk associated with the identity information from the ID provider (SLS). New records are created for a beneficiaries first matching with the BB2 system (for their first application).</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch6b">
+                    <done>
+                        <set token="tokCreateBeneTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (status="OK")</title>
+            <single>
+                <search base="baseSearch6b">
+                    <done>
+                        <set token="tokCreateBeneOkCount">$result.count$</set>
+                    </done>
+                    <query>search "message.status"="OK" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokCreateBeneTotalCount$, Total2=$tokCreateBeneOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by  by message.mesg</title>
+                <search base="baseSearch6b">
+                    <query>stats count by message.mesg</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch6b">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch6b">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch6b">
+                    <query>table time message.auth_uuid message.status message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>7. Authentication Success - SLS-to-FHIR_ID Matched Events: Events from the apps.mymedicare_cb.views.authenticate() function AFTER the beneficiary has been successfully matched and a User/Crosswalk instance has been retreived or created.</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch7">
+                    <done>
+                        <set token="tokAuthSuccTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by user_id_type (hash type used to match FHIR_ID)</title>
+                <search base="baseSearch7">
+                    <query>stats count by message.user.crosswalk.user_id_type</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch7">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by Crosswalk Action (R = Returning/Existing in BB2, C = Created/New to BB2).</title>
+                <search base="baseSearch7">
+                    <query>stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch7">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch7">
+                    <query>table time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>8. Medicare.gov SLS-Callback COMPLETE Request Events: Events for calls to the apps.mymedicare_cb.views.callback() view at completion. To reach this part of the flow, the beneficiary successfully authenticated with SLS after logging in to the Medicare.gov site. PATH=/mymedicare/sls-callback</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch8">
+                    <done>
+                        <set token="tokSlsCbTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (response_code=302)</title>
+            <single>
+                <search base="baseSearch8">
+                    <done>
+                        <set token="tokSlsCbOkCount">$result.count$</set>
+                    </done>
+                    <query>search "message.response_code"="302" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokSlsCbTotalCount$, Total2=$tokSlsCbOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by response_code</title>
+                <search base="baseSearch8">
+                    <query>stats count by message.response_code</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch8">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch8">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch8">
+                    <query>table time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>9. Authorization ApprovalView Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView(). At this step the beneficiary is presented with the consent form web page. This can have multiple events when a beneficiary refreshes the consent page.</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch9">
+                    <done>
+                        <set token="tokApprovalVaTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (response_code=200)</title>
+            <single>
+                <search base="baseSearch9">
+                    <done>
+                        <set token="tokApprovalVaOkCount">$result.count$</set>
+                    </done>
+                    <query>search "message.response_code"="200" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokApprovalVaTotalCount$, Total2=$tokApprovalVaOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by response_code</title>
+                <search base="baseSearch9">
+                    <query>stats count by message.response_code</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch9">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch9">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch9">
+                    <query>table time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>10. Authorization ApprovalView (redirect to bene consent form) Request Events: Events for calls to the apps.dot_ext.views.authorization.ApprovalView().  </b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch10">
+                    <done>
+                        <set token="tokAuthVbTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>SUCCESSFUL Events (response_code=302)</title>
+            <single>
+                <search base="baseSearch10">
+                    <done>
+                        <set token="tokAuthVbOkCount">$result.count$</set>
+                    </done>
+                    <query>search "message.response_code"="302" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SUCCESSFUL vs. TOTAL Percentage %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokAuthVbTotalCount$, Total2=$tokAuthVbOkCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by response_code</title>
+                <search base="baseSearch10">
+                    <query>stats count by message.response_code</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch10">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch10">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch10">
+                    <query>table time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>11. Beneficiary Authorized Application Events: Events from the apps.dot_ext.views.authorization.AuthorizationView.form_valid() method. A signal is sent to the beneficiary_authorized_application handler after the beneficiary has interacted with the consent form page. At this step the beneficiary has POSTed the consent form response to BB2.</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>TOTAL Events</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokAuthAppTotalCount">$result.count$</set>
+                    </done>
+                    <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by auth_status (OK/FAIL)</title>
+                <search base="baseSearch11">
+                    <query>stats count by message.auth_status</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by user_id_type (hash type used for FHIR_ID match)</title>
+                <search base="baseSearch11">
+                    <query>stats count by message.user.crosswalk.user_id_type</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch11">
+                    <query>eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch11">
+                    <query>stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Beneficiary ALLOW total</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokAllowTotalCount">$result.count$</set>
+                    </done>
+                    <query>search "message.allow"="true" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Beneficiary DENY total</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokDenyTotalCount">$result.count$</set>
+                    </done>
+                    <query>search "message.allow"="false" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Beneficiary Allow/Deny</title>
+                <search base="baseSearch11">
+                    <query>stats count by message.allow</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Beneficiary SHARE_DEMOGRAPHIC_SCOPES = TRUE choice total</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokDemoScopesTrueTotalCount">$result.count$</set>
+                    </done>
+                    <query>search "message.allow"="True" | search "message.auth_share_demographic_scopes"="True" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Beneficiary SHARE_DEMOGRAPHIC_SCOPES = FALSE choice total</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokDemoScopesFalseTotalCount">$result.count$</set>
+                    </done>
+                    <query>search "message.allow"="True" | search "message.auth_share_demographic_scopes"="False" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Beneficiary SHARE_DEMOGRAPHIC_SCOPES</title>
+                <search base="baseSearch11">
+                    <query>search "message.allow"="True" | stats count by message.auth_share_demographic_scopes</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch11">
+                    <query>table time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>12. Authorized Application Receives Access Token Events: Events from the oauth2_provider.signals.app_authorized signal handler when a app_authorized signal is sent. This is the final step in the authorization flow.</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Authorized Application Receives Token TOTAL Events</title>
+            <single>
+                <search>
+                    <query>| makeresults | eval Total1=$tokTcCount$ | table Total1</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>1. Initial Authorization TOTAL Events</title>
+            <single>
+                <search>
+                    <query>| makeresults | eval Total1=$tokEpCount$ | table Total1</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>Initial Authorization Request / Authorization Completed %</title>
+                <search>
+                    <query>| makeresults | eval Total1=$tokEpCount$, Total2=$tokTcCount$ | eval percent= round((Total2/Total1)*100,1) | table percent</query>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">radialGauge</option>
+                <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+                <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by PKCE method (MOBILE vs. WEB).</title>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=authorization_code | eval pkce_method=if('message.auth_pkce_method'="S256","MOBILE","WEB") | stats count by pkce_method</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=authorization_code | stats count by message.auth_app_name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by Crosswalk Action (R = Returning/Existing in BB2, C = Created/New to BB2).</title>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=authorization_code | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=authorization_code | table time message.auth_uuid message.application.name message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>DEMOGRAPHIC SCOPES STATISTICS - By Beneficiary and Application Consent Page Choices</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>Beneficiary Consent Form ALLOW/DENY Choices</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h2>
+                        <b>ALL - Beneficiary Consent Form ALLOW/DENY Choices</b>
+                    </h2>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>ALLOW total</title>
+            <single>
+                <search>
+                    <query>| makeresults | eval Total1=$tokAllowTotalCount$ | table Total1</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>ALLOW by New vs. Returning Bene</title>
+                <search base="baseSearch11">
+                    <query>search message.allow="True" | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>DENY total</title>
+            <single>
+                <search>
+                    <query>| makeresults | eval Total1=$tokDenyTotalCount$ | table Total1</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>DENY by New vs. Returning Bene</title>
+                <search base="baseSearch11">
+                    <query>search message.allow="False" | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Percentage by Allow vs. Deny</title>
+                <search>
+                    <query>| makeresults | eval totalAllow=$tokAllowTotalCount$, totalDeny=$tokDenyTotalCount$ | table totalAllowDenyChoices totalDeny totalAllow | transpose header_field="totalAllowDenyChoices" column_name="AllowDenyChoice"</query>
+                    <earliest>$t_local.earliest$</earliest>
+                    <latest>$t_local.latest$</latest>
+                    <sampleRatio>1</sampleRatio>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h2>
+                        <b>Application Requires Demographic -  Beneficiary Consent Form ALLOW/DENY Choices</b>
+                    </h2>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Beneficiary ALLOW total</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokAppTrueAllowTotalCount">$result.count$</set>
+                    </done>
+                    <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="true" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>ALLOW by New vs. Returning Bene</title>
+                <search base="baseSearch11">
+                    <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="true" | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Beneficiary DENY total</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokAppTrueDenyTotalCount">$result.count$</set>
+                    </done>
+                    <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="false" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>DENY by New vs. Returning Bene</title>
+                <search base="baseSearch11">
+                    <query>search message.auth_require_demographic_scopes="True" | search "message.allow"="false" | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Beneficiary Allow/Deny</title>
+                <search base="baseSearch11">
+                    <query>search message.auth_require_demographic_scopes="True" | stats count by message.allow</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h2>
+                        <b>Application DOES NOT Require Demographic - Beneficiary Consent Form ALLOW/DENY Choices</b>
+                    </h2>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Beneficiary ALLOW total</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokAppFalseAllowTotalCount">$result.count$</set>
+                    </done>
+                    <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="True" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>ALLOW by New vs. Returning Bene</title>
+                <search base="baseSearch11">
+                    <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="True" | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Beneficiary DENY total</title>
+            <single>
+                <search base="baseSearch11">
+                    <done>
+                        <set token="tokAppFalseDenyTotalCount">$result.count$</set>
+                    </done>
+                    <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="False" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>DENY by New vs. Returning Bene</title>
+                <search base="baseSearch11">
+                    <query>search message.auth_require_demographic_scopes="False" | search "message.allow"="False" | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Beneficiary Allow/Deny</title>
+                <search base="baseSearch11">
+                    <query>search message.auth_require_demographic_scopes="False" | stats count by message.allow</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>Beneficiary Consent Form SHARE_DEMOGRAPHC Information Choices</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h2>
+                        <b>Beneficiary Consent Form SHARE_DEMOGRAPHIC_SCOPES (True/False) Choices (NOTE: Only when Application require_demographic_scopes = "True")</b>
+                    </h2>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Beneficiary SHARE=True</title>
+            <single>
+                <search base="baseSearch11">
+                    <query>search message.auth_share_demographic_scopes="True" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SHARE=True by New vs. Returning Bene</title>
+                <search base="baseSearch11">
+                    <query>search message.auth_share_demographic_scopes="True" | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Beneficiary SHARE=False</title>
+            <single>
+                <search base="baseSearch11">
+                    <query>search message.auth_share_demographic_scopes="False" | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>SHARE=False by New vs. Returning Bene</title>
+                <search base="baseSearch11">
+                    <query>search message.auth_share_demographic_scopes="False" | stats count by message.auth_crosswalk_action</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Total Events</title>
+            <single>
+                <search base="baseSearch11">
+                    <query>search (message.auth_share_demographic_scopes="True" OR message.auth_share_demographic_scopes="False") | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>Percentage by SHARE_DEMOGRAPHIC_SCOPES (True/False)</title>
+                <search base="baseSearch11">
+                    <query>search (message.auth_share_demographic_scopes="True" OR message.auth_share_demographic_scopes="False") | stats count by message.auth_share_demographic_scopes</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h2>
+                        <b>Application Breakdown of Beneficiary NOT SHARING via Consent Form</b>
+                    </h2>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch11">
+                    <query>search message.auth_share_demographic_scopes="False" | stats count by "message.auth_app_name" | table message.auth_app_name count</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>ALL UN-SUCCESSFUL TOKEN ENDPOINT STATS: For all /v*/o/token/ endpoint requests</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Events by response_code</title>
+                <search>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.response_code</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath "message.path" | search "message.path"="/v*/o/token/" | search message.response_code!=200 | stats count by message.req_grant_type message.response_code</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <html>
+                <u1>
+                    <h1>
+                        <b>TOKEN REFRESH STATS: Events from applications requesting a new access token using the refresh_token.</b>
+                    </h1>
+                </u1>
+            </html>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Token via authorized signal event TOTAL</title>
+            <single>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=refresh_token | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <chart>
+                <title>Events by Application</title>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=authorization_code | stats count by message.application.name</query>
+                </search>
+                <option name="charting.chart">pie</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Request Events TIME-CHART</title>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=refresh_token | timechart count</query>
+                </search>
+                <option name="charting.chart">column</option>
+                <option name="charting.drilldown">all</option>
+                <option name="height">199</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="charting.chart.showPercent">true</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <search base="baseSearch12">
+                    <query>search message.auth_grant_type=refresh_token | table time message.application.name message.crosswalk.fhir_id message.user.username message.access_token message.action message.auth_grant_type message.scopes</query>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="percentagesRow">false</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="totalsRow">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
 </form>
