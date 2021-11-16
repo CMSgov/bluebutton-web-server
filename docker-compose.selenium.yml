@@ -61,7 +61,7 @@ services:
 
   bb2slsx:
     build: . 
-    command: ./docker-compose/bluebutton_server_start.sh '${DB_MIGRATIONS}' '${SUPER_USER_NAME}' '${SUPER_USER_EMAIL}' '${SUPER_USER_PASSWORD}' '${BB20_ENABLE_REMOTE_DEBUG}' '${BB20_REMOTE_DEBUG_WAIT_ATTACH}'
+    command: ./docker-compose/bluebutton_server_start.sh
     environment:
             - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
             - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton

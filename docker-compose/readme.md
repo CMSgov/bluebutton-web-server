@@ -2,21 +2,82 @@
 
 To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker-compose/certstore` location to support the connection to the BFD FHIR server.
 
-To startup the Docker containerized BB2 server, run the following command: 
+To enable usage of the SLSx TEST environment locally, do the following or skip if using the MSLS (mock service) mode.
 
-```
-docker-compose up -d
+  * Sign in to Keybase and have the /keybase file system mounted.
+  * Change directory to the BB2 repo root directory under: bluebutton-web-server/
+  * Source the BFD prod-sbx hashing, SLSx TEST credentials and copy cert files to your local system:
+    ```
+    # NOTE: You may need to run the following command using the Bash shell. Run the next line if you are having issues.
+    bash
 
-```
+    # Then source the ENV vars via:
+    source docker-compose/source_env_secrets_from_keybase.sh
+    ```
+  * NOTE: This will copy the cert files in to the docker-compose/certstore location.
 
-Alternatively, to monitor BB2 server logging:
+To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis Firehose) or skip if not needing this.
 
-```
-docker-compose up -d
-docker-compose logs -f | grep web
+  * Source ENV variables using your script (differs per local OS type and should utilize MFA):
+    ```
+    source ~/bin/source_aws.sh
+    ```
 
-```
-press Ctrl C will stop monitor logging.
+To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker-compose/bluebutton_server_start.sh` web server startup script.
+
+Edit the `docker-compose.yml` file to choose between SLSx (default) or MSLS mode:
+
+  To run the web server in SLSx mode (default), un-comment/comment the following lines like so: 
+
+  ```
+            # Uncomment line below to use SLSx as the identity service.
+            - docker-compose/slsx-env-vars.env
+            #
+            # Uncomment line below to use MSLS as a MOCK SLSx identity service.
+            #- docker-compose/msls-env-vars.env
+  ```
+
+  Alternately, to run the web server in MSLS (mock service) mode, edit like so: 
+  ```
+            # Uncomment line below to use SLSx as the identity service.
+            #- docker-compose/slsx-env-vars.env
+            #
+            # Uncomment line below to use MSLS as a MOCK SLSx identity service.
+            - docker-compose/msls-env-vars.env
+  ```
+
+
+To startup the Docker containerized BB2 server:
+
+  ```
+  docker-compose up -d
+  ```
+
+To shutdown the Docker containerized BB2 server (this is needed when switching between SLSx and MSLS modes):
+  ```
+  docker-compose down
+  ```
+
+To monitor BB2 server logging:
+
+  ```
+  docker-compose logs -f | grep web
+  ```
+Press Ctrl C will stop monitor logging.
+
+
+To start with a clean docker setup do the following:
+
+  NOTE: This is often needed when switching betwen PR branches where migrations were added or when running selenium type tests.
+  WARNING:  This cleans up all Docker related images! If this is an issue, you may want to individually remove (rmi) images.
+
+  ```
+  docker-compose down
+  docker images  # To see list of images on your system
+  docker image ls | awk '{ print $3}' | grep -v "IMAGE" | xargs docker image rm -f
+  docker volume rm $(docker volume ls -qf dangling=true)
+  docker images  # This should now show an empty list.
+  ```
 
 ## Setting up Pre Commit
 Precommit config has been setup inside the repo which will make sure that the code is properly formatted prior to commiting. To setup run as follows:
@@ -302,7 +363,7 @@ There are ways to test locally using the `docker-compose/run_integration_tests_l
      docker-compose/run_integration_tests_local_keybase.sh dc-debug
      ```
 
-  2. Using a Doocker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
+  2. Using a Docker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
 
      The currently checked out (or working branch) will be used.
 

@@ -132,11 +132,14 @@ else
     echo_msg " - Setting Keybase location based on SYSTEM type: ${SYSTEM}"
     echo_msg
 
-    if [[ ${SYSTEM} == "Linux" || ${SYSTEM} == "Darwin" ]]
+    if [[ ${SYSTEM} == "Linux" ]]
     then
         keybase_env_path="/keybase"
+    elif [[ ${SYSTEM} == "Darwin" ]]
+    then
+        keybase_env_path="/Volumes/keybase"
     else
-        # Assume Windows if not
+        # support cygwin
         keybase_env_path="/cygdrive/k"
         CERTSTORE_TEMPORARY_MOUNT_PATH="./docker-compose/certstore"
         DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
