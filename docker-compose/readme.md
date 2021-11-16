@@ -8,6 +8,10 @@ To enable usage of the SLSx TEST environment locally, do the following or skip i
   * Change directory to the BB2 repo root directory under: bluebutton-web-server/
   * Source the BFD prod-sbx hashing, SLSx TEST credentials and copy cert files to your local system:
     ```
+    # NOTE: You may need to run the following command using the Bash shell. Run the next line if you are having issues.
+    bash
+
+    # Then source the ENV vars via:
     source docker-compose/source_env_secrets_from_keybase.sh
     ```
   * NOTE: This will copy the cert files in to the docker-compose/certstore location.
