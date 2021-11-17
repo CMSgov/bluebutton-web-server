@@ -124,7 +124,7 @@
                     <done>
                         <set token="tokTcCount">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ | spath output=call_path path="message.path" | where call_path != "/health" | stats count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -171,7 +171,7 @@
             <chart>
                 <title>Total Requests (all) TIME-CHART</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | timechart count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -291,7 +291,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | spath output=call_path path="message.path" | where call_path != "/health" | table code | stats count by code</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | table code | stats count by code</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -323,7 +323,7 @@
             <title></title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval elapsed_time=start_time-end_time | where call_path != "/health" | table html_code2 call_path elapsed_time | stats count by call_path | sort - count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval elapsed_time=start_time-end_time | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | table html_code2 call_path elapsed_time | stats count by call_path | sort - count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -354,7 +354,7 @@
         <panel>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | where call_path != "/health" | table html_code2 call_path | chart count(html_code2) over html_code2 by call_path</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | table html_code2 call_path | chart count(html_code2) over html_code2 by call_path</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -428,7 +428,7 @@
             <title>OTHERS TOP 10</title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=call_path path="message.path" | where call_path != "/health" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | sort - RT_mean | head 10</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | sort - RT_mean | head 10</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
