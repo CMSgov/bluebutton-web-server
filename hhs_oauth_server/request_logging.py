@@ -182,6 +182,13 @@ class RequestResponseLog(object):
         except AttributeError:
             self.log_msg[key] = "AttributeError exception for key " + key + ":" + qp_key
 
+    def _sync_app_name(self):
+        if self.log_msg.get("app_id") is not None and self.log_msg.get("app_name") is not None \
+           and not self.log_msg.get("app_id") and not self.log_msg.get("app_name") \
+           and self.log_msg.get("auth_app_id") and self.log_msg.get("auth_app_name"):
+            self.log_msg["app_id"] = self.log_msg["auth_app_id"]
+            self.log_msg["app_name"] = self.log_msg["auth_app_name"]
+
     def to_dict(self):
         """
         --- Logging custom items ---
@@ -490,7 +497,7 @@ class RequestResponseLog(object):
                         )
                     except ObjectDoesNotExist:
                         pass
-
+        self._sync_app_name()
         return self.log_msg
 
 ##############################################################################
