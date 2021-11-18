@@ -4,18 +4,15 @@ from django.core.serializers.json import DjangoJSONEncoder
 import apps.logging.request_logger as logging
 
 from apps.accounts.models import UserProfile
-from apps.authorization.models import (
-    get_grant_by_app_counts,
-    get_grant_counts,
-)
+from apps.authorization.models import get_grant_bene_counts
+
 from apps.dot_ext.models import (
     Application,
-    get_access_token_counts,
-    get_access_token_by_app_counts,
+    get_token_bene_counts,
     get_application_counts,
     get_application_require_demographic_scopes_count,
 )
-from apps.fhir.bluebutton.models import check_crosswalks
+from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
 from apps.logging.utils import format_timestamp
 
 
@@ -36,11 +33,11 @@ def log_global_state_metrics(group_timestamp=None):
 
     start_time = datetime.utcnow().timestamp()
 
-    crosswalk_counts = check_crosswalks()
+    crosswalk_counts = get_crosswalk_bene_counts()
 
-    access_token_counts = get_access_token_counts()
+    access_token_counts = get_token_bene_counts()
 
-    grant_counts = get_grant_counts()
+    grant_counts = get_grant_bene_counts()
 
     application_counts = get_application_counts()
 
@@ -53,47 +50,47 @@ def log_global_state_metrics(group_timestamp=None):
     log_dict = {
         "type": "global_state_metrics",
         "group_timestamp": group_timestamp,
-        "real_bene_cnt": crosswalk_counts.get("real", None),
-        "synth_bene_cnt": crosswalk_counts.get("synthetic", None),
-        "bene_cnt_elapsed": crosswalk_counts.get("elapsed", None),
-        "real_bene_grant_cnt": grant_counts.get("real_bene_cnt", None),
-        "synth_bene_grant_cnt": grant_counts.get("synth_bene_cnt", None),
-        "bene_grant_cnt_elapsed": grant_counts.get("bene_cnt_elapsed", None),
-        "real_bene_token_distinct_cnt": access_token_counts.get(
-            "real_bene_distinct_cnt", None
+        "real_bene_cnt": crosswalk_counts.get(
+            "real", None
+        ),  # TODO: Deprecate this duplicate name in future
+        "synth_bene_cnt": crosswalk_counts.get(
+            "synthetic", None
+        ),  # TODO: Deprecate this duplicate name in future
+        "crosswalk_real_bene_count": crosswalk_counts.get("real", None),
+        "crosswalk_synthetic_bene_count": crosswalk_counts.get("synthetic", None),
+        "crosswalk_bene_counts_elapsed": crosswalk_counts.get("elapsed", None),
+        "grant_real_bene_count": grant_counts.get("real", None),
+        "grant_synthetic_bene_count": grant_counts.get("synthetic", None),
+        "grant_counts_elapsed": grant_counts.get("elapsed", None),
+        "grant_real_bene_deduped_count": grant_counts.get("real_deduped", None),
+        "grant_synthetic_bene_deduped_count": grant_counts.get(
+            "synthetic_deduped", None
         ),
-        "synth_bene_token_distinct_cnt": access_token_counts.get(
-            "synth_bene_distinct_cnt", None
+        "grant_deduped_counts_elapsed": grant_counts.get("deduped_elapsed", None),
+        "grantarchived_real_bene_deduped_count": grant_counts.get(
+            "archived_real_deduped", None
         ),
-        "bene_token_distinct_cnt_elapsed": access_token_counts.get(
-            "bene_distinct_cnt_elapsed", None
+        "grantarchived_synthetic_bene_deduped_count": grant_counts.get(
+            "archived_synthetic_deduped", None
         ),
-        "real_bene_grant_distinct_cnt": grant_counts.get(
-            "real_bene_distinct_cnt", None
+        "grantarchived_deduped_counts_elapsed": grant_counts.get(
+            "archived_deduped_elapsed", None
         ),
-        "synth_bene_grant_distinct_cnt": grant_counts.get(
-            "synth_bene_distinct_cnt", None
+        "grant_and_archived_real_bene_deduped_count": grant_counts.get(
+            "grant_and_archived_real_deduped", None
         ),
-        "bene_grant_distinct_cnt_elapsed": grant_counts.get(
-            "bene_distinct_cnt_elapsed", None
+        "grant_and_archived_synthetic_bene_deduped_count": grant_counts.get(
+            "grant_and_archived_synthetic_deduped", None
         ),
-        "real_bene_grant_arch_distinct_cnt": grant_counts.get(
-            "real_bene_arch_distinct_cnt", None
+        "grant_and_archived_deduped_counts_elapsed": grant_counts.get(
+            "grant_and_archived_deduped_elapsed", None
         ),
-        "synth_bene_grant_arch_distinct_cnt": grant_counts.get(
-            "synth_bene_arch_distinct_cnt", None
+        "token_real_bene_deduped_count": access_token_counts.get("real_deduped", None),
+        "token_synthetic_bene_deduped_count": access_token_counts.get(
+            "synthetic_deduped", None
         ),
-        "bene_grant_arch_distinct_cnt_elapsed": grant_counts.get(
-            "bene_arch_distinct_cnt_elapsed", None
-        ),
-        "real_bene_grant_and_arch_union_cnt": grant_counts.get(
-            "real_bene_union_cnt", None
-        ),
-        "synth_bene_grant_and_arch_union_cnt": grant_counts.get(
-            "synth_bene_union_cnt", None
-        ),
-        "bene_grant_and_arch_union_cnt_elapsed": grant_counts.get(
-            "bene_union_cnt_elapsed", None
+        "token_deduped_counts_elapsed": access_token_counts.get(
+            "deduped_elapsed", None
         ),
         "global_apps_active_cnt": application_counts.get("active_cnt", None),
         "global_apps_inactive_cnt": application_counts.get("inactive_cnt", None),
@@ -122,9 +119,9 @@ def log_global_state_metrics(group_timestamp=None):
         except UserProfile.DoesNotExist:
             user_profile = None
 
-        access_token_counts = get_access_token_by_app_counts(application=app)
+        access_token_counts = get_token_bene_counts(application=app)
 
-        grant_counts = get_grant_by_app_counts(application=app)
+        grant_counts = get_grant_bene_counts(application=app)
 
         log_dict = {
             "type": "global_state_metrics_per_app",
@@ -137,25 +134,29 @@ def log_global_state_metrics(group_timestamp=None):
             "first_active": format_timestamp(app.first_active),
             "last_active": format_timestamp(app.last_active),
             "require_demographic_scopes": app.require_demographic_scopes,
-            "real_bene_cnt": grant_counts.get("real_bene_cnt", None),
-            "synth_bene_cnt": grant_counts.get("synth_bene_cnt", None),
-            "real_bene_token_distinct_cnt": access_token_counts.get(
-                "real_bene_distinct_cnt", None
+            "real_bene_cnt": grant_counts.get(
+                "real", None
+            ),  # TODO: Deprecate this duplicate name in future
+            "synth_bene_cnt": grant_counts.get(
+                "synthetic", None
+            ),  # TODO: Deprecate this duplicate name in future
+            "grant_real_bene_count": grant_counts.get("real", None),
+            "grant_synthetic_bene_count": grant_counts.get("synthetic", None),
+            "grantarchived_real_bene_deduped_count": grant_counts.get(
+                "archived_real_deduped", None
             ),
-            "synth_bene_token_distinct_cnt": access_token_counts.get(
-                "synth_bene_distinct_cnt", None
+            "grantarchived_synthetic_bene_deduped_count": grant_counts.get(
+                "archived_synthetic_deduped", None
             ),
-            "real_bene_grant_arch_distinct_cnt": grant_counts.get(
-                "real_bene_arch_distinct_cnt", None
+            "grant_and_archived_real_bene_deduped_count": grant_counts.get(
+                "grant_and_archived_real_deduped", None
             ),
-            "synth_bene_grant_arch_distinct_cnt": grant_counts.get(
-                "synth_bene_arch_distinct_cnt", None
+            "grant_and_archived_synthetic_bene_deduped_count": grant_counts.get(
+                "grant_and_archived_synthetic_deduped", None
             ),
-            "real_bene_grant_and_arch_union_cnt": grant_counts.get(
-                "real_bene_union_cnt", None
-            ),
-            "synth_bene_grant_and_arch_union_cnt": grant_counts.get(
-                "synth_bene_union_cnt", None
+            "token_real_bene_count": access_token_counts.get("real_deduped", None),
+            "token_synthetic_bene_count": access_token_counts.get(
+                "synthetic_deduped", None
             ),
             "user_id": app.user.id,
             "user_username": app.user.username,

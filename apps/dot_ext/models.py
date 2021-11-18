@@ -403,84 +403,47 @@ def get_application_require_demographic_scopes_count():
     return None
 
 
-def get_access_token_counts():
+def get_token_bene_counts(application=None):
     """
     Get the access token counts for real/synth benes
+
+    If application != None, the counts are for a specific application.
     """
+    # Init counts dict
+    counts_returned = {}
+
     start_time = datetime.utcnow().timestamp()
 
     AccessToken = get_access_token_model()
 
-    # real/synth bene distinct counts (excludes granted to multiple apps)
-    real_bene_distinct_cnt = (
-        AccessToken.objects.order_by("user__username")
-        .filter(
-            ~Q(user__crosswalk___fhir_id__startswith="-")
-            & ~Q(user__crosswalk___fhir_id="")
-            & Q(user__crosswalk___fhir_id__isnull=False)
-        )
-        .values("user__username")
-        .distinct()
-        .count()
-    )
-    synth_bene_distinct_cnt = (
-        AccessToken.objects.order_by("user__username")
-        .filter(
-            Q(user__crosswalk___fhir_id__startswith="-")
-            & ~Q(user__crosswalk___fhir_id="")
-            & Q(user__crosswalk___fhir_id__isnull=False)
-        )
-        .values("user__username")
-        .distinct()
-        .count()
-    )
+    # Setup base queryset
+    token_queryset = AccessToken.objects
 
-    elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
+    if application:
+        token_queryset = token_queryset.filter(application=application)
 
-    return {
-        "real_bene_distinct_cnt": real_bene_distinct_cnt,
-        "synth_bene_distinct_cnt": synth_bene_distinct_cnt,
-        "bene_distinct_cnt_elapsed": elapsed_time,
-    }
-
-
-def get_access_token_by_app_counts(application):
-    """
-    Get the access token counts for real/synth benes
-    """
-    AccessToken = get_access_token_model()
-    # token.user  token.application
+    token_queryset = token_queryset.order_by("user__id").values("user__id")
 
     # real/synth bene distinct counts (excludes granted to multiple apps)
-    real_bene_distinct_cnt = (
-        AccessToken.objects.order_by("user__username")
-        .filter(
-            Q(application=application)
-            & ~Q(user__crosswalk___fhir_id__startswith="-")
-            & ~Q(user__crosswalk___fhir_id="")
-            & Q(user__crosswalk___fhir_id__isnull=False)
-        )
-        .values("user__username")
-        .distinct()
-        .count()
-    )
-    synth_bene_distinct_cnt = (
-        AccessToken.objects.order_by("user__username")
-        .filter(
-            Q(application=application)
-            & Q(user__crosswalk___fhir_id__startswith="-")
-            & ~Q(user__crosswalk___fhir_id="")
-            & Q(user__crosswalk___fhir_id__isnull=False)
-        )
-        .values("user__username")
-        .distinct()
-        .count()
+    real_token_queryset = token_queryset.filter(
+        ~Q(user__crosswalk___fhir_id__startswith="-")
+        & ~Q(user__crosswalk___fhir_id="")
+        & Q(user__crosswalk___fhir_id__isnull=False)
     )
 
-    return {
-        "real_bene_distinct_cnt": real_bene_distinct_cnt,
-        "synth_bene_distinct_cnt": synth_bene_distinct_cnt,
-    }
+    synthetic_token_queryset = token_queryset.filter(
+        Q(user__crosswalk___fhir_id__startswith="-")
+        & ~Q(user__crosswalk___fhir_id="")
+        & Q(user__crosswalk___fhir_id__isnull=False)
+    )
+
+    counts_returned["real_deduped"] = real_token_queryset.distinct().count()
+    counts_returned["synthetic_deduped"] = synthetic_token_queryset.distinct().count()
+    counts_returned["deduped_elapsed"] = round(
+        datetime.utcnow().timestamp() - start_time, 3
+    )
+
+    return counts_returned
 
 
 post_delete.connect(archive_token, sender="oauth2_provider.AccessToken")

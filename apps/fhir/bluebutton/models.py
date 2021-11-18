@@ -272,7 +272,7 @@ class Fhir_Response(Response):
             self.__dict__[k] = v
 
 
-def check_crosswalks():
+def get_crosswalk_bene_counts():
     start_time = datetime.utcnow().timestamp()
 
     synth_count = Crosswalk.synth_objects.count()
