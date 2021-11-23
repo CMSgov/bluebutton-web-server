@@ -747,7 +747,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         validate_apps_dict["app1"]["grant_real_bene_count"] = 12
         validate_apps_dict["app1"]["grant_and_archived_real_bene_deduped_count"] = 14
         validate_apps_dict["app1"]["token_real_bene_count"] = 12
-        validate_apps_dict["app1"]["grant_table_count"] = 42
+        validate_apps_dict["app1"]["grant_table_count"] = 22
         validate_apps_dict["app1"]["token_table_count"] = 22
 
         validate_apps_dict["app3"]["real_bene_cnt"] = 9
