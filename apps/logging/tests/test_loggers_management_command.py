@@ -12,7 +12,7 @@ from oauth2_provider.models import get_access_token_model, get_application_model
 from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
-from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.models import Crosswalk, ArchivedCrosswalk
 import apps.logging.request_logger as logging
 from apps.test import BaseApiTest
 
@@ -48,8 +48,14 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         try:
             validate(instance=content, schema=schema)
         except jsonschema.exceptions.ValidationError as e:
-            # Show error info for debugging
+            # Show error info to help with debugging
+            print("===")
             print("jsonschema.exceptions.ValidationError: ", e)
+            print("")
+            print("CONTENT:  ", content)
+            print("")
+            print("To match SCHEMA:  ", schema)
+            print("===")
             return False
         return True
 
@@ -71,73 +77,36 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 log_dict = line_dict
 
         # Update Json Schema for assert
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"]["real_bene_cnt"]["enum"] = [
-            validate_dict["real_bene_cnt"]
+        fields_list = [
+            "real_bene_cnt",
+            "synth_bene_cnt",
+            "crosswalk_real_bene_count",
+            "crosswalk_synthetic_bene_count",
+            "crosswalk_table_count",
+            "crosswalk_archived_table_count",
+            "grant_real_bene_count",
+            "grant_synthetic_bene_count",
+            "grant_table_count",
+            "grant_archived_table_count",
+            "grant_real_bene_deduped_count",
+            "grant_synthetic_bene_deduped_count",
+            "grantarchived_real_bene_deduped_count",
+            "grantarchived_synthetic_bene_deduped_count",
+            "grant_and_archived_real_bene_deduped_count",
+            "grant_and_archived_synthetic_bene_deduped_count",
+            "token_real_bene_deduped_count",
+            "token_synthetic_bene_deduped_count",
+            "token_table_count",
+            "token_archived_table_count",
+            "global_apps_active_cnt",
+            "global_apps_inactive_cnt",
+            "global_apps_require_demographic_scopes_cnt",
         ]
 
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"]["synth_bene_cnt"]["enum"] = [
-            validate_dict["synth_bene_cnt"]
-        ]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"]["crosswalk_real_bene_count"][
-            "enum"
-        ] = [validate_dict["crosswalk_real_bene_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "crosswalk_synthetic_bene_count"
-        ]["enum"] = [validate_dict["crosswalk_synthetic_bene_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"]["grant_real_bene_count"][
-            "enum"
-        ] = [validate_dict["grant_real_bene_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "grant_synthetic_bene_count"
-        ]["enum"] = [validate_dict["grant_synthetic_bene_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "grant_real_bene_deduped_count"
-        ]["enum"] = [validate_dict["grant_real_bene_deduped_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "grant_synthetic_bene_deduped_count"
-        ]["enum"] = [validate_dict["grant_synthetic_bene_deduped_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "grantarchived_real_bene_deduped_count"
-        ]["enum"] = [validate_dict["grantarchived_real_bene_deduped_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "grantarchived_synthetic_bene_deduped_count"
-        ]["enum"] = [validate_dict["grantarchived_synthetic_bene_deduped_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "grant_and_archived_real_bene_deduped_count"
-        ]["enum"] = [validate_dict["grant_and_archived_real_bene_deduped_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "grant_and_archived_synthetic_bene_deduped_count"
-        ]["enum"] = [validate_dict["grant_and_archived_synthetic_bene_deduped_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "token_real_bene_deduped_count"
-        ]["enum"] = [validate_dict["token_real_bene_deduped_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "token_synthetic_bene_deduped_count"
-        ]["enum"] = [validate_dict["token_synthetic_bene_deduped_count"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"]["global_apps_active_cnt"][
-            "enum"
-        ] = [validate_dict["global_apps_active_cnt"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"]["global_apps_inactive_cnt"][
-            "enum"
-        ] = [validate_dict["global_apps_inactive_cnt"]]
-
-        TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][
-            "global_apps_require_demographic_scopes_cnt"
-        ]["enum"] = [validate_dict["global_apps_require_demographic_scopes_cnt"]]
+        for f in fields_list:
+            TEST_GLOBAL_STATE_METRICS_LOG_SCHEMA["properties"][f]["enum"] = [
+                validate_dict[f]
+            ]
 
         # Validate with test schema copy.
         self.assertTrue(
@@ -169,64 +138,45 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     if line_dict["name"] == app_name:
                         log_dict = line_dict
 
+            # Update Json Schema for assert
+            fields_list = [
+                "active",
+                "require_demographic_scopes",
+                "real_bene_cnt",
+                "synth_bene_cnt",
+                "grant_real_bene_count",
+                "grant_synthetic_bene_count",
+                "grant_table_count",
+                "grant_archived_table_count",
+                "grantarchived_real_bene_deduped_count",
+                "grantarchived_synthetic_bene_deduped_count",
+                "grant_and_archived_real_bene_deduped_count",
+                "grant_and_archived_synthetic_bene_deduped_count",
+                "token_real_bene_count",
+                "token_synthetic_bene_count",
+                "token_table_count",
+                "token_archived_table_count",
+            ]
+
             # Update Json Schema
             TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["name"][
                 "pattern"
             ] = app_name
 
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["active"][
-                "enum"
-            ] = validate_apps_dict[app_name]["active"]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][
-                "require_demographic_scopes"
-            ]["enum"] = validate_apps_dict[app_name]["require_demographic_scopes"]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"]["real_bene_cnt"][
-                "enum"
-            ] = [validate_apps_dict[app_name]["real_bene_cnt"]]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][
-                "synth_bene_cnt"
-            ]["enum"] = [validate_apps_dict[app_name]["synth_bene_cnt"]]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][
-                "grant_real_bene_count"
-            ]["enum"] = [validate_apps_dict[app_name]["grant_real_bene_count"]]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][
-                "grant_synthetic_bene_count"
-            ]["enum"] = [validate_apps_dict[app_name]["grant_synthetic_bene_count"]]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][
-                "grantarchived_real_bene_deduped_count"
-            ]["enum"] = [
-                validate_apps_dict[app_name]["grantarchived_real_bene_deduped_count"]
-            ]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][
-                "grantarchived_synthetic_bene_deduped_count"
-            ]["enum"] = [
-                validate_apps_dict[app_name][
-                    "grantarchived_synthetic_bene_deduped_count"
-                ]
-            ]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][
-                "grant_and_archived_real_bene_deduped_count"
-            ]["enum"] = [
-                validate_apps_dict[app_name][
-                    "grant_and_archived_real_bene_deduped_count"
-                ]
-            ]
-
-            TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][
-                "grant_and_archived_synthetic_bene_deduped_count"
-            ]["enum"] = [
-                validate_apps_dict[app_name][
-                    "grant_and_archived_synthetic_bene_deduped_count"
-                ]
-            ]
+            for f in fields_list:
+                if (
+                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][f][
+                        "type"
+                    ]
+                    == "boolean"
+                ):
+                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][f][
+                        "enum"
+                    ] = validate_apps_dict[app_name][f]
+                else:
+                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][f][
+                        "enum"
+                    ] = [validate_apps_dict[app_name][f]]
 
             # Validate with test schema copy.
             self.assertTrue(
@@ -287,24 +237,67 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         remove_grant_access_list.append((app, user_dict["50000000000001"]))
         remove_grant_access_list.append((app, user_dict["50000000000003"]))
 
+        # Create users / crosswalks that DO NOT have grants & access tokens (2x synth and 3x real).
+        self._create_user(
+            "extra_crosswalk_synth_user01@example.com",
+            "xxx123",
+            "-90000000000001",
+            "xxxExtraHicnSynth01xxx",
+            None,
+        )
+        self._create_user(
+            "extra_crosswalk_synth_user02@example.com",
+            "xxx123",
+            "-90000000000002",
+            "xxxExtraHicnSynth02xxx",
+            None,
+        )
+        self._create_user(
+            "extra_crosswalk_real_user01@example.com",
+            "xxx123",
+            "90000000000001",
+            "xxxExtraHicnReal01xxx",
+            None,
+        )
+        self._create_user(
+            "extra_crosswalk_real_user02@example.com",
+            "xxx123",
+            "90000000000002",
+            "xxxExtraHicnReal02xxx",
+            None,
+        )
+        self._create_user(
+            "extra_crosswalk_real_user03@example.com",
+            "xxx123",
+            "90000000000003",
+            "xxxExtraHicnReal03xxx",
+            None,
+        )
+
         call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
 
         self._validate_global_state_metrics_log(
             {
-                "real_bene_cnt": 8,
-                "synth_bene_cnt": 7,
-                "crosswalk_real_bene_count": 8,
-                "crosswalk_synthetic_bene_count": 7,
-                "grant_real_bene_count": 8,
-                "grant_synthetic_bene_count": 7,
+                "real_bene_cnt": 11,
+                "synth_bene_cnt": 9,
+                "crosswalk_real_bene_count": 11,
+                "crosswalk_synthetic_bene_count": 9,
+                "crosswalk_table_count": 20,
+                "crosswalk_archived_table_count": 0,
+                "grant_real_bene_count": 8,  # Note: Has 3 less that are only in crosswalk
+                "grant_synthetic_bene_count": 7,  # Note: Has 2 less that are only in crosswalk
                 "grant_real_bene_deduped_count": 8,
                 "grant_synthetic_bene_deduped_count": 7,
                 "grantarchived_real_bene_deduped_count": 0,
                 "grantarchived_synthetic_bene_deduped_count": 0,
                 "grant_and_archived_real_bene_deduped_count": 8,
                 "grant_and_archived_synthetic_bene_deduped_count": 7,
+                "grant_table_count": 15,  # Note: Has 5 less that are only in crosswalk
+                "grant_archived_table_count": 0,
                 "token_real_bene_deduped_count": 8,
                 "token_synthetic_bene_deduped_count": 7,
+                "token_table_count": 15,  # Note: Has 5 less that are only in crosswalk
+                "token_archived_table_count": 0,
                 "global_apps_active_cnt": 2,
                 "global_apps_inactive_cnt": 0,
                 "global_apps_require_demographic_scopes_cnt": 2,
@@ -320,10 +313,16 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "synth_bene_cnt": 5,
                     "grant_real_bene_count": 3,
                     "grant_synthetic_bene_count": 5,
+                    "grant_table_count": 8,
+                    "grant_archived_table_count": 0,
                     "grantarchived_real_bene_deduped_count": 0,
                     "grantarchived_synthetic_bene_deduped_count": 0,
                     "grant_and_archived_real_bene_deduped_count": 3,
                     "grant_and_archived_synthetic_bene_deduped_count": 5,
+                    "token_real_bene_count": 3,
+                    "token_synthetic_bene_count": 5,
+                    "token_table_count": 8,
+                    "token_archived_table_count": 0,
                 }
             }
         )
@@ -334,12 +333,18 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "require_demographic_scopes": [True],
                     "real_bene_cnt": 5,
                     "synth_bene_cnt": 2,
+                    "grant_table_count": 7,
+                    "grant_archived_table_count": 0,
                     "grant_real_bene_count": 5,
                     "grant_synthetic_bene_count": 2,
                     "grantarchived_real_bene_deduped_count": 0,
                     "grantarchived_synthetic_bene_deduped_count": 0,
                     "grant_and_archived_real_bene_deduped_count": 5,
                     "grant_and_archived_synthetic_bene_deduped_count": 2,
+                    "token_real_bene_count": 5,
+                    "token_synthetic_bene_count": 2,
+                    "token_table_count": 7,
+                    "token_archived_table_count": 0,
                 }
             }
         )
@@ -365,12 +370,16 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         self._validate_global_state_metrics_log(
             {
-                "real_bene_cnt": 8,
-                "synth_bene_cnt": 9,
-                "crosswalk_real_bene_count": 8,
-                "crosswalk_synthetic_bene_count": 9,
+                "real_bene_cnt": 11,
+                "synth_bene_cnt": 11,
+                "crosswalk_real_bene_count": 11,
+                "crosswalk_synthetic_bene_count": 11,
+                "crosswalk_table_count": 22,
+                "crosswalk_archived_table_count": 0,
                 "grant_real_bene_count": 8,
                 "grant_synthetic_bene_count": 9,
+                "grant_table_count": 17,  # Note: Has 5 less that are only in crosswalk
+                "grant_archived_table_count": 0,
                 "grant_real_bene_deduped_count": 8,
                 "grant_synthetic_bene_deduped_count": 9,
                 "grantarchived_real_bene_deduped_count": 0,
@@ -379,6 +388,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "grant_and_archived_synthetic_bene_deduped_count": 9,
                 "token_real_bene_deduped_count": 8,
                 "token_synthetic_bene_deduped_count": 9,
+                "token_table_count": 17,  # Note: Has 5 less that are only in crosswalk
+                "token_archived_table_count": 0,
                 "global_apps_active_cnt": 2,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 2,
@@ -393,12 +404,18 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "require_demographic_scopes": [False],
                     "real_bene_cnt": 0,
                     "synth_bene_cnt": 2,
+                    "grant_table_count": 2,
+                    "grant_archived_table_count": 0,
                     "grant_real_bene_count": 0,
                     "grant_synthetic_bene_count": 2,
                     "grantarchived_real_bene_deduped_count": 0,
                     "grantarchived_synthetic_bene_deduped_count": 0,
                     "grant_and_archived_real_bene_deduped_count": 0,
                     "grant_and_archived_synthetic_bene_deduped_count": 2,
+                    "token_real_bene_count": 0,
+                    "token_synthetic_bene_count": 2,
+                    "token_table_count": 2,
+                    "token_archived_table_count": 0,
                 }
             }
         )
@@ -421,12 +438,16 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         self._validate_global_state_metrics_log(
             {
-                "real_bene_cnt": 8,
-                "synth_bene_cnt": 9,
-                "crosswalk_real_bene_count": 8,
-                "crosswalk_synthetic_bene_count": 9,
+                "real_bene_cnt": 11,
+                "synth_bene_cnt": 11,
+                "crosswalk_real_bene_count": 11,
+                "crosswalk_synthetic_bene_count": 11,
+                "crosswalk_table_count": 22,
+                "crosswalk_archived_table_count": 0,
                 "grant_real_bene_count": 6,
                 "grant_synthetic_bene_count": 6,
+                "grant_table_count": 12,
+                "grant_archived_table_count": 5,
                 "grant_real_bene_deduped_count": 6,
                 "grant_synthetic_bene_deduped_count": 6,
                 "grantarchived_real_bene_deduped_count": 2,
@@ -435,6 +456,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "grant_and_archived_synthetic_bene_deduped_count": 9,
                 "token_real_bene_deduped_count": 6,
                 "token_synthetic_bene_deduped_count": 6,
+                "token_table_count": 12,
+                "token_archived_table_count": 5,
                 "global_apps_active_cnt": 2,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 2,
@@ -444,15 +467,26 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         # Validate per app count changes
         validate_apps_dict["app0"]["synth_bene_cnt"] = 2
         validate_apps_dict["app0"]["grant_synthetic_bene_count"] = 2
+        validate_apps_dict["app0"]["grant_table_count"] = 5
+        validate_apps_dict["app0"]["grant_archived_table_count"] = 3
         validate_apps_dict["app0"]["grantarchived_synthetic_bene_deduped_count"] = 3
         validate_apps_dict["app0"][
             "grant_and_archived_synthetic_bene_deduped_count"
         ] = 5
+        validate_apps_dict["app0"]["token_synthetic_bene_count"] = 2
+        validate_apps_dict["app0"]["token_table_count"] = 5
+        validate_apps_dict["app0"]["token_archived_table_count"] = 3
 
         validate_apps_dict["app1"]["real_bene_cnt"] = 3
         validate_apps_dict["app1"]["grant_real_bene_count"] = 3
+        validate_apps_dict["app1"]["grant_table_count"] = 5
+        validate_apps_dict["app1"]["grant_archived_table_count"] = 2
+
         validate_apps_dict["app1"]["grantarchived_real_bene_deduped_count"] = 2
         validate_apps_dict["app1"]["grant_and_archived_real_bene_deduped_count"] = 5
+        validate_apps_dict["app1"]["token_real_bene_count"] = 3
+        validate_apps_dict["app1"]["token_table_count"] = 5
+        validate_apps_dict["app1"]["token_archived_table_count"] = 2
 
         self._validate_global_state_per_app_metrics_log(validate_apps_dict)
 
@@ -495,13 +529,17 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         self._validate_global_state_metrics_log(
             {
-                "real_bene_cnt": 18,
-                "synth_bene_cnt": 16,
-                "crosswalk_real_bene_count": 18,
-                "crosswalk_synthetic_bene_count": 16,
+                "real_bene_cnt": 21,
+                "synth_bene_cnt": 18,
+                "crosswalk_real_bene_count": 21,
+                "crosswalk_synthetic_bene_count": 18,
+                "crosswalk_table_count": 39,
+                "crosswalk_archived_table_count": 0,
                 "grant_real_bene_count": 36,
                 "grant_synthetic_bene_count": 27,
                 "grant_real_bene_deduped_count": 16,
+                "grant_table_count": 63,
+                "grant_archived_table_count": 5,
                 "grant_synthetic_bene_deduped_count": 13,
                 "grantarchived_real_bene_deduped_count": 2,
                 "grantarchived_synthetic_bene_deduped_count": 3,
@@ -509,6 +547,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "grant_and_archived_synthetic_bene_deduped_count": 16,
                 "token_real_bene_deduped_count": 16,
                 "token_synthetic_bene_deduped_count": 13,
+                "token_table_count": 63,
+                "token_archived_table_count": 5,
                 "global_apps_active_cnt": 3,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 3,
@@ -522,10 +562,18 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         validate_apps_dict["app0"][
             "grant_and_archived_synthetic_bene_deduped_count"
         ] = 12
+        validate_apps_dict["app0"]["token_synthetic_bene_count"] = 9
+
         validate_apps_dict["app0"]["real_bene_cnt"] = 13
         validate_apps_dict["app0"]["grant_real_bene_count"] = 13
         validate_apps_dict["app0"]["grantarchived_real_bene_deduped_count"] = 0
         validate_apps_dict["app0"]["grant_and_archived_real_bene_deduped_count"] = 13
+
+        validate_apps_dict["app0"]["grant_table_count"] = 22
+        validate_apps_dict["app0"]["grant_archived_table_count"] = 3
+        validate_apps_dict["app0"]["token_real_bene_count"] = 13
+        validate_apps_dict["app0"]["token_table_count"] = 22
+        validate_apps_dict["app0"]["token_archived_table_count"] = 3
 
         validate_apps_dict["app1"]["synth_bene_cnt"] = 9
         validate_apps_dict["app1"]["grant_synthetic_bene_count"] = 9
@@ -533,10 +581,18 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         validate_apps_dict["app1"][
             "grant_and_archived_synthetic_bene_deduped_count"
         ] = 9
+        validate_apps_dict["app1"]["token_synthetic_bene_count"] = 9
+
         validate_apps_dict["app1"]["real_bene_cnt"] = 13
         validate_apps_dict["app1"]["grant_real_bene_count"] = 13
         validate_apps_dict["app1"]["grantarchived_real_bene_deduped_count"] = 2
         validate_apps_dict["app1"]["grant_and_archived_real_bene_deduped_count"] = 15
+        validate_apps_dict["app1"]["token_real_bene_count"] = 13
+
+        validate_apps_dict["app1"]["grant_table_count"] = 22
+        validate_apps_dict["app1"]["grant_archived_table_count"] = 2
+        validate_apps_dict["app1"]["token_table_count"] = 22
+        validate_apps_dict["app1"]["token_archived_table_count"] = 2
 
         validate_apps_dict.update(
             {
@@ -547,10 +603,16 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "synth_bene_cnt": 7,
                     "grant_real_bene_count": 10,
                     "grant_synthetic_bene_count": 7,
+                    "grant_table_count": 17,
+                    "grant_archived_table_count": 0,
                     "grantarchived_real_bene_deduped_count": 0,
                     "grantarchived_synthetic_bene_deduped_count": 0,
                     "grant_and_archived_real_bene_deduped_count": 10,
                     "grant_and_archived_synthetic_bene_deduped_count": 7,
+                    "token_real_bene_count": 10,
+                    "token_synthetic_bene_count": 7,
+                    "token_table_count": 17,
+                    "token_archived_table_count": 0,
                 }
             }
         )
@@ -566,8 +628,9 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         Setting one synth bene crosswalk fhir_id = "" should reduce synth counts by 1.
         """
-        # Setting synth user crosswalk entry to fhir_id=""
+        # Setting synth user crosswalk entry to fhir_id="" and archiving cw
         cw = Crosswalk.objects.get(user=save_synth_user_dict["-60000000000003"])
+        ArchivedCrosswalk.create(cw)
         cw._fhir_id = ""
         cw.save()
 
@@ -575,12 +638,16 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         self._validate_global_state_metrics_log(
             {
-                "real_bene_cnt": 18,
-                "synth_bene_cnt": 15,  # Count reduced by 1
-                "crosswalk_real_bene_count": 18,
-                "crosswalk_synthetic_bene_count": 15,
+                "real_bene_cnt": 21,
+                "synth_bene_cnt": 17,  # Count reduced by 1
+                "crosswalk_real_bene_count": 21,
+                "crosswalk_synthetic_bene_count": 17,
+                "crosswalk_table_count": 39,
+                "crosswalk_archived_table_count": 1,  # Count +1
                 "grant_real_bene_count": 36,
                 "grant_synthetic_bene_count": 24,  # Count is reduced by 3 (1 x 3 app grants)
+                "grant_table_count": 63,
+                "grant_archived_table_count": 5,
                 "grant_real_bene_deduped_count": 16,
                 "grant_synthetic_bene_deduped_count": 12,  # Count reduced by 1
                 "grantarchived_real_bene_deduped_count": 2,
@@ -589,6 +656,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "grant_and_archived_synthetic_bene_deduped_count": 15,  # Count reduced by 1
                 "token_real_bene_deduped_count": 16,
                 "token_synthetic_bene_deduped_count": 12,  # Count reduced by 1
+                "token_table_count": 63,
+                "token_archived_table_count": 5,
                 "global_apps_active_cnt": 3,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 3,
@@ -601,18 +670,27 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         validate_apps_dict["app0"][
             "grant_and_archived_synthetic_bene_deduped_count"
         ] = 11
+        validate_apps_dict["app0"]["token_synthetic_bene_count"] = 8
+        validate_apps_dict["app0"]["grant_table_count"] = 22
+        validate_apps_dict["app0"]["token_table_count"] = 22
 
         validate_apps_dict["app1"]["synth_bene_cnt"] = 8
         validate_apps_dict["app1"]["grant_synthetic_bene_count"] = 8
         validate_apps_dict["app1"][
             "grant_and_archived_synthetic_bene_deduped_count"
         ] = 8
+        validate_apps_dict["app1"]["token_synthetic_bene_count"] = 8
+        validate_apps_dict["app1"]["grant_table_count"] = 22
+        validate_apps_dict["app1"]["token_table_count"] = 22
 
         validate_apps_dict["app3"]["synth_bene_cnt"] = 6
         validate_apps_dict["app3"]["grant_synthetic_bene_count"] = 6
         validate_apps_dict["app3"][
             "grant_and_archived_synthetic_bene_deduped_count"
         ] = 6
+        validate_apps_dict["app3"]["token_synthetic_bene_count"] = 6
+        validate_apps_dict["app3"]["grant_table_count"] = 17
+        validate_apps_dict["app3"]["token_table_count"] = 17
 
         self._validate_global_state_per_app_metrics_log(validate_apps_dict)
 
@@ -631,12 +709,16 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         self._validate_global_state_metrics_log(
             {
-                "real_bene_cnt": 17,  # Count reduced by 1
-                "synth_bene_cnt": 15,
-                "crosswalk_real_bene_count": 17,
-                "crosswalk_synthetic_bene_count": 15,
+                "real_bene_cnt": 20,  # Count reduced by 1
+                "synth_bene_cnt": 17,
+                "crosswalk_real_bene_count": 20,
+                "crosswalk_synthetic_bene_count": 17,
+                "crosswalk_table_count": 38,
+                "crosswalk_archived_table_count": 1,
                 "grant_real_bene_count": 33,  # Count is reduced by 3 (1 x 3 app grants)
                 "grant_synthetic_bene_count": 24,
+                "grant_table_count": 63,
+                "grant_archived_table_count": 5,
                 "grant_real_bene_deduped_count": 15,  # Count reduced by 1
                 "grant_synthetic_bene_deduped_count": 12,
                 "grantarchived_real_bene_deduped_count": 2,
@@ -645,6 +727,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "grant_and_archived_synthetic_bene_deduped_count": 15,
                 "token_real_bene_deduped_count": 15,  # Count reduced by 1
                 "token_synthetic_bene_deduped_count": 12,
+                "token_table_count": 63,
+                "token_archived_table_count": 5,
                 "global_apps_active_cnt": 3,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 3,
@@ -655,13 +739,22 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         validate_apps_dict["app0"]["real_bene_cnt"] = 12
         validate_apps_dict["app0"]["grant_real_bene_count"] = 12
         validate_apps_dict["app0"]["grant_and_archived_real_bene_deduped_count"] = 12
+        validate_apps_dict["app0"]["token_real_bene_count"] = 12
+        validate_apps_dict["app0"]["grant_table_count"] = 22
+        validate_apps_dict["app0"]["token_table_count"] = 22
 
         validate_apps_dict["app1"]["real_bene_cnt"] = 12
         validate_apps_dict["app1"]["grant_real_bene_count"] = 12
         validate_apps_dict["app1"]["grant_and_archived_real_bene_deduped_count"] = 14
+        validate_apps_dict["app1"]["token_real_bene_count"] = 12
+        validate_apps_dict["app1"]["grant_table_count"] = 42
+        validate_apps_dict["app1"]["token_table_count"] = 22
 
         validate_apps_dict["app3"]["real_bene_cnt"] = 9
         validate_apps_dict["app3"]["grant_real_bene_count"] = 9
         validate_apps_dict["app3"]["grant_and_archived_real_bene_deduped_count"] = 9
+        validate_apps_dict["app3"]["token_real_bene_count"] = 9
+        validate_apps_dict["app3"]["grant_table_count"] = 17
+        validate_apps_dict["app3"]["token_table_count"] = 17
 
         self._validate_global_state_per_app_metrics_log(validate_apps_dict)

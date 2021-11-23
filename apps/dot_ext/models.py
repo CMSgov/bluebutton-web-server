@@ -418,9 +418,15 @@ def get_token_bene_counts(application=None):
 
     # Setup base queryset
     token_queryset = AccessToken.objects
+    archived_token_queryset = ArchivedToken.objects
 
     if application:
         token_queryset = token_queryset.filter(application=application)
+        archived_token_queryset = archived_token_queryset.filter(application=application)
+
+    # Get AccessToken and ArchivedTokentable count
+    counts_returned["total"] = token_queryset.count()
+    counts_returned["archived_total"] = archived_token_queryset.count()
 
     token_queryset = token_queryset.order_by("user__id").values("user__id")
 

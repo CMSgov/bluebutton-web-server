@@ -579,9 +579,18 @@ GLOBAL_STATE_METRICS_LOG_SCHEMA = {
         "synth_bene_cnt": {"type": "integer"},
         "crosswalk_real_bene_count": {"type": "integer"},
         "crosswalk_synthetic_bene_count": {"type": "integer"},
+
+        "crosswalk_table_count": {"type": "integer"},
+        "crosswalk_archived_table_count": {"type": "integer"},
+
         "crosswalk_bene_counts_elapsed": {"type": "number"},
         "grant_real_bene_count": {"type": "integer"},
         "grant_synthetic_bene_count": {"type": "integer"},
+
+        "grant_table_count": {"type": "integer"},
+        "grant_archived_table_count": {"type": "integer"},
+
+
         "grant_counts_elapsed": {"type": "number"},
         "grant_real_bene_deduped_count": {"type": "integer"},
         "grant_synthetic_bene_deduped_count": {"type": "integer"},
@@ -594,6 +603,10 @@ GLOBAL_STATE_METRICS_LOG_SCHEMA = {
         "grant_and_archived_deduped_counts_elapsed": {"type": "number"},
         "token_real_bene_deduped_count": {"type": "integer"},
         "token_synthetic_bene_deduped_count": {"type": "integer"},
+
+        "token_table_count": {"type": "integer"},
+        "token_archived_table_count": {"type": "integer"},
+
         "token_deduped_counts_elapsed": {"type": "number"},
         "global_apps_active_cnt": {"type": "integer"},
         "global_apps_inactive_cnt": {"type": "integer"},
@@ -607,9 +620,13 @@ GLOBAL_STATE_METRICS_LOG_SCHEMA = {
         "synth_bene_cnt",
         "crosswalk_real_bene_count",
         "crosswalk_synthetic_bene_count",
+        "crosswalk_table_count",
+        "crosswalk_archived_table_count",
         "crosswalk_bene_counts_elapsed",
         "grant_real_bene_count",
         "grant_synthetic_bene_count",
+        "grant_table_count",
+        "grant_archived_table_count",
         "grant_counts_elapsed",
         "grant_real_bene_deduped_count",
         "grant_synthetic_bene_deduped_count",
@@ -622,6 +639,8 @@ GLOBAL_STATE_METRICS_LOG_SCHEMA = {
         "grant_and_archived_deduped_counts_elapsed",
         "token_real_bene_deduped_count",
         "token_synthetic_bene_deduped_count",
+        "token_table_count",
+        "token_archived_table_count",
         "token_deduped_counts_elapsed",
         "global_apps_active_cnt",
         "global_apps_inactive_cnt",
@@ -651,10 +670,24 @@ GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA = {
         "synth_bene_cnt": {"type": "integer"},
         "grant_real_bene_count": {"type": "integer"},
         "grant_synthetic_bene_count": {"type": "integer"},
+
+        "grant_table_count": {"type": "integer"},
+        "grant_archived_table_count": {"type": "integer"},
+
         "grantarchived_real_bene_deduped_count": {"type": "integer"},
         "grantarchived_synthetic_bene_deduped_count": {"type": "integer"},
         "grant_and_archived_real_bene_deduped_count": {"type": "integer"},
         "grant_and_archived_synthetic_bene_deduped_count": {"type": "integer"},
+
+        "token_real_bene_count": {"type": "integer"},
+        "token_synthetic_bene_count": {"type": "integer"},
+
+        "token_table_count": {"type": "integer"},
+        "token_archived_table_count": {"type": "integer"},
+
+        "token_deduped_counts_elapsed": {"type": "number"},
+
+
         "user_id": {"type": "integer"},
         "user_username": {"type": "string"},
         "user_date_joined": {"type": "string"},
@@ -676,10 +709,16 @@ GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA = {
         "synth_bene_cnt",
         "grant_real_bene_count",
         "grant_synthetic_bene_count",
+        "grant_table_count",
+        "grant_archived_table_count",
         "grantarchived_real_bene_deduped_count",
         "grantarchived_synthetic_bene_deduped_count",
         "grant_and_archived_real_bene_deduped_count",
         "grant_and_archived_synthetic_bene_deduped_count",
+        "token_real_bene_count",
+        "token_synthetic_bene_count",
+        "token_table_count",
+        "token_archived_table_count",
         "user_id",
         "user_username",
         "user_date_joined",

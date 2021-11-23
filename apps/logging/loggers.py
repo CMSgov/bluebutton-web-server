@@ -58,9 +58,13 @@ def log_global_state_metrics(group_timestamp=None):
         ),  # TODO: Deprecate this duplicate name in future
         "crosswalk_real_bene_count": crosswalk_counts.get("real", None),
         "crosswalk_synthetic_bene_count": crosswalk_counts.get("synthetic", None),
+        "crosswalk_table_count": crosswalk_counts.get("total", None),
+        "crosswalk_archived_table_count": crosswalk_counts.get("archived_total", None),
         "crosswalk_bene_counts_elapsed": crosswalk_counts.get("elapsed", None),
         "grant_real_bene_count": grant_counts.get("real", None),
         "grant_synthetic_bene_count": grant_counts.get("synthetic", None),
+        "grant_table_count": grant_counts.get("total", None),
+        "grant_archived_table_count": grant_counts.get("archived_total", None),
         "grant_counts_elapsed": grant_counts.get("elapsed", None),
         "grant_real_bene_deduped_count": grant_counts.get("real_deduped", None),
         "grant_synthetic_bene_deduped_count": grant_counts.get(
@@ -89,6 +93,8 @@ def log_global_state_metrics(group_timestamp=None):
         "token_synthetic_bene_deduped_count": access_token_counts.get(
             "synthetic_deduped", None
         ),
+        "token_table_count": access_token_counts.get("total", None),
+        "token_archived_table_count": access_token_counts.get("archived_total", None),
         "token_deduped_counts_elapsed": access_token_counts.get(
             "deduped_elapsed", None
         ),
@@ -142,6 +148,8 @@ def log_global_state_metrics(group_timestamp=None):
             ),  # TODO: Deprecate this duplicate name in future
             "grant_real_bene_count": grant_counts.get("real", None),
             "grant_synthetic_bene_count": grant_counts.get("synthetic", None),
+            "grant_table_count": grant_counts.get("total", None),
+            "grant_archived_table_count": grant_counts.get("archived_total", None),
             "grantarchived_real_bene_deduped_count": grant_counts.get(
                 "archived_real_deduped", None
             ),
@@ -157,6 +165,10 @@ def log_global_state_metrics(group_timestamp=None):
             "token_real_bene_count": access_token_counts.get("real_deduped", None),
             "token_synthetic_bene_count": access_token_counts.get(
                 "synthetic_deduped", None
+            ),
+            "token_table_count": access_token_counts.get("total", None),
+            "token_archived_table_count": access_token_counts.get(
+                "archived_total", None
             ),
             "user_id": app.user.id,
             "user_username": app.user.username,

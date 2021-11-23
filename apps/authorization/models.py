@@ -106,6 +106,9 @@ def get_grant_bene_counts(application=None):
     if application:
         grant_queryset = grant_queryset.filter(application=application)
 
+    # Get total table count
+    counts_returned["total"] = grant_queryset.count()
+
     real_grant_queryset = grant_queryset.filter(
         ~Q(beneficiary__crosswalk___fhir_id__startswith="-")
         & ~Q(beneficiary__crosswalk___fhir_id="")
@@ -142,6 +145,9 @@ def get_grant_bene_counts(application=None):
 
     if application:
         archived_queryset = archived_queryset.filter(application=application)
+
+    # Get total table count
+    counts_returned["archived_total"] = archived_queryset.count()
 
     real_archived_queryset = archived_queryset.filter(
         ~Q(beneficiary__crosswalk___fhir_id__startswith="-")

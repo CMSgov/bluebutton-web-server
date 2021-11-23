@@ -273,15 +273,21 @@ class Fhir_Response(Response):
 
 
 def get_crosswalk_bene_counts():
+    """
+    Get the crosswalk counts for real/synth benes
+    """
+    # Init counts dict
+    counts_returned = {}
+
     start_time = datetime.utcnow().timestamp()
 
-    synth_count = Crosswalk.synth_objects.count()
-    real_count = Crosswalk.real_objects.count()
+    # Get total table counts
+    counts_returned["total"] = Crosswalk.objects.count()
+    counts_returned["archived_total"] = ArchivedCrosswalk.objects.count()
 
-    elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
+    counts_returned["synthetic"] = Crosswalk.synth_objects.count()
+    counts_returned["real"] = Crosswalk.real_objects.count()
 
-    return {
-        "synthetic": synth_count,
-        "real": real_count,
-        "elapsed": elapsed_time,
-    }
+    counts_returned["elapsed"] = round(datetime.utcnow().timestamp() - start_time, 3)
+
+    return counts_returned
