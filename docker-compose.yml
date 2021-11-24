@@ -8,6 +8,8 @@ services:
     command: msls
     ports:
       - "8080:8080"
+    profiles:
+      - mocksls
   db:
     image: postgres
     env_file:
@@ -19,14 +21,8 @@ services:
     command: ./docker-compose/bluebutton_server_start.sh
     env_file:
             - docker-compose/web-env-vars.env
-            #
-            # Uncomment line below to use SLSx as the identity service.
             - docker-compose/slsx-env-vars.env
-            #
-            # Uncomment line below to use MSLS as a MOCK SLSx identity service.
-            #- docker-compose/msls-env-vars.env
-            #
-            # Your local devel specific variables go here!
+            # local devel specific variables go here!
             - .env
     volumes:
       - .:/code
@@ -35,7 +31,24 @@ services:
       - "5678:5678"
     depends_on:
       - db
-
+  web_msls:
+    build: . 
+    command: ./docker-compose/bluebutton_server_start.sh
+    env_file:
+            - docker-compose/web-env-vars.env
+            - docker-compose/msls-env-vars.env
+            # local devel specific variables go here!
+            - .env
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    depends_on:
+      - db
+      - msls
+    profiles:
+      - mocksls
   unittests:
     build: .
     command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
@@ -45,3 +58,5 @@ services:
       - "6789:6789"
     volumes:
       - .:/code
+    profiles:
+      - tests
