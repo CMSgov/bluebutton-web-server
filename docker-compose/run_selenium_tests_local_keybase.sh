@@ -25,9 +25,6 @@ export HOSTNAME_URL="http://bb2slsx:8000"
 # Backend FHIR server to use for selenium tests with FHIR requests:
 FHIR_URL="https://prod-sbx.bfd.cms.gov"
 
-# List of tests to run. To be passed in to runtests.py.
-TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
-
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
 
 # Echo function that includes script name on each line for console log readability
@@ -45,7 +42,8 @@ set -e -u -o pipefail
 
 export USE_MSLSX=true
 export USE_DEBUG=false
-
+export SERVICE_NAME="selenium-tests"
+export TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
 export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
 export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
 export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
@@ -83,6 +81,7 @@ else
     if [[ $1 == *debug ]]
     then
         export USE_DEBUG=true
+        export SERVICE_NAME="selenium-tests-debug"
     fi
     if [[ $1 == "slsx" || $1 == "slsx-debug" ]]
     then
@@ -96,7 +95,7 @@ else
     fi
     if [[ $1 == "logit" ]]
     then
-      TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
+      export TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
     fi
   fi
@@ -104,7 +103,6 @@ fi
 
 echo "DJANGO_SETTINGS_MODULE: " ${DJANGO_SETTINGS_MODULE}
 echo "HOSTNAME_URL: " ${HOSTNAME_URL}
-echo "TESTS: " ${TESTS_LIST}
 
 # Set KeyBase ENV path based on your type of system
 SYSTEM=$(uname -s)
@@ -206,22 +204,12 @@ export DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS}
 export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID}
 export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 
-TEST_SERVICE_NAME="tests"
-if [[ "$USE_DEBUG" = true ]]
-then
-    TEST_SERVICE_NAME="tests-debug"
-fi
-
 echo "Selenium tests ..."
 echo "MSLSX=" ${USE_MSLSX}
 echo "DEBUG=" ${USE_DEBUG}
+echo "SERVICE NAME=" ${SERVICE_NAME}
 
-if [ "$USE_DEBUG" = true ]
-then
-    docker-compose -f docker-compose.selenium.yml run tests-debug bash -c "python runtests.py --selenium ${TESTS_LIST}"
-else
-    docker-compose -f docker-compose.selenium.yml run tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
-fi
+docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "python runtests.py --selenium ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg

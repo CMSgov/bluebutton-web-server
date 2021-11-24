@@ -25,32 +25,22 @@ To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis
 
 To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker-compose/bluebutton_server_start.sh` web server startup script.
 
-Edit the `docker-compose.yml` file to choose between SLSx (default) or MSLS mode:
 
-  To run the web server in SLSx mode (default), un-comment/comment the following lines like so: 
-
-  ```
-            # Uncomment line below to use SLSx as the identity service.
-            - docker-compose/slsx-env-vars.env
-            #
-            # Uncomment line below to use MSLS as a MOCK SLSx identity service.
-            #- docker-compose/msls-env-vars.env
-  ```
-
-  Alternately, to run the web server in MSLS (mock service) mode, edit like so: 
-  ```
-            # Uncomment line below to use SLSx as the identity service.
-            #- docker-compose/slsx-env-vars.env
-            #
-            # Uncomment line below to use MSLS as a MOCK SLSx identity service.
-            - docker-compose/msls-env-vars.env
-  ```
-
-
-To startup the Docker containerized BB2 server:
+To startup the Docker containerized BB2 server using slsx:
 
   ```
   docker-compose up -d
+  ```
+Or equivalently:
+
+  ```
+  docker-compose up -d web
+  ```
+
+To startup the Docker containerized BB2 server using msls:
+
+  ```
+  docker-compose up -d web_msls
   ```
 
 To shutdown the Docker containerized BB2 server (this is needed when switching between SLSx and MSLS modes):
