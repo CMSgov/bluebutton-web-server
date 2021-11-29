@@ -4,13 +4,25 @@
     <fieldset submitButton="false"></fieldset>
     <row>
         <panel>
+            <input type="dropdown" token="bbEnvLabel" searchWhenChanged="true">
+                <label>Select Environment (by Label)</label>
+                <default>impl</default>
+                <choice value="test">Test env=test</choice>
+                <choice value="impl">Sandbox env=impl</choice>
+                <choice value="prod">Prod env=prod</choice>
+                <choice value="*">ALL env=*</choice>
+                <initialValue>prod</initialValue>
+            </input>
+        </panel>
+        <panel>
             <input type="dropdown" token="bbEnv" searchWhenChanged="true">
-                <label>Select Environment</label>
-                <default>ip-10-246-44-*</default>
+                <label>Select Environment (by IP Range)</label>
+                <default>ALL</default>
+                <choice value="*">ALL</choice>
                 <choice value="ip-10-224-90-*">Test</choice>
                 <choice value="ip-10-246-44-*">Sandbox</choice>
                 <choice value="ip-10-244-140-*">Prod</choice>
-                <initialValue>ip-10-244-140-*</initialValue>
+                <initialValue>ALL</initialValue>
             </input>
         </panel>
         <panel>
@@ -32,7 +44,7 @@
                 <fieldForLabel>AppName</fieldForLabel>
                 <fieldForValue>name</fieldForValue>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ |spath output=name path="message.app_name" | table name | dedup name | sort name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ |spath output=name path="message.app_name" | table name | dedup name | sort name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                 </search>
@@ -81,7 +93,7 @@
                 <fieldForLabel>IPAddr</fieldForLabel>
                 <fieldForValue>ipaddr</fieldForValue>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ |spath output=ipaddr path="message.ip_addr" | table ipaddr | dedup ipaddr | sort ipaddr</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ | spath output=ipaddr path="message.ip_addr" | table ipaddr | dedup ipaddr | sort ipaddr</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                 </search>
@@ -107,7 +119,7 @@
                     <done>
                         <set token="tokEpCount">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | stats count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -124,7 +136,7 @@
                     <done>
                         <set token="tokTcCount">$result.count$</set>
                     </done>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | stats count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path!="/health*" | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -154,7 +166,7 @@
             <chart>
                 <title>API End-Point Requests TIME-CHART</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | timechart count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | timechart count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -171,7 +183,7 @@
             <chart>
                 <title>Total Requests (all) TIME-CHART</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | timechart count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | timechart count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -199,7 +211,7 @@
             <single>
                 <title>/$apiVersionsLabel$/fhir/ End-Point Count</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/fhir/*" | stats count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/fhir/*" | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -213,7 +225,7 @@
             <single>
                 <title>/$apiVersionsLabel$/accounts/ End-Point Count</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/accounts/*" | stats count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/accounts/*" | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -226,7 +238,7 @@
             <single>
                 <title>/$apiVersionsLabel$/o/ End-Point Count</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/o/*" | stats count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "/$apiVersionsPattern$/o/*" | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -241,7 +253,7 @@
             <single>
                 <title>/admin/ End-Point Count</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "*/admin/*" | stats count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND "message.path" = "*/admin/*" | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -254,7 +266,7 @@
             <single>
                 <title>Others End-Point Count</title>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND ("message.path" != "/$apiVersionsPattern$/fhir/*" AND "message.path" != "/$apiVersionsPattern$/accounts/*" AND "message.path" != "/$apiVersionsPattern$/o/*" AND "message.path" != "*/admin/*") | stats count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") AND ("message.path" != "/$apiVersionsPattern$/fhir/*" AND "message.path" != "/$apiVersionsPattern$/accounts/*" AND "message.path" != "/$apiVersionsPattern$/o/*" AND "message.path" != "*/admin/*") | stats count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -291,7 +303,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | table code | stats count by code</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=code path="message.response_code" | table code | stats count by code</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -323,7 +335,7 @@
             <title></title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval elapsed_time=start_time-end_time | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | table html_code2 call_path elapsed_time | stats count by call_path | sort - count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval elapsed_time=start_time-end_time | table html_code2 call_path elapsed_time | stats count by call_path | sort - count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -354,7 +366,7 @@
         <panel>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | table html_code2 call_path | chart count(html_code2) over html_code2 by call_path</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" | table html_code2 call_path | chart count(html_code2) over html_code2 by call_path</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -410,7 +422,7 @@
             <title>ExplanationOfBenefit</title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit/.*" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path </query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=call_path path="message.path" | regex call_path="/v[12]/fhir/ExplanationOfBenefit/.*" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path </query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -428,7 +440,7 @@
             <title>OTHERS TOP 10</title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=call_path path="message.path" | where call_path != "/health" AND call_path != "/health/external" AND call_path != "/health/external_v2" AND call_path != "/health/bfd" AND call_path != "/health/bfd_v2" AND call_path != "/health/sls" AND call_path != "/health/db" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | sort - RT_mean | head 10</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ message.path!="/health*" | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=html_code2 path="message.response_code" |  where html_code2="200" | spath output=start_time path="message.start_time" | spath output=end_time path="message.end_time" | eval Response_Time=end_time-start_time | stats min(Response_Time) as RT_fastest avg(Response_Time) as RT_mean p95(Response_Time) as RT_p95 p99(Response_Time) as RT_p99 max(Response_Time) as RT_slowest  by message.path | sort - RT_mean | head 10</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -445,7 +457,7 @@
             <title>Active Apps</title>
             <single>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | where client_id != "" | stats distinct_count(client_id) as cid_total</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -458,7 +470,7 @@
             <title>Requests By App</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -479,7 +491,7 @@
             <title>Requests by IP for API Requests Only</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | spath output=source_ip path="message.ip_addr" | where client_id != ""  | stats count by source_ip,client_id,name,user | sort - count | iplocation source_ip | table source_ip,client_id,name,user,City Region Country,count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | spath output=source_ip path="message.ip_addr" | where client_id != ""  | stats count by source_ip,client_id,name,user | sort - count | iplocation source_ip | table source_ip,client_id,name,user,City Region Country,count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -500,7 +512,7 @@
             <title>GeoStats MAP for API Requests Only</title>
             <map>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=source_ip path="message.ip_addr"| stats count by source_ip | sort - count | iplocation source_ip | geostats latfield=lat longfield=lon count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND ("message.path"=".well-known/*" OR "message.path"="/$apiVersionsPattern$/*" OR "message.path"="*/admin/*") | spath output=source_ip path="message.ip_addr"| stats count by source_ip | sort - count | iplocation source_ip | geostats latfield=lat longfield=lon count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -516,7 +528,7 @@
             <title>Requests by IP for ALL Requests</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | spath output=source_ip path="message.ip_addr" | stats count by source_ip,client_id,name,user | sort - count | iplocation source_ip | table source_ip,client_id,name,user,City Region Country,count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | spath output=source_ip path="message.ip_addr" | stats count by source_ip,client_id,name,user | sort - count | iplocation source_ip | table source_ip,client_id,name,user,City Region Country,count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -537,7 +549,7 @@
             <title>GeoStats MAP for ALL Requests</title>
             <map>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" | spath output=source_ip path="message.ip_addr"| stats count by source_ip | sort - count | iplocation source_ip | geostats latfield=lat longfield=lon count</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" | spath output=source_ip path="message.ip_addr"| stats count by source_ip | sort - count | iplocation source_ip | geostats latfield=lat longfield=lon count</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -564,7 +576,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -585,7 +597,7 @@
             <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/connect/userinfo end point. Including those blocked by demographic scopes.</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  stats count by message.app_name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/connect/userinfo" | search message.response_code=403 |  stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -617,7 +629,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -638,7 +650,7 @@
             <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Patient/ end point. Including those blocked by demographic scopes.</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  stats count by message.app_name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/patient*" | search message.response_code=403 |  stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -671,7 +683,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -692,7 +704,7 @@
             <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/Coverage/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  stats count by message.app_name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/coverage*" | search message.response_code=403 |  stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -726,7 +738,7 @@
             <title></title>
             <chart>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  table time message.path message.app_name message.user message.response_code | stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
@@ -747,7 +759,7 @@
             <title>API Result Codes = 403-forbidden for the /$apiVersionsLabel$/fhir/ExplanationOfBenefit/ end point. THESE SHOULD NOT BE blocked by demographic scopes.</title>
             <table>
                 <search>
-                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  stats count by message.app_name</query>
+                    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ | search "message.ip_addr"="$bbIpAddr$" AND "message.path"="/$apiVersionsPattern$/fhir/explanationofbenefit*" | search message.response_code=403 |  stats count by message.app_name</query>
                     <earliest>$t_local.earliest$</earliest>
                     <latest>$t_local.latest$</latest>
                     <sampleRatio>1</sampleRatio>
