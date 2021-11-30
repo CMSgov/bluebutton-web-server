@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
+from apps.dot_ext.models import Application
 from apps.dot_ext.validators import validate_logo_image, validate_notags
 from django.contrib.auth.models import Group, User
 
@@ -296,6 +297,7 @@ class CreateNewApplicationForm(forms.ModelForm):
         app = super().save(*args, **kwargs)
         app.agree = True
         app.user = new_user_model
+        app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
         app.save()
         uri = app.store_media_file(
             self.cleaned_data.pop("logo_image", None), "logo.jpg"
