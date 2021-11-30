@@ -33,33 +33,6 @@ class CreateNewApplication(Application):
         app_label = "bluebutton"
 
 
-class CustomAdminCreateNewApplicationForm(CreateNewApplicationForm):
-    def __init__(self, *args, **kwargs):
-        user = None
-        super().__init__(user, *args, **kwargs)
-
-    def clean(self):
-        print("upper form cleaning")
-        print(str(self.cleaned_data))
-        return self.cleaned_data
-
-    class Meta:
-        model = MyApplication
-        fields = (
-            "name",
-            "contacts",
-            "redirect_uris",
-            "require_demographic_scopes",
-            "policy_uri",
-            "tos_uri",
-            "website_uri",
-            "support_email",
-            "support_phone_number",
-            "logo_image",
-            "application_description",
-        )
-
-
 class CustomAdminApplicationForm(CustomRegisterApplicationForm):
     description = forms.CharField(
         label="Application Description",
