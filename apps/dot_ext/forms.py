@@ -191,7 +191,7 @@ class CreateNewApplicationForm(forms.ModelForm):
             settings.APP_LOGO_HEIGHT_MAX,
         ),
     )
-    application_description = forms.CharField(
+    description = forms.CharField(
         label="Application Description",
         help_text="This is plain-text up to 1000 characters in length.",
         widget=forms.Textarea,
@@ -216,7 +216,7 @@ class CreateNewApplicationForm(forms.ModelForm):
             "support_email",
             "support_phone_number",
             "logo_image",
-            "application_description",
+            "description",
         )
 
     def clean_name(self):
