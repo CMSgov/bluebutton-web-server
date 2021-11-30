@@ -160,6 +160,7 @@ class MyAccessTokenAdmin(admin.ModelAdmin):
         "expires",
         "scope",
         "token",
+        "get_source_refresh_token",
     )
     search_fields = (
         "user__username",
@@ -167,7 +168,13 @@ class MyAccessTokenAdmin(admin.ModelAdmin):
         "token",
         "source_refresh_token__token",
     )
-    raw_id_fields = ("user", "application")
+    raw_id_fields = ("user", "application", "source_refresh_token")
+
+    def get_source_refresh_token(self, obj):
+        return obj.source_refresh_token.token if obj.source_refresh_token else None
+
+    get_source_refresh_token.admin_order_field = "token"
+    get_source_refresh_token.short_description = "Source Refresh Token"
 
 
 @admin.register(MyAuthFlowUuid)

@@ -51,7 +51,6 @@ if args.integration:
         if env_var in os.environ:
             del os.environ[env_var]
 elif not args.selenium:
-    # For tests using selenium, inherit SLSX config from context;
     # Unset ENV variables for Django unit type tests so default values get set.
     for env_var in ['FHIR_URL', 'DJANGO_MEDICARE_SLSX_LOGIN_URI', 'DJANGO_MEDICARE_SLSX_REDIRECT_URI',
                     'DJANGO_SLSX_USERINFO_ENDPOINT', 'DJANGO_SLSX_TOKEN_ENDPOINT',
