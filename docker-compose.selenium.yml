@@ -1,29 +1,25 @@
 version: '3'
 
 services:
-  tests:
+  selenium-tests:
     build:
       context: ./
       dockerfile: Dockerfile.selenium
-    command: python runtests.py apps.integration_tests.selenium_tests.SeleniumTests
-    environment:
-          - HOSTNAME_URL=${HOSTNAME_URL}
-          - USE_MSLSX=${USE_MSLSX}
-          - USE_DEBUG=${USE_DEBUG}
+    command: python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+    env_file:
+      - docker-compose/selenium-env-vars.env
     volumes:
       - .:/code
     depends_on:
       - bb2slsx
     
-  tests-debug:
+  selenium-tests-debug:
     build:
       context: ./
       dockerfile: Dockerfile.selenium
-    command: python runtests.py apps.integration_tests.selenium_tests.SeleniumTests
-    environment:
-          - HOSTNAME_URL=${HOSTNAME_URL}
-          - USE_MSLSX=${USE_MSLSX}
-          - USE_DEBUG=${USE_DEBUG}
+    command: python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+    env_file:
+      - docker-compose/selenium-env-vars.env
     volumes:
       - .:/code
     depends_on:
@@ -47,9 +43,8 @@ services:
   
   db:
     image: postgres
-    environment:
-      - POSTGRES_DB=bluebutton
-      - POSTGRES_PASSWORD=toor
+    env_file:
+            - docker-compose/db-env-vars.env
     ports:
       - "5432:5432"
     healthcheck:
@@ -58,32 +53,15 @@ services:
       timeout: 5s
       retries: 5 
 
-
   bb2slsx:
     build: . 
-    command: ./docker-compose/bluebutton_server_start.sh '${DB_MIGRATIONS}' '${SUPER_USER_NAME}' '${SUPER_USER_EMAIL}' '${SUPER_USER_PASSWORD}' '${BB20_ENABLE_REMOTE_DEBUG}' '${BB20_REMOTE_DEBUG_WAIT_ATTACH}'
-    environment:
-            - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
-            - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton
-            - OAUTHLIB_INSECURE_TRANSPORT=true
-            - DJANGO_DEFAULT_SAMPLE_FHIR_ID="-20140000008325"
-            - DJANGO_SECURE_SESSION=False
-            - FHIR_URL="https://prod-sbx.bfd.cms.gov"
-            - DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE}
-            - DJANGO_MEDICARE_SLSX_REDIRECT_URI=${DJANGO_MEDICARE_SLSX_REDIRECT_URI}
-            - DJANGO_MEDICARE_SLSX_LOGIN_URI=${DJANGO_MEDICARE_SLSX_LOGIN_URI}
-            - DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=${DJANGO_SLSX_HEALTH_CHECK_ENDPOINT}
-            - DJANGO_SLSX_TOKEN_ENDPOINT=${DJANGO_SLSX_TOKEN_ENDPOINT}
-            - DJANGO_SLSX_SIGNOUT_ENDPOINT=${DJANGO_SLSX_SIGNOUT_ENDPOINT}
-            - DJANGO_SLSX_USERINFO_ENDPOINT=${DJANGO_SLSX_USERINFO_ENDPOINT}
-            - DJANGO_SLSX_CLIENT_ID=bb2api
-            - DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
-            - HOSTNAME_URL=${HOSTNAME_URL}
-            - DJANGO_SLSX_VERIFY_SSL_INTERNAL=False
-            - DJANGO_SLSX_VERIFY_SSL_EXTERNAL=True
-            - DJANGO_LOG_JSON_FORMAT_PRETTY=${DJANGO_LOG_JSON_FORMAT_PRETTY}
-            - DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS}
-            - DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT}
+    command: ./docker-compose/bluebutton_server_start.sh
+    env_file:
+      - docker-compose/web-env-vars.env
+      - docker-compose/slsx-env-vars.env
+      - docker-compose/selenium-env-vars.env
+      # local devel specific variables go here!
+      - .env
     volumes:
       - .:/code
     ports:
