@@ -25,7 +25,7 @@ LOG_MIDDLEWARE_EVENT_SCHEMA = {
                  "path", "request_method", "request_scheme", "response_code"]
 }
 
-LOG_MIDDLEWARE_POST_EVENT_SCHEMA = {
+LOG_MIDDLEWARE_POST_TOKEN_EVENT_SCHEMA = {
     "title": "MiddlewareLogEventSchema",
     "type": "object",
     "properties": {
@@ -36,13 +36,23 @@ LOG_MIDDLEWARE_POST_EVENT_SCHEMA = {
         "elapsed": {"type": "number"},
         "ip_addr": {"type": "string", "format": "ip-address"},
         "request_uuid": {"type": "string", "format": "uuid"},
-        "path": {"pattern": ".+"},
+        "path": {"pattern": "/v1/o/token"},
         "request_method": {"pattern": "POST"},
         "request_scheme": {"pattern": "http"},
         "response_code": {"type": "integer", "enum": [status.HTTP_200_OK]},
+        "app_id": {"type": "string"},
+        "app_name": {"pattern": "TestApp"},
+        "auth_uuid": {"type": "string"},
+        "auth_client_id": {"type": "string"},
+        "auth_app_id": {"type": "string"},
+        "auth_app_name": {"pattern": "TestApp"},
+        "auth_share_demographic_scopes": {"pattern": "^True$"},
+        "auth_require_demographic_scopes": {"pattern": "^True$"},
     },
-    "required": ["type", "size", "start_time", "end_time", "ip_addr", "elapsed", "request_uuid",
-                 "path", "request_method", "request_scheme", "response_code"]
+    "required": ["type", "size", "start_time", "end_time", "ip_addr", "elapsed", "request_uuid", "path",
+                 "request_method", "request_scheme", "response_code",
+                 "app_id", "app_name", "auth_uuid", "auth_client_id",
+                 "auth_app_id", "auth_app_name", "auth_require_demographic_scopes", ]
 }
 
 LOG_MIDDLEWARE_TESTCLIENT_AUTHLINK_EVENT_SCHEMA = {
@@ -75,6 +85,8 @@ LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA = {
         "ip_addr": {"type": "string", "format": "ip-address"},
         "request_uuid": {"type": "string", "format": "uuid"},
         "location": {"pattern": ".+"},
+        "app_id": {"type": "string"},
+        "app_name": {"pattern": "TestApp"},
         "auth_uuid": {"type": "string"},
         "auth_client_id": {"type": "string"},
         "auth_app_id": {"type": "string"},
@@ -90,7 +102,8 @@ LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA = {
         "response_code": {"type": "integer", "enum": [status.HTTP_302_FOUND]},
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
-                 "location", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name", "auth_require_demographic_scopes",
+                 "location", "app_id", "app_name", "auth_uuid", "auth_client_id",
+                 "auth_app_id", "auth_app_name", "auth_require_demographic_scopes",
                  "req_qparam_client_id", "req_qparam_response_type", "req_app_name", "req_app_id",
                  "path", "request_method", "request_scheme", "response_code"]
 }
@@ -165,6 +178,8 @@ LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA = {
         "ip_addr": {"type": "string", "format": "ip-address"},
         "request_uuid": {"type": "string", "format": "uuid"},
         "location": {"pattern": ".*"},
+        "app_id": {"type": "string"},
+        "app_name": {"pattern": "TestApp"},
         "auth_uuid": {"type": "string"},
         "auth_client_id": {"type": "string"},
         "auth_app_id": {"type": "string"},
@@ -183,8 +198,8 @@ LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA = {
         "response_code": {"type": "integer", "enum": [status.HTTP_200_OK]},
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
-                 "location", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name", "auth_crosswalk_action",
-                 "auth_require_demographic_scopes", "req_qparam_client_id",
+                 "location", "app_id", "app_name", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name",
+                 "auth_crosswalk_action", "auth_require_demographic_scopes", "req_qparam_client_id",
                  "req_qparam_response_type", "req_app_name", "req_app_id",
                  "path", "user", "fhir_id", "request_method", "request_scheme", "response_code"]
 }
@@ -200,6 +215,8 @@ LOG_MIDDLEWARE_ACCESS_GRANT_EVENT_SCHEMA = {
         "ip_addr": {"type": "string", "format": "ip-address"},
         "request_uuid": {"type": "string", "format": "uuid"},
         "location": {"pattern": ".+"},
+        "app_id": {"type": "string"},
+        "app_name": {"pattern": "TestApp"},
         "auth_uuid": {"type": "string"},
         "auth_client_id": {"type": "string"},
         "auth_app_id": {"type": "string"},
@@ -225,7 +242,7 @@ LOG_MIDDLEWARE_ACCESS_GRANT_EVENT_SCHEMA = {
         "response_code": {"type": "integer", "enum": [status.HTTP_302_FOUND]},
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
-                 "location", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name",
+                 "location", "app_id", "app_name", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name",
                  "auth_crosswalk_action", "auth_require_demographic_scopes",
                  "req_redirect_uri", "req_scope", "req_user_username", "req_fhir_id",
                  "req_qparam_client_id", "req_qparam_response_type", "req_app_name", "req_app_id",
