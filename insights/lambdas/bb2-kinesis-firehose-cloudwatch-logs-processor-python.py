@@ -108,11 +108,16 @@ def transformLogEvent(log_event):
     ts = log_event["timestamp"]
     cw_log_event_id = log_event["id"]
 
-    # This is the BB2 app log event
-    event_dict = json.loads(log_event["message"])
-
-    # The BB2 event has a nested message JSON as well
-    message_dict = event_dict["message"]
+    try:
+        # This is the BB2 app log event
+        event_message = log_event.get("message")
+        event_dict = json.loads(event_message)
+    except json.decoder.JSONDecodeError:
+        # NOTE:  Some BB2 logging has malformed JSON
+        event_dict = {
+            "env": "UNKNOWN-JSON-DECODE-ERROR",
+            "name": "UNKNOWN-JSON-DECODE-ERROR",
+        }
 
     out_dict = {
         "time_of_event": format_unix_timestamp(ts),
@@ -121,6 +126,17 @@ def transformLogEvent(log_event):
         "log_name": event_dict.get("name"),
         "cw_log_event_id": cw_log_event_id,
     }
+
+    # The BB2 event has a nested message JSON as well
+    # message_dict = event_dict["message"]
+    message_dict = event_dict.get("message", None)
+
+    if message_dict is None:
+        message_dict = {
+            "type": "bfd-insights-log-lambda-error",
+            "mesg": "Warning message_dict is None. Could not parse original JSON message.",
+            "log_event": log_event,
+        }
 
     # Update with message fields
     out_dict.update(message_dict)
