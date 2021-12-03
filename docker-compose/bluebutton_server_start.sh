@@ -7,21 +7,12 @@ SUPER_USER_PASSWORD=${SUPER_USER_PASSWORD:-'bluebutton123'}
 BB20_ENABLE_REMOTE_DEBUG=${BB20_ENABLE_REMOTE_DEBUG:-false}
 BB20_REMOTE_DEBUG_WAIT_ATTACH=${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}
 
-
-echo "DB_MIGRATIONS =" ${DB_MIGRATIONS}
-echo "SUPER_USER_NAME =" ${SUPER_USER_NAME}
-echo "SUPER_USER_EMAIL =" ${SUPER_USER_EMAIL}
-echo "SUPER_USER_PASSWORD =" ${SUPER_USER_PASSWORD}
-echo "BB20_ENABLE_REMOTE_DEBUG =" ${BB20_ENABLE_REMOTE_DEBUG}
-echo "BB20_REMOTE_DEBUG_WAIT_ATTACH =" ${BB20_REMOTE_DEBUG_WAIT_ATTACH}
-echo "DJANGO_SETTINGS_MODULE=" ${DJANGO_SETTINGS_MODULE}
-
 if [ "${DB_MIGRATIONS}" = true ]
 then
     echo "run db image migration and models initialization."
     python manage.py migrate
 
-    echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPERUSER_NAME}', '${SUPERUSER_EMAIL}', '${SUPERUSER_PASSWORD}')" | python manage.py shell
+    echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
     python manage.py create_admin_groups
     python manage.py loaddata scopes.json
     python manage.py create_blue_button_scopes
