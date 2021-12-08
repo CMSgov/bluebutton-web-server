@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block bannerTitle %}
+Blue Button 2.0 API Prod Access Credentialing
+{% endblock %}
+
+{% block bannerDescription %}
+The Blue Button 2.0 API Prod Access Credentialing allows you to obtain the OAUTH2.0 app credentials for your application.
+{% endblock %}
+
+{% block Content %}
+
+<div class="container">
+    <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
+        <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
+
+            <h2>User: {{ user_name }}</h2>
+            <br />
+
+            <h2>Organization: {{ org_name }}</h2>
+            <br />
+
+            <h2>Application: {{ app_name }}</h2>
+            <br />
+
+            <a href="{{fetch_creds_link}}/?action=fetch" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Fetch Credentials</a>
+            <br />
+
+            {% if fetch is not None %}
+
+                <!-- App Credential Section -->
+                <h2 class="ds-u-margin-bottom--2">App Credentials</h2>
+            
+                <div class="bb-c-card sandbox-app-card">
+                <!-- Application Credentials -->
+                <form class="app-credentials">
+                    <span class="copy-confirmation" id="confirm-id-{{ client_id }}" aria-live="assertive" aria-role="alert">ID Copied to Clipboard</span>
+                    <span class="copy-confirmation" id="confirm-secret-{{ client_id }}" aria-live="assertive" aria-role="alert">Secret Copied to Clipboard</span>
+                    <a class="app-credentials-toggle" id="{{ client_id }}" tabindex="0">Show/Hide Credentials</a>
+                    <label for"id-{{ application.client_id }}">Client ID</label>
+                    <input type="password" value="{{ client_id }}" id="id-{{ client_id }}" onclick="copyCredential(this.id)" />
+                    <label for"secret-{{ application.client_secret }}">Client Secret</label>
+                    <input type="password" value="{{ client_secret }}" id="secret-{{ client_id }}" onclick="copyCredential(this.id)" />
+                </form>
+                </div>
+
+			{% endif %}
+        </div>
+    </div>
+</div>
+    
+{% endblock %}
