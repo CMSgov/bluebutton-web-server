@@ -14,8 +14,11 @@ def get_url(creds_request_id):
     return "{}/creds/{}".format(settings.HOSTNAME_URL, creds_request_id)
 
 
-def get_creds(creds_request_id):
-    creds_req = ProdCredentialingReqest.objects.get(creds_request_id=creds_request_id)
+def get_creds_by_id(creds_request_id: str):
+    return get_creds_by_obj(ProdCredentialingReqest.objects.get(creds_request_id=creds_request_id))
+
+
+def get_creds_by_obj(creds_req: ProdCredentialingReqest):
     creds_dict = {"user_name": None,
                   "org_name": None,
                   "app_name": None,
