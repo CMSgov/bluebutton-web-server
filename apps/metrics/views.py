@@ -35,7 +35,7 @@ from apps.authorization.models import (
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.fhir.bluebutton.models import (
     Crosswalk,
-    check_crosswalks)
+    get_crosswalk_bene_counts)
 
 import apps.logging.request_logger as bb2logging
 
@@ -344,7 +344,7 @@ class CheckCrosswalksView(APIView):
     ]
 
     def get(self, request, format=None):
-        return Response(check_crosswalks())
+        return Response(get_crosswalk_bene_counts())
 
 
 class AppMetricsView(ListAPIView):
