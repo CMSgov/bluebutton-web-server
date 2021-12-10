@@ -4,7 +4,7 @@ from oauth2_provider.models import get_application_model
 
 from apps.accounts.models import UserProfile
 
-from .models import ProdCredentialingReqest
+from .models import CredentialingReqest
 
 
 Application = get_application_model()
@@ -15,10 +15,10 @@ def get_url(creds_request_id):
 
 
 def get_creds_by_id(creds_request_id: str):
-    return get_creds_by_obj(ProdCredentialingReqest.objects.get(creds_request_id=creds_request_id))
+    return get_creds_by_obj(CredentialingReqest.objects.get(id=creds_request_id))
 
 
-def get_creds_by_obj(creds_req: ProdCredentialingReqest):
+def get_creds_by_obj(creds_req: CredentialingReqest):
     creds_dict = {"user_name": None,
                   "org_name": None,
                   "app_name": None,

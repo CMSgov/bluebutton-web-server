@@ -4,13 +4,13 @@ from oauth2_provider.models import get_application_model
 
 from apps.accounts.models import UserProfile
 
-from .models import ProdCredentialingReqest
+from .models import CredentialingReqest
 from .utils import get_url
 
 Application = get_application_model()
 
 
-class MyCredentialingRequest(ProdCredentialingReqest):
+class MyCredentialingRequest(CredentialingReqest):
     class Meta:
         proxy = True
         app_label = "bluebutton"
@@ -18,13 +18,13 @@ class MyCredentialingRequest(ProdCredentialingReqest):
 
 @admin.register(MyCredentialingRequest)
 class MyCredentialingRequestAdmin(admin.ModelAdmin):
-    list_display = ("application", "creds_request_id",
+    list_display = ("application", "id",
                     "get_user", "get_organization", "get_creds_req_url",
-                    "date_created", "date_fetched",
+                    "created_at", "date_fetched",
                     "last_visit", "visits_count")
     list_filter = ('application__name',)
 
-    search_fields = ('application__name', 'application__user__username', '=creds_request_id')
+    search_fields = ('application__name', 'application__user__username', '=id')
 
     raw_id_fields = ("application",)
 
@@ -54,7 +54,7 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
     get_organization.short_description = "Organization of the application"
 
     def get_creds_req_url(self, obj):
-        return get_url(obj.creds_request_id)
+        return get_url(obj.id)
 
     get_url.admin_order_field = "get_creds_req_url"
     get_url.short_description = "URL for credentials request"
