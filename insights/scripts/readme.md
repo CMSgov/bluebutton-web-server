@@ -16,11 +16,18 @@ The following is a general procedure for converting the logging:
     ```
     fields @timestamp, @message
     | filter message.type = 'global_state_metrics' or message.type = 'global_state_metrics_per_app'
-    | sort @timestamp desc
+    | sort @timestamp asc | limit 10000
     ```
 * Select a Date or Time range.
+  - NOTE: Queries are allowed to run up to 15-minutes. If taking longer, you may need to run in batches using shorter time frames.
 * Click on `Run query`.
 * After the query is run, you can export to a file via the `Export results` pull-down and `Download table (CSV)` option.
+  - NOTE:  For export there is a 10K results limit.
+* Check that the export has the correct number of results, including the header line with:
+    ```
+    wc -l logs-insights-results.csv
+    ```
+
 
 ## 2. If exporting log event records from Splunk
 
@@ -36,6 +43,11 @@ The following is a general procedure for converting the logging:
 * Select "JSON" format.
 * Enter the filename as:  global_state_splunk_export.json
 * In this example, there is only one logging event per day. Others will have multiples.
+* Check that the export has the correct number of results, including the header line with:
+    ```
+    wc -l global_state_splunk_export.json
+    ```
+
 
 
 ## 3. Use the Python utlity program to convert the logging events to a format compatible with BFD-Insights.
@@ -55,7 +67,8 @@ The following is a general procedure for converting the logging:
 ## 4. Upload the converted files to S3:
 
 * You can use the AWS S3 console or the provided Bash script "upload_folders_to_s3.sh" to upload the files. Note that the console method may need additional permissions for your AWS user account on the S3 bucket.
-* This also uses GZIP to compress the files before uploading them.
+* To use the script you will need to be logged in with credentials to run AWS CLI commands.
+* The script also uses GZIP to compress the files before uploading them.
 * The following is an example of using the script to upload the files produced in #3.
     ```
     cd output_dir
