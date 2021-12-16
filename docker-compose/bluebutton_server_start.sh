@@ -30,17 +30,29 @@ else
     echo 'CSS already installed.'
 fi
 
-if [ "${BB20_ENABLE_REMOTE_DEBUG}" = true ]
+if [ "${BB20_ENABLE_PROFILING}" = false ]
 then
-    if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]
+    if [ "${BB20_ENABLE_REMOTE_DEBUG}" = true ]
     then
-        echo "Start bluebutton server with remote debugging and wait attach..."
-        python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 --noreload
+        if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]
+        then
+            echo "Start bluebutton server with remote debugging and wait attach..."
+            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 --noreload
+        else
+            echo "Start bluebutton server with remote debugging..."
+            python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 --noreload
+        fi
     else
-        echo "Start bluebutton server with remote debugging..."
-        python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 --noreload
+        echo "Start bluebutton server ..."
+        python3 manage.py runserver 0.0.0.0:8000
     fi
 else
-    echo "Start bluebutton server ..."
-    python3 manage.py runserver 0.0.0.0:8000
+    echo "Start bluebutton server with runprofileserver ..."
+    if [ -d 'bb2_profile_stats' ]
+    then
+        rm -rf bb2_profile_stats
+    fi
+    mkdir bb2_profile_stats
+    # python3 manage.py runserver 0.0.0.0:8000
+    python3 manage.py runprofileserver --kcachegrind --use-cprofile --prof-path=/code/bb2_profile_stats 0.0.0.0:8000
 fi

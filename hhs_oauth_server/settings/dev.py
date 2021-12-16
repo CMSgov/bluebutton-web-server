@@ -26,6 +26,13 @@ TEMPLATES = [
     },
 ]
 
+DEV_PROFILING_APPS = [
+    # for runprofileserver
+    "django_extensions",
+]
+
+INSTALLED_APPS += DEV_PROFILING_APPS
+
 # Should be set to True in production and False in all other dev and test environments
 # Replace with BLOCK_HTTP_REDIRECT_URIS per CBBP-845 to support mobile apps
 # REQUIRE_HTTPS_REDIRECT_URIS = True

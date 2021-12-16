@@ -157,6 +157,7 @@ django==2.2.24 \
     #   django-bootstrap-form
     #   django-cors-headers
     #   django-debug-toolbar
+    #   django-extensions
     #   django-filter
     #   django-localflavor
     #   django-oauth-toolkit
@@ -187,6 +188,10 @@ django-dotenv==1.4.2 \
     --hash=sha256:3812bb0f4876cf31f902aad140f0645e120e51ee30eb7c40c22050f58a0e4adb \
     --hash=sha256:a9b1b40a70bd321acd231926acedb9bd2c5e873e33a1873b34a7276d196a765e
     # via -r requirements/requirements.in
+django-extensions==3.1.5 \
+    --hash=sha256:28e1e1bf49f0e00307ba574d645b0af3564c981a6dfc87209d48cb98f77d0b1a \
+    --hash=sha256:9238b9e016bb0009d621e05cf56ea8ce5cce9b32e91ad2026996a7377ca28069
+    # via -r requirements/requirements.dev.in
 django-filter==2.4.0 \
     --hash=sha256:84e9d5bb93f237e451db814ed422a3a625751cbc9968b484ecc74964a8696b06 \
     --hash=sha256:e00d32cebdb3d54273c48f4f878f898dced8d5dfaad009438fe61ebdf535ace1
