@@ -2,9 +2,6 @@
 {% load i18n %}
 {% load static %}
 
-{% block navigation %}
-{% endblock %}
-
 {% block bannerTitle %}
 Blue Button 2.0 API Prod Access Credentialing
 {% endblock %}
@@ -31,7 +28,10 @@ The Blue Button 2.0 API Prod Access Credentialing allows you to obtain the OAUTH
             <a href="{{fetch_creds_link}}/?action=fetch" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Fetch Credentials</a>
             <br />
 
-            {% if fetch is not None %}
+            <a href="{{fetch_creds_link}}/?action=download" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Download Credentials</a>
+            <br />
+
+            {% if fetch == "fetch" %}
 
                 <!-- App Credential Section -->
                 <h2 class="ds-u-margin-bottom--2">App Credentials</h2>
@@ -54,7 +54,4 @@ The Blue Button 2.0 API Prod Access Credentialing allows you to obtain the OAUTH
     </div>
 </div>
     
-{% endblock %}
-
-{% block footerBlock %}
 {% endblock %}

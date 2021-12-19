@@ -2,6 +2,7 @@ import apps.logging.request_logger as logging
 import datetime
 
 from django.conf import settings
+from django.http.response import JsonResponse
 from django.shortcuts import render
 
 from rest_framework import exceptions, status
@@ -39,14 +40,16 @@ class CredentialingRequestView(APIView):
             "org_name": ctx.get("org_name", ""),
         }
 
-        if request.query_params.get("action", "") == "fetch":
+        action = request.query_params.get("action", "")
+
+        if action == "fetch" or action == "download":
             if creds_req.date_fetched is None:
                 creds_req.date_fetched = datetime.datetime.now(datetime.timezone.utc)
-                ctx.update(fetch=True)
-                log_dict.update(fetch=True)
+                ctx.update(fetch=action)
+                log_dict.update(action=action)
             else:
                 # already fetched, fetch again forbidden
-                raise exceptions.PermissionDenied("Credentials already fetched, fetching again not allowed.",
+                raise exceptions.PermissionDenied("Credentials already fetched (download), doing it again not allowed.",
                                                   code=status.HTTP_403_FORBIDDEN)
         else:
             # do not give out creds yet if not a fetch request
@@ -59,7 +62,12 @@ class CredentialingRequestView(APIView):
 
         logger.info(log_dict)
 
-        return render(request, 'get_creds.html', ctx)
+        if action == "download":
+            response = JsonResponse(creds_dict)
+            response['Content-Disposition'] = 'attachment; filename="{}.json"'.format(creds_req_id)
+            return response
+        else:
+            return render(request, 'get_creds.html', ctx)
 
     def _is_expired(self, creds_req):
         t_elapsed_since_created = datetime.datetime.now(datetime.timezone.utc) - creds_req.created_at
