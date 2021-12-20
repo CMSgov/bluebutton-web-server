@@ -43,8 +43,8 @@ class CredentialingRequestView(APIView):
         action = request.query_params.get("action", "")
 
         if action == "fetch" or action == "download":
-            if creds_req.date_fetched is None:
-                creds_req.date_fetched = datetime.datetime.now(datetime.timezone.utc)
+            if creds_req.updated_at is None:
+                creds_req.updated_at = datetime.datetime.now(datetime.timezone.utc)
                 ctx.update(fetch=action)
                 log_dict.update(action=action)
             else:

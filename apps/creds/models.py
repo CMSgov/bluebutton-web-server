@@ -17,6 +17,6 @@ class CredentialingReqest(models.Model):
                           verbose_name="Prod Credentialing Request ID",
                           help_text="A UUID assigned to a prod credentialing request")
     created_at = models.DateTimeField(auto_now_add=True)
-    date_fetched = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
     last_visit = models.DateTimeField(null=True, blank=True)
     visits_count = models.IntegerField(default=0)

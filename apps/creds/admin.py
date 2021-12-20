@@ -20,7 +20,7 @@ class MyCredentialingRequest(CredentialingReqest):
 class MyCredentialingRequestAdmin(admin.ModelAdmin):
     list_display = ("application", "id",
                     "get_user", "get_organization", "get_creds_req_url",
-                    "created_at", "date_fetched",
+                    "created_at", "updated_at",
                     "last_visit", "visits_count")
     list_filter = ('application__name',)
 
