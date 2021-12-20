@@ -18,7 +18,7 @@ class MyCredentialingRequest(CredentialingReqest):
 
 @admin.register(MyCredentialingRequest)
 class MyCredentialingRequestAdmin(admin.ModelAdmin):
-    readonly_fields=('updated_at', 'last_visit', 'visits_count',)
+    readonly_fields = ('updated_at', 'last_visit', 'visits_count',)
     list_display = ("application", "id",
                     "get_user", "get_organization", "get_creds_req_url",
                     "created_at", "updated_at",
