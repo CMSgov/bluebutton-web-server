@@ -18,12 +18,12 @@ class MyCredentialingRequest(CredentialingReqest):
 
 @admin.register(MyCredentialingRequest)
 class MyCredentialingRequestAdmin(admin.ModelAdmin):
-    readonly_fields = ('updated_at', 'last_visit', 'visits_count',)
+    readonly_fields = ('id', 'get_user', 'get_organization', 'updated_at', 'last_visit', 'visits_count', 'get_creds_req_url',)
     list_display = ("application", "id",
                     "get_user", "get_organization", "get_creds_req_url",
                     "created_at", "updated_at",
                     "last_visit", "visits_count")
-    list_filter = ('application__name',)
+    list_filter = ('application__user__username',)
 
     search_fields = ('application__name', 'application__user__username', '=id')
 
@@ -57,5 +57,5 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
     def get_creds_req_url(self, obj):
         return get_url(obj.id)
 
-    get_url.admin_order_field = "get_creds_req_url"
-    get_url.short_description = "URL for credentials request"
+    get_creds_req_url.admin_order_field = "get_creds_req_url"
+    get_creds_req_url.short_description = "URL for credentials request"
