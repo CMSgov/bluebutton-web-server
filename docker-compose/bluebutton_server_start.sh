@@ -1,26 +1,18 @@
 #!/bin/sh
 
-DB_MIGRATIONS=${1:-true}
-SUPER_USER_NAME=${2:-'root'}
-SUPER_USER_EMAIL=${3:-'bluebutton@example.com'}
-SUPER_USER_PASSWORD=${4:-'bluebutton123'}
-BB20_ENABLE_REMOTE_DEBUG=${5:-false}
-BB20_REMOTE_DEBUG_WAIT_ATTACH=${6:-false}
-
-echo "DB_MIGRATIONS =" ${DB_MIGRATIONS}
-echo "SUPER_USER_NAME =" ${SUPER_USER_NAME}
-echo "SUPER_USER_EMAIL =" ${SUPER_USER_EMAIL}
-echo "SUPER_USER_PASSWORD =" ${SUPER_USER_PASSWORD}
-echo "BB20_ENABLE_REMOTE_DEBUG =" ${BB20_ENABLE_REMOTE_DEBUG}
-echo "BB20_REMOTE_DEBUG_WAIT_ATTACH =" ${BB20_REMOTE_DEBUG_WAIT_ATTACH}
-echo "DJANGO_SETTINGS_MODULE=" ${DJANGO_SETTINGS_MODULE}
+DB_MIGRATIONS=${DB_MIGRATIONS:-true}
+SUPER_USER_NAME=${SUPER_USER_NAME:-'root'}
+SUPER_USER_EMAIL=${SUPER_USER_EMAIL:-'bluebutton@example.com'}
+SUPER_USER_PASSWORD=${SUPER_USER_PASSWORD:-'bluebutton123'}
+BB20_ENABLE_REMOTE_DEBUG=${BB20_ENABLE_REMOTE_DEBUG:-false}
+BB20_REMOTE_DEBUG_WAIT_ATTACH=${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}
 
 if [ "${DB_MIGRATIONS}" = true ]
 then
     echo "run db image migration and models initialization."
     python manage.py migrate
 
-    echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPERUSER_NAME}', '${SUPERUSER_EMAIL}', '${SUPERUSER_PASSWORD}')" | python manage.py shell
+    echo "from django.contrib.auth.models import User; User.objects.create_superuser('${SUPER_USER_NAME}', '${SUPER_USER_EMAIL}', '${SUPER_USER_PASSWORD}')" | python manage.py shell
     python manage.py create_admin_groups
     python manage.py loaddata scopes.json
     python manage.py create_blue_button_scopes
