@@ -4,12 +4,14 @@ import datetime
 from django.conf import settings
 from django.http.response import JsonResponse
 from django.shortcuts import render
-
+from oauth2_provider.models import get_application_model
 from rest_framework import exceptions, status
 from rest_framework.views import APIView
 
 from apps.creds.utils import get_creds_by_obj, get_url
 from .models import CredentialingReqest
+
+Application = get_application_model()
 
 
 class CredentialingRequestView(APIView):
@@ -35,9 +37,8 @@ class CredentialingRequestView(APIView):
         log_dict = {
             "type": "credentials request",
             "id": creds_req_id,
-            "user_name": ctx.get("user_name", ""),
+            "app_id": ctx.get("app_id", ""),
             "app_name": ctx.get("app_name", ""),
-            "org_name": ctx.get("org_name", ""),
         }
 
         action = request.query_params.get("action", "")
