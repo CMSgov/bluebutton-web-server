@@ -2,7 +2,6 @@
 
 In between the Kinesis Firehose log streams and QuickSights there are Athena views setup for mapping the reporting data.
 
-
 ## Global State per Application View
 
 VIEW NAME:  vw_<test|impl|prod>_global_state_per_app
@@ -11,7 +10,7 @@ FILE:  views_sql/vw_<test|impl|prod>_global_state_per_app.sql
 
 NOTE: There is a separate view for each BB2 ENV logging area.
 
-Summary:
+### Summary:
 
 * This is a JOIN of top level BB2 stats from the `bb2.events_<test|impl|prod>_perf_mon` table with type="global_state_metrics_per_app" and per application stats from the same table with type="global_state_metrics" table in athena.
 
@@ -19,6 +18,10 @@ Summary:
 
 * This excludes our internal testing applications from the per application results. NOTE: This may need updated on occasion for any future changes
 
+* To test or view results via the Athena SQL editor use the following for the target ENV:
+  ```
+  SELECT * FROM "bb2"."vw_<test|impl|prod>_global_state_per_app"
+  ```
 
 ## Global State View
 
@@ -29,6 +32,11 @@ FILE:  views_sql/vw_<test|impl|prod>_global_state.sql
 Summary:
 
 * This utilizis the `vw_<test|impl|prod>_global_state_per_app` view to produce counts of apps and bene data grouped by `vpc`, `year` & `week_number`.
+
+* To test or view results via the Athena SQL editor use the following for the target ENV:
+  ```
+  SELECT * FROM "bb2"."vw_<test|impl|prod>_global_state"
+  ```
 
 
 # HOW-TO:  Update Athena Views For SQL Changes
@@ -66,4 +74,3 @@ The following is a general procedure for updating Athena views and QuickSight da
 15. Commit your SQL file changes back to the repository via PR.
 
 NOTE: When editing SQL an alternate online formatter can be used vs. the built-in one in Athena.
-
