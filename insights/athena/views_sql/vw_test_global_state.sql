@@ -8,10 +8,10 @@ OR REPLACE VIEW vw_test_global_state AS
 SELECT 
   *, 
   (
-    total_crosswalk_real_bene - app_grants_all_real_bene
+    total_crosswalk_real_bene - app_grant_all_real_bene
   ) diff_total_crosswalk_vs_grant_and_archived_real_bene, 
   (
-    total_crosswalk_synthetic_bene - app_grants_all_synthetic_bene
+    total_crosswalk_synthetic_bene - app_grant_all_synthetic_bene
   ) diff_total_crosswalk_vs_grant_and_archived_synthetic_bene 
 FROM 
   (
@@ -105,12 +105,12 @@ FROM
         (
           CASE WHEN (app_active = true) THEN app_real_bene_cnt END
         )
-      ) app_grants_active_real_bene, 
+      ) app_grant_active_real_bene, 
       "sum"(
         (
           CASE WHEN (app_active = true) THEN app_synth_bene_cnt END
         )
-      ) app_grants_active_synthetic_bene, 
+      ) app_grant_active_synthetic_bene, 
       "count"(*) app_all, 
       "count"(
         (
@@ -139,8 +139,8 @@ FROM
           ) THEN 1 END
         )
       ) app_all_require_demographic, 
-      "sum"(app_grant_and_archived_real_bene_deduped_count) app_grants_all_real_bene, 
-      "sum"(app_grant_and_archived_synthetic_bene_deduped_count) app_grants_all_synthetic_bene 
+      "sum"(app_grant_and_archived_real_bene_deduped_count) app_grant_all_real_bene, 
+      "sum"(app_grant_and_archived_synthetic_bene_deduped_count) app_grant_all_synthetic_bene 
     FROM 
       vw_test_global_state_per_app 
     GROUP BY 
