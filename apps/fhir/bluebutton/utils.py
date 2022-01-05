@@ -595,7 +595,6 @@ def build_oauth_resource(request, v2=False, format_type="json"):
     """
     endpoints = build_endpoint_info(OrderedDict(), v2,
                                     issuer=base_issuer(request))
-    logger.info("\nEndpoints:%s" % endpoints)
 
     if format_type.lower() == "xml":
 
