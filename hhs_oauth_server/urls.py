@@ -24,7 +24,6 @@ urlpatterns = [
     url(r'^v1/o/', include('apps.dot_ext.urls')),
     url(r'^v1/o/', include('apps.authorization.urls')),
     url(r'^v1/', include('apps.openapi.urls')),
-
     url(r'^v2/accounts/', include('apps.accounts.v2.urls')),
     url(r'^v2/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo_v2'),
     url(r'^v2/fhir/metadata$', fhir_conformance_v2, name='fhir_conformance_metadata_v2'),
@@ -32,13 +31,10 @@ urlpatterns = [
     url(r'^v2/o/', include('apps.dot_ext.v2.urls')),
     url(r'^v2/o/', include('apps.authorization.v2.urls')),
     url(r'^v2/', include('apps.openapi.urls')),
-
     url(r'^docs/', include('apps.docs.urls')),
-
     url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
-
-
     url(r'^' + ADMIN_REDIRECTOR + 'admin/', admin.site.urls),
+    url(r'^creds', include('apps.creds.urls')),
 ]
 
 # If running in local development, add the media and static urls:
