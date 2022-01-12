@@ -82,9 +82,13 @@
 
 		</main>
 
-		{% include "include/footer.html" %}
+        {% block footerBlock %}
 
-		{% include "include/foot.html" %}
+            {% include "include/footer.html" %}
+
+            {% include "include/foot.html" %}
+
+        {% endblock %}
 
 		{% block ExtraJSFoot %}
 

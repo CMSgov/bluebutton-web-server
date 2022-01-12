@@ -183,6 +183,7 @@ INSTALLED_APPS = [
     "axes",
     "apps.logging",
     "apps.openapi",
+    "apps.creds",
 ]
 
 DEV_SPECIFIC_APPS = [
@@ -668,3 +669,8 @@ else:
     else:
         # This sets up a media path in urls.py when set for local storage.
         IS_MEDIA_URL_LOCAL = True
+
+# PROD Access Credentialing
+# TTL (time to live, in minutes) for a bb2 generated unique and one time use url to be shared with on boarding app
+# for obtaining app credentials i.e. client id and client secret
+CREDENTIALS_REQUEST_URL_TTL = 5

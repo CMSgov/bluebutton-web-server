@@ -25,6 +25,7 @@ AUDIT_GLOBAL_STATE_METRICS_LOGGER = "audit.global_state_metrics"
 AUDIT_REQUEST_LOGGER = "audit.request_logger"
 AUDIT_WAFFLE_EVENT_LOGGER = "audit.waffle.event"
 AUDIT_AUTHFLOW_ID_CLEANUP_LOGGER = "audit.authflow.uuid.cleanup"
+AUDIT_CREDS_REQUEST_LOGGER = "audit.creds.request"
 PERFORMANCE_LOGGER = 'performance'
 
 LOGGER_NAMES = [
