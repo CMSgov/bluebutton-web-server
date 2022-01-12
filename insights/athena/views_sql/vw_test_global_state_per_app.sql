@@ -8,8 +8,6 @@ CREATE
 OR REPLACE VIEW vw_test_global_state_per_app AS 
 SELECT 
   t1.vpc, 
-  t1.year, 
-  t1.week_number, 
   t1.start_date, 
   t1.end_date, 
   t1.report_date, 
@@ -69,15 +67,9 @@ FROM
     (
       SELECT 
         vpc, 
-        year,
-        week_number, 
-        (
-          "min"(e_date) - INTERVAL '1' DAY
-        ) start_date, 
-        (
-          "max"(e_date) - INTERVAL '1' DAY
-        ) end_date, 
-        "max"(e_date) report_date, 
+        e_start_date start_date, 
+        e_end_date end_date, 
+        "max"(e_date) + INTERVAL '1' DAY report_date, 
         "max"(group_timestamp) max_group_timestamp, 
         "max"(real_bene_cnt) max_real_bene_cnt, 
         "max"(synth_bene_cnt) max_synth_bene_cnt, 
@@ -111,24 +103,12 @@ FROM
             CAST(
               "from_iso8601_timestamp"(time_of_event) AS date
             ) e_date, 
-            EXTRACT(
-              YEAR 
-              FROM 
-                (
-                  CAST(
-                    "from_iso8601_timestamp"(time_of_event) AS date
-                  ) - INTERVAL '1' DAY
-                )
-            ) year, 
-            EXTRACT(
-              WEEK 
-              FROM 
-                (
-                  CAST(
-                    "from_iso8601_timestamp"(time_of_event) AS date
-                  ) - INTERVAL '1' DAY
-                )
-            ) week_number, 
+            date_trunc('week', CAST(
+              "from_iso8601_timestamp"(time_of_event) AS date
+            )) e_start_date, 
+            date_trunc('week', CAST(
+              "from_iso8601_timestamp"(time_of_event) AS date
+            ))  + INTERVAL '6' DAY e_end_date, 
             group_timestamp, 
             real_bene_cnt, 
             synth_bene_cnt, 
@@ -160,8 +140,8 @@ FROM
         ) 
       GROUP BY 
         vpc, 
-        year,
-        week_number
+        e_start_date,
+        e_end_date
     ) t1 
     INNER JOIN (
       SELECT DISTINCT 
