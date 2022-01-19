@@ -96,5 +96,3 @@ def lambda_handler(event, context):
         "DROP_OUTPUT_FILENAME": drop_output_filename,
         "CREATE_OUTPUT_FILENAME": create_output_filename,
     }
-
-    return
