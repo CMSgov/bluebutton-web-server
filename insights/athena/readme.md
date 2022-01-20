@@ -2,31 +2,41 @@
 
 In between the Kinesis Firehose log streams and QuickSights there are Athena views setup for mapping the reporting data.
 
-
 ## Global State per Application View
 
-VIEW NAME:  vw_global_state_per_app
+VIEW NAME:  vw_<test|impl|prod>_global_state_per_app
 
-FILE:  views_sql/vw_global_state_per_app.sql
+FILE:  views_sql/vw_<test|impl|prod>_global_state_per_app.sql
 
-Summary:
+NOTE: There is a separate view for each BB2 ENV logging area.
 
-* This is a JOIN of top level BB2 stats from the `bb2.events_global_state` table and per application stats from the `bb2.events_global_state_apps` table in athena.
+### Summary:
 
-* This returns sets of data grouped by `vpc` and `week_number`.
+* This is a JOIN of top level BB2 stats from the `bb2.events_<test|impl|prod>_perf_mon` table with type="global_state_metrics_per_app" and per application stats from the same table with type="global_state_metrics" table in athena.
 
-* This excludes our internal testing applications from the per application results.
+* This returns sets of data grouped by `vpc`, `year` and `week_number`.
 
+* This excludes our internal testing applications from the per application results. NOTE: This may need updated on occasion for any future changes
+
+* To test or view results via the Athena SQL editor use the following for the target ENV:
+  ```
+  SELECT * FROM "bb2"."vw_<test|impl|prod>_global_state_per_app"
+  ```
 
 ## Global State View
 
-VIEW NAME:  vw_global_state
+VIEW NAME:  vw_<test|impl|prod>_global_state
 
-FILE:  views_sql/vw_global_state.sql
+FILE:  views_sql/vw_<test|impl|prod>_global_state.sql
 
 Summary:
 
-* This utilizis the `vw_global_state_per_app` view to produce counts of apps and bene data grouped by `vpc` & `week_number`.
+* This utilizis the `vw_<test|impl|prod>_global_state_per_app` view to produce counts of apps and bene data grouped by `vpc`, `year` & `week_number`.
+
+* To test or view results via the Athena SQL editor use the following for the target ENV:
+  ```
+  SELECT * FROM "bb2"."vw_<test|impl|prod>_global_state"
+  ```
 
 
 # HOW-TO:  Update Athena Views For SQL Changes
@@ -62,3 +72,5 @@ The following is a general procedure for updating Athena views and QuickSight da
 14. Edit your existing Analyses that are utlizing the dataset related to the changes.
 
 15. Commit your SQL file changes back to the repository via PR.
+
+NOTE: When editing SQL an alternate online formatter can be used vs. the built-in one in Athena.
