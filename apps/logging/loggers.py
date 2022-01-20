@@ -13,6 +13,8 @@ from apps.dot_ext.models import (
     get_application_require_demographic_scopes_count,
 )
 from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
+from apps.accounts.models import get_developer_counts
+
 from apps.logging.utils import format_timestamp
 
 
@@ -44,6 +46,8 @@ def log_global_state_metrics(group_timestamp=None):
     require_demographic_scopes_count = (
         get_application_require_demographic_scopes_count()
     )
+
+    developer_counts = get_developer_counts()
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
@@ -102,6 +106,11 @@ def log_global_state_metrics(group_timestamp=None):
         "global_apps_inactive_cnt": application_counts.get("inactive_cnt", None),
         "global_apps_require_demographic_scopes_cnt": require_demographic_scopes_count,
         "global_state_metrics_total_elapsed": elapsed_time,
+        "global_developer_count": developer_counts.get("total", None),
+        "global_developer_with_registered_app_count": developer_counts.get("with_registered_app", None),
+        "global_developer_with_first_api_call_count": developer_counts.get("with_first_api_call", None),
+        "global_developer_distinct_organization_name_count": developer_counts.get("distinct_organization_name", None),
+        "global_developer_counts_elapsed": developer_counts.get("elapsed", None),
     }
 
     logger.info(log_dict)

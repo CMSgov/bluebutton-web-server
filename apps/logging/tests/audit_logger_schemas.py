@@ -612,6 +612,10 @@ GLOBAL_STATE_METRICS_LOG_SCHEMA = {
         "global_apps_inactive_cnt": {"type": "integer"},
         "global_apps_require_demographic_scopes_cnt": {"type": "integer"},
         "global_state_metrics_total_elapsed": {"type": "number"},
+        "global_developer_count": {"type": "number"},
+        "global_developer_with_registered_app_count": {"type": "number"},
+        "global_developer_with_first_api_call_count": {"type": "number"},
+        "global_developer_distinct_organization_name_count": {"type": "number"},
     },
     "required": [
         "type",
@@ -646,6 +650,11 @@ GLOBAL_STATE_METRICS_LOG_SCHEMA = {
         "global_apps_inactive_cnt",
         "global_apps_require_demographic_scopes_cnt",
         "global_state_metrics_total_elapsed",
+        "global_developer_count",
+        "global_developer_with_registered_app_count",
+        "global_developer_with_first_api_call_count",
+        "global_developer_distinct_organization_name_count",
+        "global_developer_counts_elapsed",
     ],
 }
 
@@ -692,7 +701,7 @@ GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA = {
         "user_username": {"type": "string"},
         "user_date_joined": {"type": "string"},
         "user_last_login": {"type": "null"},
-        "user_organization": {"type": "null"},
+        "user_organization": {"type": "string"},
     },
     "required": [
         "type",

@@ -5,6 +5,7 @@ import jsonschema
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test.client import Client
+from django.utils import timezone
 from jsonschema import validate
 from io import StringIO
 from oauth2_provider.models import get_access_token_model, get_application_model
@@ -101,6 +102,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_apps_active_cnt",
             "global_apps_inactive_cnt",
             "global_apps_require_demographic_scopes_cnt",
+            "global_developer_count",
+            "global_developer_with_registered_app_count",
+            "global_developer_with_first_api_call_count",
+            "global_developer_distinct_organization_name_count",
         ]
 
         for f in fields_list:
@@ -210,7 +215,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         """
         # Create 5x synth benes -20000000000000 thru -20000000000004 connected to app0
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="-2000000000000", count=5, app_name="app0"
+            start_fhir_id="-2000000000000", count=5, app_name="app0",
+            app_user_organization="app0-org"
         )
 
         # Add app & user tuples to remove in TEST #3
@@ -220,17 +226,20 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         # Create 3x real benes 40000000000000 thru 40000000000002 connected to app0
         self._create_range_users_app_token_grant(
-            start_fhir_id="4000000000000", count=3, app_name="app0"
+            start_fhir_id="4000000000000", count=3, app_name="app0",
+            app_user_organization="app0-org"
         )
 
         # Create 2x synth benes -30000000000000 thru -30000000000001 connected to app1
         self._create_range_users_app_token_grant(
-            start_fhir_id="-3000000000000", count=2, app_name="app1"
+            start_fhir_id="-3000000000000", count=2, app_name="app1",
+            app_user_organization="app1-org"
         )
 
         # Create 5x real benes 50000000000000 thru 50000000000004 connected to app1
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="5000000000000", count=5, app_name="app1"
+            start_fhir_id="5000000000000", count=5, app_name="app1",
+            app_user_organization="app1-org"
         )
 
         # Add app & user tuples to remove in TEST #3
@@ -301,6 +310,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "global_apps_active_cnt": 2,
                 "global_apps_inactive_cnt": 0,
                 "global_apps_require_demographic_scopes_cnt": 2,
+                "global_developer_count": 2,
+                "global_developer_with_registered_app_count": 2,
+                "global_developer_with_first_api_call_count": 0,
+                "global_developer_distinct_organization_name_count": 2,
             }
         )
 
@@ -358,7 +371,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         """
         # Create 2x synth benes -40000000000000 thru -40000000000001 connected to app3
         app, ac_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="-4000000000000", count=2, app_name="app2"
+            start_fhir_id="-4000000000000", count=2, app_name="app2",
+            app_user_organization="app2-org"
         )
 
         # Set user_app2 to not require demographic scopes
@@ -393,6 +407,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "global_apps_active_cnt": 2,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 2,
+                "global_developer_count": 3,
+                "global_developer_with_registered_app_count": 3,
+                "global_developer_with_first_api_call_count": 0,
+                "global_developer_distinct_organization_name_count": 3,
             }
         )
 
@@ -461,6 +479,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "global_apps_active_cnt": 2,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 2,
+                "global_developer_count": 3,
+                "global_developer_with_registered_app_count": 3,
+                "global_developer_with_first_api_call_count": 0,
+                "global_developer_distinct_organization_name_count": 3,
             }
         )
 
@@ -497,32 +519,38 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         """
         # Create 7x synth benes -60000000000000 thru -60000000000006 connected to app0, app1 and app3
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="-6000000000000", count=7, app_name="app0"
+            start_fhir_id="-6000000000000", count=7, app_name="app0",
+            app_user_organization="app0-org"
         )
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="-6000000000000", count=7, app_name="app1"
+            start_fhir_id="-6000000000000", count=7, app_name="app1",
+            app_user_organization="app1-org"
         )
 
         # Keep user_dict for TEST #5
         save_synth_user_dict = user_dict
 
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="-6000000000000", count=7, app_name="app3"
+            start_fhir_id="-6000000000000", count=7, app_name="app3",
+            app_user_organization="app3-org"
         )
 
         # Create 10x real benes 60000000000000 thru 60000000000009 connected to app0, app1 and app3
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="6000000000000", count=10, app_name="app0"
+            start_fhir_id="6000000000000", count=10, app_name="app0",
+            app_user_organization="app0-org"
         )
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="6000000000000", count=10, app_name="app1"
+            start_fhir_id="6000000000000", count=10, app_name="app1",
+            app_user_organization="app1-org"
         )
 
         # Keep user_dict for TEST #6
         save_real_user_dict = user_dict
 
         app, user_dict = self._create_range_users_app_token_grant(
-            start_fhir_id="6000000000000", count=10, app_name="app3"
+            start_fhir_id="6000000000000", count=10, app_name="app3",
+            app_user_organization="app3-org"
         )
 
         call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
@@ -552,6 +580,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "global_apps_active_cnt": 3,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 3,
+                "global_developer_count": 4,
+                "global_developer_with_registered_app_count": 4,
+                "global_developer_with_first_api_call_count": 0,
+                "global_developer_distinct_organization_name_count": 4,
             }
         )
 
@@ -661,6 +693,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "global_apps_active_cnt": 3,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 3,
+                "global_developer_count": 4,
+                "global_developer_with_registered_app_count": 4,
+                "global_developer_with_first_api_call_count": 0,
+                "global_developer_distinct_organization_name_count": 4,
             }
         )
 
@@ -732,6 +768,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "global_apps_active_cnt": 3,
                 "global_apps_inactive_cnt": 1,
                 "global_apps_require_demographic_scopes_cnt": 3,
+                "global_developer_count": 4,
+                "global_developer_with_registered_app_count": 4,
+                "global_developer_with_first_api_call_count": 0,
+                "global_developer_distinct_organization_name_count": 4,
             }
         )
 
@@ -758,3 +798,71 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         validate_apps_dict["app3"]["token_table_count"] = 17
 
         self._validate_global_state_per_app_metrics_log(validate_apps_dict)
+
+        """
+        TEST #7:
+
+        Tests for addition of global developer counts per BB2-944
+        """
+        # Test 7A: Test changing from 4 to 2 distinct organizations.
+        self._create_or_update_development_user(username="user_app0", organization="org one")
+        self._create_or_update_development_user(username="user_app1", organization="org one")
+        self._create_or_update_development_user(username="user_app2", organization="org two")
+        self._create_or_update_development_user(username="user_app3", organization="org two")
+
+        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+
+        validate_global_dict = {
+            "real_bene_cnt": 20,  # Count reduced by 1
+            "synth_bene_cnt": 17,
+            "crosswalk_real_bene_count": 20,
+            "crosswalk_synthetic_bene_count": 17,
+            "crosswalk_table_count": 38,
+            "crosswalk_archived_table_count": 1,
+            "grant_real_bene_count": 33,  # Count is reduced by 3 (1 x 3 app grants)
+            "grant_synthetic_bene_count": 24,
+            "grant_table_count": 63,
+            "grant_archived_table_count": 5,
+            "grant_real_bene_deduped_count": 15,  # Count reduced by 1
+            "grant_synthetic_bene_deduped_count": 12,
+            "grantarchived_real_bene_deduped_count": 2,
+            "grantarchived_synthetic_bene_deduped_count": 3,
+            "grant_and_archived_real_bene_deduped_count": 17,  # Count reduced by 1
+            "grant_and_archived_synthetic_bene_deduped_count": 15,
+            "token_real_bene_deduped_count": 15,  # Count reduced by 1
+            "token_synthetic_bene_deduped_count": 12,
+            "token_table_count": 63,
+            "token_archived_table_count": 5,
+            "global_apps_active_cnt": 3,
+            "global_apps_inactive_cnt": 1,
+            "global_apps_require_demographic_scopes_cnt": 3,
+            "global_developer_count": 4,
+            "global_developer_with_registered_app_count": 4,
+            "global_developer_with_first_api_call_count": 0,
+            "global_developer_distinct_organization_name_count": 2,
+        }
+        self._validate_global_state_metrics_log(validate_global_dict)
+
+        # Test 7B: Test changing from 4 to 2 apps with a first api call
+        app = Application.objects.get(name="app0")
+        app.first_active = timezone.now()
+        app.save()
+        app = Application.objects.get(name="app2")
+        app.first_active = timezone.now()
+        app.save()
+
+        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+
+        validate_global_dict["global_developer_with_first_api_call_count"] = 2
+        self._validate_global_state_metrics_log(validate_global_dict)
+
+        # Test 7C: Test adding 3 development users to another org that do name have an application yet.
+        self._create_or_update_development_user(username="user_no_app0", organization="org three")
+        self._create_or_update_development_user(username="user_no_app1", organization="org three")
+        self._create_or_update_development_user(username="user_no_app2", organization="org three")
+
+        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+
+        validate_global_dict["global_developer_count"] = 7
+        validate_global_dict["global_developer_distinct_organization_name_count"] = 3
+        self._validate_global_state_metrics_log(validate_global_dict)
