@@ -19,8 +19,18 @@ class CredentialingRequestView(APIView):
         logger = logging.getLogger(logging.AUDIT_CREDS_REQUEST_LOGGER, request)
 
         creds_req_id = kwargs.get("prod_cred_req_id")
+        creds_req_url = get_url(creds_req_id)
 
-        creds_req = self._get_creds_req(creds_req_id)
+        log_dict = {
+            "type": "credentials debug",
+            "creds_req_link": creds_req_url,
+        }
+
+        log_dict.update(kwargs)
+
+        logger.info(log_dict)
+
+        creds_req = self._get_creds_req(creds_req_id, logger)
 
         # check if expired
         if self._is_expired(creds_req):
@@ -31,7 +41,7 @@ class CredentialingRequestView(APIView):
         creds_req.visits_count = creds_req.visits_count + 1
         creds_req.last_visit = datetime.datetime.now(datetime.timezone.utc)
 
-        ctx = {"fetch_creds_link": get_url(creds_req_id)}
+        ctx = {"fetch_creds_link": creds_req_url}
         ctx.update(creds_dict)
 
         log_dict = {
@@ -74,13 +84,22 @@ class CredentialingRequestView(APIView):
         t_elapsed_since_created = datetime.datetime.now(datetime.timezone.utc) - creds_req.created_at
         return t_elapsed_since_created.seconds > settings.CREDENTIALS_REQUEST_URL_TTL * 60
 
-    def _get_creds_req(self, id):
+    def _get_creds_req(self, id, logger):
 
         if not id:
             # bad request
             raise exceptions.ValidationError("Credentialing request ID missing.", code=status.HTTP_400_BAD_REQUEST)
 
         creds_req = None
+
+        log_dict = {
+            "type": "credentials request",
+            "id": id,
+            "app_id": "DEBUG",
+            "app_name": "DEBUG",
+        }
+
+        logger.info(log_dict)
 
         try:
             creds_req = CredentialingReqest.objects.get(id=id)
