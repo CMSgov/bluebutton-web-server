@@ -8,7 +8,7 @@ from oauth2_provider.models import get_application_model
 from rest_framework import exceptions, status
 from rest_framework.views import APIView
 
-from apps.creds.utils import get_creds_by_obj, get_url
+from apps.creds.utils import get_creds_by_obj
 from .models import CredentialingReqest
 
 Application = get_application_model()
@@ -19,20 +19,22 @@ class CredentialingRequestView(APIView):
         logger = logging.getLogger(logging.AUDIT_CREDS_REQUEST_LOGGER, request)
 
         creds_req_id = kwargs.get("prod_cred_req_id")
-
         creds_req = self._get_creds_req(creds_req_id)
 
         # check if expired
         if self._is_expired(creds_req):
-            raise exceptions.PermissionDenied("Generated credentialing request expired.", code=status.HTTP_403_FORBIDDEN)
+            raise exceptions.PermissionDenied(
+                "Generated credentialing request expired.",
+                code=status.HTTP_403_FORBIDDEN,
+            )
 
         creds_dict = get_creds_by_obj(creds_req)
         # fetch creds request and update visits count and relevant timestamps
         creds_req.visits_count = creds_req.visits_count + 1
         creds_req.last_visit = datetime.datetime.now(datetime.timezone.utc)
 
-        ctx = {"fetch_creds_link": get_url(creds_req_id)}
-        ctx.update(creds_dict)
+        ctx = creds_dict
+        ctx.update({"creds_req_id": creds_req_id})
 
         log_dict = {
             "type": "credentials request",
@@ -50,8 +52,10 @@ class CredentialingRequestView(APIView):
                 log_dict.update(action=action)
             else:
                 # already fetched, fetch again forbidden
-                raise exceptions.PermissionDenied("Credentials already fetched (download), doing it again not allowed.",
-                                                  code=status.HTTP_403_FORBIDDEN)
+                raise exceptions.PermissionDenied(
+                    "Credentials already fetched (download), doing it again not allowed.",
+                    code=status.HTTP_403_FORBIDDEN,
+                )
         else:
             # do not give out creds yet if not a fetch request
             if "client_id" in ctx:
@@ -65,20 +69,28 @@ class CredentialingRequestView(APIView):
 
         if action == "download":
             response = JsonResponse(creds_dict)
-            response['Content-Disposition'] = 'attachment; filename="{}.json"'.format(creds_req_id)
+            response["Content-Disposition"] = 'attachment; filename="{}.json"'.format(
+                creds_req_id
+            )
             return response
         else:
-            return render(request, 'get_creds.html', ctx)
+            return render(request, "get_creds.html", ctx)
 
     def _is_expired(self, creds_req):
-        t_elapsed_since_created = datetime.datetime.now(datetime.timezone.utc) - creds_req.created_at
-        return t_elapsed_since_created.seconds > settings.CREDENTIALS_REQUEST_URL_TTL * 60
+        t_elapsed_since_created = (
+            datetime.datetime.now(datetime.timezone.utc) - creds_req.created_at
+        )
+        return (
+            t_elapsed_since_created.seconds > settings.CREDENTIALS_REQUEST_URL_TTL * 60
+        )
 
     def _get_creds_req(self, id):
 
         if not id:
             # bad request
-            raise exceptions.ValidationError("Credentialing request ID missing.", code=status.HTTP_400_BAD_REQUEST)
+            raise exceptions.ValidationError(
+                "Credentialing request ID missing.", code=status.HTTP_400_BAD_REQUEST
+            )
 
         creds_req = None
 
