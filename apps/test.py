@@ -11,11 +11,14 @@ from django.utils.text import slugify
 from django.conf import settings
 from oauth2_provider.compat import parse_qs, urlparse
 
-from apps.fhir.bluebutton.models import Crosswalk
 from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
+from apps.dot_ext.utils import (
+    remove_application_user_pair_tokens_data_access,
+)
+from apps.fhir.bluebutton.models import Crosswalk
 
 
 class BaseApiTest(TestCase):
@@ -34,6 +37,7 @@ class BaseApiTest(TestCase):
         fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
         user_hicn_hash=test_hicn_hash,
         user_mbi_hash=test_mbi_hash,
+        user_type=None,
         **extra_fields
     ):
         """
@@ -51,6 +55,14 @@ class BaseApiTest(TestCase):
             _user_mbi_hash=user_mbi_hash,
         )
         cw.save()
+        # Create ben user profile, if it doesn't exist
+        if user_type:
+            try:
+                UserProfile.objects.get(user=user)
+            except UserProfile.DoesNotExist:
+                UserProfile.objects.create(user=user,
+                                           user_type="BEN",
+                                           create_applications=False)
         return user
 
     def _create_group(self, name):
@@ -373,6 +385,10 @@ class BaseApiTest(TestCase):
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
             )
+            # Create bene user profile, if it doesn't exist
+            UserProfile.objects.create(user=user,
+                                       user_type="BEN",
+                                       create_applications=False)
 
         access_token = self._get_access_token_authcode_confidential(
             username=username, user_passwd="xxx123", application=application
@@ -402,3 +418,14 @@ class BaseApiTest(TestCase):
 
             user_dict[fhir_id] = user
         return app, user_dict
+
+    def _revoke_range_users_app_token_grant(self, start_fhir_id, count, app_name):
+        """
+        Helper method that revokes a RANGE of users (by fhir_id) connected to an application.
+        This removes Access Token, and Grant. Useful for testing archived tokens and grants.
+        """
+        for i in range(0, count):
+            fhir_id = start_fhir_id + str(i)
+            cw = Crosswalk.objects.get(_fhir_id=fhir_id)
+            app = Application.objects.get(name=app_name)
+            remove_application_user_pair_tokens_data_access(app, cw.user)
