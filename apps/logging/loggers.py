@@ -8,9 +8,10 @@ from apps.authorization.models import get_grant_bene_counts
 
 from apps.dot_ext.models import (
     Application,
-    get_token_bene_counts,
     get_application_counts,
     get_application_require_demographic_scopes_count,
+    get_beneficiary_counts,
+    get_token_bene_counts,
 )
 from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
 from apps.accounts.models import get_developer_counts
@@ -24,14 +25,15 @@ from apps.logging.utils import format_timestamp
 logger = logging.getLogger(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
 
 
-def log_global_state_metrics(group_timestamp=None):
+def log_global_state_metrics(group_timestamp=None, report_flag=True):
     """
     For use in apps/logging/management/commands/log_global_metrics.py management command
     NOTE:  print statements are for output when run via Jenkins
     """
-    print("---")
-    print("---RUNNING DJANGO COMMAND:  log_global_state_metrics")
-    print("---")
+    if report_flag:
+        print("---")
+        print("---RUNNING DJANGO COMMAND:  log_global_state_metrics")
+        print("---")
 
     start_time = datetime.utcnow().timestamp()
 
@@ -48,6 +50,8 @@ def log_global_state_metrics(group_timestamp=None):
     )
 
     developer_counts = get_developer_counts()
+
+    beneficiary_counts = get_beneficiary_counts()
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
@@ -99,6 +103,12 @@ def log_global_state_metrics(group_timestamp=None):
         ),
         "token_table_count": access_token_counts.get("total", None),
         "token_archived_table_count": access_token_counts.get("archived_total", None),
+        "token_real_bene_app_pair_deduped_count": access_token_counts.get(
+            "real_bene_app_pair_deduped", None
+        ),
+        "token_synthetic_bene_app_pair_deduped_count": access_token_counts.get(
+            "synthetic_bene_app_pair_deduped", None
+        ),
         "token_deduped_counts_elapsed": access_token_counts.get(
             "deduped_elapsed", None
         ),
@@ -107,21 +117,93 @@ def log_global_state_metrics(group_timestamp=None):
         "global_apps_require_demographic_scopes_cnt": require_demographic_scopes_count,
         "global_state_metrics_total_elapsed": elapsed_time,
         "global_developer_count": developer_counts.get("total", None),
-        "global_developer_with_registered_app_count": developer_counts.get("with_registered_app", None),
-        "global_developer_with_first_api_call_count": developer_counts.get("with_first_api_call", None),
-        "global_developer_distinct_organization_name_count": developer_counts.get("distinct_organization_name", None),
+        "global_developer_with_registered_app_count": developer_counts.get(
+            "with_registered_app", None
+        ),
+        "global_developer_with_first_api_call_count": developer_counts.get(
+            "with_first_api_call", None
+        ),
+        "global_developer_distinct_organization_name_count": developer_counts.get(
+            "distinct_organization_name", None
+        ),
         "global_developer_counts_elapsed": developer_counts.get("elapsed", None),
+        "global_beneficiary_count": beneficiary_counts.get("total", None),
+        "global_beneficiary_real_count": beneficiary_counts.get("real", None),
+        "global_beneficiary_synthetic_count": beneficiary_counts.get("synthetic", None),
+        "global_beneficiary_real_grant_to_apps_eq_1_count": beneficiary_counts.get(
+            "real_grant_to_apps_eq_1", None
+        ),
+        "global_beneficiary_synthetic_grant_to_apps_eq_1_count": beneficiary_counts.get(
+            "synthetic_grant_to_apps_eq_1", None
+        ),
+        "global_beneficiary_real_grant_to_apps_eq_2_count": beneficiary_counts.get(
+            "real_grant_to_apps_eq_2", None
+        ),
+        "global_beneficiary_synthetic_grant_to_apps_eq_2_count": beneficiary_counts.get(
+            "synthetic_grant_to_apps_eq_2", None
+        ),
+        "global_beneficiary_real_grant_to_apps_eq_3_count": beneficiary_counts.get(
+            "real_grant_to_apps_eq_3", None
+        ),
+        "global_beneficiary_synthetic_grant_to_apps_eq_3_count": beneficiary_counts.get(
+            "synthetic_grant_to_apps_eq_3", None
+        ),
+        "global_beneficiary_real_grant_to_apps_eq_4thru5_count": beneficiary_counts.get(
+            "real_grant_to_apps_eq_4thru5", None
+        ),
+        "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count": beneficiary_counts.get(
+            "synthetic_grant_to_apps_eq_4thru5", None
+        ),
+        "global_beneficiary_real_grant_to_apps_gt_5_count": beneficiary_counts.get(
+            "real_grant_to_apps_gt_5", None
+        ),
+        "global_beneficiary_synthetic_grant_to_apps_gt_5_count": beneficiary_counts.get(
+            "synthetic_grant_to_apps_gt_5", None
+        ),
+        "global_beneficiary_real_grant_archived_to_apps_eq_1_count": beneficiary_counts.get(
+            "real_grant_archived_to_apps_eq_1", None
+        ),
+        "global_beneficiary_synthetic_grant_archived_to_apps_eq_1_count": beneficiary_counts.get(
+            "synthetic_grant_archived_to_apps_eq_1", None
+        ),
+        "global_beneficiary_real_grant_archived_to_apps_eq_2_count": beneficiary_counts.get(
+            "real_grant_archived_to_apps_eq_2", None
+        ),
+        "global_beneficiary_synthetic_grant_archived_to_apps_eq_2_count": beneficiary_counts.get(
+            "synthetic_grant_archived_to_apps_eq_2", None
+        ),
+        "global_beneficiary_real_grant_archived_to_apps_eq_3_count": beneficiary_counts.get(
+            "real_grant_archived_to_apps_eq_3", None
+        ),
+        "global_beneficiary_synthetic_grant_archived_to_apps_eq_3_count": beneficiary_counts.get(
+            "synthetic_grant_archived_to_apps_eq_3", None
+        ),
+        "global_beneficiary_real_grant_archived_to_apps_eq_4thru5_count": beneficiary_counts.get(
+            "real_grant_archived_to_apps_eq_4thru5", None
+        ),
+        "global_beneficiary_synthetic_grant_archived_to_apps_eq_4thru5_count": beneficiary_counts.get(
+            "synthetic_grant_archived_to_apps_eq_4thru5", None
+        ),
+        "global_beneficiary_real_grant_archived_to_apps_gt_5_count": beneficiary_counts.get(
+            "real_grant_archived_to_apps_gt_5", None
+        ),
+        "global_beneficiary_synthetic_grant_archived_to_apps_gt_5_count": beneficiary_counts.get(
+            "synthetic_grant_archived_to_apps_gt_5", None
+        ),
+        "global_beneficiary_counts_elapsed": beneficiary_counts.get("elapsed", None),
     }
 
     logger.info(log_dict)
 
-    print("---")
-    print("---    Wrote top level log entry: ", log_dict)
-    print("---")
-    print(
-        "---    Top level (global_state_metrics) metrics elapsed time:  ", elapsed_time
-    )
-    print("---")
+    if report_flag:
+        print("---")
+        print("---    Wrote top level log entry: ", log_dict)
+        print("---")
+        print(
+            "---    Top level (global_state_metrics) metrics elapsed time:  ",
+            elapsed_time,
+        )
+        print("---")
 
     applications = Application.objects.all()
 
@@ -192,12 +274,13 @@ def log_global_state_metrics(group_timestamp=None):
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
-    print("---")
-    print("---    Wrote per application log entries: ", count)
-    print("---")
-    print(
-        "---    Applications (global_state_metrics_per_app) metrics elapsed time:  ",
-        elapsed_time,
-    )
-    print("---")
-    print("SUCCESS")
+    if report_flag:
+        print("---")
+        print("---    Wrote per application log entries: ", count)
+        print("---")
+        print(
+            "---    Applications (global_state_metrics_per_app) metrics elapsed time:  ",
+            elapsed_time,
+        )
+        print("---")
+        print("SUCCESS")
