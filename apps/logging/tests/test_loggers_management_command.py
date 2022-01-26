@@ -22,6 +22,7 @@ from .audit_logger_schemas import (
     GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA,
 )
 
+
 AccessToken = get_access_token_model()
 Application = get_application_model()
 User = get_user_model()
@@ -32,6 +33,9 @@ TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA = copy.deepcopy(
     GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA
 )
 
+# Set to True to enable console report for management command calls.
+CALL_MANAGEMENT_COMMAND_REPORT_TO_CONSOLE = False
+
 
 class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
     def setUp(self):
@@ -41,6 +45,20 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
     def tearDown(self):
         self._cleanup_logger()
+
+    def _call_management_command_log_global_state_metrics(self, report_to_console=CALL_MANAGEMENT_COMMAND_REPORT_TO_CONSOLE):
+        """
+        Method to call the management command in tests.
+
+        Args:
+            report_to_console =
+                True - Include command report in output. Useful for debugging.
+                False - Exclude command report in output.
+        """
+        if report_to_console:
+            call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        else:
+            call_command("log_global_state_metrics", "--no-report", stdout=StringIO(), stderr=StringIO())
 
     def _get_log_content(self, logger_name):
         return self._collect_logs().get(logger_name)
@@ -99,6 +117,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "token_synthetic_bene_deduped_count",
             "token_table_count",
             "token_archived_table_count",
+            "token_real_bene_app_pair_deduped_count",
+            "token_synthetic_bene_app_pair_deduped_count",
             "global_apps_active_cnt",
             "global_apps_inactive_cnt",
             "global_apps_require_demographic_scopes_cnt",
@@ -253,6 +273,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "-90000000000001",
             "xxxExtraHicnSynth01xxx",
             None,
+            "BEN",
         )
         self._create_user(
             "extra_crosswalk_synth_user02@example.com",
@@ -260,6 +281,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "-90000000000002",
             "xxxExtraHicnSynth02xxx",
             None,
+            "BEN",
         )
         self._create_user(
             "extra_crosswalk_real_user01@example.com",
@@ -267,6 +289,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "90000000000001",
             "xxxExtraHicnReal01xxx",
             None,
+            "BEN",
         )
         self._create_user(
             "extra_crosswalk_real_user02@example.com",
@@ -274,6 +297,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "90000000000002",
             "xxxExtraHicnReal02xxx",
             None,
+            "BEN",
         )
         self._create_user(
             "extra_crosswalk_real_user03@example.com",
@@ -281,41 +305,67 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "90000000000003",
             "xxxExtraHicnReal03xxx",
             None,
+            "BEN",
         )
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        self._validate_global_state_metrics_log(
-            {
-                "real_bene_cnt": 11,
-                "synth_bene_cnt": 9,
-                "crosswalk_real_bene_count": 11,
-                "crosswalk_synthetic_bene_count": 9,
-                "crosswalk_table_count": 20,
-                "crosswalk_archived_table_count": 0,
-                "grant_real_bene_count": 8,  # Note: Has 3 less that are only in crosswalk
-                "grant_synthetic_bene_count": 7,  # Note: Has 2 less that are only in crosswalk
-                "grant_real_bene_deduped_count": 8,
-                "grant_synthetic_bene_deduped_count": 7,
-                "grantarchived_real_bene_deduped_count": 0,
-                "grantarchived_synthetic_bene_deduped_count": 0,
-                "grant_and_archived_real_bene_deduped_count": 8,
-                "grant_and_archived_synthetic_bene_deduped_count": 7,
-                "grant_table_count": 15,  # Note: Has 5 less that are only in crosswalk
-                "grant_archived_table_count": 0,
-                "token_real_bene_deduped_count": 8,
-                "token_synthetic_bene_deduped_count": 7,
-                "token_table_count": 15,  # Note: Has 5 less that are only in crosswalk
-                "token_archived_table_count": 0,
-                "global_apps_active_cnt": 2,
-                "global_apps_inactive_cnt": 0,
-                "global_apps_require_demographic_scopes_cnt": 2,
-                "global_developer_count": 2,
-                "global_developer_with_registered_app_count": 2,
-                "global_developer_with_first_api_call_count": 0,
-                "global_developer_distinct_organization_name_count": 2,
-            }
-        )
+        # Setup inital dict used for global state metrics validation.
+        validate_global_dict = {
+            "real_bene_cnt": 11,
+            "synth_bene_cnt": 9,
+            "crosswalk_real_bene_count": 11,
+            "crosswalk_synthetic_bene_count": 9,
+            "crosswalk_table_count": 20,
+            "crosswalk_archived_table_count": 0,
+            "grant_real_bene_count": 8,
+            "grant_synthetic_bene_count": 7,
+            "grant_table_count": 15,
+            "grant_archived_table_count": 0,
+            "grant_real_bene_deduped_count": 8,
+            "grant_synthetic_bene_deduped_count": 7,
+            "grantarchived_real_bene_deduped_count": 0,
+            "grantarchived_synthetic_bene_deduped_count": 0,
+            "grant_and_archived_real_bene_deduped_count": 8,
+            "grant_and_archived_synthetic_bene_deduped_count": 7,
+            "token_real_bene_deduped_count": 8,
+            "token_synthetic_bene_deduped_count": 7,
+            "token_table_count": 15,
+            "token_archived_table_count": 0,
+            "token_real_bene_app_pair_deduped_count": 8,
+            "token_synthetic_bene_app_pair_deduped_count": 7,
+            "global_apps_active_cnt": 2,
+            "global_apps_inactive_cnt": 0,
+            "global_apps_require_demographic_scopes_cnt": 2,
+            "global_developer_count": 2,
+            "global_developer_with_registered_app_count": 2,
+            "global_developer_with_first_api_call_count": 0,
+            "global_developer_distinct_organization_name_count": 2,
+            "global_beneficiary_count": 20,
+            "global_beneficiary_real_count": 11,
+            "global_beneficiary_synthetic_count": 9,
+            "global_beneficiary_real_grant_to_apps_eq_1_count": 8,
+            "global_beneficiary_synthetic_grant_to_apps_eq_1_count": 7,
+            "global_beneficiary_real_grant_to_apps_eq_2_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_2_count": 0,
+            "global_beneficiary_real_grant_to_apps_eq_3_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_3_count": 0,
+            "global_beneficiary_real_grant_to_apps_eq_4thru5_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count": 0,
+            "global_beneficiary_real_grant_to_apps_gt_5_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_gt_5_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_eq_1_count": 0,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_1_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_eq_2_count": 0,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_2_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_eq_3_count": 0,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_3_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_eq_4thru5_count": 0,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_4thru5_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_gt_5_count": 0,
+            "global_beneficiary_synthetic_grant_archived_to_apps_gt_5_count": 0,
+        }
+        self._validate_global_state_metrics_log(validate_global_dict)
 
         validate_apps_dict.update(
             {
@@ -380,39 +430,29 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         app.active = False
         app.save()
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        self._validate_global_state_metrics_log(
-            {
-                "real_bene_cnt": 11,
-                "synth_bene_cnt": 11,
-                "crosswalk_real_bene_count": 11,
-                "crosswalk_synthetic_bene_count": 11,
-                "crosswalk_table_count": 22,
-                "crosswalk_archived_table_count": 0,
-                "grant_real_bene_count": 8,
-                "grant_synthetic_bene_count": 9,
-                "grant_table_count": 17,  # Note: Has 5 less that are only in crosswalk
-                "grant_archived_table_count": 0,
-                "grant_real_bene_deduped_count": 8,
-                "grant_synthetic_bene_deduped_count": 9,
-                "grantarchived_real_bene_deduped_count": 0,
-                "grantarchived_synthetic_bene_deduped_count": 0,
-                "grant_and_archived_real_bene_deduped_count": 8,
-                "grant_and_archived_synthetic_bene_deduped_count": 9,
-                "token_real_bene_deduped_count": 8,
-                "token_synthetic_bene_deduped_count": 9,
-                "token_table_count": 17,  # Note: Has 5 less that are only in crosswalk
-                "token_archived_table_count": 0,
-                "global_apps_active_cnt": 2,
-                "global_apps_inactive_cnt": 1,
-                "global_apps_require_demographic_scopes_cnt": 2,
-                "global_developer_count": 3,
-                "global_developer_with_registered_app_count": 3,
-                "global_developer_with_first_api_call_count": 0,
-                "global_developer_distinct_organization_name_count": 3,
-            }
-        )
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "synth_bene_cnt": 11,
+            "crosswalk_synthetic_bene_count": 11,
+            "crosswalk_table_count": 22,
+            "grant_synthetic_bene_count": 9,
+            "grant_table_count": 17,
+            "grant_synthetic_bene_deduped_count": 9,
+            "grant_and_archived_synthetic_bene_deduped_count": 9,
+            "token_synthetic_bene_deduped_count": 9,
+            "token_table_count": 17,
+            "token_synthetic_bene_app_pair_deduped_count": 9,
+            "global_apps_inactive_cnt": 1,
+            "global_developer_count": 3,
+            "global_developer_with_registered_app_count": 3,
+            "global_developer_distinct_organization_name_count": 3,
+            "global_beneficiary_count": 22,
+            "global_beneficiary_synthetic_count": 11,
+            "global_beneficiary_synthetic_grant_to_apps_eq_1_count": 9,
+        })
+        self._validate_global_state_metrics_log(validate_global_dict)
 
         # NOTE: No dict changes needed for app0 & app1, just app2 below.
         validate_apps_dict.update(
@@ -452,39 +492,30 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         for app, user in remove_grant_access_list:
             remove_application_user_pair_tokens_data_access(app, user)
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        self._validate_global_state_metrics_log(
-            {
-                "real_bene_cnt": 11,
-                "synth_bene_cnt": 11,
-                "crosswalk_real_bene_count": 11,
-                "crosswalk_synthetic_bene_count": 11,
-                "crosswalk_table_count": 22,
-                "crosswalk_archived_table_count": 0,
-                "grant_real_bene_count": 6,
-                "grant_synthetic_bene_count": 6,
-                "grant_table_count": 12,
-                "grant_archived_table_count": 5,
-                "grant_real_bene_deduped_count": 6,
-                "grant_synthetic_bene_deduped_count": 6,
-                "grantarchived_real_bene_deduped_count": 2,
-                "grantarchived_synthetic_bene_deduped_count": 3,
-                "grant_and_archived_real_bene_deduped_count": 8,
-                "grant_and_archived_synthetic_bene_deduped_count": 9,
-                "token_real_bene_deduped_count": 6,
-                "token_synthetic_bene_deduped_count": 6,
-                "token_table_count": 12,
-                "token_archived_table_count": 5,
-                "global_apps_active_cnt": 2,
-                "global_apps_inactive_cnt": 1,
-                "global_apps_require_demographic_scopes_cnt": 2,
-                "global_developer_count": 3,
-                "global_developer_with_registered_app_count": 3,
-                "global_developer_with_first_api_call_count": 0,
-                "global_developer_distinct_organization_name_count": 3,
-            }
-        )
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "grant_real_bene_count": 6,
+            "grant_synthetic_bene_count": 6,
+            "grant_table_count": 12,
+            "grant_archived_table_count": 5,
+            "grant_real_bene_deduped_count": 6,
+            "grant_synthetic_bene_deduped_count": 6,
+            "grantarchived_real_bene_deduped_count": 2,
+            "grantarchived_synthetic_bene_deduped_count": 3,
+            "token_real_bene_deduped_count": 6,
+            "token_synthetic_bene_deduped_count": 6,
+            "token_table_count": 12,
+            "token_archived_table_count": 5,
+            "token_real_bene_app_pair_deduped_count": 6,
+            "token_synthetic_bene_app_pair_deduped_count": 6,
+            "global_beneficiary_real_grant_to_apps_eq_1_count": 6,
+            "global_beneficiary_synthetic_grant_to_apps_eq_1_count": 6,
+            "global_beneficiary_real_grant_archived_to_apps_eq_1_count": 2,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_1_count": 3,
+        })
+        self._validate_global_state_metrics_log(validate_global_dict)
 
         # Validate per app count changes
         validate_apps_dict["app0"]["synth_bene_cnt"] = 2
@@ -553,39 +584,39 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             app_user_organization="app3-org"
         )
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        self._validate_global_state_metrics_log(
-            {
-                "real_bene_cnt": 21,
-                "synth_bene_cnt": 18,
-                "crosswalk_real_bene_count": 21,
-                "crosswalk_synthetic_bene_count": 18,
-                "crosswalk_table_count": 39,
-                "crosswalk_archived_table_count": 0,
-                "grant_real_bene_count": 36,
-                "grant_synthetic_bene_count": 27,
-                "grant_real_bene_deduped_count": 16,
-                "grant_table_count": 63,
-                "grant_archived_table_count": 5,
-                "grant_synthetic_bene_deduped_count": 13,
-                "grantarchived_real_bene_deduped_count": 2,
-                "grantarchived_synthetic_bene_deduped_count": 3,
-                "grant_and_archived_real_bene_deduped_count": 18,
-                "grant_and_archived_synthetic_bene_deduped_count": 16,
-                "token_real_bene_deduped_count": 16,
-                "token_synthetic_bene_deduped_count": 13,
-                "token_table_count": 63,
-                "token_archived_table_count": 5,
-                "global_apps_active_cnt": 3,
-                "global_apps_inactive_cnt": 1,
-                "global_apps_require_demographic_scopes_cnt": 3,
-                "global_developer_count": 4,
-                "global_developer_with_registered_app_count": 4,
-                "global_developer_with_first_api_call_count": 0,
-                "global_developer_distinct_organization_name_count": 4,
-            }
-        )
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "real_bene_cnt": 21,
+            "synth_bene_cnt": 18,
+            "crosswalk_real_bene_count": 21,
+            "crosswalk_synthetic_bene_count": 18,
+            "crosswalk_table_count": 39,
+            "grant_real_bene_count": 36,
+            "grant_synthetic_bene_count": 27,
+            "grant_table_count": 63,
+            "grant_real_bene_deduped_count": 16,
+            "grant_synthetic_bene_deduped_count": 13,
+            "grant_and_archived_real_bene_deduped_count": 18,
+            "grant_and_archived_synthetic_bene_deduped_count": 16,
+            "token_real_bene_deduped_count": 16,
+            "token_synthetic_bene_deduped_count": 13,
+            "token_table_count": 63,
+            "token_real_bene_app_pair_deduped_count": 36,
+            "token_synthetic_bene_app_pair_deduped_count": 27,
+            "global_apps_active_cnt": 3,
+            "global_apps_require_demographic_scopes_cnt": 3,
+            "global_developer_count": 4,
+            "global_developer_with_registered_app_count": 4,
+            "global_developer_distinct_organization_name_count": 4,
+            "global_beneficiary_count": 39,
+            "global_beneficiary_real_count": 21,
+            "global_beneficiary_synthetic_count": 18,
+            "global_beneficiary_real_grant_to_apps_eq_3_count": 10,
+            "global_beneficiary_synthetic_grant_to_apps_eq_3_count": 7,
+        })
+        self._validate_global_state_metrics_log(validate_global_dict)
 
         # Validate per app count changes
         validate_apps_dict["app0"]["synth_bene_cnt"] = 9
@@ -666,39 +697,22 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         cw._fhir_id = ""
         cw.save()
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        self._validate_global_state_metrics_log(
-            {
-                "real_bene_cnt": 21,
-                "synth_bene_cnt": 17,  # Count reduced by 1
-                "crosswalk_real_bene_count": 21,
-                "crosswalk_synthetic_bene_count": 17,
-                "crosswalk_table_count": 39,
-                "crosswalk_archived_table_count": 1,  # Count +1
-                "grant_real_bene_count": 36,
-                "grant_synthetic_bene_count": 24,  # Count is reduced by 3 (1 x 3 app grants)
-                "grant_table_count": 63,
-                "grant_archived_table_count": 5,
-                "grant_real_bene_deduped_count": 16,
-                "grant_synthetic_bene_deduped_count": 12,  # Count reduced by 1
-                "grantarchived_real_bene_deduped_count": 2,
-                "grantarchived_synthetic_bene_deduped_count": 3,
-                "grant_and_archived_real_bene_deduped_count": 18,
-                "grant_and_archived_synthetic_bene_deduped_count": 15,  # Count reduced by 1
-                "token_real_bene_deduped_count": 16,
-                "token_synthetic_bene_deduped_count": 12,  # Count reduced by 1
-                "token_table_count": 63,
-                "token_archived_table_count": 5,
-                "global_apps_active_cnt": 3,
-                "global_apps_inactive_cnt": 1,
-                "global_apps_require_demographic_scopes_cnt": 3,
-                "global_developer_count": 4,
-                "global_developer_with_registered_app_count": 4,
-                "global_developer_with_first_api_call_count": 0,
-                "global_developer_distinct_organization_name_count": 4,
-            }
-        )
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "synth_bene_cnt": 17,
+            "crosswalk_synthetic_bene_count": 17,
+            "crosswalk_archived_table_count": 1,
+            "grant_synthetic_bene_count": 24,
+            "grant_synthetic_bene_deduped_count": 12,
+            "grant_and_archived_synthetic_bene_deduped_count": 15,
+            "token_synthetic_bene_deduped_count": 12,
+            "token_synthetic_bene_app_pair_deduped_count": 24,
+            "global_beneficiary_synthetic_count": 17,
+            "global_beneficiary_synthetic_grant_to_apps_eq_3_count": 6,
+        })
+        self._validate_global_state_metrics_log(validate_global_dict)
 
         # Validate per app count changes
         validate_apps_dict["app0"]["synth_bene_cnt"] = 8
@@ -741,39 +755,25 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         cw = Crosswalk.objects.get(user=save_real_user_dict["60000000000001"])
         cw.delete()
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        self._validate_global_state_metrics_log(
-            {
-                "real_bene_cnt": 20,  # Count reduced by 1
-                "synth_bene_cnt": 17,
-                "crosswalk_real_bene_count": 20,
-                "crosswalk_synthetic_bene_count": 17,
-                "crosswalk_table_count": 38,
-                "crosswalk_archived_table_count": 1,
-                "grant_real_bene_count": 33,  # Count is reduced by 3 (1 x 3 app grants)
-                "grant_synthetic_bene_count": 24,
-                "grant_table_count": 63,
-                "grant_archived_table_count": 5,
-                "grant_real_bene_deduped_count": 15,  # Count reduced by 1
-                "grant_synthetic_bene_deduped_count": 12,
-                "grantarchived_real_bene_deduped_count": 2,
-                "grantarchived_synthetic_bene_deduped_count": 3,
-                "grant_and_archived_real_bene_deduped_count": 17,  # Count reduced by 1
-                "grant_and_archived_synthetic_bene_deduped_count": 15,
-                "token_real_bene_deduped_count": 15,  # Count reduced by 1
-                "token_synthetic_bene_deduped_count": 12,
-                "token_table_count": 63,
-                "token_archived_table_count": 5,
-                "global_apps_active_cnt": 3,
-                "global_apps_inactive_cnt": 1,
-                "global_apps_require_demographic_scopes_cnt": 3,
-                "global_developer_count": 4,
-                "global_developer_with_registered_app_count": 4,
-                "global_developer_with_first_api_call_count": 0,
-                "global_developer_distinct_organization_name_count": 4,
-            }
-        )
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "real_bene_cnt": 20,
+            "crosswalk_real_bene_count": 20,
+            "crosswalk_table_count": 38,
+            "grant_real_bene_count": 33,
+            "grant_counts_elapsed": 0.002,
+            "grant_real_bene_deduped_count": 15,
+            "grant_and_archived_real_bene_deduped_count": 17,
+            "token_real_bene_deduped_count": 15,
+            "token_real_bene_app_pair_deduped_count": 33,
+            "token_deduped_counts_elapsed": 0.005,
+            "global_state_metrics_total_elapsed": 0.049,
+            "global_beneficiary_real_count": 20,
+            "global_beneficiary_real_grant_to_apps_eq_3_count": 9,
+        })
+        self._validate_global_state_metrics_log(validate_global_dict)
 
         # Validate per app count changes
         validate_apps_dict["app0"]["real_bene_cnt"] = 12
@@ -802,7 +802,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         """
         TEST #7:
 
-        Tests for addition of global developer counts per BB2-944
+        Tests for addition of global_developer_* counts per BB2-944
         """
         # Test 7A: Test changing from 4 to 2 distinct organizations.
         self._create_or_update_development_user(username="user_app0", organization="org one")
@@ -810,40 +810,15 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         self._create_or_update_development_user(username="user_app2", organization="org two")
         self._create_or_update_development_user(username="user_app3", organization="org two")
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        validate_global_dict = {
-            "real_bene_cnt": 20,  # Count reduced by 1
-            "synth_bene_cnt": 17,
-            "crosswalk_real_bene_count": 20,
-            "crosswalk_synthetic_bene_count": 17,
-            "crosswalk_table_count": 38,
-            "crosswalk_archived_table_count": 1,
-            "grant_real_bene_count": 33,  # Count is reduced by 3 (1 x 3 app grants)
-            "grant_synthetic_bene_count": 24,
-            "grant_table_count": 63,
-            "grant_archived_table_count": 5,
-            "grant_real_bene_deduped_count": 15,  # Count reduced by 1
-            "grant_synthetic_bene_deduped_count": 12,
-            "grantarchived_real_bene_deduped_count": 2,
-            "grantarchived_synthetic_bene_deduped_count": 3,
-            "grant_and_archived_real_bene_deduped_count": 17,  # Count reduced by 1
-            "grant_and_archived_synthetic_bene_deduped_count": 15,
-            "token_real_bene_deduped_count": 15,  # Count reduced by 1
-            "token_synthetic_bene_deduped_count": 12,
-            "token_table_count": 63,
-            "token_archived_table_count": 5,
-            "global_apps_active_cnt": 3,
-            "global_apps_inactive_cnt": 1,
-            "global_apps_require_demographic_scopes_cnt": 3,
-            "global_developer_count": 4,
-            "global_developer_with_registered_app_count": 4,
-            "global_developer_with_first_api_call_count": 0,
+        # Update with metrics changes.
+        validate_global_dict.update({
             "global_developer_distinct_organization_name_count": 2,
-        }
+        })
         self._validate_global_state_metrics_log(validate_global_dict)
 
-        # Test 7B: Test changing from 4 to 2 apps with a first api call
+        # Test 7B: Test changing from 0 to 2 apps with a first api call
         app = Application.objects.get(name="app0")
         app.first_active = timezone.now()
         app.save()
@@ -851,9 +826,12 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         app.first_active = timezone.now()
         app.save()
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        validate_global_dict["global_developer_with_first_api_call_count"] = 2
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "global_developer_with_first_api_call_count": 2,
+        })
         self._validate_global_state_metrics_log(validate_global_dict)
 
         # Test 7C: Test adding 3 development users to another org that do name have an application yet.
@@ -861,8 +839,169 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         self._create_or_update_development_user(username="user_no_app1", organization="org three")
         self._create_or_update_development_user(username="user_no_app2", organization="org three")
 
-        call_command("log_global_state_metrics", stdout=StringIO(), stderr=StringIO())
+        self._call_management_command_log_global_state_metrics()
 
-        validate_global_dict["global_developer_count"] = 7
-        validate_global_dict["global_developer_distinct_organization_name_count"] = 3
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "global_developer_count": 7,
+            "global_developer_distinct_organization_name_count": 3,
+        })
+        self._validate_global_state_metrics_log(validate_global_dict)
+
+        """
+        TEST #8:
+
+        Tests for addition of global_beneficiary_* counts per BB2-944
+        """
+        """
+          Test #8A:
+
+          Create overlapping real & synth benes to validate global_beneficiary_*_grant_to_apps_*_count
+        """
+        # Create 3x real benes granted to 2x apps for: global_beneficiary_real_grant_to_apps_eq_2_count = 3
+        for app_num in range(10, 12):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="7100000000000", count=3, app_name="app{}".format(str(app_num)),
+                app_user_organization="app{}-org".format(str(app_num))
+            )
+        # Create 5x synth benes granted to 2x apps for: global_beneficiary_synthetic_grant_to_apps_eq_2_count = 5
+        for app_num in range(10, 12):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="-7100000000000", count=5, app_name="app{}".format(str(app_num)),
+                app_user_organization="app{}-org".format(str(app_num))
+            )
+
+        # Create 4x real benes granted to 4x apps for: global_beneficiary_real_grant_to_apps_eq_4thru5_count = 4
+        for app_num in range(10, 14):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="7200000000000", count=4, app_name="app{}".format(str(app_num)),
+                app_user_organization="app{}-org".format(str(app_num))
+            )
+        # Create 6x synth benes granted to 5x apps for: global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count = 6
+        for app_num in range(10, 15):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="-7200000000000", count=6, app_name="app" + str(app_num),
+                app_user_organization="app" + str(app_num) + "-org"
+            )
+
+        # Create 2x real benes granted to 6x apps for: global_beneficiary_real_grant_to_apps_gt_5_count = 2
+        for app_num in range(10, 16):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="7300000000000", count=2, app_name="app{}".format(str(app_num)),
+                app_user_organization="app{}-org".format(str(app_num))
+            )
+        # Create 3x synth benes granted to 8x apps for: global_beneficiary_synthetic_grant_to_apps_gt_5_count = 3
+        for app_num in range(10, 18):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="-7300000000000", count=3, app_name="app" + str(app_num),
+                app_user_organization="app" + str(app_num) + "-org"
+            )
+
+        self._call_management_command_log_global_state_metrics()
+
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "real_bene_cnt": 29,
+            "synth_bene_cnt": 31,
+            "crosswalk_real_bene_count": 29,
+            "crosswalk_synthetic_bene_count": 31,
+            "crosswalk_table_count": 61,
+            "grant_real_bene_count": 67,
+            "grant_synthetic_bene_count": 88,
+            "grant_table_count": 161,
+            "grant_real_bene_deduped_count": 24,
+            "grant_synthetic_bene_deduped_count": 26,
+            "grant_and_archived_real_bene_deduped_count": 26,
+            "grant_and_archived_synthetic_bene_deduped_count": 29,
+            "token_real_bene_deduped_count": 24,
+            "token_synthetic_bene_deduped_count": 26,
+            "token_table_count": 161,
+            "token_real_bene_app_pair_deduped_count": 67,
+            "token_synthetic_bene_app_pair_deduped_count": 88,
+            "global_apps_active_cnt": 11,
+            "global_apps_require_demographic_scopes_cnt": 11,
+            "global_developer_count": 15,
+            "global_developer_with_registered_app_count": 12,
+            "global_developer_distinct_organization_name_count": 11,
+            "global_beneficiary_count": 62,
+            "global_beneficiary_real_count": 29,
+            "global_beneficiary_synthetic_count": 31,
+            "global_beneficiary_real_grant_to_apps_eq_2_count": 3,
+            "global_beneficiary_synthetic_grant_to_apps_eq_2_count": 5,
+            "global_beneficiary_real_grant_to_apps_eq_4thru5_count": 4,
+            "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count": 6,
+            "global_beneficiary_real_grant_to_apps_gt_5_count": 2,
+            "global_beneficiary_synthetic_grant_to_apps_gt_5_count": 3,
+        })
+        self._validate_global_state_metrics_log(validate_global_dict)
+
+        """
+          Test #8B:
+
+          Revoke grants created in test #8A to validate global_beneficiary_*_grant_archived_to_apps_*_count
+        """
+        # REVOKE 3x real benes granted to 2x apps for: global_beneficiary_real_grant_to_apps_eq_2_count = 3
+        for app_num in range(10, 12):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="7100000000000", count=3, app_name="app{}".format(str(app_num))
+            )
+        # Revoke 5x synth benes granted to 2x apps for: global_beneficiary_synthetic_grant_to_apps_eq_2_count = 5
+        for app_num in range(10, 12):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="-7100000000000", count=5, app_name="app{}".format(str(app_num))
+            )
+
+        # Revoke 4x real benes granted to 4x apps for: global_beneficiary_real_grant_to_apps_eq_4thru5_count = 4
+        for app_num in range(10, 14):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="7200000000000", count=4, app_name="app{}".format(str(app_num))
+            )
+        # Revoke 6x synth benes granted to 5x apps for: global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count = 6
+        for app_num in range(10, 15):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="-7200000000000", count=6, app_name="app" + str(app_num)
+            )
+
+        # Revoke 2x real benes granted to 6x apps for: global_beneficiary_real_grant_to_apps_gt_5_count = 2
+        for app_num in range(10, 16):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="7300000000000", count=2, app_name="app{}".format(str(app_num))
+            )
+        # Revoke 3x synth benes granted to 8x apps for: global_beneficiary_synthetic_grant_to_apps_gt_5_count = 3
+        for app_num in range(10, 18):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="-7300000000000", count=3, app_name="app" + str(app_num)
+            )
+
+        self._call_management_command_log_global_state_metrics()
+
+        # Update with metrics changes.
+        validate_global_dict.update({
+            "grant_real_bene_count": 33,
+            "grant_synthetic_bene_count": 24,
+            "grant_table_count": 63,
+            "grant_archived_table_count": 103,
+            "grant_real_bene_deduped_count": 15,
+            "grant_synthetic_bene_deduped_count": 12,
+            "grantarchived_real_bene_deduped_count": 11,
+            "grantarchived_synthetic_bene_deduped_count": 17,
+            "token_real_bene_deduped_count": 15,
+            "token_synthetic_bene_deduped_count": 12,
+            "token_table_count": 63,
+            "token_archived_table_count": 103,
+            "token_real_bene_app_pair_deduped_count": 33,
+            "token_synthetic_bene_app_pair_deduped_count": 24,
+            "global_beneficiary_real_grant_to_apps_eq_2_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_2_count": 0,
+            "global_beneficiary_real_grant_to_apps_eq_4thru5_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count": 0,
+            "global_beneficiary_real_grant_to_apps_gt_5_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_gt_5_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_eq_2_count": 3,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_2_count": 5,
+            "global_beneficiary_real_grant_archived_to_apps_eq_4thru5_count": 4,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_4thru5_count": 6,
+            "global_beneficiary_real_grant_archived_to_apps_gt_5_count": 2,
+            "global_beneficiary_synthetic_grant_archived_to_apps_gt_5_count": 3,
+        })
         self._validate_global_state_metrics_log(validate_global_dict)
