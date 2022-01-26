@@ -19,22 +19,27 @@ def get_creds_by_id(creds_request_id: str):
 
 
 def get_creds_by_obj(creds_req: CredentialingReqest):
-    creds_dict = {"user_name": None,
-                  "org_name": None,
-                  "app_id": None,
-                  "app_name": None,
-                  "client_id": None,
-                  "client_secret": None}
+    creds_dict = {
+        "user_name": None,
+        "org_name": None,
+        "app_id": None,
+        "app_name": None,
+        "client_id": None,
+        "client_secret": None,
+    }
     if creds_req:
 
         app = Application.objects.get(pk=creds_req.application_id)
 
         if app:
-            creds_dict.update({
-                "app_id": app.id,
-                "app_name": app.name,
-                "client_id": app.client_id,
-                "client_secret": app.client_secret, })
+            creds_dict.update(
+                {
+                    "app_id": app.id,
+                    "app_name": app.name,
+                    "client_id": app.client_id,
+                    "client_secret": app.client_secret,
+                }
+            )
 
             user = User.objects.get(pk=app.user_id)
 
