@@ -520,10 +520,20 @@ def get_beneficiary_counts():
     counts_returned["synthetic_grant_to_apps_eq_4thru5"] = synthetic_queryset.filter(
         Q(grant_count__gte=4) & Q(grant_count__lte=5)).count()
 
-    counts_returned["real_grant_to_apps_gt_5"] = real_queryset.filter(
-        Q(grant_count__gt=5)).count()
-    counts_returned["synthetic_grant_to_apps_gt_5"] = synthetic_queryset.filter(
-        Q(grant_count__gt=5)).count()
+    counts_returned["real_grant_to_apps_eq_6thru8"] = real_queryset.filter(
+        Q(grant_count__gte=6) & Q(grant_count__lte=8)).count()
+    counts_returned["synthetic_grant_to_apps_eq_6thru8"] = synthetic_queryset.filter(
+        Q(grant_count__gte=6) & Q(grant_count__lte=8)).count()
+
+    counts_returned["real_grant_to_apps_eq_9thru13"] = real_queryset.filter(
+        Q(grant_count__gte=9) & Q(grant_count__lte=13)).count()
+    counts_returned["synthetic_grant_to_apps_eq_9thru13"] = synthetic_queryset.filter(
+        Q(grant_count__gte=9) & Q(grant_count__lte=13)).count()
+
+    counts_returned["real_grant_to_apps_gt_13"] = real_queryset.filter(
+        Q(grant_count__gt=13)).count()
+    counts_returned["synthetic_grant_to_apps_gt_13"] = synthetic_queryset.filter(
+        Q(grant_count__gt=13)).count()
 
     # Counts ArchivedDataAccessGrant records per beneficiary.
     counts_returned["real_grant_archived_to_apps_eq_1"] = real_queryset.filter(
@@ -546,10 +556,20 @@ def get_beneficiary_counts():
     counts_returned["synthetic_grant_archived_to_apps_eq_4thru5"] = synthetic_queryset.filter(
         Q(grant_archived_count__gte=4) & Q(grant_archived_count__lte=5)).count()
 
-    counts_returned["real_grant_archived_to_apps_gt_5"] = real_queryset.filter(
-        Q(grant_archived_count__gt=5)).count()
-    counts_returned["synthetic_grant_archived_to_apps_gt_5"] = synthetic_queryset.filter(
-        Q(grant_archived_count__gt=5)).count()
+    counts_returned["real_grant_archived_to_apps_eq_6thru8"] = real_queryset.filter(
+        Q(grant_archived_count__gte=6) & Q(grant_archived_count__lte=8)).count()
+    counts_returned["synthetic_grant_archived_to_apps_eq_6thru8"] = synthetic_queryset.filter(
+        Q(grant_archived_count__gte=6) & Q(grant_archived_count__lte=8)).count()
+
+    counts_returned["real_grant_archived_to_apps_eq_9thru13"] = real_queryset.filter(
+        Q(grant_archived_count__gte=9) & Q(grant_archived_count__lte=13)).count()
+    counts_returned["synthetic_grant_archived_to_apps_eq_9thru13"] = synthetic_queryset.filter(
+        Q(grant_archived_count__gte=9) & Q(grant_archived_count__lte=13)).count()
+
+    counts_returned["real_grant_archived_to_apps_gt_13"] = real_queryset.filter(
+        Q(grant_archived_count__gt=13)).count()
+    counts_returned["synthetic_grant_archived_to_apps_gt_13"] = synthetic_queryset.filter(
+        Q(grant_archived_count__gt=13)).count()
 
     counts_returned["elapsed"] = round(datetime.utcnow().timestamp() - start_time, 3)
 

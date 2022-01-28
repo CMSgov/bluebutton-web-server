@@ -126,6 +126,37 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_developer_with_registered_app_count",
             "global_developer_with_first_api_call_count",
             "global_developer_distinct_organization_name_count",
+            "global_beneficiary_count",
+            "global_beneficiary_real_count",
+            "global_beneficiary_synthetic_count",
+            "global_beneficiary_real_grant_to_apps_eq_1_count",
+            "global_beneficiary_synthetic_grant_to_apps_eq_1_count",
+            "global_beneficiary_real_grant_to_apps_eq_2_count",
+            "global_beneficiary_synthetic_grant_to_apps_eq_2_count",
+            "global_beneficiary_real_grant_to_apps_eq_3_count",
+            "global_beneficiary_synthetic_grant_to_apps_eq_3_count",
+            "global_beneficiary_real_grant_to_apps_eq_4thru5_count",
+            "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count",
+            "global_beneficiary_real_grant_to_apps_eq_6thru8_count",
+            "global_beneficiary_synthetic_grant_to_apps_eq_6thru8_count",
+            "global_beneficiary_real_grant_to_apps_eq_9thru13_count",
+            "global_beneficiary_synthetic_grant_to_apps_eq_9thru13_count",
+            "global_beneficiary_real_grant_to_apps_gt_13_count",
+            "global_beneficiary_synthetic_grant_to_apps_gt_13_count",
+            "global_beneficiary_real_grant_archived_to_apps_eq_1_count",
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_1_count",
+            "global_beneficiary_real_grant_archived_to_apps_eq_2_count",
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_2_count",
+            "global_beneficiary_real_grant_archived_to_apps_eq_3_count",
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_3_count",
+            "global_beneficiary_real_grant_archived_to_apps_eq_4thru5_count",
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_4thru5_count",
+            "global_beneficiary_real_grant_archived_to_apps_eq_6thru8_count",
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_6thru8_count",
+            "global_beneficiary_real_grant_archived_to_apps_eq_9thru13_count",
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_9thru13_count",
+            "global_beneficiary_real_grant_archived_to_apps_gt_13_count",
+            "global_beneficiary_synthetic_grant_archived_to_apps_gt_13_count",
         ]
 
         for f in fields_list:
@@ -352,8 +383,12 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_synthetic_grant_to_apps_eq_3_count": 0,
             "global_beneficiary_real_grant_to_apps_eq_4thru5_count": 0,
             "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count": 0,
-            "global_beneficiary_real_grant_to_apps_gt_5_count": 0,
-            "global_beneficiary_synthetic_grant_to_apps_gt_5_count": 0,
+            "global_beneficiary_real_grant_to_apps_eq_6thru8_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_6thru8_count": 0,
+            "global_beneficiary_real_grant_to_apps_eq_9thru13_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_9thru13_count": 0,
+            "global_beneficiary_real_grant_to_apps_gt_13_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_gt_13_count": 0,
             "global_beneficiary_real_grant_archived_to_apps_eq_1_count": 0,
             "global_beneficiary_synthetic_grant_archived_to_apps_eq_1_count": 0,
             "global_beneficiary_real_grant_archived_to_apps_eq_2_count": 0,
@@ -362,8 +397,12 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_synthetic_grant_archived_to_apps_eq_3_count": 0,
             "global_beneficiary_real_grant_archived_to_apps_eq_4thru5_count": 0,
             "global_beneficiary_synthetic_grant_archived_to_apps_eq_4thru5_count": 0,
-            "global_beneficiary_real_grant_archived_to_apps_gt_5_count": 0,
-            "global_beneficiary_synthetic_grant_archived_to_apps_gt_5_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_eq_6thru8_count": 0,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_6thru8_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_eq_9thru13_count": 0,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_9thru13_count": 0,
+            "global_beneficiary_real_grant_archived_to_apps_gt_13_count": 0,
+            "global_beneficiary_synthetic_grant_archived_to_apps_gt_13_count": 0,
         }
         self._validate_global_state_metrics_log(validate_global_dict)
 
@@ -763,13 +802,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "crosswalk_real_bene_count": 20,
             "crosswalk_table_count": 38,
             "grant_real_bene_count": 33,
-            "grant_counts_elapsed": 0.002,
             "grant_real_bene_deduped_count": 15,
             "grant_and_archived_real_bene_deduped_count": 17,
             "token_real_bene_deduped_count": 15,
             "token_real_bene_app_pair_deduped_count": 33,
-            "token_deduped_counts_elapsed": 0.005,
-            "global_state_metrics_total_elapsed": 0.049,
             "global_beneficiary_real_count": 20,
             "global_beneficiary_real_grant_to_apps_eq_3_count": 9,
         })
@@ -880,20 +916,46 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         # Create 6x synth benes granted to 5x apps for: global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count = 6
         for app_num in range(10, 15):
             app, user_dict = self._create_range_users_app_token_grant(
-                start_fhir_id="-7200000000000", count=6, app_name="app" + str(app_num),
+                start_fhir_id="-7200000000000", count=6, app_name="app{}".format(str(app_num)),
                 app_user_organization="app" + str(app_num) + "-org"
             )
 
-        # Create 2x real benes granted to 6x apps for: global_beneficiary_real_grant_to_apps_gt_5_count = 2
+        # Create 3x real benes granted to 6x apps for: global_beneficiary_real_grant_to_apps_eq_6thru8_count = 3
         for app_num in range(10, 16):
             app, user_dict = self._create_range_users_app_token_grant(
-                start_fhir_id="7300000000000", count=2, app_name="app{}".format(str(app_num)),
+                start_fhir_id="7300000000000", count=3, app_name="app{}".format(str(app_num)),
                 app_user_organization="app{}-org".format(str(app_num))
             )
-        # Create 3x synth benes granted to 8x apps for: global_beneficiary_synthetic_grant_to_apps_gt_5_count = 3
+        # Create 2x synth benes granted to 8x apps for: global_beneficiary_synthetic_grant_to_apps_eq_6thru8_count = 2
         for app_num in range(10, 18):
             app, user_dict = self._create_range_users_app_token_grant(
-                start_fhir_id="-7300000000000", count=3, app_name="app" + str(app_num),
+                start_fhir_id="-7300000000000", count=2, app_name="app{}".format(str(app_num)),
+                app_user_organization="app" + str(app_num) + "-org"
+            )
+
+        # Create 2x real benes granted to 9x apps for: global_beneficiary_real_grant_to_apps_eq_9thru13_count = 2
+        for app_num in range(10, 19):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="7400000000000", count=2, app_name="app{}".format(str(app_num)),
+                app_user_organization="app{}-org".format(str(app_num))
+            )
+        # Create 3x synth benes granted to 13x apps for: global_beneficiary_synthetic_grant_to_apps_eq_9thru13_count = 3
+        for app_num in range(10, 23):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="-7400000000000", count=3, app_name="app{}".format(str(app_num)),
+                app_user_organization="app" + str(app_num) + "-org"
+            )
+
+        # Create 1x real benes granted to 14x apps for: global_beneficiary_real_grant_to_apps_gt_13_count = 1
+        for app_num in range(10, 24):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="7500000000000", count=1, app_name="app{}".format(str(app_num)),
+                app_user_organization="app{}-org".format(str(app_num))
+            )
+        # Create 1x synth benes granted to 15x apps for: global_beneficiary_synthetic_grant_to_apps_gt_13_count = 1
+        for app_num in range(10, 25):
+            app, user_dict = self._create_range_users_app_token_grant(
+                start_fhir_id="-7500000000000", count=1, app_name="app{}".format(str(app_num)),
                 app_user_organization="app" + str(app_num) + "-org"
             )
 
@@ -901,37 +963,41 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         # Update with metrics changes.
         validate_global_dict.update({
-            "real_bene_cnt": 29,
-            "synth_bene_cnt": 31,
-            "crosswalk_real_bene_count": 29,
-            "crosswalk_synthetic_bene_count": 31,
-            "crosswalk_table_count": 61,
-            "grant_real_bene_count": 67,
-            "grant_synthetic_bene_count": 88,
-            "grant_table_count": 161,
-            "grant_real_bene_deduped_count": 24,
-            "grant_synthetic_bene_deduped_count": 26,
-            "grant_and_archived_real_bene_deduped_count": 26,
-            "grant_and_archived_synthetic_bene_deduped_count": 29,
-            "token_real_bene_deduped_count": 24,
-            "token_synthetic_bene_deduped_count": 26,
-            "token_table_count": 161,
-            "token_real_bene_app_pair_deduped_count": 67,
-            "token_synthetic_bene_app_pair_deduped_count": 88,
-            "global_apps_active_cnt": 11,
-            "global_apps_require_demographic_scopes_cnt": 11,
-            "global_developer_count": 15,
-            "global_developer_with_registered_app_count": 12,
-            "global_developer_distinct_organization_name_count": 11,
-            "global_beneficiary_count": 62,
-            "global_beneficiary_real_count": 29,
-            "global_beneficiary_synthetic_count": 31,
+            "real_bene_cnt": 33,
+            "synth_bene_cnt": 34,
+            "crosswalk_real_bene_count": 33,
+            "crosswalk_synthetic_bene_count": 34,
+            "crosswalk_table_count": 68,
+            "grant_real_bene_count": 105,
+            "grant_synthetic_bene_count": 134,
+            "grant_table_count": 245,
+            "grant_real_bene_deduped_count": 28,
+            "grant_synthetic_bene_deduped_count": 29,
+            "grant_and_archived_real_bene_deduped_count": 30,
+            "grant_and_archived_synthetic_bene_deduped_count": 32,
+            "token_real_bene_deduped_count": 28,
+            "token_synthetic_bene_deduped_count": 29,
+            "token_table_count": 245,
+            "token_real_bene_app_pair_deduped_count": 105,
+            "token_synthetic_bene_app_pair_deduped_count": 134,
+            "global_apps_active_cnt": 18,
+            "global_apps_require_demographic_scopes_cnt": 18,
+            "global_developer_count": 22,
+            "global_developer_with_registered_app_count": 19,
+            "global_developer_distinct_organization_name_count": 18,
+            "global_beneficiary_count": 69,
+            "global_beneficiary_real_count": 33,
+            "global_beneficiary_synthetic_count": 34,
             "global_beneficiary_real_grant_to_apps_eq_2_count": 3,
             "global_beneficiary_synthetic_grant_to_apps_eq_2_count": 5,
             "global_beneficiary_real_grant_to_apps_eq_4thru5_count": 4,
             "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count": 6,
-            "global_beneficiary_real_grant_to_apps_gt_5_count": 2,
-            "global_beneficiary_synthetic_grant_to_apps_gt_5_count": 3,
+            "global_beneficiary_real_grant_to_apps_eq_6thru8_count": 3,
+            "global_beneficiary_synthetic_grant_to_apps_eq_6thru8_count": 2,
+            "global_beneficiary_real_grant_to_apps_eq_9thru13_count": 2,
+            "global_beneficiary_synthetic_grant_to_apps_eq_9thru13_count": 3,
+            "global_beneficiary_real_grant_to_apps_gt_13_count": 1,
+            "global_beneficiary_synthetic_grant_to_apps_gt_13_count": 1,
         })
         self._validate_global_state_metrics_log(validate_global_dict)
 
@@ -959,18 +1025,40 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         # Revoke 6x synth benes granted to 5x apps for: global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count = 6
         for app_num in range(10, 15):
             self._revoke_range_users_app_token_grant(
-                start_fhir_id="-7200000000000", count=6, app_name="app" + str(app_num)
+                start_fhir_id="-7200000000000", count=6, app_name="app{}".format(str(app_num))
             )
 
-        # Revoke 2x real benes granted to 6x apps for: global_beneficiary_real_grant_to_apps_gt_5_count = 2
+        # Create 3x real benes granted to 6x apps for: global_beneficiary_real_grant_to_apps_eq_6thru8_count = 3
         for app_num in range(10, 16):
             self._revoke_range_users_app_token_grant(
-                start_fhir_id="7300000000000", count=2, app_name="app{}".format(str(app_num))
+                start_fhir_id="7300000000000", count=3, app_name="app{}".format(str(app_num))
             )
-        # Revoke 3x synth benes granted to 8x apps for: global_beneficiary_synthetic_grant_to_apps_gt_5_count = 3
+        # Create 2x synth benes granted to 8x apps for: global_beneficiary_synthetic_grant_to_apps_eq_6thru8_count = 2
         for app_num in range(10, 18):
             self._revoke_range_users_app_token_grant(
-                start_fhir_id="-7300000000000", count=3, app_name="app" + str(app_num)
+                start_fhir_id="-7300000000000", count=2, app_name="app{}".format(str(app_num))
+            )
+
+        # Create 2x real benes granted to 9x apps for: global_beneficiary_real_grant_to_apps_eq_9thru13_count = 2
+        for app_num in range(10, 19):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="7400000000000", count=2, app_name="app{}".format(str(app_num))
+            )
+        # Create 3x synth benes granted to 13x apps for: global_beneficiary_synthetic_grant_to_apps_eq_9thru13_count = 3
+        for app_num in range(10, 23):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="-7400000000000", count=3, app_name="app{}".format(str(app_num))
+            )
+
+        # Create 1x real benes granted to 14x apps for: global_beneficiary_real_grant_to_apps_gt_13_count = 1
+        for app_num in range(10, 24):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="7500000000000", count=1, app_name="app{}".format(str(app_num))
+            )
+        # Create 1x synth benes granted to 15x apps for: global_beneficiary_synthetic_grant_to_apps_gt_13_count = 1
+        for app_num in range(10, 25):
+            self._revoke_range_users_app_token_grant(
+                start_fhir_id="-7500000000000", count=1, app_name="app{}".format(str(app_num))
             )
 
         self._call_management_command_log_global_state_metrics()
@@ -980,28 +1068,36 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "grant_real_bene_count": 33,
             "grant_synthetic_bene_count": 24,
             "grant_table_count": 63,
-            "grant_archived_table_count": 103,
+            "grant_archived_table_count": 187,
             "grant_real_bene_deduped_count": 15,
             "grant_synthetic_bene_deduped_count": 12,
-            "grantarchived_real_bene_deduped_count": 11,
-            "grantarchived_synthetic_bene_deduped_count": 17,
+            "grantarchived_real_bene_deduped_count": 15,
+            "grantarchived_synthetic_bene_deduped_count": 20,
             "token_real_bene_deduped_count": 15,
             "token_synthetic_bene_deduped_count": 12,
             "token_table_count": 63,
-            "token_archived_table_count": 103,
+            "token_archived_table_count": 187,
             "token_real_bene_app_pair_deduped_count": 33,
             "token_synthetic_bene_app_pair_deduped_count": 24,
             "global_beneficiary_real_grant_to_apps_eq_2_count": 0,
             "global_beneficiary_synthetic_grant_to_apps_eq_2_count": 0,
             "global_beneficiary_real_grant_to_apps_eq_4thru5_count": 0,
             "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count": 0,
-            "global_beneficiary_real_grant_to_apps_gt_5_count": 0,
-            "global_beneficiary_synthetic_grant_to_apps_gt_5_count": 0,
+            "global_beneficiary_real_grant_to_apps_eq_6thru8_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_6thru8_count": 0,
+            "global_beneficiary_real_grant_to_apps_eq_9thru13_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_eq_9thru13_count": 0,
+            "global_beneficiary_real_grant_to_apps_gt_13_count": 0,
+            "global_beneficiary_synthetic_grant_to_apps_gt_13_count": 0,
             "global_beneficiary_real_grant_archived_to_apps_eq_2_count": 3,
             "global_beneficiary_synthetic_grant_archived_to_apps_eq_2_count": 5,
             "global_beneficiary_real_grant_archived_to_apps_eq_4thru5_count": 4,
             "global_beneficiary_synthetic_grant_archived_to_apps_eq_4thru5_count": 6,
-            "global_beneficiary_real_grant_archived_to_apps_gt_5_count": 2,
-            "global_beneficiary_synthetic_grant_archived_to_apps_gt_5_count": 3,
+            "global_beneficiary_real_grant_archived_to_apps_eq_6thru8_count": 3,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_6thru8_count": 2,
+            "global_beneficiary_real_grant_archived_to_apps_eq_9thru13_count": 2,
+            "global_beneficiary_synthetic_grant_archived_to_apps_eq_9thru13_count": 3,
+            "global_beneficiary_real_grant_archived_to_apps_gt_13_count": 1,
+            "global_beneficiary_synthetic_grant_archived_to_apps_gt_13_count": 1,
         })
         self._validate_global_state_metrics_log(validate_global_dict)

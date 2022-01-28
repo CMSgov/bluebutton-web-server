@@ -154,11 +154,23 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         "global_beneficiary_synthetic_grant_to_apps_eq_4thru5_count": beneficiary_counts.get(
             "synthetic_grant_to_apps_eq_4thru5", None
         ),
-        "global_beneficiary_real_grant_to_apps_gt_5_count": beneficiary_counts.get(
-            "real_grant_to_apps_gt_5", None
+        "global_beneficiary_real_grant_to_apps_eq_6thru8_count": beneficiary_counts.get(
+            "real_grant_to_apps_eq_6thru8", None
         ),
-        "global_beneficiary_synthetic_grant_to_apps_gt_5_count": beneficiary_counts.get(
-            "synthetic_grant_to_apps_gt_5", None
+        "global_beneficiary_synthetic_grant_to_apps_eq_6thru8_count": beneficiary_counts.get(
+            "synthetic_grant_to_apps_eq_6thru8", None
+        ),
+        "global_beneficiary_real_grant_to_apps_eq_9thru13_count": beneficiary_counts.get(
+            "real_grant_to_apps_eq_9thru13", None
+        ),
+        "global_beneficiary_synthetic_grant_to_apps_eq_9thru13_count": beneficiary_counts.get(
+            "synthetic_grant_to_apps_eq_9thru13", None
+        ),
+        "global_beneficiary_real_grant_to_apps_gt_13_count": beneficiary_counts.get(
+            "real_grant_to_apps_gt_13", None
+        ),
+        "global_beneficiary_synthetic_grant_to_apps_gt_13_count": beneficiary_counts.get(
+            "synthetic_grant_to_apps_gt_13", None
         ),
         "global_beneficiary_real_grant_archived_to_apps_eq_1_count": beneficiary_counts.get(
             "real_grant_archived_to_apps_eq_1", None
@@ -184,11 +196,23 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         "global_beneficiary_synthetic_grant_archived_to_apps_eq_4thru5_count": beneficiary_counts.get(
             "synthetic_grant_archived_to_apps_eq_4thru5", None
         ),
-        "global_beneficiary_real_grant_archived_to_apps_gt_5_count": beneficiary_counts.get(
-            "real_grant_archived_to_apps_gt_5", None
+        "global_beneficiary_real_grant_archived_to_apps_eq_6thru8_count": beneficiary_counts.get(
+            "real_grant_archived_to_apps_eq_6thru8", None
         ),
-        "global_beneficiary_synthetic_grant_archived_to_apps_gt_5_count": beneficiary_counts.get(
-            "synthetic_grant_archived_to_apps_gt_5", None
+        "global_beneficiary_synthetic_grant_archived_to_apps_eq_6thru8_count": beneficiary_counts.get(
+            "synthetic_grant_archived_to_apps_eq_6thru8", None
+        ),
+        "global_beneficiary_real_grant_archived_to_apps_eq_9thru13_count": beneficiary_counts.get(
+            "real_grant_archived_to_apps_eq_9thru13", None
+        ),
+        "global_beneficiary_synthetic_grant_archived_to_apps_eq_9thru13_count": beneficiary_counts.get(
+            "synthetic_grant_archived_to_apps_eq_9thru13", None
+        ),
+        "global_beneficiary_real_grant_archived_to_apps_gt_13_count": beneficiary_counts.get(
+            "real_grant_archived_to_apps_gt_13", None
+        ),
+        "global_beneficiary_synthetic_grant_archived_to_apps_gt_13_count": beneficiary_counts.get(
+            "synthetic_grant_archived_to_apps_gt_13", None
         ),
         "global_beneficiary_counts_elapsed": beneficiary_counts.get("elapsed", None),
     }
