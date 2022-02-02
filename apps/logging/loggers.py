@@ -6,14 +6,15 @@ import apps.logging.request_logger as logging
 from apps.accounts.models import UserProfile
 from apps.authorization.models import (
     get_grant_bene_counts,
-    get_beneficiary_counts
+    get_beneficiary_counts,
+    get_beneficiary_grant_app_pair_counts,
 )
 
 from apps.dot_ext.models import (
     Application,
     get_application_counts,
     get_application_require_demographic_scopes_count,
-    get_token_bene_counts
+    get_token_bene_counts,
 )
 from apps.fhir.bluebutton.models import get_crosswalk_bene_counts
 from apps.accounts.models import get_developer_counts
@@ -54,6 +55,8 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
     developer_counts = get_developer_counts()
 
     beneficiary_counts = get_beneficiary_counts()
+
+    beneficiary_app_pair_counts = get_beneficiary_grant_app_pair_counts()
 
     elapsed_time = round(datetime.utcnow().timestamp() - start_time, 3)
 
@@ -132,6 +135,110 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         "global_beneficiary_count": beneficiary_counts.get("total", None),
         "global_beneficiary_real_count": beneficiary_counts.get("real", None),
         "global_beneficiary_synthetic_count": beneficiary_counts.get("synthetic", None),
+        "global_beneficiary_grant_count": beneficiary_counts.get("total_grant", None),
+        "global_beneficiary_real_grant_count": beneficiary_counts.get(
+            "real_grant", None
+        ),
+        "global_beneficiary_synthetic_grant_count": beneficiary_counts.get(
+            "synthetic_grant", None
+        ),
+        "global_beneficiary_grant_archived_count": beneficiary_counts.get(
+            "total_grant_archived", None
+        ),
+        "global_beneficiary_real_grant_archived_count": beneficiary_counts.get(
+            "real_grant_archived", None
+        ),
+        "global_beneficiary_synthetic_grant_archived_count": beneficiary_counts.get(
+            "synthetic_grant_archived", None
+        ),
+        "global_beneficiary_grant_or_archived_count": beneficiary_counts.get(
+            "total_grant_or_archived", None
+        ),
+        "global_beneficiary_real_grant_or_archived_count": beneficiary_counts.get(
+            "real_grant_or_archived", None
+        ),
+        "global_beneficiary_synthetic_grant_or_archived_count": beneficiary_counts.get(
+            "synthetic_grant_or_archived", None
+        ),
+        "global_beneficiary_grant_and_archived_count": beneficiary_counts.get(
+            "total_grant_and_archived", None
+        ),
+        "global_beneficiary_real_grant_and_archived_count": beneficiary_counts.get(
+            "real_grant_and_archived", None
+        ),
+        "global_beneficiary_synthetic_grant_and_archived_count": beneficiary_counts.get(
+            "synthetic_grant_and_archived", None
+        ),
+        "global_beneficiary_grant_not_archived_count": beneficiary_counts.get(
+            "total_grant_not_archived", None
+        ),
+        "global_beneficiary_real_grant_not_archived_count": beneficiary_counts.get(
+            "real_grant_not_archived", None
+        ),
+        "global_beneficiary_synthetic_grant_not_archived_count": beneficiary_counts.get(
+            "synthetic_grant_not_archived", None
+        ),
+        "global_beneficiary_archived_not_grant_count": beneficiary_counts.get(
+            "total_archived_not_grant", None
+        ),
+        "global_beneficiary_real_archived_not_grant_count": beneficiary_counts.get(
+            "real_archived_not_grant", None
+        ),
+        "global_beneficiary_synthetic_archived_not_grant_count": beneficiary_counts.get(
+            "synthetic_archived_not_grant", None
+        ),
+        "global_beneficiary_token_count": beneficiary_counts.get("total_token", None),
+        "global_beneficiary_real_token_count": beneficiary_counts.get(
+            "real_token", None
+        ),
+        "global_beneficiary_synthetic_token_count": beneficiary_counts.get(
+            "synthetic_token", None
+        ),
+        "global_beneficiary_token_archived_count": beneficiary_counts.get(
+            "total_token_archived", None
+        ),
+        "global_beneficiary_real_token_archived_count": beneficiary_counts.get(
+            "real_token_archived", None
+        ),
+        "global_beneficiary_synthetic_token_archived_count": beneficiary_counts.get(
+            "synthetic_token_archived", None
+        ),
+        "global_beneficiary_token_or_archived_count": beneficiary_counts.get(
+            "total_token_or_archived", None
+        ),
+        "global_beneficiary_real_token_or_archived_count": beneficiary_counts.get(
+            "real_token_or_archived", None
+        ),
+        "global_beneficiary_synthetic_token_or_archived_count": beneficiary_counts.get(
+            "synthetic_token_or_archived", None
+        ),
+        "global_beneficiary_token_and_archived_count": beneficiary_counts.get(
+            "total_token_and_archived", None
+        ),
+        "global_beneficiary_real_token_and_archived_count": beneficiary_counts.get(
+            "real_token_and_archived", None
+        ),
+        "global_beneficiary_synthetic_token_and_archived_count": beneficiary_counts.get(
+            "synthetic_token_and_archived", None
+        ),
+        "global_beneficiary_token_not_archived_count": beneficiary_counts.get(
+            "total_token_not_archived", None
+        ),
+        "global_beneficiary_real_token_not_archived_count": beneficiary_counts.get(
+            "real_token_not_archived", None
+        ),
+        "global_beneficiary_synthetic_token_not_archived_count": beneficiary_counts.get(
+            "synthetic_token_not_archived", None
+        ),
+        "global_beneficiary_archived_not_token_count": beneficiary_counts.get(
+            "total_archived_not_token", None
+        ),
+        "global_beneficiary_real_archived_not_token_count": beneficiary_counts.get(
+            "real_archived_not_token", None
+        ),
+        "global_beneficiary_synthetic_archived_not_token_count": beneficiary_counts.get(
+            "synthetic_archived_not_token", None
+        ),
         "global_beneficiary_real_grant_to_apps_eq_1_count": beneficiary_counts.get(
             "real_grant_to_apps_eq_1", None
         ),
@@ -217,6 +324,45 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
             "synthetic_grant_archived_to_apps_gt_13", None
         ),
         "global_beneficiary_counts_elapsed": beneficiary_counts.get("elapsed", None),
+        "global_beneficiary_app_pair_grant_count": beneficiary_app_pair_counts.get(
+            "grant_total", None
+        ),
+        "global_beneficiary_app_pair_real_grant_count": beneficiary_app_pair_counts.get(
+            "real_grant", None
+        ),
+        "global_beneficiary_app_pair_synthetic_grant_count": beneficiary_app_pair_counts.get(
+            "synthetic_grant", None
+        ),
+        "global_beneficiary_app_pair_grant_archived_count": beneficiary_app_pair_counts.get(
+            "grant_archived_total", None
+        ),
+        "global_beneficiary_app_pair_real_grant_archived_count": beneficiary_app_pair_counts.get(
+            "real_grant_archived", None
+        ),
+        "global_beneficiary_app_pair_synthetic_grant_archived_count": beneficiary_app_pair_counts.get(
+            "synthetic_grant_archived", None
+        ),
+        "global_beneficiary_app_pair_grant_vs_archived_difference_total_count": beneficiary_app_pair_counts.get(
+            "grant_vs_archived_difference_total", None
+        ),
+        "global_beneficiary_app_pair_real_grant_vs_archived_difference_total_count": beneficiary_app_pair_counts.get(
+            "real_grant_vs_archived_difference_total", None
+        ),
+        "global_beneficiary_app_pair_synthetic_grant_vs_archived_difference_total_count": beneficiary_app_pair_counts.get(
+            "synthetic_grant_vs_archived_difference_total", None
+        ),
+        "global_beneficiary_app_pair_archived_vs_grant_difference_total_count": beneficiary_app_pair_counts.get(
+            "archived_vs_grant_difference_total", None
+        ),
+        "global_beneficiary_app_pair_real_archived_vs_grant_difference_total_count": beneficiary_app_pair_counts.get(
+            "real_archived_vs_grant_difference_total", None
+        ),
+        "global_beneficiary_app_pair_synthetic_archived_vs_grant_difference_total_count": beneficiary_app_pair_counts.get(
+            "synthetic_archived_vs_grant_difference_total", None
+        ),
+        "global_beneficiary_app_pair_counts_elapsed": beneficiary_app_pair_counts.get(
+            "elapsed", None
+        ),
     }
 
     logger.info(log_dict)
