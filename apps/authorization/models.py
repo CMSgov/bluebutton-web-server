@@ -196,6 +196,7 @@ def get_beneficiary_counts():
     Get AccessToken, ArchivedAccessToken, DataAccessGrant
     and ArchivedDataAccessGrant counts for beneficiary type users.
     """
+    print("===IN: def get_beneficiary_counts()")
     User = get_user_model()
 
     # Init counts dict
@@ -212,9 +213,9 @@ def get_beneficiary_counts():
             grant_archived_count=Count(
                 "archiveddataaccessgrant__application", distinct=True
             ),
-            token_count=Count(
-                "oauth2_provider_accesstoken__application", distinct=True
-            ),
+            #token_count=Count(
+            #    "oauth2_provider_accesstoken__application", distinct=True
+            #),
             #token_archived_count=Count(
             #    "dot_ext_archivedtoken__application", distinct=True
             #),
@@ -238,6 +239,7 @@ def get_beneficiary_counts():
     """
     Grant related count section
     """
+    print("===IN GRANT: def get_beneficiary_counts()")
     # Count only if in grant
     counts_returned["total_grant"] = queryset.filter(Q(grant_count__gt=0)).count()
     counts_returned["real_grant"] = real_queryset.filter(Q(grant_count__gt=0)).count()
@@ -303,12 +305,12 @@ def get_beneficiary_counts():
     """
     Access Token related count section
     """
-    # Count only if in token
-    counts_returned["total_token"] = queryset.filter(Q(token_count__gt=0)).count()
-    counts_returned["real_token"] = real_queryset.filter(Q(token_count__gt=0)).count()
-    counts_returned["synthetic_token"] = synthetic_queryset.filter(
-        Q(token_count__gt=0)
-    ).count()
+    ## Count only if in token
+    #counts_returned["total_token"] = queryset.filter(Q(token_count__gt=0)).count()
+    #counts_returned["real_token"] = real_queryset.filter(Q(token_count__gt=0)).count()
+    #counts_returned["synthetic_token"] = synthetic_queryset.filter(
+    #    Q(token_count__gt=0)
+    #).count()
 
     ## Count only if in token archived
     #counts_returned["total_token_archived"] = queryset.filter(
@@ -368,6 +370,7 @@ def get_beneficiary_counts():
     """
     Bene grants to applications break down count section
     """
+    print("===IN GRANT2: def get_beneficiary_counts()")
     counts_returned["real_grant_to_apps_eq_1"] = real_queryset.filter(
         Q(grant_count=1)
     ).count()
@@ -420,6 +423,7 @@ def get_beneficiary_counts():
     """
     Bene archived grants to applications break down count section
     """
+    print("===IN GRANT3: def get_beneficiary_counts()")
     counts_returned["real_grant_archived_to_apps_eq_1"] = real_queryset.filter(
         Q(grant_archived_count=1)
     ).count()
@@ -477,6 +481,7 @@ def get_beneficiary_counts():
 
     counts_returned["elapsed"] = round(datetime.utcnow().timestamp() - start_time, 3)
 
+    print("===RETURN: def get_beneficiary_counts()")
     return counts_returned
 
 
@@ -485,6 +490,7 @@ def get_beneficiary_grant_app_pair_counts():
     Get DataAccessGrant and ArchivedDataAccessGrant counts
     for beneficiary<->application pairs.
     """
+    print("===IN: def get_beneficiary_grant_app_pair_counts()")
 
     # Init counts dict
     counts_returned = {}
@@ -511,6 +517,7 @@ def get_beneficiary_grant_app_pair_counts():
     counts_returned["real_grant"] = real_grant_queryset.count()
     counts_returned["synthetic_grant"] = synthetic_grant_queryset.count()
 
+    print("===IN PART1: def get_beneficiary_grant_app_pair_counts()")
     # Setup base queryset
     grant_archived_queryset = ArchivedDataAccessGrant.objects.values(
         "beneficiary", "application"
@@ -538,6 +545,7 @@ def get_beneficiary_grant_app_pair_counts():
     """
     Bene<->App pair differences
     """
+    print("===IN PART2: def get_beneficiary_grant_app_pair_counts()")
     # Pairs in Grant but not in ArchivedGrant.
     counts_returned["grant_vs_archived_difference_total"] = grant_queryset.difference(
         grant_archived_queryset
@@ -550,6 +558,7 @@ def get_beneficiary_grant_app_pair_counts():
     ] = synthetic_grant_queryset.difference(synthetic_grant_archived_queryset).count()
 
     # Pairs in ArchivedGrant but not in Grant.
+    print("===IN PART3: def get_beneficiary_grant_app_pair_counts()")
     counts_returned[
         "archived_vs_grant_difference_total"
     ] = grant_archived_queryset.difference(grant_queryset).count()
@@ -561,5 +570,6 @@ def get_beneficiary_grant_app_pair_counts():
     ] = synthetic_grant_archived_queryset.difference(synthetic_grant_queryset).count()
 
     counts_returned["elapsed"] = round(datetime.utcnow().timestamp() - start_time, 3)
+    print("===RETURN: def get_beneficiary_grant_app_pair_counts()")
 
     return counts_returned

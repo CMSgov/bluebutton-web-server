@@ -187,10 +187,10 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         "global_beneficiary_synthetic_archived_not_grant_count": beneficiary_counts.get(
             "synthetic_archived_not_grant", None
         ),
-        "global_beneficiary_token_count": beneficiary_counts.get("total_token", None),
-        "global_beneficiary_real_token_count": beneficiary_counts.get(
-            "real_token", None
-        ),
+        #"global_beneficiary_token_count": beneficiary_counts.get("total_token", None),
+        #"global_beneficiary_real_token_count": beneficiary_counts.get(
+        #    "real_token", None
+        #),
         "global_beneficiary_synthetic_token_count": beneficiary_counts.get(
             "synthetic_token", None
         ),
