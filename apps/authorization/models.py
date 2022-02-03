@@ -215,9 +215,9 @@ def get_beneficiary_counts():
             token_count=Count(
                 "oauth2_provider_accesstoken__application", distinct=True
             ),
-            token_archived_count=Count(
-                "dot_ext_archivedtoken__application", distinct=True
-            ),
+            #token_archived_count=Count(
+            #    "dot_ext_archivedtoken__application", distinct=True
+            #),
         )
         .all()
     )
@@ -310,60 +310,60 @@ def get_beneficiary_counts():
         Q(token_count__gt=0)
     ).count()
 
-    # Count only if in token archived
-    counts_returned["total_token_archived"] = queryset.filter(
-        Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["real_token_archived"] = real_queryset.filter(
-        Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["synthetic_token_archived"] = synthetic_queryset.filter(
-        Q(token_archived_count__gt=0)
-    ).count()
+    ## Count only if in token archived
+    #counts_returned["total_token_archived"] = queryset.filter(
+    #    Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["real_token_archived"] = real_queryset.filter(
+    #    Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["synthetic_token_archived"] = synthetic_queryset.filter(
+    #    Q(token_archived_count__gt=0)
+    #).count()
 
-    # Count only if in token OR archived
-    counts_returned["total_token_or_archived"] = queryset.filter(
-        Q(token_count__gt=0) | Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["real_token_or_archived"] = real_queryset.filter(
-        Q(token_count__gt=0) | Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["synthetic_token_or_archived"] = synthetic_queryset.filter(
-        Q(token_count__gt=0) | Q(token_archived_count__gt=0)
-    ).count()
+    ## Count only if in token OR archived
+    #counts_returned["total_token_or_archived"] = queryset.filter(
+    #    Q(token_count__gt=0) | Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["real_token_or_archived"] = real_queryset.filter(
+    #    Q(token_count__gt=0) | Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["synthetic_token_or_archived"] = synthetic_queryset.filter(
+    #    Q(token_count__gt=0) | Q(token_archived_count__gt=0)
+    #).count()
 
-    # Count only if in token AND archived
-    counts_returned["total_token_and_archived"] = queryset.filter(
-        Q(token_count__gt=0) & Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["real_token_and_archived"] = real_queryset.filter(
-        Q(token_count__gt=0) & Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["synthetic_token_and_archived"] = synthetic_queryset.filter(
-        Q(token_count__gt=0) & Q(token_archived_count__gt=0)
-    ).count()
+    ## Count only if in token AND archived
+    #counts_returned["total_token_and_archived"] = queryset.filter(
+    #    Q(token_count__gt=0) & Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["real_token_and_archived"] = real_queryset.filter(
+    #    Q(token_count__gt=0) & Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["synthetic_token_and_archived"] = synthetic_queryset.filter(
+    #    Q(token_count__gt=0) & Q(token_archived_count__gt=0)
+    #).count()
 
-    # Count only if in token NOT archived
-    counts_returned["total_token_not_archived"] = queryset.filter(
-        Q(token_count__gt=0) & ~Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["real_token_not_archived"] = real_queryset.filter(
-        Q(token_count__gt=0) & ~Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["synthetic_token_not_archived"] = synthetic_queryset.filter(
-        Q(token_count__gt=0) & ~Q(token_archived_count__gt=0)
-    ).count()
+    ## Count only if in token NOT archived
+    #counts_returned["total_token_not_archived"] = queryset.filter(
+    #    Q(token_count__gt=0) & ~Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["real_token_not_archived"] = real_queryset.filter(
+    #    Q(token_count__gt=0) & ~Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["synthetic_token_not_archived"] = synthetic_queryset.filter(
+    #    Q(token_count__gt=0) & ~Q(token_archived_count__gt=0)
+    #).count()
 
-    # Count only if in archived NOT token
-    counts_returned["total_archived_not_token"] = queryset.filter(
-        ~Q(token_count__gt=0) & Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["real_archived_not_token"] = real_queryset.filter(
-        ~Q(token_count__gt=0) & Q(token_archived_count__gt=0)
-    ).count()
-    counts_returned["synthetic_archived_not_token"] = synthetic_queryset.filter(
-        ~Q(token_count__gt=0) & Q(token_archived_count__gt=0)
-    ).count()
+    ## Count only if in archived NOT token
+    #counts_returned["total_archived_not_token"] = queryset.filter(
+    #    ~Q(token_count__gt=0) & Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["real_archived_not_token"] = real_queryset.filter(
+    #    ~Q(token_count__gt=0) & Q(token_archived_count__gt=0)
+    #).count()
+    #counts_returned["synthetic_archived_not_token"] = synthetic_queryset.filter(
+    #    ~Q(token_count__gt=0) & Q(token_archived_count__gt=0)
+    #).count()
 
     """
     Bene grants to applications break down count section
