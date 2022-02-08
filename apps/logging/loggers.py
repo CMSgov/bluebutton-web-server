@@ -187,58 +187,6 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         "global_beneficiary_synthetic_archived_not_grant_count": beneficiary_counts.get(
             "synthetic_archived_not_grant", None
         ),
-        #"global_beneficiary_token_count": beneficiary_counts.get("total_token", None),
-        #"global_beneficiary_real_token_count": beneficiary_counts.get(
-        #    "real_token", None
-        #),
-        "global_beneficiary_synthetic_token_count": beneficiary_counts.get(
-            "synthetic_token", None
-        ),
-        "global_beneficiary_token_archived_count": beneficiary_counts.get(
-            "total_token_archived", None
-        ),
-        "global_beneficiary_real_token_archived_count": beneficiary_counts.get(
-            "real_token_archived", None
-        ),
-        "global_beneficiary_synthetic_token_archived_count": beneficiary_counts.get(
-            "synthetic_token_archived", None
-        ),
-        #"global_beneficiary_token_or_archived_count": beneficiary_counts.get(
-        #    "total_token_or_archived", None
-        #),
-        #"global_beneficiary_real_token_or_archived_count": beneficiary_counts.get(
-        #    "real_token_or_archived", None
-        #),
-        #"global_beneficiary_synthetic_token_or_archived_count": beneficiary_counts.get(
-        #    "synthetic_token_or_archived", None
-        #),
-        #"global_beneficiary_token_and_archived_count": beneficiary_counts.get(
-        #    "total_token_and_archived", None
-        #),
-        #"global_beneficiary_real_token_and_archived_count": beneficiary_counts.get(
-        #    "real_token_and_archived", None
-        #),
-        #"global_beneficiary_synthetic_token_and_archived_count": beneficiary_counts.get(
-        #    "synthetic_token_and_archived", None
-        #),
-        #"global_beneficiary_token_not_archived_count": beneficiary_counts.get(
-        #    "total_token_not_archived", None
-        #),
-        #"global_beneficiary_real_token_not_archived_count": beneficiary_counts.get(
-        #    "real_token_not_archived", None
-        #),
-        #"global_beneficiary_synthetic_token_not_archived_count": beneficiary_counts.get(
-        #    "synthetic_token_not_archived", None
-        #),
-        #"global_beneficiary_archived_not_token_count": beneficiary_counts.get(
-        #    "total_archived_not_token", None
-        #),
-        #"global_beneficiary_real_archived_not_token_count": beneficiary_counts.get(
-        #    "real_archived_not_token", None
-        #),
-        #"global_beneficiary_synthetic_archived_not_token_count": beneficiary_counts.get(
-        #    "synthetic_archived_not_token", None
-        #),
         "global_beneficiary_real_grant_to_apps_eq_1_count": beneficiary_counts.get(
             "real_grant_to_apps_eq_1", None
         ),

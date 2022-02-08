@@ -176,24 +176,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_archived_not_grant_count",
             "global_beneficiary_real_archived_not_grant_count",
             "global_beneficiary_synthetic_archived_not_grant_count",
-            "global_beneficiary_token_count",
-            "global_beneficiary_real_token_count",
-            "global_beneficiary_synthetic_token_count",
-            "global_beneficiary_token_archived_count",
-            "global_beneficiary_real_token_archived_count",
-            "global_beneficiary_synthetic_token_archived_count",
-            "global_beneficiary_token_or_archived_count",
-            "global_beneficiary_real_token_or_archived_count",
-            "global_beneficiary_synthetic_token_or_archived_count",
-            "global_beneficiary_token_and_archived_count",
-            "global_beneficiary_real_token_and_archived_count",
-            "global_beneficiary_synthetic_token_and_archived_count",
-            "global_beneficiary_token_not_archived_count",
-            "global_beneficiary_real_token_not_archived_count",
-            "global_beneficiary_synthetic_token_not_archived_count",
-            "global_beneficiary_archived_not_token_count",
-            "global_beneficiary_real_archived_not_token_count",
-            "global_beneficiary_synthetic_archived_not_token_count",
             "global_beneficiary_real_grant_to_apps_eq_1_count",
             "global_beneficiary_synthetic_grant_to_apps_eq_1_count",
             "global_beneficiary_real_grant_to_apps_eq_2_count",
@@ -451,6 +433,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_developer_distinct_organization_name_count": 2,
             "global_beneficiary_count": 20,
             "global_beneficiary_real_count": 11,
+            "global_beneficiary_synthetic_count": 9,
             "global_beneficiary_grant_count": 15,
             "global_beneficiary_real_grant_count": 8,
             "global_beneficiary_synthetic_grant_count": 7,
@@ -469,26 +452,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_archived_not_grant_count": 0,
             "global_beneficiary_real_archived_not_grant_count": 0,
             "global_beneficiary_synthetic_archived_not_grant_count": 0,
-            "global_beneficiary_synthetic_count": 9,
-            "global_beneficiary_token_count": 15,
-            "global_beneficiary_real_token_count": 8,
-            "global_beneficiary_synthetic_token_count": 7,
-            "global_beneficiary_token_archived_count": 0,
-            "global_beneficiary_real_token_archived_count": 0,
-            "global_beneficiary_synthetic_token_archived_count": 0,
-            "global_beneficiary_token_or_archived_count": 15,
-            "global_beneficiary_real_token_or_archived_count": 8,
-            "global_beneficiary_synthetic_token_or_archived_count": 7,
-            "global_beneficiary_token_and_archived_count": 0,
-            "global_beneficiary_real_token_and_archived_count": 0,
-            "global_beneficiary_synthetic_token_and_archived_count": 0,
-            "global_beneficiary_token_not_archived_count": 15,
-            "global_beneficiary_real_token_not_archived_count": 8,
-            "global_beneficiary_synthetic_token_not_archived_count": 7,
-            "global_beneficiary_archived_not_token_count": 0,
-            "global_beneficiary_real_archived_not_token_count": 0,
-            "global_beneficiary_synthetic_archived_not_token_count": 0,
-            "global_beneficiary_synthetic_count": 9,
             "global_beneficiary_real_grant_to_apps_eq_1_count": 8,
             "global_beneficiary_synthetic_grant_to_apps_eq_1_count": 7,
             "global_beneficiary_real_grant_to_apps_eq_2_count": 0,
@@ -621,12 +584,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_synthetic_grant_or_archived_count": 9,  # 7 -> 9
             "global_beneficiary_grant_not_archived_count": 17,  # 15 -> 17
             "global_beneficiary_synthetic_grant_not_archived_count": 9,  # 7 -> 9
-            "global_beneficiary_token_count": 17,  # 15 -> 17
-            "global_beneficiary_synthetic_token_count": 9,  # 7 -> 9
-            "global_beneficiary_token_or_archived_count": 17,  # 15 -> 17
-            "global_beneficiary_synthetic_token_or_archived_count": 9,  # 7 -> 9
-            "global_beneficiary_token_not_archived_count": 17,  # 15 -> 17
-            "global_beneficiary_synthetic_token_not_archived_count": 9,  # 7 -> 9
             "global_beneficiary_synthetic_grant_to_apps_eq_1_count": 9,  # 7 -> 9
             "global_beneficiary_app_pair_grant_count": 17,  # 15 -> 17
             "global_beneficiary_app_pair_synthetic_grant_count": 9,  # 7 -> 9
@@ -703,18 +660,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_archived_not_grant_count": 5,  # 0 -> 5
             "global_beneficiary_real_archived_not_grant_count": 2,  # 0 -> 2
             "global_beneficiary_synthetic_archived_not_grant_count": 3,  # 0 -> 3
-            "global_beneficiary_token_count": 12,  # 17 -> 12
-            "global_beneficiary_real_token_count": 6,  # 8 -> 6
-            "global_beneficiary_synthetic_token_count": 6,  # 9 -> 6
-            "global_beneficiary_token_archived_count": 5,  # 0 -> 5
-            "global_beneficiary_real_token_archived_count": 2,  # 0 -> 2
-            "global_beneficiary_synthetic_token_archived_count": 3,  # 0 -> 3
-            "global_beneficiary_token_not_archived_count": 12,  # 17 -> 12
-            "global_beneficiary_real_token_not_archived_count": 6,  # 8 -> 6
-            "global_beneficiary_synthetic_token_not_archived_count": 6,  # 9 -> 6
-            "global_beneficiary_archived_not_token_count": 5,  # 0 -> 5
-            "global_beneficiary_real_archived_not_token_count": 2,  # 0 -> 2
-            "global_beneficiary_synthetic_archived_not_token_count": 3,  # 0 -> 3
             "global_beneficiary_real_grant_to_apps_eq_1_count": 6,  # 8 -> 6
             "global_beneficiary_synthetic_grant_to_apps_eq_1_count": 6,  # 9 -> 6
             "global_beneficiary_real_grant_archived_to_apps_eq_1_count": 2,  # 0 -> 2
@@ -839,15 +784,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_grant_not_archived_count": 29,  # 12 -> 29
             "global_beneficiary_real_grant_not_archived_count": 16,  # 6 -> 16
             "global_beneficiary_synthetic_grant_not_archived_count": 13,  # 6 -> 13
-            "global_beneficiary_token_count": 29,  # 12 -> 29
-            "global_beneficiary_real_token_count": 16,  # 6 -> 16
-            "global_beneficiary_synthetic_token_count": 13,  # 6 -> 13
-            "global_beneficiary_token_or_archived_count": 34,  # 17 -> 34
-            "global_beneficiary_real_token_or_archived_count": 18,  # 8 -> 18
-            "global_beneficiary_synthetic_token_or_archived_count": 16,  # 9 -> 16
-            "global_beneficiary_token_not_archived_count": 29,  # 12 -> 29
-            "global_beneficiary_real_token_not_archived_count": 16,  # 6 -> 16
-            "global_beneficiary_synthetic_token_not_archived_count": 13,  # 6 -> 13
             "global_beneficiary_real_grant_to_apps_eq_3_count": 10,  # 0 -> 10
             "global_beneficiary_synthetic_grant_to_apps_eq_3_count": 7,  # 0 -> 7
             "global_beneficiary_app_pair_grant_count": 63,  # 12 -> 63
@@ -1215,15 +1151,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_grant_not_archived_count": 59,  # 29 -> 59
             "global_beneficiary_real_grant_not_archived_count": 28,  # 15 -> 28
             "global_beneficiary_synthetic_grant_not_archived_count": 29,  # 12 -> 29
-            "global_beneficiary_token_count": 59,  # 29 -> 59
-            "global_beneficiary_real_token_count": 28,  # 15 -> 28
-            "global_beneficiary_synthetic_token_count": 29,  # 12 -> 29
-            "global_beneficiary_token_or_archived_count": 64,  # 34 -> 64
-            "global_beneficiary_real_token_or_archived_count": 30,  # 17 -> 30
-            "global_beneficiary_synthetic_token_or_archived_count": 32,  # 15 -> 32
-            "global_beneficiary_token_not_archived_count": 59,  # 29 -> 59
-            "global_beneficiary_real_token_not_archived_count": 28,  # 15 -> 28
-            "global_beneficiary_synthetic_token_not_archived_count": 29,  # 12 -> 29
             "global_beneficiary_real_grant_to_apps_eq_2_count": 3,  # 0 -> 3
             "global_beneficiary_synthetic_grant_to_apps_eq_2_count": 5,  # 0 -> 5
             "global_beneficiary_real_grant_to_apps_eq_4thru5_count": 4,  # 0 -> 4
@@ -1333,18 +1260,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             "global_beneficiary_archived_not_grant_count": 35,  # 5 -> 35
             "global_beneficiary_real_archived_not_grant_count": 15,  # 2 -> 15
             "global_beneficiary_synthetic_archived_not_grant_count": 20,  # 3 -> 20
-            "global_beneficiary_token_count": 29,  # 59 -> 29
-            "global_beneficiary_real_token_count": 15,  # 28 -> 15
-            "global_beneficiary_synthetic_token_count": 12,  # 29 -> 12
-            "global_beneficiary_token_archived_count": 35,  # 5 -> 35
-            "global_beneficiary_real_token_archived_count": 15,  # 2 -> 15
-            "global_beneficiary_synthetic_token_archived_count": 20,  # 3 -> 20
-            "global_beneficiary_token_not_archived_count": 29,  # 59 -> 29
-            "global_beneficiary_real_token_not_archived_count": 15,  # 28 -> 15
-            "global_beneficiary_synthetic_token_not_archived_count": 12,  # 29 -> 12
-            "global_beneficiary_archived_not_token_count": 35,  # 5 -> 35
-            "global_beneficiary_real_archived_not_token_count": 15,  # 2 -> 15
-            "global_beneficiary_synthetic_archived_not_token_count": 20,  # 3 -> 20
             "global_beneficiary_real_grant_to_apps_eq_2_count": 0,  # 3 -> 0
             "global_beneficiary_synthetic_grant_to_apps_eq_2_count": 0,  # 5 -> 0
             "global_beneficiary_real_grant_to_apps_eq_4thru5_count": 0,  # 4 -> 0
