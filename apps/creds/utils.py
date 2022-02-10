@@ -21,17 +21,6 @@ def get_url(creds_request_id):
 
 
 def get_new_creds(creds_request_id: string):
-
-    creds_dict = {
-        "user_name": None,
-        "org_name": None,
-        "app_id": None,
-        "app_name": None,
-        "client_id": None,
-        "client_secret": None,
-        "creds_req_id": creds_request_id,
-    }
-
     creds_req = CredentialingReqest.objects.get(id=creds_request_id)
 
     creds_dict = get_app_usr_info(creds_req)
