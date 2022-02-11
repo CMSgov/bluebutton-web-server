@@ -11,7 +11,6 @@ from django.contrib.auth.models import Group
 from httmock import all_requests, HTTMock, urlmatch
 from jsonschema import validate
 from rest_framework import status
-from waffle.testutils import override_flag
 
 from apps.dot_ext.models import Application
 from apps.mymedicare_cb.views import generate_nonce
@@ -94,7 +93,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_fhir_events_logging(self):
         self._fhir_events_logging(False)
 
-    @override_flag("bfd_v2_flag", active=True)
     def test_fhir_events_logging_v2(self):
         self._fhir_events_logging(True)
 
@@ -165,7 +163,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_callback_url_success_slsx_logger(self):
         self._callback_url_success_slsx_logger(False)
 
-    @override_flag("bfd_v2_flag", active=True)
     def test_callback_url_success_slsx_logger_v2(self):
         self._callback_url_success_slsx_logger(True)
 
@@ -309,7 +306,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_callback_url_slsx_tkn_error_logger(self):
         self._callback_url_slsx_tkn_error_logger(False)
 
-    @override_flag("bfd_v2_flag", active=True)
     def test_callback_url_slsx_tkn_error_logger_v2(self):
         self._callback_url_slsx_tkn_error_logger(True)
 
@@ -377,7 +373,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_callback_url_slsx_userinfo_error_logger(self):
         self._callback_url_slsx_userinfo_error_logger(False)
 
-    @override_flag("bfd_v2_flag", active=True)
     def test_callback_url_slsx_userinfo_error_logger_v2(self):
         self._callback_url_slsx_userinfo_error_logger(True)
 
@@ -445,7 +440,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_creation_on_approval_token_logger(self):
         self._creation_on_approval_token_logger(False)
 
-    @override_flag("bfd_v2_flag", active=True)
     def test_creation_on_approval_token_logger_v2(self):
         self._creation_on_approval_token_logger(True)
 
@@ -493,7 +487,6 @@ class TestAuditEventLoggers(BaseApiTest):
     def test_request_logger_app_not_exist(self):
         self._request_logger_app_not_exist(False)
 
-    @override_flag("bfd_v2_flag", active=True)
     def test_request_logger_app_not_exist_v2(self):
         self._request_logger_app_not_exist(True)
 
