@@ -149,9 +149,9 @@ dj-database-url==0.5.0 \
     --hash=sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163 \
     --hash=sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9
     # via -r requirements/requirements.in
-django==2.2.26 \
-    --hash=sha256:85e62019366692f1d5afed946ca32fef34c8693edf342ac9d067d75d64faf0ac \
-    --hash=sha256:dfa537267d52c6243a62b32855a744ca83c37c70600aacffbfd98bc5d6d8518f
+django==2.2.27 \
+    --hash=sha256:1ee37046b0bf2b61e83b3a01d067323516ec3b6f2b17cd49b1326dd4ba9dc913 \
+    --hash=sha256:90763c764738586b11d7e1f44828032c153366e43ad7f782908193a1bb2d6d92
     # via
     #   -r requirements/requirements.in
     #   django-bootstrap-form
