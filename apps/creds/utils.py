@@ -63,8 +63,11 @@ def get_app_usr_info(creds_req: CredentialingReqest):
 
         if user:
             app_usr_info.update({"user_name": user.username})
-            usrprofile = UserProfile.objects.get(user=user)
-            if usrprofile:
-                app_usr_info.update({"org_name": usrprofile.organization_name})
+            try:
+                usrprofile = UserProfile.objects.get(user=user)
+                if usrprofile:
+                    app_usr_info.update({"org_name": usrprofile.organization_name})
+            except UserProfile.DoesNotExist:
+                pass
 
     return app_usr_info
