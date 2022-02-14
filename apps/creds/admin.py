@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
+from oauth2_provider.generators import generate_client_secret
 from oauth2_provider.models import get_application_model
 
 from apps.accounts.models import UserProfile
@@ -18,14 +19,30 @@ class MyCredentialingRequest(CredentialingReqest):
 
 @admin.register(MyCredentialingRequest)
 class MyCredentialingRequestAdmin(admin.ModelAdmin):
-    readonly_fields = ('id', 'get_user', 'get_organization', 'updated_at', 'last_visit', 'visits_count', 'get_creds_req_url',)
-    list_display = ("application", "id",
-                    "get_user", "get_organization", "get_creds_req_url",
-                    "created_at", "updated_at",
-                    "last_visit", "visits_count")
-    list_filter = ('application__user__username',)
+    readonly_fields = (
+        "id",
+        "get_user",
+        "get_organization",
+        "updated_at",
+        "last_visit",
+        "visits_count",
+        "get_creds_req_url",
+    )
+    list_display = (
+        "application",
+        "id",
+        "get_user",
+        "get_organization",
+        "get_creds_req_url",
+        "created_at",
+        "updated_at",
+        "last_visit",
+        "visits_count",
+    )
 
-    search_fields = ('application__name', 'application__user__username', '=id')
+    list_filter = ("application__user__username",)
+
+    search_fields = ("application__name", "application__user__username", "=id")
 
     raw_id_fields = ("application",)
 
@@ -59,3 +76,9 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
 
     get_creds_req_url.admin_order_field = "get_creds_req_url"
     get_creds_req_url.short_description = "URL for credentials request"
+
+    def save_model(self, request, obj, form, change):
+        app = Application.objects.get(id=obj.application.id)
+        app.client_secret = generate_client_secret()
+        app.save()
+        super().save_model(request, obj, form, change)

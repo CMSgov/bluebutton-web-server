@@ -2,14 +2,10 @@ import string
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db import transaction
-from django.db.utils import IntegrityError
 from oauth2_provider.models import get_application_model
-from oauth2_provider.generators import generate_client_id, generate_client_secret
 from rest_framework import exceptions, status
 
 from apps.accounts.models import UserProfile
-
 from .models import CredentialingReqest
 
 
@@ -20,7 +16,7 @@ def get_url(creds_request_id):
     return "{}/creds/{}".format(settings.HOSTNAME_URL, creds_request_id)
 
 
-def get_new_creds(creds_request_id: string):
+def get_app_creds(creds_request_id: string):
     creds_req = CredentialingReqest.objects.get(id=creds_request_id)
 
     creds_dict = get_app_usr_info(creds_req)
@@ -33,26 +29,12 @@ def get_new_creds(creds_request_id: string):
 
     app = Application.objects.get(pk=creds_req.application_id)
 
-    try:
-        with transaction.atomic():
-
-            if app:
-
-                client_id = generate_client_id()
-                client_secret = generate_client_secret()
-
-                app.client_id = client_id
-                app.client_secret = client_secret
-                app.save()
-
-                creds_dict.update(
-                    {
-                        "client_id": client_id,
-                        "client_secret": client_secret,
-                    }
-                )
-    except IntegrityError:
-        pass
+    creds_dict.update(
+        {
+            "client_id": app.client_id,
+            "client_secret": app.client_secret,
+        }
+    )
 
     return creds_dict
 

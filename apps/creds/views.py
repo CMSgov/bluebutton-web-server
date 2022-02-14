@@ -8,7 +8,7 @@ from oauth2_provider.models import get_application_model
 from rest_framework import exceptions, status
 from rest_framework.views import APIView
 
-from apps.creds.utils import get_app_usr_info, get_new_creds
+from apps.creds.utils import get_app_usr_info, get_app_creds
 from .models import CredentialingReqest
 
 Application = get_application_model()
@@ -35,7 +35,7 @@ class CredentialingRequestView(APIView):
 
         if action == "fetch" or action == "download":
             # generate new client_id, client_secret
-            creds_dict = get_new_creds(creds_req_id)
+            creds_dict = get_app_creds(creds_req_id)
             updated = True
             log_dict.update(
                 {
