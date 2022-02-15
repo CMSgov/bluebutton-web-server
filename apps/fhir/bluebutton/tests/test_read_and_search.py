@@ -10,7 +10,6 @@ from httmock import all_requests, HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model
 from urllib.parse import unquote
 from unittest.mock import patch
-from waffle.testutils import override_switch, override_flag
 
 from apps.test import BaseApiTest
 from apps.mymedicare_cb.tests.responses import patient_response
@@ -126,8 +125,6 @@ class ThrottleReadRequestTest(BaseApiTest):
     def test_read_throttle(self, mock_rates):
         self._read_throttle(mock_rates, False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     @patch('apps.dot_ext.throttling.TokenRateThrottle.get_rate')
     def test_read_throttle_v2(self, mock_rates):
         # throttle is v1 / v2 agnostic, but good to check
@@ -143,7 +140,7 @@ class ThrottleReadRequestTest(BaseApiTest):
         def catchall(url, req):
             return {
                 'status_code': 200,
-                'content':{"resourceType":"Patient","id":"-20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"-20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+                'content': {"resourceType": "Patient", "id": "-20140000008325", "extension": [{"url": "https://bluebutton.cms.gov/resources/variables/race", "valueCoding": {"system": "https://bluebutton.cms.gov/resources/variables/race", "code": "1", "display": "White"}}], "identifier": [{"system": "https://bluebutton.cms.gov/resources/variables/bene_id", "value": "-20140000008325"}, {"system": "https://bluebutton.cms.gov/resources/identifier/hicn-hash", "value": "2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}], "name": [{"use": "usual", "family": "Doe", "given": ["Jane", "X"]}], "gender": "unknown", "birthDate": "2014-06-01", "address": [{"district": "999", "state": "15", "postalCode": "99999"}]}  # noqa
             }
 
         with HTTMock(catchall):
@@ -235,8 +232,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request(self):
         self._search_request(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_search_request_v2(self):
         self._search_request(True)
 
@@ -279,8 +274,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_unauthorized(self):
         self._search_request_unauthorized(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_search_request_unauthorized_v2(self):
         self._search_request_unauthorized(True)
 
@@ -294,8 +287,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_access_token_query_param(self):
         self._search_request_access_token_query_param(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_search_request_access_token_query_param_v2(self):
         self._search_request_access_token_query_param(True)
 
@@ -315,8 +306,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_not_found(self):
         self._search_request_not_found(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_search_request_not_found_v2(self):
         self._search_request_not_found(True)
 
@@ -349,8 +338,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_emptyset(self):
         self._search_emptyset(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_search_emptyset_v2(self):
         self._search_emptyset(True)
 
@@ -390,8 +377,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_failed(self):
         self._search_request_failed(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_search_request_failed_v2(self):
         self._search_request_failed(True)
 
@@ -424,8 +409,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_failed_no_fhir_id_match(self):
         self._search_request_failed_no_fhir_id_match(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_search_request_failed_no_fhir_id_match_v2(self):
         self._search_request_failed_no_fhir_id_match(True)
 
@@ -472,8 +455,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_parameters_request(self):
         self._search_parameters_request(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_search_parameters_request_v2(self):
         self._search_parameters_request(True)
 
@@ -564,8 +545,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_read_request_failed_no_fhir_id(self):
         self._read_request_failed_no_fhir_id(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_read_request_failed_no_fhir_id_v2(self):
         self._read_request_failed_no_fhir_id(True)
 
@@ -607,8 +586,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_read_request(self):
         self._read_request(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_read_request_v2(self):
         self._read_request(True)
 
@@ -626,7 +603,7 @@ class BackendConnectionTest(BaseApiTest):
 
             return {
                 'status_code': 200,
-                'content':{"resourceType":"Patient","id":"-20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"-20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+                'content': {"resourceType": "Patient", "id": "-20140000008325", "extension": [{"url": "https://bluebutton.cms.gov/resources/variables/race", "valueCoding": {"system": "https://bluebutton.cms.gov/resources/variables/race", "code": "1", "display": "White"}}], "identifier": [{"system": "https://bluebutton.cms.gov/resources/variables/bene_id", "value": "-20140000008325"}, {"system": "https://bluebutton.cms.gov/resources/identifier/hicn-hash", "value": "2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}], "name": [{"use": "usual", "family": "Doe", "given": ["Jane", "X"]}], "gender": "unknown", "birthDate": "2014-06-01", "address": [{"district": "999", "state": "15", "postalCode": "99999"}]}  # noqa
             }
 
         with HTTMock(catchall):
@@ -643,8 +620,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_read_eob_request(self):
         self._read_eob_request(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_read_eob_request_v2(self):
         self._read_eob_request(True)
 
@@ -677,8 +652,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_read_coverage_request(self):
         self._read_coverage_request(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_read_coverage_request_v2(self):
         self._read_coverage_request(True)
 
@@ -711,8 +684,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_application_first_last_active(self):
         self._application_first_last_active(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_application_first_last_active_v2(self):
         self._application_first_last_active(True)
 
@@ -793,8 +764,6 @@ class BackendConnectionTest(BaseApiTest):
     def test_permission_deny_fhir_request_on_disabled_app_org(self):
         self._permission_deny_fhir_request_on_disabled_app_org(False)
 
-    @override_switch('bfd_v2', active=True)
-    @override_flag('bfd_v2_flag', active=True)
     def test_permission_deny_fhir_request_on_disabled_app_org_v2(self):
         self._permission_deny_fhir_request_on_disabled_app_org(True)
 

@@ -669,13 +669,6 @@ paths:
                 type: array
                 items: {}
           description: 'Error: Forbidden, e.g. beneficiary does not grant access to PII.'
-        '404':
-          content:
-            application/json:
-              schema:
-                type: array
-                items: {}
-          description: 'Error: Not Found, e.g. bfd_v2_flag not active.'
         '502':
           content:
             application/json:
@@ -787,13 +780,6 @@ paths:
                 type: array
                 items: {}
           description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
-        '404':
-          content:
-            application/json:
-              schema:
-                type: array
-                items: {}
-          description: 'Error: Not Found, e.g. bfd_v2_flag not active.'
         '502':
           content:
             application/json:
@@ -916,13 +902,6 @@ paths:
                 type: array
                 items: {}
           description: 'Error: Unauthorized, e.g. Authentication credentials were not provided.'
-        '404':
-          content:
-            application/json:
-              schema:
-                type: array
-                items: {}
-          description: 'Error: Not Found, e.g. bfd_v2_flag not active.'
         '502':
           content:
             application/json:

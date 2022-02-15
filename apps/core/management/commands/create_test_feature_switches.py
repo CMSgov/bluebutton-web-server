@@ -30,24 +30,5 @@ class Command(BaseCommand):
                 Switch.objects.create(name=switch[0], active=switch[1])
                 self._log("Feature switch created: %s" % (str(switch)))
 
-        # Create feature flag bfd_v2
-        flag_name = "bfd_v2_flag"
-        flag = None
-
-        try:
-            flag = Flag.objects.get(name=flag_name)
-            self._log("Feature flag already exists: %s" % flag_name)
-        except Flag.DoesNotExist:
-            flag = Flag.objects.create(name=flag_name)
-            self._log("Feature flag created: %s" % flag_name)
-
-        bfd_v2_grp = Group.objects.get(name="BFDV2Partners")
-        if bfd_v2_grp is not None:
-            flag.groups.add(bfd_v2_grp)
-
-        fred = User.objects.get(username="fred")
-        if fred is not None:
-            flag.users.add(fred)
-
     def _log(self, message):
         self.stdout.write(message)
