@@ -206,24 +206,6 @@
 
     <row>
       <panel>
-        <chart>
-          <title>V2 Requests Blocked By bfd_v2_flag TIME-CHART</title>
-          <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ message.path="/v2/*" message.type="v2_blocked" | spath output=call_path path="message.path" | where call_path != "/health" | timechart count</query>
-            <earliest>$t_local.earliest$</earliest>
-            <latest>$t_local.latest$</latest>
-            <sampleRatio>1</sampleRatio>
-          </search>
-          <option name="charting.chart">column</option>
-          <option name="charting.drilldown">none</option>
-          <option name="height">199</option>
-          <option name="refresh.display">progressbar</option>
-        </chart>
-      </panel>
-    </row>
-
-    <row>
-      <panel>
         <title>Count Requests Blocked By V2 Flag Per App</title>
         <table>
           <search>

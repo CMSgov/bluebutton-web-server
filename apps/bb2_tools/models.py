@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from oauth2_provider.models import AccessToken, RefreshToken
 
 from apps.accounts.models import UserProfile
@@ -85,12 +84,3 @@ class ApplicationStats(Application):
         app_label = "bb2_tools"
         verbose_name = "Application statistics"
         verbose_name_plural = "Application statistics"
-
-
-class V2User(User):
-
-    class Meta:
-        proxy = True
-        app_label = "bb2_tools"
-        verbose_name = "V2 User"
-        verbose_name_plural = "V2 Users"

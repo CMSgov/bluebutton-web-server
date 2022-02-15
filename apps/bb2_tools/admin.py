@@ -12,7 +12,6 @@ from apps.dot_ext.models import ArchivedToken
 from apps.bb2_tools.models import (
     BeneficiaryDashboard,
     ApplicationStats,
-    V2User,
     MyAccessTokenViewer,
     MyRefreshTokenViewer,
     MyArchivedTokenViewer,
@@ -631,63 +630,3 @@ class UserTypeFilter(admin.SimpleListFilter):
         if self.value():
             return queryset.filter(userprofile__user_type=self.value())
         return queryset
-
-
-class V2Filter(admin.SimpleListFilter):
-    title = 'V2 Enabled'
-    parameter_name = 'get_v2enabled'
-
-    def lookups(self, request, model_admin):
-        return [
-            (True, 'V2 Enabled: True'),
-            (False, 'V2 Enabled: False'),
-        ]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            if self.value() == 'True':
-                return queryset.filter(groups__name="BFDV2Partners")
-            else:
-                return queryset.exclude(groups__name="BFDV2Partners")
-        return queryset
-
-
-@admin.register(V2User)
-class V2UsersViewerAdmin(ReadOnlyAdmin):
-    list_display = ('username',
-                    'get_type',
-                    'is_active',
-                    'get_v2enabled',
-                    'get_apps',
-                    'first_name',
-                    'last_name',
-                    'get_organization',
-                    'email',
-                    'is_staff',
-                    'date_joined')
-
-    list_filter = (UserTypeFilter, V2Filter)
-
-    def get_type(self, obj):
-        return obj.userprofile.user_type
-
-    get_type.short_description = 'Type'
-    get_type.admin_order_field = 'userprofile__user_type'
-
-    def get_organization(self, obj):
-        return obj.userprofile.organization_name
-
-    get_organization.short_description = 'Organization'
-    get_organization.admin_order_field = 'userprofile__organization_name'
-
-    def get_v2enabled(self, obj):
-        return True if obj.groups.filter(name="BFDV2Partners") else False
-
-    get_v2enabled.short_description = 'V2 Enabled'
-    get_v2enabled.admin_order_field = 'get_v2enabled'
-
-    def get_apps(self, obj):
-        return obj.dot_ext_application.all() if obj.userprofile.user_type == 'DEV' else ""
-
-    get_apps.short_description = 'Apps'
-    get_apps.admin_order_field = 'get_apps'

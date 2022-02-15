@@ -135,11 +135,8 @@ class Command(BaseCommand):
         app = options["app"]
         redirect = options["redirect"]
 
-        # BB2-291, 373 support bfd v2 feature flag
-        g_v2_partners = create_group("BFDV2Partners")
         g = create_group()
         u = create_user(g, usr)
-        u.groups.add(g_v2_partners)
         a = create_application(u, g, app, redirect)
         t = None
         if usr is None and app is None:
