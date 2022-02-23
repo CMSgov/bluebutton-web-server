@@ -433,20 +433,20 @@ class RequestResponseLog(object):
         """
         --- Logging items from response content (refresh_token)
         """
-        access_token = None
         if (
             getattr(self.response, "content", False)
             and self.log_msg.get("req_post_grant_type", False)
             and self.log_msg.get("request_method", False)
         ):
 
-            response_content = json.loads(self.response.content)
-            resp_access_token = response_content.get("access_token", None)
-
             if (
                 self.log_msg["req_post_grant_type"] == "refresh_token"
                 and self.log_msg["request_method"] == "POST"
             ):
+                try:
+                    response_content = json.loads(self.response.content)
+                except json.decoder.JSONDecodeError:
+                    response_content = {}  # Set to empty DICT
 
                 self._log_msg_update_from_dict(
                     response_content, "resp_fhir_id", "patient"
@@ -463,12 +463,16 @@ class RequestResponseLog(object):
                     str(response_content.get("refresh_token", None)).encode("utf-8")
                 ).hexdigest()
 
+                resp_access_token = response_content.get("access_token", None)
+
                 if resp_access_token:
                     try:
                         at = AccessToken.objects.get(token=resp_access_token)
+
                         self.log_msg["resp_access_token_hash"] = hashlib.sha256(
-                            str(access_token).encode("utf-8")
+                            str(at).encode("utf-8")
                         ).hexdigest()
+
                         self.log_msg["resp_access_token_scopes"] = " ".join(
                             [s for s in at.scopes]
                         )
