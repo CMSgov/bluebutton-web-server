@@ -11,6 +11,21 @@ from .utils import get_url
 Application = get_application_model()
 
 
+class UserTypeFilter(admin.SimpleListFilter):
+    title = 'User type'
+    parameter_name = 'userprofile__type'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('DEV', 'Developer'),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(userprofile__user_type=self.value())
+        return queryset
+
+
 class MyCredentialingRequest(CredentialingReqest):
     class Meta:
         proxy = True
@@ -40,9 +55,9 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
         "visits_count",
     )
 
-    list_filter = ("application__user__username",)
+    list_filter = ("application__name",)
 
-    search_fields = ("application__name", "application__user__username", "=id")
+    search_fields = ("application__name", "=id")
 
     raw_id_fields = ("application",)
 
