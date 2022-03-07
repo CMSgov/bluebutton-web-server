@@ -206,27 +206,6 @@
 
     <row>
       <panel>
-        <title>Count Requests Blocked By V2 Flag Per App</title>
-        <table>
-          <search>
-            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $appNameExpr$ "message.type"=v2_blocked message.path="/v2/*" | spath output=client_id path="message.app_id" | spath output=name path="message.app_name" | spath output=user path="message.dev_name" | where client_id != "" | stats count by client_id, name, user | sort - count</query>
-            <earliest>$t_local.earliest$</earliest>
-            <latest>$t_local.latest$</latest>
-          </search>
-          <option name="count">10</option>
-          <option name="dataOverlayMode">none</option>
-          <option name="drilldown">none</option>
-          <option name="percentagesRow">false</option>
-          <option name="refresh.display">progressbar</option>
-          <option name="rowNumbers">false</option>
-          <option name="totalsRow">false</option>
-          <option name="wrap">true</option>
-        </table>
-      </panel>
-    </row>
-
-    <row>
-      <panel>
         <chart>
           <title>Total V2 Requests TIME-CHART</title>
           <search>
