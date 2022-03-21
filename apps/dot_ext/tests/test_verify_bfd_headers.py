@@ -3,7 +3,6 @@ import json
 from httmock import all_requests, HTTMock
 from oauth2_provider.compat import parse_qs, urlparse
 from oauth2_provider.models import AccessToken
-from waffle.testutils import override_flag
 
 from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import DataAccessGrant
@@ -91,11 +90,9 @@ class TestBFDHeaders(BaseApiTest):
         t = AccessToken.objects.get(token=tkn)
         return t
 
-    @override_flag('bfd_v2_flag', active=True)
     def test_fhir_request_has_header(self):
         # create an app for a user and obtain a token
         anna = self._create_user('anna', '123456', fhir_id='-20140000008325')
-        # capability_a = self._create_capability('token_management', [['DELETE', r'/v1/o/tokens/\d+/']], default=False)
         application = self._create_application(
             'an app', grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris='http://example.it')
@@ -114,7 +111,7 @@ class TestBFDHeaders(BaseApiTest):
         def catchall(url, req):
             return {
                 'status_code': 200,
-                'content':{"resourceType":"Patient","id":"-20140000008325","extension":[{"url":"https://bluebutton.cms.gov/resources/variables/race","valueCoding":{"system":"https://bluebutton.cms.gov/resources/variables/race","code":"1","display":"White"}}],"identifier":[{"system":"https://bluebutton.cms.gov/resources/variables/bene_id","value":"-20140000008325"},{"system":"https://bluebutton.cms.gov/resources/identifier/hicn-hash","value":"2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}],"name":[{"use":"usual","family":"Doe","given":["Jane","X"]}],"gender":"unknown","birthDate":"2014-06-01","address":[{"district":"999","state":"15","postalCode":"99999"}]} # noqa
+                'content': {"resourceType": "Patient", "id": "-20140000008325", "extension": [{"url": "https://bluebutton.cms.gov/resources/variables/race", "valueCoding": {"system": "https://bluebutton.cms.gov/resources/variables/race", "code": "1", "display": "White"}}], "identifier": [{"system": "https://bluebutton.cms.gov/resources/variables/bene_id", "value": "-20140000008325"}, {"system": "https://bluebutton.cms.gov/resources/identifier/hicn-hash", "value": "2025fbc612a884853f0c245e686780bf748e5652360ecd7430575491f4e018c5"}], "name": [{"use": "usual", "family": "Doe", "given": ["Jane", "X"]}], "gender": "unknown", "birthDate": "2014-06-01", "address": [{"district": "999", "state": "15", "postalCode": "99999"}]}  # noqa
             }
 
         with HTTMock(catchall):
