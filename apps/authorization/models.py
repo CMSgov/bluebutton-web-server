@@ -193,7 +193,7 @@ def get_grant_bene_counts(application=None):
 
 def get_beneficiary_counts():
     """
-    Get AccessToken, ArchivedAccessToken, DataAccessGrant
+    Get AccessToken, DataAccessGrant
     and ArchivedDataAccessGrant counts for beneficiary type users.
     """
     User = get_user_model()
