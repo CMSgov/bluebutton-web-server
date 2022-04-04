@@ -445,6 +445,13 @@ def get_token_bene_counts(application=None):
 
     counts_returned["real_deduped"] = real_token_queryset.distinct().count()
     counts_returned["synthetic_deduped"] = synthetic_token_queryset.distinct().count()
+
+    # Global real/synth bene and app pair counts. This should match grant counts.
+    if not application:
+        counts_returned["real_bene_app_pair_deduped"] = real_token_queryset.values("user", "application").distinct().count()
+        counts_returned["synthetic_bene_app_pair_deduped"] = synthetic_token_queryset.values(
+            "user", "application").distinct().count()
+
     counts_returned["deduped_elapsed"] = round(
         datetime.utcnow().timestamp() - start_time, 3
     )
