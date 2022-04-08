@@ -11,10 +11,14 @@ from django.utils.text import slugify
 from django.conf import settings
 from oauth2_provider.compat import parse_qs, urlparse
 
-from apps.fhir.bluebutton.models import Crosswalk
+from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Application
+from apps.dot_ext.utils import (
+    remove_application_user_pair_tokens_data_access,
+)
+from apps.fhir.bluebutton.models import Crosswalk
 
 
 class BaseApiTest(TestCase):
@@ -33,6 +37,7 @@ class BaseApiTest(TestCase):
         fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
         user_hicn_hash=test_hicn_hash,
         user_mbi_hash=test_mbi_hash,
+        user_type=None,
         **extra_fields
     ):
         """
@@ -50,6 +55,14 @@ class BaseApiTest(TestCase):
             _user_mbi_hash=user_mbi_hash,
         )
         cw.save()
+        # Create ben user profile, if it doesn't exist
+        if user_type:
+            try:
+                UserProfile.objects.get(user=user)
+            except UserProfile.DoesNotExist:
+                UserProfile.objects.create(user=user,
+                                           user_type="BEN",
+                                           create_applications=False)
         return user
 
     def _create_group(self, name):
@@ -305,18 +318,34 @@ class BaseApiTest(TestCase):
 
         return content["access_token"]
 
+    def _create_or_update_development_user(self, username, organization):
+        # Create dev user, if it doesn't exist
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = User.objects.create_user(username, password="xxx123")
+
+        # Create dev user profile, if it doesn't exist
+        try:
+            user_profile = UserProfile.objects.get(user=user)
+            user_profile.organization_name = organization
+            user_profile.save()
+        except UserProfile.DoesNotExist:
+            UserProfile.objects.create(user=user,
+                                       user_type="DEV",
+                                       organization_name=organization,
+                                       create_applications=True)
+        return user
+
     def _create_user_app_token_grant(
-        self, first_name, last_name, fhir_id, app_name, app_username
+        self, first_name, last_name, fhir_id, app_name, app_username, app_user_organization
     ):
         """
         Helper method that creates a user connected to an application
         with Crosswalk, Access Token, and Grant for use in tests.
         """
-        # Create dev user for application, if it doesn't exist
-        try:
-            app_user = User.objects.get(username=app_username)
-        except User.DoesNotExist:
-            app_user = User.objects.create_user(app_username, password="xxx123")
+        # Create application dev user
+        app_user = self._create_or_update_development_user(app_username, app_user_organization)
 
         # Create application, if it does not exist.
         try:
@@ -328,6 +357,7 @@ class BaseApiTest(TestCase):
                 grant_type=Application.GRANT_AUTHORIZATION_CODE,
                 redirect_uris="com.custom.bluebutton://example.it",
                 user=app_user,
+                active=True
             )
             # Add a few capabilities
             capability_a = self._create_capability("Capability A", [])
@@ -355,6 +385,10 @@ class BaseApiTest(TestCase):
                 user_hicn_hash=hicn_hash,
                 user_mbi_hash=mbi_hash,
             )
+            # Create bene user profile, if it doesn't exist
+            UserProfile.objects.create(user=user,
+                                       user_type="BEN",
+                                       create_applications=False)
 
         access_token = self._get_access_token_authcode_confidential(
             username=username, user_passwd="xxx123", application=application
@@ -362,7 +396,8 @@ class BaseApiTest(TestCase):
 
         return user, application, access_token
 
-    def _create_range_users_app_token_grant(self, start_fhir_id, count, app_name):
+    def _create_range_users_app_token_grant(self, start_fhir_id, count, app_name,
+                                            app_user_organization):
         """
         Helper method that creates a RANGE of users connected to an application
         with Crosswalk, Access Token, and Grant for use in tests.
@@ -378,7 +413,19 @@ class BaseApiTest(TestCase):
                 fhir_id=fhir_id,
                 app_name=app_name,
                 app_username="user_" + app_name,
+                app_user_organization=app_user_organization,
             )
 
             user_dict[fhir_id] = user
         return app, user_dict
+
+    def _revoke_range_users_app_token_grant(self, start_fhir_id, count, app_name):
+        """
+        Helper method that revokes a RANGE of users (by fhir_id) connected to an application.
+        This removes Access Token, and Grant. Useful for testing archived tokens and grants.
+        """
+        for i in range(0, count):
+            fhir_id = start_fhir_id + str(i)
+            cw = Crosswalk.objects.get(_fhir_id=fhir_id)
+            app = Application.objects.get(name=app_name)
+            remove_application_user_pair_tokens_data_access(app, cw.user)
