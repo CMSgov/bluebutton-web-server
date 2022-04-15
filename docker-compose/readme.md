@@ -4,72 +4,76 @@ To begin developing locally, internal software engineers will need to obtain and
 
 To enable usage of the SLSx TEST environment locally, do the following or skip if using the MSLS (mock service) mode.
 
-  * Sign in to Keybase and have the /keybase file system mounted.
-  * Change directory to the BB2 repo root directory under: bluebutton-web-server/
-  * Source the BFD prod-sbx hashing, SLSx TEST credentials and copy cert files to your local system:
-    ```
-    # NOTE: You may need to run the following command using the Bash shell. Run the next line if you are having issues.
-    bash
+- Sign in to Keybase and have the /keybase file system mounted.
+- Change directory to the BB2 repo root directory under: bluebutton-web-server/
+- Source the BFD prod-sbx hashing, SLSx TEST credentials and copy cert files to your local system:
 
-    # Then source the ENV vars via:
-    source docker-compose/source_env_secrets_from_keybase.sh
-    ```
-  * NOTE: This will copy the cert files in to the docker-compose/certstore location.
+  ```
+  # NOTE: You may need to run the following command using the Bash shell. Run the next line if you are having issues.
+  bash
+
+  # Then source the ENV vars via:
+  source docker-compose/source_env_secrets_from_keybase.sh
+  ```
+
+- NOTE: This will copy the cert files in to the docker-compose/certstore location.
 
 To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis Firehose) or skip if not needing this.
 
-  * Source ENV variables using your script (differs per local OS type and should utilize MFA):
-    ```
-    source ~/bin/source_aws.sh
-    ```
+- Source ENV variables using your script (differs per local OS type and should utilize MFA):
+  ```
+  source ~/bin/source_aws.sh
+  ```
 
 To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker-compose/bluebutton_server_start.sh` web server startup script.
 
-
 To startup the Docker containerized BB2 server using slsx:
 
-  ```
-  docker-compose up -d
-  ```
+```
+docker-compose up -d
+```
+
 Or equivalently:
 
-  ```
-  docker-compose up -d web
-  ```
+```
+docker-compose up -d web
+```
 
 To startup the Docker containerized BB2 server using msls:
 
-  ```
-  docker-compose up -d web_msls
-  ```
+```
+docker-compose up -d web_msls
+```
 
 To shutdown the Docker containerized BB2 server (this is needed when switching between SLSx and MSLS modes):
-  ```
-  docker-compose down
-  ```
+
+```
+docker-compose down
+```
 
 To monitor BB2 server logging:
 
-  ```
-  docker-compose logs -f | grep web
-  ```
-Press Ctrl C will stop monitor logging.
+```
+docker-compose logs -f | grep web
+```
 
+Press Ctrl C will stop monitor logging.
 
 To start with a clean docker setup do the following:
 
-  NOTE: This is often needed when switching betwen PR branches where migrations were added or when running selenium type tests.
-  WARNING:  This cleans up all Docker related images! If this is an issue, you may want to individually remove (rmi) images.
+NOTE: This is often needed when switching betwen PR branches where migrations were added or when running selenium type tests.
+WARNING: This cleans up all Docker related images! If this is an issue, you may want to individually remove (rmi) images.
 
-  ```
-  docker-compose down
-  docker images  # To see list of images on your system
-  docker image ls | awk '{ print $3}' | grep -v "IMAGE" | xargs docker image rm -f
-  docker volume rm $(docker volume ls -qf dangling=true)
-  docker images  # This should now show an empty list.
-  ```
+```
+docker-compose down
+docker images  # To see list of images on your system
+docker image ls | awk '{ print $3}' | grep -v "IMAGE" | xargs docker image rm -f
+docker volume rm $(docker volume ls -qf dangling=true)
+docker images  # This should now show an empty list.
+```
 
 ## Setting up Pre Commit
+
 Precommit config has been setup inside the repo which will make sure that the code is properly formatted prior to commiting. To setup run as follows:
 
 ```
@@ -115,6 +119,7 @@ docker-compose exec web docker-compose/migrate.sh
 
 If any permissions errors are thrown try the following command,
 then run the migrate script again:
+
 ```
 docker-compose exec web chmod +x docker-compose/migrate.sh
 ```
@@ -122,24 +127,29 @@ docker-compose exec web chmod +x docker-compose/migrate.sh
 ## DB Migrations
 
 To check and see if any migrations have been added that haven't been applied to your local DB you can run the following command:
+
 ```
 python manage.py showmigrations
 ```
+
 NOTE: Make sure to run within the venv
 
 To then apply any missing migrations you can run the following command:
+
 ```
 python manage.py migrate
 ```
 
 You can also undo a single migration, or group of migrations.
 To do so you run the following command:
+
 ```
 python manage.py migrate <app-name> <previous-migration-number>
 ```
 
 Here's an example:
 Migrations are run and here is the output:
+
 ```
 Running migrations:
   Applying accounts.0002_auto_20210624_1454... OK
@@ -153,12 +163,15 @@ Running migrations:
 In this example lets pretend that the migration `bb2_tools.0002_v2user` ended up being a bad one and you would like to roll back just that migration.
 
 To do so you'd run the following command:
+
 ```
 python manage.py migrate bb2_tools 0001
 ```
+
 NOTE: The number corresponds to the value right before the migration that you want to remove. You can also use `zero` and that will remove all migrations for that app.
 
 The output would look like the following:
+
 ```
 Operations to perform:
   Target specific migration: 0001_initial, from bb2_tools
@@ -195,7 +208,6 @@ under BB2 local repo base directory:
 
 for detailed info about the synthetic data and how to fetch them, refer to: https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-model/bfd-model-rif-samples/dev/design-sample-data-sets.md
 
-
 ## Running tests from your host
 
 To run the Django unit tests, run the following command:
@@ -207,32 +219,37 @@ docker-compose exec web python runtests.py
 You can run individual applications tests or tests with in a specific area as well.
 
 The following are a few examples (drilling down to a single test):
+
 ```bash
 docker-compose exec web python runtests.py apps.dot_ext.tests
 ```
+
 ```bash
 docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates
 ```
+
 ```bash
 docker-compose exec web python runtests.py apps.dot_ext.tests.test_templates.TestDOTTemplates.test_application_list_template_override
 ```
+
 Multiple arguments can be provided too:
+
 ```bash
 docker-compose exec web python runtests.py apps.dot_ext.tests apps.accounts.tests.test_login
 ```
 
-
 # Work on Windows
 
 This requires the use of a linux sub system. This includes a choice of Cygwin, WSL, or VirtualBox + Linux.
-Install the Docker Desktop on your Windows host, and set the DOCKER_HOST environment 
-variable in linux sub system. Also enable the git configuration for proper EOL CRLF/LF 
-convertion using the following command: 
+Install the Docker Desktop on your Windows host, and set the DOCKER_HOST environment
+variable in linux sub system. Also enable the git configuration for proper EOL CRLF/LF
+convertion using the following command:
 
 ```
 git config --global core.autocrlf true
 
 ```
+
 in case, with above git core.autocrlf setting, some steps e.g. migrate.sh still chokes (file not found etc.),
 fix script manually, e.g. using dos2unix.
 
@@ -255,7 +272,7 @@ BB20_ENABLE_REMOTE_DEBUG=true
 ```
 
 After BB2 server is up, debugpy is listening on port 5678.
-Afterward, attach to it from your IDE (e.g. VSCode) and put break 
+Afterward, attach to it from your IDE (e.g. VSCode) and put break
 points on the execution path. You can now start debugging.
 
 Add the line below to the .env file to make debugpy wait on attaching, before execute
@@ -278,7 +295,7 @@ docker-compose up -d unittests
 ## Test and Verify Using Sample Clients
 
 After the container is up, go to http://localhost:8000 (default) address location, and you will see the CMS Blue Button landing page,
-Follow the documentation to create accounts, register applications, and other tasks in the local development environment. Note that some features, like email, work differently when running locally.  For example, a text version of an email is sent in to the main server log and is where you will find your signup confirmation activation link. 
+Follow the documentation to create accounts, register applications, and other tasks in the local development environment. Note that some features, like email, work differently when running locally. For example, a text version of an email is sent in to the main server log and is where you will find your signup confirmation activation link.
 
 You are also able to manually modify Django model objects when needed by using the Django ADMIN at: http://localhost:8000/admin.
 
@@ -286,12 +303,8 @@ To test if there is connectivity to the back end BFD FHIR server, go to the foll
 
 ###Test from clients:
 
-
-* You can test from in the browser on the homepage using the testclient. This is located from the top of the page by clicking the link `testclient`
-* You can test using one of our sample clients applications. See the related blog posts for more information: 
-  * [Sample Client Applications](https://bluebutton.cms.gov/blog/Sample-Applications.html) 
-  * [More Sample Client Applications](https://bluebutton.cms.gov/blog/More-Sample-Applications.html)
-  * [Install a Django Client](https://bluebutton.cms.gov/blog/Installing-a-Django-client-application.html)
+- You can test from in the browser on the homepage using the testclient. This is located from the top of the page by clicking the link `testclient`
+- You can test using one of our sample client applications, visit [Blue Button 2.0 API Resources](https://bluebutton.cms.gov/resources/) for more information
 
 Make changes to configurations by following the sample clients instructions and test the end to end scenarios.
 
@@ -308,7 +321,6 @@ export HOST="http://localhost:8000"
 
 Get Pateint FHIR Resource json
 
-
 ```
 curl --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/Patient/${BENE_ID}"
 
@@ -321,12 +333,11 @@ curl -k -v --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/Ex
 
 ```
 
-
 ## Developing and Running Integration Tests in Local Development
 
 The Python source code is located under the `apps/integration_tests` path.
 
-The difference with these tests is the usage of the [LiveServerTestCase](https://docs.djangoproject.com/en/3.1/topics/testing/tools/#django.test.LiveServerTestCase) class from the Django contrib testing tools.  This launches a LIVE Django server in the background on setup. This allows the integration tests to use a live running server for testing BB2 FHIR endpoints, and can also be used to create real user type, simulated browser tests with a [Selenium](http://seleniumhq.org/) client. The live server can also be setup to use a BFD backend service for tests. This is done for the CBC PR checks.
+The difference with these tests is the usage of the [LiveServerTestCase](https://docs.djangoproject.com/en/3.1/topics/testing/tools/#django.test.LiveServerTestCase) class from the Django contrib testing tools. This launches a LIVE Django server in the background on setup. This allows the integration tests to use a live running server for testing BB2 FHIR endpoints, and can also be used to create real user type, simulated browser tests with a [Selenium](http://seleniumhq.org/) client. The live server can also be setup to use a BFD backend service for tests. This is done for the CBC PR checks.
 
 Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for Github PR checks. This instruction provides a few ways to test these out locally and to test using the same Docker container image as CBC.
 
@@ -334,86 +345,94 @@ The Python `runtests.py` program, which is also used for running the Django unit
 
 There are ways to test locally using the `docker-compose/run_integration_tests_local_keybase.sh` script:
 
-  To get usage help use the following command:
+To get usage help use the following command:
 
-  ```
-  docker-compose/run_integration_tests_local_keybase.sh
-  ```
+```
+docker-compose/run_integration_tests_local_keybase.sh
+```
 
-  1. Using the docker-compose local development setup and containers. This is the quickest!
+1. Using the docker-compose local development setup and containers. This is the quickest!
 
-     The currently checked out (or working branch) will be used.
+   The currently checked out (or working branch) will be used.
 
-     ```
-     docker-compose/run_integration_tests_local_keybase.sh dc
-     ```
-     To debug integration tests:
+   ```
+   docker-compose/run_integration_tests_local_keybase.sh dc
+   ```
 
-     ```
-     docker-compose/run_integration_tests_local_keybase.sh dc-debug
-     ```
+   To debug integration tests:
 
-  2. Using a Docker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
+   ```
+   docker-compose/run_integration_tests_local_keybase.sh dc-debug
+   ```
 
-     The currently checked out (or working branch) will be used.
+2. Using a Docker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
 
-     ```
-     docker-compose/run_integration_tests_local_keybase.sh cbc
-     ```
+   The currently checked out (or working branch) will be used.
 
-  3. Using the docker-compose local development setup and containers with local bfd as backend.
+   ```
+   docker-compose/run_integration_tests_local_keybase.sh cbc
+   ```
 
-     The currently checked out (or working branch) will be used.
+3. Using the docker-compose local development setup and containers with local bfd as backend.
 
-     ```
-     docker-compose/run_integration_tests_local_keybase.sh local
-     ```
-     To debug integration tests:
+   The currently checked out (or working branch) will be used.
 
-     ```
-     docker-compose/run_integration_tests_local_keybase.sh local-debug
-     ```
+   ```
+   docker-compose/run_integration_tests_local_keybase.sh local
+   ```
+
+   To debug integration tests:
+
+   ```
+   docker-compose/run_integration_tests_local_keybase.sh local-debug
+   ```
 
 NOTES:
-  * The settings variables in the `docker-compose/run_integration_tests_local_keybase.sh cbc` may need to be updated to match your local development platform.
-  * For the CBC related setup see these files for more details:
-    * `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job. 
-    * `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification.  These settings will also need to be updated when there are CBC image naming changes.
+
+- The settings variables in the `docker-compose/run_integration_tests_local_keybase.sh cbc` may need to be updated to match your local development platform.
+- For the CBC related setup see these files for more details:
+  - `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job.
+  - `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification. These settings will also need to be updated when there are CBC image naming changes.
 
 ## Developing and Running Selenium tests in Local Development
+
 You can run selenium tests by following below steps:
 
-  1. Make sure there is no blue button server and its dependent services running
-  2. Go to the base directory of the local repo and run:
+1. Make sure there is no blue button server and its dependent services running
+2. Go to the base directory of the local repo and run:
 
-     use MSLSX (default)   
-     ```
-     ./docker-compose/run_selenium_tests_local_keybase.sh
-     ```
+   use MSLSX (default)
 
-     ```
-     ./docker-compose/run_selenium_tests_local_keybase.sh mslsx
-     ```
+   ```
+   ./docker-compose/run_selenium_tests_local_keybase.sh
+   ```
 
-     use SLSX
-     ```
-     ./docker-compose/run_selenium_tests_local_keybase.sh slsx
-     ```
+   ```
+   ./docker-compose/run_selenium_tests_local_keybase.sh mslsx
+   ```
 
-  3. To debug tests (visualize webUI interaction): point VNC client to localhost:5900
-     1. requires installation of vnc viewer, password (secret)
-     2. Start tests using -debug parameter as shown below:
-      use MSLSX (default)   
-      ```
-      ./docker-compose/run_selenium_tests_local_keybase.sh debug
-      ```
+   use SLSX
 
-      ```
-      ./docker-compose/run_selenium_tests_local_keybase.sh mslsx-debug
-      ```
+   ```
+   ./docker-compose/run_selenium_tests_local_keybase.sh slsx
+   ```
 
-      use SLSX
-      ```
-      ./docker-compose/run_selenium_tests_local_keybase.sh slsx-debug
-      ```
+3. To debug tests (visualize webUI interaction): point VNC client to localhost:5900
 
+   1. requires installation of vnc viewer, password (secret)
+   2. Start tests using -debug parameter as shown below:
+      use MSLSX (default)
+
+   ```
+   ./docker-compose/run_selenium_tests_local_keybase.sh debug
+   ```
+
+   ```
+   ./docker-compose/run_selenium_tests_local_keybase.sh mslsx-debug
+   ```
+
+   use SLSX
+
+   ```
+   ./docker-compose/run_selenium_tests_local_keybase.sh slsx-debug
+   ```
