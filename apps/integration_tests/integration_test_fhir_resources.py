@@ -309,6 +309,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         except KeyError:
             pass
         self.assertIsNotNone(fhir_ver)
+        # match any FHIR ver 4.0.*
         versionOK = fhir_ver and fhir_ver.startswith('4.0.' if v2 else '3.0.2')
         self.assertTrue(versionOK)
         self.assertEqual(validate_json_schema(FHIR_META_SCHEMA, content), True)
