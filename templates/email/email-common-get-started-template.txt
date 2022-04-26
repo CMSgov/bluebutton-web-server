@@ -13,4 +13,4 @@ Join our Google Group at https://groups.google.com/forum/#!forum/Developer-group
 
 Get Started with Our Sample Apps:
 
-Our sample apps and guides at https://bluebutton.cms.gov/blog/More-Sample-Applications.html can help make your idea a reality.
+Our sample apps and guides at Blue Button 2.0 API Resources page (https://bluebutton.cms.gov/resources/) can help make your idea a reality.
