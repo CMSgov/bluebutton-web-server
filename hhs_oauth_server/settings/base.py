@@ -274,6 +274,10 @@ CACHES = {
     },
 }
 
+# Upgrade to 3.2.9: explicit on django added id primary key data type;
+# keep backward compatible with AutoField instead of BigAutoField
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 DATABASES = {
     "default": dj_database_url.config(
         default=env("DATABASES_CUSTOM", "sqlite:///{}/db.sqlite3".format(BASE_DIR))

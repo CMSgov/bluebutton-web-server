@@ -10,4 +10,4 @@ reqs-install:
 	pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
 
 reqs-install-dev:
-	pip install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
+	pip install -r requirements/requirements.dev.txt
