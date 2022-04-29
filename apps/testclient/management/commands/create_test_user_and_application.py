@@ -88,10 +88,10 @@ def create_application(user, group, app, redirect):
         redirect_uri = "https://" + redirect_uri
 
     a = Application.objects.create(name=app_name,
-                                   redirect_uris=redirect_uri,
-                                   user=user,
-                                   client_type="confidential",
-                                   authorization_grant_type="authorization-code")
+                                redirect_uris=redirect_uri,
+                                user=user,
+                                client_type="confidential",
+                                authorization_grant_type="authorization-code")
 
     titles = ["My Medicare and supplemental coverage information.",
               "My Medicare claim information.",

@@ -5,7 +5,8 @@ import apps.logging.request_logger as bb2logging
 
 from django.conf import settings
 from django.urls import reverse
-from libs.decorators import waffle_function_switch
+#from libs.decorators import waffle_function_switch
+from waffle.decorators import waffle_switch
 from libs.mail import Mailer
 
 
@@ -18,7 +19,7 @@ def random_secret(y=40):
                                  '0123456789') for x in range(y))
 
 
-@waffle_function_switch('outreach_email')
+@waffle_switch('outreach_email')
 def send_activation_key_via_email(user, signup_key):
     """ Send an email with activation key and welcome message. """
     activation_link = '%s%s' % (get_hostname(),

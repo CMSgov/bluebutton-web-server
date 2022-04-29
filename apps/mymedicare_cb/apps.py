@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class MymedicareCbConfig(AppConfig):
-    name = 'mymedicare_cb'
+    name = 'apps.mymedicare_cb'

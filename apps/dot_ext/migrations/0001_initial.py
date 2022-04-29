@@ -4,9 +4,15 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.db import migrations, models
+from oauth2_provider.validators import RedirectURIValidator
+
 import django.db.models.deletion
 import oauth2_provider.generators
-import oauth2_provider.validators
+
+
+def check_redirect_uri(value):
+    validator = RedirectURIValidator()
+    validator(value)
 
 
 class Migration(migrations.Migration):
@@ -24,7 +30,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('client_id', models.CharField(db_index=True, default=oauth2_provider.generators.generate_client_id, max_length=100, unique=True)),
-                ('redirect_uris', models.TextField(blank=True, help_text='Allowed URIs list, space separated', validators=[oauth2_provider.validators.validate_uris])),
+                ('redirect_uris', models.TextField(blank=True, help_text='Allowed URIs list, space separated', validators=[check_redirect_uri])),
                 ('client_type', models.CharField(choices=[('confidential', 'Confidential'), ('public', 'Public')], max_length=32)),
                 ('authorization_grant_type', models.CharField(choices=[('authorization-code', 'Authorization code'), ('implicit', 'Implicit'), ('password', 'Resource owner password-based'), ('client-credentials', 'Client credentials')], max_length=32)),
                 ('client_secret', models.CharField(blank=True, db_index=True, default=oauth2_provider.generators.generate_client_secret, max_length=255)),

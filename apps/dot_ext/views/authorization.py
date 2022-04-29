@@ -235,7 +235,6 @@ class ApprovalView(AuthorizationView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
-
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         try:
