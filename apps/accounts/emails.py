@@ -5,7 +5,7 @@ import apps.logging.request_logger as bb2logging
 
 from django.conf import settings
 from django.urls import reverse
-#from libs.decorators import waffle_function_switch
+# from libs.decorators import waffle_function_switch
 from waffle.decorators import waffle_switch
 from libs.mail import Mailer
 

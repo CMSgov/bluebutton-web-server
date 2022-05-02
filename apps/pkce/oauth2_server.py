@@ -13,9 +13,9 @@ Grant = get_grant_model()
 class PKCEServerMixin(object):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.response_types['code'].default_grant.custom_validators.pre_auth.append(validate_redirect_uri_pkce)
-        self.response_types['code'].default_grant.custom_validators.post_auth.append(validate_code_challenge_method)
-        self.response_types['code'].default_grant.custom_validators.post_token.append(validate_code_verifier)
+        self.response_types['code'].custom_validators.pre_auth.append(validate_redirect_uri_pkce)
+        self.response_types['code'].custom_validators.post_auth.append(validate_code_challenge_method)
+        self.response_types['code'].custom_validators.post_token.append(validate_code_verifier)
 
 
 def validate_redirect_uri_pkce(request):
