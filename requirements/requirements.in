@@ -8,7 +8,7 @@ django-settings-export
 djangorestframework
 djangorestframework-csv
 django-filter
-django-axes==5.32.0
+django-axes
 
 # support
 django-waffle==2.0.0
