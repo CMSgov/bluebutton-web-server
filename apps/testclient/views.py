@@ -331,12 +331,19 @@ def authorize_link_v2(request):
 @never_cache
 @waffle_switch('enable_testclient')
 def authorize_link(request, v2=False):
-    request.session.update(test_setup(v2=v2))
+    pkce_enabled = request.GET.get('pkce')
+    request.session.update(test_setup(v2=v2, pkce=pkce_enabled))
     oas = _get_oauth2_session_with_redirect(request)
-    authorization_url = oas.authorization_url(
-        request.session['authorization_uri'],
-        request.session['state'],
-        code_challenge=request.session['code_challenge'],
-        code_challenge_method=request.session['code_challenge_method'])[0]
+    authorization_url = None
+    if pkce_enabled:
+        authorization_url = oas.authorization_url(
+            request.session['authorization_uri'],
+            request.session['state'],
+            code_challenge=request.session['code_challenge'],
+            code_challenge_method=request.session['code_challenge_method'])[0]
+    else:
+        authorization_url = oas.authorization_url(
+            request.session['authorization_uri'])[0]
+
     return render(request, 'authorize.html',
                   {"authorization_url": authorization_url, "api_ver": "v2" if v2 else "v1"})

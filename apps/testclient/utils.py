@@ -9,25 +9,32 @@ from django.conf import settings
 from ..dot_ext.models import Application
 
 
-def test_setup(include_client_secret=True, v2=False):
+def test_setup(include_client_secret=True, v2=False, pkce=False):
     response = OrderedDict()
     ver = 'v2' if v2 else 'v1'
     response['api_ver'] = ver
     oa2client = Application.objects.get(name="TestApp")
     response['client_id'] = oa2client.client_id
+
     if include_client_secret:
         response['client_secret'] = oa2client.client_secret
+
     host = getattr(settings, 'HOSTNAME_URL', 'http://localhost:8000')
+
     if not (host.startswith("http://") or host.startswith("https://")):
         host = "https://" + host
-    auth_data = __generate_auth_data()
+
     response['resource_uri'] = host
     response['redirect_uri'] = '{}{}'.format(host, settings.TESTCLIENT_REDIRECT_URI)
     response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
-    response['code_challenge_method'] = "S256"
-    response['code_verifier'] = auth_data['code_verifier']
-    response['code_challenge'] = auth_data['code_challenge']
-    response['state'] = auth_data['state']
+
+    if pkce:
+        auth_data = __generate_auth_data()
+        response['code_challenge_method'] = "S256"
+        response['code_verifier'] = auth_data['code_verifier']
+        response['code_challenge'] = auth_data['code_challenge']
+        response['state'] = auth_data['state']
+
     response['authorization_uri'] = '{}/{}/o/authorize/'.format(host, ver)
     response['token_uri'] = '{}/{}/o/token/'.format(host, ver)
     response['userinfo_uri'] = '{}/{}/connect/userinfo'.format(host, ver)
