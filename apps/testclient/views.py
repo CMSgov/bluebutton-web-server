@@ -131,10 +131,11 @@ def callback(request):
         if request.session.get('api_ver', 'v1') == 'v2' else reverse('oauth2_provider:token')
 
     try:
+        cv = request.session.get('code_verifier')
         token = oas.fetch_token(token_uri,
                                 client_secret=get_client_secret(),
                                 authorization_response=auth_uri,
-                                code_verifier=request.session['code_verifier'])
+                                code_verifier=cv if cv else '')
     except MissingTokenError:
         logmsg = "Failed to get token from %s" % (request.session['token_uri'])
         logger.error(logmsg)

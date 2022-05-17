@@ -9,7 +9,9 @@ from django.urls import reverse
 from django.test import TestCase
 from django.utils.text import slugify
 from django.conf import settings
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
+
 
 from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant

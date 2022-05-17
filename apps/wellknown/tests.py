@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
-from django.utils import six
 from django.conf import settings
 import json
 
@@ -27,6 +26,5 @@ class OpenIDConnectConfigurationTestCase(TestCase):
         self.assertContains(response, "response_types_supported")
         self.assertContains(response, getattr(settings, 'HOSTNAME_URL'))
         response_content = response.content
-        if six.PY3:
-            response_content = str(response_content, encoding='utf8')
+        response_content = str(response_content, encoding='utf8')
         self.assertEqual(type(json.loads(response_content)), type({}))

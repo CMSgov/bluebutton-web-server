@@ -1,6 +1,7 @@
 from django.utils import timezone
 from datetime import timedelta
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import (
     get_application_model,
     get_access_token_model,

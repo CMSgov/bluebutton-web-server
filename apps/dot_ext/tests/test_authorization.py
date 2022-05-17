@@ -1,5 +1,6 @@
 import json
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.urls import reverse
 from django.conf import settings
