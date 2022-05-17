@@ -40,9 +40,9 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
         "visits_count",
     )
 
-    list_filter = ("application__user__username",)
+    list_filter = ("application__name",)
 
-    search_fields = ("application__name", "application__user__username", "=id")
+    search_fields = ("application__name", "=id")
 
     raw_id_fields = ("application",)
 
