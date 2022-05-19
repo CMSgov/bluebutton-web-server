@@ -384,29 +384,36 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
         "result_raises_exception": AssertionError,
     },
     # Testing case that produce ValueError exception
-    "test 17: app_requires = False bene_share = True request just PATIENT error=True": {
-        # Request:
-        "request_app_requires_demographic": False,
-        "request_bene_share_demographic_scopes": True,
-        "request_scopes": SCOPES_JUST_PATIENT,
-        # Result:  NOTE: Since Patient is not allowed,
-        #                this case results in having empty scopes on post auth!
-        "result_has_error": True,
-        "result_raises_exception": ValueError,
-        "result_exception_mesg": "Scopes must be set on post auth.",
-    },
+    # Test case 17, 18 assertion no longer holds
+    #
+    # BB2-1224 Django upgrade to 3.2.13, this is no longer the case with oauthlib 3.1.0:
+    # oauthlib/oauth2/rfc6749/grant_types/authorization_code.py->create_authorization_response(...) no longer 
+    # check scopes is None and throw ValueError as shown below (oauthlib 2.1.0):
+    # if not request.scopes:
+    #    raise ValueError('Scopes must be set on post auth.')
+    # "test 17: app_requires = False bene_share = True request just PATIENT error=True": {
+    #     # Request:
+    #     "request_app_requires_demographic": False,
+    #     "request_bene_share_demographic_scopes": True,
+    #     "request_scopes": SCOPES_JUST_PATIENT,
+    #     # Result:  NOTE: Since Patient is not allowed,
+    #     #                this case results in having empty scopes on post auth!
+    #     "result_has_error": True,
+    #     "result_raises_exception": ValueError,
+    #     "result_exception_mesg": "Scopes must be set on post auth.",
+    # },
     # Testing case that produce ValueError exception
-    "test 18: app_requires = True bene_share = False request just PATIENT error=True": {
-        # Request:
-        "request_app_requires_demographic": True,
-        "request_bene_share_demographic_scopes": False,
-        "request_scopes": SCOPES_JUST_PATIENT,
-        # Result:  NOTE: Since Patient is not allowed,
-        #                this case results in having empty scopes on post auth!
-        "result_has_error": True,
-        "result_raises_exception": ValueError,
-        "result_exception_mesg": "Scopes must be set on post auth.",
-    },
+    # "test 18: app_requires = True bene_share = False request just PATIENT error=True": {
+    #     # Request:
+    #     "request_app_requires_demographic": True,
+    #     "request_bene_share_demographic_scopes": False,
+    #     "request_scopes": SCOPES_JUST_PATIENT,
+    #     # Result:  NOTE: Since Patient is not allowed,
+    #     #                this case results in having empty scopes on post auth!
+    #     "result_has_error": True,
+    #     "result_raises_exception": ValueError,
+    #     "result_exception_mesg": "Scopes must be set on post auth.",
+    # },
     # Testing cases that produces AssertionError in _authorize_and_request_token()
     "test 19: app_requires = True bene_share = True request just empty scopes error=True": {
         # Request:

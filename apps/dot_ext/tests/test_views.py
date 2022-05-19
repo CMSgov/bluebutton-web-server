@@ -1,6 +1,7 @@
 import json
 import base64
 from django.conf import settings
+from django.http import HttpRequest
 from django.urls import reverse
 from httmock import HTTMock, urlmatch
 # from oauth2_provider.compat import parse_qs, urlparse
@@ -32,7 +33,8 @@ class TestApplicationUpdateView(BaseApiTest):
         # create an application
         app = self._create_application('john_app', user=user)
         # render the edit view for the app
-        self.client.login(username=user.username, password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username=user.username, password='123456')
         uri = reverse('oauth2_provider:update', args=[app.pk])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
@@ -107,7 +109,8 @@ class TestAuthorizationView(BaseApiTest):
             redirect_uris='http://example.it')
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -146,7 +149,8 @@ class TestAuthorizationView(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
 
         # Loop through test cases in dictionary
         cases = VIEW_OAUTH2_SCOPES_TEST_CASES
@@ -158,6 +162,7 @@ class TestAuthorizationView(BaseApiTest):
 
             # Setup expected results for test case
             result_has_error = cases[case]["result_has_error"]
+            result_status_code = cases[case].get("result_status_code", None)
             result_raises_exception = cases[case].get("result_raises_exception", None)
             result_exception_mesg = cases[case].get("result_exception_mesg", None)
             result_token_scopes_granted = cases[case].get("result_token_scopes_granted", None)
@@ -409,6 +414,10 @@ class TestTokenView(BaseApiTest):
             application=application,
         ).exists())
 
+        # This assertion is incorrectly crafted - it actually requires a local server started
+        # so that the fhir fetch data is called and hence generate cert file not found error.
+        # TODO: refactor test to not depend on a server up and running.
+        
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
         with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):
