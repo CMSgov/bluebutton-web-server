@@ -162,7 +162,6 @@ class TestAuthorizationView(BaseApiTest):
 
             # Setup expected results for test case
             result_has_error = cases[case]["result_has_error"]
-            result_status_code = cases[case].get("result_status_code", None)
             result_raises_exception = cases[case].get("result_raises_exception", None)
             result_exception_mesg = cases[case].get("result_exception_mesg", None)
             result_token_scopes_granted = cases[case].get("result_token_scopes_granted", None)
@@ -417,7 +416,7 @@ class TestTokenView(BaseApiTest):
         # This assertion is incorrectly crafted - it actually requires a local server started
         # so that the fhir fetch data is called and hence generate cert file not found error.
         # TODO: refactor test to not depend on a server up and running.
-        
+
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.
         with self.assertRaisesRegexp(OSError, "Could not find the TLS certificate file"):

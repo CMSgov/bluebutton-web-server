@@ -387,8 +387,8 @@ VIEW_OAUTH2_SCOPES_TEST_CASES = {
     # Test case 17, 18 assertion no longer holds
     #
     # BB2-1224 Django upgrade to 3.2.13, this is no longer the case with oauthlib 3.1.0:
-    # oauthlib/oauth2/rfc6749/grant_types/authorization_code.py->create_authorization_response(...) no longer 
-    # check scopes is None and throw ValueError as shown below (oauthlib 2.1.0):
+    # oauthlib/oauth2/rfc6749/grant_types/authorization_code.py->create_authorization_response(...)
+    # no longer check scopes is None and throw ValueError as shown below (oauthlib 2.1.0):
     # if not request.scopes:
     #    raise ValueError('Scopes must be set on post auth.')
     # "test 17: app_requires = False bene_share = True request just PATIENT error=True": {
