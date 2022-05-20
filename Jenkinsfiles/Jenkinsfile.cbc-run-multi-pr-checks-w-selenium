@@ -55,6 +55,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
+          python --version
           make reqs-install-dev
           pip install selenium
         """
