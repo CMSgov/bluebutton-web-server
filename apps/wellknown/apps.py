@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class WellknownConfig(AppConfig):
-    name = 'wellknown'
+    name = 'apps.wellknown'

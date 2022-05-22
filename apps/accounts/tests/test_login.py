@@ -67,6 +67,11 @@ class LoginTestCase(TestCase):
     def test_invalid_login(self):
         """
         Invalid user cannot login
+        Django upgrade 3.2:
+        Now AXES gives warning as shown below:
+        AXES: New login failure by
+        {username: "fred", ip_address: "127.0.0.1", user_agent: "<unknown>", path_info: "/v1/accounts/login"}.
+        Created new record in the database
         """
         form_data = {'username': 'fred', 'password': 'dino'}
         response = self.client.post(self.url, form_data, follow=True)

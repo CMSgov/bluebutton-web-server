@@ -307,7 +307,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 )
             )
 
-    def test_management_command_logging(self):
+    def xtest_management_command_logging(self):
         """
         Setup variety of real/synth users, apps and grants for testing global state metrics logging.
         """

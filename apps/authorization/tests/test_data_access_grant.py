@@ -1,6 +1,8 @@
+from django.http import HttpRequest
 from django.utils import timezone
 from datetime import timedelta
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import (
     get_application_model,
     get_access_token_model,
@@ -32,7 +34,8 @@ class TestDataAccessGrant(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
 
         payload = {
             'client_id': application.client_id,
@@ -81,7 +84,8 @@ class TestDataAccessGrant(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
 
         payload = {
             'client_id': application.client_id,
@@ -225,7 +229,8 @@ class TestDataAccessGrant(BaseApiTest):
         application.active = False
         application.save()
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
 
         payload = {
             'client_id': application.client_id,

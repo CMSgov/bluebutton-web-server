@@ -5,7 +5,8 @@ from collections import OrderedDict
 from urllib.parse import urlencode
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse
-from oauth2_provider.compat import urlparse
+from urllib.parse import urlparse
+# from oauth2_provider.compat import urlparse
 from apps.fhir.bluebutton import constants
 from apps.fhir.bluebutton.utils import (request_call,
                                         prepend_q,

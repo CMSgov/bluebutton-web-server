@@ -238,6 +238,12 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.dot_ext.throttling.ThrottleMiddleware",
     "waffle.middleware.WaffleMiddleware",
+    # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
+    # It only formats user lockout messages and renders Axes lockout responses
+    # on failed user authentication attempts from login views.
+    # If you do not want Axes to override the authentication response
+    # you can skip installing the middleware and use your own views.
+    'axes.middleware.AxesMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env("CORS_ORIGIN_ALLOW_ALL", True))
@@ -273,6 +279,9 @@ CACHES = {
         "LOCATION": os.environ.get("CACHE_LOCATION", "django_cache"),
     },
 }
+
+# keep backward compatible with AutoField instead of BigAutoField
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -622,6 +631,8 @@ SLSX_VERIFY_SSL_EXTERNAL = env("DJANGO_SLSX_VERIFY_SSL_EXTERNAL", False)
 MEDICARE_ERROR_MSG = "An error occurred connecting to medicare.gov account"
 
 AUTHENTICATION_BACKENDS = (
+    # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
+    'axes.backends.AxesBackend',
     "apps.accounts.backends.EmailAuthBackend",
     "django.contrib.auth.backends.ModelBackend",
 )

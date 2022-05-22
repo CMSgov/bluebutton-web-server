@@ -3,7 +3,8 @@ import re
 
 from django.db import models
 from django.contrib.auth.models import Group
-from django.utils.lru_cache import lru_cache
+# from django.utils.lru_cache import lru_cache
+from functools import lru_cache
 from django.db.models import CASCADE
 
 

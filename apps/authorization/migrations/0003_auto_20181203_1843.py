@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ('oauth2_provider', '0006_auto_20171214_2232'),
+        ('oauth2_provider', '0004_auto_20200902_2022'),
         ('dot_ext', '0013_auto_20181221_2114'),
         ('authorization', '0002_auto_20181203_1542'),
     ]
