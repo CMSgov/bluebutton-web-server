@@ -9,12 +9,13 @@ class Action(Enum):
     FIND = 3
     FIND_SEND_KEY = 4
     CHECK = 5
-    BACK = 6
-    LOGIN = 7
-    CONTAIN_TEXT = 8
-    GET_SAMPLE_TOKEN_START = 9
-    GET_SAMPLE_TOKEN_PKCE_START = 10
-    SLEEP = 11
+    CHECK_PKCE_CHALLENGE = 6
+    BACK = 7
+    LOGIN = 8
+    CONTAIN_TEXT = 9
+    GET_SAMPLE_TOKEN_START = 10
+    GET_SAMPLE_TOKEN_PKCE_START = 11
+    SLEEP = 12
 
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
@@ -31,6 +32,7 @@ LNK_TXT_GET_TOKEN_PKCE_V1 = "Get a Sample Authorization Token (PKCE Enabled)"
 LNK_TXT_GET_TOKEN_PKCE_V2 = "Get a Sample Authorization Token for v2 (PKCE Enabled)"
 LNK_TXT_AUTH_AS_BENE = "Authorize as a Beneficiary"
 LNK_TXT_RESTART_TESTCLIENT = "restart testclient"
+TAG_FOR_AUTHORIZE_LINK = "pre"
 # FHIR search result bundle pagination
 LNK_TXT_NAV_FIRST = "first"
 LNK_TXT_NAV_NEXT = "next"
@@ -168,6 +170,11 @@ SEQ_AUTHORIZE_START = [
         "action": Action.GET_SAMPLE_TOKEN_START,
     },
     {
+        "display": "Check authorize link for PKCE challenge info not present",
+        "action": Action.CHECK_PKCE_CHALLENGE,
+        "params": [20, By.TAG_NAME, TAG_FOR_AUTHORIZE_LINK, False]
+    },
+    {
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",
         "action": Action.FIND_CLICK,
         "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
@@ -183,7 +190,12 @@ SEQ_AUTHORIZE_PKCE_START = [
     CLICK_TESTCLIENT,
     {
         "display": "Click link to get sample token v1/v2 with PKCE enabled",
-        "action": Action.GET_SAMPLE_TOKEN_START,
+        "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
+    },
+    {
+        "display": "Check authorize link for PKCE challenge info present",
+        "action": Action.CHECK_PKCE_CHALLENGE,
+        "params": [20, By.TAG_NAME, TAG_FOR_AUTHORIZE_LINK, True]
     },
     {
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",

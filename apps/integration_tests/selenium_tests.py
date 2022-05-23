@@ -74,6 +74,7 @@ class SeleniumTests(TestCase):
             Action.FIND: self._find_and_return,
             Action.FIND_SEND_KEY: self._find_and_sendkey,
             Action.CHECK: self._check_page_title,
+            Action.CHECK_PKCE_CHALLENGE: self._check_pkce_challenge,
             Action.CONTAIN_TEXT: self._check_page_content,
             Action.GET_SAMPLE_TOKEN_START: self._click_get_sample_token,
             Action.GET_SAMPLE_TOKEN_PKCE_START: self._click_get_sample_token_pkce,
@@ -123,6 +124,13 @@ class SeleniumTests(TestCase):
         if not (elem.text == fmt.format(resource_type, kwargs.get("api_ver"))):
             print("PAGE:{}".format(self.driver.page_source))
         self.assertEqual(elem.text, fmt.format(resource_type, kwargs.get("api_ver")))
+
+    def _check_pkce_challenge(self, timeout_sec, by, by_expr, pkce, **kwargs):
+        elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
+        if pkce:
+            self.assertTrue(("code_challenge" in elem.text and "code_challenge_method" in elem.text))
+        else:
+            self.assertFalse(("code_challenge" in elem.text or "code_challenge_method" in elem.text))
 
     def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)

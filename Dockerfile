@@ -6,6 +6,6 @@ ADD . /code/
 WORKDIR /code
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
-RUN pip install pip-tools
+RUN pip install --upgrade pip-tools
 RUN pip install wheel
 RUN make reqs-install-dev

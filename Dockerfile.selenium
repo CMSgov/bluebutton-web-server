@@ -12,5 +12,6 @@ RUN pip3 install selenium
 RUN pip3 install --upgrade pip
 RUN pip3 install --upgrade setuptools
 RUN pip3 install pip-tools
+RUN pip3 install --upgrade pip-tools
 RUN pip3 install wheel
 RUN make reqs-install-dev
