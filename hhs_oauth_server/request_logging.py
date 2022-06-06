@@ -25,7 +25,7 @@ audit = logging.getLogger("audit.%s" % __name__)
 
 
 class RequestResponseLog(object):
-    """Audit Log message to JSON string
+    """Audit log message to JSON string
 
     The JSON log entry contains the following fields when available:
         NOTE: Items are tagged with the Jira ticket number when they were added.
