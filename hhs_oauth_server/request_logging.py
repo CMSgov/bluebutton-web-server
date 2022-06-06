@@ -231,6 +231,12 @@ class RequestResponseLog(object):
             self._log_msg_update_from_dict(
                 request_headers, "req_header_user_agent", "User-Agent"
             )
+            self._log_msg_update_from_dict(
+                request_headers, "req_header_bluebutton_sdk", "X-BLUEBUTTON-SDK"
+            )
+            self._log_msg_update_from_dict(
+                request_headers, "req_header_bluebutton_sdk_version", "X-BLUEBUTTON-SDK-VERSION"
+            )
 
         """
         --- Logging items from request.body ---
