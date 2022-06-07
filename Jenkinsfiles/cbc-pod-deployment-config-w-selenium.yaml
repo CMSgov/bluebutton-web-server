@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-    - name: bb2-cbc-build-selenium
-      image: "public.ecr.aws/f5g8o1y9/bb2-cbc-build-selenium:latest"
+    - name: bb2-cbc-build-selenium-django-3.2
+      image: "public.ecr.aws/f5g8o1y9/bb2-cbc-build-selenium-django-3.2:latest"
       tty: true
       command: ["tail", "-f"]
       imagePullPolicy: Always
