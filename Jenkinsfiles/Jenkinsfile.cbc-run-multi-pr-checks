@@ -36,6 +36,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
+          pip install --upgrade pip
           make reqs-install-dev
         """
       }
