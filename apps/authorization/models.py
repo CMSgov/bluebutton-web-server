@@ -184,7 +184,7 @@ def get_grant_bene_counts(application=None):
     #
     # union()
     # union(*other_qs, all=False)
-    # Uses SQL’s UNION operator to combine the results of two or more QuerySets. For example:
+    # Uses SQL UNION operator to combine the results of two or more QuerySets. For example:
     #
     # >>> qs1.union(qs2, qs3)
     # The UNION operator selects only distinct values by default. To allow duplicate values, use the all=True argument.
