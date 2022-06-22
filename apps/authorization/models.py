@@ -178,9 +178,23 @@ def get_grant_bene_counts(application=None):
         synthetic_archived_queryset
     )
 
+    # Django 3.2.13 upgrade: seems need to re-write the query to work around?
+    # django.db.utils.NotSupportedError: Calling QuerySet.distinct() after union() is not supported
+    # and below is the quote from Django doc:
+    #
+    # union()
+    # union(*other_qs, all=False)
+    # Uses SQL’s UNION operator to combine the results of two or more QuerySets. For example:
+    #
+    # >>> qs1.union(qs2, qs3)
+    # The UNION operator selects only distinct values by default. To allow duplicate values, use the all=True argument.
+
+    # counts_returned[
+    #     "grant_and_archived_real_deduped"
+    # ] = real_union_queryset.distinct().count()
     counts_returned[
         "grant_and_archived_real_deduped"
-    ] = real_union_queryset.distinct().count()
+    ] = real_union_queryset.count()
     counts_returned[
         "grant_and_archived_synthetic_deduped"
     ] = synthetic_union_queryset.count()

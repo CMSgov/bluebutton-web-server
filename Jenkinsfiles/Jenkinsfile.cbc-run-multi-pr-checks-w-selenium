@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes {
-      defaultContainer "bb2-cbc-build-selenium"
+      defaultContainer "bb2-cbc-build-selenium-django32"
       yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium.yaml"
     }
   }

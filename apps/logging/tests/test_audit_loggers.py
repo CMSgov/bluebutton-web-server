@@ -8,6 +8,8 @@ import apps.logging.request_logger as logging
 from django.urls import reverse
 from django.test.client import Client
 from django.contrib.auth.models import Group
+from django.http import HttpRequest
+
 from httmock import all_requests, HTTMock, urlmatch
 from jsonschema import validate
 from rest_framework import status
@@ -456,7 +458,8 @@ class TestAuditEventLoggers(BaseApiTest):
         )
         application.scope.add(capability_a, capability_b)
         api_ver = "v1" if not v2 else "v2"
-        self.client.login(username="anna", password="123456")
+        request = HttpRequest()
+        self.client.login(request=request, username="anna", password="123456")
 
         payload = {
             "client_id": application.client_id,
@@ -505,7 +508,8 @@ class TestAuditEventLoggers(BaseApiTest):
         application.scope.add(capability_a, capability_b)
         api_ver = "v1" if not v2 else "v2"
 
-        self.client.login(username="anna", password="123456")
+        request = HttpRequest()
+        self.client.login(request=request, username="anna", password="123456")
 
         non_exist_client_id = application.client_id + "_non_exist"
 

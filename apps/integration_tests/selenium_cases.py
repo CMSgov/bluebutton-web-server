@@ -9,11 +9,13 @@ class Action(Enum):
     FIND = 3
     FIND_SEND_KEY = 4
     CHECK = 5
-    BACK = 6
-    LOGIN = 7
-    CONTAIN_TEXT = 8
-    GET_SAMPLE_TOKEN_START = 9
-    SLEEP = 10
+    CHECK_PKCE_CHALLENGE = 6
+    BACK = 7
+    LOGIN = 8
+    CONTAIN_TEXT = 9
+    GET_SAMPLE_TOKEN_START = 10
+    GET_SAMPLE_TOKEN_PKCE_START = 11
+    SLEEP = 12
 
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
@@ -26,8 +28,11 @@ UI Widget text: texts on e.g. buttons, links, labels etc.
 LNK_TXT_TESTCLIENT = "Test Client"
 LNK_TXT_GET_TOKEN_V1 = "Get a Sample Authorization Token"
 LNK_TXT_GET_TOKEN_V2 = "Get a Sample Authorization Token for v2"
+LNK_TXT_GET_TOKEN_PKCE_V1 = "Get a Sample Authorization Token (PKCE Enabled)"
+LNK_TXT_GET_TOKEN_PKCE_V2 = "Get a Sample Authorization Token for v2 (PKCE Enabled)"
 LNK_TXT_AUTH_AS_BENE = "Authorize as a Beneficiary"
 LNK_TXT_RESTART_TESTCLIENT = "restart testclient"
+TAG_FOR_AUTHORIZE_LINK = "pre"
 # FHIR search result bundle pagination
 LNK_TXT_NAV_FIRST = "first"
 LNK_TXT_NAV_NEXT = "next"
@@ -163,6 +168,29 @@ SEQ_AUTHORIZE_START = [
     {
         "display": "Click link to get sample token v1/v2",
         "action": Action.GET_SAMPLE_TOKEN_START,
+    },
+    {
+        "display": "Click link 'Authorize as a Beneficiary' - start authorization",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+    },
+]
+
+SEQ_AUTHORIZE_PKCE_START = [
+    {
+        "display": "Load BB2 Landing Page ...",
+        "action": Action.LOAD_PAGE,
+        "params": [settings.HOSTNAME_URL]
+    },
+    CLICK_TESTCLIENT,
+    {
+        "display": "Click link to get sample token v1/v2 with PKCE enabled",
+        "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
+    },
+    {
+        "display": "Check authorize link for PKCE challenge info present",
+        "action": Action.CHECK_PKCE_CHALLENGE,
+        "params": [20, By.TAG_NAME, TAG_FOR_AUTHORIZE_LINK, True]
     },
     {
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",
@@ -339,6 +367,12 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
 TESTS = {
     "auth_grant_fhir_calls": [
         {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        CLICK_AGREE_ACCESS,
+        {"sequence": SEQ_QUERY_FHIR_RESOURCES}
+    ],
+    "auth_grant_pkce_fhir_calls": [
+        {"sequence": SEQ_AUTHORIZE_PKCE_START},
         CALL_LOGIN,
         CLICK_AGREE_ACCESS,
         {"sequence": SEQ_QUERY_FHIR_RESOURCES}

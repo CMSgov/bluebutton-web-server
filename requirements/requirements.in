@@ -1,41 +1,45 @@
 # base packages
-django==2.2.28
+django==3.2.13
 django-getenv
 django-bootstrap-form
-django-cors-headers==3.6.0
+django-cors-headers
 django-localflavor
 django-settings-export
-djangorestframework==3.12.2
-djangorestframework-csv==2.1.0
-django-filter==2.4.0
+djangorestframework
+djangorestframework-csv
+django-filter
 django-axes
 
 # support
 django-waffle==2.0.0
-django-storages
-django-dotenv
+django-storages==1.7.1
+python-dotenv
 jsonschema==3.2.0
-requests==2.25.1
-urllib3==1.26.5
+requests
+urllib3
 requests_oauthlib
 pytz
-configparser
+configparser==3.5.0
 dj-database-url
-pyjwt
-newrelic
-psycopg2-binary
-sqlparse==0.4.2
+pyjwt==1.6.4
+newrelic==4.4.1.104
+psycopg2-binary==2.9.3
+sqlparse
 Pillow==9.0.1
-boto3==1.17.93
-djangorestframework-yaml==2.0.0
-voluptuous==0.12.1
-pyyaml==5.4.1
+boto3
+djangorestframework-yaml
+voluptuous
+pyyaml==6.0
 py==1.10.0
+attrs==20.3.0
+pyrsistent==0.17.3
+typing_extensions==4.2.0
+importlib-metadata==4.2.0
 
 # notifications
-django-ses==1.0.3
+# django-ses
 
 # security and identity system
-oauthlib
+oauthlib==3.1.0
 python-openid
-django-oauth-toolkit
+django-oauth-toolkit==1.6.0

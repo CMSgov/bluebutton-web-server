@@ -1,6 +1,8 @@
 import json
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
+from django.http import HttpRequest
 from django.urls import reverse
 from django.conf import settings
 from django.test import Client
@@ -30,7 +32,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
 
         code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
 
@@ -77,7 +80,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         # Test 2nd access token request is unauthorized
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
 
     def test_post_with_invalid_non_standard_scheme_granttype_authcode_clienttype_public(self):
         redirect_uri = 'com.custom.bluebutton://example.it'
@@ -94,7 +97,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -123,7 +127,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
 
         code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
 
@@ -178,7 +183,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
 
         # Test 2nd access token request is unauthorized
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
 
     def test_post_with_invalid_non_standard_scheme_granttype_authcode_clienttype_confidential(self):
         # Test with application setup as grant_type=authorization_code and client_type=confidential
@@ -196,7 +201,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -223,7 +229,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -277,7 +284,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -316,7 +324,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
 
     def test_refresh_with_revoked_token(self):
         redirect_uri = 'http://localhost'
@@ -332,7 +340,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -379,7 +388,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'client_secret': application.client_secret,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, b'{"error": "invalid_grant"}')
 
     def test_application_delete_after_auth(self):
@@ -397,7 +406,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -452,7 +462,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -511,7 +522,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -579,7 +591,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             redirect_uris=redirect_uri)
         application.scope.add(capability_a, capability_b, capability_introspect)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
