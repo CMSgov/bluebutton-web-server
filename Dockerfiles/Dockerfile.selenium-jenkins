@@ -7,6 +7,8 @@ RUN mkdir /code
 ADD . /code/
 WORKDIR /code
 
+RUN pip install --upgrade pip
+
 RUN apt-get update && apt-get install -yq git unzip curl
 
 # Install Chrome for Selenium
