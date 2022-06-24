@@ -95,7 +95,9 @@ class AuthenticationForm(AuthenticationForm):
         'invalid_login': _(
             "Please enter a correct email and password."
         ),
-        'inactive': _("This account is inactive."),
+        'inactive': _("This account is inactive. "
+                      "Have you checked your email and completed the account verification (activation) yet?"
+                      ),
     }
 
     required_css_class = 'required'
