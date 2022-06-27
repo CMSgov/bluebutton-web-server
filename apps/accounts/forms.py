@@ -96,7 +96,7 @@ class AuthenticationForm(AuthenticationForm):
             "Please enter a correct email and password."
         ),
         'inactive': _("This account is inactive. "
-                      "Have you checked your email and completed the account verification (activation) yet?"
+                      "Please click the verification link in your email before logging in."
                       ),
     }
 
