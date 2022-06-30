@@ -13,7 +13,7 @@ if __name__ == "__main__":
     if os.environ.get('DJANGO_DOTENV_FILE', None):
         # dotenv.read_dotenv(os.environ.get('DJANGO_DOTENV_FILE'))
         load_dotenv(os.environ.get('DJANGO_DOTENV_FILE'))
-        logger.error("Hey Django got executed................................ load env {}".format(os.environ.get('DJANGO_DOTENV_FILE')))
+        logger.error("Hey Django got executed....load env {}".format(os.environ.get('DJANGO_DOTENV_FILE')))
     else:
         # dotenv.read_dotenv()
         load_dotenv()
