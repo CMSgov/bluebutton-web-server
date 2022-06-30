@@ -1,9 +1,13 @@
 import os
 import newrelic.agent
-import dotenv
-
+# import dotenv
+from dotenv import load_dotenv
+import logging
 from django.core.wsgi import get_wsgi_application
 
+logger = logging.getLogger("bb2_entry_point")
+
+logger.error("Hey wsgi got executed................................")
 
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,8 +19,10 @@ if os.path.isfile(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, 'newrelic.ini')):
 
 # If the .env file is present, load it
 if os.path.isfile(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, '.env')):
-    dotenv.read_dotenv(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, '.env'))
+    # dotenv.read_dotenv(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, '.env'))
+    load_dotenv(os.path.join(DJANGO_CUSTOM_SETTINGS_DIR, '.env'))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hhs_oauth_server.settings.base")
 
+logger.error("wsgi got executed.....................get_wsgi_application()")
 application = get_wsgi_application()
