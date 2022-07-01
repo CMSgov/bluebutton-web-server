@@ -43,7 +43,7 @@ auth_events AS
     (
         type = 'Authorization'
         and vpc = 'impl'
-        and app_name != 'new-relic'
+        and auth_app_name != 'new-relic'
     )
 )
 
