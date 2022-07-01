@@ -3,6 +3,23 @@ import re
 import time
 
 """
+Summary:
+
+This function will run an Athena SQL query that creates a table
+from a view. 
+
+This is to be run on a schedule nightly. It creates an intermediate table
+to be used by a DataSet to improve performance in QuickSight.
+
+Pass in the target BASENAME for the intended table and view to use.
+
+For example, BASENAME="global_state_per_app" and ENV="impl" will run the 
+folowing queries in Athena:
+
+   DROP TABLE IF EXISTS bb2.impl_global_state_per_app
+   CREATE TABLE IF NOT EXISTS bb2.impl_global_state_per_app AS SELECT * FROM bb2.vw_impl_global_state_per_app
+
+
 Lambda function inputs:
 
 {
@@ -10,6 +27,7 @@ Lambda function inputs:
   "WORKGROUP": "bb2",
   "DATABASE": "bb2",
   "ENV": "<prod/impl/test>"
+  "BASENAME": "<basename of view/table>" Ex: "global_state"
 }
 """
 
@@ -63,6 +81,7 @@ def lambda_handler(event, context):
         "region": event["REGION"],
         "workgroup": event["WORKGROUP"],
         "database": event["DATABASE"],
+        "basename": event["BASENAME"],
     }
 
     # Drop table
@@ -71,7 +90,8 @@ def lambda_handler(event, context):
         + event["DATABASE"]
         + "."
         + event["ENV"]
-        + "_global_state"
+        + "_"
+        + event["BASENAME"]
     )
 
     drop_output_filename = athena_to_s3_complete(session, params)
@@ -82,11 +102,14 @@ def lambda_handler(event, context):
         + event["DATABASE"]
         + "."
         + event["ENV"]
-        + "_global_state AS SELECT * FROM "
+        + "_"
+        + event["BASENAME"]
+        + " AS SELECT * FROM "
         + event["DATABASE"]
         + ".vw_"
         + event["ENV"]
-        + "_global_state"
+        + "_"
+        + event["BASENAME"]
     )
 
     create_output_filename = athena_to_s3_complete(session, params, 300)
