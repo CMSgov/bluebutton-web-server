@@ -35,6 +35,10 @@ SELECT
   t1.max_global_apps_active_cnt, 
   t1.max_global_apps_inactive_cnt, 
   t1.max_global_apps_require_demographic_scopes_cnt, 
+  t1.max_global_developer_count,
+  t1.max_global_developer_distinct_organization_name_count,
+  t1.max_global_developer_with_first_api_call_count,
+  t1.max_global_developer_with_registered_app_count,
   t2.name app_name, 
   t2.id app_id, 
   t2.created app_created, 
@@ -95,7 +99,11 @@ FROM
         "max"(global_apps_inactive_cnt) max_global_apps_inactive_cnt, 
         "max"(
           global_apps_require_demographic_scopes_cnt
-        ) max_global_apps_require_demographic_scopes_cnt 
+        ) max_global_apps_require_demographic_scopes_cnt,
+        "max"(global_developer_count) max_global_developer_count,
+        "max"(global_developer_distinct_organization_name_count) max_global_developer_distinct_organization_name_count,
+        "max"(global_developer_with_first_api_call_count) max_global_developer_with_first_api_call_count,
+        "max"(global_developer_with_registered_app_count) max_global_developer_with_registered_app_count
       FROM 
         (
           SELECT DISTINCT 
@@ -132,7 +140,11 @@ FROM
             token_archived_table_count,
             global_apps_active_cnt, 
             global_apps_inactive_cnt, 
-            global_apps_require_demographic_scopes_cnt 
+            global_apps_require_demographic_scopes_cnt, 
+            global_developer_count,
+            global_developer_distinct_organization_name_count,
+            global_developer_with_first_api_call_count,
+            global_developer_with_registered_app_count
           FROM 
             bb2.events_test_perf_mon 
           WHERE 

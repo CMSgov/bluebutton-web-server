@@ -444,6 +444,10 @@ FROM
       max_global_apps_active_cnt total_apps_in_system, 
       max_global_apps_inactive_cnt total_inactive_apps_in_system, 
       max_global_apps_require_demographic_scopes_cnt total_apps_require_demo_scopes_cnt, 
+      max_global_developer_count total_developer_count,
+      max_global_developer_distinct_organization_name_count total_developer_distinct_organization_name_count,
+      max_global_developer_with_first_api_call_count total_developer_with_first_api_call_count,
+      max_global_developer_with_registered_app_count total_developer_with_registered_app_count,
       /*
       NOTE: Metrics in this section prefixed by "app_" come from the 
             type = "global_state_metrics_per_app",
@@ -566,7 +570,11 @@ FROM
       max_token_archived_table_count,
       max_global_apps_active_cnt,
       max_global_apps_inactive_cnt,
-      max_global_apps_require_demographic_scopes_cnt
+      max_global_apps_require_demographic_scopes_cnt,
+      max_global_developer_count,
+      max_global_developer_distinct_organization_name_count,
+      max_global_developer_with_first_api_call_count,
+      max_global_developer_with_registered_app_count
     ORDER BY 
       start_date ASC
   )
