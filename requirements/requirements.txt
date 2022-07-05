@@ -167,9 +167,9 @@ django-oauth-toolkit==1.6.0 \
 django-settings-export==1.2.1 \
     --hash=sha256:fceeae49fc597f654c1217415d8e049fc81c930b7154f5d8f28c432db738ff79
     # via -r requirements/requirements.in
-django-storages==1.7.1 \
-    --hash=sha256:8e35d2c7baeda5dc6f0b4f9a0fc142d25f9a1bf72b8cebfcbc5db4863abc552d \
-    --hash=sha256:b1a63cd5ea286ee5a9fb45de6c3c5c0ae132d58308d06f1ce9865cfcd5e470a7
+django-storages==1.12.3 \
+    --hash=sha256:204a99f218b747c46edbfeeb1310d357f83f90fa6a6024d8d0a3f422570cee84 \
+    --hash=sha256:a475edb2f0f04c4f7e548919a751ecd50117270833956ed5bd585c0575d2a5e7
     # via -r requirements/requirements.in
 django-waffle==2.0.0 \
     --hash=sha256:1973801b2bfdebb2d4ac3a7e5871a51f4d4b91ef712bdf46cc65d89b9dc3c988 \
