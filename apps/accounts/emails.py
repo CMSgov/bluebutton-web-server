@@ -28,7 +28,7 @@ def send_activation_key_via_email(user, signup_key):
                     template_text='email/email-activate.txt',
                     template_html='email/email-activate.html',
                     to=[user.email, ],
-                    context={"ACTIVATION_LINK": activation_link, "EXPIRATION": settings.SIGNUP_TIMEOUT_DAYS})
+                    context={"ACTIVATION_LINK": activation_link, "ACTIVATION_KEY": signup_key, "EXPIRATION": settings.SIGNUP_TIMEOUT_DAYS})
     mailer.send()
     logger.info("Activation link sent to {} ({})".format(user.username, user.email))
 
