@@ -215,6 +215,11 @@ class ActivationKey(models.Model):
     )
     key = models.CharField(default=uuid.uuid4, max_length=40)
     expires = models.DateTimeField(blank=True)
+    # introduced to track the user account life cycle events: "created" -> "activated" / "expired"
+    key_status = models.CharField(max_length=10, blank=True, default="created")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    expired_at = models.DateTimeField(blank=True, null=True)
+    activated_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return "Key for %s expires at %s" % (self.user.username, self.expires)
