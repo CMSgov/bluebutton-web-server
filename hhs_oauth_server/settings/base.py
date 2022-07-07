@@ -138,8 +138,7 @@ PASSWORD_HASH_ITERATIONS = int(env("DJANGO_PASSWORD_HASH_ITERATIONS", "200000"))
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", ["*", socket.gethostname()])
 
-# DEBUG = env("DEBUG", True)
-DEBUG = True
+DEBUG = env("DEBUG", True)
 
 # apps and middlewares
 INSTALLED_APPS = [
