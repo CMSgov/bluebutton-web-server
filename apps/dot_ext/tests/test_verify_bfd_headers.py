@@ -1,7 +1,8 @@
 import json
 
 from httmock import all_requests, HTTMock
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import AccessToken
 
 from apps.capabilities.models import ProtectedCapability

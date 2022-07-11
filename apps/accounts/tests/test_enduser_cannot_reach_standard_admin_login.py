@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.test.client import Client
@@ -27,7 +28,8 @@ class LoginTestCase(TestCase):
         user = User.objects.get(username='fred')
         UserProfile.objects.create(user=user)
         self.client = Client()
-        self.client.login(username='fred', password='bedrocks')
+        request = HttpRequest()
+        self.client.login(request=request, username='fred', password='bedrocks')
         self.url = reverse('admin:login')
 
     def test_standard_user_cannot_reach_admin_login(self):

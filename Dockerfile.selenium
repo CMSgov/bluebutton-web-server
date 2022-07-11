@@ -2,11 +2,13 @@ FROM selenium/standalone-chrome-debug
 
 ENV PYTHONUNBUFFERED 1
 USER root
-RUN apt-get update && apt-get install -yq python3.8 python3-pip git
-RUN pip3 install --upgrade pip
-RUN pip3 install selenium psycopg2-binary==2.8.6 pyyaml==5.4.1 Pillow==9.0.1
+# libpq-dev: ubuntu dev lib for psypsycopg2 sdist build
+RUN apt-get update && apt-get install -yq python3.7 python3-pip git libpq-dev libffi-dev
 RUN mkdir /code
 ADD . /code/
 WORKDIR /code
-RUN make reqs-install-dev
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
+RUN pip install --upgrade pip
+RUN pip install selenium
+RUN pip install pyyaml==6.0 Pillow==9.0.1
+RUN make reqs-install-dev

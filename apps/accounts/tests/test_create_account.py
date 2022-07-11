@@ -42,6 +42,7 @@ class CreateDeveloperAccountTestCase(TestCase):
             'last_name': 'Rubble',
             'identification_choice': str(ident_choice.pk),
         }
+
         response = self.client.post(self.url, form_data, follow=True)
 
         self.assertEqual(response.status_code, 200)

@@ -17,7 +17,6 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 {% endblock %}
 
 {% block Content %}
-
 <div class="container">
   <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
     <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
@@ -45,14 +44,21 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 			<br />
 
-			<a href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
+			<a id="auth_link_v1" href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
 			{% switch "testclient_v2" %}
-				<a href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token for v2</a>
+				<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token for v2</a>
 			{% endswitch %}
 
-			{% endif %}
+			<br />
+
+			<a id="auth_link_v1" href="{% url 'authorize_link' %}?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token (PKCE Enabled)</a>
+			{% switch "testclient_v2" %}
+				<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token for v2 (PKCE Enabled)</a>
+			{% endswitch %}
+
+            {% endif %}
 	
-			<!-- If a user DOES have a token, reflect the success of that action -->
+            <!-- If a user DOES have a token, reflect the success of that action -->
 			{% if session_token is not None %}
 			{% url 'testclient-restart' as restart_url %}
 			{% if api_ver == 'v2' %}

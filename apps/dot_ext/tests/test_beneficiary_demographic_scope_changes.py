@@ -1,7 +1,9 @@
 import json
 from apps.test import BaseApiTest
+from django.http import HttpRequest
 from django.urls import reverse
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
@@ -71,7 +73,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
 
         # Scopes lists for testing
         APPLICATION_SCOPES_FULL = ['patient/Patient.read', 'profile',
@@ -205,7 +208,8 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         content = json.loads(response.content)
 
-        self.assertEqual(response.status_code, 401)
+        # seems the status_code changed to 400 for invalid_grant error
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(content.get('error', None), "invalid_grant")
 
         # ------ TEST #6: Beneficary authorizes to share FULL demographic data again.. ------

@@ -5,11 +5,14 @@ import re
 import apps.logging.request_logger as logging
 
 from django.contrib.auth.models import User, Group
+from django.http import HttpRequest
 from django.urls import reverse
 from django.test import TestCase
 from django.utils.text import slugify
 from django.conf import settings
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
+
 
 from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant
@@ -267,7 +270,8 @@ class BaseApiTest(TestCase):
         Helper method that creates an access_token using the confidential client and auth_code grant.
         """
         # Dev user logs in
-        self.client.login(username=username, password=user_passwd)
+        request = HttpRequest()
+        self.client.login(request=request, username=username, password=user_passwd)
 
         # Authorize
         code_challenge = "sZrievZsrYqxdnu2NVD603EiYBM18CuzZpwB-pOSZjo"
