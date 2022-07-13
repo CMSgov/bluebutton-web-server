@@ -1,10 +1,10 @@
 -r requirements.in
 # test and development
-coverage==5.3.1
-python-coveralls==2.9.3
-flake8==3.8.4
-django-debug-toolbar==3.2.1
-httmock==1.4.0
+coverage==6.3.2
+python-coveralls
+flake8
+django-debug-toolbar
+httmock
 beautifulsoup4
 debugpy
 

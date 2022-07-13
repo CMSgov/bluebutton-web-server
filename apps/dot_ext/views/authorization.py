@@ -97,9 +97,16 @@ class AuthorizationView(DotAuthorizationView):
             "redirect_uri": form.cleaned_data.get("redirect_uri"),
             "response_type": form.cleaned_data.get("response_type", None),
             "state": form.cleaned_data.get("state", None),
-            "code_challenge": form.cleaned_data.get("code_challenge", None),
-            "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
+            # "code_challenge": form.cleaned_data.get("code_challenge", None),
+            # "code_challenge_method": form.cleaned_data.get("code_challenge_method", None),
         }
+
+        if form.cleaned_data.get("code_challenge"):
+            credentials["code_challenge"] = form.cleaned_data.get("code_challenge")
+
+        if form.cleaned_data.get("code_challenge_method"):
+            credentials["code_challenge_method"] = form.cleaned_data.get("code_challenge_method")
+
         scopes = form.cleaned_data.get("scope")
         allow = form.cleaned_data.get("allow")
 
@@ -235,7 +242,6 @@ class ApprovalView(AuthorizationView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class TokenView(DotTokenView):
-
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         try:

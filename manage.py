@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 import os
 import sys
-import dotenv
+# replace django dotenv (latest release is 2017) with python dotenv
+from dotenv import load_dotenv
 
 
 if __name__ == "__main__":
     if os.environ.get('DJANGO_DOTENV_FILE', None):
-        dotenv.read_dotenv(os.environ.get('DJANGO_DOTENV_FILE'))
+        load_dotenv(os.environ.get('DJANGO_DOTENV_FILE'))
     else:
-        dotenv.read_dotenv()
+        load_dotenv()
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                           "hhs_oauth_server.settings.base")

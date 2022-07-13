@@ -1,6 +1,6 @@
 import uuid
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 from django.db import models
 
 INTERIM_PROD_ACCESS_FORM_TYPE = "interim-prod-access"
