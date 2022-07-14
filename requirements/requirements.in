@@ -34,10 +34,10 @@ py==1.10.0
 attrs==20.3.0
 pyrsistent==0.17.3
 typing_extensions==4.2.0
-importlib-metadata==4.2.0
+importlib-metadata<2.0
 
 # notifications
-# django-ses
+django-ses
 
 # security and identity system
 oauthlib==3.1.0
