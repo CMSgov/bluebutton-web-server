@@ -226,7 +226,8 @@ class ActivationKey(models.Model):
 
     def save(self, **kwargs):
         now = pytz.utc.localize(datetime.utcnow())
-        expires = now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
+        expires = now + timedelta(seconds=120)
+        # expires = now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
         self.expires = expires
         super(ActivationKey, self).save(**kwargs)
         send_activation_key_via_email(self.user, self.key)
