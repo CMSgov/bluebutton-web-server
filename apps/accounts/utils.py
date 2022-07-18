@@ -10,6 +10,7 @@ ACCT_HAS_ISSUE_MSG = """There may be an issue with your account.
                 Contact us at bluebuttonapi@cms.hhs.gov"""
 ACCT_ACTIVATED_MSG = """Your account has been activated. You may now login."""
 
+
 def validate_activation_key(activation_key):
     utc = pytz.UTC
     msg = ""
