@@ -226,8 +226,9 @@ class ActivationKey(models.Model):
 
     def save(self, **kwargs):
         now = pytz.utc.localize(datetime.utcnow())
-        expires = now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
-        self.expires = expires
+        # need to pop the custom arg out since it is not accepted by super
+        expires_override = kwargs.pop('expires', None)
+        self.expires = expires_override if expires_override else (now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS))
         super(ActivationKey, self).save(**kwargs)
         send_activation_key_via_email(self.user, self.key)
 
