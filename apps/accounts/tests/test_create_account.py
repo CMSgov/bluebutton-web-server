@@ -73,9 +73,10 @@ class CreateDeveloperAccountTestCase(TestCase):
         """
         Create an Account Valid, and check:
         1. the activation key also created
-        2. initial good account verify request return expected login page with expected message
-        3. subsequent good account verify request return expected login page with expected message
-        4. account verify url sent with fabricated key return message indicating there is an issue...
+        2. login attempted before account verified
+        3. initial good account verify request return expected login page with expected message
+        4. subsequent good account verify request return expected login page with expected message
+        5. account verify url sent with fabricated key return message indicating there is an issue...
         """
         ident_choice = UserIdentificationLabel.objects.get(slug="ident2")
         form_data = {
@@ -108,21 +109,27 @@ class CreateDeveloperAccountTestCase(TestCase):
         self.assertIsNone(key.expired_at)
         self.assertIsNone(key.activated_at)
 
+        # attempt login before account verify
+        form_data = {'username': 'testactivation@example.com', 'password': 'BEDrocks@123'}
+        response = self.client.post(reverse('login'), form_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Please click the verification link in your email before logging in.")
+
         # simulate account verify link clicked, and account activated
         response = self.client.get(reverse('activation_verify', args=(key.key,)), follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(LOGIN_MSG_ACTIVATED, response.content.decode('utf-8'))
+        self.assertContains(response, LOGIN_MSG_ACTIVATED)
 
         # simulate account verify link clicked again (it's OK), and should say: account activated
         response = self.client.get(reverse('activation_verify', args=(key.key,)), follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(LOGIN_MSG_ACTIVATED, response.content.decode('utf-8'))
+        self.assertContains(response, LOGIN_MSG_ACTIVATED)
 
         # simulate account verify link played with a fabricated key, indicate issue and show contact
         response = self.client.get(reverse('activation_verify', args=(key.key + "x",)), follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn("There may be an issue with your account.", response.content.decode('utf-8'))
-        self.assertIn("Contact us at bluebuttonapi@cms.hhs.gov", response.content.decode('utf-8'))
+        self.assertContains(response, "There may be an issue with your account.")
+        self.assertContains(response, "Contact us at bluebuttonapi@cms.hhs.gov")
 
     @override_switch('signup', active=True)
     @override_switch('login', active=True)
@@ -173,8 +180,8 @@ class CreateDeveloperAccountTestCase(TestCase):
         # simulate account verify link played with a fabricated key, indicate issue and show contact
         response = self.client.get(reverse('activation_verify', args=(key.key,)), follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn("The activation key is expired.", response.content.decode('utf-8'))
-        self.assertIn("Contact us at bluebuttonapi@cms.hhs.gov for further assistance", response.content.decode('utf-8'))
+        self.assertContains(response, "The activation key is expired.")
+        self.assertContains(response, "Contact us at bluebuttonapi@cms.hhs.gov for further assistance")
 
     @override_switch('signup', active=False)
     @override_switch('login', active=True)
