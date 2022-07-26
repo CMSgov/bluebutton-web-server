@@ -22,7 +22,7 @@ pytz
 configparser==3.5.0
 dj-database-url
 pyjwt==1.6.4
-newrelic==4.4.1.104
+newrelic==7.16.0.178
 psycopg2-binary==2.9.3
 sqlparse
 Pillow==9.0.1

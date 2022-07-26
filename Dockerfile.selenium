@@ -8,7 +8,6 @@ RUN mkdir /code
 ADD . /code/
 WORKDIR /code
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
-RUN pip install --upgrade pip
-RUN pip install selenium
-RUN pip install pyyaml==6.0 Pillow==9.0.1
-RUN make reqs-install-dev
+RUN pip3 install --upgrade pip
+RUN pip3 install selenium
+RUN pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
