@@ -9,6 +9,7 @@ from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v
 from hhs_oauth_server.hhs_oauth_server_context import IsAppInstalled
 
 admin.autodiscover()
+admin.site.enable_nav_sidebar = False
 
 ADMIN_REDIRECTOR = getattr(settings, "ADMIN_PREPEND_URL", "")
 
