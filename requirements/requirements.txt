@@ -219,8 +219,22 @@ jsonschema==3.2.0 \
 jwcrypto==1.2 \
     --hash=sha256:edf4309321721e5161cefccdd64b04509e03924feaf3de085b47780765989ae3
     # via django-oauth-toolkit
-newrelic==4.4.1.104 \
-    --hash=sha256:eb60752a2c2a9904ea1eaf6b25dfbe8181e02fca9c11f895c13469057971b343
+newrelic==7.16.0.178 \
+    --hash=sha256:0f3c4a6b4c558ffb74acfcb5ba6991e0df4a9d8fcbb103c37044ea41da931d2c \
+    --hash=sha256:16afa8c95c9cd20bb7687f0f99abbb94f21967c7c7a5c55be01dddfda9b341d5 \
+    --hash=sha256:4d00b345c54973efd1c5b6c9778a842d896fc0a99d2969dd0ddafca7de5ee81b \
+    --hash=sha256:588e1fb3e15f15ad5b617b5525bbe1d1d6b6a9d3cdce49abed4f878473967ca1 \
+    --hash=sha256:5d12f98469a32274dbdd31038a270bc173c7e6612726a1a233cb2e4b861a67fa \
+    --hash=sha256:6b63e6a16a6676403ac890bb85a357e88955c47e4af576620b92259b4bbae12c \
+    --hash=sha256:967746253875548068f3d52efe5f41b097672a135d223101c31ea821d8fe311c \
+    --hash=sha256:b31b38e04436cd583eaebf178cf50a7f2c0501f6a0cce72f1dc08eaec64d20da \
+    --hash=sha256:c4e9c2f19de08782c138c1fecf96a21cb8dfa2159c4a32f11fbad37fbf615824 \
+    --hash=sha256:ceae5f12e3541b9b88d86a060fa51a4ab4ef9066256fa3fbe28c3f93857afa37 \
+    --hash=sha256:d0fd11f1a268b119fbb8fe1b73a9bc1bc991c7b0d3a747e207d1705ad3c80ec5 \
+    --hash=sha256:de2ee2292bb12270c4cc92b45c59906f4a671e7030533d30b6a084a63b12687f \
+    --hash=sha256:e4f22613d95c00df6a6143b721a8477b8f59acdfb76f4a1689e81238b4fe10ae \
+    --hash=sha256:f2e6116d45776491e282f93f331bb942d3cdf26859ec20c527ef751c5eb3254f \
+    --hash=sha256:f42a04818c2ab0ade18c0a1a5d35652bb0d1d8cc2cfcb16304fffb15f556f117
     # via -r requirements/requirements.in
 oauthlib==3.1.0 \
     --hash=sha256:bee41cc35fcca6e988463cacc3bcb8a96224f470ca547e697b604cc697b2f889 \

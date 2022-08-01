@@ -3,12 +3,12 @@ FROM selenium/standalone-chrome-debug
 ENV PYTHONUNBUFFERED 1
 USER root
 # libpq-dev: ubuntu dev lib for psypsycopg2 sdist build
-RUN apt-get update && apt-get install -yq python3.7 python3-pip git libpq-dev libffi-dev
+RUN apt-get update && apt-get install -yq python3.8 python3-pip git libpq-dev libffi-dev
 RUN mkdir /code
 ADD . /code/
 WORKDIR /code
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
-RUN pip install --upgrade pip
-RUN pip install selenium
-RUN pip install pyyaml==6.0 Pillow==9.0.1
-RUN make reqs-install-dev
+RUN pip3 install --upgrade pip
+RUN pip3 install selenium
+RUN pip3 install pyyaml==6.0 pillow==9.0.1 newrelic==7.16.0.178
+RUN pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
