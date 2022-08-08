@@ -1,3 +1,5 @@
+import waffle
+
 from rest_framework.exceptions import NotFound, APIException
 from rest_framework import status
 from requests import Response
@@ -34,6 +36,10 @@ def process_error_response(response: Fhir_Response) -> APIException:
                             err = UpstreamServerException("{}:{}".format(msg, diagnostics))
                 except Exception:
                     pass
+
+    if waffle.switch_is_active('simulate_500_error'):
+        err = ServerError()
+
     return err
 
 
@@ -43,3 +49,9 @@ class UpstreamServerException(APIException):
 
 class BadRequestToBackendError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
+
+
+class ServerError(APIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = 'Service temporarily unavailable, try again later, network connection refused.'
+    default_code = 'service_unavailable_for_now'
