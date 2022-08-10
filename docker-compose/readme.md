@@ -4,7 +4,7 @@ To begin developing locally, internal software engineers will need to obtain and
 
 To enable usage of the SLSx TEST environment locally, do the following or skip if using the MSLS (mock service) mode.
 
-- Sign in to Keybase and have the /keybase file system mounted.
+- Sign in to AWS CLI
 - Change directory to the BB2 repo root directory under: bluebutton-web-server/
 - Source the BFD prod-sbx hashing, SLSx TEST credentials and copy cert files to your local system:
 
@@ -13,7 +13,7 @@ To enable usage of the SLSx TEST environment locally, do the following or skip i
   bash
 
   # Then source the ENV vars via:
-  source docker-compose/source_env_secrets_from_keybase.sh
+  source docker-compose/source_env_secrets_from_aws.sh
   ```
 
 - NOTE: This will copy the cert files in to the docker-compose/certstore location.
@@ -341,14 +341,14 @@ The difference with these tests is the usage of the [LiveServerTestCase](https:/
 
 Ultimately these tests are utilized by a CBC (Cloud Bees Core) project/job for Github PR checks. This instruction provides a few ways to test these out locally and to test using the same Docker container image as CBC.
 
-The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local_keybase.sh` script that performs pre-setup and sources environment variables from Keybase needed to utilize a live BFD back end system.
+The Python `runtests.py` program, which is also used for running the Django unit type tests, includes an "--integration" option for running integration type tests. This is called by the `docker-compose/run_integration_tests_local.sh` script that performs pre-setup and sources environment variables from AWS needed to utilize a live BFD back end system.
 
-There are ways to test locally using the `docker-compose/run_integration_tests_local_keybase.sh` script:
+There are ways to test locally using the `docker-compose/run_integration_tests_local.sh` script:
 
 To get usage help use the following command:
 
 ```
-docker-compose/run_integration_tests_local_keybase.sh
+docker-compose/run_integration_tests_local.sh
 ```
 
 1. Using the docker-compose local development setup and containers. This is the quickest!
@@ -356,13 +356,13 @@ docker-compose/run_integration_tests_local_keybase.sh
    The currently checked out (or working branch) will be used.
 
    ```
-   docker-compose/run_integration_tests_local_keybase.sh dc
+   docker-compose/run_integration_tests_local.sh dc
    ```
 
    To debug integration tests:
 
    ```
-   docker-compose/run_integration_tests_local_keybase.sh dc-debug
+   docker-compose/run_integration_tests_local.sh dc-debug
    ```
 
 2. Using a Docker one-off run using the same image (bb2-cbc-build) as CBC. This takes longer, but provides a better test before using in CBC.
@@ -370,7 +370,7 @@ docker-compose/run_integration_tests_local_keybase.sh
    The currently checked out (or working branch) will be used.
 
    ```
-   docker-compose/run_integration_tests_local_keybase.sh cbc
+   docker-compose/run_integration_tests_local.sh cbc
    ```
 
 3. Using the docker-compose local development setup and containers with local bfd as backend.
@@ -378,18 +378,18 @@ docker-compose/run_integration_tests_local_keybase.sh
    The currently checked out (or working branch) will be used.
 
    ```
-   docker-compose/run_integration_tests_local_keybase.sh local
+   docker-compose/run_integration_tests_local.sh local
    ```
 
    To debug integration tests:
 
    ```
-   docker-compose/run_integration_tests_local_keybase.sh local-debug
+   docker-compose/run_integration_tests_local.sh local-debug
    ```
 
 NOTES:
 
-- The settings variables in the `docker-compose/run_integration_tests_local_keybase.sh cbc` may need to be updated to match your local development platform.
+- The settings variables in the `docker-compose/run_integration_tests_local.sh cbc` may need to be updated to match your local development platform.
 - For the CBC related setup see these files for more details:
   - `Jenkinsfiles/Jenkinsfile.cbc-run-integration-tests` - Jenkinsfile for running the tests in a CBC project/job.
   - `Jenkinsfiles/cbc-run-integration-tests.yaml` - Kubernetes docker container specification. These settings will also need to be updated when there are CBC image naming changes.
@@ -404,17 +404,17 @@ You can run selenium tests by following below steps:
    use MSLSX (default)
 
    ```
-   ./docker-compose/run_selenium_tests_local_keybase.sh
+   ./docker-compose/run_selenium_tests_local.sh
    ```
 
    ```
-   ./docker-compose/run_selenium_tests_local_keybase.sh mslsx
+   ./docker-compose/run_selenium_tests_local.sh mslsx
    ```
 
    use SLSX
 
    ```
-   ./docker-compose/run_selenium_tests_local_keybase.sh slsx
+   ./docker-compose/run_selenium_tests_local.sh slsx
    ```
 
 3. To debug tests (visualize webUI interaction): point VNC client to localhost:5900
@@ -424,15 +424,15 @@ You can run selenium tests by following below steps:
       use MSLSX (default)
 
    ```
-   ./docker-compose/run_selenium_tests_local_keybase.sh debug
+   ./docker-compose/run_selenium_tests_locale.sh debug
    ```
 
    ```
-   ./docker-compose/run_selenium_tests_local_keybase.sh mslsx-debug
+   ./docker-compose/run_selenium_tests_local.sh mslsx-debug
    ```
 
    use SLSX
 
    ```
-   ./docker-compose/run_selenium_tests_local_keybase.sh slsx-debug
+   ./docker-compose/run_selenium_tests_local.sh slsx-debug
    ```
