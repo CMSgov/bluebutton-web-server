@@ -7,6 +7,30 @@ https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 Here is a starter guide to setting up MFA tokens for the AWS CLI:
 https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/
 
+A more automated method for acquiring the MFA token can be done with a little setup. First, you will need to setup a named profile using this guide: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
+
+It is best to go ahead and ```export AWS_PROFILE=profile_name``` to avoid specifying the profile in every command.
+
+Once you have the named profile, here is a useful function you can setup in your bash profile to get your MFA token:
+```
+########## AWS MFA TOKEN ###########
+login_aws() {
+        unset AWS_ACCESS_KEY_ID
+        unset AWS_SECRET_ACCESS_KEY
+        unset AWS_SECURITY_TOKEN
+        unset AWS_SESSION_TOKEN
+        # get aws username
+        username=$(aws sts get-caller-identity | jq -r .Arn | cut -f 2 -d'/')
+        # get mfa device serial number
+        serial_number=$(aws iam list-virtual-mfa-devices | jq -r --arg username "${username}" '.VirtualMFADevices[] | select(.User.UserName==$username) | .SerialNumber')
+        # get mfa creds
+        response=$(aws sts get-session-token --serial-number ${serial_number}  --token-code $1)
+        export AWS_ACCESS_KEY_ID=$(echo ${response} | jq -r .Credentials.AccessKeyId)
+        export AWS_SECRET_ACCESS_KEY=$(echo ${response} | jq -r .Credentials.SecretAccessKey)
+        export AWS_SESSION_TOKEN=$(echo ${response} | jq -r .Credentials.SessionToken)
+}
+```
+
 Once you have the AWS CLI setup and you are able to work with the CLI, you will be able to proceed with the following.
 
 To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker-compose/certstore` location to support the connection to the BFD FHIR server.
