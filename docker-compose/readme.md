@@ -30,6 +30,8 @@ login_aws() {
         export AWS_SESSION_TOKEN=$(echo ${response} | jq -r .Credentials.SessionToken)
 }
 ```
+This function accepts one argument which is your virtual MFA code, example:
+```> login_aws 123456```
 
 Once you have the AWS CLI setup and you are able to work with the CLI, you will be able to proceed with the following.
 
