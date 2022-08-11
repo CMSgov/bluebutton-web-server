@@ -210,6 +210,7 @@ else
         echo_msg
         echo_msg "    INTEGRATION_TESTS_LIST: ${INTEGRATION_TESTS_LIST}"
         echo_msg
+        aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/f5g8o1y9
         docker run \
             -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
             -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \

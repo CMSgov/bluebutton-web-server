@@ -1,5 +1,14 @@
 # Local Docker Development
 
+### Pre-requisites:
+Install AWS CLI on your local machine. The installation guide for all OS's can be found here: 
+https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+
+Here is a starter guide to setting up MFA tokens for the AWS CLI:
+https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/
+
+Once you have the AWS CLI setup and you are able to work with the CLI, you will be able to proceed with the following.
+
 To begin developing locally, internal software engineers will need to obtain and copy the `bb2-local-client` certificate files in to the `docker-compose/certstore` location to support the connection to the BFD FHIR server.
 
 To enable usage of the SLSx TEST environment locally, do the following or skip if using the MSLS (mock service) mode.
@@ -424,7 +433,7 @@ You can run selenium tests by following below steps:
       use MSLSX (default)
 
    ```
-   ./docker-compose/run_selenium_tests_locale.sh debug
+   ./docker-compose/run_selenium_tests_local.sh debug
    ```
 
    ```
