@@ -209,8 +209,9 @@ else
             then
                 echo "Integration tests run in debug mode, waiting on port ${EXPO_PORTS} for attach..."
             fi
+            # cygwin
             docker-compose run ${EXPO_PORTS} \
-                -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
+                -e DJANGO_FHIR_CERTSTORE="/code/docker-compose${DJANGO_FHIR_CERTSTORE}" \
                 -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
                 -e FHIR_URL=${FHIR_URL} \
