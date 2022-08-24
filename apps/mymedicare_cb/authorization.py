@@ -213,6 +213,10 @@ class OAuth2ConfigSLSx(object):
         # Get data.user part of response
         data_user_response = response.json().get("data", {}).get("user", None)
 
+        # validate that MFA response received: currently missing 'id', expecting id present when go live
+        if data_user_response is not None and data_user_response.get("mbi") == "1J15QQ3K199":
+            raise ValueError("MFA user response detected..............., MBI={}".format(data_user_response.get("mbi")))
+
         self.validate_asserts(
             request,
             [
