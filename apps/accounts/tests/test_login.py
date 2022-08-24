@@ -32,6 +32,7 @@ class LoginTestCase(TestCase):
         self.url = reverse('login')
         Group.objects.create(name='BlueButton')
 
+    @override_switch('show_testclient_link', active=True)
     @override_switch('login', active=True)
     def test_valid_login(self):
         """
@@ -51,6 +52,7 @@ class LoginTestCase(TestCase):
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 404)
 
+    @override_switch('show_testclient_link', active=True)
     @override_switch('login', active=True)
     def test_valid_login_case_insensitive_username(self):
         """
@@ -65,12 +67,18 @@ class LoginTestCase(TestCase):
     def test_invalid_login(self):
         """
         Invalid user cannot login
+        Django upgrade 3.2:
+        Now AXES gives warning as shown below:
+        AXES: New login failure by
+        {username: "fred", ip_address: "127.0.0.1", user_agent: "<unknown>", path_info: "/v1/accounts/login"}.
+        Created new record in the database
         """
         form_data = {'username': 'fred', 'password': 'dino'}
         response = self.client.post(self.url, form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
 
+    @override_switch('show_testclient_link', active=True)
     @override_switch('login', active=True)
     def test_logout(self):
         """
@@ -80,6 +88,7 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Login')
 
+    @override_switch('show_testclient_link', active=True)
     @override_switch('login', active=True)
     def test_valid_login_email(self):
         """

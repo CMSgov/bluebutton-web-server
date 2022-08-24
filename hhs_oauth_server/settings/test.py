@@ -7,7 +7,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 REQUIRE_AUTHOIRZE_APP_FLAG = False
 
 LOGIN_RATE = '100/m'
-FHIR_SERVER_DEFAULT = 1
 
 REQUEST_CALL_TIMEOUT = (5, 120)
 
@@ -37,6 +36,49 @@ CACHES = {
     },
 }
 AXES_CACHE = 'axes_cache'
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.'
+                'UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.'
+                'MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.'
+                'CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.'
+                'NumericPasswordValidator',
+    },
+    {
+        'NAME': 'apps.accounts.validators.'
+                'PasswordReuseAndMinAgeValidator',
+        'OPTIONS': {
+                # password minimum age in seconds (5 sec)
+                'password_min_age': 2,
+                # password reuse interval in seconds (60 sec)
+                'password_reuse_interval': 10,
+                # password expire in seconds (20 sec)
+                'password_expire': 9,
+        }
+    },
+    {
+        'NAME': 'apps.accounts.validators.'
+                'PasswordComplexityValidator',
+        'OPTIONS': {
+                'min_length_digit': 1,
+                'min_length_alpha': 1,
+                'min_length_special': 1,
+                'min_length_lower': 2,
+                'min_length_upper': 2,
+                'special_characters': "[~!@#$%^&*()_+{}\":;'[]"
+        }
+    }
+]
 
 # http required in ALLOWED_REDIRECT_URI_SCHEMES for tests to function correctly
 APPLICATION_TITLE = "Blue Button 2.0 TEST"

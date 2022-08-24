@@ -1,19 +1,16 @@
 import os
+import uuid
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
 from apps.accounts.models import UserProfile
 from apps.test import BaseApiTest
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.server.models import SupportedResourceType
 
 from apps.fhir.bluebutton.utils import (
     notNone,
     FhirServerAuth,
-    FhirServerUrl,
-    masked,
     mask_with_this_url,
-    mask_list_with_host,
     get_host_url,
     prepend_q,
     dt_patient_reference,
@@ -28,9 +25,7 @@ ENCODED = settings.ENCODING
 class BluebuttonUtilsSimpleTestCase(BaseApiTest):
     # Load fixtures
     fixtures = ['fhir_bluebutton_test_rt.json',
-                'fhir_bluebutton_new_testdata.json',
-                'fhir_server_new_testdata.json',
-                'test_install_fixture.json']
+                'fhir_bluebutton_new_testdata.json']
 
     def test_notNone(self):
         """ Test notNone return values """
@@ -76,8 +71,7 @@ class BluebuttonUtilsSimpleTestCase(BaseApiTest):
 
 class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
 
-    fixtures = ['fhir_bluebutton_new_testdata.json',
-                'fhir_server_new_testdata.json']
+    fixtures = ['fhir_bluebutton_new_testdata.json']
 
     def test_FhirServerAuth(self):
         """  Check FHIR Server ClientAuth settings """
@@ -95,46 +89,6 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
         response = FhirServerAuth()
 
         self.assertDictEqual(response, expected)
-
-        """ Test 2: pass crosswalk """
-        crosswalk = Crosswalk.objects.get(pk=1)
-
-        response = FhirServerAuth(crosswalk)
-
-        expected = {'client_auth': crosswalk.fhir_source.client_auth,
-                    'cert_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                              crosswalk.fhir_source.cert_file),
-                    'key_file': os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                             crosswalk.fhir_source.key_file)}
-
-        self.assertDictEqual(response, expected)
-
-    def test_FhirServerUrl(self):
-        """ Build a fhir server url """
-
-        """ Test 1: Pass all parameters """
-        response = FhirServerUrl('http://localhost:8000',
-                                 '/any_path',
-                                 '/release')
-        expected = 'http://localhost:8000/any_path/release/'
-        self.assertEquals(response, expected)
-
-        """ Test 2: Pass no parameters """
-        response = FhirServerUrl()
-
-        resource_router = get_resourcerouter()
-        resource_router_server_address = resource_router.server_address
-
-        expected = resource_router_server_address
-        expected += resource_router.server_path
-        expected += resource_router.server_release
-        if expected.endswith('/'):
-            pass
-        else:
-            expected += '/'
-        # expected = 'http://fhir.bbonfhir.com/fhir-p/baseDstu2/'
-
-        self.assertEquals(response, expected)
 
     def test_prepend_q_yes(self):
         """ Check that ? is added to front of parameters if required """
@@ -155,50 +109,6 @@ class BlueButtonUtilSupportedResourceTypeControlTestCase(TestCase):
         expected = pass_params
 
         self.assertEquals(response, expected)
-
-
-class BlueButtonUtilsRtTestCase(TestCase):
-
-    fixtures = ['fhir_bluebutton_test_rt.json']
-
-    def test_masked(self):
-        """ Checking for supported_resource_type_control.override_url_id """
-
-        """ Test:1 supported_resource_type_control with valid override_url_id=True """
-
-        supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
-
-        response = masked(supported_resource_type_control)
-        expected = True
-
-        self.assertEqual(response, expected)
-
-        """ Test:2 supported_resource_type_control with valid override_url_id=False """
-
-        supported_resource_type_control = SupportedResourceType.objects.get(pk=4)
-
-        response = masked(supported_resource_type_control)
-        expected = False
-
-        self.assertEqual(response, expected)
-
-        """ Test:3 supported_resource_type_control =None """
-
-        supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
-
-        response = masked(None)
-        expected = False
-
-        self.assertEqual(response, expected)
-
-        """ Test:4 No supported_resource_type_control """
-
-        # supported_resource_type_control = SupportedResourceType.objects.get(pk=1)
-
-        response = masked()
-        expected = False
-
-        self.assertEqual(response, expected)
 
 
 class BlueButtonUtilRequestTest(TestCase):
@@ -268,107 +178,7 @@ class BlueButtonUtilRequestTest(TestCase):
 
         self.assertEqual(response, expected)
 
-    def test_mask_list_with_host(self):
-        """ Replace urls in list with host_path in a text string """
-
-        # FHIR_SERVER_CONF = {
-        #   "SERVER": "http://fhir.bbonfhir.com/",
-        #   "PATH": "fhir-p/",
-        #   "RELEASE": "baseDstu2/",
-        #   "REWRITE_FROM": "http://ec2-52-4-198-86.compute-1.amazonaws.com" \
-        #                   ":8080/baseDstu2",
-        #   "REWRITE_TO": "http://localhost:8000/bluebutton/fhir/v1"}
-
-        """ Test 1: No text to replace. No changes """
-
-        request = self.factory.get('/cmsblue/fhir/v1/Patient')
-
-        rewrite_list = ['http://disappear.com',
-                        'http://www.example.com:8000',
-                        'http://example.com']
-
-        default_url = ['http://disappear.com',
-                       'http://www.disappear.com']
-
-        input_text = 'dddd anything '
-        input_text += default_url[0]
-        input_text += ' will get replaced more stuff '
-        input_text += 'http://www.example.com:8000 and '
-        input_text += 'http://example.com:8000/ okay'
-
-        response = mask_list_with_host(request,
-                                       'http://www.replaced.com',
-                                       '',
-                                       rewrite_list)
-
-        expected = ''
-        self.assertEqual(response, expected)
-
-        """ Test 2: No text to replace with. Only replace
-            FHIR_SERVER_CONF.REWRITE_FROM changes
-        """
-
-        input_text = 'dddd anything '
-        input_text += default_url[0]
-        input_text += ' will get replaced more stuff '
-        input_text += 'http://www.example.com:8000 and '
-        input_text += 'http://example.com:8000/ okay'
-
-        request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_list_with_host(request,
-                                       'http://www.replaced.com',
-                                       input_text,
-                                       [])
-
-        expected = input_text
-
-        self.assertEqual(response, expected)
-
-        """ Test 3: Replace text removing slash from end of replaced text """
-
-        input_text = 'dddd anything '
-        input_text += default_url[0]
-        input_text += ':8080/baseDstu2 will get replaced more stuff '
-        input_text += 'http://www.example.com:8000 and '
-        input_text += 'http://example.com:8000/ okay'
-
-        request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_list_with_host(request,
-                                       'http://www.replaced.com/',
-                                       input_text,
-                                       ['http://www.example.com:8000',
-                                        'http://disappear.com',
-                                        'http://www.replace.com:8080/baseDstu2',
-                                        'http://example.com'])
-
-        expected = 'dddd anything http://www.replaced.com:8080/baseDstu2' \
-                   ' will get replaced ' \
-                   'more stuff http://www.replaced.com and ' \
-                   'http://www.replaced.com:8000/ okay'
-
-        self.assertEqual(response, expected)
-
-        """ Test 4: Replace text """
-
-        input_text = 'dddd anything '
-        input_text += default_url[0]
-        input_text += ' will get replaced more stuff '
-        input_text += 'http://www.example.com:8000 and '
-        input_text += 'http://example.com:8000/ okay'
-
-        request = self.factory.get('/cmsblue/fhir/v1/Patient')
-        response = mask_list_with_host(request,
-                                       'http://www.replaced.com',
-                                       input_text,
-                                       rewrite_list)
-
-        expected = 'dddd anything http://www.replaced.com will get replaced ' \
-                   'more stuff http://www.replaced.com and ' \
-                   'http://www.replaced.com:8000/ okay'
-
-        self.assertEqual(response, expected)
-
-    def test_get_host_ur_good(self):
+    def test_get_host_url_good(self):
         """
         Get the host url and split on resource_type
         """
@@ -405,6 +215,8 @@ class Patient_Resource_Test(BaseApiTest):
         xwalk = Crosswalk()
         xwalk.user = self.user
         xwalk.fhir_id = "Patient/12345"
+        xwalk.user_hicn_hash = uuid.uuid4()
+        xwalk.user_mbi_hash = uuid.uuid4()
         xwalk.save()
 
     def test_crosswalk_fhir_id(self):
@@ -422,6 +234,8 @@ class Patient_Resource_Test(BaseApiTest):
         x = Crosswalk()
         x.user = u
         x.fhir_id = "Patient/23456"
+        x.user_hicn_hash = uuid.uuid4()
+        x.user_mbi_hash = uuid.uuid4()
         x.save()
 
         result = crosswalk_patient_id(u)
@@ -495,7 +309,7 @@ class Security_Metadata_test(BaseApiTest):
         """
         request = self.factory.get('/cmsblue/fhir/v1/metadata')
 
-        result = build_oauth_resource(request, "xml")
+        result = build_oauth_resource(request, False, "xml")
 
         expected = "<cors>true</cors>"
 

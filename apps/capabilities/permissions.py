@@ -1,14 +1,29 @@
 import json
 import re
+
+from rest_framework import permissions, status
+from rest_framework.exceptions import APIException, ParseError
 from waffle import switch_is_active
-from rest_framework import permissions
+
 from .models import ProtectedCapability
+
+
+class BBCapabilitiesPermissionTokenScopeMissingException(APIException):
+    # BB2-237 custom exception
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 class TokenHasProtectedCapability(permissions.BasePermission):
 
     def has_permission(self, request, view):
         token = request.auth
+        access_token_query_param = request.GET.get("access_token", None)
+
+        if access_token_query_param is not None:
+            raise ParseError(
+                "Using the access token in the query parameters is not supported. "
+                "Use the Authorization header instead"
+            )
 
         if not token:
             return False
@@ -29,6 +44,8 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                     if re.fullmatch(path, request.path) is not None:
                         return True
             return False
-        assert False, ("TokenHasScope requires the"
-                       "`oauth2_provider.rest_framework.OAuth2Authentication` authentication "
-                       "class to be used.")
+        else:
+            # BB2-237: Replaces ASSERT with exception. We should never reach here.
+            mesg = ("TokenHasScope requires the `oauth2_provider.rest_framework.OAuth2Authentication`"
+                    " authentication class to be used.")
+            raise BBCapabilitiesPermissionTokenScopeMissingException(mesg)

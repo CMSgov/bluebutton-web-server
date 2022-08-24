@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load waffle_tags %}
 
 {% block bannerBackButton %}{% endblock %}
 
@@ -30,6 +31,18 @@ The Developer Sandbox lets you register applications to get credentials to acces
   <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
     <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
       {% include "include/messages.html" %}
+
+
+      {% switch message_implicit_flow %}
+        <div class="ds-c-alert ds-c-alert--warn ds-u-margin-bottom--4">
+          <div class="ds-c-alert__body">
+            <h3 class="ds-c-alert__heading">Announcement</h3>
+              <p class="ds-c-alert__text">
+                <a href="https://groups.google.com/g/developer-group-for-cms-blue-button-api/c/PFfVNymltfE/m/XsRMaQXXCAAJ">The Implicit Auth Flow is being deprecated and should not be used for development.</a>
+              </p>
+          </div>
+        </div>
+      {% endswitch %}
 
       <h2>My Sandbox Apps</h2>
 
@@ -87,36 +100,5 @@ The Developer Sandbox lets you register applications to get credentials to acces
     </div>
   </div>
 <!-- </div> -->
-
-  <div class="bb-full-width--gray">
-      <div class="ds-l-row ds-u-justify-content--center ds-u-margin-y--4">
-        <div class="ds-l-lg-col--11 ds-l-md-col--11 ds-l-sm-col--12">
-          <h2>Blue Button Resources</h2>
-          <div class="bb-card-container-2-2 ds-u-margin-y--3">
-
-            <a class="bb-c-card default-card" href="https://bluebutton.cms.gov/blog/Delving-in-to-Blue-Button-Data.html">
-              <div class="card-title">
-                Delving Into Blue Button Data
-              </div>
-              <div class="card-image" style="background-image: url({% static "img/floppy.jpg" %})" aria-role="presentation"></div>
-              <div class="card-description">
-                  The Blue Button 2.0 API publishes detailed claims information for a beneficiary. As a developer I want to be able to understand the data and be able to easily delve into the data that the API returns.
-              </div>
-            </a>
-
-            <a class="bb-c-card default-card" href="https://bluebutton.cms.gov/blog/More-Sample-Applications.html">
-                <div class="card-title">
-                  Sample Apps to Get Your Started
-                </div>
-                <div class="card-image" style="background-image: url({% static 'img/developers.jpg' %})" aria-role="presentation"></div>
-                <div class="card-description">
-                  If you learn by example, we’ve got sample apps in a variety of languages and frameworks to get you started.
-                </div>
-              </a>
-
-          </div>
-      </div>
-    </div>
-  </div>
 
 {% endblock %}

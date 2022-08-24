@@ -76,6 +76,19 @@
                   <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Callback URLS / {% trans "Redirect Uris" %}</p>
                   <pre>{{ application.redirect_uris }}</pre>
                 </div>
+
+                <!-- Demographic Filter -->
+                <div class="ds-u-margin-bottom--2">
+                  <p class="ds-u-font-weight--bold ds-u-margin-bottom--1">Does my application need to collect beneficary demographic data?</p>
+                  <p class="ds-u-margin-bottom--1">
+                    <i>(Name, address, date of birth, race, and gender)</i>
+                  </p>
+                  {% if application.require_demographic_scopes is False %}
+                    <pre>No</pre>
+                  {% else %}
+                    <pre>Yes</pre>
+                  {% endif %}
+                </div>
                       
               </div>
             
@@ -98,7 +111,7 @@
                   <div class="terms-container">
                     <!-- Privacy Policy -->
                     {% if application.policy_uri %}
-                    <a href="{{ application.policy_url }}">Privacy Policy</a>
+                    <a href="{{ application.policy_uri }}">Privacy Policy</a>
                     {% else %}
                     <p>No Privacy Policy</p>
                     {% endif %}

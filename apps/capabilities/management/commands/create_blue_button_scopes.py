@@ -1,12 +1,15 @@
 import json
+import logging
+
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.core.management.base import BaseCommand
 from ...models import ProtectedCapability
 
-import logging
+import apps.logging.request_logger as bb2logging
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+
 fhir_prefix = "/v1/fhir/"
 
 

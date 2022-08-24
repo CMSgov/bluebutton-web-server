@@ -1,4 +1,5 @@
 import logging
+
 from django.contrib.auth.models import User
 from django.db.models import (
     Count,
@@ -34,10 +35,11 @@ from apps.authorization.models import (
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.fhir.bluebutton.models import (
     Crosswalk,
-    check_crosswalks)
+    get_crosswalk_bene_counts)
 
+import apps.logging.request_logger as bb2logging
 
-log = logging.getLogger('hhs_server.%s' % __name__)
+log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 STREAM_SERIALIZER_KWARGS = LIST_SERIALIZER_KWARGS
 
@@ -169,8 +171,10 @@ class AppMetricsSerializer(ModelSerializer):
     def get_beneficiaries(self, obj):
         distinct = AccessToken.objects.filter(application=obj.id).distinct('user').values('user')
 
-        real_cnt = Crosswalk.real_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id').count()
-        synth_cnt = Crosswalk.synth_objects.filter(user__in=[item['user'] for item in distinct]).values('user', 'fhir_id').count()
+        real_cnt = Crosswalk.real_objects.filter(
+            user__in=[item['user'] for item in distinct]).values('user', '_fhir_id').count()
+        synth_cnt = Crosswalk.synth_objects.filter(
+            user__in=[item['user'] for item in distinct]).values('user', '_fhir_id').count()
 
         return({'real': real_cnt, 'synthetic': synth_cnt})
 
@@ -340,7 +344,7 @@ class CheckCrosswalksView(APIView):
     ]
 
     def get(self, request, format=None):
-        return Response(check_crosswalks())
+        return Response(get_crosswalk_bene_counts())
 
 
 class AppMetricsView(ListAPIView):

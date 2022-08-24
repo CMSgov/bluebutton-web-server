@@ -1,5 +1,8 @@
-import logging
 import voluptuous
+import logging
+
+import apps.logging.request_logger as bb2logging
+
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
 from rest_framework.parsers import JSONParser
@@ -7,32 +10,43 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.authorization.permissions import DataAccessGrantPermission
+from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.parsers import FHIRParser
 from apps.fhir.renderers import FHIRRenderer
-from apps.dot_ext.throttling import TokenRateThrottle
 from apps.fhir.server import connection as backend_connection
+
+from ..authentication import OAuth2ResourceOwner
+from ..exceptions import process_error_response
+from ..permissions import (HasCrosswalk, ResourcePermission, ApplicationActivePermission)
 from ..signals import (
     pre_fetch,
     post_fetch
 )
-from apps.authorization.permissions import DataAccessGrantPermission
-from ..authentication import OAuth2ResourceOwner
-from ..permissions import (HasCrosswalk, ResourcePermission)
-from ..exceptions import UpstreamServerException
 from ..utils import (build_fhir_response,
                      FhirServerVerify,
                      get_resourcerouter)
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 
 class FhirDataView(APIView):
-
+    version = None
     parser_classes = [JSONParser, FHIRParser]
     renderer_classes = [JSONRenderer, FHIRRenderer]
     throttle_classes = [TokenRateThrottle]
     authentication_classes = [OAuth2ResourceOwner]
-    permission_classes = [permissions.IsAuthenticated, HasCrosswalk, ResourcePermission, DataAccessGrantPermission]
+    # BB2-149 note, check authenticated first, then app active etc.
+    permission_classes = [
+        permissions.IsAuthenticated,
+        ApplicationActivePermission,
+        HasCrosswalk,
+        ResourcePermission,
+        DataAccessGrantPermission]
+
+    def __init__(self, version=1):
+        self.version = version
+        super().__init__()
 
     # Must return a Crosswalk
     def check_resource_permission(self, request, **kwargs):
@@ -42,7 +56,7 @@ class FhirDataView(APIView):
         raise NotImplementedError()
 
     def map_parameters(self, params):
-        transforms = getattr(self, "query_transforms", {})
+        transforms = getattr(self, "QUERY_TRANSFORMS", {})
         for key, correct in transforms.items():
             val = params.pop(key, None)
             if val is not None:
@@ -51,8 +65,11 @@ class FhirDataView(APIView):
 
     def filter_parameters(self, request):
         params = self.map_parameters(request.query_params.dict())
+        # Get list from _lastUpdated QueryDict(), since it can have multi params
+        params['_lastUpdated'] = request.query_params.getlist('_lastUpdated')
+
         schema = voluptuous.Schema(
-            getattr(self, "query_schema", {}),
+            getattr(self, "QUERY_SCHEMA", {}),
             extra=voluptuous.REMOVE_EXTRA)
         return schema(params)
 
@@ -82,10 +99,10 @@ class FhirDataView(APIView):
 
     def fetch_data(self, request, resource_type, *args, **kwargs):
         resource_router = get_resourcerouter(request.crosswalk)
+
         target_url = self.build_url(resource_router,
                                     resource_type,
-                                    *args,
-                                    **kwargs)
+                                    *args, **kwargs)
 
         logger.debug('FHIR URL with key:%s' % target_url)
 
@@ -106,22 +123,22 @@ class FhirDataView(APIView):
         s = Session()
         prepped = s.prepare_request(req)
         # Send signal
-        pre_fetch.send_robust(self.__class__, request=req)
+        pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2' if self.version == 2 else 'v1')
         r = s.send(
             prepped,
             cert=backend_connection.certs(crosswalk=request.crosswalk),
             timeout=resource_router.wait_time,
             verify=FhirServerVerify(crosswalk=request.crosswalk))
         # Send signal
-        post_fetch.send_robust(self.__class__, request=prepped, response=r)
+        post_fetch.send_robust(FhirDataView, request=prepped, auth_request=request,
+                               response=r, api_ver='v2' if self.version == 2 else 'v1')
         response = build_fhir_response(request._request, target_url, request.crosswalk, r=r, e=None)
 
-        if response.status_code == 404:
-            raise exceptions.NotFound(detail='The requested resource does not exist')
+        # BB2-128
+        error = process_error_response(response)
 
-        # TODO: This should be more specific
-        if response.status_code >= 300:
-            raise UpstreamServerException(detail='An error occurred contacting the upstream server')
+        if error is not None:
+            raise error
 
         self.validate_response(response)
 

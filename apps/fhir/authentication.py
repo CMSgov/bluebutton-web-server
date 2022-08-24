@@ -18,10 +18,4 @@ def extract_username(auth, auth_prefix="SLS"):
     # raises UnicodeDecodeError
     auth_string_decoded = b64_decoded.decode(encoding)
 
-    return convert_sls_uuid(auth_string_decoded)
-
-
-def convert_sls_uuid(id):
-    # Do not shorten SLS guid. It causes username collisions
-    # return id[9:36]
-    return id
+    return auth_string_decoded

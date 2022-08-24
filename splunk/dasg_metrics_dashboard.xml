@@ -1,0 +1,494 @@
+<form>
+  <label>BB2 DASG Metrics Dashboard</label>
+  <description>Dashboard panels related to metrics for DASG reporting</description>
+  <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <input type="time" token="t_local" searchWhenChanged="true">
+        <label>Select Time Range</label>
+        <default>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </default>
+      </input>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h1>
+            <b>DASG Metrics Logging Event Counts</b>
+          </h1>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h2>
+            <b>PROD Metrics Gathered from Auth Flow Logging Events</b>
+          </h2>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <!-- Setup of BASE searches to be used in panels -->
+  <search id="baseSearch1a">
+    <!-- BASE search 1a. New Beneficiaries Added -->
+    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=prod | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | dedup message.fhir_id message.auth_client_id message.auth_uuid message.username | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
+    <earliest>$t_local.earliest$</earliest>
+    <latest>$t_local.latest$</latest>
+    <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch1b">
+    <!-- BASE search 1b. RETURNING Beneficiaries who have re-authorized -->
+    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=prod | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | dedup message.fhir_id message.auth_client_id message.auth_uuid | fields time message.auth_uuid message.fhir_id message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status</query>
+    <earliest>$t_local.earliest$</earliest>
+    <latest>$t_local.latest$</latest>
+    <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearch2">
+    <!-- BASE search benes choosing to share demographics -->
+    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=prod | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
+    <earliest>$t_local.earliest$</earliest>
+    <latest>$t_local.latest$</latest>
+    <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearchFhirV1">
+    <!-- BASE search for FHIR V1 events -->
+    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=prod message.path="/v1/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
+    <earliest>$t_local.earliest$</earliest>
+    <latest>$t_local.latest$</latest>
+    <sampleRatio>1</sampleRatio>
+  </search>
+  <search id="baseSearchFhirV2">
+    <!-- BASE search for FHIR V2 events -->
+    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=prod message.path="/v2/fhir/*" | fields time message.path message.response_code message.fhir_id</query>
+    <earliest>$t_local.earliest$</earliest>
+    <latest>$t_local.latest$</latest>
+    <sampleRatio>1</sampleRatio>
+  </search>
+  
+  <!--<search id="baseSearchBeneCount">-->
+    <!-- BASE search for FHIR V1 events -->
+  <!--  <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod </query>-->
+  <!--  <earliest>$t_local.earliest$</earliest>-->
+  <!--  <latest>$t_local.latest$</latest>-->
+  <!--  <sampleRatio>1</sampleRatio>-->
+  <!--</search>-->
+  
+  <row>
+    <panel>
+      <title>1a. NEW Beneficiaries Added (with a NEW entry created in our CROSSWALK table)</title>
+      <single>
+        <search base="baseSearch1a">
+          <done>
+            <set token="tokCreateBeneOkCount">$result.count$</set>
+          </done>
+          <query>search "message.status"="OK" | search "message.fhir_id" &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>1b. RETURNING Beneficiaries (Who have re-authorized at least once during time frame and who already had a CROSSWALK table entry previous to the search time-frame)</title>
+      <single>
+        <search base="baseSearch1b">
+          <done>
+            <set token="tokReturnBeneOkCount">$result.count$</set>
+          </done>
+          <query>search "message.status"="OK" | search "message.fhir_id" &gt; 0 | dedup message.fhir_id | table message.fhir_id | search NOT [search base=baseSearch1a | table message.fhir_id] | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    
+    <panel>
+      <title>1c. Beneficiaries Served (life to date cumulative)</title>
+      <search>
+        <done>
+          <set token="tokGroupTimestamp">$result.message.group_timestamp$</set>
+        </done>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics" | head 1 | table message.group_timestamp</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+      </search>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod "message.type"="global_state_metrics" "message.group_timestamp"=$tokGroupTimestamp|s$ | table message.real_bene_cnt</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    
+  </row>
+  <row>
+    <panel>
+      <title>2. Count of Beneficiaries choosing ALLOW on Consent Form for all auth flow (NOTE: A bene could have multiple auth flows during this time frame. This only counts interactions with applications where message.auth_require_demographic_scopes=True)</title>
+      <single>
+        <search base="baseSearch2">
+          <done>
+            <set token="beneAllowCount">$result.count$</set>
+          </done>
+          <query>search message.auth_require_demographic_scopes=True | search message.allow=True | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    
+    <panel>
+      <title>3. Count of beneficiaries who chose NOT to share demographic information (NOTE: A bene could have multiple auth flows during this time frame)</title>
+      <single>
+        <search base="baseSearch2">
+          <done>
+            <set token="beneNotShareCount">$result.count$</set>
+          </done>
+          <query>search message.allow=True | search message.auth_share_demographic_scopes="False" | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>4. Percent of beneficiaries who chose NOT to share demographic information</title>
+        <search>
+          <query>| makeresults | eval Total1=$beneNotShareCount$, Total2=$beneAllowCount$ | eval percent= round((Total1/Total2)*100,1) | table percent</query>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.rangeValues">[0,50,75,100]</option>
+        <option name="charting.gaugeColors">["0xebe42d","0x7e9f44","0xd13b3b"]</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <html>
+       <u1> <h2>
+            <b>PROD Third party apps beneficiary counts</b>
+          </h2>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>1. Apps served with MORE than 25 beneficiaries</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokFhirV1PatientOKCount">$result.count$</set>
+          </done>
+           <!-- message.group_timestamp="2021-07-14T07:00:54+00:00" -->
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" "message.group_timestamp"=$tokGroupTimestamp|s$ message.active=True message.real_bene_cnt>25 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>2. Apps served with LESS than 25 beneficiaries</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokFhirV1PatientOKCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" "message.group_timestamp"=$tokGroupTimestamp|s$ message.active=True message.real_bene_cnt&lt;=25 | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>3. Total Apps served</title>
+      <single>
+        <search>
+          <done>
+            <set token="tokFhirV1PatientOKCount">$result.count$</set>
+          </done>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod | search "message.type"="global_state_metrics_per_app" "message.group_timestamp"=$tokGroupTimestamp|s$ message.active=True | stats count</query>
+          <earliest>$t_local.earliest$</earliest>
+          <latest>$t_local.latest$</latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  
+  
+  <row>
+    <panel>
+      <html>
+       <u1> <h2>
+            <b>PROD Metrics Gathered from FHIR Resource Logging Events</b>
+          </h2>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h3>
+            <b>PROD FHIR V1 Events</b>
+          </h3>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>1. V1 FHIR Patient Calls Made (w/ successful status)</title>
+      <single>
+        <search base="baseSearchFhirV1">
+          <done>
+            <set token="tokFhirV1PatientOKCount">$result.count$</set>
+          </done>
+          <query>search message.path="/v1/fhir/Patient*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>2. V1 FHIR Coverage Calls Made (w/ successful status)</title>
+      <single>
+        <search base="baseSearchFhirV1">
+          <done>
+            <set token="tokFhirV1CoverageOKCount">$result.count$</set>
+          </done>
+          <query>search message.path="/v1/fhir/Coverage*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>3. V1 FHIR EOB Calls Made (w/ successful status)</title>
+      <single>
+        <search base="baseSearchFhirV1">
+          <done>
+            <set token="tokFhirV1EobOKCount">$result.count$</set>
+          </done>
+          <query>search message.path="/v1/fhir/ExplanationOfBenefit*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>4. TOTAL V1 FHIR Calls Made (w/ successful status)</title>
+      <single>
+        <search base="baseSearchFhirV1">
+          <done>
+            <set token="tokFhirV1OKCount">$result.count$</set>
+          </done>
+          <query>search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h3>
+            <b>PROD FHIR V2 Events</b>
+          </h3>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>1. V2 FHIR Patient Calls Made (w/ successful status)</title>
+      <single>
+        <search base="baseSearchFhirV2">
+          <done>
+            <set token="tokFhirV2PatientOKCount">$result.count$</set>
+          </done>
+          <query>search message.path="/v2/fhir/Patient*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>2. V2 FHIR Coverage Calls Made (w/ successful status)</title>
+      <single>
+        <search base="baseSearchFhirV2">
+          <done>
+            <set token="tokFhirV2CoverageOKCount">$result.count$</set>
+          </done>
+          <query>search message.path="/v2/fhir/Coverage*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>3. V2 FHIR EOB Calls Made (w/ successful status)</title>
+      <single>
+        <search base="baseSearchFhirV2">
+          <done>
+            <set token="tokFhirV2EobOKCount">$result.count$</set>
+          </done>
+          <query>search message.path="/v2/fhir/ExplanationOfBenefit*" | search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>4. TOTAL V2 FHIR Calls Made (w/ successful status)</title>
+      <single>
+        <search base="baseSearchFhirV2">
+          <done>
+            <set token="tokFhirV2OKCount">$result.count$</set>
+          </done>
+          <query>search message.response_code=200 | search message.fhir_id &gt; 0 | stats count</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+       <u1> <h3>
+            <b>PROD FHIR TOTAL (V1 + V2) Events</b>
+          </h3>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>1. TOTAL FHIR Patient Calls Made (w/ successful status)</title>
+      <single>
+        <search>
+          <query>| makeresults | eval total=$tokFhirV1PatientOKCount$ + $tokFhirV2PatientOKCount$ | table total</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>2. TOTAL FHIR Coverage Calls Made (w/ successful status)</title>
+      <single>
+        <search>
+          <query>| makeresults | eval total=$tokFhirV1CoverageOKCount$ + $tokFhirV2CoverageOKCount$ | table total</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>3. TOTAL FHIR EOB Calls Made (w/ successful status)</title>
+      <single>
+        <search>
+          <query>| makeresults | eval total=$tokFhirV1EobOKCount$ + $tokFhirV2EobOKCount$ | table total</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <title>4. TOTAL FHIR Calls Made (w/ successful status)</title>
+      <single>
+        <search>
+          <query>| makeresults | eval total=$tokFhirV1OKCount$ + $tokFhirV2OKCount$ | table total</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  
+  <!--SANDBOX Metrics start-->
+  
+  <row>
+    <panel>
+      <search>
+        <done>
+          <set token="tokGroupTimestampSandbox">$result.message.group_timestamp$</set>
+        </done>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics" | head 1 | table message.group_timestamp</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+      </search>
+      <html>
+       <u1> <h3>
+            <b>SBX DASG Metrics Logging Event Counts for Group Timestamp - $tokGroupTimestampSandbox$</b>
+          </h3>
+        </u1>
+     </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>1. TOTAL Dev w/ SBX Cred + Registered App</title>
+      <single>
+        <search>
+          <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics" | head 1 | table message.global_apps_active_cnt</query>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    
+    <panel>
+      <title>2. TOTAL Dev w/ SBX Cred + Registered App + API Call</title>
+      <single>
+          <search>
+            <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=impl | search "message.type"="global_state_metrics_per_app" | search "message.first_active"!="null" "message.group_timestamp"=$tokGroupTimestampSandbox|s$ | stats count</query>
+          </search>
+        <option name="drilldown">all</option>
+        <option name="height">226</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  
+  <!--SANDBOX Metrics end-->
+  
+</form>

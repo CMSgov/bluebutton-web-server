@@ -1,10 +1,12 @@
-from django.http import JsonResponse
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.capabilities.permissions import TokenHasProtectedCapability
-from oauth2_provider.decorators import protected_resource
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from collections import OrderedDict
+from django.http import JsonResponse
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+from oauth2_provider.decorators import protected_resource
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+
+from apps.capabilities.permissions import TokenHasProtectedCapability
+from apps.fhir.bluebutton.models import Crosswalk
+from apps.fhir.bluebutton.permissions import ApplicationActivePermission
 
 
 def get_userinfo(user):
@@ -29,12 +31,10 @@ def get_userinfo(user):
 
 @api_view(["GET"])
 @authentication_classes([OAuth2Authentication])
-@permission_classes([TokenHasProtectedCapability])
+@permission_classes([ApplicationActivePermission, TokenHasProtectedCapability])
 @protected_resource()
-def openidconnect_userinfo(request):
-    user = request.resource_owner
-    data = get_userinfo(user)
-    return JsonResponse(data)
+def openidconnect_userinfo(request, **kwargs):
+    return JsonResponse(get_userinfo(request.resource_owner))
 
 
 def get_fhir_id(user):

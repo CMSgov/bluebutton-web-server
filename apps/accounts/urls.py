@@ -27,6 +27,12 @@ urlpatterns = [
                                success_url='settings')),
         name='password_change'),
 
+    url(r'^expired-password-change$',
+        waffle_switch('login')(PasswordChangeView.as_view(
+                               template_name='registration/passwd_change_form.html',
+                               success_url='settings')),
+        name='expired_password_change'),
+
     url(r'^forgot-password$',
         waffle_switch('login')(PasswordResetView.as_view(
                                template_name='registration/password_forgot_form.html',
@@ -40,7 +46,7 @@ urlpatterns = [
                                template_name='registration/password_forgot_reset_done.html')),
         name='password_reset_done'),
 
-    url(r'^password-reset-confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    url(r'^password-reset-confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,50})/$',
         waffle_switch('login')(PasswordResetConfirmView.as_view(
                                template_name='registration/password_forgot_reset_confirm_form.html')),
         name='password_reset_confirm'),

@@ -1,8 +1,10 @@
--r requirements.txt
+-r requirements.in
 # test and development
-coverage
+coverage==6.3.2
 python-coveralls
-tox
 flake8
 django-debug-toolbar
 httmock
+beautifulsoup4
+debugpy
+

@@ -1,3 +1,4 @@
+import json
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
@@ -42,6 +43,31 @@ class TestUserSelfEndpoint(BaseApiTest):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.get("WWW-Authenticate"), 'Bearer realm="api"')
 
+    def test_user_self_get_access_token_query_param(self):
+        """
+        Tests that GET requests to /connect/userinfo endpoint fail when
+        the access token is given in the query params
+        """
+        self._create_user('john',
+                          '123456',
+                          first_name='John',
+                          last_name='Smith',
+                          email='john@smith.net')
+
+        access_token = self._get_access_token('john', '123456')
+        url = reverse('openid_connect_userinfo')
+        url += "?access_token=%s" % (access_token)
+        auth_headers = {'HTTP_AUTHORIZATION': 'Bearer %s' % access_token}
+
+        response = self.client.get(url, **auth_headers)
+
+        self.assertEqual(response.status_code, 400)
+        content = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(content['detail'], (
+            "Using the access token in the query parameters is not supported. "
+            "Use the Authorization header instead"
+        ))
+
     def test_user_self_get(self):
         """
         Tests that GET request to /connect/userinfo returns user details for
@@ -66,7 +92,8 @@ class TestUserSelfEndpoint(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         # Check if the content of the response corresponds to the expected json
         expected_json = {
-            'sub': user.username,
+            'sub': user.crosswalk.fhir_id,
+            'patient': user.crosswalk.fhir_id,
             'name': "%s %s" % (user.first_name, user.last_name),
             'given_name': user.first_name,
             'family_name': user.last_name,
@@ -95,43 +122,11 @@ class TestSingleAccessTokenValidator(BaseApiTest):
         second_access_token = self._get_access_token('john',
                                                      '123456',
                                                      application)
-        self.assertEqual(first_access_token, second_access_token)
+        self.assertNotEqual(first_access_token, second_access_token)
 
-    def test_single_access_token_issued_when_changed_scope_allowed(self):
+    def test_new_access_token_issued_when_scope_changed(self):
         """
-        Test that the same access token is issued when a scope is changed but
-        it is a subset of the old token's scope.
-
-        e.g. old_token_scope = 'read write'
-             new_token_scope = 'read'
-        """
-        # create the user
-        self._create_user('john',
-                          '123456',
-                          first_name='John',
-                          last_name='Smith',
-                          email='john@smith.net')
-        # create read and write capabilities
-        read_capability = self._create_capability('Read', [])
-        write_capability = self._create_capability('Write', [])
-        # create a oauth2 application and add capabilities
-        application = self._create_application('test')
-        application.scope.add(read_capability, write_capability)
-        # get the first access token for the user 'john'
-        first_access_token = self._get_access_token('john',
-                                                    '123456',
-                                                    application,
-                                                    scope='read write')
-        # request another access token for the same user/application
-        second_access_token = self._get_access_token('john',
-                                                     '123456',
-                                                     application,
-                                                     scope='read')
-        self.assertEqual(first_access_token, second_access_token)
-
-    def test_new_access_token_issued_when_scope_added(self):
-        """
-        Test that a new access token is issued when a scope is added.
+        Test that a new access token is issued when a scope is changed.
 
         e.g. old_token_scope = 'read'
              new_token_scope = 'read write'

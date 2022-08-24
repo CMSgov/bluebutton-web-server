@@ -12,8 +12,6 @@ class BlueButtonClientApiUserInfoTest(TestCase):
     Test the BlueButton API UserInfo Endpoint
     """
 
-    fixtures = ['testfixture']
-
     def setUp(self):
         call_command('create_blue_button_scopes')
         call_command('create_test_user_and_application')
@@ -40,8 +38,6 @@ class BlueButtonClientApiFhirTest(TestCase):
     """
     Test the BlueButton API FHIR Endpoints requiring an access token.
     """
-
-    fixtures = ['testfixture']
 
     def setUp(self):
         call_command('create_blue_button_scopes')
@@ -88,7 +84,6 @@ class BlueButtonClientApiFhirTest(TestCase):
         uri = "%s%s" % (
             self.testclient_setup['patient_uri'], self.another_patient)
         response = self.client.get(uri)
-        print(response.content)
         self.assertEqual(response.status_code, 404)
 
     def test_get_eob(self):
@@ -174,8 +169,6 @@ class BlueButtonClientApiFhirMetadataDiscoveryTest(TestCase):
     Test the BlueButton Discovery Endpoints
     These are public URIs
     """
-
-    fixtures = ['testfixture']
 
     def setUp(self):
         self.client = Client()

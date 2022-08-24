@@ -1,4 +1,3 @@
-import logging
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
@@ -11,8 +10,6 @@ from ..models import UserProfile
 from ..utils import validate_activation_key
 from django.conf import settings
 from django.views.decorators.cache import never_cache
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 def create_account(request):
@@ -61,8 +58,6 @@ def account_settings(request):
             request.user.save()
             # update the user profile
             up.organization_name = data['organization_name']
-            up.create_applications = data['create_applications']
-            up.authorize_applications = True
             up.save()
             messages.success(request,
                              'Your account settings have been updated.')
@@ -92,12 +87,11 @@ def account_settings(request):
 
 
 def activation_verify(request, activation_key):
-    if validate_activation_key(activation_key):
-        messages.success(request,
-                         'Your account has been activated. You may now login.')
-    else:
-        messages.error(request,
-                       'This key does not exist or has already been used.')
+    is_valid, msg = validate_activation_key(activation_key)
+    if is_valid:
+        messages.success(request, msg)
+    elif msg:
+        messages.error(request, msg)
     return pick_reverse_login()
 
 

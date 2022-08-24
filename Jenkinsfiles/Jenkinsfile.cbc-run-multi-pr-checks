@@ -1,0 +1,72 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer "bb2-cbc-build"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config.yaml"
+    }
+  }
+
+  environment {
+    DJANGO_FHIR_CERTSTORE = "./certstore/"
+    DJANGO_USER_ID_ITERATIONS = credentials("bb2-integration-tests-bfd-iterations")
+    DJANGO_USER_ID_SALT = credentials("bb2-integration-tests-bfd-salt")
+    FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
+    FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
+    FHIR_URL = "${params.FHIR_URL}"
+  }
+
+  parameters {
+    string(
+      name: 'FHIR_URL',
+      defaultValue: "https://prod-sbx.bfd.cms.gov",
+      description: 'The default FHIR URL for the back end BFD service.'
+    )
+  }
+
+  stages {
+    stage("SETUP FHIR cert and key") {
+      steps {
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.cert.pem", text: readFile(env.FHIR_CERT))
+        writeFile(file: "${env.DJANGO_FHIR_CERTSTORE}/certstore/ca.key.nocrypt.pem", text: readFile(env.FHIR_KEY))
+      }
+    }
+
+    stage("INSTALL Python Packages") {
+      steps {
+        sh """
+          python -m venv venv
+          . venv/bin/activate
+          pip install --upgrade pip
+          make reqs-install-dev
+        """
+      }
+    }
+
+    stage("CHECK Flake8 Python Lint/Style") {
+      steps{
+        sh """
+          . venv/bin/activate
+          flake8
+        """
+      }
+    }
+
+    stage("RUN Django Unit Tests") {
+      steps{
+        sh """
+          . venv/bin/activate
+          python runtests.py
+        """
+      }
+    }
+
+    stage("RUN integration tests") {
+      steps{
+        sh """
+          . venv/bin/activate
+          python runtests.py --integration apps.integration_tests.integration_test_fhir_resources.IntegrationTestFhirApiResources
+        """
+      }
+    }
+  }
+}

@@ -1,25 +1,63 @@
 version: '3'
 
 services:
+  msls:
+    build: .
+    command: bash -c "cd dev-local ; python manage.py migrate ; python -m debugpy --listen 0.0.0.0:7890 manage.py runserver 0.0.0.0:8080 --noreload"
+    environment:
+      - DJANGO_SETTINGS_MODULE=mslsx_django.settings
+    ports:
+      - "8080:8080"
+      - "7890:7890"
+    profiles:
+      - mocksls
   db:
     image: postgres
-    environment:
-            - POSTGRES_DB=bluebutton
-            - POSTGRES_PASSWORD=toor
+    env_file:
+      - docker-compose/db-env-vars.env
     ports:
-            - "5432:5432"
+      - "5432:5432"
   web:
     build: .
-    command: python3 manage.py runserver 0.0.0.0:8000
-    environment:
-            - DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.dev
-            - DATABASES_CUSTOM=postgres://postgres:toor@db:5432/bluebutton
-            - OAUTHLIB_INSECURE_TRANSPORT=true
-            - DJANGO_DEFAULT_SAMPLE_FHIR_ID="20140000008325"
-            - DJANGO_SECURE_SESSION=False
+    command: ./docker-compose/bluebutton_server_start.sh
+    env_file:
+      - docker-compose/web-env-vars.env
+      - docker-compose/slsx-env-vars.env
+      # local devel specific variables go here!
+      - .env
     volumes:
       - .:/code
     ports:
       - "8000:8000"
+      - "5678:5678"
     depends_on:
       - db
+  web_msls:
+    build: .
+    command: ./docker-compose/bluebutton_server_start.sh
+    env_file:
+      - docker-compose/web-env-vars.env
+      - docker-compose/msls-env-vars.env
+      # local devel specific variables go here!
+      - .env
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    depends_on:
+      - db
+      - msls
+    profiles:
+      - mocksls
+  unittests:
+    build: .
+    command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
+    env_file:
+      - docker-compose/unittests-env-vars.env
+    ports:
+      - "6789:6789"
+    volumes:
+      - .:/code
+    profiles:
+      - tests

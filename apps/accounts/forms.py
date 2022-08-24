@@ -1,17 +1,10 @@
-import logging
-from django.conf import settings
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import get_resourcerouter
 from .models import UserProfile, create_activation_key, UserIdentificationLabel
 from django.contrib.auth.forms import AuthenticationForm, UsernameField
-
-
-logger = logging.getLogger('hhs_server.%s' % __name__)
 
 
 class IdentificationModelChoiceField(forms.ModelChoiceField):
@@ -66,10 +59,6 @@ class SignupForm(UserCreationForm):
                                    user_type="DEV",
                                    create_applications=True)
 
-        # Attach the user to the default patient.
-        Crosswalk.objects.create(user=user, fhir_source=get_resourcerouter(),
-                                 fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID)
-
         group = Group.objects.get(name='BlueButton')
         user.groups.add(group)
 
@@ -96,8 +85,6 @@ class AccountSettingsForm(forms.Form):
     organization_name = forms.CharField(max_length=100,
                                         label=_('Organization Name'),
                                         required=True)
-    create_applications = forms.BooleanField(initial=False,
-                                             required=False)
     required_css_class = 'required'
 
 
@@ -108,7 +95,8 @@ class AuthenticationForm(AuthenticationForm):
         'invalid_login': _(
             "Please enter a correct email and password."
         ),
-        'inactive': _("This account is inactive."),
+        'inactive': _("Please click the verification link in your email before logging in."
+                      ),
     }
 
     required_css_class = 'required'

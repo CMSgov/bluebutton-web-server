@@ -3,7 +3,6 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
-from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.dot_ext.models import Application
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AccessToken
@@ -23,18 +22,43 @@ def create_group(name="BlueButton"):
     return g
 
 
-def create_user(group):
+def create_user(group, usr):
+    u_name = "fred"
+    first_name = "Fred" 
+    last_name = "Flinstone"
+    email = "fred@example.com"
+    password = "foobarfoobarfoobar"
+    user_type = "BEN"
+    
+    if usr is not None:
+        u_name = usr
+        first_name = "{}{}".format(usr, "First") 
+        last_name = "{}{}".format(usr, "Last")
+        email = "{}.{}@example.com".format(first_name, last_name)
+        user_type = "DEV"
 
-    if User.objects.filter(username="fred").exists():
-        User.objects.filter(username="fred").delete()
 
-    u = User.objects.create_user(username="fred",
-                                 first_name="Fred",
-                                 last_name="Flinstone",
-                                 email='fred@example.com',
-                                 password="foobarfoobarfoobar",)
+    if User.objects.filter(username=u_name).exists():
+        User.objects.filter(username=u_name).delete()
+
+    u = None
+
+    if usr is not None:
+        u = User.objects.create_user(username=u_name,
+                                    first_name=first_name,
+                                    last_name=last_name,
+                                    email=email)
+        u.set_unusable_password()
+    else:
+        # create a sample user 'fred' for dev local that has a usable password
+        u = User.objects.create_user(username=u_name,
+                                    first_name=first_name,
+                                    last_name=last_name,
+                                    email=email,
+                                    password=password,)
+
     UserProfile.objects.create(user=u,
-                               user_type="BEN",
+                               user_type=user_type,
                                create_applications=True,
                                password_reset_question_1='1',
                                password_reset_answer_1='blue',
@@ -44,22 +68,30 @@ def create_user(group):
                                password_reset_answer_3='Bentley')
 
     u.groups.add(group)
-    c, g_o_c = Crosswalk.objects.get_or_create(user=u,
-                                               fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
-                                               fhir_source=get_resourcerouter())
+
+    if usr is None:
+        c, g_o_c = Crosswalk.objects.get_or_create(user=u,
+                                                   _fhir_id=settings.DEFAULT_SAMPLE_FHIR_ID,
+                                                   _user_id_hash="ee78989d1d9ba0b98f3cfbd52479f10c7631679c17563186f70fbef038cc9536")
     return u
 
 
-def create_application(user, group):
-    Application.objects.filter(name="TestApp").delete()
-    redirect_uri = "%s/testclient/callback" % (settings.HOSTNAME_URL)
+def create_application(user, group, app, redirect):
+    app_name = "TestApp" if app is None else app
+    Application.objects.filter(name=app_name).delete()
+    redirect_uri = "{}{}".format(settings.HOSTNAME_URL, settings.TESTCLIENT_REDIRECT_URI)
+
+    if redirect:
+        redirect_uri = redirect
+
     if not(redirect_uri.startswith("http://") or redirect_uri.startswith("https://")):
         redirect_uri = "https://" + redirect_uri
-    a = Application.objects.create(name="TestApp",
-                                   redirect_uris=redirect_uri,
-                                   user=user,
-                                   client_type="confidential",
-                                   authorization_grant_type="authorization-code")
+
+    a = Application.objects.create(name=app_name,
+                                redirect_uris=redirect_uri,
+                                user=user,
+                                client_type="confidential",
+                                authorization_grant_type="authorization-code")
 
     titles = ["My Medicare and supplemental coverage information.",
               "My Medicare claim information.",
@@ -93,14 +125,25 @@ def create_test_token(user, application):
 class Command(BaseCommand):
     help = 'Create a test user and application for the test client'
 
+    def add_arguments(self, parser):
+        parser.add_argument("-u", "--user", help="Name of the user to be created (unique).")
+        parser.add_argument("-a", "--app", help="Name of the application to be created (unique).")
+        parser.add_argument("-r", "--redirect", help="Redirect url of the application.")
+
     def handle(self, *args, **options):
+        usr = options["user"]
+        app = options["app"]
+        redirect = options["redirect"]
+
         g = create_group()
-        u = create_user(g)
-        a = create_application(u, g)
-        t = create_test_token(u, a)
-        update_grants()
+        u = create_user(g, usr)
+        a = create_application(u, g, app, redirect)
+        t = None
+        if usr is None and app is None:
+            t = create_test_token(u, a)
+            update_grants()
         print("Name:", a.name)
         print("client_id:", a.client_id)
         print("client_secret:", a.client_secret)
-        print("access_token:", t.token)
+        print("access_token:", t.token if t else "None")
         print("redirect_uri:", a.redirect_uris)

@@ -1,10 +1,16 @@
 import logging
-from rest_framework import (permissions, exceptions)
-from .constants import ALLOWED_RESOURCE_TYPES
-from .utils import get_crosswalk
-from ..server.authentication import authenticate_crosswalk
 
-logger = logging.getLogger('hhs_server.%s' % __name__)
+from rest_framework import (permissions, exceptions)
+from django.contrib.auth import get_user_model
+from rest_framework.exceptions import PermissionDenied
+from .constants import ALLOWED_RESOURCE_TYPES
+from django.conf import settings
+
+import apps.logging.request_logger as bb2logging
+
+logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+
+User = get_user_model()
 
 
 class ResourcePermission(permissions.BasePermission):
@@ -20,19 +26,7 @@ class ResourcePermission(permissions.BasePermission):
 class HasCrosswalk(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        crosswalk = get_crosswalk(request.resource_owner)
-
-        # If the user isn't matched to a backend ID, they have no permissions
-        if crosswalk is None:
-            logger.info('Crosswalk for %s does not exist' % request.user)
-            return False
-
-        if crosswalk.fhir_id == "":
-            authenticate_crosswalk(crosswalk)
-
-        request.crosswalk = crosswalk
-
-        return True
+        return bool(request.user and request.user.crosswalk and request.user.crosswalk.fhir_id)
 
 
 class ReadCrosswalkPermission(HasCrosswalk):
@@ -76,4 +70,16 @@ class SearchCrosswalkPermission(HasCrosswalk):
 
         if 'beneficiary' in request.GET and patient_id not in request.GET['beneficiary']:
             return False
+        return True
+
+
+class ApplicationActivePermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        app_is_active = request.auth and request.auth.application.active
+        app_name = request.auth.application.name if request.auth and request.auth.application.name else "Unknown"
+        if app_is_active is False:
+            # in order to generate application specific message, short circuit base
+            # permission's error raise flow
+            raise PermissionDenied(settings.APPLICATION_TEMPORARILY_INACTIVE.format(app_name))
         return True

@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 
 
 def create_groups():
-    groups = ["HelpDesk", "InviteBeneficiary", "InviteDeveloper", "ModifyUser"]
+    groups = ["HelpDesk", "ModifyUser"]
     created_groups = []
     for group in groups:
         g, created = Group.objects.get_or_create(name=group)
@@ -18,26 +18,6 @@ def create_permissions(created_groups):
         p = Permission.objects.get(name='Can add user profile')
         g.permissions.add(p)
         p = Permission.objects.get(name='Can change user profile')
-        g.permissions.add(p)
-
-    if created_groups["InviteBeneficiary"]:
-        g = Group.objects.get(name="InviteBeneficiary")
-        p = Permission.objects.get(name='Can add Invite Request')
-        g.permissions.add(p)
-        p = Permission.objects.get(name='Can change Invite Request')
-        g.permissions.add(p)
-
-    if created_groups["InviteDeveloper"]:
-        g = Group.objects.get(name="InviteDeveloper")
-        p = Permission.objects.get(name='Can add Developer Invitation')
-        g.permissions.add(p)
-        p = Permission.objects.get(name='Can change Developer Invitation')
-        g.permissions.add(p)
-        p = Permission.objects.get(name='Can add user register code')
-        g.permissions.add(p)
-        p = Permission.objects.get(name='Can change user register code')
-        g.permissions.add(p)
-        p = Permission.objects.get(name='Can delete user register code')
         g.permissions.add(p)
 
     if created_groups["ModifyUser"]:

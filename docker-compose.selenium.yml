@@ -1,0 +1,75 @@
+version: '3'
+
+services:
+  selenium-tests:
+    build:
+      context: ./
+      dockerfile: Dockerfile.selenium
+    command: python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+    env_file:
+      - docker-compose/selenium-env-vars.env
+    volumes:
+      - .:/code
+    depends_on:
+      - bb2slsx
+
+  selenium-tests-debug:
+    build:
+      context: ./
+      dockerfile: Dockerfile.selenium
+    command: python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+    env_file:
+      - docker-compose/selenium-env-vars.env
+    volumes:
+      - .:/code
+    depends_on:
+      - bb2slsx
+      - chrome
+
+  chrome:
+    image: selenium/standalone-chrome-debug
+    hostname: chrome
+    ports:
+      - "4444:4444"
+      - "5900:5900"
+
+  msls:
+    build: .
+    command: bash -c "cd dev-local ; python manage.py migrate ; python -m debugpy --listen 0.0.0.0:7890 manage.py runserver 0.0.0.0:8080 --noreload"
+    environment:
+      - DJANGO_SETTINGS_MODULE=mslsx_django.settings
+    ports:
+      - "8080:8080"
+      - "7890:7890"
+
+  db:
+    image: postgres
+    env_file:
+      - docker-compose/db-env-vars.env
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  bb2slsx:
+    build: .
+    command: ./docker-compose/bluebutton_server_start.sh
+    env_file:
+      - docker-compose/web-env-vars.env
+      - docker-compose/slsx-env-vars.env
+      - docker-compose/selenium-env-vars.env
+      # local devel specific variables go here!
+      - .env
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    depends_on:
+      msls:
+        condition: service_started
+      db:
+        condition: service_healthy
