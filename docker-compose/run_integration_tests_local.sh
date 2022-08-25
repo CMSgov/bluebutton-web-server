@@ -128,10 +128,19 @@ else
     export DJANGO_USER_ID_SALT=$(aws ssm get-parameters --names /bb2/test/app/django_user_id_salt --query "Parameters[].Value" --output text --with-decryption)
     export DJANGO_USER_ID_ITERATIONS=$(aws ssm get-parameters --names /bb2/test/app/django_user_id_iterations --query "Parameters[].Value" --output text --with-decryption)
 
+    # cleansing trailing \r on cygwin
+    export DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT//$'\r'}
+    export DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS//$'\r'}
+
     # SLSx test env settings
     export DJANGO_SLSX_CLIENT_ID=$(aws ssm get-parameters --names /bb2/test/app/slsx_client_id --query "Parameters[].Value" --output text --with-decryption)
     export DJANGO_SLSX_CLIENT_SECRET=$(aws ssm get-parameters --names /bb2/test/app/slsx_client_secret --query "Parameters[].Value" --output text --with-decryption)
     export DJANGO_PASSWORD_HASH_ITERATIONS=$(aws ssm get-parameters --names /bb2/test/app/django_password_hash_iterations --query "Parameters[].Value" --output text --with-decryption)
+
+    # cleansing trailing \r on cygwin
+    export DJANGO_SLSX_CLIENT_ID=${DJANGO_SLSX_CLIENT_ID//$'\r'}
+    export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET//$'\r'}
+    export DJANGO_PASSWORD_HASH_ITERATIONS=${DJANGO_PASSWORD_HASH_ITERATIONS//$'\r'}
 
     # Check ENV vars have been sourced
     if [ -z "${DJANGO_USER_ID_SALT}" ]
@@ -200,8 +209,9 @@ else
             then
                 echo "Integration tests run in debug mode, waiting on port ${EXPO_PORTS} for attach..."
             fi
+            # cygwin
             docker-compose run ${EXPO_PORTS} \
-                -e DJANGO_FHIR_CERTSTORE=${DJANGO_FHIR_CERTSTORE} \
+                -e DJANGO_FHIR_CERTSTORE="/code/docker-compose${DJANGO_FHIR_CERTSTORE}" \
                 -e DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS} \
                 -e DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT} \
                 -e FHIR_URL=${FHIR_URL} \
