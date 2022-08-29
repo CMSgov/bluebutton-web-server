@@ -7,6 +7,24 @@ SUPER_USER_PASSWORD=${SUPER_USER_PASSWORD:-'bluebutton123'}
 BB20_ENABLE_REMOTE_DEBUG=${BB20_ENABLE_REMOTE_DEBUG:-false}
 BB20_REMOTE_DEBUG_WAIT_ATTACH=${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}
 
+DJANGO_LOG_JSON_FORMAT_PRETTY=${DJANGO_LOG_JSON_FORMAT_PRETTY:-True}
+DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT:-"6E6F747468657265616C706570706572"}
+DJANGO_USER_ID_ITERATIONS=${DJANGO_USER_ID_ITERATIONS:-"2"}
+
+if [ "${DJANGO_SLSX_CLIENT_SECRET}" = "xxxxx" ]
+then
+    # for msls
+    echo "MSLS used for identity service..."
+else
+    echo "SLSX used for identity service..."
+    DJANGO_MEDICARE_SLSX_REDIRECT_URI=${DJANGO_MEDICARE_SLSX_REDIRECT_URI:-"http://localhost:8000/mymedicare/sls-callback"}
+    DJANGO_MEDICARE_SLSX_LOGIN_URI=${DJANGO_MEDICARE_SLSX_LOGIN_URI:-"https://test.medicare.gov/sso/authorize?client_id=bb2api"}
+    DJANGO_SLSX_HEALTH_CHECK_ENDPOINT=${DJANGO_SLSX_HEALTH_CHECK_ENDPOINT:-"https://test.accounts.cms.gov/health"}
+    DJANGO_SLSX_TOKEN_ENDPOINT=${DJANGO_SLSX_TOKEN_ENDPOINT:-"https://test.medicare.gov/sso/session"}
+    DJANGO_SLSX_SIGNOUT_ENDPOINT=${DJANGO_SLSX_SIGNOUT_ENDPOINT:-"https://test.medicare.gov/sso/signout"}
+    DJANGO_SLSX_USERINFO_ENDPOINT=${DJANGO_SLSX_USERINFO_ENDPOINT:-"https://test.accounts.cms.gov/v1/users"}
+fi
+
 if [ "${DB_MIGRATIONS}" = true ]
 then
     echo "run db image migration and models initialization."
