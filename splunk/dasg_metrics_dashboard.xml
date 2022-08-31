@@ -50,7 +50,7 @@
   </search>
   <search id="baseSearch2">
     <!-- BASE search benes choosing to share demographics -->
-    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=prod | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action</query>
+    <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" env=prod | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action message.user.crosswalk.fhir_id</query>
     <earliest>$t_local.earliest$</earliest>
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
@@ -69,7 +69,7 @@
     <latest>$t_local.latest$</latest>
     <sampleRatio>1</sampleRatio>
   </search>
-  
+
   <!--<search id="baseSearchBeneCount">-->
     <!-- BASE search for FHIR V1 events -->
   <!--  <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=* env=prod </query>-->
@@ -77,7 +77,7 @@
   <!--  <latest>$t_local.latest$</latest>-->
   <!--  <sampleRatio>1</sampleRatio>-->
   <!--</search>-->
-  
+
   <row>
     <panel>
       <title>1a. NEW Beneficiaries Added (with a NEW entry created in our CROSSWALK table)</title>
@@ -107,7 +107,7 @@
         <option name="refresh.display">progressbar</option>
       </single>
     </panel>
-    
+
     <panel>
       <title>1c. Beneficiaries Served (life to date cumulative)</title>
       <search>
@@ -129,7 +129,7 @@
         <option name="refresh.display">progressbar</option>
       </single>
     </panel>
-    
+
   </row>
   <row>
     <panel>
@@ -139,14 +139,14 @@
           <done>
             <set token="beneAllowCount">$result.count$</set>
           </done>
-          <query>search message.auth_require_demographic_scopes=True | search message.allow=True | stats count</query>
+          <query>search message.auth_require_demographic_scopes=True | search message.allow=True |  search "message.user.crosswalk.fhir_id" &gt; 0 | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
         <option name="refresh.display">progressbar</option>
       </single>
     </panel>
-    
+
     <panel>
       <title>3. Count of beneficiaries who chose NOT to share demographic information (NOTE: A bene could have multiple auth flows during this time frame)</title>
       <single>
@@ -154,7 +154,7 @@
           <done>
             <set token="beneNotShareCount">$result.count$</set>
           </done>
-          <query>search message.allow=True | search message.auth_share_demographic_scopes="False" | stats count</query>
+          <query>search message.auth_require_demographic_scopes=True | search message.allow=True | search message.auth_share_demographic_scopes="False" |  search "message.user.crosswalk.fhir_id" &gt; 0 | stats count</query>
         </search>
         <option name="drilldown">all</option>
         <option name="height">226</option>
@@ -165,7 +165,7 @@
       <chart>
         <title>4. Percent of beneficiaries who chose NOT to share demographic information</title>
         <search>
-          <query>| makeresults | eval Total1=$beneNotShareCount$, Total2=$beneAllowCount$ | eval percent= round((Total1/Total2)*100,1) | table percent</query>
+          <query>| makeresults | eval Total1=$beneNotShareCount$, Total2=$beneAllowCount$ | eval percent= round((Total1/(Total1+Total2))*100,1) | table percent</query>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="charting.chart">radialGauge</option>
@@ -176,7 +176,7 @@
       </chart>
     </panel>
   </row>
-  
+
   <row>
     <panel>
       <html>
@@ -238,8 +238,8 @@
       </single>
     </panel>
   </row>
-  
-  
+
+
   <row>
     <panel>
       <html>
@@ -442,9 +442,9 @@
       </single>
     </panel>
   </row>
-  
+
   <!--SANDBOX Metrics start-->
-  
+
   <row>
     <panel>
       <search>
@@ -475,7 +475,7 @@
         <option name="refresh.display">progressbar</option>
       </single>
     </panel>
-    
+
     <panel>
       <title>2. TOTAL Dev w/ SBX Cred + Registered App + API Call</title>
       <single>
@@ -488,7 +488,7 @@
       </single>
     </panel>
   </row>
-  
+
   <!--SANDBOX Metrics end-->
-  
+
 </form>
