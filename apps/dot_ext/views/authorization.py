@@ -10,7 +10,6 @@ from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.dot_ext.scopes import CapabilitiesScopes
 
-from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
@@ -26,6 +25,7 @@ from ..utils import remove_application_user_pair_tokens_data_access
 from ..utils import validate_app_is_active
 
 from rest_framework.exceptions import PermissionDenied
+from django.http.response import HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.shortcuts import HttpResponse
 
@@ -71,15 +71,21 @@ class AuthorizationView(DotAuthorizationView):
                 },
                 status=error.status_code)
 
-        self.sensitive_info_check(request)
+        result = self.sensitive_info_check(request)
+
+        if result:
+            return result
 
         request.session['version'] = self.version
         return super().dispatch(request, *args, **kwargs)
 
     def sensitive_info_check(self, request):
+        result = None
         for qp in QP_CHECK_LIST:
             if request.GET.get(qp, None) is not None:
-                raise ValidationError("Illegal query parameter [{}] detected".format(qp))
+                result = HttpResponseBadRequest("Illegal query parameter [{}] detected".format(qp))
+                break
+        return result
 
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):

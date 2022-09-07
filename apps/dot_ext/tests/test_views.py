@@ -93,6 +93,28 @@ class TestAuthorizationView(BaseApiTest):
             # Path is NOT allowed by scopes.
             self.assertEqual(response.status_code, 403)
 
+    def test_start_authorization_flow(self):
+        redirect_uri = 'http://localhost'
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+
+        payload = {
+            'client_id': application.client_id,
+            'client_secret': "1234567890",
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+        }
+
+        response = self.client.get('/v1/o/authorize', data=payload, follow=True)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content.decode("utf-8"), "Illegal query parameter [client_secret] detected")
+
     def test_post_with_restricted_scopes_issues_token_with_same_scopes(self):
         """
         Test that when user unchecks some of the scopes the token is issued
