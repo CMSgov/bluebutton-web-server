@@ -10,6 +10,7 @@ from oauth2_provider.models import get_application_model
 from oauth2_provider.exceptions import OAuthToolkitError
 from apps.dot_ext.scopes import CapabilitiesScopes
 
+from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
@@ -31,6 +32,8 @@ from django.shortcuts import HttpResponse
 import apps.logging.request_logger as bb2logging
 
 log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+
+QP_CHECK_LIST = ["client_secret"]
 
 
 class AuthorizationView(DotAuthorizationView):
@@ -68,8 +71,15 @@ class AuthorizationView(DotAuthorizationView):
                 },
                 status=error.status_code)
 
+        self.sensitive_info_check(request)
+
         request.session['version'] = self.version
         return super().dispatch(request, *args, **kwargs)
+
+    def sensitive_info_check(self, request):
+        for qp in QP_CHECK_LIST:
+            if request.GET.get(qp, None) is not None:
+                raise ValidationError("Illegal query parameter [{}] detected".format(qp))
 
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
