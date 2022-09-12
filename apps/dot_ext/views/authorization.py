@@ -25,12 +25,15 @@ from ..utils import remove_application_user_pair_tokens_data_access
 from ..utils import validate_app_is_active
 
 from rest_framework.exceptions import PermissionDenied
+from django.http.response import HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.shortcuts import HttpResponse
 
 import apps.logging.request_logger as bb2logging
 
 log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
+
+QP_CHECK_LIST = ["client_secret"]
 
 
 class AuthorizationView(DotAuthorizationView):
@@ -68,8 +71,21 @@ class AuthorizationView(DotAuthorizationView):
                 },
                 status=error.status_code)
 
+        result = self.sensitive_info_check(request)
+
+        if result:
+            return result
+
         request.session['version'] = self.version
         return super().dispatch(request, *args, **kwargs)
+
+    def sensitive_info_check(self, request):
+        result = None
+        for qp in QP_CHECK_LIST:
+            if request.GET.get(qp, None) is not None:
+                result = HttpResponseBadRequest("Illegal query parameter [{}] detected".format(qp))
+                break
+        return result
 
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
