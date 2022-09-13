@@ -294,7 +294,7 @@ def random_secret(y=40):
 def create_activation_key(user):
     # Create an new activation key and send the email.
     key = ActivationKey.objects.create(user=user)
-    send_activation_key_via_email(user, key)
+    send_activation_key_via_email(user, key.key)
     return key
 
 
