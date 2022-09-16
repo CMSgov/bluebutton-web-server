@@ -43,7 +43,7 @@ LOGGER_NAMES = [
     AUDIT_AUTHFLOW_ID_CLEANUP_LOGGER
 ]
 
-HHS_SERVER_LOGNAME_FMT = "hhs_server.%s"
+HHS_SERVER_LOGNAME_FMT = "hhs_server.{}"
 
 
 def getLogger(name=None, request=None):

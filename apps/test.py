@@ -1,8 +1,8 @@
-import io
+# import io
 import json
 import re
 
-import apps.logging.request_logger as logging
+# import apps.logging.request_logger as logging
 
 from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
@@ -195,38 +195,6 @@ class BaseApiTest(TestCase):
         application.scope.add(self.read_capability, self.write_capability)
         # get the first access token for the user 'john'
         return self._get_access_token(first_name, passwd, application)
-
-    def _redirect_loggers(self):
-        self.logger_registry = {}
-        for n in logging.LOGGER_NAMES:
-            logger = logging.getLogger(n)
-            log_buffer = io.StringIO()
-            log_channel = logging.StreamHandler(log_buffer)
-            log_channel.setLevel(logging.INFO)
-            logger.logger().setLevel(logging.INFO)
-            logger.logger().addHandler(log_channel)
-            self.logger_registry[n] = (log_buffer, log_channel)
-
-    def _cleanup_logger(self):
-        # do not close stream, only close channel
-        for k, v in self.logger_registry.items():
-            v[1].close()
-        self.logger_registry.clear()
-
-    def _get_log_lines_list(self, logger_name):
-        buf = io.StringIO(self._get_log_content(logger_name))
-        lines = buf.readlines()
-        return lines
-
-    def _get_log_content(self, logger_name):
-        return self._collect_logs().get(logger_name)
-
-    def _collect_logs(self):
-        log_contents = {}
-        for n in logging.LOGGER_NAMES:
-            v = self.logger_registry.get(n)
-            log_contents[n] = v[0].getvalue()
-        return log_contents
 
     def assert_log_entry_valid(
         self, entry_dict, compare_dict, attrexist_list, hasvalue_list

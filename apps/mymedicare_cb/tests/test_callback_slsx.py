@@ -23,6 +23,7 @@ from apps.accounts.models import UserProfile
 from apps.capabilities.models import ProtectedCapability
 from apps.dot_ext.models import Approval, Application
 from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
+from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_lines_list, get_log_content
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
@@ -54,11 +55,11 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         Group.objects.create(name="BlueButton")
         # Setup the RequestFactory
         self.client = Client()
-        self._redirect_loggers()
+        self.logger_registry = redirect_loggers()
         self.mock_response = MockUrlSLSxResponses()
 
     def tearDown(self):
-        self._cleanup_logger()
+        cleanup_logger(self.logger_registry)
 
     def _create_capability(self, name, urls, group=None, default=True):
         """
@@ -595,7 +596,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
 
         # Validate logging
-        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
+        log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 2)
 
         #   Get last log line
@@ -666,7 +667,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(acw._user_mbi_hash, None)
 
         # Validate logging
-        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
+        log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 3)
 
         #   Get last log line
@@ -760,7 +761,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         self.assertEqual(ArchivedCrosswalk.objects.count(), 0)
 
         # Validate logging
-        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
+        log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 5)
 
         #   Get last log line
@@ -827,7 +828,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         )
 
         # Validate logging
-        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
+        log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
 
         #   Validate log lines count
         self.assertEqual(len(log_list), 6)
@@ -933,7 +934,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         )
 
         # Validate logging
-        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
+        log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 7)
 
         #   Get last log line
@@ -1037,7 +1038,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
         )
 
         # Validate logging
-        log_list = self._get_log_lines_list(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
+        log_list = get_log_lines_list(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
         self.assertEqual(len(log_list), 8)
 
         #   Get last line
@@ -1140,7 +1141,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
             self.assertIsNotNone(resp_json.get("error"))
             self.assertEqual(resp_json.get("error"), settings.MEDICARE_ERROR_MSG)
             # further check log for root cause
-            sls_authn_log_content = self._get_log_content(logging.AUDIT_AUTHN_SLS_LOGGER)
+            sls_authn_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_SLS_LOGGER)
             self.assertIsNotNone(sls_authn_log_content)
             quoted_strings = re.findall("{[^{}]+}", sls_authn_log_content)
             # expect one log record
