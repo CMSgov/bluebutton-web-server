@@ -230,7 +230,6 @@ class ActivationKey(models.Model):
         expires_override = kwargs.pop('expires', None)
         self.expires = expires_override if expires_override else (now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS))
         super(ActivationKey, self).save(**kwargs)
-        send_activation_key_via_email(self.user, self.key)
 
 
 class ValidPasswordResetKey(models.Model):
@@ -295,6 +294,7 @@ def random_secret(y=40):
 def create_activation_key(user):
     # Create an new activation key and send the email.
     key = ActivationKey.objects.create(user=user)
+    send_activation_key_via_email(user, key.key)
     return key
 
 
