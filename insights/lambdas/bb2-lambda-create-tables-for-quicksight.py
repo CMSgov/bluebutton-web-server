@@ -5,20 +5,18 @@ import time
 """
 Summary:
 
-This function will run an Athena SQL query that creates a table
+This function will run an Athena SQL query that updates a table
 from a view. 
 
-This is to be run on a schedule nightly. It creates an intermediate table
+This is to be run on a schedule nightly or weekly. It creates an intermediate table
 to be used by a DataSet to improve performance in QuickSight.
 
 Pass in the target BASENAME for the intended table and view to use.
 
 For example, BASENAME="global_state_per_app" and ENV="impl" will run the 
-folowing queries in Athena:
+folowing query in Athena:
 
-   DROP TABLE IF EXISTS bb2.impl_global_state_per_app
-   CREATE TABLE IF NOT EXISTS bb2.impl_global_state_per_app AS SELECT * FROM bb2.vw_impl_global_state_per_app
-
+   INSERT INTO bb2.impl_global_state_per_app AS SELECT * FROM bb2.vw_impl_global_state_per_app
 
 Lambda function inputs:
 
@@ -84,27 +82,15 @@ def lambda_handler(event, context):
         "basename": event["BASENAME"],
     }
 
-    # Drop table
-    params["query"] = (
-        "DROP TABLE IF EXISTS "
-        + event["DATABASE"]
-        + "."
-        + event["ENV"]
-        + "_"
-        + event["BASENAME"]
-    )
-
-    drop_output_filename = athena_to_s3_complete(session, params)
-
     # Create table
     params["query"] = (
-        "CREATE TABLE IF NOT EXISTS "
+        "INSERT INTO "
         + event["DATABASE"]
         + "."
         + event["ENV"]
         + "_"
         + event["BASENAME"]
-        + " AS SELECT * FROM "
+        + " SELECT * FROM "
         + event["DATABASE"]
         + ".vw_"
         + event["ENV"]
@@ -112,10 +98,10 @@ def lambda_handler(event, context):
         + event["BASENAME"]
     )
 
-    create_output_filename = athena_to_s3_complete(session, params, 300)
+    update_output_filename = athena_to_s3_complete(session, params, 300)
 
     return {
         "STATUS": "SUCCESS",
-        "DROP_OUTPUT_FILENAME": drop_output_filename,
-        "CREATE_OUTPUT_FILENAME": create_output_filename,
+        "UPDATE_OUTPUT_FILENAME": update_output_filename,
     }
+    
