@@ -15,6 +15,7 @@ from apps.dot_ext.utils import (
 )
 from apps.fhir.bluebutton.models import Crosswalk, ArchivedCrosswalk
 import apps.logging.request_logger as logging
+from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
 from apps.test import BaseApiTest
 
 from .audit_logger_schemas import (
@@ -44,10 +45,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
     def setUp(self):
         # Setup the RequestFactory
         self.client = Client()
-        self._redirect_loggers()
+        self.logger_registry = redirect_loggers()
 
     def tearDown(self):
-        self._cleanup_logger()
+        cleanup_logger(self.logger_registry)
 
     def _call_management_command_log_global_state_metrics(self, report_to_console=CALL_MANAGEMENT_COMMAND_REPORT_TO_CONSOLE):
         """
@@ -81,9 +82,6 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         print("=========================================================")
         print("")
 
-    def _get_log_content(self, logger_name):
-        return self._collect_logs().get(logger_name)
-
     def _validateJsonSchema(self, schema, content):
         try:
             validate(instance=content, schema=schema)
@@ -104,7 +102,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
         Validate log line has expected values.
         """
         # Get all log entries
-        log_content = self._get_log_content(logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
+        log_content = get_log_content(self.logger_registry, logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
         self.assertIsNotNone(log_content)
 
         # Set buffer to read log line from log_content
@@ -237,9 +235,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
 
         for app_name in validate_apps_dict:
             # Get all log entries
-            log_content = self._get_log_content(
-                logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER
-            )
+            log_content = get_log_content(self.logger_registry, logging.AUDIT_GLOBAL_STATE_METRICS_LOGGER)
             self.assertIsNotNone(log_content)
 
             # Set buffer to read log line from log_content
