@@ -15,6 +15,7 @@ from jsonschema import validate
 from rest_framework import status
 
 from apps.dot_ext.models import Application
+from apps.logging.utils import redirect_loggers, get_log_content, cleanup_logger
 from apps.mymedicare_cb.views import generate_nonce
 from apps.mymedicare_cb.models import AnonUserState
 from apps.mymedicare_cb.tests.mock_url_responses_slsx import MockUrlSLSxResponses
@@ -77,11 +78,11 @@ class TestAuditEventLoggers(BaseApiTest):
         )
         # Setup the RequestFactory
         self.client = Client()
-        self._redirect_loggers()
+        self.logger_registry = redirect_loggers()
         self.mock_response = MockUrlSLSxResponses()
 
     def tearDown(self):
-        self._cleanup_logger()
+        cleanup_logger(self.logger_registry)
 
     def _validateJsonSchema(self, schema, content):
         try:
@@ -103,7 +104,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         @all_requests
         def catchall(url, req):
-            fhir_log_content = self._get_log_content(logging.AUDIT_DATA_FHIR_LOGGER)
+            fhir_log_content = get_log_content(self.logger_registry, logging.AUDIT_DATA_FHIR_LOGGER)
             self.assertIsNotNone(fhir_log_content)
 
             # Validate FHIR Patient response
@@ -133,7 +134,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
             # fhir_log_content, token_log_content
             # check fhir log content
-            fhir_log_content = self._get_log_content(logging.AUDIT_DATA_FHIR_LOGGER)
+            fhir_log_content = get_log_content(self.logger_registry, logging.AUDIT_DATA_FHIR_LOGGER)
             self.assertIsNotNone(fhir_log_content)
             log_entries = fhir_log_content.splitlines()
 
@@ -152,7 +153,7 @@ class TestAuditEventLoggers(BaseApiTest):
             )
 
             # Validate AccessToken entry
-            token_log_content = self._get_log_content(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
+            token_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_TOKEN_LOGGER)
             self.assertIsNotNone(token_log_content)
             log_entries = token_log_content.splitlines()
 
@@ -215,7 +216,7 @@ class TestAuditEventLoggers(BaseApiTest):
                 data={"req_token": "xxxx-request-token-xxxx", "relay": state},
             )
 
-            slsx_log_content = self._get_log_content(logging.AUDIT_AUTHZ_SLS_LOGGER)
+            slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
 
             quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
             self.assertEqual(len(quoted_strings), 2)
@@ -231,7 +232,7 @@ class TestAuditEventLoggers(BaseApiTest):
                 self._validateJsonSchema(SLSX_USERINFO_LOG_SCHEMA, slsx_userinfo_dict)
             )
 
-            authn_sls_log_content = self._get_log_content(logging.AUDIT_AUTHN_SLS_LOGGER)
+            authn_sls_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_SLS_LOGGER)
             log_entries = authn_sls_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
 
@@ -249,7 +250,7 @@ class TestAuditEventLoggers(BaseApiTest):
                 )
             )
 
-            mymedicare_cb_log_content = self._get_log_content(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
+            mymedicare_cb_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER)
             log_entries = mymedicare_cb_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
 
@@ -267,7 +268,7 @@ class TestAuditEventLoggers(BaseApiTest):
                 )
             )
 
-            fhir_log_content = self._get_log_content(logging.AUDIT_DATA_FHIR_LOGGER)
+            fhir_log_content = get_log_content(self.logger_registry, logging.AUDIT_DATA_FHIR_LOGGER)
             log_entries = fhir_log_content.splitlines()
             self.assertEqual(len(log_entries), 2)
 
@@ -283,7 +284,7 @@ class TestAuditEventLoggers(BaseApiTest):
                 )
             )
 
-            match_fhir_id_log_content = self._get_log_content(logging.AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER)
+            match_fhir_id_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER)
 
             log_entries = match_fhir_id_log_content.splitlines()
             self.assertGreater(len(log_entries), 0)
@@ -293,7 +294,7 @@ class TestAuditEventLoggers(BaseApiTest):
                 self._validateJsonSchema(MATCH_FHIR_ID_LOG_SCHEMA, json.loads(log_entries[0]))
             )
 
-            hhs_oauth_server_log_content = self._get_log_content(logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
+            hhs_oauth_server_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
 
             log_entries = hhs_oauth_server_log_content.splitlines()
             self.assertGreater(len(log_entries), 0)
@@ -360,7 +361,7 @@ class TestAuditEventLoggers(BaseApiTest):
             except requests.exceptions.HTTPError as err:
                 self.assertEqual(err.response.status_code, status.HTTP_403_FORBIDDEN)
 
-            slsx_log_content = self._get_log_content(logging.AUDIT_AUTHZ_SLS_LOGGER)
+            slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
             quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
 
             self.assertEqual(len(quoted_strings), 1)
@@ -427,7 +428,7 @@ class TestAuditEventLoggers(BaseApiTest):
             except requests.exceptions.HTTPError as err:
                 self.assertEqual(err.response.status_code, status.HTTP_403_FORBIDDEN)
 
-            slsx_log_content = self._get_log_content(logging.AUDIT_AUTHZ_SLS_LOGGER)
+            slsx_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_SLS_LOGGER)
             quoted_strings = re.findall("{[^{}]+}", slsx_log_content)
 
             self.assertEqual(len(quoted_strings), 2)
@@ -478,7 +479,7 @@ class TestAuditEventLoggers(BaseApiTest):
         response = self.client.post(response["Location"], data=payload)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         # assert token logger record works by assert some top level fields
-        token_log_content = self._get_log_content(logging.AUDIT_AUTHZ_TOKEN_LOGGER)
+        token_log_content = get_log_content(self.logger_registry, logging.AUDIT_AUTHZ_TOKEN_LOGGER)
         self.assertIsNotNone(token_log_content)
 
         # Validate Authorization entry
@@ -523,7 +524,7 @@ class TestAuditEventLoggers(BaseApiTest):
 
         self.assertNotEqual(response.status_code, 500)
         # assert request logger record exist and app name, app id has expected value ""
-        request_log_content = self._get_log_content(logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
+        request_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
         self.assertIsNotNone(request_log_content)
         json_rec = json.loads(request_log_content)
         self.assertTrue(self._validateJsonSchema(REQUEST_PARTIAL_LOG_REC_SCHEMA, json_rec))

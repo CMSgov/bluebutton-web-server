@@ -9,14 +9,30 @@ from django.contrib.auth import get_user_model
 from apps.accounts.models import UserProfile, UserIdentificationLabel
 from apps.fhir.bluebutton.models import Crosswalk
 from waffle.testutils import override_switch
+
+from apps.logging.utils import redirect_loggers_custom, get_log_content, cleanup_logger
+
 from ..models import ActivationKey
 
+ACCT_MAIL_LOGGER_NAME = "hhs_server.apps.accounts.emails"
+DOT_EXT_SIGNAL_LOGGER_NAME = "hhs_server.apps.dot_ext.signals"
+MAILER_EVENT_LOGGERS = [ACCT_MAIL_LOGGER_NAME, DOT_EXT_SIGNAL_LOGGER_NAME]
 LOGIN_MSG_ACTIVATED = "Your account has been activated. You may now login"
+MAIL_SENT_EVENT = "Activation link sent to testactivation@example.com (testactivation@example.com)"
 
 
 class CreateDeveloperAccountTestCase(TestCase):
     """
     Test Developer Account Creation
+
+    Some test cases extended to further capture logging events (indicator of mailer sending notification):
+
+    Example logged entries:
+
+    hhs_server.apps.accounts.emails line:35 Activation link sent to test01@xyz.net (test01@xyz.net)
+    hhs_server.apps.dot_ext.signals line:37 Congrats on Registering Your First Application sent to test01@xyz.net (test01@xyz.net)
+    hhs_server.apps.dot_ext.signals line:65 Congrats on Making Your First API Call sent to test01@xyz.net (test01@xyz.net)
+
     """
 
     @override_switch('signup', active=True)
@@ -31,6 +47,10 @@ class CreateDeveloperAccountTestCase(TestCase):
         UserIdentificationLabel.objects.get_or_create(name="Self Identification #2",
                                                       slug="ident2",
                                                       weight=2)
+        self.logger_registry = redirect_loggers_custom(MAILER_EVENT_LOGGERS)
+
+    def tearDown(self):
+        cleanup_logger(self.logger_registry)
 
     @override_switch('signup', active=True)
     @override_switch('login', active=True)
@@ -69,6 +89,7 @@ class CreateDeveloperAccountTestCase(TestCase):
 
     @override_switch('signup', active=True)
     @override_switch('login', active=True)
+    @override_switch('outreach_email', active=True)
     def test_new_account_activation_key(self):
         """
         Create an Account Valid, and check:
@@ -93,6 +114,12 @@ class CreateDeveloperAccountTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Please check your email')
+        # assert the new account verify email sent
+        log_rec_mailer = get_log_content(self.logger_registry, ACCT_MAIL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
+        self.assertIsNotNone(log_rec_mailer)
+        lines = str(log_rec_mailer).splitlines()
+        self.assertEqual(1, len(lines))
+        self.assertEqual(lines[0], MAIL_SENT_EVENT)
 
         # verify username is lowercase
         User = get_user_model()
@@ -114,16 +141,40 @@ class CreateDeveloperAccountTestCase(TestCase):
         response = self.client.post(reverse('login'), form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Please click the verification link in your email before logging in.")
+        # assert there is only one new account verify email sent
+        log_rec_mailer = get_log_content(self.logger_registry, ACCT_MAIL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
+        self.assertIsNotNone(log_rec_mailer)
+        lines = str(log_rec_mailer).splitlines()
+        self.assertEqual(1, len(lines))
+        self.assertEqual(lines[0], MAIL_SENT_EVENT)
 
         # simulate account verify link clicked, and account activated
         response = self.client.get(reverse('activation_verify', args=(key.key,)), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, LOGIN_MSG_ACTIVATED)
+        # assert a successful account verify request does not trigger any email
+        log_rec_mailer = get_log_content(self.logger_registry, ACCT_MAIL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
+        self.assertIsNotNone(log_rec_mailer)
+        lines = str(log_rec_mailer).splitlines()
+        self.assertEqual(1, len(lines))
+        self.assertEqual(lines[0], MAIL_SENT_EVENT)
+
+        log_rec_signal = get_log_content(self.logger_registry, DOT_EXT_SIGNAL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
+        self.assertEqual(log_rec_signal, "")
 
         # simulate account verify link clicked again (it's OK), and should say: account activated
         response = self.client.get(reverse('activation_verify', args=(key.key,)), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, LOGIN_MSG_ACTIVATED)
+        # assert there is only one new account activated email sent
+        log_rec_mailer = get_log_content(self.logger_registry, ACCT_MAIL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
+        self.assertIsNotNone(log_rec_mailer)
+        lines = str(log_rec_mailer).splitlines()
+        self.assertEqual(1, len(lines))
+        self.assertEqual(lines[0], MAIL_SENT_EVENT)
+
+        log_rec_signal = get_log_content(self.logger_registry, DOT_EXT_SIGNAL_LOGGER_NAME, MAILER_EVENT_LOGGERS)
+        self.assertEqual(log_rec_signal, "")
 
         # simulate account verify link played with a fabricated key, indicate issue and show contact
         response = self.client.get(reverse('activation_verify', args=(key.key + "x",)), follow=True)
