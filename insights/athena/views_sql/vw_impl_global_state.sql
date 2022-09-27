@@ -34,11 +34,11 @@ WITH report_date_range AS (
    For example, you can use a past date like '2000-01-01'. 
    */
   /*
-   SELECT date_trunc('week', CAST('2000-01-01' AS date)) min_report_date,
-   */
+   SELECT date_trunc('week', CAST('2022-08-01' AS date)) min_report_date,
+  */
   /*
    This is normally the maximum/last report_date from the 
-   bb2.impl_global_state table. */
+   bb2.impl_global_state table via the select below: */
   SELECT
     (
       SELECT
@@ -51,8 +51,8 @@ WITH report_date_range AS (
      
      This can be hard coded for recovery purposes as below:   */
     /*
-     date_trunc('week', CAST('2022-03-07' AS date)) max_report_date 
-     */
+     date_trunc('week', CAST('2022-08-29' AS date)) max_report_date 
+    */
     /* This is normally set using the built-in "current_date" */
     date_trunc('week', current_date) max_report_date
 ),
@@ -103,7 +103,7 @@ v1_fhir_events AS (
           report_date_range
       )
       /*
-       AND concat(dt, '-', partition_1, '-', partition_2) > (
+       AND concat(dt, '-', partition_1, '-', partition_2) >= (
        SELECT
        min_partition_date
        FROM
@@ -142,7 +142,7 @@ v2_fhir_events AS (
           report_date_range
       )
       /*
-       AND concat(dt, '-', partition_1, '-', partition_2) > (
+       AND concat(dt, '-', partition_1, '-', partition_2) >= (
        SELECT
        min_partition_date
        FROM
@@ -182,7 +182,7 @@ auth_events AS (
           report_date_range
       )
       /*
-       AND concat(dt, '-', partition_1, '-', partition_2) > (
+       AND concat(dt, '-', partition_1, '-', partition_2) >= (
        SELECT
        min_partition_date
        FROM
@@ -195,10 +195,10 @@ auth_events AS (
 SELECT
   *,
   (
-    total_crosswalk_real_bene - app_grant_all_real_bene
+    total_crosswalk_real_bene - app_all_grant_real_bene
   ) diff_total_crosswalk_vs_grant_and_archived_real_bene,
   (
-    total_crosswalk_synthetic_bene - app_grant_all_synthetic_bene
+    total_crosswalk_synthetic_bene - app_all_grant_synthetic_bene
   ) diff_total_crosswalk_vs_grant_and_archived_synthetic_bene,
   /* V1 FHIR resource stats top level */
   (
@@ -904,10 +904,130 @@ FROM
           END
         )
       ) app_all_require_demographic,
-      "sum"(app_grant_and_archived_real_bene_deduped_count) app_grant_all_real_bene,
+      "sum"(app_grant_and_archived_real_bene_deduped_count) app_all_grant_real_bene,
       "sum"(
         app_grant_and_archived_synthetic_bene_deduped_count
-      ) app_grant_all_synthetic_bene
+      ) app_all_grant_synthetic_bene,
+      "sum"(
+        app_fhir_v1_call_real_count
+      ) app_all_fhir_v1_call_real_count,
+      "sum"(
+        app_fhir_v1_call_synthetic_count
+      ) app_all_fhir_v1_call_synthetic_count,
+      "sum"(
+        app_fhir_v1_eob_call_real_count
+      ) app_all_fhir_v1_eob_call_real_count,
+      "sum"(
+        app_fhir_v1_eob_call_synthetic_count
+      ) app_all_fhir_v1_eob_call_synthetic_count,
+      "sum"(
+        app_fhir_v1_coverage_call_real_count
+      ) app_all_fhir_v1_coverage_call_real_count,
+      "sum"(
+        app_fhir_v1_coverage_call_synthetic_count
+      ) app_all_fhir_v1_coverage_call_synthetic_count,
+      "sum"(
+        app_fhir_v1_patient_call_real_count
+      ) app_all_fhir_v1_patient_call_real_count,
+      "sum"(
+        app_fhir_v1_patient_call_synthetic_count
+      ) app_all_fhir_v1_patient_call_synthetic_count,
+      "sum"(
+        app_fhir_v1_metadata_call_count
+      ) app_all_fhir_v1_metadata_call_count,
+      "sum"(
+        app_fhir_v1_eob_since_call_real_count
+      ) app_all_fhir_v1_eob_since_call_real_count,
+      "sum"(
+        app_fhir_v1_eob_since_call_synthetic_count
+      ) app_all_fhir_v1_eob_since_call_synthetic_count,
+      "sum"(
+        app_fhir_v1_coverage_since_call_real_count
+      ) app_all_fhir_v1_coverage_since_call_real_count,
+      "sum"(
+        app_fhir_v1_coverage_since_call_synthetic_count
+      ) app_all_fhir_v1_coverage_since_call_synthetic_count,
+      "sum"(
+        app_fhir_v2_call_real_count
+      ) app_all_fhir_v2_call_real_count,
+      "sum"(
+        app_fhir_v2_call_synthetic_count
+      ) app_all_fhir_v2_call_synthetic_count,
+      "sum"(
+        app_fhir_v2_eob_call_real_count
+      ) app_all_fhir_v2_eob_call_real_count,
+      "sum"(
+        app_fhir_v2_eob_call_synthetic_count
+      ) app_all_fhir_v2_eob_call_synthetic_count,
+      "sum"(
+        app_fhir_v2_coverage_call_real_count
+      ) app_all_fhir_v2_coverage_call_real_count,
+      "sum"(
+        app_fhir_v2_coverage_call_synthetic_count
+      ) app_all_fhir_v2_coverage_call_synthetic_count,
+      "sum"(
+        app_fhir_v2_patient_call_real_count
+      ) app_all_fhir_v2_patient_call_real_count,
+      "sum"(
+        app_fhir_v2_patient_call_synthetic_count
+      ) app_all_fhir_v2_patient_call_synthetic_count,
+      "sum"(
+        app_fhir_v2_metadata_call_count
+      ) app_all_fhir_v2_metadata_call_count,
+      "sum"(
+        app_fhir_v2_eob_since_call_real_count
+      ) app_all_fhir_v2_eob_since_call_real_count,
+      "sum"(
+        app_fhir_v2_eob_since_call_synthetic_count
+      ) app_all_fhir_v2_eob_since_call_synthetic_count,
+      "sum"(
+        app_fhir_v2_coverage_since_call_real_count
+      ) app_all_fhir_v2_coverage_since_call_real_count,
+      "sum"(
+        app_fhir_v2_coverage_since_call_synthetic_count
+      ) app_all_fhir_v2_coverage_since_call_synthetic_count,
+      "sum"(
+        app_auth_ok_real_bene_count
+      ) app_all_auth_ok_real_bene_count,
+      "sum"(
+        app_auth_ok_synthetic_bene_count
+      ) app_all_auth_ok_synthetic_bene_count,
+      "sum"(
+        app_auth_fail_or_deny_real_bene_count
+      ) app_all_auth_fail_or_deny_real_bene_count,
+      "sum"(
+        app_auth_fail_or_deny_synthetic_bene_count
+      ) app_all_auth_fail_or_deny_synthetic_bene_count,
+      "sum"(
+        app_auth_demoscope_required_choice_sharing_real_bene_count
+      ) app_all_auth_demoscope_required_choice_sharing_real_bene_count,
+      "sum"(
+        app_auth_demoscope_required_choice_sharing_synthetic_bene_count
+      ) app_all_auth_demoscope_required_choice_sharing_synthetic_bene_count,
+      "sum"(
+        app_auth_demoscope_required_choice_not_sharing_real_bene_count
+      ) app_all_auth_demoscope_required_choice_not_sharing_real_bene_count,
+      "sum"(
+        app_auth_demoscope_required_choice_not_sharing_synthetic_bene_count
+      ) app_all_auth_demoscope_required_choice_not_sharing_synthetic_bene_count,
+      "sum"(
+        app_auth_demoscope_required_choice_deny_real_bene_count
+      ) app_all_auth_demoscope_required_choice_deny_real_bene_count,
+      "sum"(
+        app_auth_demoscope_required_choice_deny_synthetic_bene_count
+      ) app_all_auth_demoscope_required_choice_deny_synthetic_bene_count,
+      "sum"(
+        app_auth_demoscope_not_required_not_sharing_real_bene_count
+      ) app_all_auth_demoscope_not_required_not_sharing_real_bene_count,
+      "sum"(
+        app_auth_demoscope_not_required_not_sharing_synthetic_bene_count
+      ) app_all_auth_demoscope_not_required_not_sharing_synthetic_bene_count,
+      "sum"(
+        app_auth_demoscope_not_required_deny_real_bene_count
+      ) app_all_auth_demoscope_not_required_deny_real_bene_count,
+      "sum"(
+        app_auth_demoscope_not_required_deny_synthetic_bene_count
+      ) app_all_auth_demoscope_not_required_deny_synthetic_bene_count
     FROM
       impl_global_state_per_app
     WHERE
