@@ -1,9 +1,11 @@
 import json
 import base64
 from django.conf import settings
+from django.http import HttpRequest
 from django.urls import reverse
 from httmock import HTTMock, urlmatch
-from oauth2_provider.compat import parse_qs, urlparse
+# from oauth2_provider.compat import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.test import APIClient
 from waffle.testutils import override_switch
@@ -31,7 +33,8 @@ class TestApplicationUpdateView(BaseApiTest):
         # create an application
         app = self._create_application('john_app', user=user)
         # render the edit view for the app
-        self.client.login(username=user.username, password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username=user.username, password='123456')
         uri = reverse('oauth2_provider:update', args=[app.pk])
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
@@ -90,6 +93,28 @@ class TestAuthorizationView(BaseApiTest):
             # Path is NOT allowed by scopes.
             self.assertEqual(response.status_code, 403)
 
+    def test_start_authorization_flow(self):
+        redirect_uri = 'http://localhost'
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+
+        payload = {
+            'client_id': application.client_id,
+            'client_secret': "1234567890",
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+        }
+
+        response = self.client.get('/v1/o/authorize', data=payload, follow=True)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content.decode("utf-8"), "Illegal query parameter [client_secret] detected")
+
     def test_post_with_restricted_scopes_issues_token_with_same_scopes(self):
         """
         Test that when user unchecks some of the scopes the token is issued
@@ -106,7 +131,8 @@ class TestAuthorizationView(BaseApiTest):
             redirect_uris='http://example.it')
         application.scope.add(capability_a, capability_b)
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
         # post the authorization form with only one scope selected
         payload = {
             'client_id': application.client_id,
@@ -145,7 +171,8 @@ class TestAuthorizationView(BaseApiTest):
         application.scope.add(capability_a, capability_b)
 
         # user logs in
-        self.client.login(username='anna', password='123456')
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
 
         # Loop through test cases in dictionary
         cases = VIEW_OAUTH2_SCOPES_TEST_CASES
@@ -407,6 +434,10 @@ class TestTokenView(BaseApiTest):
             beneficiary=anna,
             application=application,
         ).exists())
+
+        # This assertion is incorrectly crafted - it actually requires a local server started
+        # so that the fhir fetch data is called and hence generate cert file not found error.
+        # TODO: refactor test to not depend on a server up and running.
 
         # Post Django 2.2:  An OSError exception is expected when trying to reach the
         #                   backend FHIR server and proves authentication worked.

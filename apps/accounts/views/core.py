@@ -87,12 +87,11 @@ def account_settings(request):
 
 
 def activation_verify(request, activation_key):
-    if validate_activation_key(activation_key):
-        messages.success(request,
-                         'Your account has been activated. You may now login.')
-    else:
-        messages.error(request,
-                       'This key does not exist or has already been used.')
+    is_valid, msg = validate_activation_key(activation_key)
+    if is_valid:
+        messages.success(request, msg)
+    elif msg:
+        messages.error(request, msg)
     return pick_reverse_login()
 
 

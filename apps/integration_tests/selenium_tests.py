@@ -13,7 +13,9 @@ from .selenium_cases import (
     Action,
     TESTCASE_BANNER_FMT,
     LNK_TXT_GET_TOKEN_V1,
+    LNK_TXT_GET_TOKEN_PKCE_V1,
     LNK_TXT_GET_TOKEN_V2,
+    LNK_TXT_GET_TOKEN_PKCE_V2,
     LNK_TXT_RESTART_TESTCLIENT,
     API_V2,
     API_V1,
@@ -72,8 +74,10 @@ class SeleniumTests(TestCase):
             Action.FIND: self._find_and_return,
             Action.FIND_SEND_KEY: self._find_and_sendkey,
             Action.CHECK: self._check_page_title,
+            Action.CHECK_PKCE_CHALLENGE: self._check_pkce_challenge,
             Action.CONTAIN_TEXT: self._check_page_content,
             Action.GET_SAMPLE_TOKEN_START: self._click_get_sample_token,
+            Action.GET_SAMPLE_TOKEN_PKCE_START: self._click_get_sample_token_pkce,
             Action.BACK: self._back,
             Action.LOGIN: self._login,
             Action.SLEEP: self._sleep,
@@ -102,6 +106,11 @@ class SeleniumTests(TestCase):
         return self._find_and_click(30, By.LINK_TEXT,
                                     LNK_TXT_GET_TOKEN_V2 if kwargs.get("api_ver", API_V1) == API_V2 else LNK_TXT_GET_TOKEN_V1)
 
+    def _click_get_sample_token_pkce(self, **kwargs):
+        return self._find_and_click(30, By.LINK_TEXT,
+                                    LNK_TXT_GET_TOKEN_PKCE_V2 if kwargs.get("api_ver", API_V1) == API_V2
+                                    else LNK_TXT_GET_TOKEN_PKCE_V1)
+
     def _find_and_return(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
         self.assertIsNotNone(elem)
@@ -115,6 +124,13 @@ class SeleniumTests(TestCase):
         if not (elem.text == fmt.format(resource_type, kwargs.get("api_ver"))):
             print("PAGE:{}".format(self.driver.page_source))
         self.assertEqual(elem.text, fmt.format(resource_type, kwargs.get("api_ver")))
+
+    def _check_pkce_challenge(self, timeout_sec, by, by_expr, pkce, **kwargs):
+        elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
+        if pkce:
+            self.assertTrue(("code_challenge" in elem.text and "code_challenge_method" in elem.text))
+        else:
+            self.assertFalse(("code_challenge" in elem.text or "code_challenge_method" in elem.text))
 
     def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
@@ -172,6 +188,24 @@ class SeleniumTests(TestCase):
     def test_auth_grant_fhir_calls_v2(self):
         step = [0]
         test_name = "auth_grant_fhir_calls"
+        api_ver = API_V2
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    def test_auth_grant_pkce_fhir_calls_v1(self):
+        step = [0]
+        test_name = "auth_grant_pkce_fhir_calls"
+        api_ver = API_V1
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(TESTS[test_name], step, api_ver=api_ver)
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    def test_auth_grant_pkce_fhir_calls_v2(self):
+        step = [0]
+        test_name = "auth_grant_pkce_fhir_calls"
         api_ver = API_V2
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(TESTS[test_name], step, api_ver=api_ver)

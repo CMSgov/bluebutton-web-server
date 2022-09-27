@@ -215,16 +215,21 @@ class ActivationKey(models.Model):
     )
     key = models.CharField(default=uuid.uuid4, max_length=40)
     expires = models.DateTimeField(blank=True)
+    # introduced to track the user account life cycle events: "created" -> "activated" / "expired"
+    key_status = models.CharField(max_length=10, blank=True, default="created")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    expired_at = models.DateTimeField(blank=True, null=True)
+    activated_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return "Key for %s expires at %s" % (self.user.username, self.expires)
 
     def save(self, **kwargs):
         now = pytz.utc.localize(datetime.utcnow())
-        expires = now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS)
-        self.expires = expires
+        # need to pop the custom arg out since it is not accepted by super
+        expires_override = kwargs.pop('expires', None)
+        self.expires = expires_override if expires_override else (now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS))
         super(ActivationKey, self).save(**kwargs)
-        send_activation_key_via_email(self.user, self.key)
 
 
 class ValidPasswordResetKey(models.Model):
@@ -289,6 +294,7 @@ def random_secret(y=40):
 def create_activation_key(user):
     # Create an new activation key and send the email.
     key = ActivationKey.objects.create(user=user)
+    send_activation_key_via_email(user, key.key)
     return key
 
 

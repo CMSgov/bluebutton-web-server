@@ -8,4 +8,7 @@ your signup:
 
     {{ ACTIVATION_LINK }}
 
+Activation Key: {{ ACTIVATION_KEY }}
+Note, link will expire in {{ EXPIRATION }} days!
+    
 {% endblock %}

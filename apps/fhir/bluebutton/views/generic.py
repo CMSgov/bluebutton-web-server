@@ -9,6 +9,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from urllib.parse import quote
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.dot_ext.throttling import TokenRateThrottle
@@ -121,6 +122,14 @@ class FhirDataView(APIView):
                       params=get_parameters,
                       headers=backend_connection.headers(request, url=target_url))
         s = Session()
+
+        # BB2-1544 request header url encode if header value (app name) contains char (>256)
+        if req.headers.get("BlueButton-Application") is not None:
+            try:
+                req.headers.get("BlueButton-Application").encode("latin1")
+            except UnicodeEncodeError:
+                req.headers["BlueButton-Application"] = quote(req.headers.get("BlueButton-Application"))
+
         prepped = s.prepare_request(req)
         # Send signal
         pre_fetch.send_robust(FhirDataView, request=req, auth_request=request, api_ver='v2' if self.version == 2 else 'v1')

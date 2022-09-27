@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0001_squashed_0041_auto_20210324_1543'),
-        ('oauth2_provider', '0006_auto_20171214_2232'),
+        ('oauth2_provider', '0004_auto_20200902_2022'),
         ('bluebutton', '0001_squashed_0006_auto_20210513_1812'),
         ('dot_ext', '0001_squashed_0025_auto_20210513_1812'),
     ]

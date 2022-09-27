@@ -39,8 +39,7 @@
             <input type="dropdown" searchWhenChanged="true">
                 <label>Select Application Name</label>
                 <default>ALL</default>
-                <choice value="*">ALL</choice>
-                <choice value="excludeInternalApps">ExcludeInternalApps</choice>
+                <choice value="excludeInternalApps">ALL</choice>
                 <initialValue>ALL</initialValue>
                 <fieldForLabel>AppName</fieldForLabel>
                 <fieldForValue>name</fieldForValue>

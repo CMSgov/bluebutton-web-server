@@ -1,5 +1,6 @@
 import time
 from django.contrib.auth.models import User
+from django.http import HttpRequest
 from django.test import TestCase
 from django.test.client import Client
 from django.urls import reverse
@@ -50,7 +51,8 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
 
     @override_switch('login', active=True)
     def test_page_loads(self):
-        self.client.login(username="fred", password="foobarfoobarfoobar")
+        request = HttpRequest()
+        self.client.login(request=request, username="fred", password="foobarfoobarfoobar")
         url = reverse('password_change')
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -63,7 +65,8 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
 
     @override_switch('login', active=True)
     def test_password_ischanged(self):
-        self.client.login(username="fred", password="foobarfoobarfoobar")
+        request = HttpRequest()
+        self.client.login(request=request, username="fred", password="foobarfoobarfoobar")
         url = reverse('password_change')
         form_data = {'old_password': 'foobarfoobarfoobar',
                      'new_password1': 'IchangedTHEpassword#123',
@@ -78,7 +81,8 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
 
     @override_switch('login', active=True)
     def test_password_change_complexity_and_min_age_validation(self):
-        self.client.login(username="fred", password="foobarfoobarfoobar")
+        request = HttpRequest()
+        self.client.login(request=request, username="fred", password="foobarfoobarfoobar")
         url = reverse('password_change')
         # sleep 3 sec to let min password age of 3 sec elapse
         time.sleep(3)
@@ -115,7 +119,8 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
 
     @override_switch('login', active=True)
     def test_password_change_reuse_validation(self):
-        self.client.login(username="fred", password="foobarfoobarfoobar")
+        request = HttpRequest()
+        self.client.login(request=request, username="fred", password="foobarfoobarfoobar")
         url = reverse('password_change')
 
         # first password change

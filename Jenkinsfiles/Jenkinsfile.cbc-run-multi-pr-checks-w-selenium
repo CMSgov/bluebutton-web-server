@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes {
-      defaultContainer "bb2-cbc-build-selenium"
+      defaultContainer "bb2-cbc-build-selenium-django32"
       yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium.yaml"
     }
   }
@@ -55,8 +55,9 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          make reqs-install-dev
           pip install selenium
+          pip install cryptography==37.0.2
+          make reqs-install-dev
         """
       }
     }
