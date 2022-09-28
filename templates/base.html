@@ -17,6 +17,28 @@
 	</head>
 
 	<body>
+        <script type = "text/javascript">  
+            function toggleBanner() {   
+                const banner = document.getElementById('gov-banner_25');
+                const icon27 = document.getElementById('icon-27');
+                const styles = window.getComputedStyle(banner);
+                if (styles.display === 'none' || styles.visibility === 'hidden') {
+                    banner.removeAttribute('hidden');
+                }
+                else {
+                    banner.setAttribute("hidden", "true");
+                }
+                if (icon27.classList.contains('ds-c-icon--arrow-down'))
+                {
+                    icon27.classList.remove('ds-c-icon--arrow-down');
+                    icon27.classList.add('ds-c-icon--arrow-up');
+                }
+                else {
+                    icon27.classList.remove('ds-c-icon--arrow-up');
+                    icon27.classList.add('ds-c-icon--arrow-down');
+                }
+            }  
+        </script> 
         <section class="ds-c-usa-banner" aria-label="Official government website">
             <header class="ds-c-usa-banner__header ds-c-usa-banner__header--mobile">
                 <svg
@@ -45,29 +67,29 @@
                   </g>
                 </svg>
                 <span class="ds-c-usa-banner__header-text">
-                  <span>An official website of the United States government</span>
-                  <button class="ds-c-usa-banner__button" aria-expanded="false" aria-controls="gov-banner_25">
-                    <!--span class="ds-c-usa-banner__cta-wrapper"-->
-                        <span class="ds-c-usa-banner__button-text">Here’s how you know</span>
-                            <!--svg
-                            aria-hidden="true"
-                            class="ds-c-icon ds-c-icon--arrow ds-c-icon--arrow-down ds-c-usa-banner__action-icon"
-                            focusable="false"
-                            id="icon-27"
-                            viewBox="0 0 320 512"
-                            xmlns="http://www.w3.org/2000/svg"
-                            direction="down"
-                            >
-                            <path
-                                fill="currentColor"
-                                d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"
-                            ></path>
-                            </svg-->
-                        </span>
-                    <!--/span-->
+                  <span style="white-space: nowrap">An official website of the United States government</span>
+                </span>
+                <button onclick="toggleBanner()" class="ds-c-usa-banner__button" aria-expanded="false" aria-controls="gov-banner_25">
+                    <span class="ds-c-usa-banner__button-text">Here’s how you know</span>
+                    <span>
+                        <svg
+                        aria-hidden="true"
+                        class="ds-c-icon ds-c-icon--arrow ds-c-icon--arrow-down ds-c-usa-banner__action-icon"
+                        focusable="false"
+                        id="icon-27"
+                        viewBox="0 0 320 512"
+                        xmlns="http://www.w3.org/2000/svg"
+                        direction="down"
+                        >
+                        <path
+                            fill="currentColor"
+                            d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"
+                        ></path>
+                        </svg>
+                    </span>
                 </button>
             </header>
-            <div class="ds-c-usa-banner__content" id="gov-banner_25" aria-hidden="true">
+            <div class="ds-c-usa-banner__content" id="gov-banner_25" hidden="">
               <div class="ds-c-usa-banner__guidance-container">
                 <div class="ds-c-usa-banner__guidance">
                   <svg
