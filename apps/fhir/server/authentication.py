@@ -2,6 +2,7 @@ import requests
 
 from django.conf import settings
 from rest_framework import exceptions
+from urllib.parse import quote
 
 from apps.dot_ext.loggers import get_session_auth_flow_trace
 from apps.fhir.bluebutton.signals import (
@@ -63,6 +64,13 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         headers['BlueButton-AuthUuid'] = auth_flow_dict.get('auth_uuid', '')
         headers['BlueButton-AuthAppId'] = auth_flow_dict.get('auth_app_id', '')
         headers['BlueButton-AuthAppName'] = auth_flow_dict.get('auth_app_name', '')
+
+        # BB2-1544: header value with char (>256) choke the header put in underlying request prep
+        try:
+            headers['BlueButton-AuthAppName'].encode('latin1')
+        except UnicodeEncodeError:
+            headers['BlueButton-AuthAppName'] = quote(headers['BlueButton-AuthAppName'])
+
         headers['BlueButton-AuthClientId'] = auth_flow_dict.get('auth_client_id', '')
     else:
         headers = None
