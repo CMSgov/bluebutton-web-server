@@ -6,14 +6,14 @@ import time
 Summary:
 
 This function will run an Athena SQL query that updates a table
-from a view. 
+from a view.
 
 This is to be run on a schedule nightly or weekly. It creates an intermediate table
 to be used by a DataSet to improve performance in QuickSight.
 
 Pass in the target BASENAME for the intended table and view to use.
 
-For example, BASENAME="global_state_per_app" and ENV="impl" will run the 
+For example, BASENAME="global_state_per_app" and ENV="impl" will run the
 folowing query in Athena:
 
    INSERT INTO bb2.impl_global_state_per_app AS SELECT * FROM bb2.vw_impl_global_state_per_app
@@ -104,4 +104,3 @@ def lambda_handler(event, context):
         "STATUS": "SUCCESS",
         "UPDATE_OUTPUT_FILENAME": update_output_filename,
     }
-    
