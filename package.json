@@ -21,18 +21,19 @@
   },
   "homepage": "https://github.com/CMSgov/bluebutton-css#readme",
   "devDependencies": {
-    "gulp-clean-css": "^3.10.0",
+    "gulp-clean-css": "^4.3.0",
     "gulp-minify": "^3.1.0",
-    "gulp-rename": "^1.4.0",
-    "gulp-sass": "^4.0.2",
-    "gulp-sourcemaps": "^2.6.5",
-    "gulp-wait": "0.0.2",
+    "gulp-rename": "^2.0.0",
+    "gulp-sass": "^5.1.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-wait": "^0.0.2",
     "pump": "^3.0.0"
   },
   "dependencies": {
-    "@cmsgov/design-system-core": "^1.31.1",
-    "@cmsgov/design-system-layout": "^1.31.1",
+    "@cmsgov/design-system": "^4.0.4",
+    "ansi-regex": "^6.0.1",
     "gulp": "^4.0.2",
-    "node-sass": "^4.12.0"
+    "node-gyp": "^9.1.0",
+    "node-sass": "^7.0.3"
   }
 }
