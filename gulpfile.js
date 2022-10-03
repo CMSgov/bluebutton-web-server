@@ -4,7 +4,7 @@ const gulp 				= require('gulp');
 const minify 			= require('gulp-minify');
 const pump 				= require('pump');
 const rename			= require('gulp-rename');
-const sass				= require('gulp-sass');
+const sass = require('gulp-sass')(require('node-sass'));
 const sourcemaps	= require('gulp-sourcemaps');
 const wait				= require('gulp-wait');
 
