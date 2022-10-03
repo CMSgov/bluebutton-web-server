@@ -28,7 +28,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 					<p class="ds-c-alert__text" role="alert">
 						It looks like you may be logged in to your Sandbox developer account. Because the Test Client mimics the behavior of an anonymous user authenticating with Blue Button 2.0, you must be logged out of your Sandbox account to use the Test Client. Otherwise you will receive a 500 error.
 					</p>
-					<a href="{% url 'logout' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Log Out to Continue</a>
+					<a href="{% url 'logout' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Log Out to Continue</a>
 				</div>
 			</div>
 			{% endif %}
@@ -44,16 +44,16 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 			<br />
 
-			<a id="auth_link_v1" href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token</a>
+			<a id="auth_link_v1" href="{% url 'authorize_link' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token</a>
 			{% switch "testclient_v2" %}
-				<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token for v2</a>
+				<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token for v2</a>
 			{% endswitch %}
 
 			<br />
 
-			<a id="auth_link_v1" href="{% url 'authorize_link' %}?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token (PKCE Enabled)</a>
+			<a id="auth_link_v1" href="{% url 'authorize_link' %}?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token (PKCE Enabled)</a>
 			{% switch "testclient_v2" %}
-				<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Get a Sample Authorization Token for v2 (PKCE Enabled)</a>
+				<a id="auth_link_v2" href="{% url 'authorize_link_v2' %}?pkce=true" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Get a Sample Authorization Token for v2 (PKCE Enabled)</a>
 			{% endswitch %}
 
             {% endif %}
@@ -108,7 +108,7 @@ The Blue Button 2.0 API Test Client allows you to quickly see what it is like fo
 
 			<p>If you want to test the Blue Button 2.0 API with your own application, create a Sandbox account and register your application. Once registered, you can use your test credentials to re-create this experience and include synthetic Medicare data in your own application.</p>
 
-			<a href="{% url 'accounts_create_account' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--primary ds-u-color--white">Create a Sandbox Account</a>
+			<a href="{% url 'accounts_create_account' %}" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid ds-u-color--white">Create a Sandbox Account</a>
 
 			{% endif %}
 
