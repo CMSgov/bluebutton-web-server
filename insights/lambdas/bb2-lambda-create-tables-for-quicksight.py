@@ -3,6 +3,21 @@ import re
 import time
 
 """
+Summary:
+
+This function will run an Athena SQL query that updates a table
+from a view.
+
+This is to be run on a schedule nightly or weekly. It creates an intermediate table
+to be used by a DataSet to improve performance in QuickSight.
+
+Pass in the target BASENAME for the intended table and view to use.
+
+For example, BASENAME="global_state_per_app" and ENV="impl" will run the
+folowing query in Athena:
+
+   INSERT INTO bb2.impl_global_state_per_app AS SELECT * FROM bb2.vw_impl_global_state_per_app
+
 Lambda function inputs:
 
 {
@@ -10,6 +25,7 @@ Lambda function inputs:
   "WORKGROUP": "bb2",
   "DATABASE": "bb2",
   "ENV": "<prod/impl/test>"
+  "BASENAME": "<basename of view/table>" Ex: "global_state"
 }
 """
 
@@ -63,36 +79,28 @@ def lambda_handler(event, context):
         "region": event["REGION"],
         "workgroup": event["WORKGROUP"],
         "database": event["DATABASE"],
+        "basename": event["BASENAME"],
     }
-
-    # Drop table
-    params["query"] = (
-        "DROP TABLE IF EXISTS "
-        + event["DATABASE"]
-        + "."
-        + event["ENV"]
-        + "_global_state"
-    )
-
-    drop_output_filename = athena_to_s3_complete(session, params)
 
     # Create table
     params["query"] = (
-        "CREATE TABLE IF NOT EXISTS "
+        "INSERT INTO "
         + event["DATABASE"]
         + "."
         + event["ENV"]
-        + "_global_state AS SELECT * FROM "
+        + "_"
+        + event["BASENAME"]
+        + " SELECT * FROM "
         + event["DATABASE"]
         + ".vw_"
         + event["ENV"]
-        + "_global_state"
+        + "_"
+        + event["BASENAME"]
     )
 
-    create_output_filename = athena_to_s3_complete(session, params, 300)
+    update_output_filename = athena_to_s3_complete(session, params, 300)
 
     return {
         "STATUS": "SUCCESS",
-        "DROP_OUTPUT_FILENAME": drop_output_filename,
-        "CREATE_OUTPUT_FILENAME": create_output_filename,
+        "UPDATE_OUTPUT_FILENAME": update_output_filename,
     }
