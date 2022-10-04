@@ -11,12 +11,12 @@ services:
       - "7890:7890"
     profiles:
       - mocksls
-  db:
-    image: postgres
-    env_file:
-      - docker-compose/db-env-vars.env
-    ports:
-      - "5432:5432"
+  # db:
+  #   image: postgres
+  #   env_file:
+  #     - docker-compose/db-env-vars.env
+  #   ports:
+  #     - "5432:5432"
   web:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
@@ -30,8 +30,8 @@ services:
     ports:
       - "8000:8000"
       - "5678:5678"
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
   web_msls:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
@@ -46,7 +46,7 @@ services:
       - "8000:8000"
       - "5678:5678"
     depends_on:
-      - db
+      # - db
       - msls
     profiles:
       - mocksls
