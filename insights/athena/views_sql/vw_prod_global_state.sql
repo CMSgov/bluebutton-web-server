@@ -34,7 +34,7 @@ WITH report_date_range AS (
    For example, you can use a past date like '2000-01-01'. 
    */
   /*
-   SELECT date_trunc('week', CAST('2022-09-19' AS date)) min_report_date,
+   SELECT date_trunc('week', CAST('2000-01-01' AS date)) min_report_date,
   */
   /*
    This is normally the maximum/last report_date from the 
