@@ -299,9 +299,11 @@ jsonschema==3.2.0 \
     --hash=sha256:4e5b3cf8216f577bee9ce139cbe72eca3ea4f292ec60928ff24758ce626cd163 \
     --hash=sha256:c8a85b28d377cc7737e46e2d9f2b4f44ee3c0e1deac6bf46ddefc7187d30797a
     # via -r requirements/requirements.in
-jwcrypto==1.2 \
-    --hash=sha256:edf4309321721e5161cefccdd64b04509e03924feaf3de085b47780765989ae3
-    # via django-oauth-toolkit
+jwcrypto==1.4.2 \
+    --hash=sha256:80a35e9ed1b3b2c43ce03d92c5d48e6d0b6647e2aa2618e4963448923d78a37b
+    # via
+    #   -r requirements/requirements.in
+    #   django-oauth-toolkit
 mccabe==0.6.1 \
     --hash=sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42 \
     --hash=sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f
