@@ -34,7 +34,7 @@ WITH report_date_range AS (
    For example, you can use a past date like '2000-01-01'. 
    */
   /*
-   SELECT date_trunc('week', CAST('2022-08-01' AS date)) min_report_date,
+   SELECT date_trunc('week', CAST('2000-01-01' AS date)) min_report_date,
   */
   /*
    This is normally the maximum/last report_date from the 
@@ -1027,7 +1027,37 @@ FROM
       ) app_all_auth_demoscope_not_required_deny_real_bene_count,
       "sum"(
         app_auth_demoscope_not_required_deny_synthetic_bene_count
-      ) app_all_auth_demoscope_not_required_deny_synthetic_bene_count
+      ) app_all_auth_demoscope_not_required_deny_synthetic_bene_count,
+      "sum"(
+        app_token_authorization_code_2xx_count
+      ) app_all_token_authorization_code_2xx_count,
+      "sum"(
+        app_token_authorization_code_4xx_count
+      ) app_all_token_authorization_code_4xx_count,
+      "sum"(
+        app_token_authorization_code_5xx_count
+      ) app_all_token_authorization_code_5xx_count,
+      "sum"(
+        app_token_authorization_code_for_real_bene_count
+      ) app_all_token_authorization_code_for_real_bene_count,
+      "sum"(
+        app_token_authorization_code_for_synthetic_bene_count
+      ) app_all_token_authorization_code_for_synthetic_bene_count,
+      "sum"(
+        app_token_refresh_for_real_bene_count
+      ) app_all_token_refresh_for_real_bene_count,
+      "sum"(
+        app_token_refresh_for_synthetic_bene_count
+      ) app_all_token_refresh_for_synthetic_bene_count,
+      "sum"(
+        app_token_refresh_response_2xx_count
+      ) app_all_token_refresh_response_2xx_count,
+      "sum"(
+        app_token_refresh_response_4xx_count
+      ) app_all_token_refresh_response_4xx_count,
+      "sum"(
+        app_token_refresh_response_5xx_count
+      ) app_all_token_refresh_response_5xx_count
     FROM
       prod_global_state_per_app
     WHERE

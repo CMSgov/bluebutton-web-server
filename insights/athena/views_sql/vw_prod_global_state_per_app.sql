@@ -30,7 +30,7 @@ WITH report_date_range AS (
    For example, you can use a past date like '2000-01-01'.  */
   /*
    SELECT
-   date_trunc('week', CAST('2022-08-01' AS date)) min_report_date,
+   date_trunc('week', CAST('2000-01-01' AS date)) min_report_date,
   */
   /*
    This is normally the maximum/last report_date from the 
@@ -69,13 +69,17 @@ report_partitions_range AS (
         report_date_range
     )
 ),
-/* Temp table for V1 FHIR events */
+/* Sub-select for V1 FHIR events */
 v1_fhir_events AS (
   select
     time_of_event,
     path,
     fhir_id,
     req_qparam_lastupdated,
+    application,
+    auth_app_name,
+    req_app_name,
+    resp_app_name,
     app_name
   from
     "bb2"."events_prod_perf_mon"
@@ -86,7 +90,6 @@ v1_fhir_events AS (
       and request_method = 'GET'
       and path LIKE '/v1/fhir%'
       and response_code = 200
-      and app_name != 'new-relic'
       and cast("from_iso8601_timestamp"(time_of_event) AS date) >= (
         select
           min_report_date
@@ -111,13 +114,17 @@ v1_fhir_events AS (
        )
     )
 ),
-/* Temp table for V2 FHIR events */
+/* Sub-select for V2 FHIR events */
 v2_fhir_events AS (
   select
     time_of_event,
     path,
     fhir_id,
     req_qparam_lastupdated,
+    application,
+    auth_app_name,
+    req_app_name,
+    resp_app_name,
     app_name
   from
     "bb2"."events_prod_perf_mon"
@@ -128,7 +135,6 @@ v2_fhir_events AS (
       and request_method = 'GET'
       and path LIKE '/v2/fhir%'
       and response_code = 200
-      and app_name != 'new-relic'
       and cast("from_iso8601_timestamp"(time_of_event) AS date) >= (
         select
           min_report_date
@@ -149,7 +155,7 @@ v2_fhir_events AS (
       )
     )
 ),
-/* Temp table for AUTH events */
+/* Sub-select for AUTH events */
 auth_events AS (
   select
     time_of_event,
@@ -158,6 +164,7 @@ auth_events AS (
     auth_crosswalk_action,
     auth_share_demographic_scopes,
     auth_status,
+    application,
     share_demographic_scopes,
     allow,
     json_extract(user, '$.crosswalk.fhir_id') as fhir_id
@@ -167,7 +174,86 @@ auth_events AS (
     (
       type = 'Authorization'
       and vpc = 'prod'
-      and auth_app_name != 'new-relic'
+      and cast("from_iso8601_timestamp"(time_of_event) AS date) >= (
+        select
+          min_report_date
+        FROM
+          report_date_range
+      )
+      and cast("from_iso8601_timestamp"(time_of_event) AS date) < (
+        select
+          max_report_date
+        FROM
+          report_date_range
+      )
+      AND concat(dt, '-', partition_1, '-', partition_2) >= (
+        SELECT
+          min_partition_date
+        FROM
+          report_partitions_range
+      )
+    )
+),
+/* Sub-select for Token events */
+token_events AS (
+  select
+    time_of_event,
+    action,
+    auth_app_name,
+    auth_require_demographic_scopes,
+    auth_crosswalk_action,
+    auth_share_demographic_scopes,
+    auth_grant_type,
+    application,
+    crosswalk
+  from
+    "bb2"."events_prod_perf_mon"
+  WHERE
+    (
+      type = 'AccessToken'
+      and vpc = 'prod'
+      and cast("from_iso8601_timestamp"(time_of_event) AS date) >= (
+        select
+          min_report_date
+        FROM
+          report_date_range
+      )
+      and cast("from_iso8601_timestamp"(time_of_event) AS date) < (
+        select
+          max_report_date
+        FROM
+          report_date_range
+      )
+      AND concat(dt, '-', partition_1, '-', partition_2) >= (
+        SELECT
+          min_partition_date
+        FROM
+          report_partitions_range
+      )
+    )
+),
+/* Sub-select for token request events */
+token_request_events AS (
+  select
+    time_of_event,
+    path,
+    auth_grant_type,
+    auth_crosswalk_action,
+    resp_fhir_id,
+    response_code,
+    auth_app_name,
+    application,
+    req_app_name,
+    resp_app_name,
+    app_name
+  from
+    "bb2"."events_prod_perf_mon"
+  WHERE
+    (
+      type = 'request_response_middleware'
+      and vpc = 'prod'
+      and request_method = 'POST'
+      and path LIKE '/v%/o/token%/'
       and cast("from_iso8601_timestamp"(time_of_event) AS date) >= (
         select
           min_report_date
@@ -258,7 +344,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
       )
   ) as app_fhir_v1_call_real_count,
@@ -271,7 +357,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and try_cast(fhir_id as BIGINT) < 0
       )
   ) as app_fhir_v1_call_synthetic_count,
@@ -284,7 +370,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/ExplanationOfBenefit%'
         and try_cast(fhir_id as BIGINT) >= 0
       )
@@ -298,7 +384,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/ExplanationOfBenefit%'
         and try_cast(fhir_id as BIGINT) < 0
       )
@@ -312,7 +398,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/Coverage%'
         and try_cast(fhir_id as BIGINT) >= 0
       )
@@ -326,7 +412,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/Coverage%'
         and try_cast(fhir_id as BIGINT) < 0
       )
@@ -340,7 +426,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/Patient%'
         and try_cast(fhir_id as BIGINT) >= 0
       )
@@ -354,7 +440,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/Patient%'
         and try_cast(fhir_id as BIGINT) < 0
       )
@@ -368,7 +454,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/metadata%'
       )
   ) as app_fhir_v1_metadata_call_count,
@@ -382,7 +468,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/ExplanationOfBenefit%'
         and try_cast(fhir_id as BIGINT) >= 0
         and req_qparam_lastupdated != ''
@@ -397,7 +483,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/ExplanationOfBenefit%'
         and try_cast(fhir_id as BIGINT) < 0
         and req_qparam_lastupdated != ''
@@ -412,7 +498,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/Coverage%'
         and try_cast(fhir_id as BIGINT) >= 0
         and req_qparam_lastupdated != ''
@@ -427,7 +513,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v1/fhir/Coverage%'
         and try_cast(fhir_id as BIGINT) < 0
         and req_qparam_lastupdated != ''
@@ -443,7 +529,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
       )
   ) as app_fhir_v2_call_real_count,
@@ -456,7 +542,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and try_cast(fhir_id as BIGINT) < 0
       )
   ) as app_fhir_v2_call_synthetic_count,
@@ -469,7 +555,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/ExplanationOfBenefit%'
         and try_cast(fhir_id as BIGINT) >= 0
       )
@@ -483,7 +569,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/ExplanationOfBenefit%'
         and try_cast(fhir_id as BIGINT) < 0
       )
@@ -497,7 +583,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/Coverage%'
         and try_cast(fhir_id as BIGINT) >= 0
       )
@@ -511,7 +597,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/Coverage%'
         and try_cast(fhir_id as BIGINT) < 0
       )
@@ -525,7 +611,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/Patient%'
         and try_cast(fhir_id as BIGINT) >= 0
       )
@@ -539,7 +625,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/Patient%'
         and try_cast(fhir_id as BIGINT) < 0
       )
@@ -553,7 +639,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/metadata%'
       )
   ) as app_fhir_v2_metadata_call_count,
@@ -567,7 +653,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/ExplanationOfBenefit%'
         and try_cast(fhir_id as BIGINT) >= 0
         and req_qparam_lastupdated != ''
@@ -582,7 +668,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/ExplanationOfBenefit%'
         and try_cast(fhir_id as BIGINT) < 0
         and req_qparam_lastupdated != ''
@@ -597,7 +683,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/Coverage%'
         and try_cast(fhir_id as BIGINT) >= 0
         and req_qparam_lastupdated != ''
@@ -612,7 +698,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and app_name = t2.name
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
         and path LIKE '/v2/fhir/Coverage%'
         and try_cast(fhir_id as BIGINT) < 0
         and req_qparam_lastupdated != ''
@@ -628,7 +714,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
         and auth_status = 'OK'
         and allow = True
@@ -643,7 +729,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) < 0
         and auth_status = 'OK'
         and allow = True
@@ -658,7 +744,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
         and auth_status = 'FAIL'
       )
@@ -672,7 +758,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) < 0
         and auth_status = 'FAIL'
       )
@@ -686,7 +772,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
         and auth_status = 'OK'
         and allow = True
@@ -703,7 +789,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) < 0
         and auth_status = 'OK'
         and allow = True
@@ -720,7 +806,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
         and auth_status = 'OK'
         and allow = True
@@ -737,7 +823,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) < 0
         and auth_status = 'OK'
         and allow = True
@@ -754,7 +840,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
         and allow = False
         and auth_require_demographic_scopes = 'True'
@@ -769,7 +855,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) < 0
         and allow = False
         and auth_require_demographic_scopes = 'True'
@@ -784,7 +870,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
         and auth_status = 'OK'
         and allow = True
@@ -800,7 +886,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) < 0
         and auth_status = 'OK'
         and allow = True
@@ -816,7 +902,7 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) >= 0
         and allow = False
         and auth_require_demographic_scopes = 'False'
@@ -831,12 +917,160 @@ SELECT
       (
         cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
         and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
-        and auth_app_name = t2.name
+        AND t2.name IN (application.name, auth_app_name)
         and try_cast(fhir_id as BIGINT) < 0
         and allow = False
         and auth_require_demographic_scopes = 'False'
       )
-  ) as app_auth_demoscope_not_required_deny_synthetic_bene_count
+  ) as app_auth_demoscope_not_required_deny_synthetic_bene_count,
+  /* Token stats per application */
+  (
+    select
+      count(*)
+    from
+      token_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND action = 'authorized'
+        AND auth_grant_type = 'refresh_token'
+        and application.name = t2.name
+        and try_cast(crosswalk.fhir_id as BIGINT) >= 0
+      )
+  ) as app_token_refresh_for_real_bene_count,
+  (
+    select
+      count(*)
+    from
+      token_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND action = 'authorized'
+        AND auth_grant_type = 'refresh_token'
+        and application.name = t2.name
+        and try_cast(crosswalk.fhir_id as BIGINT) < 0
+      )
+  ) as app_token_refresh_for_synthetic_bene_count,
+  (
+    select
+      count(*)
+    from
+      token_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND auth_grant_type = 'authorization_code'
+        and application.name = t2.name
+        and try_cast(crosswalk.fhir_id as BIGINT) >= 0
+      )
+  ) as app_token_authorization_code_for_real_bene_count,
+  (
+    select
+      count(*)
+    from
+      token_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND auth_grant_type = 'authorization_code'
+        and application.name = t2.name
+        and try_cast(crosswalk.fhir_id as BIGINT) < 0
+      )
+  ) as app_token_authorization_code_for_synthetic_bene_count,
+  /* Token request stats per application */
+  (
+    select
+      count(*)
+    from
+      token_request_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
+        AND auth_grant_type = 'refresh_token'
+        AND response_code >= 200
+        AND response_code < 300
+      )
+  ) as app_token_refresh_response_2xx_count,
+  (
+    select
+      count(*)
+    from
+      token_request_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
+        AND auth_grant_type = 'refresh_token'
+        AND response_code >= 400
+        AND response_code < 500
+      )
+  ) as app_token_refresh_response_4xx_count,
+  (
+    select
+      count(*)
+    from
+      token_request_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
+        AND auth_grant_type = 'refresh_token'
+        AND response_code >= 500
+      )
+  ) as app_token_refresh_response_5xx_count,
+  (
+    select
+      count(*)
+    from
+      token_request_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
+        AND auth_grant_type = 'authorization_code'
+        AND response_code >= 200
+        AND response_code < 300
+      )
+  ) as app_token_authorization_code_2xx_count,
+  (
+    select
+      count(*)
+    from
+      token_request_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
+        AND auth_grant_type = 'authorization_code'
+        AND response_code >= 400
+        AND response_code < 500
+      )
+  ) as app_token_authorization_code_4xx_count,
+  (
+    select
+      count(*)
+    from
+      token_request_events
+    WHERE
+      (
+        cast("from_iso8601_timestamp"(time_of_event) AS date) >= t1.start_date
+        and cast("from_iso8601_timestamp"(time_of_event) AS date) <= t1.end_date
+        AND t2.name IN (app_name, application.name, auth_app_name, req_app_name, resp_app_name)
+        AND auth_grant_type = 'authorization_code'
+        AND response_code >= 500
+      )
+  ) as app_token_authorization_code_5xx_count
 FROM
   (
     (
@@ -1012,26 +1246,11 @@ FROM
           )
         )
     ) t2 ON (
-      (
-        (
-          (
-            (
-              (
-                (
-                  t1.max_group_timestamp = t2.group_timestamp
-                )
-                AND (t1.vpc = t2.vpc)
-              )
-              AND (t2.name <> 'TestApp')
-            )
-            AND (
-              t2.name <> 'BlueButton Client (Test - Internal Use Only)'
-            )
-          )
-          AND (t2.name <> 'MyMedicare PROD')
-        )
-        AND (t2.name <> 'new-relic')
-      )
-      AND (t2.name <> 'MIL-Inaugural Test')
+      t1.max_group_timestamp = t2.group_timestamp
+      AND t1.vpc = t2.vpc
+      AND t2.name <> 'TestApp'
+      AND t2.name <> 'BlueButton Client (Test - Internal Use Only)'
+      AND t2.name <> 'MyMedicare PROD'
+      AND t2.name <> 'new-relic'
     )
   )
