@@ -165,7 +165,7 @@
       <chart>
         <title>4. Percent of beneficiaries who chose NOT to share demographic information</title>
         <search>
-          <query>| makeresults | eval Total1=$beneNotShareCount$, Total2=$beneAllowCount$ | eval percent= round((Total1/(Total1+Total2))*100,1) | table percent</query>
+          <query>| makeresults | eval Total1=$beneNotShareCount$, Total2=$beneAllowCount$ | eval percent= round((Total1/Total2)*100,1) | table percent</query>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="charting.chart">radialGauge</option>
