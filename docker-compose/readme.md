@@ -431,7 +431,7 @@ NOTES:
 
 ## Developing and Running Selenium tests in Local Development
 
-You can run selenium tests by following below steps:
+You can run selenium tests against a local bb2 server by following below steps:
 
 1. Make sure there is no blue button server and its dependent services running
 2. Go to the base directory of the local repo and run:
@@ -472,3 +472,15 @@ You can run selenium tests by following below steps:
    ```
    ./docker-compose/run_selenium_tests_local.sh -d slsx
    ```
+
+## Running Selenium tests on remote BB2 server (SBX, TEST, PROD)
+
+You can run selenium tests against a remote bb2 server by following below steps:
+
+1. From the base directory of the local repo run:
+2. ./docker-compose/run_selenium_tests_remote.sh SBX (run selenium tests against bb2 server on SBX)
+3. ./docker-compose/run_selenium_tests_remote.sh -d SBX (run selenium tests in debug against bb2 server on SBX)
+4. the argument can be the remote ENV's name, it can also be the URL alternatively
+5. ./docker-compose/run_selenium_tests_remote.sh https://sandbox.bluebutton.cms.gov/
+6. ./docker-compose/run_selenium_tests_remote.sh -d https://sandbox.bluebutton.cms.gov/
+
