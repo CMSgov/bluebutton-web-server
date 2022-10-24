@@ -216,9 +216,11 @@ jsonschema==3.2.0 \
     --hash=sha256:4e5b3cf8216f577bee9ce139cbe72eca3ea4f292ec60928ff24758ce626cd163 \
     --hash=sha256:c8a85b28d377cc7737e46e2d9f2b4f44ee3c0e1deac6bf46ddefc7187d30797a
     # via -r requirements/requirements.in
-jwcrypto==1.2 \
-    --hash=sha256:edf4309321721e5161cefccdd64b04509e03924feaf3de085b47780765989ae3
-    # via django-oauth-toolkit
+jwcrypto==1.4.2 \
+    --hash=sha256:80a35e9ed1b3b2c43ce03d92c5d48e6d0b6647e2aa2618e4963448923d78a37b
+    # via
+    #   -r requirements/requirements.in
+    #   django-oauth-toolkit
 newrelic==7.16.0.178 \
     --hash=sha256:0f3c4a6b4c558ffb74acfcb5ba6991e0df4a9d8fcbb103c37044ea41da931d2c \
     --hash=sha256:16afa8c95c9cd20bb7687f0f99abbb94f21967c7c7a5c55be01dddfda9b341d5 \
