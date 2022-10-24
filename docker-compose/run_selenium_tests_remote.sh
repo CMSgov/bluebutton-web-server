@@ -17,24 +17,27 @@ echo_msg () {
 
 display_usage() {
     echo
-    echo "USAGE:"
+    echo "Usage:"
     echo "------------------"
     echo
-    echo "Syntax: run_selenium_tests_remote.sh [-h|d] [<bb2 server url>]"
+    echo "Syntax: run_selenium_tests_remote.sh [-h|d] [SBX|PROD|TEST|<bb2 server url>]"
     echo
-    echo "Run this script with the URL pointing to the remote BB2 server: e.g."
+    echo "Options:"
     echo
-    echo "run_selenium_tests_remote.sh  https://sandbox.bluebutton.cms.gov/ this will run selenium tests against the SBX"
+    echo "-h     Print this Help."
+    echo "-d     Run tests in selenium debug mode (vnc view web UI interaction at http://localhost:5900)."
     echo
-    echo "run_selenium_tests_remote.sh  https://api.bluebutton.cms.gov/ this will run the selenium tests against the PROD"
+    echo "Examples:"
     echo
-    echo "run_selenium_tests_remote.sh  https://test.bluebutton.cms.gov/ this will run the selenium tests against the TEST"
+    echo "run_selenium_tests_remote.sh  https://sandbox.bluebutton.cms.gov/ (or SBX)"
     echo
-    echo "options:"
-    echo "h     Print this Help."
-    echo "d     Run tests in selenium debug mode (vnc view web UI interaction at http://localhost:5900)."
+    echo "run_selenium_tests_remote.sh  https://api.bluebutton.cms.gov/ (or PROD)"
+    echo
+    echo "run_selenium_tests_remote.sh  https://test.bluebutton.cms.gov/ (or TEST)"
     echo
     echo "<bb2 server url> default to SBX (https://sandbox.bluebutton.cms.gov/)"
+    echo
+    echo
 }
 
 # main
@@ -50,53 +53,49 @@ export SERVICE_NAME="selenium-tests-remote"
 export TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
 # BB2 service end point default (SBX)
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
+export USE_DEBUG=false
 
-USE_DEBUG=false
-
-# Parse command line option
-while getopts ":h" option; do
+while getopts "hd" option; do
    case $option in
-      h) # display Help
-         display_usage
-         exit;;
-      d) # selenium in debug mode
-         USE_DEBUG=true
-         exit;;
-     \?) # Invalid option
-         echo "Error: Invalid option"
-         exit;;
+      h)
+        display_usage;
+        exit;;
+      d)
+        export USE_DEBUG=true;
+        shift;break;;
+     \?)
+        display_usage;
+        exit;;
    esac
 done
 
-if [[ -z ${1-''} ]]
+if [[ -n ${1-''} ]]
 then
-    echo "Remote Blue Button Server tested default to SBX: " ${HOSTNAME_URL}
-else
-    export HOSTNAME_URL=$1
+    case "$1" in
+        SBX)
+            export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
+            ;;
+        PROD)
+            export HOSTNAME_URL="https://api.bluebutton.cms.gov/"
+            ;;
+        TEST)
+            export HOSTNAME_URL="https://test.bluebutton.cms.gov/"
+            ;;
+        *)
+            if [[ $1 == 'http*' ]]
+            then
+                export HOSTNAME_URL=$1
+            else
+                echo "Invalid argument: " $1
+                display_usage
+                exit 1
+            fi
+            ;;
+    esac
 fi
 
 # Set SYSTEM
 SYSTEM=$(uname -s)
-
-# creds of the test app registered at target ENV
-export TEST_APP_CLIENT_ID=$(aws ssm get-parameters --names /bb2/test/app/test_app_client_id --query "Parameters[].Value" --output text --with-decryption)
-export TEST_APP_CLIENT_SECRET=$(aws ssm get-parameters --names /bb2/test/app/test_app_client_secret --query "Parameters[].Value" --output text --with-decryption)
-
-# value cleansing of trailing \r on cygwin
-export TEST_APP_CLIENT_ID=${TEST_APP_CLIENT_ID//$'\r'}
-export TEST_APP_CLIENT_SECRET=${TEST_APP_CLIENT_SECRET//$'\r'}
-
-# Check target test app's creds are set
-if [ -z "${TEST_APP_CLIENT_ID}" ]
-then
-    echo_msg "ERROR: The required TEST_APP_CLIENT_ID variable was not set!"
-    exit 1
-fi
-if [ -z "${TEST_APP_CLIENT_SECRET}" ]
-then
-    echo_msg "ERROR: The required TEST_APP_CLIENT_SECRET variable was not set!"
-    exit 1
-fi
 
 echo "USE_DEBUG=" ${USE_DEBUG}
 echo "BB2 Server URL=" ${HOSTNAME_URL}

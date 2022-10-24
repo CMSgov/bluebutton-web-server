@@ -26,6 +26,26 @@ echo_msg () {
     echo "$(basename $0): $*"
 }
 
+display_usage() {
+    echo
+    echo "Usage:"
+    echo "------------------"
+    echo
+    echo "  Use one of the following command line options for the type of test to run:"
+    echo
+    echo "    slsx  = use SLSX for identity service with webdriver in headless mode (can not view browser interaction through vnc viewer)."
+    echo
+    echo "    mslsx (default) = use MSLSX for identity service with webdriver in headless mode."
+    echo
+    echo "    logit  = run integration tests for bb2 loggings, MSLSX used as identity service."
+    echo
+    echo "Options:"
+    echo
+    echo "-h     Print this Help."
+    echo "-d     Run tests in selenium debug mode (vnc view web UI interaction at http://localhost:5900)."
+    echo
+}
+
 # main
 echo_msg
 echo_msg RUNNING SCRIPT:  ${0}
@@ -46,38 +66,34 @@ export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
 export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
 
 # Parse command line option
+while getopts "hd" option; do
+   case $option in
+      h)
+         display_usage
+         exit;;
+      d)
+         export USE_DEBUG=true
+         export SERVICE_NAME="selenium-tests-debug"
+         shift;break;;
+     \?)
+         display_usage
+         exit;;
+   esac
+done
+
+# Parse command line option
 if [ $# -eq 0 ]
 then
   echo "Use MSLSX for identity service."
 else
-  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "slsx-debug" && $1 != "mslsx-debug" && $1 != "debug" && $1 != "logit" ]]
+  echo $1
+  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" ]]
   then
-    echo
-    echo "COMMAND USAGE HELP"
-    echo "------------------"
-    echo
-    echo "  Use one of the following command line options for the type of test to run:"
-    echo
-    echo "    slsx  = use SLSX for identity service with webdriver in headless mode."
-    echo
-    echo "    slsx-debug  = use SLSX for identity service, and start selenium standalone chrome debug mode (visualized browser interactions)."
-    echo
-    echo "    mslsx (default) = use MSLSX for identity service with webdriver in headless mode."
-    echo
-    echo "    mslsx-debug = use MSLSX for identity service with selenium chrome standalone debug mode."
-    echo
-    echo "    debug = same as 'mslsx-debug'"
-    echo
-    echo "    logit  = run integration tests for bb2 loggings, MSLSX used as identity service."
-    echo
+    echo "Invalid argument: " $1
+    display_usage
     exit 1
   else
-    if [[ $1 == *debug ]]
-    then
-        export USE_DEBUG=true
-        export SERVICE_NAME="selenium-tests-debug"
-    fi
-    if [[ $1 == "slsx" || $1 == "slsx-debug" ]]
+    if [[ $1 == "slsx" ]]
     then
       export USE_MSLSX=false
       export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"

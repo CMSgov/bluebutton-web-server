@@ -452,22 +452,23 @@ You can run selenium tests by following below steps:
    ./docker-compose/run_selenium_tests_local.sh slsx
    ```
 
-3. To debug tests (visualize webUI interaction): point VNC client to localhost:5900
+3. To debug tests (visualize browser interaction): point VNC client to localhost:5900
 
    1. requires installation of vnc viewer, password (secret)
-   2. Start tests using -debug parameter as shown below:
-      use MSLSX (default)
+   2. Start tests using -d option as shown below:
+
+   use MSLSX (default)
 
    ```
-   ./docker-compose/run_selenium_tests_local.sh debug
+   ./docker-compose/run_selenium_tests_local.sh -d
    ```
 
    ```
-   ./docker-compose/run_selenium_tests_local.sh mslsx-debug
+   ./docker-compose/run_selenium_tests_local.sh -d mslsx
    ```
 
    use SLSX
 
    ```
-   ./docker-compose/run_selenium_tests_local.sh slsx-debug
+   ./docker-compose/run_selenium_tests_local.sh -d slsx
    ```
