@@ -60,8 +60,8 @@ MSLSX_CSS_BUTTON = "button"
 # SLSX login form
 SLSX_TXT_FLD_USERNAME = "username-textbox"
 SLSX_TXT_FLD_PASSWORD = "password-textbox"
-SLSX_TXT_FLD_USERNAME_VAL = "BBUser00000"
-SLSX_TXT_FLD_PASSWORD_VAL = "PW00000!"
+SLSX_TXT_FLD_USERNAME_VAL = "BBUser29001"
+SLSX_TXT_FLD_PASSWORD_VAL = "PW29001!"
 SLSX_CSS_BUTTON = "login-button"
 # Demographic info access grant form
 BTN_ID_GRANT_DEMO_ACCESS = "approve"
@@ -92,6 +92,12 @@ CLICK_TESTCLIENT = {
     "display": "Click link 'Test Client'",
     "action": Action.FIND_CLICK,
     "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
+}
+
+LOAD_TESTCLIENT_HOME = {
+    "display": "Load Test Client Home Page",
+    "action": Action.LOAD_PAGE,
+    "params": [settings.HOSTNAME_URL + "/testclient"]
 }
 
 CLICK_RADIO_NOT_SHARE = {
@@ -164,7 +170,7 @@ SEQ_AUTHORIZE_START = [
         "action": Action.LOAD_PAGE,
         "params": [settings.HOSTNAME_URL]
     },
-    CLICK_TESTCLIENT,
+    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith('https://api.bluebutton.cms.gov') else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click link to get sample token v1/v2",
         "action": Action.GET_SAMPLE_TOKEN_START,
@@ -182,7 +188,7 @@ SEQ_AUTHORIZE_PKCE_START = [
         "action": Action.LOAD_PAGE,
         "params": [settings.HOSTNAME_URL]
     },
-    CLICK_TESTCLIENT,
+    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith('https://api.bluebutton.cms.gov') else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click link to get sample token v1/v2 with PKCE enabled",
         "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
@@ -226,7 +232,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
     },
-    CLICK_TESTCLIENT,
+    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith('https://api.bluebutton.cms.gov') else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -243,7 +249,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
     },
     WAIT_SECONDS,
-    CLICK_TESTCLIENT,
+    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith('https://api.bluebutton.cms.gov') else LOAD_TESTCLIENT_HOME,
     WAIT_SECONDS,
     {
         "display": "Click 'Profile' on FHIR resources page",
@@ -309,7 +315,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
     },
-    CLICK_TESTCLIENT,
+    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith('https://api.bluebutton.cms.gov') else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -326,7 +332,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
     },
     WAIT_SECONDS,
-    CLICK_TESTCLIENT,
+    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith('https://api.bluebutton.cms.gov') else LOAD_TESTCLIENT_HOME,
     WAIT_SECONDS,
     {
         "display": "Click 'Profile' on FHIR resources page",
