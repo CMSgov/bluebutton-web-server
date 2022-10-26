@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 
 PROD_URL = 'https://api.bluebutton.cms.gov'
 
+
 class Action(Enum):
     LOAD_PAGE = 1
     FIND_CLICK = 2
