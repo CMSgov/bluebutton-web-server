@@ -22,6 +22,7 @@ from .selenium_cases import (
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
     TESTS,
+    PROD_URL,
 )
 
 
@@ -117,7 +118,10 @@ class SeleniumTests(TestCase):
         return elem
 
     def _load_page(self, url, **kwargs):
-        self.driver.get(url)
+        if url == PROD_URL or url == PROD_URL + "/":
+            print("Skip loading page: {}".format(url))
+        else:
+            self.driver.get(url)
 
     def _check_page_title(self, timeout_sec, by, by_expr, fmt, resource_type, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)

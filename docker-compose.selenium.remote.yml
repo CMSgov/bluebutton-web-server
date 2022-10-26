@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  selenium-remote-tests:
+    build:
+      context: ./
+      dockerfile: Dockerfile.selenium
+    command: python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+    env_file:
+      - docker-compose/selenium-env-vars.env
+    volumes:
+      - .:/code
+
+  selenium-remote-tests-debug:
+    build:
+      context: ./
+      dockerfile: Dockerfile.selenium
+    command: python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+    env_file:
+      - docker-compose/selenium-env-vars.env
+    volumes:
+      - .:/code
+    depends_on:
+      - chrome
+
+  chrome:
+    image: selenium/standalone-chrome-debug
+    hostname: chrome
+    ports:
+      - "4444:4444"
+      - "5900:5900"
