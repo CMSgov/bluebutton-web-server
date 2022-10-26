@@ -22,6 +22,7 @@ from .selenium_cases import (
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
     TESTS,
+    PROD_URL,
 )
 
 
@@ -117,7 +118,7 @@ class SeleniumTests(TestCase):
         return elem
 
     def _load_page(self, url, **kwargs):
-        if url == 'https://api.bluebutton.cms.gov/':
+        if url == PROD_URL or url == PROD_URL + "/":
             print("Skip loading page: {}".format(url))
         else:
             self.driver.get(url)
