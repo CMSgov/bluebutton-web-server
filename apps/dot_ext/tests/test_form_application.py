@@ -53,8 +53,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         data = {'name': 'BB2-1666-test-app w trade mark®'}
         form = CustomRegisterApplicationForm(user, data)
         form.is_valid()
-        print(form.errors.get('name'))
-        self.assertTrue("Invalid character(s) in application name" in form.errors.get('name'))
+        self.assertTrue("Invalid character(s) in application name" in str(form.errors.get('name')))
 
         # Test form with website_uri valid URI.
         data = {'website_uri': 'https://www.example.org'}
