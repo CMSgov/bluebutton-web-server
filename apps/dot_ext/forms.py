@@ -17,6 +17,8 @@ import apps.logging.request_logger as bb2logging
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
+PRINTABLE_SPECIAL_ASCII = "!\"#$%&'()*+,-/:;<=>?@[\\]^_`{|}~"
+
 
 class CustomRegisterApplicationForm(forms.ModelForm):
 
@@ -124,6 +126,20 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                         Note that names are case-insensitive.
                                         """
             )
+        if (
+            not app_model.objects.filter(name__iexact=name)
+            .exists()
+        ):
+            # new app, restrict app name to only printable ASCII (32-127)
+            if not (str(name).isprintable() and str(name).isascii()):
+                raise forms.ValidationError(
+                    """
+                                            Invalid character(s) in application name ({}),
+                                            Allowed characters:
+                                            Alphanumeric characters 0 to 9, a to z, A to Z, space character,
+                                            Special characters {}
+                                            """.format(name, PRINTABLE_SPECIAL_ASCII)
+                )
         return name
 
     def clean_agree(self):
