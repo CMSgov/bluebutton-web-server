@@ -38,8 +38,11 @@ class SeleniumUserAndAppTests(SeleniumGenericTests):
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
         self._play(ACCT_TESTS[test_name], step, api_ver=api_ver)
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
-        # step = [0]
-        # test_name = "validate_1st_api_call_email"
-        # self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
-        # self._play(ACCT_TESTS[test_name], step, api_ver=api_ver)
-        # self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+        # test "login_user_account_add_app" will end up with a logout
+        # lastly, use testclient to do an authorize, this will
+        # trigger an email notification of 1st API call
+        step = [0]
+        test_name = "first_api_call_email"
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        self._play(ACCT_TESTS[test_name], step, api_ver=api_ver)
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)

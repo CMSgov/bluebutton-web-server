@@ -67,6 +67,8 @@ MSLSX_CSS_BUTTON = "button"
 USER_ACCT_ACTIVATION_EMAIL_SUBJ = "Subject: Verify Your Blue Button 2.0 Developer Sandbox Account"
 USER_ACCT_1ST_APP_EMAIL_SUBJ = "Subject: Congrats on Registering Your First Application!"
 USER_ACCT_ACTIVATION_KEY_PREFIX = "Activation Key: "
+APP_1ST_API_CALL_EMAIL_SUBJ = "Subject: Congrats on Making Your First API Call"
+
 # create user account form fields
 USER_TXT_FLD_ID_FNAME = "id_first_name"
 USER_TXT_FLD_ID_LNAME = "id_last_name"
@@ -95,6 +97,7 @@ USER_ACCT_CREATED_MSG = "Your account was created. Please check your email to ve
 USER_ACCT_ACTIVATED_MSG = "Your account has been activated. You may now login."
 USER_NOT_ACTIVE_ALERT_MSG = "Please click the verification link in your email before logging in."
 USER_ACTIVATE_BAD_KEY_MSG = "There may be an issue with your account. Contact us at bluebuttonapi@cms.hhs.gov"
+USER_LNK_TXT_ACCT_LOGOUT = "Logout"
 
 # app form
 LNK_TXT_APP_ADD = "Add an Application"
@@ -148,6 +151,12 @@ CLICK_TESTCLIENT = {
     "display": "Click link 'Test Client'",
     "action": Action.FIND_CLICK,
     "params": [30, By.LINK_TEXT, LNK_TXT_TESTCLIENT]
+}
+
+CLICK_RESTART_TESTCLIENT = {
+    "display": "Click link 'restart testclient'",
+    "action": Action.FIND_CLICK,
+    "params": [30, By.LINK_TEXT, LNK_TXT_RESTART_TESTCLIENT]
 }
 
 LOAD_TESTCLIENT_HOME = {
@@ -227,6 +236,19 @@ SEQ_AUTHORIZE_START = [
         "params": [settings.HOSTNAME_URL]
     },
     CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    {
+        "display": "Click link to get sample token v1/v2",
+        "action": Action.GET_SAMPLE_TOKEN_START,
+    },
+    {
+        "display": "Click link 'Authorize as a Beneficiary' - start authorization",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+    },
+]
+
+SEQ_AUTHORIZE_RESTART = [
+    CLICK_RESTART_TESTCLIENT,
     {
         "display": "Click link to get sample token v1/v2",
         "action": Action.GET_SAMPLE_TOKEN_START,
@@ -544,6 +566,18 @@ VALIDATE_1ST_APP_CREATED_EMAIL = {
     "params": [USER_ACCT_1ST_APP_EMAIL_SUBJ, None]
 }
 
+VALIDATE_1ST_API_CALL_EMAIL = {
+    "display": "Check BB2 server log for email notification of 1st API call",
+    "action": Action.VALIDATE_EVENTS,
+    "params": [APP_1ST_API_CALL_EMAIL_SUBJ, None]
+}
+
+USER_ACCT_LOGOUT = {
+    "display": "Find and click the link 'Logout'...",
+    "action": Action.FIND_CLICK,
+    "params": [20, By.LINK_TEXT, USER_LNK_TXT_ACCT_LOGOUT]
+}
+
 SEQ_ADD_APPS = [
     {
         "display": "Click 'Add an Application'...",
@@ -668,6 +702,7 @@ SEQ_DEL_APPS = [
         "action": Action.FIND_CLICK,
         "params": [30, By.NAME, "allow"]
     },
+    WAIT_SECONDS,
     {
         "display": "Check we are back to the all app view...",
         "action": Action.CONTAIN_TEXT,
@@ -713,5 +748,18 @@ ACCT_TESTS = {
         {"sequence": SEQ_ADD_APPS},
         {"sequence": SEQ_UPD_APPS},
         {"sequence": SEQ_DEL_APPS},
+        WAIT_SECONDS,
+        USER_ACCT_LOGOUT,
+    ],
+    # call authorize twice (1st call and 2nd call) - only 1st call emit email notification
+    "first_api_call_email": [
+        {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        CLICK_AGREE_ACCESS,
+        VALIDATE_1ST_APP_CREATED_EMAIL,
+        {"sequence": SEQ_AUTHORIZE_RESTART},
+        CALL_LOGIN,
+        CLICK_AGREE_ACCESS,
+        VALIDATE_1ST_APP_CREATED_EMAIL,
     ]
 }
