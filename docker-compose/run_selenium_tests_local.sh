@@ -205,14 +205,14 @@ echo "SERVICE NAME=" ${SERVICE_NAME}
 
 docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "python runtests.py --selenium ${TESTS_LIST}"
 
-Stop containers after use
+#Stop containers after use
 echo_msg
 echo_msg "Stopping containers..."
 echo_msg
 
 docker-compose -f docker-compose.selenium.yml stop
 
-Remove certfiles from local directory
+#Remove certfiles from local directory
 echo_msg
 echo_msg Shred and Remove certfiles from CERTSTORE_TEMPORARY_MOUNT_PATH=${CERTSTORE_TEMPORARY_MOUNT_PATH}
 echo_msg
