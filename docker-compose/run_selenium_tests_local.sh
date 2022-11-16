@@ -19,8 +19,6 @@ export HOSTNAME_URL="http://bb2slsx:8000"
 # Backend FHIR server to use for selenium tests with FHIR requests:
 FHIR_URL="https://prod-sbx.bfd.cms.gov"
 
-export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
-
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
     echo "$(basename $0): $*"
@@ -36,6 +34,8 @@ display_usage() {
     echo "    slsx  = use SLSX for identity service with webdriver in headless mode (can not view browser interaction through vnc viewer)."
     echo
     echo "    mslsx (default) = use MSLSX for identity service with webdriver in headless mode."
+    echo
+    echo "    account  = test user account management and application management."
     echo
     echo "    logit  = run integration tests for bb2 loggings, MSLSX used as identity service."
     echo
@@ -64,6 +64,8 @@ export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
 export DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
 export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
 export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
+export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
+export BB2_SERVER_STD2FILE=""
 
 # Parse command line option
 while getopts "hd" option; do
@@ -87,7 +89,7 @@ then
   echo "Use MSLSX for identity service."
 else
   echo $1
-  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" ]]
+  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" && $1 != "account" ]]
   then
     echo "Invalid argument: " $1
     display_usage
@@ -105,8 +107,21 @@ else
     fi
     if [[ $1 == "logit" ]]
     then
+      # cleansing log file before run 
+      rm -rf ./docker-compose/tmp/bb2_logging_test.log
+      mkdir ./docker-compose/tmp
+      export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
       export TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
+    fi
+    if [[ $1 == "account" ]]
+    then
+      # cleansing log file before run 
+      rm -rf ./docker-compose/tmp/bb2_account_tests.log
+      mkdir -p ./docker-compose/tmp
+      export TESTS_LIST="apps.integration_tests.selenium_accounts_tests.SeleniumUserAndAppTests"
+      export DJANGO_LOG_JSON_FORMAT_PRETTY=False
+      export BB2_SERVER_STD2FILE="./docker-compose/tmp/bb2_account_tests.log"
     fi
   fi
 fi
@@ -190,14 +205,14 @@ echo "SERVICE NAME=" ${SERVICE_NAME}
 
 docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "python runtests.py --selenium ${TESTS_LIST}"
 
-# Stop containers after use
+#Stop containers after use
 echo_msg
 echo_msg "Stopping containers..."
 echo_msg
 
 docker-compose -f docker-compose.selenium.yml stop
 
-# Remove certfiles from local directory
+#Remove certfiles from local directory
 echo_msg
 echo_msg Shred and Remove certfiles from CERTSTORE_TEMPORARY_MOUNT_PATH=${CERTSTORE_TEMPORARY_MOUNT_PATH}
 echo_msg

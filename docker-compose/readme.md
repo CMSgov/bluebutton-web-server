@@ -452,6 +452,12 @@ You can run selenium tests against a local bb2 server by following below steps:
    ./docker-compose/run_selenium_tests_local.sh slsx
    ```
 
+   Use the following for running user account management and application management type tests:
+
+   ```
+   ./docker-compose/run_selenium_tests_local.sh account
+   ```
+
 3. To debug tests (visualize browser interaction): point VNC client to localhost:5900
 
    1. requires installation of vnc viewer, password (secret)
