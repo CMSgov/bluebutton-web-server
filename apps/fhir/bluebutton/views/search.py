@@ -112,9 +112,14 @@ class SearchViewExplanationOfBenefit(SearchView):
     # Regex to match a list of comma separated type values with IGNORECASE
     REGEX_TYPE_VALUES_LIST = r'(?i)^((' + REGEX_TYPE_VALUE + r')\s*,*\s*)+$'
 
+    # Regex to match a valid service-date value that can begin with lt, le, gt and ge operators
+    REGEX_SERVICE_DATE_VALUE = r'^((lt)|(le)|(gt)|(ge)).+'
+
     # Add type parameter to schema only for EOB
     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
-                    'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid")}
+                    'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid"),
+                    'service-date': Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")
+                    }
 
     def __init__(self, version=1):
         super().__init__(version)
