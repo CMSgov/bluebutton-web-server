@@ -50,6 +50,8 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
     class Meta:
         model = MyApplication
         fields = (
+            "type",
+            "end_date",
             "client_id",
             "user",
             "client_type",
@@ -80,6 +82,24 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         )
 
     def clean(self):
+        # BB2-1774 Validate data access type and end_date
+        data_access_type = self.cleaned_data.get("type")
+        end_date = self.cleaned_data.get("end_date")
+
+        if (
+            data_access_type == "RESEARCH_STUDY"
+            and end_date is None
+        ):
+            raise forms.ValidationError(
+                "An end_date is required for the RESEARCH_STUDY type!")
+
+        if (
+            data_access_type != "RESEARCH_STUDY"
+            and end_date is not None
+        ):
+            raise forms.ValidationError(
+                "An end_date is ONLY required for the RESEARCH_STUDY type!")
+
         return self.cleaned_data
 
     def clean_agree(self):
@@ -91,8 +111,9 @@ class MyApplicationAdmin(admin.ModelAdmin):
     form = CustomAdminApplicationForm
     list_display = (
         "name",
+        "get_type",
+        "get_end_date",
         "user",
-        "authorization_grant_type",
         "client_id",
         "require_demographic_scopes",
         "scopes",
@@ -102,8 +123,8 @@ class MyApplicationAdmin(admin.ModelAdmin):
         "skip_authorization",
     )
     list_filter = (
-        "client_type",
-        "authorization_grant_type",
+        "type",
+        "end_date",
         "require_demographic_scopes",
         "active",
         "skip_authorization",
@@ -115,6 +136,7 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
     search_fields = (
         "name",
+        "type",
         "user__username",
         "=client_id",
         "=require_demographic_scopes",
@@ -123,6 +145,15 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
     raw_id_fields = ("user",)
 
+    # BB2-1774
+    def get_type(self, obj):
+        return obj.type
+    get_type.short_description = "Data Access Type"
+
+    def get_end_date(self, obj):
+        return obj.end_date
+    get_end_date.short_description = "Data Access End Date"
+
 
 @admin.register(CreateNewApplication)
 class CreateNewApplicationAdmin(admin.ModelAdmin):
@@ -130,7 +161,6 @@ class CreateNewApplicationAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "user",
-        "authorization_grant_type",
         "client_id",
         "created",
         "updated",
