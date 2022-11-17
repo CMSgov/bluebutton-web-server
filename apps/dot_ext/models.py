@@ -119,6 +119,24 @@ class Application(AbstractApplication):
         default=True, null=True, verbose_name="Are demographic scopes required?"
     )
 
+    # BB2-1774 Type choices related to data access limits.
+    APPLICATION_TYPE_CHOICES = (
+        ("ONE_TIME", "ONE_TIME - No refresh token needed."),
+        ("RESEARCH_STUDY", "RESEARCH_STUDY - Expires on end_date."),
+        ("THIRTEEN_MONTH", "THIRTEEN_MONTH - Access expires in 13-months."),
+    )
+
+    # BB2-1774 Type related to data access limits.
+    type = models.CharField(default="ONE_TIME",
+                            choices=APPLICATION_TYPE_CHOICES,
+                            max_length=16,
+                            null=True,
+                            verbose_name="Data Access Type:")
+
+    # BB2-1774 Application end_date related to data access limits.
+    end_date = models.DateTimeField(null=True, blank=True,
+                                    verbose_name="RESEARCH_STUDY End Date:")
+
     def scopes(self):
         scope_list = []
         for s in self.scope.all():
