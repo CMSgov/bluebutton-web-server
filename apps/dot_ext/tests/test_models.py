@@ -13,7 +13,7 @@ from apps.test import BaseApiTest
 class TestDotExtModels(BaseApiTest):
     def test_application_data_access_fields(self):
         """
-        BB2-1774 Test the CRUD operations & validation
+        Test the CRUD operations & validation
         on new data access fields from apps.dot_ext.models
         """
         # Create dev user for tests.

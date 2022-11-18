@@ -72,7 +72,7 @@ def validate_app_is_active(request):
 
 def is_data_access_type_valid(data_access_type, end_date):
     """
-    BB2-1774 Validate data_access_type & end_date combo is valid.
+    Validate data_access_type & end_date combo is valid.
         Returns: True/False & exception message for use.
     """
     if (

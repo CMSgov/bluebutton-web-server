@@ -82,7 +82,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         )
 
     def clean(self):
-        # BB2-1774 Validate data access type and end_date
+        # Validate data access type and end_date
         data_access_type = self.cleaned_data.get("data_access_type")
         end_date = self.cleaned_data.get("end_date")
 
@@ -136,7 +136,6 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
     raw_id_fields = ("user",)
 
-    # BB2-1774
     def get_data_access_type(self, obj):
         return obj.data_access_type
     get_data_access_type.short_description = "Data Access Type"
