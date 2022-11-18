@@ -4,7 +4,7 @@ from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 from .forms import CreateNewApplicationForm, CustomRegisterApplicationForm
 from .models import ApplicationLabel, AuthFlowUuid
-
+from .utils import is_data_access_type_valid
 
 Application = get_application_model()
 
@@ -86,19 +86,10 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         data_access_type = self.cleaned_data.get("type")
         end_date = self.cleaned_data.get("end_date")
 
-        if (
-            data_access_type == "RESEARCH_STUDY"
-            and end_date is None
-        ):
-            raise forms.ValidationError(
-                "An end_date is required for the RESEARCH_STUDY type!")
+        is_valid, mesg = is_data_access_type_valid(data_access_type, end_date)
 
-        if (
-            data_access_type != "RESEARCH_STUDY"
-            and end_date is not None
-        ):
-            raise forms.ValidationError(
-                "An end_date is ONLY required for the RESEARCH_STUDY type!")
+        if not is_valid:
+            raise forms.ValidationError(mesg)
 
         return self.cleaned_data
 
