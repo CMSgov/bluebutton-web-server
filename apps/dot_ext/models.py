@@ -130,10 +130,10 @@ class Application(AbstractApplication):
 
     # Type related to data access limits.
     data_access_type = models.CharField(default="ONE_TIME",
-                            choices=APPLICATION_TYPE_CHOICES,
-                            max_length=16,
-                            null=True,
-                            verbose_name="Data Access Type:")
+                                        choices=APPLICATION_TYPE_CHOICES,
+                                        max_length=16,
+                                        null=True,
+                                        verbose_name="Data Access Type:")
 
     # Application end_date related to data access limits.
     end_date = models.DateTimeField(null=True, blank=True,
