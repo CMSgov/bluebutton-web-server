@@ -50,7 +50,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
     class Meta:
         model = MyApplication
         fields = (
-            "type",
+            "data_access_type",
             "end_date",
             "client_id",
             "user",
@@ -83,7 +83,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
 
     def clean(self):
         # BB2-1774 Validate data access type and end_date
-        data_access_type = self.cleaned_data.get("type")
+        data_access_type = self.cleaned_data.get("data_access_type")
         end_date = self.cleaned_data.get("end_date")
 
         is_valid, mesg = is_data_access_type_valid(data_access_type, end_date)
@@ -102,7 +102,7 @@ class MyApplicationAdmin(admin.ModelAdmin):
     form = CustomAdminApplicationForm
     list_display = (
         "name",
-        "get_type",
+        "get_data_access_type",
         "get_end_date",
         "user",
         "client_id",
@@ -114,7 +114,7 @@ class MyApplicationAdmin(admin.ModelAdmin):
         "skip_authorization",
     )
     list_filter = (
-        "type",
+        "data_access_type",
         "end_date",
         "require_demographic_scopes",
         "active",
@@ -127,7 +127,7 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
     search_fields = (
         "name",
-        "type",
+        "data_access_type",
         "user__username",
         "=client_id",
         "=require_demographic_scopes",
@@ -137,9 +137,9 @@ class MyApplicationAdmin(admin.ModelAdmin):
     raw_id_fields = ("user",)
 
     # BB2-1774
-    def get_type(self, obj):
-        return obj.type
-    get_type.short_description = "Data Access Type"
+    def get_data_access_type(self, obj):
+        return obj.data_access_type
+    get_data_access_type.short_description = "Data Access Type"
 
     def get_end_date(self, obj):
         return obj.end_date

@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="application",
-            name="type",
+            name="data_access_type",
             field=models.CharField(
                 choices=[
                     ("ONE_TIME", "ONE_TIME - No refresh token needed."),

@@ -129,7 +129,7 @@ class Application(AbstractApplication):
     )
 
     # BB2-1774 Type related to data access limits.
-    type = models.CharField(default="ONE_TIME",
+    data_access_type = models.CharField(default="ONE_TIME",
                             choices=APPLICATION_TYPE_CHOICES,
                             max_length=16,
                             null=True,
@@ -193,10 +193,10 @@ class Application(AbstractApplication):
     # BB2-1774 Save override to restrict invalid field combos.
     def save(self, *args, **kwargs):
         # Check data_access_type is in choices tuple
-        if not (self.type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)):
-            raise ValueError("Invalid data_access_type: " + self.type)
+        if not (self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)):
+            raise ValueError("Invalid data_access_type: " + self.data_access_type)
 
-        is_valid, mesg = is_data_access_type_valid(self.type, self.end_date)
+        is_valid, mesg = is_data_access_type_valid(self.data_access_type, self.end_date)
 
         if not is_valid:
             raise ValueError(mesg)

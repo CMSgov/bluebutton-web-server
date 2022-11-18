@@ -107,7 +107,7 @@ class BaseApiTest(TestCase):
         )
 
         if data_access_type:
-            application.type = data_access_type
+            application.data_access_type = data_access_type
 
         if end_date:
             application.end_date = end_date
