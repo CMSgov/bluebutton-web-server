@@ -184,15 +184,20 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
 
         # Test service-date range with valid parameter starting with "lt" and "ge"
-        # with HTTMock(catchall):
-        #     response = self.client.get(
-        #         reverse('bb_oauth_fhir_eob_search' if not v2 else 'bb_oauth_fhir_eob_search_v2'),
-        #         {'service-date': 'lt2022-11-18', 'service-date': 'ge2000-11-18'},
-        #         Authorization="Bearer %s" % (first_access_token))
-        #     self.assertEqual(response.status_code, 200)
-        #     # assert v1 and v2 eob
-        #     for r in response.json()['entry']:
-        #         self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
+        # example url:
+        # http://localhost:8000/v2/fhir/ExplanationOfBenefit?
+        # _format=application%2Fjson%2Bfhir&startIndex=0
+        # &_count=10&patient=-20000000000001
+        # &service-date=gt2000-01-01
+        # &service-date=le2022-11-18
+        with HTTMock(catchall):
+            search_url = reverse('bb_oauth_fhir_eob_search' if not v2 else 'bb_oauth_fhir_eob_search_v2')
+            response = self.client.get(search_url + "?service-date=gt2000-01-01&service-date=le2022-11-18",
+                                       Authorization="Bearer %s" % (first_access_token))
+            self.assertEqual(response.status_code, 200)
+            # assert v1 and v2 eob
+            for r in response.json()['entry']:
+                self._assertHasC4BBProfile(r['resource'], C4BB_PROFILE_URLS['PHARMACY'], v2)
 
         # Test service-date with invalid parameter starting with "dd"
         with HTTMock(catchall):
