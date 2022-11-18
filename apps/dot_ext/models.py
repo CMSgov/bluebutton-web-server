@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 import sys
 import uuid
 
@@ -23,6 +24,7 @@ from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
 
 from apps.capabilities.models import ProtectedCapability
+from .utils import is_data_access_type_valid
 
 
 class Application(AbstractApplication):
@@ -187,6 +189,19 @@ class Application(AbstractApplication):
                 if default_storage.exists(file_path):
                     uri = settings.MEDIA_URL + file_path
         return uri
+
+    # BB2-1774 Save override to restrict invalid field combos.
+    def save(self, *args, **kwargs):
+        # Check data_access_type is in choices tuple
+        if not (self.type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)):
+            raise ValueError("Invalid data_access_type: " + self.type)
+
+        is_valid, mesg = is_data_access_type_valid(self.type, self.end_date)
+
+        if not is_valid:
+            raise ValueError(mesg)
+
+        super().save(*args, **kwargs)
 
 
 class ApplicationLabel(models.Model):
