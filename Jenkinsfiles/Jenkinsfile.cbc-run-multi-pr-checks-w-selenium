@@ -57,6 +57,7 @@ pipeline {
           . venv/bin/activate
           pip install selenium
           pip install cryptography==37.0.2
+          pip install django==3.2.16
           make reqs-install-dev
         """
       }
