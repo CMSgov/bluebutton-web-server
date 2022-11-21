@@ -1,5 +1,5 @@
 # base packages
-django==3.2.15
+django==3.2.16
 django-getenv
 django-bootstrap-form
 django-cors-headers
@@ -20,12 +20,12 @@ urllib3
 requests_oauthlib
 pytz
 configparser==3.5.0
-dj-database-url
+dj-database-url==0.5.0
 pyjwt==2.4.0
 newrelic==7.16.0.178
 psycopg2-binary==2.9.3
 sqlparse
-Pillow==9.0.1
+Pillow==9.3.0
 boto3
 djangorestframework-yaml
 voluptuous
