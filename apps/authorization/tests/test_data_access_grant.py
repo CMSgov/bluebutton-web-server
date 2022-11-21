@@ -1,6 +1,9 @@
+import pytz
+from django.db import transaction
+from django.db.utils import IntegrityError
 from django.http import HttpRequest
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 # from oauth2_provider.compat import parse_qs, urlparse
 from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import (
@@ -11,6 +14,7 @@ from django.urls import reverse
 from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,
+    ArchivedDataAccessGrant,
     check_grants,
     update_grants,
 )
@@ -20,6 +24,57 @@ AccessToken = get_access_token_model()
 
 
 class TestDataAccessGrant(BaseApiTest):
+    def test_create_update_delete(self):
+        # 1. Test create and default expiration_date
+        dev_user = self._create_user("developer_test", "123456")
+        bene_user = self._create_user("test_beneficiary", "123456")
+        test_app = self._create_application("test_app", user=dev_user)
+
+        DataAccessGrant.objects.create(
+            application=test_app,
+            beneficiary=bene_user,
+        )
+        dac = DataAccessGrant.objects.get(
+            beneficiary__username="test_beneficiary", application__name="test_app"
+        )
+
+        #     Is the default Null?
+        self.assertEqual(None, dac.expiration_date)
+
+        # 2. Test expire_date updated.
+        dac.expiration_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        dac.save()
+        dac = DataAccessGrant.objects.get(
+            beneficiary__username="test_beneficiary", application__name="test_app"
+        )
+        self.assertEqual("2030-01-15 00:00:00+00:00", str(dac.expiration_date))
+
+        # 3. Test unique constraints.
+        with transaction.atomic():
+            with self.assertRaises(IntegrityError):
+                DataAccessGrant.objects.create(
+                    application=test_app,
+                    beneficiary=bene_user,
+                )
+
+        # 4. Test delete and archived.
+        #     Verify it doesn't exist yet.
+        with self.assertRaises(ArchivedDataAccessGrant.DoesNotExist):
+            ArchivedDataAccessGrant.objects.get(
+                beneficiary__username="test_beneficiary", application__name="test_app"
+            )
+
+        dac = DataAccessGrant.objects.get(
+            beneficiary__username="test_beneficiary", application__name="test_app"
+        )
+
+        dac.delete()
+
+        #     Verify it does exist and archived.
+        ArchivedDataAccessGrant.objects.get(
+            beneficiary__username="test_beneficiary", application__name="test_app"
+        )
+
     def test_creation_on_approval(self):
         redirect_uri = 'http://localhost'
         # create a user
