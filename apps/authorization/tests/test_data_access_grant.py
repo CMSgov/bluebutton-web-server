@@ -71,9 +71,12 @@ class TestDataAccessGrant(BaseApiTest):
         dac.delete()
 
         #     Verify it does exist and archived.
-        ArchivedDataAccessGrant.objects.get(
+        arch_dac = ArchivedDataAccessGrant.objects.get(
             beneficiary__username="test_beneficiary", application__name="test_app"
         )
+
+        #    Verify expiration_date copied OK.
+        self.assertEqual("2030-01-15 00:00:00+00:00", str(arch_dac.expiration_date))
 
     def test_creation_on_approval(self):
         redirect_uri = 'http://localhost'
