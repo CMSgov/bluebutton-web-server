@@ -83,6 +83,8 @@ class BaseApiTest(TestCase):
         grant_type=None,
         capability=None,
         user=None,
+        data_access_type=None,
+        end_date=None,
         **kwargs
     ):
         """
@@ -103,6 +105,16 @@ class BaseApiTest(TestCase):
             authorization_grant_type=grant_type,
             **kwargs
         )
+
+        if data_access_type:
+            application.data_access_type = data_access_type
+
+        if end_date:
+            application.end_date = end_date
+
+        if data_access_type or end_date:
+            application.save()
+
         # add capability
         if capability:
             application.scope.add(capability)

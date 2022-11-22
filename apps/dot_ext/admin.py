@@ -4,7 +4,7 @@ from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
 from .forms import CreateNewApplicationForm, CustomRegisterApplicationForm
 from .models import ApplicationLabel, AuthFlowUuid
-
+from .utils import is_data_access_type_valid
 
 Application = get_application_model()
 
@@ -50,6 +50,8 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
     class Meta:
         model = MyApplication
         fields = (
+            "data_access_type",
+            "end_date",
             "client_id",
             "user",
             "client_type",
@@ -80,6 +82,15 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         )
 
     def clean(self):
+        # Validate data access type and end_date
+        data_access_type = self.cleaned_data.get("data_access_type")
+        end_date = self.cleaned_data.get("end_date")
+
+        is_valid, mesg = is_data_access_type_valid(data_access_type, end_date)
+
+        if not is_valid:
+            raise forms.ValidationError(mesg)
+
         return self.cleaned_data
 
     def clean_agree(self):
@@ -91,8 +102,9 @@ class MyApplicationAdmin(admin.ModelAdmin):
     form = CustomAdminApplicationForm
     list_display = (
         "name",
+        "get_data_access_type",
+        "get_end_date",
         "user",
-        "authorization_grant_type",
         "client_id",
         "require_demographic_scopes",
         "scopes",
@@ -102,8 +114,8 @@ class MyApplicationAdmin(admin.ModelAdmin):
         "skip_authorization",
     )
     list_filter = (
-        "client_type",
-        "authorization_grant_type",
+        "data_access_type",
+        "end_date",
         "require_demographic_scopes",
         "active",
         "skip_authorization",
@@ -115,6 +127,7 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
     search_fields = (
         "name",
+        "data_access_type",
         "user__username",
         "=client_id",
         "=require_demographic_scopes",
@@ -123,6 +136,14 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
     raw_id_fields = ("user",)
 
+    def get_data_access_type(self, obj):
+        return obj.data_access_type
+    get_data_access_type.short_description = "Data Access Type"
+
+    def get_end_date(self, obj):
+        return obj.end_date
+    get_end_date.short_description = "Data Access End Date"
+
 
 @admin.register(CreateNewApplication)
 class CreateNewApplicationAdmin(admin.ModelAdmin):
@@ -130,7 +151,6 @@ class CreateNewApplicationAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "user",
-        "authorization_grant_type",
         "client_id",
         "created",
         "updated",

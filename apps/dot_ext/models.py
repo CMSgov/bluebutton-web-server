@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 import sys
 import uuid
 
@@ -23,6 +24,7 @@ from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
 
 from apps.capabilities.models import ProtectedCapability
+from .utils import is_data_access_type_valid
 
 
 class Application(AbstractApplication):
@@ -119,6 +121,24 @@ class Application(AbstractApplication):
         default=True, null=True, verbose_name="Are demographic scopes required?"
     )
 
+    # Type choices related to data access limits.
+    APPLICATION_TYPE_CHOICES = (
+        ("ONE_TIME", "ONE_TIME - No refresh token needed."),
+        ("RESEARCH_STUDY", "RESEARCH_STUDY - Expires on end_date."),
+        ("THIRTEEN_MONTH", "THIRTEEN_MONTH - Access expires in 13-months."),
+    )
+
+    # Type related to data access limits.
+    data_access_type = models.CharField(default="ONE_TIME",
+                                        choices=APPLICATION_TYPE_CHOICES,
+                                        max_length=16,
+                                        null=True,
+                                        verbose_name="Data Access Type:")
+
+    # Application end_date related to data access limits.
+    end_date = models.DateTimeField(null=True, blank=True,
+                                    verbose_name="RESEARCH_STUDY End Date:")
+
     def scopes(self):
         scope_list = []
         for s in self.scope.all():
@@ -169,6 +189,19 @@ class Application(AbstractApplication):
                 if default_storage.exists(file_path):
                     uri = settings.MEDIA_URL + file_path
         return uri
+
+    # Save override to restrict invalid field combos.
+    def save(self, *args, **kwargs):
+        # Check data_access_type is in choices tuple
+        if not (self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)):
+            raise ValueError("Invalid data_access_type: " + self.data_access_type)
+
+        is_valid, mesg = is_data_access_type_valid(self.data_access_type, self.end_date)
+
+        if not is_valid:
+            raise ValueError(mesg)
+
+        super().save(*args, **kwargs)
 
 
 class ApplicationLabel(models.Model):
