@@ -4,6 +4,8 @@ from voluptuous import (
     Match,
     Range,
     Coerce,
+    Schema,
+    REMOVE_EXTRA,
 )
 from rest_framework import (permissions)
 
@@ -112,9 +114,14 @@ class SearchViewExplanationOfBenefit(SearchView):
     # Regex to match a list of comma separated type values with IGNORECASE
     REGEX_TYPE_VALUES_LIST = r'(?i)^((' + REGEX_TYPE_VALUE + r')\s*,*\s*)+$'
 
+    # Regex to match a valid service-date value that can begin with lt, le, gt and ge operators
+    REGEX_SERVICE_DATE_VALUE = r'^((lt)|(le)|(gt)|(ge)).+'
+
     # Add type parameter to schema only for EOB
     QUERY_SCHEMA = {**SearchView.QUERY_SCHEMA,
-                    'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid")}
+                    'type': Match(REGEX_TYPE_VALUES_LIST, msg="the type parameter value is not valid"),
+                    'service-date': [Match(REGEX_SERVICE_DATE_VALUE, msg="the service-date operator is not valid")]
+                    }
 
     def __init__(self, version=1):
         super().__init__(version)
@@ -125,3 +132,17 @@ class SearchViewExplanationOfBenefit(SearchView):
             '_format': 'application/json+fhir',
             'patient': request.crosswalk.fhir_id,
         }
+
+    def filter_parameters(self, request):
+        params = self.map_parameters(request.query_params.dict())
+        # Get list from _lastUpdated QueryDict(), since it can have multi params
+        params['_lastUpdated'] = request.query_params.getlist('_lastUpdated')
+        # Get list from service-date QueryDict(), since it can have multi params
+        service_dates = request.query_params.getlist('service-date')
+        if service_dates:
+            params['service-date'] = service_dates
+
+        schema = Schema(
+            getattr(self, "QUERY_SCHEMA", {}),
+            extra=REMOVE_EXTRA)
+        return schema(params)

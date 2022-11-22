@@ -6,7 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from django.conf import settings
 
-Application = get_application_model()
+
 User = get_user_model()
 
 
@@ -44,6 +44,7 @@ def remove_application_user_pair_tokens_data_access(application, user):
 
 
 def validate_app_is_active(request):
+    Application = get_application_model()
 
     client_id, ac, app = None, None, None
 
@@ -67,3 +68,23 @@ def validate_app_is_active(request):
 
     except Application.DoesNotExist:
         pass
+
+
+def is_data_access_type_valid(data_access_type, end_date):
+    """
+    Validate data_access_type & end_date combo is valid.
+        Returns: True/False & exception message for use.
+    """
+    if (
+        data_access_type == "RESEARCH_STUDY"
+        and end_date is None
+    ):
+        return False, "An end_date is required for the RESEARCH_STUDY type!"
+
+    if (
+        data_access_type not in ["RESEARCH_STUDY", None]
+        and end_date is not None
+    ):
+        return False, "An end_date is ONLY required for the RESEARCH_STUDY type!"
+
+    return True, None
