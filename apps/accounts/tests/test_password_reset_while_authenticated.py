@@ -85,7 +85,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         self.client.login(request=request, username="fred", password="foobarfoobarfoobar")
         url = reverse('password_change')
         # sleep 3 sec to let min password age of 3 sec elapse
-        time.sleep(3)
+        time.sleep(5)
         # current password has not reached min password age
         # new password does not have >= 2 upper case
         form_data = {'old_password': 'foobarfoobarfoobar',
