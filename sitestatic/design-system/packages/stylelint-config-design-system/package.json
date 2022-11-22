@@ -14,7 +14,7 @@
     "index.js"
   ],
   "dependencies": {
-    "stylelint-order": "^0.7.0",
+    "stylelint-order": "^1.0.0",
     "stylelint-scss": "^2.1.0"
   },
   "peerDependencies": {
