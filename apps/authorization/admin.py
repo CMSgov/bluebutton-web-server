@@ -1,31 +1,44 @@
 from django.contrib import admin
-from .models import (
-    DataAccessGrant,
-    update_grants,
-    check_grants,
-)
-
-
-def sync(modeladmin, request, queryset):
-    update_grants()
-
-
-sync.short_description = "Sync Data Access Grants to existing Tokens"
+from .models import ArchivedDataAccessGrant, DataAccessGrant
 
 
 class DataAccessGrantAdmin(admin.ModelAdmin):
+    list_display = (
+        "application",
+        "beneficiary",
+        "expiration_date",
+        "created_at",
+    )
 
-    def get_actions(self, request):
-        actions = super().get_actions(request)
-        current_state = check_grants()
-        current_state_text = ": {} unique AccessTokens, {} Data Access Grants".format(
-            current_state["unique_tokens"],
-            current_state["grants"])
+    list_filter = (
+        "created_at",
+        "expiration_date",
+    )
 
-        actions[sync.__name__] = (sync,
-                                  sync.__name__,
-                                  sync.short_description + current_state_text)
-        return actions
+    search_fields = (
+        "application__name",
+        "beneficiary__username",
+    )
+
+
+class ArchivedDataAccessGrantAdmin(admin.ModelAdmin):
+    list_display = (
+        "application",
+        "beneficiary",
+        "expiration_date",
+        "created_at",
+    )
+
+    list_filter = (
+        "created_at",
+        "expiration_date",
+    )
+
+    search_fields = (
+        "application__name",
+        "beneficiary__username",
+    )
 
 
 admin.site.register(DataAccessGrant, DataAccessGrantAdmin)
+admin.site.register(ArchivedDataAccessGrant, ArchivedDataAccessGrantAdmin)
