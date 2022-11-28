@@ -300,7 +300,7 @@ class BaseApiTest(TestCase):
 
         content = json.loads(response.content.decode("utf-8"))
 
-        return content["access_token"]
+        return content
 
     def _create_or_update_development_user(self, username, organization):
         # Create dev user, if it doesn't exist
