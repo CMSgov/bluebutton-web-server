@@ -547,6 +547,11 @@ APPLICATION_TEMPORARILY_INACTIVE = (
     " please contact the application's support team or call 1-800-MEDICARE (1-800-633-4227)"
 )
 
+APPLICATION_RESEARCH_STUDY_ENDED_MESG = (
+    "Research study end date reached. "
+    "End user must log in to authorize refreshing of their Medicare data."
+)
+
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
