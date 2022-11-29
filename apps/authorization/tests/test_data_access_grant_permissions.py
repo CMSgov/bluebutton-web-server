@@ -197,7 +197,7 @@ class TestDataAccessGrantPermissions(BaseApiTest):
                     self.assertEqual(content["detail"], expected_response_detail_mesg)
 
     @override_switch('limit_data_access', active=False)
-    def test_fhir_endpoints(self):
+    def test_fhir_endpoints_without_switch_limit_data_access(self):
         """
         Test data access for FHIR and profile end points
         with limit-data-access switch False.
@@ -227,6 +227,34 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
+        # 3. Test with application in-active/disabled (response_code=403)
+        app.active = False
+        app.save()
+
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=403,
+            expected_response_detail_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
+        )
+
+        # 4. Test with RESEARCH_STUDY application end_date IS NOT expired (response_code=200)
+        app.active = True
+        app.data_access_type = "RESEARCH_STUDY"
+        app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        app.save()
+
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=200
+        )
+
+        # 5. Test with RESEARCH_STUDY application end_date IS expired w/o feature switch (response_code=200)
+        app.active = True
+        app.data_access_type = "RESEARCH_STUDY"
+        app.end_date = datetime(1999, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        app.save()
+
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=200)
+
         # 3. Test that all calls return 401 (Unauthorized) after grant delete
         dag = DataAccessGrant.objects.get(
             beneficiary__username="firstlast1@example.com",
@@ -241,7 +269,7 @@ class TestDataAccessGrantPermissions(BaseApiTest):
         )
 
     @override_switch('limit_data_access', active=True)
-    def test_fhir_endpoints_limit_data_access(self):
+    def test_fhir_endpoints_with_switch_limit_data_access(self):
         """
         Test data access for FHIR and profile end points
         with limit-data-access switch True.
@@ -290,13 +318,13 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-        # 5. Test with RESEARCH_STUDY application end_date IS expired (response_code=403)
+        # 5. Test with RESEARCH_STUDY application end_date IS expired (response_code=401)
         app.active = True
         app.data_access_type = "RESEARCH_STUDY"
         app.end_date = datetime(1999, 1, 15, 0, 0, 0, 0, pytz.UTC)
         app.save()
 
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=403,
+            access_token=ac["access_token"], expected_response_code=401,
             expected_response_detail_mesg=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
         )
