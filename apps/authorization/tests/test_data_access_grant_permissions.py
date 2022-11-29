@@ -197,7 +197,7 @@ class TestDataAccessGrantPermissions(BaseApiTest):
                     self.assertEqual(content["detail"], expected_response_detail_mesg)
 
     @override_switch('limit_data_access', active=False)
-    def test_fhir_endpoints_without_switch_limit_data_access(self):
+    def test_research_study_app_type_without_switch_limit_data_access(self):
         """
         Test data access for FHIR and profile end points
         with limit-data-access switch False.
@@ -269,7 +269,7 @@ class TestDataAccessGrantPermissions(BaseApiTest):
         )
 
     @override_switch('limit_data_access', active=True)
-    def test_fhir_endpoints_with_switch_limit_data_access(self):
+    def test_research_study_app_type_with_switch_limit_data_access(self):
         """
         Test data access for FHIR and profile end points
         with limit-data-access switch True.
