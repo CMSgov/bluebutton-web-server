@@ -1,5 +1,11 @@
-from httmock import HTTMock, urlmatch
+import json
+import pytz
+from datetime import datetime
+from django.conf import settings
 from django.test.client import Client
+from httmock import HTTMock, urlmatch
+from waffle import switch_is_active
+from waffle.testutils import override_switch
 
 from apps.test import BaseApiTest
 from apps.authorization.models import (
@@ -112,24 +118,33 @@ class TestDataAccessGrantPermissions(BaseApiTest):
         # Setup the RequestFactory
         self.client = Client()
 
-    def _call_all_fhir_endpoints(self, access_token=None, expected_response_code=None):
+    def _assert_call_all_fhir_endpoints(self, access_token=None,
+                                        expected_response_code=None,
+                                        expected_response_detail_mesg=None):
         """
         This method calls all FHIR and Profile (userinfo)
         end points for use in tests.
 
-        The asserts will check for the expected_response_code.
+        The asserts will check for the expected_response_code
+        and expected_response_detail_mesg to match.
         """
         # Test profile/userinfo v1
         response = self.client.get(
             "/v1/connect/userinfo", HTTP_AUTHORIZATION="Bearer " + access_token
         )
         self.assertEqual(response.status_code, expected_response_code)
+        if expected_response_detail_mesg is not None:
+            content = json.loads(response.content)
+            self.assertEqual(content["detail"], expected_response_detail_mesg)
 
         # Test profile/userinfo v2
         response = self.client.get(
             "/v2/connect/userinfo", HTTP_AUTHORIZATION="Bearer " + access_token
         )
         self.assertEqual(response.status_code, expected_response_code)
+        if expected_response_detail_mesg is not None:
+            content = json.loads(response.content)
+            self.assertEqual(content["detail"], expected_response_detail_mesg)
 
         # Test FHIR read views
         with HTTMock(
@@ -152,8 +167,9 @@ class TestDataAccessGrantPermissions(BaseApiTest):
                     path, HTTP_AUTHORIZATION="Bearer " + access_token
                 )
                 self.assertEqual(response.status_code, expected_response_code)
-                # content = json.loads(response.content)
-                # print("CONTENT:  ", content)
+                if expected_response_detail_mesg is not None:
+                    content = json.loads(response.content)
+                    self.assertEqual(content["detail"], expected_response_detail_mesg)
 
         # Test FHIR search views
         with HTTMock(
@@ -176,11 +192,19 @@ class TestDataAccessGrantPermissions(BaseApiTest):
                     path, HTTP_AUTHORIZATION="Bearer " + access_token
                 )
                 self.assertEqual(response.status_code, expected_response_code)
+                if expected_response_detail_mesg is not None:
+                    content = json.loads(response.content)
+                    self.assertEqual(content["detail"], expected_response_detail_mesg)
 
+    @override_switch('limit_data_access', active=False)
     def test_fhir_endpoints(self):
-        # 1. Test FHIR resources data access is OK for app & data access grant.
+        """
+        Test data access for FHIR and profile end points
+        with limit-data-access switch False.
+        """
+        assert not switch_is_active('limit_data_access')
 
-        #     Use helper method to create app, user, authorized grant & access token.
+        # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
             first_name="first",
             last_name="last1",
@@ -190,6 +214,7 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             app_user_organization="org1",
         )
 
+        #     Test grant exists.
         self.assertTrue(
             DataAccessGrant.objects.filter(
                 beneficiary=user,
@@ -198,7 +223,7 @@ class TestDataAccessGrantPermissions(BaseApiTest):
         )
 
         # 2. Test that all calls are successful (response_code=200)
-        self._call_all_fhir_endpoints(
+        self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=200
         )
 
@@ -209,6 +234,69 @@ class TestDataAccessGrantPermissions(BaseApiTest):
         )
         dag.delete()
 
-        self._call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=401
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"],
+            expected_response_code=401,
+            expected_response_detail_mesg="Authentication credentials were not provided."
+        )
+
+    @override_switch('limit_data_access', active=True)
+    def test_fhir_endpoints_limit_data_access(self):
+        """
+        Test data access for FHIR and profile end points
+        with limit-data-access switch True.
+        """
+        assert switch_is_active('limit_data_access')
+
+        # 1. Use helper method to create app, user, authorized grant & access token.
+        user, app, ac = self._create_user_app_token_grant(
+            first_name="first",
+            last_name="last1",
+            fhir_id="-20140000008325",
+            app_name="test_app1",
+            app_username="devuser1",
+            app_user_organization="org1",
+        )
+
+        #     Test grant exists.
+        self.assertTrue(
+            DataAccessGrant.objects.filter(
+                beneficiary=user,
+                application=app,
+            ).exists()
+        )
+
+        # 2. Test that all calls are successful (response_code=200)
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=200
+        )
+
+        # 3. Test with application in-active/disabled (response_code=403)
+        app.active = False
+        app.save()
+
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=403,
+            expected_response_detail_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
+        )
+
+        # 4. Test with RESEARCH_STUDY application end_date IS NOT expired (response_code=200)
+        app.active = True
+        app.data_access_type = "RESEARCH_STUDY"
+        app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        app.save()
+
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=200
+        )
+
+        # 5. Test with RESEARCH_STUDY application end_date IS expired (response_code=403)
+        app.active = True
+        app.data_access_type = "RESEARCH_STUDY"
+        app.end_date = datetime(1999, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        app.save()
+
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=403,
+            expected_response_detail_mesg=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
         )
