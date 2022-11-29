@@ -4,9 +4,10 @@ import pytz
 from datetime import datetime
 from rest_framework import permissions, exceptions
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
 from .constants import ALLOWED_RESOURCE_TYPES
 from django.conf import settings
+from waffle import switch_is_active
 
 import apps.logging.request_logger as bb2logging
 
@@ -110,12 +111,13 @@ class ApplicationActivePermission(permissions.BasePermission):
             )
 
         # Check for application RESEARCH_STUDY type end_date expired.
-        if app_data_access_type == "RESEARCH_STUDY" and (
-            app_end_date is None
-            or app_end_date < datetime.now().replace(tzinfo=pytz.UTC)
-        ):
-            # in order to generate application specific message, short circuit base
-            # permission's error raise flow
-            raise PermissionDenied(settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG)
+        if switch_is_active("limit_data_access"):
+            if app_data_access_type == "RESEARCH_STUDY" and (
+                app_end_date is None
+                or app_end_date < datetime.now().replace(tzinfo=pytz.UTC)
+            ):
+                # in order to generate application specific message, short circuit base
+                # permission's error raise flow
+                raise AuthenticationFailed(settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG)
 
         return True
