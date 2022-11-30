@@ -306,7 +306,7 @@ class TestDataAccessGrant(BaseApiTest):
         }
 
         response = self.client.post(response['Location'], data=payload)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         # pretty good evidence for in active app permission denied
         self.assertEqual(response.template_name, "app_inactive_403.html")
         # set back app and user to active - not to affect other tests

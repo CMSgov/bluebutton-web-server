@@ -800,7 +800,7 @@ class BackendConnectionTest(BaseApiTest):
                     if not v2 else 'bb_oauth_fhir_coverage_read_or_update_or_delete_v2',
                     kwargs={'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
-            self.assertEqual(response.status_code, 403)
+            self.assertEqual(response.status_code, 401)
             errStr = str(response.json().get("detail"))
             errwords = errStr.split()
             packedErrStr = "-".join(errwords)
@@ -828,7 +828,7 @@ class BackendConnectionTest(BaseApiTest):
                     if not v2 else 'bb_oauth_fhir_coverage_read_or_update_or_delete_v2',
                     kwargs={'resource_id': 'coverage_id'}),
                 Authorization="Bearer %s" % (first_access_token))
-            self.assertEqual(response.status_code, 403)
+            self.assertEqual(response.status_code, 401)
             errStr = str(response.json().get("detail"))
             errwords = errStr.split()
             packedErrStr = "-".join(errwords)

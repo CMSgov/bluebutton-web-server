@@ -24,7 +24,7 @@ from ..models import Approval
 from ..utils import remove_application_user_pair_tokens_data_access
 from ..utils import validate_app_is_active
 
-from rest_framework.exceptions import PermissionDenied
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 from django.http.response import HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.shortcuts import HttpResponse
@@ -62,12 +62,13 @@ class AuthorizationView(DotAuthorizationView):
 
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
+        except InvalidClientError as error:
+            # TODO: Change template response to 401?
             return TemplateResponse(
                 request,
                 "app_inactive_403.html",
                 context={
-                    "detail": error.detail,
+                    "detail": error.error,
                 },
                 status=error.status_code)
 
@@ -262,9 +263,9 @@ class TokenView(DotTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
+        except InvalidClientError as error:
             return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
+                                            "error": error.error, }),
                                 status=error.status_code,
                                 content_type='application/json')
 
@@ -278,9 +279,9 @@ class RevokeTokenView(DotRevokeTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
+        except InvalidClientError as error:
             return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
+                                            "error": error.error, }),
                                 status=error.status_code,
                                 content_type='application/json')
 
@@ -293,9 +294,9 @@ class IntrospectTokenView(DotIntrospectTokenView):
     def get(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
+        except InvalidClientError as error:
             return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
+                                            "error": error.error, }),
                                 status=error.status_code,
                                 content_type='application/json')
 
@@ -304,9 +305,9 @@ class IntrospectTokenView(DotIntrospectTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
+        except InvalidClientError as error:
             return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
+                                            "error": error.error, }),
                                 status=error.status_code,
                                 content_type='application/json')
 

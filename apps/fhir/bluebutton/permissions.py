@@ -4,7 +4,7 @@ import pytz
 from datetime import datetime
 from rest_framework import permissions, exceptions
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed
 from .constants import ALLOWED_RESOURCE_TYPES
 from django.conf import settings
 from waffle import switch_is_active
@@ -91,27 +91,28 @@ class ApplicationActivePermission(permissions.BasePermission):
             if request.auth and request.auth.application.name
             else "Unknown"
         )
-        app_data_access_type = (
-            request.auth.application.data_access_type
-            if request.auth and request.auth.application.data_access_type
-            else "Unknown"
-        )
-        app_end_date = (
-            request.auth.application.end_date
-            if request.auth and request.auth.application.end_date
-            else None
-        )
 
         # Check for application enabled/active
         if app_is_active is False:
             # in order to generate application specific message, short circuit base
             # permission's error raise flow
-            raise PermissionDenied(
+            raise AuthenticationFailed(
                 settings.APPLICATION_TEMPORARILY_INACTIVE.format(app_name)
             )
 
         # Check for application RESEARCH_STUDY type end_date expired.
         if switch_is_active("limit_data_access"):
+            app_data_access_type = (
+                request.auth.application.data_access_type
+                if request.auth and request.auth.application.data_access_type
+                else None
+            )
+            app_end_date = (
+                request.auth.application.end_date
+                if request.auth and request.auth.application.end_date
+                else None
+            )
+
             if app_data_access_type == "RESEARCH_STUDY" and (
                 app_end_date is None
                 or app_end_date < datetime.now().replace(tzinfo=pytz.UTC)

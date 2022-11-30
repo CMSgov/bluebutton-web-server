@@ -1,10 +1,13 @@
-from django.db import transaction
-from oauth2_provider.models import AccessToken, RefreshToken
-from apps.authorization.models import DataAccessGrant
-from oauth2_provider.models import get_application_model
-from rest_framework.exceptions import PermissionDenied
-from django.contrib.auth import get_user_model
+import pytz
+from datetime import datetime
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError
+from waffle import switch_is_active
+
+from apps.authorization.models import DataAccessGrant
 
 
 User = get_user_model()
@@ -64,10 +67,32 @@ def validate_app_is_active(request):
             app = Application.objects.get(id=ac.application_id)
 
         if app and not app.active:
-            raise PermissionDenied(settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
+            raise InvalidClientError(settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
 
     except Application.DoesNotExist:
         pass
+
+    if app and app.active:
+        # Check for application RESEARCH_STUDY type end_date expired.
+        if switch_is_active("limit_data_access"):
+            app_data_access_type = (
+                app.data_access_type
+                if app.data_access_type
+                else None
+            )
+            app_end_date = (
+                app.end_date
+                if app.end_date
+                else None
+            )
+
+            if app_data_access_type == "RESEARCH_STUDY" and (
+                app_end_date is None
+                or app_end_date < datetime.now().replace(tzinfo=pytz.UTC)
+            ):
+                # in order to generate application specific message, short circuit base
+                # permission's error raise flow
+                raise InvalidClientError(settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG)
 
 
 def is_data_access_type_valid(data_access_type, end_date):
