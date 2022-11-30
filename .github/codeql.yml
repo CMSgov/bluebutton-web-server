@@ -1,0 +1,3 @@
+paths-ignore:
+  - '**/migrations/*.py'
+  - '**/commands/*.py'
