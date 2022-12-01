@@ -79,7 +79,7 @@ def validate_app_is_active(request):
 
         if app and not app.active:
             raise InvalidClientError(
-                settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
+                description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
             )
 
     except Application.DoesNotExist:

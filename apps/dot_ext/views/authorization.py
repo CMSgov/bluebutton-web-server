@@ -70,12 +70,11 @@ class AuthorizationView(DotAuthorizationView):
         try:
             validate_app_is_active(request)
         except InvalidClientError as error:
-            # TODO: Change template response to 401?
             return TemplateResponse(
                 request,
-                "app_inactive_403.html",
+                "app_inactive_401.html",
                 context={
-                    "detail": error.error,
+                    "detail": error.error + " : " + error.description,
                 },
                 status=error.status_code)
 
