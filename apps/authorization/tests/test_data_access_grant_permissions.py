@@ -244,7 +244,7 @@ class TestDataAccessPermissions(BaseApiTest):
         Test Application.data_access_type="RESEARCH_STUDY".
 
         Test data access for FHIR and profile end points
-        with limit-data-access switch False.
+        with limit_data_access switch False.
         """
         assert not switch_is_active('limit_data_access')
 
@@ -256,12 +256,11 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            app_data_access_type="RESEARCH_STUDY",
+            app_end_date=datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
         )
-
-        #     Set app type
-        app.data_access_type = "RESEARCH_STUDY"
-        app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
-        app.save()
+        self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
+        self.assertEqual(app.end_date, datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC))
 
         #     Test grant exists.
         self.assertTrue(
@@ -334,7 +333,7 @@ class TestDataAccessPermissions(BaseApiTest):
         Test Application.data_access_type="RESEARCH_STUDY".
 
         Test data access for FHIR and profile end points
-        with limit-data-access switch True.
+        with limit_data_access switch True.
         """
         assert switch_is_active('limit_data_access')
 
@@ -346,12 +345,11 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            app_data_access_type="RESEARCH_STUDY",
+            app_end_date=datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
         )
-
-        #     Set app type
-        app.data_access_type = "RESEARCH_STUDY"
-        app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
-        app.save()
+        self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
+        self.assertEqual(app.end_date, datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC))
 
         #     Test grant exists.
         self.assertTrue(
@@ -427,7 +425,7 @@ class TestDataAccessPermissions(BaseApiTest):
     def test_one_time_app_type_without_switch_limit_data_access(self):
         """
         Test Application.data_access_type="ONE_TIME"
-        with limit-data-access switch False.
+        with limit_data_access switch False.
 
         NOTE: This type of application does not allow token refreshes
               when the feature switch is enabled.
@@ -442,6 +440,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            app_data_access_type="ONE_TIME"
         )
 
         #     Test application default data access type
@@ -469,7 +468,7 @@ class TestDataAccessPermissions(BaseApiTest):
     def test_one_time_app_type_with_switch_limit_data_access(self):
         """
         Test Application.data_access_type="ONE_TIME"
-        with limit-data-access switch True
+        with limit_data_access switch True
 
         NOTE: This type of application does not allow token refreshes
               when the feature switch is enabled.
@@ -484,6 +483,7 @@ class TestDataAccessPermissions(BaseApiTest):
             app_name="test_app1",
             app_username="devuser1",
             app_user_organization="org1",
+            app_data_access_type="ONE_TIME"
         )
 
         #     Test application default data access type
