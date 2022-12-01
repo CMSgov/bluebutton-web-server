@@ -3,6 +3,7 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 from waffle import switch_is_active
@@ -34,16 +35,26 @@ def remove_application_user_pair_tokens_data_access(application, user):
     """
     with transaction.atomic():
         # Get count of access tokens to be deleted.
-        access_token_delete_cnt = AccessToken.objects.filter(application=application, user=user).count()
+        access_token_delete_cnt = AccessToken.objects.filter(
+            application=application, user=user
+        ).count()
 
         # Delete DataAccessGrant record.
         # NOTE: This also revokes/deletes access and only revokes refresh tokens via signal function.
-        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(application=application, beneficiary=user).delete()[0]
+        data_access_grant_delete_cnt = DataAccessGrant.objects.filter(
+            application=application, beneficiary=user
+        ).delete()[0]
 
         # Delete refresh token records
-        refresh_token_delete_cnt = RefreshToken.objects.filter(application=application, user=user).delete()[0]
+        refresh_token_delete_cnt = RefreshToken.objects.filter(
+            application=application, user=user
+        ).delete()[0]
 
-    return data_access_grant_delete_cnt, access_token_delete_cnt, refresh_token_delete_cnt
+    return (
+        data_access_grant_delete_cnt,
+        access_token_delete_cnt,
+        refresh_token_delete_cnt,
+    )
 
 
 def validate_app_is_active(request):
@@ -51,13 +62,13 @@ def validate_app_is_active(request):
 
     client_id, ac, app = None, None, None
 
-    if request.GET.get('client_id', None) is not None:
-        client_id = request.GET.get('client_id', None)
-    elif request.POST.get('client_id', None):
-        client_id = request.POST.get('client_id', None)
-    elif request.POST.get('token', None):
+    if request.GET.get("client_id", None) is not None:
+        client_id = request.GET.get("client_id", None)
+    elif request.POST.get("client_id", None):
+        client_id = request.POST.get("client_id", None)
+    elif request.POST.get("token", None):
         # introspect
-        ac = AccessToken.objects.get(token=request.POST.get('token', None))
+        ac = AccessToken.objects.get(token=request.POST.get("token", None))
 
     try:
 
@@ -67,7 +78,9 @@ def validate_app_is_active(request):
             app = Application.objects.get(id=ac.application_id)
 
         if app and not app.active:
-            raise InvalidClientError(settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name))
+            raise InvalidClientError(
+                settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
+            )
 
     except Application.DoesNotExist:
         pass
@@ -76,15 +89,9 @@ def validate_app_is_active(request):
         # Check for application RESEARCH_STUDY type end_date expired.
         if switch_is_active("limit_data_access"):
             app_data_access_type = (
-                app.data_access_type
-                if app.data_access_type
-                else None
+                app.data_access_type if app.data_access_type else None
             )
-            app_end_date = (
-                app.end_date
-                if app.end_date
-                else None
-            )
+            app_end_date = app.end_date if app.end_date else None
 
             if app_data_access_type == "RESEARCH_STUDY" and (
                 app_end_date is None
@@ -92,7 +99,9 @@ def validate_app_is_active(request):
             ):
                 # in order to generate application specific message, short circuit base
                 # permission's error raise flow
-                raise InvalidClientError(settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG)
+                raise InvalidClientError(
+                    description=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
+                )
 
 
 def is_data_access_type_valid(data_access_type, end_date):
@@ -100,16 +109,24 @@ def is_data_access_type_valid(data_access_type, end_date):
     Validate data_access_type & end_date combo is valid.
         Returns: True/False & exception message for use.
     """
-    if (
-        data_access_type == "RESEARCH_STUDY"
-        and end_date is None
-    ):
+    if data_access_type == "RESEARCH_STUDY" and end_date is None:
         return False, "An end_date is required for the RESEARCH_STUDY type!"
 
-    if (
-        data_access_type not in ["RESEARCH_STUDY", None]
-        and end_date is not None
-    ):
+    if data_access_type not in ["RESEARCH_STUDY", None] and end_date is not None:
         return False, "An end_date is ONLY required for the RESEARCH_STUDY type!"
 
     return True, None
+
+
+def json_response_from_oauth2_errror(error):
+    """
+    Given a oauthlib.oauth2.rfc6749.errors.* error this function
+    returns a corresponding django.http.response.JsonResponse response
+    """
+    ret_data = {"status_code": error.status_code, "error": error.error}
+
+    # Add optional description
+    if getattr(error, "description", None):
+        ret_data["error_description"] = error.description
+
+    return JsonResponse(ret_data, status=error.status_code)
