@@ -16,7 +16,20 @@ from apps.fhir.bluebutton.tests.test_fhir_resources_read_search_w_validation imp
 )
 
 
-class TestDataAccessGrantPermissions(BaseApiTest):
+class TestDataAccessPermissions(BaseApiTest):
+    """
+    Provides data access tests related to the
+    following settings:
+
+      - Application.data_access_type
+      - Application.end_date
+      - DataAcessGrant.expiration_date
+
+    Tests are performed against API end points for:
+
+      - FHIR read/searc resources
+      - OAuth 2.0 auth end points
+    """
     APPLICATION_SCOPES_FULL = [
         "patient/Patient.read",
         "profile",
@@ -196,9 +209,40 @@ class TestDataAccessGrantPermissions(BaseApiTest):
                     content = json.loads(response.content)
                     self.assertEqual(content["detail"], expected_response_detail_mesg)
 
+    def _assert_call_token_refresh_endpoint(self, application=None,
+                                            refresh_token=None,
+                                            expected_response_code=None,
+                                            expected_response_error_mesg=None,
+                                            expected_response_error_description_mesg=None):
+        """
+        This method calls the token refresh end point
+        for use in tests.
+
+        The asserts will check for the expected_response_code,
+        expected_response_error_mesg and expected_response_error_description_mesg to match.
+        """
+        refresh_post_data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token,
+            "redirect_uri": application.redirect_uris,
+            'client_id': application.client_id,
+            'client_secret': application.client_secret,
+        }
+        response = self.client.post("/v1/o/token/", data=refresh_post_data)
+        content = json.loads(response.content)
+
+        self.assertEqual(response.status_code, expected_response_code)
+        if expected_response_error_mesg is not None:
+            self.assertEqual(content["error"], expected_response_error_mesg)
+        if expected_response_error_description_mesg is not None:
+            self.assertEqual(content["error_description"], expected_response_error_description_mesg)
+        return content
+
     @override_switch('limit_data_access', active=False)
     def test_research_study_app_type_without_switch_limit_data_access(self):
         """
+        Test Application.data_access_type="RESEARCH_STUDY".
+
         Test data access for FHIR and profile end points
         with limit-data-access switch False.
         """
@@ -214,6 +258,11 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             app_user_organization="org1",
         )
 
+        #     Set app type
+        app.data_access_type = "RESEARCH_STUDY"
+        app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        app.save()
+
         #     Test grant exists.
         self.assertTrue(
             DataAccessGrant.objects.filter(
@@ -227,18 +276,33 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-        # 3. Test with application in-active/disabled (response_code=403)
+        # 3. Test token refresh is successful (response_code=200)
+        ac = self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=200
+        )
+
+        # 4. Set application to in-active/disabled
         app.active = False
         app.save()
 
+        # 5. Test FHIR end point while app in-active/disabled (response_code=401)
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=403,
+            access_token=ac["access_token"], expected_response_code=401,
             expected_response_detail_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
         )
 
-        # 4. Test with RESEARCH_STUDY application end_date IS NOT expired (response_code=200)
+        # 6. Test token refresh after applciation in-active/disabled (response_code=401)
+        self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=401,
+            expected_response_error_mesg="invalid_client",
+            expected_response_error_description_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
+        )
+
+        # 7. Set application to active/endabled
         app.active = True
-        app.data_access_type = "RESEARCH_STUDY"
+        app.save()
+
+        # 8. Test with RESEARCH_STUDY application end_date IS NOT expired (response_code=200)
         app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
         app.save()
 
@@ -246,8 +310,12 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-        # 5. Test with RESEARCH_STUDY application end_date IS expired w/o feature switch (response_code=200)
-        app.active = True
+        # 9. Test app not expired token refresh (response_code=200)
+        ac = self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=200
+        )
+
+        # 10. Test with RESEARCH_STUDY application end_date IS expired w/o feature switch (response_code=200)
         app.data_access_type = "RESEARCH_STUDY"
         app.end_date = datetime(1999, 1, 15, 0, 0, 0, 0, pytz.UTC)
         app.save()
@@ -255,22 +323,16 @@ class TestDataAccessGrantPermissions(BaseApiTest):
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=200)
 
-        # 3. Test that all calls return 401 (Unauthorized) after grant delete
-        dag = DataAccessGrant.objects.get(
-            beneficiary__username="firstlast1@example.com",
-            application__name="test_app1",
-        )
-        dag.delete()
-
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"],
-            expected_response_code=401,
-            expected_response_detail_mesg="Authentication credentials were not provided."
+        # 11. Test app expired token refresh (response_code=200)
+        ac = self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=200
         )
 
     @override_switch('limit_data_access', active=True)
     def test_research_study_app_type_with_switch_limit_data_access(self):
         """
+        Test Application.data_access_type="RESEARCH_STUDY".
+
         Test data access for FHIR and profile end points
         with limit-data-access switch True.
         """
@@ -286,6 +348,11 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             app_user_organization="org1",
         )
 
+        #     Set app type
+        app.data_access_type = "RESEARCH_STUDY"
+        app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        app.save()
+
         #     Test grant exists.
         self.assertTrue(
             DataAccessGrant.objects.filter(
@@ -299,17 +366,33 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-        # 3. Test with application in-active/disabled (response_code=403)
+        # 3. Test token refresh is successful (response_code=200)
+        ac = self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=200
+        )
+
+        # 4. Set application to in-active/disabled
         app.active = False
         app.save()
 
+        # 5. Test FHIR end point while app in-active/disabled (response_code=401)
         self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"], expected_response_code=403,
+            access_token=ac["access_token"], expected_response_code=401,
             expected_response_detail_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
         )
 
-        # 4. Test with RESEARCH_STUDY application end_date IS NOT expired (response_code=200)
+        # 6. Test token refresh after applciation in-active/disabled (response_code=401)
+        self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=401,
+            expected_response_error_mesg="invalid_client",
+            expected_response_error_description_mesg=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
+        )
+
+        # 7. Set application to active/endabled
         app.active = True
+        app.save()
+
+        # 8. Test with RESEARCH_STUDY application end_date IS NOT expired (response_code=200)
         app.data_access_type = "RESEARCH_STUDY"
         app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
         app.save()
@@ -318,8 +401,12 @@ class TestDataAccessGrantPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-        # 5. Test with RESEARCH_STUDY application end_date IS expired (response_code=401)
-        app.active = True
+        # 9. Test app not expired token refresh (response_code=200)
+        ac = self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=200
+        )
+
+        # 10. Test with RESEARCH_STUDY application end_date IS expired (response_code=401)
         app.data_access_type = "RESEARCH_STUDY"
         app.end_date = datetime(1999, 1, 15, 0, 0, 0, 0, pytz.UTC)
         app.save()
@@ -327,4 +414,97 @@ class TestDataAccessGrantPermissions(BaseApiTest):
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=401,
             expected_response_detail_mesg=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
+        )
+
+        # 11. Test app expired token refresh (response_code=401)
+        ac = self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=401,
+            expected_response_error_mesg="invalid_client",
+            expected_response_error_description_mesg=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
+        )
+
+    @override_switch('limit_data_access', active=False)
+    def test_one_time_app_type_without_switch_limit_data_access(self):
+        """
+        Test Application.data_access_type="ONE_TIME"
+        with limit-data-access switch False.
+
+        NOTE: This type of application does not allow token refreshes
+              when the feature switch is enabled.
+        """
+        assert not switch_is_active('limit_data_access')
+
+        # 1. Use helper method to create app, user, authorized grant & access token.
+        user, app, ac = self._create_user_app_token_grant(
+            first_name="first",
+            last_name="last1",
+            fhir_id="-20140000008325",
+            app_name="test_app1",
+            app_username="devuser1",
+            app_user_organization="org1",
+        )
+
+        #     Test application default data access type
+        self.assertEqual(app.data_access_type, "ONE_TIME")
+
+        #     Test grant exists.
+        self.assertTrue(
+            DataAccessGrant.objects.filter(
+                beneficiary=user,
+                application=app,
+            ).exists()
+        )
+
+        # 2. Test token refresh is working OK (response_code=200)
+        ac = self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=200
+        )
+
+        # 3. Test that all calls are successful (response_code=200)
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=200
+        )
+
+    @override_switch('limit_data_access', active=True)
+    def test_one_time_app_type_with_switch_limit_data_access(self):
+        """
+        Test Application.data_access_type="ONE_TIME"
+        with limit-data-access switch True
+
+        NOTE: This type of application does not allow token refreshes
+              when the feature switch is enabled.
+        """
+        assert switch_is_active('limit_data_access')
+
+        # 1. Use helper method to create app, user, authorized grant & access token.
+        user, app, ac = self._create_user_app_token_grant(
+            first_name="first",
+            last_name="last1",
+            fhir_id="-20140000008325",
+            app_name="test_app1",
+            app_username="devuser1",
+            app_user_organization="org1",
+        )
+
+        #     Test application default data access type
+        self.assertEqual(app.data_access_type, "ONE_TIME")
+
+        #     Test grant exists.
+        self.assertTrue(
+            DataAccessGrant.objects.filter(
+                beneficiary=user,
+                application=app,
+            ).exists()
+        )
+
+        # 2. Test token refresh is disabled for app (response_code=401)
+        self._assert_call_token_refresh_endpoint(
+            application=app, refresh_token=ac["refresh_token"], expected_response_code=401,
+            expected_response_error_mesg="invalid_client",
+            expected_response_error_description_mesg=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG
+        )
+
+        # 3. Test that all calls are successful (response_code=200)
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=200
         )
