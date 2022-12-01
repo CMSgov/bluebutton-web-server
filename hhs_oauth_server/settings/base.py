@@ -552,6 +552,11 @@ APPLICATION_RESEARCH_STUDY_ENDED_MESG = (
     "End user must log in to authorize refreshing of their Medicare data."
 )
 
+APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
+    "One time data access application can not refresh tokens. "
+    "End user must log in to authorize refreshing of their Medicare data."
+)
+
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
