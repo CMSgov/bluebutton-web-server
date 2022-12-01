@@ -355,6 +355,7 @@ class BaseApiTest(TestCase):
             capability_a = self._create_capability("Capability A", [])
             capability_b = self._create_capability("Capability B", [])
             application.scope.add(capability_a, capability_b)
+            application.save()
 
         # Create beneficiary user, if it doesn't exist
         try:
