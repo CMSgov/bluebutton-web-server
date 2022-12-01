@@ -116,11 +116,12 @@ def is_data_access_type_valid(data_access_type, end_date):
     Validate data_access_type & end_date combo is valid.
         Returns: True/False & exception message for use.
     """
-    if data_access_type == "RESEARCH_STUDY" and end_date is None:
-        return False, "An end_date is required for the RESEARCH_STUDY type!"
+    if switch_is_active("limit_data_access"):
+        if data_access_type == "RESEARCH_STUDY" and end_date is None:
+            return False, "An end_date is required for the RESEARCH_STUDY type!"
 
-    if data_access_type not in ["RESEARCH_STUDY", None] and end_date is not None:
-        return False, "An end_date is ONLY required for the RESEARCH_STUDY type!"
+        if data_access_type not in ["RESEARCH_STUDY", None] and end_date is not None:
+            return False, "An end_date is ONLY required for the RESEARCH_STUDY type!"
 
     return True, None
 
