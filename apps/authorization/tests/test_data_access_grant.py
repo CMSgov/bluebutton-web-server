@@ -98,6 +98,20 @@ class TestDataAccessGrant(BaseApiTest):
 
         # 3. Test expiration_date not set
         self.assertEqual(dag.expiration_date, None)
+        #    Test has_expired() with None is false
+        self.assertEqual(dag.has_expired(), False)
+
+        # 4. Test has_expired() true for -1 hour ago is false w/o switch enabled
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
+            hours=-1
+        )
+        self.assertEqual(dag.has_expired(), False)
+
+        # 5. Test has_expired() false for +1 hour in future.
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
+            hours=+1
+        )
+        self.assertEqual(dag.has_expired(), False)
 
     @override_switch('limit_data_access', active=True)
     def test_thirteen_month_app_type_with_switch_limit_data_access(self):
