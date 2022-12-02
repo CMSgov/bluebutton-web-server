@@ -1,5 +1,3 @@
-import pytz
-from datetime import datetime
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -86,29 +84,20 @@ def validate_app_is_active(request):
         pass
 
     if app and app.active:
-        if switch_is_active("limit_data_access"):
-            app_data_access_type = (
-                app.data_access_type if app.data_access_type else None
+        # Check for application RESEARCH_STUDY type end_date expired.
+        if app.has_research_study_expired():
+            raise InvalidClientError(
+                description=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
             )
-            app_end_date = app.end_date if app.end_date else None
 
-            # Check for application RESEARCH_STUDY type end_date expired.
-            if app_data_access_type == "RESEARCH_STUDY" and (
-                app_end_date is None
-                or app_end_date < datetime.now().replace(tzinfo=pytz.UTC)
-            ):
+        # Check for application ONE_TIME type where token refresh is not allowed.
+        if app.has_one_time_only_data_access():
+            # Is this for a token refresh?
+            post_grant_type = request.POST.get("grant_type", None)
+            if post_grant_type == "refresh_token":
                 raise InvalidClientError(
-                    description=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
+                    description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG
                 )
-
-            # Check for application ONE_TIME type where token refresh is not allowed.
-            if app_data_access_type == "ONE_TIME":
-                # Is this for a token refresh?
-                post_grant_type = request.POST.get("grant_type", None)
-                if post_grant_type == "refresh_token":
-                    raise InvalidClientError(
-                        description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG
-                    )
 
 
 def is_data_access_type_valid(data_access_type, end_date):

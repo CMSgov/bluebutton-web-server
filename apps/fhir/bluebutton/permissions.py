@@ -1,13 +1,10 @@
 import logging
-import pytz
 
-from datetime import datetime
-from rest_framework import permissions, exceptions
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed
 from .constants import ALLOWED_RESOURCE_TYPES
-from django.conf import settings
-from waffle import switch_is_active
 
 import apps.logging.request_logger as bb2logging
 
@@ -101,24 +98,8 @@ class ApplicationActivePermission(permissions.BasePermission):
             )
 
         # Check for application RESEARCH_STUDY type end_date expired.
-        if switch_is_active("limit_data_access"):
-            app_data_access_type = (
-                request.auth.application.data_access_type
-                if request.auth and request.auth.application.data_access_type
-                else None
-            )
-            app_end_date = (
-                request.auth.application.end_date
-                if request.auth and request.auth.application.end_date
-                else None
-            )
-
-            if app_data_access_type == "RESEARCH_STUDY" and (
-                app_end_date is None
-                or app_end_date < datetime.now().replace(tzinfo=pytz.UTC)
-            ):
-                # in order to generate application specific message, short circuit base
-                # permission's error raise flow
+        if app_is_active:
+            if request.auth.application.has_research_study_expired():
                 raise AuthenticationFailed(settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG)
 
         return True

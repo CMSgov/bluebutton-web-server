@@ -1,5 +1,6 @@
 import hashlib
 import itertools
+import pytz
 import sys
 import uuid
 
@@ -22,6 +23,7 @@ from oauth2_provider.models import (
 )
 from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
+from waffle import switch_is_active
 
 from apps.capabilities.models import ProtectedCapability
 from .utils import is_data_access_type_valid
@@ -189,6 +191,24 @@ class Application(AbstractApplication):
                 if default_storage.exists(file_path):
                     uri = settings.MEDIA_URL + file_path
         return uri
+
+    # Has the research study expired?
+    def has_research_study_expired(self):
+        if switch_is_active("limit_data_access"):
+            if self.data_access_type == "RESEARCH_STUDY":
+                if self.end_date:
+                    if self.end_date < datetime.now().replace(tzinfo=pytz.UTC):
+                        return True
+
+        return False
+
+    # Has one time only type data access?
+    def has_one_time_only_data_access(self):
+        if switch_is_active("limit_data_access"):
+            if self.data_access_type == "ONE_TIME":
+                return True
+
+        return False
 
     # Save override to restrict invalid field combos.
     def save(self, *args, **kwargs):
