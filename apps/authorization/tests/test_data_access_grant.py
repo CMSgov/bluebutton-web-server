@@ -113,6 +113,17 @@ class TestDataAccessGrant(BaseApiTest):
         )
         self.assertEqual(dag.has_expired(), False)
 
+        # 6. Test has_expired() false for ONE_TIME type
+        test_app.data_access_type = "ONE_TIME"
+        test_app.save()
+        self.assertEqual(dag.has_expired(), False)
+
+        # 7. Test has_expired() false for RESEARCH_STUDY type
+        test_app.data_access_type = "RESEARCH_STUDY"
+        test_app.end_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        test_app.save()
+        self.assertEqual(dag.has_expired(), False)
+
     @override_switch('limit_data_access', active=True)
     def test_thirteen_month_app_type_with_switch_limit_data_access(self):
         assert switch_is_active('limit_data_access')
@@ -144,6 +155,17 @@ class TestDataAccessGrant(BaseApiTest):
         dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
             hours=+1
         )
+        self.assertEqual(dag.has_expired(), False)
+
+        # 6. Test has_expired() false for ONE_TIME type
+        test_app.data_access_type = "ONE_TIME"
+        test_app.save()
+        self.assertEqual(dag.has_expired(), False)
+
+        # 7. Test has_expired() false for RESEARCH_STUDY type
+        test_app.data_access_type = "RESEARCH_STUDY"
+        test_app.end_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        test_app.save()
         self.assertEqual(dag.has_expired(), False)
 
     def test_creation_on_approval(self):
