@@ -19,6 +19,8 @@ class DataAccessGrant(models.Model):
         on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    expiration_date = models.DateTimeField(null=True, blank=True,
+                                           verbose_name="Expiration Date")
 
     class Meta:
         unique_together = ("beneficiary", "application")
@@ -48,6 +50,8 @@ class ArchivedDataAccessGrant(models.Model):
     )
     created_at = models.DateTimeField()
     archived_at = models.DateTimeField(auto_now_add=True)
+    expiration_date = models.DateTimeField(null=True, blank=True,
+                                           verbose_name="Expiration Date")
 
     class Meta:
         indexes = [

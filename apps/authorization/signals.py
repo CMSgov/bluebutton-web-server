@@ -36,6 +36,7 @@ def revoke_associated_tokens(sender, instance=None, **kwargs):
 def archive_removed_grant(sender, instance=None, **kwargs):
     ArchivedDataAccessGrant.objects.create(
         created_at=instance.created_at,
+        expiration_date=instance.expiration_date,
         application=instance.application,
         beneficiary=instance.beneficiary)
 
