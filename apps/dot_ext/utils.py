@@ -90,14 +90,31 @@ def validate_app_is_active(request):
                 description=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
             )
 
-        # Check for application ONE_TIME type where token refresh is not allowed.
-        if app.has_one_time_only_data_access():
-            # Is this for a token refresh?
-            post_grant_type = request.POST.get("grant_type", None)
-            if post_grant_type == "refresh_token":
+        # Is this for a token refresh request?
+        post_grant_type = request.POST.get("grant_type", None)
+        if post_grant_type == "refresh_token":
+            # Check for application ONE_TIME type where token refresh is not allowed.
+            if app.has_one_time_only_data_access():
                 raise InvalidClientError(
                     description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG
                 )
+
+            # Check if data access grant is expired for THIRTEEN_MONTH app type?
+            if hasattr(request, "user"):
+                try:
+                    dag = DataAccessGrant.objects.get(
+                        beneficiary=request.user,
+                        application=app
+                    )
+
+                    if dag:
+                        if dag.has_expired():
+                            raise InvalidClientError(
+                                description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                            )
+
+                except DataAccessGrant.DoesNotExist:
+                    pass
 
 
 def is_data_access_type_valid(data_access_type, end_date):
