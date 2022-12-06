@@ -1,4 +1,6 @@
+from django.conf import settings
 from rest_framework import (permissions, exceptions)
+
 from .models import DataAccessGrant
 
 
@@ -7,10 +9,18 @@ class DataAccessGrantPermission(permissions.BasePermission):
     Permission check for a Grant related to the token used.
     """
     def has_permission(self, request, view):
-        return DataAccessGrant.objects.filter(
+        dag = DataAccessGrant.objects.get(
             beneficiary=request.auth.user,
-            application=request.auth.application,
-        ).exists()
+            application=request.auth.application
+        )
+        if dag:
+            if dag.has_expired():
+                raise exceptions.NotAuthenticated(
+                    settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                )
+            return True
+
+        return False
 
     def has_object_permission(self, request, view, obj):
         # Now check that the user has permission to access the data
