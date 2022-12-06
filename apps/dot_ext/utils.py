@@ -100,21 +100,22 @@ def validate_app_is_active(request):
                 )
 
             # Check if data access grant is expired for THIRTEEN_MONTH app type?
-            if hasattr(request, "user"):
-                try:
-                    dag = DataAccessGrant.objects.get(
-                        beneficiary=request.user,
-                        application=app
-                    )
+            if hasattr(request, 'user'):
+                if not request.user.is_anonymous:
+                    try:
+                        dag = DataAccessGrant.objects.get(
+                            beneficiary=request.user,
+                            application=app
+                        )
 
-                    if dag:
-                        if dag.has_expired():
-                            raise InvalidClientError(
-                                description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
-                            )
+                        if dag:
+                            if dag.has_expired():
+                                raise InvalidClientError(
+                                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                                )
 
-                except DataAccessGrant.DoesNotExist:
-                    pass
+                    except DataAccessGrant.DoesNotExist:
+                        pass
 
 
 def is_data_access_type_valid(data_access_type, end_date):
