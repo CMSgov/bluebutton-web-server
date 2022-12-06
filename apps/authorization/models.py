@@ -45,6 +45,7 @@ class DataAccessGrant(models.Model):
                     self.expiration_date = datetime.now().replace(
                         tzinfo=pytz.UTC
                     ) + relativedelta(months=+13)
+                    self.save()
 
     def has_expired(self):
         if switch_is_active("limit_data_access"):
