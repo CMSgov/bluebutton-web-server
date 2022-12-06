@@ -557,6 +557,11 @@ APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
     "End user must log in to authorize refreshing of their Medicare data."
 )
 
+APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
+    "User authorization expired. "
+    "End user must log in to authorize refreshing of their Medicare data."
+)
+
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
     os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
