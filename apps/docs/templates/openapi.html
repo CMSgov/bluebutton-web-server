@@ -4,7 +4,7 @@
 This Django template is used to serve the 'Swagger UI' view of Blue Button 2.0 API.
 
 This template is derived from index.html in swagger-ui-dist release 3.52.0
-(https://github.com/swagger-api/swagger-ui/archive/refs/tags/v3.52.0.zip).
+(https://github.com/swagger-api/swagger-ui/archive/refs/tags/v4.15.5.zip)
 
 {% endcomment %}
 <!DOCTYPE html>
@@ -12,9 +12,9 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
   <head>
     <meta charset="UTF-8">
     <title>Swagger UI</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'swagger-ui-3.52.0-dist/swagger-ui.css' %}" />
-    <link rel="icon" type="image/png" href="{% static 'swagger-ui-3.52.0-dist/favicon-32x32.png' %}" sizes="32x32" />
-    <link rel="icon" type="image/png" href="{% static 'swagger-ui-3.52.0-dist/favicon-16x16.png' %}" sizes="16x16" />
+    <link rel="stylesheet" type="text/css" href="{% static 'swagger-ui-4.15.5-dist/swagger-ui.css' %}" />
+    <link rel="icon" type="image/png" href="{% static 'swagger-ui-4.15.5-dist/favicon-32x32.png' %}" sizes="32x32" />
+    <link rel="icon" type="image/png" href="{% static 'swagger-ui-4.15.5-dist/favicon-16x16.png' %}" sizes="16x16" />
     <style>
       html
       {
@@ -41,8 +41,8 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
   <body>
     <div id="swagger-ui"></div>
 
-    <script src="{% static 'swagger-ui-3.52.0-dist/swagger-ui-bundle.js' %}" charset="UTF-8"> </script>
-    <script src="{% static 'swagger-ui-3.52.0-dist/swagger-ui-standalone-preset.js' %}" charset="UTF-8"> </script>
+    <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-bundle.js' %}" charset="UTF-8"> </script>
+    <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-standalone-preset.js' %}" charset="UTF-8"> </script>
     <script>
     window.onload = function() {
       // Begin Swagger UI call region
