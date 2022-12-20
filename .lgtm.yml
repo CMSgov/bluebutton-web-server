@@ -4,6 +4,4 @@ extraction:
       version: "3"
     index:
       filters:
-      - exclude: "**/migrations/*.py"
-      - exclude: "**/commands/*.py"
-
+      - exclude: "*"
