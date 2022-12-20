@@ -47,15 +47,17 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
     window.onload = function() {
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
-        url: "{% static 'openapi.yaml' %}",
+        urls: [
+            {
+                url: "{% static 'openapi.yaml' %}",
+                name: "openapi.yaml"
+            },
+        ],
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
           SwaggerUIBundle.presets.apis,
           SwaggerUIStandalonePreset
-        ],
-        plugins: [
-          SwaggerUIBundle.plugins.DownloadUrl
         ],
         layout: "StandaloneLayout"
       });
