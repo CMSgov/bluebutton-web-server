@@ -6,3 +6,4 @@ extraction:
       filters:
       - exclude: "**/migrations/*.py"
       - exclude: "**/commands/*.py"
+
