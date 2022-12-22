@@ -393,7 +393,7 @@ class TestTokenView(BaseApiTest):
         with self.assertRaises(Exception) as e:
             self._create_test_token(anna, application)
 
-        msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
+        msg_expected = "invalid_client"
         err_msg = str(e.exception)
         found = True
         index = -1

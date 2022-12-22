@@ -1,35 +1,42 @@
-import json
 import logging
-
 import waffle
-from oauth2_provider.views.introspect import IntrospectTokenView as DotIntrospectTokenView
-from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
-from oauth2_provider.views.base import TokenView as DotTokenView
-from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
-from oauth2_provider.models import get_application_model
-from oauth2_provider.exceptions import OAuthToolkitError
-from apps.dot_ext.scopes import CapabilitiesScopes
 
+from django.http.response import HttpResponseBadRequest
+from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
-
+from oauth2_provider.exceptions import OAuthToolkitError
+from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
+from oauth2_provider.views.base import TokenView as DotTokenView
+from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
+from oauth2_provider.views.introspect import (
+    IntrospectTokenView as DotIntrospectTokenView,
+)
+from oauth2_provider.models import get_application_model
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError
 from urllib.parse import urlparse, parse_qs
+
+from apps.dot_ext.scopes import CapabilitiesScopes
+import apps.logging.request_logger as bb2logging
+
 from ..signals import beneficiary_authorized_application
 from ..forms import SimpleAllowForm
-from ..loggers import (create_session_auth_flow_trace, cleanup_session_auth_flow_trace,
-                       get_session_auth_flow_trace, set_session_auth_flow_trace,
-                       set_session_auth_flow_trace_value, update_instance_auth_flow_trace_with_code)
+from ..loggers import (
+    create_session_auth_flow_trace,
+    cleanup_session_auth_flow_trace,
+    get_session_auth_flow_trace,
+    set_session_auth_flow_trace,
+    set_session_auth_flow_trace_value,
+    update_instance_auth_flow_trace_with_code,
+)
 from ..models import Approval
-from ..utils import remove_application_user_pair_tokens_data_access
-from ..utils import validate_app_is_active
+from ..utils import (
+    remove_application_user_pair_tokens_data_access,
+    validate_app_is_active,
+    json_response_from_oauth2_errror,
+)
 
-from rest_framework.exceptions import PermissionDenied
-from django.http.response import HttpResponseBadRequest
-from django.template.response import TemplateResponse
-from django.shortcuts import HttpResponse
-
-import apps.logging.request_logger as bb2logging
 
 log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -62,12 +69,12 @@ class AuthorizationView(DotAuthorizationView):
 
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
+        except InvalidClientError as error:
             return TemplateResponse(
                 request,
-                "app_inactive_403.html",
+                "app_inactive_401.html",
                 context={
-                    "detail": error.detail,
+                    "detail": error.error + " : " + error.description,
                 },
                 status=error.status_code)
 
@@ -262,11 +269,8 @@ class TokenView(DotTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
-            return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
-                                status=error.status_code,
-                                content_type='application/json')
+        except InvalidClientError as error:
+            return json_response_from_oauth2_errror(error)
 
         return super().post(request, args, kwargs)
 
@@ -278,11 +282,8 @@ class RevokeTokenView(DotRevokeTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
-            return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
-                                status=error.status_code,
-                                content_type='application/json')
+        except InvalidClientError as error:
+            return json_response_from_oauth2_errror(error)
 
         return super().post(request, args, kwargs)
 
@@ -293,21 +294,15 @@ class IntrospectTokenView(DotIntrospectTokenView):
     def get(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
-            return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
-                                status=error.status_code,
-                                content_type='application/json')
+        except InvalidClientError as error:
+            return json_response_from_oauth2_errror(error)
 
         return super(IntrospectTokenView, self).get(request, args, kwargs)
 
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except PermissionDenied as error:
-            return HttpResponse(json.dumps({"status_code": error.status_code,
-                                            "detail": error.detail, }),
-                                status=error.status_code,
-                                content_type='application/json')
+        except InvalidClientError as error:
+            return json_response_from_oauth2_errror(error)
 
         return super(IntrospectTokenView, self).post(request, args, kwargs)

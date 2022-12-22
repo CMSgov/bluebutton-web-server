@@ -237,10 +237,8 @@ class CreateNewApplicationForm(forms.ModelForm):
         )
 
     def clean_name(self):
-        print("clean name")
 
         name = self.cleaned_data.get("name")
-        print(str(name))
         app_model = get_application_model()
         if (
             app_model.objects.filter(name__iexact=name)
@@ -259,19 +257,15 @@ class CreateNewApplicationForm(forms.ModelForm):
         return name
 
     def clean_logo_image(self):
-        print("clean logo image")
 
         logo_image = self.cleaned_data.get("logo_image")
-        print(str(logo_image))
         if getattr(logo_image, "name", False):
             validate_logo_image(logo_image)
         return logo_image
 
     def clean_redirect_uris(self):
-        print("clean redirect uris")
 
         redirect_uris = self.cleaned_data.get("redirect_uris")
-        print(str(redirect_uris))
         if getattr(settings, "BLOCK_HTTP_REDIRECT_URIS", True):
             if redirect_uris:
                 for u in redirect_uris.split():
@@ -281,10 +275,8 @@ class CreateNewApplicationForm(forms.ModelForm):
         return redirect_uris
 
     def clean_require_demographic_scopes(self):
-        print("clean demo scopes")
 
         require_demographic_scopes = self.cleaned_data.get("require_demographic_scopes")
-        print(str(require_demographic_scopes))
         if type(require_demographic_scopes) != bool:
             msg = _(
                 "Does your application need to collect beneficary demographic information must be (Yes/No)."
@@ -294,8 +286,6 @@ class CreateNewApplicationForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         app = self.instance
-        print("save")
-        print(str(self.cleaned_data))
 
         new_user_model = User.objects.create(
             username=self.cleaned_data.get("name") + "@example.com",

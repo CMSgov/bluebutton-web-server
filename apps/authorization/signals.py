@@ -12,10 +12,13 @@ RefreshToken = get_refresh_token_model()
 def app_authorized_record_grant(sender, request, user, application, **kwargs):
     auth_status = kwargs.get('auth_status', None)
     if auth_status == "OK":
-        DataAccessGrant.objects.get_or_create(
+        dag, was_created = DataAccessGrant.objects.get_or_create(
             beneficiary=user,
             application=application,
         )
+
+        # Update expiration date on re-auth
+        dag.update_expiration_date()
 
 
 beneficiary_authorized_application.connect(app_authorized_record_grant)

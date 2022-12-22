@@ -1,12 +1,14 @@
+import pytz
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.db.models import Count, Min, Q
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.models import get_access_token_model
+from waffle import switch_is_active
 
 
 class DataAccessGrant(models.Model):
@@ -19,8 +21,9 @@ class DataAccessGrant(models.Model):
         on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    expiration_date = models.DateTimeField(null=True, blank=True,
-                                           verbose_name="Expiration Date")
+    expiration_date = models.DateTimeField(
+        null=True, blank=True, verbose_name="Expiration Date"
+    )
 
     class Meta:
         unique_together = ("beneficiary", "application")
@@ -33,6 +36,25 @@ class DataAccessGrant(models.Model):
     @property
     def user(self):
         return self.beneficiary
+
+    def update_expiration_date(self):
+        # For THIRTEEN_MONTH type update expiration_date
+        if switch_is_active("limit_data_access"):
+            if self.application:
+                if self.application.data_access_type == "THIRTEEN_MONTH":
+                    self.expiration_date = datetime.now().replace(
+                        tzinfo=pytz.UTC
+                    ) + relativedelta(months=+13)
+                    self.save()
+
+    def has_expired(self):
+        if switch_is_active("limit_data_access"):
+            if self.application.data_access_type == "THIRTEEN_MONTH":
+                if self.expiration_date:
+                    if self.expiration_date < datetime.now().replace(tzinfo=pytz.UTC):
+                        return True
+
+        return False
 
 
 class ArchivedDataAccessGrant(models.Model):
@@ -50,8 +72,9 @@ class ArchivedDataAccessGrant(models.Model):
     )
     created_at = models.DateTimeField()
     archived_at = models.DateTimeField(auto_now_add=True)
-    expiration_date = models.DateTimeField(null=True, blank=True,
-                                           verbose_name="Expiration Date")
+    expiration_date = models.DateTimeField(
+        null=True, blank=True, verbose_name="Expiration Date"
+    )
 
     class Meta:
         indexes = [

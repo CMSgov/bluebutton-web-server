@@ -2,6 +2,8 @@ from datetime import datetime
 import pytz
 from django.contrib.auth.models import User
 from oauth2_provider.models import get_application_model
+from waffle import switch_is_active
+from waffle.testutils import override_switch
 
 from apps.dot_ext.models import (
     get_application_counts,
@@ -11,11 +13,15 @@ from apps.test import BaseApiTest
 
 
 class TestDotExtModels(BaseApiTest):
+
+    @override_switch('limit_data_access', active=True)
     def test_application_data_access_fields(self):
         """
         Test the CRUD operations & validation
         on new data access fields from apps.dot_ext.models
         """
+        assert switch_is_active('limit_data_access')
+
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
 

@@ -4,7 +4,7 @@ from django.db.utils import IntegrityError
 from django.http import HttpRequest
 from django.utils import timezone
 from datetime import datetime, timedelta
-# from oauth2_provider.compat import parse_qs, urlparse
+from dateutil.relativedelta import relativedelta
 from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import (
     get_application_model,
@@ -18,6 +18,8 @@ from apps.authorization.models import (
     check_grants,
     update_grants,
 )
+from waffle import switch_is_active
+from waffle.testutils import override_switch
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
@@ -34,20 +36,20 @@ class TestDataAccessGrant(BaseApiTest):
             application=test_app,
             beneficiary=bene_user,
         )
-        dac = DataAccessGrant.objects.get(
+        dag = DataAccessGrant.objects.get(
             beneficiary__username="test_beneficiary", application__name="test_app"
         )
 
         #     Is the default Null?
-        self.assertEqual(None, dac.expiration_date)
+        self.assertEqual(None, dag.expiration_date)
 
         # 2. Test expire_date updated.
-        dac.expiration_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
-        dac.save()
-        dac = DataAccessGrant.objects.get(
+        dag.expiration_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        dag.save()
+        dag = DataAccessGrant.objects.get(
             beneficiary__username="test_beneficiary", application__name="test_app"
         )
-        self.assertEqual("2030-01-15 00:00:00+00:00", str(dac.expiration_date))
+        self.assertEqual("2030-01-15 00:00:00+00:00", str(dag.expiration_date))
 
         # 3. Test unique constraints.
         with transaction.atomic():
@@ -64,19 +66,107 @@ class TestDataAccessGrant(BaseApiTest):
                 beneficiary__username="test_beneficiary", application__name="test_app"
             )
 
-        dac = DataAccessGrant.objects.get(
+        dag = DataAccessGrant.objects.get(
             beneficiary__username="test_beneficiary", application__name="test_app"
         )
 
-        dac.delete()
+        dag.delete()
 
         #     Verify it does exist and archived.
-        arch_dac = ArchivedDataAccessGrant.objects.get(
+        arch_dag = ArchivedDataAccessGrant.objects.get(
             beneficiary__username="test_beneficiary", application__name="test_app"
         )
 
         #    Verify expiration_date copied OK.
-        self.assertEqual("2030-01-15 00:00:00+00:00", str(arch_dac.expiration_date))
+        self.assertEqual("2030-01-15 00:00:00+00:00", str(arch_dag.expiration_date))
+
+    @override_switch('limit_data_access', active=False)
+    def test_thirteen_month_app_type_without_switch_limit_data_access(self):
+        assert not switch_is_active('limit_data_access')
+
+        # 1. Create bene and app for tests
+        dev_user = self._create_user("developer_test", "123456")
+        bene_user = self._create_user("test_beneficiary", "123456")
+        test_app = self._create_application("test_app", user=dev_user,
+                                            data_access_type="THIRTEEN_MONTH")
+
+        # 2. Create grant with expiration date in future.
+        dag = DataAccessGrant.objects.create(
+            application=test_app,
+            beneficiary=bene_user
+        )
+
+        # 3. Test expiration_date not set
+        self.assertEqual(dag.expiration_date, None)
+        #    Test has_expired() with None is false
+        self.assertEqual(dag.has_expired(), False)
+
+        # 4. Test has_expired() true for -1 hour ago is false w/o switch enabled
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
+            hours=-1
+        )
+        self.assertEqual(dag.has_expired(), False)
+
+        # 5. Test has_expired() false for +1 hour in future.
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
+            hours=+1
+        )
+        self.assertEqual(dag.has_expired(), False)
+
+        # 6. Test has_expired() false for ONE_TIME type
+        test_app.data_access_type = "ONE_TIME"
+        test_app.save()
+        self.assertEqual(dag.has_expired(), False)
+
+        # 7. Test has_expired() false for RESEARCH_STUDY type
+        test_app.data_access_type = "RESEARCH_STUDY"
+        test_app.end_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        test_app.save()
+        self.assertEqual(dag.has_expired(), False)
+
+    @override_switch('limit_data_access', active=True)
+    def test_thirteen_month_app_type_with_switch_limit_data_access(self):
+        assert switch_is_active('limit_data_access')
+
+        # 1. Create bene and app for tests
+        dev_user = self._create_user("developer_test", "123456")
+        bene_user = self._create_user("test_beneficiary", "123456")
+        test_app = self._create_application("test_app", user=dev_user,
+                                            data_access_type="THIRTEEN_MONTH")
+
+        # 2. Create grant with expiration date in future.
+        dag = DataAccessGrant.objects.create(
+            application=test_app,
+            beneficiary=bene_user
+        )
+
+        # 3. Test update expiration_date on instance
+        dag.update_expiration_date()
+        #    Date is updated OK.
+        self.assertNotEqual(dag.expiration_date, None)
+
+        # 4. Test has_expired() true for -1 hour ago
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
+            hours=-1
+        )
+        self.assertEqual(dag.has_expired(), True)
+
+        # 5. Test has_expired() false for +1 hour in future.
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
+            hours=+1
+        )
+        self.assertEqual(dag.has_expired(), False)
+
+        # 6. Test has_expired() false for ONE_TIME type
+        test_app.data_access_type = "ONE_TIME"
+        test_app.save()
+        self.assertEqual(dag.has_expired(), False)
+
+        # 7. Test has_expired() false for RESEARCH_STUDY type
+        test_app.data_access_type = "RESEARCH_STUDY"
+        test_app.end_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
+        test_app.save()
+        self.assertEqual(dag.has_expired(), False)
 
     def test_creation_on_approval(self):
         redirect_uri = 'http://localhost'
@@ -306,9 +396,9 @@ class TestDataAccessGrant(BaseApiTest):
         }
 
         response = self.client.post(response['Location'], data=payload)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         # pretty good evidence for in active app permission denied
-        self.assertEqual(response.template_name, "app_inactive_403.html")
+        self.assertEqual(response.template_name, "app_inactive_401.html")
         # set back app and user to active - not to affect other tests
         application.active = True
         application.save()

@@ -4,7 +4,6 @@ from urllib.parse import parse_qs, urlparse
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.http import HttpRequest
 from django.urls import reverse
-from django.conf import settings
 from django.test import Client
 
 from apps.test import BaseApiTest
@@ -560,12 +559,12 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.active = False
         application.save()
 
-        msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
+        msg_expected = "invalid_client"
         response = c.post('/v1/o/revoke_token/', data=revoke_request_data)
         # assert 403 and content json is expected message
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         content = json.loads(response.content.decode("utf-8"))
-        self.assertEqual(content['detail'], msg_expected)
+        self.assertEqual(content['error'], msg_expected)
 
         # revert app to active in case not to impact other tests
         application.active = True
@@ -632,12 +631,12 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.active = False
         application.save()
 
-        msg_expected = settings.APPLICATION_TEMPORARILY_INACTIVE.format("an app")
+        msg_expected = "invalid_client"
         response = c.post('/v1/o/introspect/', data=introspect_request_data, **auth_headers)
-        # asssert 403 and content json message
-        self.assertEqual(response.status_code, 403)
+        # asssert 401 and content json message
+        self.assertEqual(response.status_code, 401)
         content = json.loads(response.content.decode("utf-8"))
-        self.assertEqual(content['detail'], msg_expected)
+        self.assertEqual(content['error'], msg_expected)
 
         # revert app to active in case not to impact other tests
         application.active = True

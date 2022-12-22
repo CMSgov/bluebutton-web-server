@@ -4,6 +4,7 @@ from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from oauth2_provider.decorators import protected_resource
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
+from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.fhir.bluebutton.permissions import ApplicationActivePermission
@@ -31,7 +32,9 @@ def get_userinfo(user):
 
 @api_view(["GET"])
 @authentication_classes([OAuth2Authentication])
-@permission_classes([ApplicationActivePermission, TokenHasProtectedCapability])
+@permission_classes([ApplicationActivePermission,
+                     TokenHasProtectedCapability,
+                     DataAccessGrantPermission])
 @protected_resource()
 def openidconnect_userinfo(request, **kwargs):
     return JsonResponse(get_userinfo(request.resource_owner))
