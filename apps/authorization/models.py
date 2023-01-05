@@ -64,12 +64,14 @@ class ArchivedDataAccessGrant(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_constraint=False,
+        editable=False,
         null=True,
     )
     application = models.ForeignKey(
         oauth2_settings.APPLICATION_MODEL,
         on_delete=models.CASCADE,
         db_constraint=False,
+        editable=False,
         null=True,
     )
     created_at = models.DateTimeField()
