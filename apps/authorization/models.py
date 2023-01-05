@@ -15,10 +15,12 @@ class DataAccessGrant(models.Model):
     beneficiary = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        editable=False
     )
     application = models.ForeignKey(
         oauth2_settings.APPLICATION_MODEL,
         on_delete=models.CASCADE,
+        editable=False
     )
     created_at = models.DateTimeField(auto_now_add=True)
     expiration_date = models.DateTimeField(
