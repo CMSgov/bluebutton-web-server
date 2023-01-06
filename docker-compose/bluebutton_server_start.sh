@@ -56,19 +56,20 @@ then
         if [ -z "${BB2_SERVER_STD2FILE}" ]
         then
             echo "Start bluebutton server with remote debugging and wait attach..."
-            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 --noreload
+            # NOTE: The "--noreload" option can be added below to disable if needed.
+            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
         else
             echo "Start bluebutton server with remote debugging and wait attach..., std redirect to file: ${BB2_SERVER_STD2FILE}"
-            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 --noreload > ./docker-compose/tmp/bb2_account_tests.log 2>&1
+            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_account_tests.log 2>&1
         fi
     else
         if [ -z "${BB2_SERVER_STD2FILE}" ]
         then
             echo "Start bluebutton server with remote debugging..."
-            python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 --noreload
+            python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000
         else
             echo "Start bluebutton server with remote debugging..., std redirect to file: ${BB2_SERVER_STD2FILE}"
-            python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 --noreload > ./docker-compose/tmp/bb2_account_tests.log 2>&1
+            python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_account_tests.log 2>&1
         fi
     fi
 else
