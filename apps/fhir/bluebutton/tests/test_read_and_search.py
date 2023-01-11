@@ -418,15 +418,15 @@ class BackendConnectionTest(BaseApiTest):
         self._search_request_failed_no_fhir_id_match(False)
 
     def test_search_request_failed_no_fhir_id_match_bfd400(self):
+        # BB2-1965 for 400 or 500 BFD response compatibility.
         self._search_request_failed_no_fhir_id_match(False, 400)
 
     def test_search_request_failed_no_fhir_id_match_v2(self):
         self._search_request_failed_no_fhir_id_match(True)
 
     def test_search_request_failed_no_fhir_id_match_v2_bfd400(self):
-        self._search_request_failed_no_fhir_id_match(True, 400)
-
         # BB2-1965 for 400 or 500 BFD response compatibility.
+        self._search_request_failed_no_fhir_id_match(True, 400)
 
     def _search_request_failed_no_fhir_id_match(self, v2=False, bfd_status_code=500):
         # create the user
