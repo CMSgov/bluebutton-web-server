@@ -5,6 +5,7 @@ from oauth2_provider.models import get_application_model
 from waffle import switch_is_active
 from waffle.testutils import override_switch
 
+from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import (
     get_application_counts,
     get_application_require_demographic_scopes_count,
@@ -138,6 +139,62 @@ class TestDotExtModels(BaseApiTest):
         test_app.end_date = datetime(2029, 1, 25, 0, 0, 0, 0, pytz.UTC)
         self.assertEqual("RESEARCH_STUDY", test_app.data_access_type)
         self.assertEqual("2029-01-25 00:00:00+00:00", str(test_app.end_date))
+
+    @override_switch('limit_data_access', active=True)
+    def test_application_data_access_type_change(self):
+        """
+        Test the application.data_access_type change, this triggers associated grants
+        removal (become archived grants)
+        """
+        assert switch_is_active('limit_data_access')
+
+        # Create dev user for tests.
+        dev_user = self._create_user("john", "123456")
+
+        # Create defaults
+        test_app = self._create_application("test_app", user=dev_user)
+        self.assertEqual("ONE_TIME", test_app.data_access_type)
+        self.assertEqual(None, test_app.end_date)
+
+        # fake some grants tied to the user and the app
+        DataAccessGrant.objects.update_or_create(
+            beneficiary=User.objects.get(username="john"), application=test_app
+        )
+
+        grants = None
+
+        try:
+            grants = DataAccessGrant.objects.filter(application__name="test_app")
+        except DataAccessGrant.DoesNotExist:
+            self.fail("Expecting grants for 'test_app'")
+
+        self.assertIsNotNone(grants)
+        self.assertTrue(grants.count() > 0)
+
+        # application.data_access_type changed from ONE_TIME to RESEARCH_STUDY
+        # w/ end_date is valid.
+        test_app.data_access_type = "RESEARCH_STUDY"
+        test_app.end_date = datetime(2029, 1, 25, 0, 0, 0, 0, pytz.UTC)
+        self.assertEqual("RESEARCH_STUDY", test_app.data_access_type)
+        self.assertEqual("2029-01-25 00:00:00+00:00", str(test_app.end_date))
+
+        test_app.save()
+
+        try:
+            grants = DataAccessGrant.objects.get(application__name="test_app")
+            self.fail("Expecting grants for 'test_app' archived due to test_app data access type changed.")
+        except DataAccessGrant.DoesNotExist:
+            pass
+
+        archived_grants = None
+
+        try:
+            archived_grants = ArchivedDataAccessGrant.objects.filter(application__name="test_app")
+        except ArchivedDataAccessGrant.DoesNotExist:
+            self.fail("Expecting archived grants for 'test_app' exists due to test_app data access type changed.")
+
+        self.assertIsNotNone(archived_grants)
+        self.assertTrue(archived_grants.count() > 0)
 
     def test_application_count_funcs(self):
         """
