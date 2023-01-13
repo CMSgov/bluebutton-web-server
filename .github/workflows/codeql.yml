@@ -12,8 +12,12 @@
 name: "CodeQL"
 
 on:
-  push:
+  push: # on every push to any branch
+    paths-ignore:
+      - 'static/swagger-ui-4.15.5-dist/**'
   pull_request:
+    paths-ignore:
+      - 'static/swagger-ui-4.15.5-dist/**'
     # The branches below must be a subset of the branches above
     branches: [ "master" ]
   schedule:
@@ -52,7 +56,7 @@ jobs:
 
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
-
+        
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
