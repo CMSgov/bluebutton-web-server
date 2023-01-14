@@ -260,7 +260,7 @@ class Application(AbstractApplication):
                                 "application_name": self.name,
                                 "data_access_type_old": app_from_db.data_access_type,
                                 "data_access_type_new": self.data_access_type,
-                                "grant_delete_start": datetime.now(),
+                                "grant_delete_start": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
                             })
                             logger.info(log_dict)
                             dag_deleted = DataAccessGrant.objects.filter(application=self).delete()
@@ -268,8 +268,8 @@ class Application(AbstractApplication):
                             end_time = time.time()
                             delete_stats = {
                                 "elapsed_seconds": end_time - start_time,
-                                "number_of_grant_deleted": dag_deleted,
-                                "grant_delete_complete": datetime.now()
+                                "number_of_grant_deleted": dag_deleted[0],
+                                "grant_delete_complete": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
                             }
                             log_dict.update(delete_stats)
                             logger.info(log_dict)
