@@ -1,7 +1,6 @@
 import json
 
 import pytz
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.http import HttpRequest

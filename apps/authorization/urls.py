@@ -11,7 +11,5 @@ urlpatterns = [
 
     url(r'^expire_authenticated_user/(?P<patient_id>[\-0-9]+)/$',
         waffle_switch('expire_grant_endpoint')(ExpireDataAccessGrantView.as_view()),
-        name='expire_access_grant'
-    )
+        name='expire_access_grant'),
 ]
-
