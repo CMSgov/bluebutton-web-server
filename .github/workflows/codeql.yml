@@ -13,15 +13,7 @@ name: "CodeQL"
 
 on:
   push: # on every push to any branch
-    paths-ignore:
-      - 'Dockerfile'
-      - 'static/swagger-ui-4.15.5-dist/**'
-      - 'sitestatic/bootstrap/js/**'
   pull_request:
-    paths-ignore:
-      - 'Dockerfile'
-      - 'static/swagger-ui-4.15.5-dist/**'
-      - 'sitestatic/bootstrap/js/**'
     # The branches below must be a subset of the branches above
     branches: [ "master" ]
   schedule:
