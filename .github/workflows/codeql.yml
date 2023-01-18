@@ -73,3 +73,7 @@ jobs:
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
+
+paths-ignore:
+  - 'static/swagger-ui-4.15.5-dist/**'
+  - 'sitestatic/bootstrap/js/**'
