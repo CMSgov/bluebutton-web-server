@@ -2,15 +2,12 @@
 import json
 import re
 
-# import apps.logging.request_logger as logging
-
 from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
 from django.urls import reverse
 from django.test import TestCase
 from django.utils.text import slugify
 from django.conf import settings
-# from oauth2_provider.compat import parse_qs, urlparse
 from urllib.parse import parse_qs, urlparse
 
 

@@ -1,0 +1,7 @@
+# paths-ignore:
+#   - '**/migrations/*.py'
+#   - '**/commands/*.py'
+
+paths-ignore:
+  - 'static/swagger-ui-4.15.5-dist/**'
+  - 'sitestatic/bootstrap/js/**'
