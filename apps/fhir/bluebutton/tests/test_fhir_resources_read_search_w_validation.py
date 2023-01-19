@@ -511,10 +511,18 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_err_response_caused_by_illegalarguments(self):
         self._err_response_caused_by_illegalarguments(False)
 
+    def test_err_response_caused_by_illegalarguments_bfd400(self):
+        # BB2-1965 for 400 or 500 BFD response compatibility.
+        self._err_response_caused_by_illegalarguments(False, 400)
+
     def test_err_response_caused_by_illegalarguments_v2(self):
         self._err_response_caused_by_illegalarguments(True)
 
-    def _err_response_caused_by_illegalarguments(self, v2=False):
+    def test_err_response_caused_by_illegalarguments_v2_bfd400(self):
+        # BB2-1965 for 400 or 500 BFD response compatibility.
+        self._err_response_caused_by_illegalarguments(True, 400)
+
+    def _err_response_caused_by_illegalarguments(self, v2=False, bfd_status_code=500):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
@@ -522,7 +530,7 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
         def catchall(url, req):
 
             return {
-                'status_code': 500,
+                'status_code': bfd_status_code,
                 'content': get_response_json("resource_error_response"),
             }
 
