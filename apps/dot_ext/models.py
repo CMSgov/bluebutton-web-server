@@ -2,16 +2,20 @@ import hashlib
 import itertools
 import pytz
 import sys
+import time
 import uuid
+import apps.logging.request_logger as logging
 
 from datetime import datetime
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
-from django.db.models.signals import post_delete
+from django.db.models.signals import (
+    post_delete,
+)
 from django.template.defaultfilters import truncatechars
 from django.urls import reverse
 from django.utils.dateparse import parse_duration
@@ -26,6 +30,8 @@ from urllib.parse import urlparse
 from waffle import switch_is_active
 
 from apps.capabilities.models import ProtectedCapability
+from apps.authorization.models import DataAccessGrant
+
 from .utils import is_data_access_type_valid
 
 
@@ -57,6 +63,7 @@ class Application(AbstractApplication):
         help_text="This is typically a home/download website for the application. "
         "For example, https://www.example.org or http://www.example.org .",
     )
+
     help_text = _(
         "Multiple redirect URIs can"
         " be separated by a space or on"
@@ -64,16 +71,20 @@ class Application(AbstractApplication):
         " about implementing redirect"
         " URIs in our documentation."
     )
+
     redirect_uris = models.TextField(help_text=help_text, blank=True)
+
     logo_uri = models.CharField(
         default="", blank=True, max_length=512, verbose_name="Logo URI"
     )
+
     tos_uri = models.CharField(
         default="",
         blank=True,
         max_length=512,
         verbose_name="Client's Terms of Service URI",
     )
+
     policy_uri = models.CharField(
         default="",
         blank=True,
@@ -81,12 +92,14 @@ class Application(AbstractApplication):
         verbose_name="Client's Policy URI",
         help_text="This can be a model privacy notice or other policy document.",
     )
+
     software_id = models.CharField(
         default="",
         blank=True,
         max_length=128,
         help_text="A unique identifier for an application defined by its creator.",
     )
+
     contacts = models.TextField(
         default="",
         blank=True,
@@ -114,6 +127,7 @@ class Application(AbstractApplication):
         verbose_name="Application Description",
         help_text="This is plain-text up to 1000 characters in length.",
     )
+
     active = models.BooleanField(default=True)
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)
@@ -221,7 +235,53 @@ class Application(AbstractApplication):
         if not is_valid:
             raise ValueError(mesg)
 
-        super().save(*args, **kwargs)
+        if switch_is_active("limit_data_access"):
+            # Check if data_access_type is changed
+            # if so, need to void all grants associated
+
+            logger = logging.getLogger(logging.AUDIT_APPLICATION_TYPE_CHANGE, None)
+
+            app_type_changed = False
+
+            log_dict = {
+                "type": "application data access type change",
+            }
+            with transaction.atomic():
+                # need to put delete and save in a transaction
+                app_from_db = None
+                try:
+                    app_from_db = Application.objects.get(pk=self.id)
+                    if app_from_db is not None:
+                        if self.data_access_type != app_from_db.data_access_type:
+                            # log audit event: application data access type changed
+                            start_time = time.time()
+                            log_dict.update({
+                                "application_id": self.id,
+                                "application_name": self.name,
+                                "data_access_type_old": app_from_db.data_access_type,
+                                "data_access_type_new": self.data_access_type,
+                                "grant_delete_start": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                            })
+                            logger.info(log_dict)
+                            dag_deleted = DataAccessGrant.objects.filter(application=self).delete()
+                            app_type_changed = True
+                            end_time = time.time()
+                            delete_stats = {
+                                "elapsed_seconds": end_time - start_time,
+                                "number_of_grant_deleted": dag_deleted[0],
+                                "grant_delete_complete": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+                            }
+                            log_dict.update(delete_stats)
+                            logger.info(log_dict)
+                except Application.DoesNotExist:
+                    # new app
+                    pass
+                super().save(*args, **kwargs)
+                if app_type_changed:
+                    log_dict.update({"application_saved_and_grants_deleted": "Yes"})
+                    logger.info(log_dict)
+        else:
+            super().save(*args, **kwargs)
 
 
 class ApplicationLabel(models.Model):
