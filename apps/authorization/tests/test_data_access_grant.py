@@ -284,54 +284,6 @@ class TestDataAccessGrant(BaseApiTest):
 
     def test_no_action_on_reapproval(self):
         redirect_uri = 'http://localhost'
-        # create a user
-        user = self._create_user('anna', '123456')
-        capability_a = self._create_capability('Capability A', [])
-        capability_b = self._create_capability('Capability B', [])
-        # create an application and add capabilities
-        application = self._create_application(
-            'an app',
-            grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            redirect_uris=redirect_uri)
-        application.scope.add(capability_a, capability_b)
-
-        # user logs in
-        request = HttpRequest()
-        self.client.login(request=request, username='anna', password='123456')
-
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-        }
-        response = self.client.get('/v1/o/authorize', data=payload)
-        # post the authorization form with only one scope selected
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'scope': ['capability-a'],
-            'expires_in': 86400,
-            'allow': True,
-        }
-        response = self.client.post(response['Location'], data=payload)
-
-        self.assertEqual(response.status_code, 302)
-        # now extract the authorization code and use it to request an access_token
-        query_dict = parse_qs(urlparse(response['Location']).query)
-        authorization_code = query_dict.pop('code')
-        token_request_data = {
-            'grant_type': 'authorization_code',
-            'code': authorization_code,
-            'redirect_uri': redirect_uri,
-            'client_id': application.client_id,
-        }
-        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
-        self.assertEqual(response.status_code, 200)
-        return application, fhir_id
-
-    def test_no_action_on_reapproval(self):
-        redirect_uri = 'http://localhost'
 
         user = self._create_user("anna", '123456')
         application, fhir_id = self.setup_test_application_with_user(user)

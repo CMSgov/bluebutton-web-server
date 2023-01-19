@@ -64,7 +64,7 @@ def get_application_from_meta(request):
     if request_meta:
         auth_header = request_meta.get("HTTP_AUTHORIZATION", None)
         if not auth_header:
-            auth = request_meta.get("Authorization", None)
+            auth_header = request_meta.get("Authorization", None)
         if auth_header:
             print("--- FOUND AUTH HEADER!!!!")
             encoded_credentials = auth_header.split(' ')[1]  # Removes "Basic " to isolate credentials
