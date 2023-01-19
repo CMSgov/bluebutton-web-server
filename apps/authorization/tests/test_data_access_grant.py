@@ -1,18 +1,23 @@
 import json
-
+import base64
 import pytz
+
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.http import HttpRequest
 from django.utils import timezone
+from django.urls import reverse
+
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+
 from urllib.parse import parse_qs, urlparse
+
 from oauth2_provider.models import (
     get_application_model,
     get_access_token_model,
 )
-from django.urls import reverse
+
 from apps.test import BaseApiTest
 from apps.authorization.models import (
     DataAccessGrant,
@@ -21,6 +26,7 @@ from apps.authorization.models import (
     update_grants,
 
 )
+
 from waffle import switch_is_active
 from waffle.testutils import override_switch
 
@@ -29,6 +35,10 @@ AccessToken = get_access_token_model()
 
 
 class TestDataAccessGrant(BaseApiTest):
+
+    @staticmethod
+    def _create_authorization_header(client_id, client_secret):
+        return "Basic {0}".format(base64.b64encode("{0}:{1}".format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
 
     def test_create_update_delete(self):
         # 1. Test create and default expiration_date
@@ -180,35 +190,51 @@ class TestDataAccessGrant(BaseApiTest):
 
     @override_switch('expire_grant_endpoint', active=True)
     def test_delete_authenticated_user_grant(self):
-        redirect_uri = 'http://localhost'
-        # 1. create 1 user
-        user = self._create_user("anna", '123456')
-        # 2. create 2 different apps with same user
-        application, fhir_id = self.setup_test_application_with_user(user, 'an app')
-        application_2, fhir_id = self.setup_test_application_with_user(user, 'app2')
-        # 3. verify grant creation - errors if DNE or more than one is found
+        # 1. create user, app, ac
+        user, application, ac = self._create_user_app_token_grant(
+            first_name="first",
+            last_name="last1",
+            fhir_id="-20140000008325",
+            app_name="test_app1",
+            app_username="devuser1",
+            app_user_organization="org1",
+        )
+
+        user, application_2, ac = self._create_user_app_token_grant(
+            first_name="first",
+            last_name="last1",
+            fhir_id="-20140000008325",
+            app_name="test_app2",
+            app_username="devuser2",
+            app_user_organization="org2",
+        )
+
+        self.client.logout()
+        # 2. verify grant creation - errors if DNE or more than one is found
         DataAccessGrant.objects.get(beneficiary=user.id, application=application.id)
         DataAccessGrant.objects.get(beneficiary=user.id, application=application_2.id)
 
-        # 4. expire first grant
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'scope': ['capability-a'],
-            'expires_in': 86400,
-            'allow': True,
-        }
-        self.client.post('/v1/o/expire_authenticated_user/{0}/'.format(fhir_id), data=payload)
+        # 3. logout
+        self.client.logout()
 
-        # 5. verify grant deleted - errors if DNE or more than one is found
+        # 4. call without authentication and expect 403
+        response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325"))
+        self.assertEqual(response.status_code, 403)
+
+        # 5. Create authentication headers and expect success
+        auth = self._create_authorization_header(application.client_id, application.client_secret)
+        self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325"),
+                         HTTP_AUTHORIZATION=auth,
+                         )
+
+        # 6. verify grant deleted - errors if DNE or more than one is found
         with self.assertRaises(DataAccessGrant.DoesNotExist):
             DataAccessGrant.objects.get(beneficiary=user.id, application=application.id)
 
-        # 6. verify archived grant exists - errors if DNE or more than one is found
+        # 7. verify archived grant exists - errors if DNE or more than one is found
         ArchivedDataAccessGrant.objects.get(beneficiary=user.id, application=application.id)
 
-        # 7. verify second grant still exists - errors if DNE or more than one is found
+        # 8. verify second grant still exists - errors if DNE or more than one is found
         DataAccessGrant.objects.get(beneficiary=user.id, application=application_2.id)
 
     def setup_test_application_with_user(self, test_user, application_name='an app'):
@@ -253,6 +279,54 @@ class TestDataAccessGrant(BaseApiTest):
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         fhir_id = json.loads(response.content)["patient"]
+        self.assertEqual(response.status_code, 200)
+        return application, fhir_id
+
+    def test_no_action_on_reapproval(self):
+        redirect_uri = 'http://localhost'
+        # create a user
+        user = self._create_user('anna', '123456')
+        capability_a = self._create_capability('Capability A', [])
+        capability_b = self._create_capability('Capability B', [])
+        # create an application and add capabilities
+        application = self._create_application(
+            'an app',
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect_uri)
+        application.scope.add(capability_a, capability_b)
+
+        # user logs in
+        request = HttpRequest()
+        self.client.login(request=request, username='anna', password='123456')
+
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+        }
+        response = self.client.get('/v1/o/authorize', data=payload)
+        # post the authorization form with only one scope selected
+        payload = {
+            'client_id': application.client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'scope': ['capability-a'],
+            'expires_in': 86400,
+            'allow': True,
+        }
+        response = self.client.post(response['Location'], data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        # now extract the authorization code and use it to request an access_token
+        query_dict = parse_qs(urlparse(response['Location']).query)
+        authorization_code = query_dict.pop('code')
+        token_request_data = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'client_id': application.client_id,
+        }
+        response = self.client.post(reverse('oauth2_provider:token'), data=token_request_data)
         self.assertEqual(response.status_code, 200)
         return application, fhir_id
 
