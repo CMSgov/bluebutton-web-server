@@ -661,7 +661,7 @@ if iterations:
     if isinstance(iterations, int):
         USER_ID_ITERATIONS = iterations
     elif isinstance(iterations, str):
-        USER_ID_ITERATIONS = str(iterations)
+        USER_ID_ITERATIONS = int(iterations)
 else:
     # Default for local development when ENV not set
     USER_ID_ITERATIONS = 2
