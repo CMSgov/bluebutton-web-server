@@ -239,6 +239,12 @@ class TestDataAccessGrant(BaseApiTest):
         # 8. verify second grant still exists - errors if DNE or more than one is found
         DataAccessGrant.objects.get(beneficiary=user.id, application=application_2.id)
 
+        # 9 test should error if patient id isn't found
+        response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325XXX"),
+                                    HTTP_AUTHORIZATION=auth,
+                                    )
+        self.assertEqual(response.status_code, 404)
+
     def setup_test_application_with_user(self, test_user, application_name='an app'):
         redirect_uri = 'http://localhost'
         capability_a = self._create_capability('Capability A', [])
