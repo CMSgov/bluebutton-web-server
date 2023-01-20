@@ -38,7 +38,8 @@ class TestDataAccessGrant(BaseApiTest):
 
     @staticmethod
     def _create_authorization_header(client_id, client_secret):
-        return "Basic {0}".format(base64.b64encode("{0}:{1}".format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
+        return "Basic {0}".format(
+            base64.b64encode("{0}:{1}".format(client_id, client_secret).encode('utf-8')).decode('utf-8'))
 
     def test_create_update_delete(self):
         # 1. Test create and default expiration_date
@@ -223,9 +224,10 @@ class TestDataAccessGrant(BaseApiTest):
 
         # 5. Create authentication headers and expect success
         auth = self._create_authorization_header(application.client_id, application.client_secret)
-        self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325"),
-                         HTTP_AUTHORIZATION=auth,
-                         )
+        response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325"),
+                                    HTTP_AUTHORIZATION=auth,
+                                    )
+        self.assertEqual(response.status_code, 200)
 
         # 6. verify grant deleted - errors if DNE or more than one is found
         with self.assertRaises(DataAccessGrant.DoesNotExist):

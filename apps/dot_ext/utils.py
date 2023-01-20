@@ -60,17 +60,16 @@ def remove_application_user_pair_tokens_data_access(application, user):
 # Get client_id from AUTH header META.
 def get_application_from_meta(request):
     request_meta = getattr(request, "META", None)
+    client_id = None
     Application = get_application_model()
     if request_meta:
         auth_header = request_meta.get("HTTP_AUTHORIZATION", None)
         if not auth_header:
             auth_header = request_meta.get("Authorization", None)
         if auth_header:
-            print("--- FOUND AUTH HEADER!!!!")
             encoded_credentials = auth_header.split(' ')[1]  # Removes "Basic " to isolate credentials
             decoded_credentials = b64decode(encoded_credentials).decode("utf-8").split(':')
             client_id = decoded_credentials[0]
-            print("---  CLIENT_ID:  ", client_id)
     try:
         if client_id is not None:
             app = Application.objects.get(client_id=client_id)
