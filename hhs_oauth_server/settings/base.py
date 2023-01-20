@@ -654,7 +654,17 @@ AUTHENTICATION_BACKENDS = (
 
 # Change these for production
 USER_ID_SALT = env("DJANGO_USER_ID_SALT", "6E6F747468657265616C706570706572")
-USER_ID_ITERATIONS = 2
+
+# Check type for cases where this is an INT in local development
+iterations = env("DJANGO_USER_ID_ITERATIONS", None)
+if iterations:
+    if isinstance(iterations, int):
+        USER_ID_ITERATIONS = iterations
+    elif isinstance(iterations, str):
+        USER_ID_ITERATIONS = str(iterations)
+else:
+    # Default for local development when ENV not set
+    USER_ID_ITERATIONS = 2
 
 USER_ID_TYPE_CHOICES = (("H", "HICN"), ("M", "MBI"))
 
