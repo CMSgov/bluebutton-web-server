@@ -378,10 +378,18 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_failed(self):
         self._search_request_failed(False)
 
+    def test_search_request_failed_bfd400(self):
+        # BB2-1965 for 400 or 500 BFD response compatibility.
+        self._search_request_failed(False, 400)
+
     def test_search_request_failed_v2(self):
         self._search_request_failed(True)
 
-    def _search_request_failed(self, v2=False):
+    def test_search_request_failed_v2_bfd400(self):
+        # BB2-1965 for 400 or 500 BFD response compatibility.
+        self._search_request_failed(True, 400)
+
+    def _search_request_failed(self, v2=False, bfd_status_code=500):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
         ver = 'v1' if not v2 else 'v2'
@@ -396,7 +404,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
             return {
-                'status_code': 500,
+                'status_code': bfd_status_code,
                 'content': {},
             }
 
@@ -410,10 +418,18 @@ class BackendConnectionTest(BaseApiTest):
     def test_search_request_failed_no_fhir_id_match(self):
         self._search_request_failed_no_fhir_id_match(False)
 
+    def test_search_request_failed_no_fhir_id_match_bfd400(self):
+        # BB2-1965 for 400 or 500 BFD response compatibility.
+        self._search_request_failed_no_fhir_id_match(False, 400)
+
     def test_search_request_failed_no_fhir_id_match_v2(self):
         self._search_request_failed_no_fhir_id_match(True)
 
-    def _search_request_failed_no_fhir_id_match(self, v2=False):
+    def test_search_request_failed_no_fhir_id_match_v2_bfd400(self):
+        # BB2-1965 for 400 or 500 BFD response compatibility.
+        self._search_request_failed_no_fhir_id_match(True, 400)
+
+    def _search_request_failed_no_fhir_id_match(self, v2=False, bfd_status_code=500):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
         ver = 'v1' if not v2 else 'v2'
@@ -442,7 +458,7 @@ class BackendConnectionTest(BaseApiTest):
             self.assertDictContainsSubset(expected_request['headers'], req.headers)
 
             return {
-                'status_code': 500,
+                'status_code': bfd_status_code,
                 'content': {},
             }
 

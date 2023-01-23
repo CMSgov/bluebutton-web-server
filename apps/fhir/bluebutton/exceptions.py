@@ -21,7 +21,7 @@ def process_error_response(response: Fhir_Response) -> APIException:
         else:
             msg = 'An error occurred contacting the upstream server'
             err = UpstreamServerException(msg)
-            if response.status_code == 500:
+            if response.status_code in [400, 500]:
                 try:
                     json = r.json()
                     if json is not None:
