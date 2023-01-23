@@ -210,7 +210,6 @@ class TestDataAccessGrant(BaseApiTest):
             app_user_organization="org2",
         )
 
-        self.client.logout()
         # 2. verify grant creation - errors if DNE or more than one is found
         DataAccessGrant.objects.get(beneficiary=user.id, application=application.id)
         DataAccessGrant.objects.get(beneficiary=user.id, application=application_2.id)
