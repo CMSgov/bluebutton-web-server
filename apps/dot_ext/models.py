@@ -283,6 +283,10 @@ class Application(AbstractApplication):
         else:
             super().save(*args, **kwargs)
 
+    # dedicated save for high frequency used first / last active timestamp updates
+    def save_without_validate(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
 
 class ApplicationLabel(models.Model):
     name = models.CharField(max_length=255, unique=True)
