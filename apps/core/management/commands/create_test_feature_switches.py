@@ -14,6 +14,7 @@ WAFFLE_FEATURE_SWITCHES = (
     ("show_testclient_link", True),
     ("interim-prod-access", True),
     ("enable_swaggerui", True),
+    ("limit_data_access", True),
 )
 
 

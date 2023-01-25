@@ -1,3 +1,5 @@
+import pytz
+
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -7,7 +9,7 @@ from apps.dot_ext.models import Application
 from apps.capabilities.models import ProtectedCapability
 from oauth2_provider.models import AccessToken
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.conf import settings
 from apps.authorization.models import update_grants
 
@@ -90,6 +92,8 @@ def create_application(user, group, app, redirect):
     a = Application.objects.create(name=app_name,
                                 redirect_uris=redirect_uri,
                                 user=user,
+                                data_access_type="RESEARCH_STUDY",
+                                end_date=datetime(9999, 12, 31).replace(tzinfo=pytz.UTC),
                                 client_type="confidential",
                                 authorization_grant_type="authorization-code")
 
