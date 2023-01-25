@@ -30,7 +30,9 @@ class OAuth2ResourceOwner(authentication.OAuth2Authentication):
                 access_token.application.first_active = (
                     access_token.application.last_active
                 )
-            access_token.application.save()
+            # BB2-2008 call dedicated save on application model to avoid
+            # unnecessary validations
+            access_token.application.save_without_validate()
 
             return user, access_token
         return None

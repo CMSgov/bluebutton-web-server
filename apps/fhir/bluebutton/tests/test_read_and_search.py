@@ -11,9 +11,10 @@ from oauth2_provider.models import get_access_token_model
 from urllib.parse import unquote
 from unittest.mock import patch
 
-from apps.test import BaseApiTest
-from apps.mymedicare_cb.tests.responses import patient_response
 from apps.fhir.bluebutton.views.home import (conformance_filter)
+from apps.mymedicare_cb.tests.responses import patient_response
+from apps.test import BaseApiTest
+
 # Get the pre-defined Conformance statement
 from .data_conformance import CONFORMANCE
 
