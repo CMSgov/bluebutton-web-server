@@ -548,18 +548,20 @@ APPLICATION_TEMPORARILY_INACTIVE = (
 )
 
 APPLICATION_RESEARCH_STUDY_ENDED_MESG = (
-    "Research study end date reached. "
-    "End user must log in to authorize refreshing of their Medicare data."
+    "Application end date passed. "
+    "Contact us at BlueButtonAPI@cms.hhs.gov if you need to refresh Medicare data."
 )
 
 APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG = (
     "One time data access application can not refresh tokens. "
-    "End user must log in to authorize refreshing of their Medicare data."
+    "To refresh Medicare data, end user must re-authenticate "
+    "and consent to share their data."
 )
 
 APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
-    "User authorization expired. "
-    "End user must log in to authorize refreshing of their Medicare data."
+    "User data access grant expired. "
+    "To refresh Medicare data, end user must re-authenticate "
+    "and consent to share their data."
 )
 
 FHIR_CLIENT_CERTSTORE = env(
