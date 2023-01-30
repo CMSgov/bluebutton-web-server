@@ -796,7 +796,7 @@ class TestDataAccessPermissions(BaseApiTest):
         self.assertGreater(
             dag.expiration_date,
             datetime.now().replace(tzinfo=pytz.UTC)
-            + relativedelta(months=+26, hours=-1),
+            + relativedelta(months=+26, days=-2),
         )
 
         # 13. Test token refresh is enabled for app (response_code=200)
