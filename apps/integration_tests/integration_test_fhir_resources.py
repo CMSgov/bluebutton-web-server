@@ -745,6 +745,7 @@ class IntegrationTestFhirApiResources(StaticLiveServerTestCase):
         self._setup_apiclient(client)
         response = client.get(self._get_fhir_url(FHIR_RES_TYPE_COVERAGE, "part-d___--20140000008325", v2))
         # check that bfd error response 500 with root cause 'IllegalArgument'
-        # mapped to 400 bad request (client error)
+        # mapped to 502 bad request (client error) currently.
+        # NOTE: This will change back to 400 after BB2-2063 work.
         # for both v1 and v2
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 502)
