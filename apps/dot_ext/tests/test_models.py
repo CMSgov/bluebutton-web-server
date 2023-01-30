@@ -6,8 +6,7 @@ import apps.logging.request_logger as logging
 from datetime import datetime
 from django.contrib.auth.models import User
 from oauth2_provider.models import get_application_model
-from waffle import switch_is_active
-from waffle.testutils import override_switch
+from waffle.testutils import override_flag
 
 from apps.authorization.models import DataAccessGrant, ArchivedDataAccessGrant
 from apps.dot_ext.models import (
@@ -15,7 +14,7 @@ from apps.dot_ext.models import (
     get_application_require_demographic_scopes_count,
 )
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
-from apps.test import BaseApiTest
+from apps.test import BaseApiTest, flag_is_active
 
 
 class TestDotExtModels(BaseApiTest):
@@ -25,13 +24,13 @@ class TestDotExtModels(BaseApiTest):
     def tearDown(self):
         cleanup_logger(self.logger_registry)
 
-    @override_switch('limit_data_access', active=True)
+    @override_flag('limit_data_access', active=True)
     def test_application_data_access_fields(self):
         """
         Test the CRUD operations & validation
         on new data access fields from apps.dot_ext.models
         """
-        assert switch_is_active('limit_data_access')
+        assert flag_is_active('limit_data_access')
 
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
@@ -150,13 +149,13 @@ class TestDotExtModels(BaseApiTest):
         self.assertEqual("RESEARCH_STUDY", test_app.data_access_type)
         self.assertEqual("2029-01-25 00:00:00+00:00", str(test_app.end_date))
 
-    @override_switch('limit_data_access', active=True)
+    @override_flag('limit_data_access', active=True)
     def test_application_data_access_type_change(self):
         """
         Test the application.data_access_type change, this triggers associated grants
         removal (become archived grants)
         """
-        assert switch_is_active('limit_data_access')
+        assert flag_is_active('limit_data_access')
 
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")
@@ -202,13 +201,13 @@ class TestDotExtModels(BaseApiTest):
         last_log_entry_json = json.loads(log_entries[2])
         self.assertEqual(last_log_entry_json['application_saved_and_grants_deleted'], "Yes")
 
-    @override_switch('limit_data_access', active=False)
+    @override_flag('limit_data_access', active=False)
     def test_application_data_access_type_change_switch_off(self):
         """
         Test the application.data_access_type change, this will NOT trigger associated grants
         removal due to switch off
         """
-        assert (not switch_is_active('limit_data_access'))
+        assert (not flag_is_active('limit_data_access'))
 
         # Create dev user for tests.
         dev_user = self._create_user("john", "123456")

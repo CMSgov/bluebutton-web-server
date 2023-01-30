@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from oauth2_provider.settings import oauth2_settings
 from oauth2_provider.models import get_access_token_model
-from waffle import switch_is_active
+from waffle import get_waffle_flag_model
 
 
 class DataAccessGrant(models.Model):
@@ -41,7 +41,8 @@ class DataAccessGrant(models.Model):
 
     def update_expiration_date(self):
         # For THIRTEEN_MONTH type update expiration_date
-        if switch_is_active("limit_data_access"):
+        flag = get_waffle_flag_model().get("limit_data_access")
+        if flag.id is not None and flag.is_active_for_user(self.application.user):
             if self.application:
                 if self.application.data_access_type == "THIRTEEN_MONTH":
                     self.expiration_date = datetime.now().replace(
@@ -50,7 +51,8 @@ class DataAccessGrant(models.Model):
                     self.save()
 
     def has_expired(self):
-        if switch_is_active("limit_data_access"):
+        flag = get_waffle_flag_model().get("limit_data_access")
+        if flag.id is not None and flag.is_active_for_user(self.application.user):
             if self.application.data_access_type == "THIRTEEN_MONTH":
                 if self.expiration_date:
                     if self.expiration_date < datetime.now().replace(tzinfo=pytz.UTC):

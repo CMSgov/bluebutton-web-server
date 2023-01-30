@@ -27,7 +27,7 @@ from oauth2_provider.models import (
 )
 from oauth2_provider.settings import oauth2_settings
 from urllib.parse import urlparse
-from waffle import switch_is_active
+from waffle import get_waffle_flag_model
 
 from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import DataAccessGrant
@@ -208,7 +208,9 @@ class Application(AbstractApplication):
 
     # Has the research study expired?
     def has_research_study_expired(self):
-        if switch_is_active("limit_data_access"):
+        flag = get_waffle_flag_model().get("limit_data_access")
+        # if id is None, flag is empty and method can't be called.
+        if flag.id is not None and flag.is_active_for_user(self.user):
             if self.data_access_type == "RESEARCH_STUDY":
                 if self.end_date:
                     if self.end_date < datetime.now().replace(tzinfo=pytz.UTC):
@@ -218,7 +220,8 @@ class Application(AbstractApplication):
 
     # Has one time only type data access?
     def has_one_time_only_data_access(self):
-        if switch_is_active("limit_data_access"):
+        flag = get_waffle_flag_model().get("limit_data_access")
+        if flag.is_active_for_user(self.user):
             if self.data_access_type == "ONE_TIME":
                 return True
 
@@ -230,12 +233,13 @@ class Application(AbstractApplication):
         if not (self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)):
             raise ValueError("Invalid data_access_type: " + self.data_access_type)
 
-        is_valid, mesg = is_data_access_type_valid(self.data_access_type, self.end_date)
+        is_valid, mesg = is_data_access_type_valid(self.user, self.data_access_type, self.end_date)
 
         if not is_valid:
             raise ValueError(mesg)
 
-        if switch_is_active("limit_data_access"):
+        flag = get_waffle_flag_model().get("limit_data_access")
+        if flag.id is not None and flag.is_active_for_user(self.user):
             # Check if data_access_type is changed
             # if so, need to void all grants associated
 

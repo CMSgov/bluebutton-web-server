@@ -85,8 +85,9 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
         # Validate data access type and end_date
         data_access_type = self.cleaned_data.get("data_access_type")
         end_date = self.cleaned_data.get("end_date")
+        user = self.cleaned_data.get("user")
 
-        is_valid, mesg = is_data_access_type_valid(data_access_type, end_date)
+        is_valid, mesg = is_data_access_type_valid(user, data_access_type, end_date)
 
         if not is_valid:
             raise forms.ValidationError(mesg)
