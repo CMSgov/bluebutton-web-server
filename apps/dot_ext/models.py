@@ -221,7 +221,7 @@ class Application(AbstractApplication):
     # Has one time only type data access?
     def has_one_time_only_data_access(self):
         flag = get_waffle_flag_model().get("limit_data_access")
-        if flag.is_active_for_user(self.user):
+        if flag.id is not None and flag.is_active_for_user(self.user):
             if self.data_access_type == "ONE_TIME":
                 return True
 
