@@ -442,7 +442,7 @@ class TestDataAccessPermissions(BaseApiTest):
         Test data access for FHIR and profile end points
         with limit_data_access flag True.
 
-        This will be the flag setting in SBX.
+        This will be the flag setting in PROD.
         """
         assert flag_is_active("limit_data_access")
 
@@ -726,9 +726,9 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         # 5. Test that all calls are successful (response_code=200)
-        # self._assert_call_all_fhir_endpoints(
-        #     access_token=ac["access_token"], expected_response_code=200
-        # )
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=200
+        )
 
         # 6. Mock a future date to test data access grant expiration.
         #    Test has_expired() is false before time change

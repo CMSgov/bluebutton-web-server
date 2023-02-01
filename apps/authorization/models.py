@@ -41,9 +41,9 @@ class DataAccessGrant(models.Model):
 
     def update_expiration_date(self):
         # For THIRTEEN_MONTH type update expiration_date
-        flag = get_waffle_flag_model().get("limit_data_access")
-        if flag.id is not None and flag.is_active_for_user(self.application.user):
-            if self.application:
+        if self.application:
+            flag = get_waffle_flag_model().get("limit_data_access")
+            if flag.id is not None and flag.is_active_for_user(self.application.user):
                 if self.application.data_access_type == "THIRTEEN_MONTH":
                     self.expiration_date = datetime.now().replace(
                         tzinfo=pytz.UTC
