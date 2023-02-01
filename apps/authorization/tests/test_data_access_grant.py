@@ -18,7 +18,7 @@ from oauth2_provider.models import (
     get_access_token_model,
 )
 
-from apps.test import BaseApiTest
+from apps.test import BaseApiTest, flag_is_active
 from apps.authorization.models import (
     DataAccessGrant,
     ArchivedDataAccessGrant,
@@ -26,9 +26,8 @@ from apps.authorization.models import (
     update_grants,
 
 )
-
-from waffle import switch_is_active
-from waffle.testutils import override_switch
+from waffle import get_waffle_flag_model
+from waffle.testutils import override_flag, override_switch
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
@@ -95,15 +94,18 @@ class TestDataAccessGrant(BaseApiTest):
         #    Verify expiration_date copied OK.
         self.assertEqual("2030-01-15 00:00:00+00:00", str(arch_dag.expiration_date))
 
-    @override_switch('limit_data_access', active=False)
+    @override_flag('limit_data_access', active=False)
     def test_thirteen_month_app_type_without_switch_limit_data_access(self):
-        assert not switch_is_active('limit_data_access')
+        assert not flag_is_active('limit_data_access')
 
         # 1. Create bene and app for tests
         dev_user = self._create_user("developer_test", "123456")
         bene_user = self._create_user("test_beneficiary", "123456")
         test_app = self._create_application("test_app", user=dev_user,
                                             data_access_type="THIRTEEN_MONTH")
+
+        flag = get_waffle_flag_model().get('limit_data_access')
+        assert flag.id is None or flag.is_active_for_user(dev_user) is False
 
         # 2. Create grant with expiration date in future.
         dag = DataAccessGrant.objects.create(
@@ -139,15 +141,18 @@ class TestDataAccessGrant(BaseApiTest):
         test_app.save()
         self.assertEqual(dag.has_expired(), False)
 
-    @override_switch('limit_data_access', active=True)
+    @override_flag('limit_data_access', active=True)
     def test_thirteen_month_app_type_with_switch_limit_data_access(self):
-        assert switch_is_active('limit_data_access')
+        assert flag_is_active('limit_data_access')
 
         # 1. Create bene and app for tests
         dev_user = self._create_user("developer_test", "123456")
         bene_user = self._create_user("test_beneficiary", "123456")
         test_app = self._create_application("test_app", user=dev_user,
                                             data_access_type="THIRTEEN_MONTH")
+
+        flag = get_waffle_flag_model().get('limit_data_access')
+        assert flag.id is not None and flag.is_active_for_user(dev_user)
 
         # 2. Create grant with expiration date in future.
         dag = DataAccessGrant.objects.create(
@@ -432,3 +437,41 @@ class TestDataAccessGrant(BaseApiTest):
         # set back app and user to active - not to affect other tests
         application.active = True
         application.save()
+
+    def test_thirteen_month_app_needs_limit_data_access_set(self):
+
+        # 1. Create benes
+        dev_user = self._create_user("developer_test", "123456")
+        bene_user = self._create_user("test_beneficiary", "123456")
+        flag_bene_user = self._create_user("flag_beneficiary", "123456")
+        test_app = self._create_application("test_app", user=dev_user,
+                                            data_access_type="THIRTEEN_MONTH")
+
+        # 2. Create flag and show is not set for dev_user
+        flag = get_waffle_flag_model().objects.create(name='limit_data_access')
+        assert flag.id is not None
+        assert not flag.is_active_for_user(dev_user)
+
+        # 3. Create grant and expire expiration to show it doesn't matter
+        dag = DataAccessGrant.objects.create(
+            application=test_app,
+            beneficiary=bene_user
+        )
+        # 4. Test has_expired() true for -1 hour ago
+        dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
+            hours=-1
+        )
+        self.assertEqual(dag.has_expired(), False)
+
+        # 4. Add dev_user to flag
+        flag.users.add(dev_user)
+
+        # 5. Create new grant and show expiration is working
+        flag_dag = DataAccessGrant.objects.create(
+            application=test_app,
+            beneficiary=flag_bene_user
+        )
+        flag_dag.expiration_date = datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(
+            hours=-1
+        )
+        self.assertEqual(dag.has_expired(), True)

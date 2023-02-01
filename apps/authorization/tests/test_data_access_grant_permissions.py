@@ -7,10 +7,9 @@ from django.test.client import Client
 from httmock import HTTMock, urlmatch
 from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from unittest import mock
-from waffle import switch_is_active
-from waffle.testutils import override_switch
+from waffle.testutils import override_flag
 
-from apps.test import BaseApiTest
+from apps.test import BaseApiTest, flag_is_active
 from apps.authorization.models import (
     DataAccessGrant,
 )
@@ -186,7 +185,7 @@ class TestDataAccessPermissions(BaseApiTest):
             for path in [
                 "/v1/fhir/Patient/-20140000008325",
                 "/v1/fhir/Coverage/-20140000008325",
-                "/v1/fhir/ExplanationOfBenefit/-20140000008325"
+                "/v1/fhir/ExplanationOfBenefit/-20140000008325",
                 "/v2/fhir/Patient/-20140000008325",
                 "/v2/fhir/Coverage/-20140000008325",
                 "/v2/fhir/ExplanationOfBenefit/-20140000008325",
@@ -258,17 +257,17 @@ class TestDataAccessPermissions(BaseApiTest):
             )
         return content
 
-    @override_switch("limit_data_access", active=False)
-    def test_revoked_data_access_grant_without_switch_limit_data_access(self):
+    @override_flag("limit_data_access", active=False)
+    def test_revoked_data_access_grant_without_flag_limit_data_access(self):
         """
         Test data access grant deleted / revoked
 
         Test data access for FHIR and profile end points
-        with limit_data_access switch False.
+        with limit_data_access flag False.
 
-        This will be the switch setting in Sandbox.
+        This will be the flag setting in Sandbox.
         """
-        assert not switch_is_active("limit_data_access")
+        assert not flag_is_active("limit_data_access")
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
@@ -330,17 +329,17 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_detail_mesg="Authentication credentials were not provided.",
         )
 
-    @override_switch("limit_data_access", active=False)
-    def test_research_study_app_type_without_switch_limit_data_access(self):
+    @override_flag("limit_data_access", active=False)
+    def test_research_study_app_type_without_flag_limit_data_access(self):
         """
         Test Application.data_access_type="RESEARCH_STUDY".
 
         Test data access for FHIR and profile end points
-        with limit_data_access switch False.
+        with limit_data_access flag False.
 
-        This will be the switch setting in Sandbox.
+        This will be the flag setting in Sandbox.
         """
-        assert not switch_is_active("limit_data_access")
+        assert not flag_is_active("limit_data_access")
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
@@ -419,7 +418,7 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_code=200,
         )
 
-        # 10. Test with RESEARCH_STUDY application end_date IS expired w/o feature switch (response_code=200)
+        # 10. Test with RESEARCH_STUDY application end_date IS expired w/o feature flag (response_code=200)
         app.data_access_type = "RESEARCH_STUDY"
         app.end_date = datetime(1999, 1, 15, 0, 0, 0, 0, pytz.UTC)
         app.save()
@@ -435,17 +434,17 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_code=200,
         )
 
-    @override_switch("limit_data_access", active=True)
-    def test_research_study_app_type_with_switch_limit_data_access(self):
+    @override_flag("limit_data_access", active=True)
+    def test_research_study_app_type_with_flag_limit_data_access(self):
         """
         Test Application.data_access_type="RESEARCH_STUDY".
 
         Test data access for FHIR and profile end points
-        with limit_data_access switch True.
+        with limit_data_access flag True.
 
-        This will be the switch setting in PROD.
+        This will be the flag setting in PROD.
         """
-        assert switch_is_active("limit_data_access")
+        assert flag_is_active("limit_data_access")
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
@@ -545,18 +544,18 @@ class TestDataAccessPermissions(BaseApiTest):
             expected_response_error_description_mesg=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG,
         )
 
-    @override_switch("limit_data_access", active=False)
-    def test_one_time_app_type_without_switch_limit_data_access(self):
+    @override_flag("limit_data_access", active=False)
+    def test_one_time_app_type_without_flag_limit_data_access(self):
         """
         Test Application.data_access_type="ONE_TIME"
-        with limit_data_access switch False.
+        with limit_data_access flag False.
 
-        This will be the switch setting in Sandbox.
+        This will be the flag setting in Sandbox.
 
         NOTE: This type of application does not allow token refreshes
-              when the feature switch is enabled.
+              when the feature flag is enabled.
         """
-        assert not switch_is_active("limit_data_access")
+        assert not flag_is_active("limit_data_access")
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
@@ -592,18 +591,18 @@ class TestDataAccessPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-    @override_switch("limit_data_access", active=True)
-    def test_one_time_app_type_with_switch_limit_data_access(self):
+    @override_flag("limit_data_access", active=True)
+    def test_one_time_app_type_with_flag_limit_data_access(self):
         """
         Test Application.data_access_type="ONE_TIME"
-        with limit_data_access switch True
+        with limit_data_access flag True
 
-        This will be the switch setting in PROD.
+        This will be the flag setting in PROD.
 
         NOTE: This type of application does not allow token refreshes
-              when the feature switch is enabled.
+              when the feature flag is enabled.
         """
-        assert switch_is_active("limit_data_access")
+        assert flag_is_active("limit_data_access")
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
@@ -641,16 +640,16 @@ class TestDataAccessPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-    @override_switch("limit_data_access", active=False)
+    @override_flag("limit_data_access", active=False)
     @mock.patch("apps.authorization.models.datetime", StubDate)
-    def test_thirteen_month_app_type_without_switch_limit_data_access(self):
+    def test_thirteen_month_app_type_without_flag_limit_data_access(self):
         """
         Test Application.data_access_type="THIRTEEN_MONTH"
-        with limit_data_access switch False
+        with limit_data_access flag False
 
-        This will be the switch setting in Sandbox.
+        This will be the flag setting in Sandbox.
         """
-        assert not switch_is_active("limit_data_access")
+        assert not flag_is_active("limit_data_access")
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
@@ -686,16 +685,16 @@ class TestDataAccessPermissions(BaseApiTest):
             access_token=ac["access_token"], expected_response_code=200
         )
 
-    @override_switch("limit_data_access", active=True)
+    @override_flag("limit_data_access", active=True)
     @mock.patch("apps.authorization.models.datetime", StubDate)
-    def test_thirteen_month_app_type_with_switch_limit_data_access(self):
+    def test_thirteen_month_app_type_with_flag_limit_data_access(self):
         """
         Test Application.data_access_type="THIRTEEN_MONTH"
-        with limit_data_access switch True
+        with limit_data_access flag True
 
-        This will be the switch setting in PROD.
+        This will be the flag setting in SBX.
         """
-        assert switch_is_active("limit_data_access")
+        assert flag_is_active("limit_data_access")
 
         # 1. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(

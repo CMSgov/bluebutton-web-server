@@ -19,6 +19,12 @@ from apps.dot_ext.utils import (
     remove_application_user_pair_tokens_data_access,
 )
 from apps.fhir.bluebutton.models import Crosswalk
+from waffle import get_waffle_flag_model
+
+
+def flag_is_active(name):
+    flag = get_waffle_flag_model().get(name)
+    return flag.everyone
 
 
 class BaseApiTest(TestCase):

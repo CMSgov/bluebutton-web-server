@@ -6,7 +6,7 @@ from django.db import transaction
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
-from waffle import switch_is_active
+from waffle import get_waffle_flag_model
 
 from apps.authorization.models import DataAccessGrant
 
@@ -141,12 +141,13 @@ def validate_app_is_active(request):
                         pass
 
 
-def is_data_access_type_valid(data_access_type, end_date):
+def is_data_access_type_valid(user, data_access_type, end_date):
     """
     Validate data_access_type & end_date combo is valid.
         Returns: True/False & exception message for use.
     """
-    if switch_is_active("limit_data_access"):
+    flag = get_waffle_flag_model().get("limit_data_access")
+    if flag.id is not None and flag.is_active_for_user(user):
         if data_access_type == "RESEARCH_STUDY" and end_date is None:
             return False, "An end_date is required for the RESEARCH_STUDY type!"
 
