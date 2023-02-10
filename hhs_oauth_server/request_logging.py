@@ -37,6 +37,8 @@ class RequestResponseLog(object):
         - app_require_demographic_scopes = Application required scopes choice.
         - auth_app_id = Application id for auth flow session.
         - auth_app_name = Application name for auth flow session.
+        - auth_app_data_access_type = data access type of the application: ONE_TIME, THIRTEEN_MONTH, RESEARCH_STUDY (BB2-2011)
+        - auth_app_end_date = expiration date of application of type: RESEARCH_STUDY (BB2-2011)
         - auth_client_id = Client ID for auth flow session.
         - auth_require_demographic_scopes = Application required scopes choice.
         - auth_uuid = The UUID identifying the auth flow session.
