@@ -518,7 +518,6 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
     def test_err_response_500_will_return_502(self):
         self._err_response_caused_by_illegalarguments(False, 500, 502)
 
-
     def _err_response_caused_by_illegalarguments(self, v2=False, bfd_status_code=500, expected_code=400):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
