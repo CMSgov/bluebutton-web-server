@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 if flag[1]:
                     for u in flag[1]:
                         try:
-                            u = User.objects.get(name=u)
+                            u = User.objects.get(username=u)
                             try:
                                 flag_obj.users.add(u.id)
                                 flag_obj.save()
