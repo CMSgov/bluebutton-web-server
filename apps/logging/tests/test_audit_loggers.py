@@ -484,7 +484,6 @@ class TestAuditEventLoggers(BaseApiTest):
 
         # Validate Authorization entry
         token_log_dict = json.loads(token_log_content)
-        print(token_log_dict)
         self.assertTrue(
             self._validateJsonSchema(AUTHORIZATION_LOG_SCHEMA, token_log_dict)
         )
