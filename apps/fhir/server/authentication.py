@@ -64,6 +64,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         headers['BlueButton-AuthUuid'] = auth_flow_dict.get('auth_uuid', '')
         headers['BlueButton-AuthAppId'] = auth_flow_dict.get('auth_app_id', '')
         headers['BlueButton-AuthAppName'] = auth_flow_dict.get('auth_app_name', '')
+        # BB2-2011 update logging w.r.t new fields application data_access_type
+        headers['BlueButton-AuthAppDataAccessType'] = auth_flow_dict.get('auth_app_data_access_type', '')
+        headers['BlueButton-AuthAppEndDate'] = auth_flow_dict.get('auth_app_end_date', '')
 
         # BB2-1544: header value with char (>256) choke the header put in underlying request prep
         try:

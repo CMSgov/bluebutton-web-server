@@ -75,6 +75,8 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "application": {
             "id": application.id,
             "name": application.name,
+            "data_access_type": application.data_access_type,
+            "end_date": str(application.end_date) if application.end_date else ""
         },
         "share_demographic_scopes": share_demographic_scopes,
         "scopes": scopes,
