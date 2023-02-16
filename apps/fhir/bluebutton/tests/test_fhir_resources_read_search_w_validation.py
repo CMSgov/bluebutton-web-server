@@ -508,21 +508,17 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["sub"], response.json()["patient"])
 
-    def test_err_response_caused_by_illegalarguments(self):
-        self._err_response_caused_by_illegalarguments(False)
+    def test_err_response_status_will_return_400_for_40x(self):
+        # 401 will also return 400
+        self._err_response_caused_by_illegalarguments(False, 401)
 
-    def test_err_response_caused_by_illegalarguments_bfd400(self):
-        # BB2-1965 for 400 or 500 BFD response compatibility.
-        self._err_response_caused_by_illegalarguments(False, 400)
+    def test_err_response_404_will_return_4o4(self):
+        self._err_response_caused_by_illegalarguments(False, 404, 404)
 
-    def test_err_response_caused_by_illegalarguments_v2(self):
-        self._err_response_caused_by_illegalarguments(True)
+    def test_err_response_500_will_return_502(self):
+        self._err_response_caused_by_illegalarguments(False, 500, 502)
 
-    def test_err_response_caused_by_illegalarguments_v2_bfd400(self):
-        # BB2-1965 for 400 or 500 BFD response compatibility.
-        self._err_response_caused_by_illegalarguments(True, 400)
-
-    def _err_response_caused_by_illegalarguments(self, v2=False, bfd_status_code=500):
+    def _err_response_caused_by_illegalarguments(self, v2=False, bfd_status_code=500, expected_code=400):
         # create the user
         first_access_token = self.create_token('John', 'Smith')
 
@@ -543,4 +539,4 @@ class FHIRResourcesReadSearchTest(BaseApiTest):
                 {'hello': 'world'},
                 Authorization="Bearer %s" % (first_access_token))
 
-            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.status_code, expected_code)
