@@ -22,6 +22,8 @@ class DataAccessGrantSerializer:
             "application": {
                 "id": getattr(app, 'id', None),
                 "name": getattr(app, 'name', None),
+                "data_access_type": getattr(app, 'data_access_type', None),
+                "end_date": getattr(app, 'end_date', None),
                 "user": {
                     "id": getattr(app_user, 'id', None),
                     "username": getattr(app_user, 'username', None),
@@ -66,6 +68,8 @@ class Token:
             "application": {
                 "id": getattr(app, 'id', None),
                 "name": getattr(app, 'name', None),
+                "data_access_type": getattr(app, 'data_access_type', None),
+                "end_date": getattr(app, 'end_date', None),
                 "user": {
                     "id": getattr(app_user, 'id', None),
                     "username": getattr(app_user, 'username', None),
