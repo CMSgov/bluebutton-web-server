@@ -84,7 +84,9 @@ WITH report_params AS (
       'app_approval_view_get_fail_count',
       'app_approval_view_post_ok_real_count',
       'app_approval_view_post_ok_synthetic_count',
-      'app_approval_view_post_fail_count'
+      'app_approval_view_post_fail_count',
+      'app_sdk_requests_python_count',
+      'app_sdk_requests_node_count'
     ] as enabled_metrics_list 
 ),
 
@@ -126,11 +128,7 @@ perf_mon_events_all AS (
          year/month together as the DT partition vs.
          separately for this case. 
       */
-      AND dt >= '${PARTITION_MIN_YEAR}'
-      AND partition_1 >= '${PARTITION_MIN_MONTH}'
-      AND dt <= '${PARTITION_MAX_YEAR}'
-      AND partition_1 <= '${PARTITION_MAX_MONTH}'
-
+      AND ${PARTITION_LIMIT_SQL}
     )
 ),
 
@@ -484,7 +482,11 @@ SELECT
   COALESCE(t226.app_approval_view_post_ok_synthetic_count, 0)
     app_approval_view_post_ok_synthetic_count,
   COALESCE(t227.app_approval_view_post_fail_count, 0)
-    app_approval_view_post_fail_count
+    app_approval_view_post_fail_count,
+  COALESCE(t228.app_sdk_requests_python_count, 0)
+    app_sdk_requests_python_count,
+  COALESCE(t229.app_sdk_requests_node_count, 0)
+    app_sdk_requests_node_count
 
 FROM
   (
@@ -2234,3 +2236,45 @@ FROM
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
         NULLIF(resp_app_name,''))
   ) t227 ON t227.app_name = t0.name 
+
+  LEFT JOIN
+  (
+    SELECT
+      COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
+        NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
+        NULLIF(resp_app_name,'')) as app_name,
+      count(*) as app_sdk_requests_python_count
+    FROM
+      request_response_middleware_events
+    WHERE
+      (
+        CONTAINS((SELECT enabled_metrics_list FROM report_params),
+          'app_sdk_requests_python_count')
+
+        AND req_header_bluebutton_sdk = 'python'
+      )
+    GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
+        NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
+        NULLIF(resp_app_name,''))
+  ) t228 ON t228.app_name = t0.name 
+
+  LEFT JOIN
+  (
+    SELECT
+      COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
+        NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
+        NULLIF(resp_app_name,'')) as app_name,
+      count(*) as app_sdk_requests_node_count
+    FROM
+      request_response_middleware_events
+    WHERE
+      (
+        CONTAINS((SELECT enabled_metrics_list FROM report_params),
+          'app_sdk_requests_node_count')
+
+        AND req_header_bluebutton_sdk = 'node'
+      )
+    GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
+        NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
+        NULLIF(resp_app_name,''))
+  ) t229 ON t229.app_name = t0.name 
