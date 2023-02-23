@@ -1,17 +1,18 @@
 from rest_framework.exceptions import NotFound, APIException
 from rest_framework import status
 from requests import Response
+from requests.exceptions import JSONDecodeError
 from .models import Fhir_Response
 
 
 def process_error_response(response: Fhir_Response) -> APIException:
     """
-    TODO: This should be more specific (original comment before BB2-128)
-    BB2-128: check FHIR response: if error is "IllegalArgumentException: Unsupported ID pattern..."
-    then append the error to the general error message: 'An error occurred contacting the upstream server'
-    As of BB2-291 in support BFD v2, it's a good time to map BFD 500 (server error) response where diagnostics contains
-    java.lang.IllegalArgumentException to 'client error' 400 Bad Request, this will reduce large number of 500 (server error)
-    alerts at runtime
+    Process errors coming from FHIR endpoints.
+    All status codes in 400s except 404 get wrapped in
+    BadRequestError with diagnostics message attached if found.
+    If not found, Generic UpstreamServerException will be returned.
+    404 returns NotFound error.
+    500 messages will return generic message with no diagnostics.
     """
     err: APIException = None
     r: Response = response.backend_response
@@ -21,18 +22,16 @@ def process_error_response(response: Fhir_Response) -> APIException:
         else:
             msg = 'An error occurred contacting the upstream server'
             err = UpstreamServerException(msg)
-            if response.status_code in [400, 500]:
+            if response.status_code in range(400, 500):
                 try:
                     json = r.json()
                     if json is not None:
                         issues = json.get('issue')
                         issue = issues[0] if issues else None
                         diagnostics = issue.get('diagnostics') if issue else None
-                        if diagnostics is not None and "Unsupported ID pattern" in diagnostics:
+                        if diagnostics is not None:
                             err = BadRequestToBackendError("{}:{}".format(msg, diagnostics))
-                        else:
-                            err = UpstreamServerException("{}:{}".format(msg, diagnostics))
-                except Exception:
+                except JSONDecodeError:
                     pass
     return err
 
