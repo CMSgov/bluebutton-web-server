@@ -5,7 +5,9 @@ from utils.utils import (
     get_report_dates_from_target_date,
     run_athena_query_using_template,
     output_results_list_to_csv_file,
+    update_or_create_metrics_table,
 )
+
 
 """
 Summary:
@@ -79,7 +81,20 @@ parser.add_argument(
     default="global_state_per_app_testing1",
     type=str,
 )
+parser.add_argument(
+    "--append-sql",
+    "-a",
+    help="SQL to be appended. For example, a where clause can be added to only show results of interest while testing.",
+    default="",
+    type=str,
+)
+parser.add_argument(
+    "--update-per-app-table",
+    action=argparse.BooleanOptionalAction,
+    help="Update or create table for per-app table basename.",
+)
 
+# args = parser.parse_args(["--no-update-per-app-table"])
 args = parser.parse_args()
 
 INPUT_TEMPLATE_FILE = args.input_template_file if args.input_template_file else None
@@ -90,6 +105,8 @@ ENV = args.env if args.env else None
 TARGET_DATE = args.target_report_date if args.target_report_date else None
 OUTPUT_FILE = args.results_output_file if args.results_output_file else None
 BASENAME_PER_APP = args.basename_per_app if args.basename_per_app else None
+APPEND_SQL = args.append_sql if args.append_sql else None
+UPDATE_PER_APP_TABLE = args.update_per_app_table if args.update_per_app_table else None
 
 print("--- Running SQL from template in Athena...")
 print("---")
@@ -105,6 +122,8 @@ print("---             DATABASE: ", DATABASE)
 print("---                  ENV: ", ENV)
 print("---          TARGET_DATE: ", TARGET_DATE)
 print("---     BASENAME_PER_APP: ", BASENAME_PER_APP)
+print("--- UPDATE_PER_APP_TABLE: ", UPDATE_PER_APP_TABLE)
+print("---           APPEND_SQL: ", APPEND_SQL)
 print("---          OUTPUT_FILE: ", OUTPUT_FILE)
 print("---")
 
@@ -120,6 +139,7 @@ params = {
     "env": ENV,
     "basename_main": None,
     "basename_per_app": BASENAME_PER_APP,
+    "append_sql": APPEND_SQL,
     "report_dates": report_dates,
 }
 
@@ -129,12 +149,35 @@ print("--- params:  ", params)
 print("---")
 print("---")
 
-result_list = run_athena_query_using_template(session, params, INPUT_TEMPLATE_FILE)
+# Update/create table
+if UPDATE_PER_APP_TABLE:
+    success_flag = update_or_create_metrics_table(
+        session, params, params["basename_per_app"], INPUT_TEMPLATE_FILE
+    )
 
-print("--- Results list items returned:  ", len(result_list))
+    if success_flag:
+        print("---")
+        print("--- SUCCESS: PER_APP TABLE was updated/created!")
+        print("---")
+        print(
+            "--- NOTE: You can DROP the table via the console if wanting to re-created it"
+        )
+        print("---       or use a different report_date to add new entries.")
+        print("---")
+    else:
+        print("---")
+        print("--- FAIL: PER_APP TABLE update/create un-successful after retries!")
+        print("---")
+else:
+    # Run SQL query
+    result_list = run_athena_query_using_template(session, params, INPUT_TEMPLATE_FILE)
 
-if OUTPUT_FILE:
     print("---")
-    print("--- Writing results to:  ", OUTPUT_FILE)
-    output_results_list_to_csv_file(result_list, OUTPUT_FILE)
+    print("--- Results list items returned:  ", len(result_list))
     print("---")
+
+    if OUTPUT_FILE:
+        print("---")
+        print("--- Writing results to:  ", OUTPUT_FILE)
+        output_results_list_to_csv_file(result_list, OUTPUT_FILE)
+        print("---")
