@@ -8,6 +8,7 @@ from dateutil.relativedelta import relativedelta, MO
 from io import StringIO
 from string import Template
 
+
 """
 Summary:
 
@@ -142,17 +143,19 @@ def get_sql_from_template_file(filepath, params):
     template = Template(f.read())
     f.close()
 
-    return template.substitute(
+    ret = template.substitute(
         ENV=params["env"],
         BASENAME_PER_APP=params["basename_per_app"],
         START_DATE=params["report_dates"]["start_date"],
         END_DATE=params["report_dates"]["end_date"],
         REPORT_DATE=params["report_dates"]["report_date"],
-        PARTITION_MIN_YEAR=params["report_dates"]["partition_min_year"],
-        PARTITION_MIN_MONTH=params["report_dates"]["partition_min_month"],
-        PARTITION_MAX_YEAR=params["report_dates"]["partition_max_year"],
-        PARTITION_MAX_MONTH=params["report_dates"]["partition_max_month"],
+        PARTITION_LIMIT_SQL=params["report_dates"]["partition_limit_sql"],
     )
+
+    if params.get("append_sql", None):
+        ret = ret + "\n" + params["append_sql"]
+
+    return ret
 
 
 def run_athena_query_using_template(session, params, template_file):
@@ -206,6 +209,52 @@ def update_or_create_table_for_report_date(
     return result_list
 
 
+def update_or_create_metrics_table(session, params, table_basename, template_file):
+
+    print("##")
+    print(
+        "## --- UPDATE/CREATE TABLE:  "
+        + params["database"]
+        + "."
+        + params["env"]
+        + "_"
+        + table_basename
+    )
+    print("##")
+
+    # Check if per_app table already exists
+    table_exists = check_table_exists(session, params, table_basename)
+    print("## table_exists:  ", table_exists)
+
+    # Update the per_app table if an entry does not already exist.
+    success_flag = False
+    for attempt_count in range(3):
+        # NOTE: Retry SQL run 3x for random Athena time-out issue.
+        print("## SQL RUN ATTEMPT:  ", attempt_count + 1)
+        if table_exists:
+            if check_table_for_report_date_entry(session, params, table_basename):
+                print("## TABLE already has entry for report_date. Skipping...")
+            else:
+                print("## Updating TABLE...")
+                # Update table
+                update_or_create_table_for_report_date(
+                    session, params, table_basename, template_file, table_exists
+                )
+        else:
+            # Create table
+            print("## Creating new TABLE...")
+            update_or_create_table_for_report_date(
+                session, params, table_basename, template_file, table_exists
+            )
+
+        # Checking if table was updated with SQL results
+        if check_table_for_report_date_entry(session, params, table_basename):
+            success_flag = True
+            break
+
+    return success_flag
+
+
 def get_report_dates_from_target_date(target_date_str=""):
     """
     Given a target date string return dates for the
@@ -250,15 +299,33 @@ def get_report_dates_from_target_date(target_date_str=""):
         The current partitioning is split a dt = year, partition_1 = month,
         so this causes performance issues in the current setup and EOY.
 
-        Setting minimum partition month to "01" for now. Note that
-        this case may take a while to run.
+        The current performance is acceptable, but should revisit
+        for future needs.
         """
         partition_min_month = "01"
         partition_max_month = "12"
+        partition_limit_sql = (
+            "( (dt = '"
+            + partition_min_year
+            + "' AND partition_1 = '12') OR (dt = '"
+            + partition_max_year
+            + "' AND partition_1 = '01') )"
+        )
     else:
         # Set min/max month for partition search.Speeds up query!
         partition_min_month = start_date.strftime("%m")
         partition_max_month = report_date.strftime("%m")
+        partition_limit_sql = (
+            "dt >= '"
+            + partition_min_year
+            + "' AND partition_1 >= '"
+            + partition_min_month
+            + "' AND dt <= '"
+            + partition_max_year
+            + "' AND partition_1 <= '"
+            + partition_max_month
+            + "'"
+        )
 
     report_dates = {
         "report_date": report_date.strftime("%Y-%m-%d"),
@@ -268,6 +335,7 @@ def get_report_dates_from_target_date(target_date_str=""):
         "partition_min_month": partition_min_month,
         "partition_max_year": partition_max_year,
         "partition_max_month": partition_max_month,
+        "partition_limit_sql": partition_limit_sql,
     }
     return report_dates
 
