@@ -6,7 +6,6 @@ from utils.utils import (
     run_athena_query_result_to_s3,
     download_content_from_s3,
 )
-
 """
 Summary:
 
@@ -135,7 +134,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--alter-table",
-    action=argparse.BooleanOptionalAction,
+    default=False,
+    action='store_true',
     help="ALTER the destination table with schema differences.",
 )
 

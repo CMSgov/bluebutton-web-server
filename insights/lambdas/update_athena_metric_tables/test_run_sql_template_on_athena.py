@@ -19,9 +19,6 @@ template parameters on the command line and DOES NOT updated the related
 reporting table. See README.md for usage examples.
 
 """
-# import dateutil.parser
-# from csv import reader
-
 parser = argparse.ArgumentParser(
     description="Utility script to test out Athena SQL template for development."
 )
@@ -90,7 +87,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--update-per-app-table",
-    action=argparse.BooleanOptionalAction,
+    default=False,
+    action='store_true',
     help="Update or create table for per-app table basename.",
 )
 
