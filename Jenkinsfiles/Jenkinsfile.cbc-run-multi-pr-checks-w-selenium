@@ -56,7 +56,7 @@ pipeline {
           python -m venv venv
           . venv/bin/activate
           pip install selenium
-          pip install cryptography==37.0.2
+          pip install cryptography==39.0.1
           make reqs-install-dev
         """
       }
