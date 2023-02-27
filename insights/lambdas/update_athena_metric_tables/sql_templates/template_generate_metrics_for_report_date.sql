@@ -52,7 +52,9 @@ WITH report_params AS (
       'auth_demoscope_not_required_not_sharing_real_bene_count',
       'auth_demoscope_not_required_not_sharing_synthetic_bene_count',
       'auth_demoscope_not_required_deny_real_bene_count',
-      'auth_demoscope_not_required_deny_synthetic_bene_count'
+      'auth_demoscope_not_required_deny_synthetic_bene_count',
+      'sdk_requests_python_count',
+      'sdk_requests_node_count'
     ] as enabled_metrics_list 
 ),
 
@@ -94,11 +96,7 @@ perf_mon_events_all AS (
          year/month together as the DT partition vs.
          separately for this case. 
       */
-      AND dt >= '${PARTITION_MIN_YEAR}'
-      AND partition_1 >= '${PARTITION_MIN_MONTH}'
-      AND dt <= '${PARTITION_MAX_YEAR}'
-      AND partition_1 <= '${PARTITION_MAX_MONTH}'
-
+      AND ${PARTITION_LIMIT_SQL}
     )
 ),
 
@@ -605,7 +603,13 @@ global_state_metrics_per_app_for_max_group_timestamp AS (
       ) app_all_approval_view_post_ok_synthetic_count,
       "sum"(
        app_approval_view_post_fail_count
-      ) app_all_approval_view_post_fail_count
+      ) app_all_approval_view_post_fail_count,
+      "sum"(
+       app_sdk_requests_python_count
+      ) app_all_sdk_requests_python_count,
+      "sum"(
+       app_sdk_requests_node_count
+      ) app_all_sdk_requests_node_count
     FROM
       ${ENV}_${BASENAME_PER_APP}
     WHERE
@@ -718,12 +722,6 @@ auth_events AS (
 
 
 SELECT 
-/*
-  '${ENV}' as vpc,
-  CAST('${START_DATE}' as Date) as start_date, 
-  CAST('${END_DATE}' as Date) as end_date, 
-  CAST('${REPORT_DATE}' as Date) as report_date, 
-*/
   t0.*,
   (
     total_crosswalk_real_bene - app_all_grant_real_bene
@@ -731,36 +729,7 @@ SELECT
   (
     total_crosswalk_synthetic_bene - app_all_grant_synthetic_bene
   ) diff_total_crosswalk_vs_grant_and_archived_synthetic_bene,
-/*
-  t1.max_group_timestamp,
-  t1.max_real_bene_cnt,
-  t1.max_synth_bene_cnt,
-  t1.max_crosswalk_real_bene_count,
-  t1.max_crosswalk_synthetic_bene_count,
-  t1.max_crosswalk_table_count,
-  t1.max_crosswalk_archived_table_count,
-  t1.max_grant_real_bene_count,
-  t1.max_grant_synthetic_bene_count,
-  t1.max_grant_table_count,
-  t1.max_grant_archived_table_count,
-  t1.max_grant_real_bene_deduped_count,
-  t1.max_grant_synthetic_bene_deduped_count,
-  t1.max_grantarchived_real_bene_deduped_count,
-  t1.max_grantarchived_synthetic_bene_deduped_count,
-  t1.max_grant_and_archived_real_bene_deduped_count,
-  t1.max_grant_and_archived_synthetic_bene_deduped_count,
-  t1.max_token_real_bene_deduped_count,
-  t1.max_token_synthetic_bene_deduped_count,
-  t1.max_token_table_count,
-  t1.max_token_archived_table_count,
-  t1.max_global_apps_active_cnt,
-  t1.max_global_apps_inactive_cnt,
-  t1.max_global_apps_require_demographic_scopes_cnt,
-  t1.max_global_developer_count,
-  t1.max_global_developer_distinct_organization_name_count,
-  t1.max_global_developer_with_first_api_call_count,
-  t1.max_global_developer_with_registered_app_count
-*/
+
   /* V1 FHIR resource stats top level */
   (
     select
@@ -1311,8 +1280,31 @@ SELECT
         and allow = False
         and auth_require_demographic_scopes = 'False'
       )
-  ) as auth_demoscope_not_required_deny_synthetic_bene_count
-
+  ) as auth_demoscope_not_required_deny_synthetic_bene_count,
+  (
+    select
+      count(*)
+    from
+      request_response_middleware_events
+    WHERE
+      (
+        CONTAINS((SELECT enabled_metrics_list FROM report_params),
+          'sdk_requests_python_count')
+        AND req_header_bluebutton_sdk = 'python'
+      )
+  ) as sdk_requests_python_count,
+  (
+    select
+      count(*)
+    from
+      request_response_middleware_events
+    WHERE
+      (
+        CONTAINS((SELECT enabled_metrics_list FROM report_params),
+          'sdk_requests_node_count')
+        AND req_header_bluebutton_sdk = 'python'
+      )
+  ) as sdk_requests_node_count
 
 FROM
   (

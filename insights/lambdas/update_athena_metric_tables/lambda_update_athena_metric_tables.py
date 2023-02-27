@@ -2,10 +2,9 @@ import boto3
 
 from utils.utils import (
     get_report_dates_from_target_date,
-    check_table_exists,
-    check_table_for_report_date_entry,
-    update_or_create_table_for_report_date,
+    update_or_create_metrics_table,
 )
+
 
 """
 Summary:
@@ -27,6 +26,8 @@ It does the following:
     }
 
 - Computes the report_date, start_date, and end_date based on the TARGET_DATE param.
+
+  - If the TARGET_DATE is blank, the current date will be used for the TARGET_DATE.
 
 - Updates (or creates) the per-applications table for the target report_date,
   ENV and BASENAME_PER_APP params.
@@ -54,52 +55,6 @@ TEMPLATE_FILE_PER_APP = (
 )
 
 TEMPLATE_FILE_MAIN = "./sql_templates/template_generate_metrics_for_report_date.sql"
-
-
-def update_or_create_metrics_table(session, params, table_basename, template_file):
-
-    print("##")
-    print(
-        "## --- UPDATE/CREATE TABLE:  "
-        + params["database"]
-        + "."
-        + params["env"]
-        + "_"
-        + table_basename
-    )
-    print("##")
-
-    # Check if per_app table already exists
-    table_exists = check_table_exists(session, params, table_basename)
-    print("## table_exists:  ", table_exists)
-
-    # Update the per_app table if an entry does not already exist.
-    success_flag = False
-    for attempt_count in range(3):
-        # NOTE: Retry SQL run 3x for random Athena time-out issue.
-        print("## SQL RUN ATTEMPT:  ", attempt_count + 1)
-        if table_exists:
-            if check_table_for_report_date_entry(session, params, table_basename):
-                print("## TABLE already has entry for report_date. Skipping...")
-            else:
-                print("## Updating TABLE...")
-                # Update table
-                update_or_create_table_for_report_date(
-                    session, params, table_basename, template_file, table_exists
-                )
-        else:
-            # Create table
-            print("## Creating new TABLE...")
-            update_or_create_table_for_report_date(
-                session, params, table_basename, template_file, table_exists
-            )
-
-        # Checking if table was updated with SQL results
-        if check_table_for_report_date_entry(session, params, table_basename):
-            success_flag = True
-            break
-
-    return success_flag
 
 
 def lambda_handler(event, context):
@@ -171,14 +126,19 @@ event = {
     "REGION": "us-east-1",
     "WORKGROUP": "bb2",
     "DATABASE": "bb2",
-    "ENV": "prod",
-    "BASENAME_MAIN": "global_state_new1",
-    "BASENAME_PER_APP": "global_state_per_app_new1",
-    "TARGET_DATE": "2023-01-09",
+    "ENV": "impl",
+    "BASENAME_MAIN": "global_state_copy1",
+    "BASENAME_PER_APP": "global_state_per_app_copy1",
 }
-context = None
-status = lambda_handler(event, context)
+target_date_list = [
+    "2023-01-16",
+]
 
-print("##")
-print("## STATUS:  ", status)
-print("##")
+for target_date in target_date_list:
+    event["TARGET_DATE"] = target_date
+    print("## UPDATING FOR TARGET_DATE:  ", target_date)
+    context = None
+    status = lambda_handler(event, context)
+    print("##")
+    print("## STATUS:  ", status)
+    print("##")
