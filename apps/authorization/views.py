@@ -1,7 +1,6 @@
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework import serializers
