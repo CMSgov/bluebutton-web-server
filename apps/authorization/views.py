@@ -13,7 +13,7 @@ from oauth2_provider.views.generic import ClientProtectedResourceView
 
 from apps.dot_ext.authentication import SLSAuthentication
 from .models import DataAccessGrant
-from ..dot_ext.utils import get_application_from_meta, json_response_from_oauth2_error
+from ..dot_ext.utils import get_application_from_meta
 from ..fhir.bluebutton.models import Crosswalk
 
 
