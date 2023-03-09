@@ -1,4 +1,5 @@
 import boto3
+import datetime
 
 from utils.utils import (
     get_report_dates_from_target_date,
@@ -23,6 +24,7 @@ It does the following:
       "BASENAME_MAIN": "<basename of main table>" Ex: "global_state"
       "BASENAME_PER_APP": "<basename of per-app table>" Ex: "global_state_per_app"
       "TARGET_DATE": <target report date week> EX: "2022-09-19",
+      "RETRY_SLEEP_SECONDS": "30", Default is 60, if ommitted.
     }
 
 - Computes the report_date, start_date, and end_date based on the TARGET_DATE param.
@@ -46,6 +48,7 @@ For each of the tables, it does the following:
   update (or create) the table with the results.
 
 - Retry running the SQL if there is a time-out up to 3-times.
+  Will sleep between retries.
 
 """
 
@@ -60,6 +63,9 @@ TEMPLATE_FILE_MAIN = "./sql_templates/template_generate_metrics_for_report_date.
 def lambda_handler(event, context):
     session = boto3.Session()
 
+    print("##")
+    print("## -------------------------")
+    print("## UPDATING FOR TARGET_DATE:  ", target_date)
     target_week_date = event["TARGET_DATE"]
     report_dates = get_report_dates_from_target_date(target_week_date)
 
@@ -71,16 +77,24 @@ def lambda_handler(event, context):
         "basename_main": event["BASENAME_MAIN"],
         "basename_per_app": event["BASENAME_PER_APP"],
         "report_dates": report_dates,
+        "retry_sleep_seconds": event.get("RETRY_SLEEP_SECONDS", "300")
     }
 
+    lambda_start_time = datetime.datetime.now()
     print("##")
     print("## EVENT: " + str(event))
     print("##")
+    print("## Lambda Start Time: ", lambda_start_time)
+    print("##")
 
     # Update/create PER_APP table
+    query_start_time = datetime.datetime.now()
     success_flag = update_or_create_metrics_table(
         session, params, params["basename_per_app"], TEMPLATE_FILE_PER_APP
     )
+    query_end_time = datetime.datetime.now()
+    query_duration_time = query_end_time - query_start_time
+    print("## Query Duration Time: ", query_duration_time)
 
     if success_flag:
         print("## SUCCESS: PER_APP TABLE was updated/created!")
@@ -92,12 +106,25 @@ def lambda_handler(event, context):
         }
 
     # Update/create MAIN table
+    query_start_time = datetime.datetime.now()
     success_flag = update_or_create_metrics_table(
         session, params, params["basename_main"], TEMPLATE_FILE_MAIN
     )
+    query_end_time = datetime.datetime.now()
+    query_duration_time = query_end_time - query_start_time
+    print("## Query Duration Time: ", query_duration_time)
 
     if success_flag:
         print("## SUCCESS: MAIN TABLE was updated/created!")
+
+        lambda_end_time = datetime.datetime.now()
+        lambda_duration_time = lambda_end_time - lambda_start_time
+        print("##")
+        print("## EVENT: " + str(event))
+        print("##")
+        print("## Lambda End Time: ", lambda_end_time)
+        print("## Lambda Duration Time: ", lambda_duration_time)
+        print("##")
     else:
         print("## FAIL: MAIN TABLE update/create un-successful after retries!")
         return {
@@ -129,14 +156,14 @@ event = {
     "ENV": "impl",
     "BASENAME_MAIN": "global_state_copy1",
     "BASENAME_PER_APP": "global_state_per_app_copy1",
+    "RETRY_SLEEP_SECONDS": "30"
 }
 target_date_list = [
-    "2023-01-16",
+    "2023-03-06",
 ]
 
 for target_date in target_date_list:
     event["TARGET_DATE"] = target_date
-    print("## UPDATING FOR TARGET_DATE:  ", target_date)
     context = None
     status = lambda_handler(event, context)
     print("##")
