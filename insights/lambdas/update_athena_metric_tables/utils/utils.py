@@ -8,7 +8,6 @@ from dateutil.relativedelta import relativedelta, MO
 from io import StringIO
 from string import Template
 
-
 """
 Summary:
 
@@ -35,7 +34,7 @@ def run_athena_query_result_to_s3(session, params, max_execution=60):
     state = "RUNNING"
 
     while max_execution > 0 and state in ["RUNNING", "QUEUED"]:
-        max_execution = max_execution - 1
+        max_execution = max_execution - 5
         response = client.get_query_execution(QueryExecutionId=execution_id)
 
         if (
@@ -52,14 +51,15 @@ def run_athena_query_result_to_s3(session, params, max_execution=60):
                 ]
                 return s3_path
 
-        time.sleep(1)
+        time.sleep(5)
 
     return False
 
 
-def download_content_from_s3(s3_path):
+def download_content_from_s3(s3_path, csv_format=True):
     """
-    Returns results as a list of dict items.
+    Returns results as a list of dict items if csv_format=True
+      else return output value.
     """
     s3 = boto3.resource("s3")
     bucket_name = re.findall(r"^s3://([^/]+)", s3_path)[0]
@@ -69,13 +69,15 @@ def download_content_from_s3(s3_path):
     except s3.meta.client.exceptions.NoSuchKey:
         return None
 
-    # Load csv in to dictionary
     f = StringIO(response["Body"].read().decode("utf-8"))
-    result_list = []
-    for line in csv.DictReader(f):
-        result_list.append(line)
-
-    return result_list
+    if csv_format:
+        # Load csv in to dictionary
+        result_list = []
+        for line in csv.DictReader(f):
+            result_list.append(line)
+        return result_list
+    else:
+        return f.getvalue()
 
 
 def check_table_exists(session, params, table_basename):
@@ -158,6 +160,27 @@ def get_sql_from_template_file(filepath, params):
     return ret
 
 
+def get_table_columns_select_list(session, params, table_basename):
+    """
+    Returns string with select list of columns for a given table.
+    Ex:  "vpc, start_date, end_date, ..."
+    """
+    params["query"] = (
+        "SHOW COLUMNS FROM "
+        + params["database"]
+        + "."
+        + params["env"]
+        + "_"
+        + table_basename
+    )
+
+    output_s3_path = run_athena_query_result_to_s3(session, params, 1000)
+    result_list = download_content_from_s3(output_s3_path, csv_format=False)
+
+    items_list = result_list.split()
+    return ",".join(items_list)
+
+
 def run_athena_query_using_template(session, params, template_file):
     """
     Run the athena query using template for the report_date.
@@ -177,6 +200,8 @@ def update_or_create_table_for_report_date(
     Update the table with metrics for the report_date.
     """
     if table_exists:
+        select_list = get_table_columns_select_list(session, params, table_basename)
+
         params["query"] = (
             "INSERT INTO "
             + params["database"]
@@ -184,8 +209,11 @@ def update_or_create_table_for_report_date(
             + params["env"]
             + "_"
             + table_basename
-            + " "
+            + "\n SELECT "
+            + select_list
+            + " FROM \n("
             + get_sql_from_template_file(template_file, params)
+            + "\n)"
         )
     else:
         params["query"] = (
@@ -234,6 +262,8 @@ def update_or_create_metrics_table(session, params, table_basename, template_fil
         if table_exists:
             if check_table_for_report_date_entry(session, params, table_basename):
                 print("## TABLE already has entry for report_date. Skipping...")
+                success_flag = True
+                break
             else:
                 print("## Updating TABLE...")
                 # Update table
@@ -251,6 +281,12 @@ def update_or_create_metrics_table(session, params, table_basename, template_fil
         if check_table_for_report_date_entry(session, params, table_basename):
             success_flag = True
             break
+
+        # Sleep between retries.
+        if not success_flag:
+            retry_seconds = params.get("retry_sleep_seconds", "60")
+            print("## RETRY SLEEPING FOR: ", retry_seconds)
+            time.sleep(int(retry_seconds))
 
     return success_flag
 
@@ -288,6 +324,8 @@ def get_report_dates_from_target_date(target_date_str=""):
     # Get Athena partition values from start/end dates
     partition_min_year = start_date.strftime("%Y")
     partition_max_year = report_date.strftime("%Y")
+    partition_min_day = start_date.strftime("%d")
+    partition_max_day = report_date.strftime("%d")
 
     if partition_max_year > partition_min_year:
         """
@@ -307,25 +345,50 @@ def get_report_dates_from_target_date(target_date_str=""):
         partition_limit_sql = (
             "( (dt = '"
             + partition_min_year
-            + "' AND partition_1 = '12') OR (dt = '"
+            + "' AND partition_1 = '12' AND partition_2 >= '"
+            + partition_min_day
+            + "') OR (dt = '"
             + partition_max_year
-            + "' AND partition_1 = '01') )"
+            + "' AND partition_1 = '01' AND partition_2 <= '"
+            + partition_max_day
+            + "') )"
         )
     else:
         # Set min/max month for partition search.Speeds up query!
         partition_min_month = start_date.strftime("%m")
         partition_max_month = report_date.strftime("%m")
-        partition_limit_sql = (
-            "dt >= '"
-            + partition_min_year
-            + "' AND partition_1 >= '"
-            + partition_min_month
-            + "' AND dt <= '"
-            + partition_max_year
-            + "' AND partition_1 <= '"
-            + partition_max_month
-            + "'"
-        )
+        if partition_max_month > partition_min_month:
+            partition_limit_sql = (
+                "(dt = '"
+                + partition_min_year
+                + "' AND partition_1 = '"
+                + partition_min_month
+                + "' AND partition_2 >= '"
+                + partition_min_day
+                + "') OR (dt = '"
+                + partition_max_year
+                + "' AND partition_1 = '"
+                + partition_max_month
+                + "' AND partition_2 <= '"
+                + partition_max_day
+                + "')"
+            )
+        else:
+            partition_limit_sql = (
+                "(dt = '"
+                + partition_min_year
+                + "' AND partition_1 = '"
+                + partition_min_month
+                + "' AND partition_2 >= '"
+                + partition_min_day
+                + "') AND (dt = '"
+                + partition_max_year
+                + "' AND partition_1 = '"
+                + partition_max_month
+                + "' AND partition_2 <= '"
+                + partition_max_day
+                + "')"
+            )
 
     report_dates = {
         "report_date": report_date.strftime("%Y-%m-%d"),
@@ -333,8 +396,10 @@ def get_report_dates_from_target_date(target_date_str=""):
         "end_date": end_date.strftime("%Y-%m-%d"),
         "partition_min_year": partition_min_year,
         "partition_min_month": partition_min_month,
+        "partition_min_day": partition_min_day,
         "partition_max_year": partition_max_year,
         "partition_max_month": partition_max_month,
+        "partition_max_day": partition_max_day,
         "partition_limit_sql": partition_limit_sql,
     }
     return report_dates
