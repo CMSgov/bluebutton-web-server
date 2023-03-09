@@ -63,11 +63,14 @@ TEMPLATE_FILE_MAIN = "./sql_templates/template_generate_metrics_for_report_date.
 def lambda_handler(event, context):
     session = boto3.Session()
 
-    print("##")
-    print("## -------------------------")
-    print("## UPDATING FOR TARGET_DATE:  ", target_date)
     target_week_date = event["TARGET_DATE"]
     report_dates = get_report_dates_from_target_date(target_week_date)
+    print("##")
+    print("## -------------------------")
+    print("## UPDATING FOR TARGET_DATE (if blank, today):  ", target_week_date)
+    print("##")
+    print("## report_dates DICT: ", report_dates)
+    print("##")
 
     params = {
         "region": event["REGION"],
@@ -120,8 +123,6 @@ def lambda_handler(event, context):
         lambda_end_time = datetime.datetime.now()
         lambda_duration_time = lambda_end_time - lambda_start_time
         print("##")
-        print("## EVENT: " + str(event))
-        print("##")
         print("## Lambda End Time: ", lambda_end_time)
         print("## Lambda Duration Time: ", lambda_duration_time)
         print("##")
@@ -136,36 +137,3 @@ def lambda_handler(event, context):
         "STATUS": "SUCCESS",
         "DETAIL": "Metric tables are ready for refresh in QuickSight!",
     }
-
-
-"""
-Call / Test lambda handler with params for local development.
-
-Edit and use the following params when testing and developing locally.
-
-NOTE: These params are not used when launched via AWS Lambda.
-
-When launching via AWS Lambda you must pass the parameters dictionary
-via the "event". This can be included with the Lambda TEST parameters or
-via the EventBridge caller.
-"""
-event = {
-    "REGION": "us-east-1",
-    "WORKGROUP": "bb2",
-    "DATABASE": "bb2",
-    "ENV": "impl",
-    "BASENAME_MAIN": "global_state_copy1",
-    "BASENAME_PER_APP": "global_state_per_app_copy1",
-    "RETRY_SLEEP_SECONDS": "30"
-}
-target_date_list = [
-    "2023-03-06",
-]
-
-for target_date in target_date_list:
-    event["TARGET_DATE"] = target_date
-    context = None
-    status = lambda_handler(event, context)
-    print("##")
-    print("## STATUS:  ", status)
-    print("##")
