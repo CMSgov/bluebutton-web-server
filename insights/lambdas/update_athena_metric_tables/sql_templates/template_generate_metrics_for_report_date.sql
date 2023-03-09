@@ -87,14 +87,7 @@ perf_mon_events_all AS (
       )
       /* 
         Restricting select by partitions.
-
          NOTE: This significantly speeds up the SQL!
-
-         However, this needs to be refactored for the
-         end-of-year case. The partitioning of the Glue
-         table needs to be partitioned using both
-         year/month together as the DT partition vs.
-         separately for this case. 
       */
       AND ${PARTITION_LIMIT_SQL}
     )
@@ -102,7 +95,6 @@ perf_mon_events_all AS (
 
 /* Find the max(group_timestamp) from 
    nightly global state events
-
    NOTE: We are wanting the entries that get logged
    on the actual report_date vs. other metrics to
    just include <= end_date.
@@ -741,7 +733,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v1_call_real_count')
         AND
-          try_cast(fhir_id as BIGINT) >= 0
+          try_cast(fhir_id as BIGINT) > 0
       )
   ) as fhir_v1_call_real_count,
 
@@ -767,7 +759,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v1_eob_call_real_count')
         and path LIKE '/v1/fhir/ExplanationOfBenefit%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
       )
   ) as fhir_v1_eob_call_real_count,
   (
@@ -793,7 +785,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v1_coverage_call_real_count')
         and path LIKE '/v1/fhir/Coverage%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
       )
   ) as fhir_v1_coverage_call_real_count,
   (
@@ -819,7 +811,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v1_patient_call_real_count')
         and path LIKE '/v1/fhir/Patient%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
       )
   ) as fhir_v1_patient_call_real_count,
   (
@@ -858,7 +850,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v1_eob_since_call_real_count')
         and path LIKE '/v1/fhir/ExplanationOfBenefit%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and req_qparam_lastupdated != ''
       )
   ) as fhir_v1_eob_since_call_real_count,
@@ -886,7 +878,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v1_coverage_since_call_real_count')
         and path LIKE '/v1/fhir/Coverage%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and req_qparam_lastupdated != ''
       )
   ) as fhir_v1_coverage_since_call_real_count,
@@ -914,7 +906,7 @@ SELECT
       (
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v2_call_real_count')
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
       )
   ) as fhir_v2_call_real_count,
   (
@@ -939,7 +931,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v2_eob_call_real_count')
         and path LIKE '/v2/fhir/ExplanationOfBenefit%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
       )
   ) as fhir_v2_eob_call_real_count,
   (
@@ -965,7 +957,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v2_coverage_call_real_count')
         and path LIKE '/v2/fhir/Coverage%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
       )
   ) as fhir_v2_coverage_call_real_count,
   (
@@ -991,7 +983,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v2_patient_call_real_count')
         and path LIKE '/v2/fhir/Patient%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
       )
   ) as fhir_v2_patient_call_real_count,
   (
@@ -1030,7 +1022,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v2_eob_since_call_real_count')
         and path LIKE '/v2/fhir/ExplanationOfBenefit%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and req_qparam_lastupdated != ''
       )
   ) as fhir_v2_eob_since_call_real_count,
@@ -1058,7 +1050,7 @@ SELECT
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'fhir_v2_coverage_since_call_real_count')
         and path LIKE '/v2/fhir/Coverage%'
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and req_qparam_lastupdated != ''
       )
   ) as fhir_v2_coverage_since_call_real_count,
@@ -1086,7 +1078,7 @@ SELECT
       (
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'auth_ok_real_bene_count')
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
       )
@@ -1114,7 +1106,7 @@ SELECT
       (
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'auth_fail_or_deny_real_bene_count')
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and auth_status = 'FAIL'
       )
   ) as auth_fail_or_deny_real_bene_count,
@@ -1140,7 +1132,7 @@ SELECT
       (
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'auth_demoscope_required_choice_sharing_real_bene_count')
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
         and auth_require_demographic_scopes = 'True'
@@ -1172,7 +1164,7 @@ SELECT
       (
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'auth_demoscope_required_choice_not_sharing_real_bene_count')
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
         and auth_require_demographic_scopes = 'True'
@@ -1204,7 +1196,7 @@ SELECT
       (
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'auth_demoscope_required_choice_deny_real_bene_count')
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and allow = False
         and auth_require_demographic_scopes = 'True'
       )
@@ -1232,7 +1224,7 @@ SELECT
       (
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'auth_demoscope_not_required_not_sharing_real_bene_count')
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
         and auth_require_demographic_scopes = 'False'
@@ -1262,7 +1254,7 @@ SELECT
       (
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'auth_demoscope_not_required_deny_real_bene_count')
-        and try_cast(fhir_id as BIGINT) >= 0
+        and try_cast(fhir_id as BIGINT) > 0
         and allow = False
         and auth_require_demographic_scopes = 'False'
       )
