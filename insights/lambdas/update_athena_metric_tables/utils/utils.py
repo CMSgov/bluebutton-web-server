@@ -32,6 +32,7 @@ def run_athena_query_result_to_s3(session, params, max_execution=60):
     execution = athena_query(client, params)
     execution_id = execution["QueryExecutionId"]
     state = "RUNNING"
+    print("## QueryExecutionId = ", execution_id)
 
     while max_execution > 0 and state in ["RUNNING", "QUEUED"]:
         max_execution = max_execution - 5
