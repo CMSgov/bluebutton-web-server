@@ -178,9 +178,9 @@ target_columns_count = len(target_columns_list)
 
 diff_columns_list = lists_diff(source_columns_list, target_columns_list)
 print("---")
-print("--- SOURCE TABLE HAS TOTAL COLUMNS = ", len(source_columns_list))
+print("--- SOURCE TABLE HAS TOTAL COLUMNS = ", len(source_columns_list) + 1)
 print("---")
-print("--- TARGET TABLE HAS TOTAL COLUMNS = ", len(target_columns_list))
+print("--- TARGET TABLE HAS TOTAL COLUMNS = ", len(target_columns_list) + 1)
 print("---")
 print(
     "--- SOURCE has ",
