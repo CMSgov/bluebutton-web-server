@@ -2,7 +2,7 @@
 
 - [BB2 BFD-Insights Athena Tables for QuickSight Summary](#summary)
   - [Per Application Metrics Table](#per-app-table)
-  - [Per Application Metrics Table](#per-app-table)
+  - [Top Level Metrics Table](#top-level-table)
   - [Weekly Update of the Metric Tables](#weekly-update-tables)
 - [HOW-TO: Testing SQL Templates Individually](#how-to-test-sql-templates)
 - [Lambda Function to Update Metrics Tables](#lambda-function)
@@ -78,14 +78,11 @@ The lambda function, templates and development tools are included in the `insigh
 
 The files in this directory are:
 
-- `lambda_update_athena_metric_tables.py`:
+- `lambda_function.py`:
   - Python Lambda function setup on a schedule in the BFD AWS account.
     - It takes parameters for the target enviornment (prod/impl) and metrics reporting table basenames used.
     - There is one scheduled call per environment and is run weekly.
   - This can be tested in local development. See [Lambda Function to Update Metrics Tables](#lambda-function) for more info.
-- `test_run_sql_template_on_athena.py`:
-  - Used from the command line to run and test Athena SQL queries using a template. With this you can preview the SQL template results with out updating the reporting tables.
-  - This is a tool useful when developing and adding new metrics to the template files.
 - `sql_templates/template_generate_per_app_metrics_for_report_date.sql`:
   - Used to generate the per application metrics.
   - One row per application is produced.
@@ -93,10 +90,15 @@ The files in this directory are:
 - `sql_templates/template_generate_metrics_for_report_date.sql`:
   - Used to generate the top-level metrics for the report week.
   - One row is produced with the week's metrics.
+- `test_run_sql_template_on_athena.py`:
+  - Used from the command line to run and test Athena SQL queries using a template. With this you can preview the SQL template results with out updating the reporting tables.
+  - This is a tool useful when developing and adding new metrics to the template files.
 - `alter_table_schema_for_new_metrics_added.py`:
   - Utility to ALTER a TARGET table with schema changes from a SOURCE table (using
 the column differences).
   - After developing new metrics, this utility is used to alter (add new columns) to the main tables used by QuickSight.
+- `test_lambda_function_local.py`:
+  - Utility to test the `lambda_handler()` in `lambda_function.py` in local development.
 
 
 # HOW-TO: Testing SQL Templates Individually<a id="how-to-test-sql-templates"></a>
@@ -136,7 +138,7 @@ The per-application table is used by the top-level template. When you are finish
 
 # Lambda Function to Update Metrics Tables<a id="lambda-function"></a>
 
-The Python Lambda program is:  `lambda_update_athena_metric_tables.py`
+The Python Lambda program is:  `lambda_function.py`
 
 ## Summary:
 
@@ -178,13 +180,12 @@ event = {
     "ENV": "prod",
     "BASENAME_MAIN": "global_state_new1",
     "BASENAME_PER_APP": "global_state_per_app_new1",
+    "TARGET_DATE": "2023-01-09"
 }
-target_date_list = [
-    "2023-01-09",
-    "2023-01-16",
-]
 ```
-- NOTE: Multiple target dates can be added to the list. This is useful when regenerating the metrics entries for desired report dates, after new metrics are developed and added. 
+- NOTE: If TARGET_DATE = "", today's date will be used to determine the current report_date.
+
+
 
 - The Lambda program can be run locally for development testing. See [Testing the New SQL Templates with the Lambda Function](#testing-templates-lambda).
 - The main part of the code has an area where the `event` parameters can be setup and tested via a call to the `lambda_handler(event, context)`. Be sure to backup the main tables and update the table basenames used when running locally for development. For an example, see: [HOW-TO: A Walk-Through Example of Adding New Metrics](#how-to-new-metrics).
@@ -397,10 +398,15 @@ cd insights/lambdas/update_athena_metric_tables
 
 ## Testing the New SQL Templates with the Lambda Function<a id="testing-templates-lambda"></a>
 
-The Python Lambda program is:  `lambda_update_athena_metric_tables.py`
+The Python Lambda program is:  `lambda_function.py`
 
-1. Edit the main section of the Lambda file located [here](https://github.com/CMSgov/bluebutton-web-server/blob/329056cf4027ae29e22e75a33659fd84a501547e/insights/lambdas/update_athena_metric_tables/lambda_update_athena_metric_tables.py#L170).
-  - Update the parameters to match those you have been using so far:
+There is a command line utility that can be used to test the `lambda_handler()` function.
+
+This utility is:  `test_lambda_function_local.py`
+
+
+1. Determine the parameters to match those you have been using so far.
+  - The following is the `event` we are wanting to test and pass to the `lambda_hanlder()`.
   ```python
   event = {
       "REGION": "us-east-1",
@@ -409,15 +415,13 @@ The Python Lambda program is:  `lambda_update_athena_metric_tables.py`
       "ENV": "impl",
       "BASENAME_MAIN": "global_state_testing1",
       "BASENAME_PER_APP": "global_state_per_app_testing1",
+      "TARGET_DATE": "2023-02-13",
   }
-  target_date_list = [
-      "2023-02-13",
-  ]
   ```
 2. Run and test the Lambda locally.
   - Run the following command line:
     ```
-    clear; python lambda_update_athena_metric_tables.py
+    clear; python test_lambda_function_local.py  -e impl -t 2023-02-13 -m global_state_testing1 -p global_state_per_app_testing1
     ```
   - NOTE: From your previous testing, the per-application table may already be updated and skipped. The top-level table will be updated or created.
   - Use the folowing SQL in the Athena query editor to verify the update was successful:
@@ -553,12 +557,11 @@ Repeat the following for the `prod` environment.
   clear; python alter_table_schema_for_new_metrics_added.py  -s "impl_global_state_testing1" -t "impl_global_state_copy1" --alter-table
   ``` 
 
-5. Edit the main section of the Lambda file located [here](https://github.com/CMSgov/bluebutton-web-server/blob/329056cf4027ae29e22e75a33659fd84a501547e/insights/lambdas/update_athena_metric_tables/lambda_update_athena_metric_tables.py#L170).
+5. Determine the parameters to match those you have been using so far.
 
 In this step we will be verifying that the lambda can update our `_copy1` tables that will be replacing the main ones, after re-running metrics for report dates since 2022-12-26.
 
-  - The Python Lambda program is:  `lambda_update_athena_metric_tables.py`
-  - Update the parameters to match those you have been using so far:
+  - Determine the parameters to match those you have been using so far:
 
   ```python
   event = {
@@ -568,12 +571,12 @@ In this step we will be verifying that the lambda can update our `_copy1` tables
       "ENV": "impl",
       "BASENAME_MAIN": "global_state_copy1",
       "BASENAME_PER_APP": "global_state_per_app_copy1",
+      "TARGET_DATE": "2022-12-26"
   }
-  target_date_list = ["2022-12-26"]
   ```
-  - Run the lambda function to test locally:
+  - Run the lambda function to test locally with the `test_lambda_function_local.py` utility program:
   ```
-  clear; python lambda_update_athena_metric_tables.py 
+  clear; python test_lambda_function_local.py  -e impl -t 2022-12-26 -m global_state_copy1 -p global_state_per_app_copy1
   ```
 
 6. Verify the rows were added to the `_copy1` tables.
@@ -591,15 +594,12 @@ In this step we will be verifying that the lambda can update our `_copy1` tables
 
 7. Run for additional report dates after 2022-12-26 up until the current.
 
-  - Use the `target_date_list` to use the lambda program locally to update the `_copy1` table with entries.
-  - For example, we can update a batch of 4 report_dates with entries from 2022-12-26 thru 2023-01-16 with the following edit in the main code section:
-  ```python
-  target_date_list = [
-      "2022-12-26",
-      "2023-01-02",
-      "2023-01-09",
-      "2023-01-16"
-  ]
+  - NOTE: Multiple target dates can be added to the list. This is useful when regenerating the metrics entries for desired report dates, after new metrics are developed and added. 
+
+  - Use the `-t / --target-report-dates` option with the `test_lambda_function_local.py` utility to use the lambda program locally to update the `_copy1` table with entries.
+  - For example, we can update a batch of 4 report_dates with entries from 2022-12-26 thru 2023-01-16 with the following command line:
+  ```
+  clear; python test_lambda_function_local.py  -e impl -t 2022-12-26,2023-01-02,2023-01-09,2023-01-16 -m global_state_copy1 -p global_state_per_app_copy1
   ```
 
 8. Verify the new rows were added to the `_copy1` tables since 2022-12-26.
