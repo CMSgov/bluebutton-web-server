@@ -9,10 +9,15 @@ class DataAccessGrantPermission(permissions.BasePermission):
     Permission check for a Grant related to the token used.
     """
     def has_permission(self, request, view):
-        dag = DataAccessGrant.objects.get(
-            beneficiary=request.auth.user,
-            application=request.auth.application
-        )
+        dag = None
+        try:
+            dag = DataAccessGrant.objects.get(
+                beneficiary=request.auth.user,
+                application=request.auth.application
+            )
+        except DataAccessGrant.DoesNotExist:
+            return False
+
         if dag:
             if dag.has_expired():
                 raise exceptions.NotAuthenticated(
