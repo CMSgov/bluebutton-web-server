@@ -157,7 +157,7 @@ def is_data_access_type_valid(user, data_access_type, end_date):
     return True, None
 
 
-def json_response_from_oauth2_errror(error):
+def json_response_from_oauth2_error(error):
     """
     Given a oauthlib.oauth2.rfc6749.errors.* error this function
     returns a corresponding django.http.response.JsonResponse response

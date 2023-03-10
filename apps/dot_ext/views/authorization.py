@@ -34,7 +34,7 @@ from ..models import Approval
 from ..utils import (
     remove_application_user_pair_tokens_data_access,
     validate_app_is_active,
-    json_response_from_oauth2_errror,
+    json_response_from_oauth2_error,
 )
 
 
@@ -270,7 +270,7 @@ class TokenView(DotTokenView):
         try:
             validate_app_is_active(request)
         except InvalidClientError as error:
-            return json_response_from_oauth2_errror(error)
+            return json_response_from_oauth2_error(error)
 
         return super().post(request, args, kwargs)
 
@@ -283,7 +283,7 @@ class RevokeTokenView(DotRevokeTokenView):
         try:
             validate_app_is_active(request)
         except InvalidClientError as error:
-            return json_response_from_oauth2_errror(error)
+            return json_response_from_oauth2_error(error)
 
         return super().post(request, args, kwargs)
 
@@ -295,7 +295,7 @@ class IntrospectTokenView(DotIntrospectTokenView):
         try:
             validate_app_is_active(request)
         except InvalidClientError as error:
-            return json_response_from_oauth2_errror(error)
+            return json_response_from_oauth2_error(error)
 
         return super(IntrospectTokenView, self).get(request, args, kwargs)
 
@@ -303,6 +303,6 @@ class IntrospectTokenView(DotIntrospectTokenView):
         try:
             validate_app_is_active(request)
         except InvalidClientError as error:
-            return json_response_from_oauth2_errror(error)
+            return json_response_from_oauth2_error(error)
 
         return super(IntrospectTokenView, self).post(request, args, kwargs)

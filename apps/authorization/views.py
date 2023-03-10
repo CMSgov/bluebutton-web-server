@@ -1,18 +1,21 @@
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework import serializers
 from rest_framework import status
-from rest_framework.exceptions import NotFound
 
 from oauth2_provider.models import get_application_model
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 from oauth2_provider.views.base import OAuthLibMixin
 from oauth2_provider.views.generic import ClientProtectedResourceView
+
 from apps.dot_ext.authentication import SLSAuthentication
 from .models import DataAccessGrant
 from ..dot_ext.utils import get_application_from_meta
 from ..fhir.bluebutton.models import Crosswalk
+
 
 Application = get_application_model()
 
@@ -46,6 +49,7 @@ class AuthorizedGrants(viewsets.GenericViewSet,
         return DataAccessGrant.objects.select_related("application").filter(beneficiary=self.request.user)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
 
     @staticmethod
@@ -55,8 +59,11 @@ class ExpireDataAccessGrantView(ClientProtectedResourceView, OAuthLibMixin):
             user = Crosswalk.objects.get(_fhir_id=patient_id).user
             client = get_application_from_meta(request)
             DataAccessGrant.objects.get(beneficiary=user.id, application=client).delete()
-        except NotFound:
-            raise
-        except Exception:
-            raise
+        except Crosswalk.DoesNotExist:
+            return HttpResponse(f"Patient {patient_id} was Not Found.  Please check the id number and try again.",
+                                status=status.HTTP_404_NOT_FOUND)
+        except DataAccessGrant.DoesNotExist:
+            return HttpResponse("Data Access Grant was Not Found.",
+                                status=status.HTTP_404_NOT_FOUND)
+
         return HttpResponse("success", status=status.HTTP_200_OK)

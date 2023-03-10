@@ -226,24 +226,31 @@ class TestDataAccessGrant(BaseApiTest):
         response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325"))
         self.assertEqual(response.status_code, 403)
 
-        # 5. Create authentication headers and expect success
+        # 5. Create authentication headers but pass bad patient_id and expect 404
+        auth = self._create_authorization_header(application.client_id, application.client_secret)
+        response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-2014000000832"),
+                                    HTTP_AUTHORIZATION=auth,
+                                    )
+        self.assertEqual(response.status_code, 404)
+
+        # 6. Create authentication headers and expect success
         auth = self._create_authorization_header(application.client_id, application.client_secret)
         response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325"),
                                     HTTP_AUTHORIZATION=auth,
                                     )
         self.assertEqual(response.status_code, 200)
 
-        # 6. verify grant deleted - errors if DNE or more than one is found
+        # 7. verify grant deleted - errors if DNE or more than one is found
         with self.assertRaises(DataAccessGrant.DoesNotExist):
             DataAccessGrant.objects.get(beneficiary=user.id, application=application.id)
 
-        # 7. verify archived grant exists - errors if DNE or more than one is found
+        # 8. verify archived grant exists - errors if DNE or more than one is found
         ArchivedDataAccessGrant.objects.get(beneficiary=user.id, application=application.id)
 
-        # 8. verify second grant still exists - errors if DNE or more than one is found
+        # 9. verify second grant still exists - errors if DNE or more than one is found
         DataAccessGrant.objects.get(beneficiary=user.id, application=application_2.id)
 
-        # 9 test should error if patient id isn't found
+        # 10. test should error if patient id isn't found
         response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325XXX"),
                                     HTTP_AUTHORIZATION=auth,
                                     )
