@@ -809,3 +809,57 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=200
         )
+
+    @override_flag("limit_data_access", active=False)
+    def test_data_access_grant_permissions_has_permission(self):
+        """
+        Test edge case bug fix for BB2-2130
+
+        Previously, if a DataAccessGrant was removed, but there still
+        existed an AccessToken, the following exception occurred:
+
+        DataAccessGrant.DoesNotExist: DataAccessGrant matching query
+          does not exist.
+        """
+
+        # 1. Use helper method to create app, user, authorized grant & access token.
+        user, app, ac = self._create_user_app_token_grant(
+            first_name="first",
+            last_name="last1",
+            fhir_id="-20140000008325",
+            app_name="test_app1",
+            app_username="devuser1",
+            app_user_organization="org1",
+        )
+
+        # 2. Test grant obj created OK.
+        dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
+        #     Assert is not None
+        self.assertNotEqual(dag, None)
+
+        # 3. Copy access token
+        copy_ac = AccessToken.objects.filter(token=ac["access_token"]).get()
+
+        # 4. Test access token exist
+        self.assertTrue(AccessToken.objects.filter(token=ac["access_token"]).exists())
+
+        # 5. Test that all FHIR calls are successful (response_code=200)
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"], expected_response_code=200
+        )
+
+        # 6. Delete /revoke data access grant
+        dag.delete()
+
+        # 7. Restore access token
+        copy_ac.save()
+
+        # 8. Test access token is restored.
+        self.assertTrue(AccessToken.objects.filter(token=ac["access_token"]).exists())
+
+        # 9. Test that FHIR calls fail (403) with out DoesNotExist exception
+        self._assert_call_all_fhir_endpoints(
+            access_token=ac["access_token"],
+            expected_response_code=403,
+            expected_response_detail_mesg="You do not have permission to perform this action."
+        )
