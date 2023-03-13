@@ -119,14 +119,7 @@ perf_mon_events_all AS (
       )
       /* 
         Restricting select by partitions.
-
          NOTE: This significantly speeds up the SQL!
-
-         However, this needs to be refactored for the
-         end-of-year case. The partitioning of the Glue
-         table needs to be partitioned using both
-         year/month together as the DT partition vs.
-         separately for this case. 
       */
       AND ${PARTITION_LIMIT_SQL}
     )
@@ -520,7 +513,7 @@ FROM
         AND path LIKE '/v1/fhir%'
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -569,7 +562,7 @@ FROM
         AND path LIKE '/v1/fhir/ExplanationOfBenefit%'
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -617,7 +610,7 @@ FROM
         AND path LIKE '/v1/fhir/Coverage%'
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -665,7 +658,7 @@ FROM
         AND path LIKE '/v1/fhir/Patient%'
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -738,7 +731,7 @@ FROM
 
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -790,7 +783,7 @@ FROM
 
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -842,7 +835,7 @@ FROM
         AND path LIKE '/v2/fhir%'
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -890,7 +883,7 @@ FROM
         AND path LIKE '/v2/fhir/ExplanationOfBenefit%'
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -938,7 +931,7 @@ FROM
         AND path LIKE '/v2/fhir/Coverage%'
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -986,7 +979,7 @@ FROM
         AND path LIKE '/v2/fhir/Patient%'
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -1059,7 +1052,7 @@ FROM
 
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -1112,7 +1105,7 @@ FROM
 
         AND request_method = 'GET'
         AND response_code = 200
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -1160,7 +1153,7 @@ FROM
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'app_auth_ok_real_bene_count')
         AND type = 'Authorization'
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
       )
@@ -1206,7 +1199,7 @@ FROM
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'app_auth_ok_real_bene_distinct_count')
         AND type = 'Authorization'
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
       )
@@ -1252,7 +1245,7 @@ FROM
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'app_auth_fail_or_deny_real_bene_count')
         AND type = 'Authorization'
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and auth_status = 'FAIL'
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
@@ -1296,7 +1289,7 @@ FROM
         CONTAINS((SELECT enabled_metrics_list FROM report_params),
           'app_auth_fail_or_deny_real_bene_distinct_count')
         AND type = 'Authorization'
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and auth_status = 'FAIL'
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
@@ -1341,7 +1334,7 @@ FROM
           'app_auth_demoscope_required_choice_sharing_real_bene_count')
         AND type = 'Authorization'
 
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
         and auth_require_demographic_scopes = 'True'
@@ -1395,7 +1388,7 @@ FROM
           'app_auth_demoscope_required_choice_not_sharing_real_bene_count')
         AND type = 'Authorization'
 
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
         and auth_require_demographic_scopes = 'True'
@@ -1447,7 +1440,7 @@ FROM
           'app_auth_demoscope_required_choice_deny_real_bene_count')
         AND type = 'Authorization'
 
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and allow = False
         and auth_require_demographic_scopes = 'True'
       )
@@ -1495,7 +1488,7 @@ FROM
           'app_auth_demoscope_not_required_not_sharing_real_bene_count')
         AND type = 'Authorization'
 
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and auth_status = 'OK'
         and allow = True
         and auth_require_demographic_scopes = 'False'
@@ -1545,7 +1538,7 @@ FROM
           'app_auth_demoscope_not_required_deny_real_bene_count')
         AND type = 'Authorization'
 
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         and allow = False
         and auth_require_demographic_scopes = 'False'
       )
@@ -1596,7 +1589,7 @@ FROM
         AND type = 'AccessToken'
         AND action = 'authorized'
         AND auth_grant_type = 'refresh_token'
-        AND try_cast(crosswalk.fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk.fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -1644,7 +1637,7 @@ FROM
 
         AND type = 'AccessToken'
         AND auth_grant_type = 'authorization_code'
-        AND try_cast(crosswalk.fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk.fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -1948,7 +1941,7 @@ FROM
           'app_authentication_matched_new_bene_real_count')
 
         AND type = 'Authentication:success'
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         AND auth_crosswalk_action = 'C'
 
       )
@@ -1995,7 +1988,7 @@ FROM
           'app_authentication_matched_returning_bene_real_count')
 
         AND type = 'Authentication:success'
-        AND try_cast(crosswalk_fhir_id as BIGINT) >= 0
+        AND try_cast(crosswalk_fhir_id as BIGINT) > 0
         AND auth_crosswalk_action = 'R'
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
@@ -2042,7 +2035,7 @@ FROM
 
         AND path = '/mymedicare/sls-callback'
         AND response_code = 302
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -2111,7 +2104,7 @@ FROM
         AND path LIKE '/v%/o/authorize/%/'
         AND request_method = 'GET'
         AND response_code IN (200, 302)
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
@@ -2183,7 +2176,7 @@ FROM
         AND path LIKE '/v%/o/authorize/%/'
         AND request_method = 'POST'
         AND response_code IN (200, 302)
-        AND try_cast(fhir_id as BIGINT) >= 0
+        AND try_cast(fhir_id as BIGINT) > 0
       )
     GROUP BY COALESCE(NULLIF(app_name,''), NULLIF(application.name,''),
         NULLIF(auth_app_name,''), NULLIF(req_app_name,''),
