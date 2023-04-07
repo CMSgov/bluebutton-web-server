@@ -180,7 +180,7 @@ for n in range(BEGIN_NUM, END_NUM + 1):
     password = f"PW{str(n).zfill(5)}!"
     print("# ----")
     for t in range(0, MAX_RETRY):
-        print(f"# TESING({t}):  n={n} username={username} passwd={password}")
+        print(f"# TESING({t}):  n={n} username={username}")
 
         sleep_time = SLEEP_BETWEEN_ACTIONS * (t + 1)
 
