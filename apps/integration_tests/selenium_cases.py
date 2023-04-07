@@ -117,8 +117,8 @@ APP_CSS_SELECTOR_DELETE_APP = ".cta-button:nth-child(2)"
 # SLSX login form
 SLSX_TXT_FLD_USERNAME = "username-textbox"
 SLSX_TXT_FLD_PASSWORD = "password-textbox"
-SLSX_TXT_FLD_USERNAME_VAL = "BBUser29001"
-SLSX_TXT_FLD_PASSWORD_VAL = "PW29001!"
+SLSX_TXT_FLD_USERNAME_VAL = "BBUser00000"
+SLSX_TXT_FLD_PASSWORD_VAL = "PW00000!"
 SLSX_CSS_BUTTON = "login-button"
 
 # Demographic info access grant form

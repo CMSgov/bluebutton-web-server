@@ -10,5 +10,5 @@ WORKDIR /code
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
 RUN pip3 install --upgrade pip
 RUN pip3 install selenium
-RUN pip3 install pyyaml==6.0 pillow==9.3.0 newrelic==7.16.0.178
+RUN pip3 install pyyaml==6.0 pillow==9.3.0 newrelic==8.7.0
 RUN pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
