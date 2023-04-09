@@ -1,7 +1,4 @@
 # import io
-import json
-import re
-
 from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
 from django.urls import reverse
@@ -10,6 +7,8 @@ from django.utils.text import slugify
 from django.conf import settings
 from urllib.parse import parse_qs, urlparse
 
+import json
+import re
 
 from apps.accounts.models import UserProfile
 from apps.authorization.models import DataAccessGrant
