@@ -40,7 +40,7 @@
     }  
 </script>
 <section class="ds-c-usa-banner" aria-label="Official government website">
-<header class="ds-c-usa-banner__header ds-c-usa-banner__header--mobile" style="background-color:#f2f2f2; padding: 8px 16px 8px 16px;">
+<header class="ds-c-usa-banner__header" style="background-color:#f2f2f2; padding: 8px 16px 8px 16px;">
     <svg
         aria-hidden="false"
         class="ds-c-icon ds-c-icon--usa-flag ds-c-usa-banner__header-flag"
@@ -66,12 +66,10 @@
         ></path>
         </g>
     </svg>
-    <span class="ds-c-usa-banner__header-text">
-        <span style="white-space: nowrap">An official website of the United States government</span>
-    </span>
-    <button onclick="toggleBanner()" class="ds-c-usa-banner__button" style="background-color:#f2f2f2; padding: 0; width: fit-content;" aria-expanded="false" aria-controls="gov-banner_25">
-        <span class="ds-c-usa-banner__button-text" style="background-color:#f2f2f2;">Here’s how you know</span>
-        <span>
+    <p class="ds-c-usa-banner__header-text">
+        <span>An official website of the United States government</span>
+        <button onclick="toggleBanner()" class="ds-c-usa-banner__button" style="background-color:#f2f2f2; padding: 0; width: fit-content;" aria-expanded="false" aria-controls="gov-banner_25">
+            <span class="ds-c-usa-banner__button-text" style="background-color:#f2f2f2;">Here’s how you know</span>
             <svg
             aria-hidden="true"
             class="ds-c-icon ds-c-icon--arrow ds-c-icon--arrow-down ds-c-usa-banner__action-icon"
@@ -86,8 +84,8 @@
                 d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"
             ></path>
             </svg>
-        </span>
-    </button>
+        </button>
+    </p>
 </header>
 <div class="ds-c-usa-banner__content" id="gov-banner_25" hidden="">
     <div class="ds-c-usa-banner__guidance-container">
