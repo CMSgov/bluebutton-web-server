@@ -11,7 +11,7 @@ echo "- Creating virtualenv for Python ${PYTHON_VERSION}"
 python${PYTHON_VERSION} -m venv /tmp/venv_python
 
 echo "- Sourcing /tmp/venv_python/bin"
-source /tmp/venv_python/bin/activate
+. /tmp/venv_python/bin/activate
 
 echo "- Installing Selenium"
 pip install selenium
