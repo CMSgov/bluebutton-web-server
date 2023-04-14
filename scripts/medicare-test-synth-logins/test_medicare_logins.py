@@ -135,6 +135,17 @@ MAX_CONNECTION_ISSUE_COUNT = (
 
 options = Options()
 
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-web-security")
+options.add_argument("--allow-running-insecure-content")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-setuid-sandbox")
+options.add_argument("--disable-webgl")
+options.add_argument("--disable-popup-blocking")
+options.add_argument("--enable-javascript")
+options.add_argument('--allow-insecure-localhost')
+options.add_argument("--whitelisted-ips=''")
+
 if HEADLESS_MODE:
     # Headless option add
     options.add_argument("--headless=new")
