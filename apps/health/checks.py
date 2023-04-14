@@ -3,6 +3,7 @@ import requests
 import subprocess
 
 from django.db import connection
+from waffle.decorators import waffle_switch
 
 from apps.fhir.bluebutton.utils import get_resourcerouter
 from apps.fhir.server import connection as backend_connection
@@ -48,7 +49,7 @@ def slsx(v2=False):
 
 internal_services = (
     django_rds_database,
-    splunk_services,
+    waffle_switch('splunk_monitor')(splunk_services),
 )
 
 external_services = (
