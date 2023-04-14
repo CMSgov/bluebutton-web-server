@@ -49,7 +49,7 @@ pipeline {
         python --version
         python test_medicare_logins.py --url-base https://test.medicare.gov \
             --begin-user-number 28999 --end-user-number 29001 \
-            --sleep-between-actions 1.0 
+            --headless --sleep-between-actions 1.0 
         """
       }
     }
