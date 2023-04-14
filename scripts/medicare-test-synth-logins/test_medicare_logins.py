@@ -12,6 +12,12 @@ from urllib3.exceptions import MaxRetryError
 # CSV report at end of console out
 def csv_report():
     print("#---")
+    print("#--- SUMMARY ---")
+    print("#         SUCCESS count: ", status_success_count)
+    print("#      FAIL-LOGIN count: ", status_fail_login_count)
+    print("# FAIL-PW-EXPIRED count: ", status_fail_pw_expired_count)
+    print("#    FAIL-UNKNOWN count: ", status_fail_unknown_count)
+    print("#---")
     print("#---")
     print("#--- CSV REPORT ---")
     for row in report_list:
@@ -176,15 +182,21 @@ print("#")
 print("# Starting.... Press CTRL-c twice to abort.")
 print("#")
 
-driver_restart_counter = 1
+driver_restart_count = 1
 connection_issue_count = 0
+
+# Init report stats
+status_success_count = 0
+status_fail_login_count = 0
+status_fail_pw_expired_count = 0
+status_fail_unknown_count = 0
 
 # Loop through synth users
 for n in range(BEGIN_NUM, END_NUM + 1):
 
     status_mesg = "UNKNOWN"
 
-    if driver_restart_counter % DRIVER_RESTART_COUNT == 0:
+    if driver_restart_count % DRIVER_RESTART_COUNT == 0:
         driver = restart_selenium_driver(driver)
 
     username = f"BBUser{str(n).zfill(5)}"
@@ -254,7 +266,16 @@ for n in range(BEGIN_NUM, END_NUM + 1):
 
     report_list.append([URL_BASE, username, status_mesg])
 
-    driver_restart_counter += 1
+    if status_mesg == "SUCCESS":
+        status_success_count += 1
+    elif status_mesg == "FAIL-LOGIN":
+        status_fail_login_count += 1
+    elif status_mesg == "FAIL-PW-EXPIRED":
+        status_fail_pw_expired_count += 1
+    elif status_mesg == "FAIL-UNKNOWN":
+        status_fail_unknown_count += 1
+
+    driver_restart_count += 1
 
 driver.quit()
 csv_report()
