@@ -7,5 +7,4 @@ django-debug-toolbar
 httmock
 beautifulsoup4
 debugpy
-psutil
 

@@ -1,6 +1,6 @@
 import logging
 import requests
-import psutil
+import subprocess
 
 from django.db import connection
 
@@ -18,9 +18,9 @@ def django_rds_database(v2=False):
     return connection.is_usable()
 
 def splunk_services():
-    for proc in psutil.process_iter():
-        if 'splunkd' in proc.name():
-            return True
+    pl = subprocess.Popen(['ps', '-U', '0'], stdout=subprocess.PIPE).communicate()[0]
+    if "splunkd" in str(pl):
+        return True
     return False
 
 
