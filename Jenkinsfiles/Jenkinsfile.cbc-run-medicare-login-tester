@@ -41,11 +41,12 @@ pipeline {
         echo BEGIN_USER_NUMBER: ${BEGIN_USER_NUMBER}
         echo END_USER_NUMBER: ${END_USER_NUMBER}
         echo
+        python --version
         echo
         pwd
         uname -a
         sh scripts/medicare-test-synth-logins/setup_venv.sh
-        source /tmp/venv_python/bin/activate
+        . /tmp/venv_python/bin/activate
         python --version
         python test_medicare_logins.py --url-base https://test.medicare.gov \
             --begin-user-number 28999 --end-user-number 29001 \
