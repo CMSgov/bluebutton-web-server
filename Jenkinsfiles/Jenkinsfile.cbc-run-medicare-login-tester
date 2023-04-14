@@ -1,0 +1,54 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer "bb2-cbc-build-selenium-django32"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium.yaml"
+    }
+  }
+
+  environment {
+    URL_BASE = "${params.URL_BASE}"
+    BEGIN_USER_NUMBER = "${params.BEGIN_USER_NUMBER}"
+    END_USER_NUMBER = "${params.END_USER_NUMBER}"
+  }
+
+  parameters {
+    string(
+      name: 'URL_BASE',
+      defaultValue: "https://test.medicare.gov",
+      description: 'The medicare site base URL.'
+    )
+    string(
+      name: 'BEGIN_USER_NUMBER',
+      defaultValue: "0",
+      description: 'The beginning synth account number. Ex. 0 for BBUser00000.'
+    )
+    string(
+      name: 'END_USER_NUMBER',
+      defaultValue: "10",
+      description: 'The ending synth account number. Ex. 10 for BBUser00010.'
+    )
+  }
+
+  stages {
+
+    stage("Test medicare logins") {
+      steps {
+        sh """
+        echo ENV VARS:
+        echo
+        echo URL_BASE: ${URL_BASE}
+        echo BEGIN_USER_NUMBER: ${BEGIN_USER_NUMBER}
+        echo END_USER_NUMBER: ${END_USER_NUMBER}
+        echo
+        echo
+        pwd
+        ls -latrd *
+        uname -a
+        exit 0
+        """
+      }
+    }
+
+  }
+}
