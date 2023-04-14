@@ -69,7 +69,7 @@ pipeline {
         . /tmp/venv_python/bin/activate
         python --version
         python scripts/medicare-test-synth-logins/test_medicare_logins.py \
-            --url-base ${BASE_URL} \
+            --url-base ${URL_BASE} \
             --begin-user-number ${BEGIN_USER_NUMBER} \
             --end-user-number ${END_USER_NUMBER} \
             --sleep-between-actions  ${SLEEP_BETWEEN_ACTIONS} \
