@@ -1,5 +1,6 @@
 import logging
 import requests
+import psutil
 
 from django.db import connection
 
@@ -15,6 +16,12 @@ logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 def django_rds_database(v2=False):
     connection.ensure_connection()
     return connection.is_usable()
+
+def splunk_services():
+    for proc in psutil.process_iter():
+        if 'splunkd' in proc.name():
+            return True
+    return False
 
 
 def bfd_fhir_dataserver(v2=False):
@@ -41,6 +48,7 @@ def slsx(v2=False):
 
 internal_services = (
     django_rds_database,
+    splunk_services,
 )
 
 external_services = (
