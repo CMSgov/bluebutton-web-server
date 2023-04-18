@@ -18,6 +18,7 @@ def django_rds_database(v2=False):
     connection.ensure_connection()
     return connection.is_usable()
 
+
 def splunk_services(v2=False):
     pl = subprocess.Popen(['ps', '-U', '0'], stdout=subprocess.PIPE).communicate()[0]
     if "splunkd" in str(pl):
