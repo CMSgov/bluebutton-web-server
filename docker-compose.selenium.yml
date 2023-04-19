@@ -11,7 +11,8 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - bb2slsx
+      bb2slsx:
+        condition: service_healthy
 
   selenium-tests-debug:
     build:
@@ -23,8 +24,10 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - bb2slsx
-      - chrome
+      bb2slsx:
+        condition: service_healthy
+      chrome:
+        condition: service_started
 
   chrome:
     image: selenium/standalone-chrome-debug
@@ -68,8 +71,14 @@ services:
     ports:
       - "8000:8000"
       - "5678:5678"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://bb2slsx:8000"]
+      interval: 60s
+      retries: 5
+      start_period: 20s
+      timeout: 20s
     depends_on:
-      msls:
-        condition: service_started
+      # msls:
+      #   condition: service_started
       db:
         condition: service_healthy
