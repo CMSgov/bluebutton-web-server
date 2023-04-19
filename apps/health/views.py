@@ -10,6 +10,7 @@ from .checks import (
     slsx_services,
     bfd_services,
     db_services,
+    splunk_services,
 )
 
 import apps.logging.request_logger as bb2logging
@@ -66,3 +67,7 @@ class CheckBFD(Check):
 
 class CheckDB(Check):
     services = db_services
+
+
+class CheckSplunk(Check):
+    services = splunk_services
