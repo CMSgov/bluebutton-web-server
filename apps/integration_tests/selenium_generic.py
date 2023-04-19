@@ -1,6 +1,5 @@
 import os
 import time
-from django.test import TestCase
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -27,27 +26,28 @@ from .selenium_cases import (
 USER_ACCOUNT_TESTS_LOGGING_FILE = "./docker-compose/tmp/bb2_account_tests.log"
 
 
-class SeleniumGenericTests(TestCase):
+# class SeleniumGenericTests(TestCase):
+class SeleniumGenericTests():
     '''
-    A super selenium tests to be extended by
+    A base selenium tests to be extended by
     other selenium tests covering functional areas
     '''
-    wait_completed = False
+    driver_ready = False
 
-    def setUp(self):
-        super(SeleniumGenericTests, self).setUp()
+    def setup_method(self, method):
         # a bit waiting for selenium services ready for sure
-        if not SeleniumGenericTests.wait_completed:
+        if not SeleniumGenericTests.driver_ready:
             time.sleep(20)
-            SeleniumGenericTests.wait_completed = True
-            print("set wait_completed={}".format(SeleniumGenericTests.wait_completed))
+            SeleniumGenericTests.driver_ready = True
+            print("set driver_ready={}".format(SeleniumGenericTests.driver_ready))
         else:
-            print("wait_completed={}".format(SeleniumGenericTests.wait_completed))
+            print("driver_ready={}".format(SeleniumGenericTests.driver_ready))
 
+        self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
         self.use_debug = os.environ['USE_DEBUG']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
-        print("use_mslsx={}, use_debug={}".format(self.use_mslsx, self.use_debug))
+        print("use_mslsx={}, use_debug={}, hostname_url={}".format(self.use_mslsx, self.use_debug, self.hostname_url))
 
         opt = webdriver.ChromeOptions()
         opt.add_argument("--disable-dev-shm-usage")
@@ -86,9 +86,8 @@ class SeleniumGenericTests(TestCase):
             Action.VALIDATE_EVENTS: self._validate_events,
         }
 
-    def tearDown(self):
+    def teardown_method(self, method):
         self.driver.quit()
-        super(SeleniumGenericTests, self).tearDown()
 
     def _validate_events(self, subj_line, key_line_prefix, **kwargs):
         with open(USER_ACCOUNT_TESTS_LOGGING_FILE, 'r') as f:
@@ -110,15 +109,15 @@ class SeleniumGenericTests(TestCase):
                     # print("NOT COUNTED: {}".format(r))
             # assert one and only one expected email (subj line) found
             # if key_line_prefix is not None - need to extract activation key
-            self.assertEqual(email_subj_cnt, 1)
+            assert email_subj_cnt == 1
             if key_line_prefix is not None:
-                self.assertEqual(key_cnt, 1)
-                self.assertIsNotNone(ak)
+                assert key_cnt == 1
+                assert ak is not None
             return ak
 
     def _find_and_click(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
-        self.assertIsNotNone(elem)
+        assert elem is not None
         elem.click()
         return elem
 
@@ -127,7 +126,7 @@ class SeleniumGenericTests(TestCase):
 
     def _find_and_sendkey(self, timeout_sec, by, by_expr, txt, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
-        self.assertIsNotNone(elem)
+        assert elem is not None
         elem.send_keys(txt)
         return elem
 
@@ -142,7 +141,7 @@ class SeleniumGenericTests(TestCase):
 
     def _find_and_return(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
-        self.assertIsNotNone(elem)
+        assert elem is not None
         return elem
 
     def _load_page(self, url, **kwargs):
@@ -155,18 +154,18 @@ class SeleniumGenericTests(TestCase):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         if not (elem.text == fmt.format(resource_type, kwargs.get("api_ver"))):
             print("PAGE:{}".format(self.driver.page_source))
-        self.assertEqual(elem.text, fmt.format(resource_type, kwargs.get("api_ver")))
+        assert elem.text == fmt.format(resource_type, kwargs.get("api_ver"))
 
     def _check_pkce_challenge(self, timeout_sec, by, by_expr, pkce, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         if pkce:
-            self.assertTrue(("code_challenge" in elem.text and "code_challenge_method" in elem.text))
+            assert (("code_challenge" in elem.text and "code_challenge_method" in elem.text))
         else:
-            self.assertFalse(("code_challenge" in elem.text or "code_challenge_method" in elem.text))
+            assert not (("code_challenge" in elem.text or "code_challenge_method" in elem.text))
 
     def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
-        self.assertIn(content_txt, elem.text)
+        assert content_txt in elem.text
 
     def _back(self, **kwargs):
         self.driver.back()

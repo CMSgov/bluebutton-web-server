@@ -1,14 +1,16 @@
 FROM selenium/standalone-chrome-debug
 
 ENV PYTHONUNBUFFERED 1
-USER root
 # libpq-dev: ubuntu dev lib for psypsycopg2 sdist build
-RUN apt-get update && apt-get install -yq python3.8 python3-pip git libpq-dev libffi-dev
-RUN mkdir /code
-ADD . /code/
-WORKDIR /code
+USER root
+RUN apt-get update ; apt-get install -yq python3.8 python3.8-venv python3-pip git libpq-dev libffi-dev
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
+RUN useradd -m -s /bin/bash DEV
+USER DEV
+ADD . /code
+WORKDIR /code
+RUN python -m venv /tmp/venv
+RUN . /tmp/venv/bin/activate
+ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip3 install --upgrade pip
-RUN pip3 install selenium
-RUN pip3 install pyyaml==6.0 pillow==9.3.0 newrelic==8.7.0
-RUN pip3 install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
+RUN pip3 install selenium pytest
