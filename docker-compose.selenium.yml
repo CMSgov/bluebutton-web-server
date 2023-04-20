@@ -44,6 +44,11 @@ services:
     ports:
       - "8080:8080"
       - "7890:7890"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://msls:8080/sso/authorize"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db:
     image: postgres
@@ -78,7 +83,7 @@ services:
       start_period: 20s
       timeout: 20s
     depends_on:
-      # msls:
-      #   condition: service_started
+      msls:
+        condition: service_healthy
       db:
         condition: service_healthy
