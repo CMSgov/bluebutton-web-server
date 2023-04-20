@@ -64,8 +64,7 @@ class SeleniumGenericTests():
 
         if self.use_debug == 'true':
             self.driver = webdriver.Remote(
-                command_executor='http://chrome:4444/wd/hub',
-                desired_capabilities=DesiredCapabilities.CHROME, options=opt)
+                command_executor='http://chrome:4444/wd/hub', options=opt)
         else:
             opt.add_argument('--headless')
             self.driver = webdriver.Chrome(options=opt)
