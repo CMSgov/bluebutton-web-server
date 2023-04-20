@@ -10,5 +10,4 @@ RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip install --upgrade pip
 RUN pip install pip-tools
-RUN pip show setuptools
-RUN pip install -r ./requirements/requirements.dev.txt --no-index --find-links ./vendor/
+RUN make reqs-install-dev
