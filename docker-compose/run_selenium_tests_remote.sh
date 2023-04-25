@@ -50,7 +50,7 @@ set -e -u -o pipefail
 
 export USE_DEBUG=false
 export SERVICE_NAME="selenium-tests-remote"
-export TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
+export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 # BB2 service end point default (SBX)
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
 export USE_DEBUG=false
@@ -108,9 +108,9 @@ docker-compose -f docker-compose.selenium.remote.yml down --remove-orphans
 
 if $USE_DEBUG
 then
-    docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests-debug bash -c "python runtests.py --selenium ${TESTS_LIST}"
+    docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests-debug bash -c "pytest ${TESTS_LIST}"
 else
-    docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "python runtests.py --selenium ${TESTS_LIST}"
+    docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "pytest ${TESTS_LIST}"
 fi
 
 # Stop containers after use

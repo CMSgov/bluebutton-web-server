@@ -57,7 +57,7 @@ set -e -u -o pipefail
 export USE_MSLSX=true
 export USE_DEBUG=false
 export SERVICE_NAME="selenium-tests"
-export TESTS_LIST="apps.integration_tests.selenium_tests.SeleniumTests"
+export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
 export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
 export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
@@ -111,7 +111,7 @@ else
       rm -rf ./docker-compose/tmp/bb2_logging_test.log
       mkdir ./docker-compose/tmp
       export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
-      export TESTS_LIST="apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging"
+      export TESTS_LIST="./apps/integration_tests/logging_tests.py"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
     fi
     if [[ $1 == "account" ]]
@@ -119,7 +119,7 @@ else
       # cleansing log file before run 
       rm -rf ./docker-compose/tmp/bb2_account_tests.log
       mkdir -p ./docker-compose/tmp
-      export TESTS_LIST="apps.integration_tests.selenium_accounts_tests.SeleniumUserAndAppTests"
+      export TESTS_LIST="./apps/integration_tests/selenium_accounts_tests.py"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
       export BB2_SERVER_STD2FILE="./docker-compose/tmp/bb2_account_tests.log"
     fi
@@ -203,7 +203,7 @@ echo "MSLSX=" ${USE_MSLSX}
 echo "DEBUG=" ${USE_DEBUG}
 echo "SERVICE NAME=" ${SERVICE_NAME}
 
-docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "python runtests.py --selenium ${TESTS_LIST}"
+docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "pytest ${TESTS_LIST}"
 
 #Stop containers after use
 echo_msg
