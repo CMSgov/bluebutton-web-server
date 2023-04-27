@@ -24,7 +24,8 @@ def splunk_services(v2=False):
         pl = subprocess.Popen(['systemctl', '-l'], stdout=subprocess.PIPE).communicate()[0]
         if "SplunkForwarder.serviceloadedactive" in str(pl).replace(" ", ""):
             return True
-        return False
+        else:
+            return False
     return True
 
 
