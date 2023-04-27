@@ -21,8 +21,8 @@ def django_rds_database(v2=False):
 
 def splunk_services(v2=False):
     if switch_is_active('splunk_monitor'):
-        pl = subprocess.Popen(['ps', '-U', '0'], stdout=subprocess.PIPE).communicate()[0]
-        if "splunkd" in str(pl):
+        pl = subprocess.Popen(['systemctl', '-l'], stdout=subprocess.PIPE).communicate()[0]
+        if "SplunkForwarder.serviceloadedactive" in str(pl).replace(" ",""):
             return True
         return False
     return True
