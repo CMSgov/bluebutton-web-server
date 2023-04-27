@@ -1,6 +1,6 @@
 -r requirements.in
 # test and development
-coverage==6.3.2
+coverage
 python-coveralls
 flake8
 django-debug-toolbar
