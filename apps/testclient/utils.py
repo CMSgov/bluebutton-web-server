@@ -41,7 +41,7 @@ def test_setup(include_client_secret=True, v2=False, pkce=False):
     response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, ver)
     response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, ver)
     response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
-    return(response)
+    return (response)
 
 
 def get_client_secret():

@@ -122,7 +122,7 @@ def callback(request):
 
     host = settings.HOSTNAME_URL
 
-    if not(host.startswith("http://") or host.startswith("https://")):
+    if not (host.startswith("http://") or host.startswith("https://")):
         host = "https://%s" % (host)
 
     auth_uri = host + request.get_full_path()

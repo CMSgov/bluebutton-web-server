@@ -8,10 +8,7 @@ RUN echo "PYTHON VER:" ; python --version
 RUN pip install --upgrade pip
 RUN pip install --upgrade pip-tools
 RUN pip install --upgrade setuptools
-RUN pip install --upgrade python-dotenv
 RUN pip show setuptools
-RUN make reqs-compile
-RUN make reqs-download
 RUN make reqs-install-dev
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
 
