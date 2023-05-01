@@ -5,26 +5,29 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.selenium
-    command: python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+    command: pytest ./apps/integration_tests/selenium_tests.py
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:
       - .:/code
     depends_on:
-      - bb2slsx
+      bb2slsx:
+        condition: service_healthy
 
   selenium-tests-debug:
     build:
       context: ./
       dockerfile: Dockerfile.selenium
-    command: python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+    command: pytest ./apps/integration_tests/selenium_tests.py
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:
       - .:/code
     depends_on:
-      - bb2slsx
-      - chrome
+      bb2slsx:
+        condition: service_healthy
+      chrome:
+        condition: service_started
 
   chrome:
     image: selenium/standalone-chrome-debug
@@ -41,6 +44,11 @@ services:
     ports:
       - "8080:8080"
       - "7890:7890"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://msls:8080/sso/authorize"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db:
     image: postgres
@@ -68,8 +76,14 @@ services:
     ports:
       - "8000:8000"
       - "5678:5678"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://bb2slsx:8000"]
+      interval: 60s
+      retries: 5
+      start_period: 20s
+      timeout: 20s
     depends_on:
       msls:
-        condition: service_started
+        condition: service_healthy
       db:
         condition: service_healthy

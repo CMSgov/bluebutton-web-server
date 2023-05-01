@@ -7,7 +7,7 @@ from .selenium_cases import (
 )
 
 
-class SeleniumTests(SeleniumGenericTests):
+class TestBlueButtonAPI(SeleniumGenericTests):
     '''
     Test authorization and fhir flow through the built in testclient by
     leveraging selenium web driver (chrome is used)

@@ -4,9 +4,9 @@ import re
 
 from json.decoder import JSONDecodeError
 
-from apps.integration_tests.common_utils import validate_json_schema
-from apps.integration_tests.selenium_tests import SeleniumTests
-from apps.integration_tests.log_event_schemas import (
+from .common_utils import validate_json_schema
+from .selenium_tests import TestBlueButtonAPI
+from .log_event_schemas import (
     LOG_MIDDLEWARE_FHIR_READ_EVENT_SCHEMA,
     LOG_MIDDLEWARE_FHIR_SEARCH_EVENT_SCHEMA,
     LOG_MIDDLEWARE_FHIR_NAVIGATION_EVENT_SCHEMA,
@@ -161,7 +161,7 @@ EXPECTED_LOGGING_EVENTS = [
 ]
 
 
-class LoggingTests(SeleniumTests):
+class TestLoggings(TestBlueButtonAPI):
     '''
     Test loggings generated from authorization and fhir flow using the built in testclient as
     the driver (selenium)
