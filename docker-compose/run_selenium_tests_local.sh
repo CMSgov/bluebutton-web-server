@@ -16,9 +16,6 @@ export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
 # BB2 service end point default
 export HOSTNAME_URL="http://bb2slsx:8000"
 
-# Backend FHIR server to use for selenium tests with FHIR requests:
-# FHIR_URL="https://prod-sbx.bfd.cms.gov"
-
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
     echo "$(basename $0): $*"
@@ -31,9 +28,9 @@ display_usage() {
     echo
     echo "  Use one of the following command line options for the type of test to run:"
     echo
-    echo "    slsx  (default) = use SLSX for identity service."
+    echo "    slsx  = use SLSX for identity service."
     echo
-    echo "    mslsx = use MSLSX for identity service with webdriver in headless mode."
+    echo "    mslsx (default) = use MSLSX for identity service."
     echo
     echo "    account  = test user account management and application management."
     echo
@@ -74,7 +71,7 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
-export USE_MSLSX=false
+export USE_MSLSX=true
 export USE_DEBUG=false
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
@@ -99,10 +96,12 @@ while getopts "hd" option; do
    esac
 done
 
+set_msls
+
 # Parse command line option
 if [ $# -eq 0 ]
 then
-  echo "Use SLSX for identity service."
+  echo "Use Mock SLS for identity service."
 else
   echo $1
   if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" && $1 != "account" ]]
@@ -111,10 +110,10 @@ else
     display_usage
     exit 1
   else
-    if [[ $1 == "mslsx" ]]
+    if [[ $1 == "slsx" ]]
     then
-        export USE_MSLSX=true
-        set_msls
+        export USE_MSLSX=false
+        set_slsx
     fi
     if [[ $1 == "logit" ]]
     then

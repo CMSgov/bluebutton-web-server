@@ -55,7 +55,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          pip install selenium
+          pip install selenium pytest Flask Flask-WTF
           pip install cryptography==39.0.1
           make reqs-install-dev
         """
@@ -118,19 +118,7 @@ pipeline {
         expression { params.RUN_SELENIUM_TESTS == true }
        }
        steps{
-        sh """
-          . venv/bin/activate
-          python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
-        """
-       }
-    }
-
-    stage("RUN selenium tests") {
-       when {
-        expression { params.RUN_SELENIUM_TESTS == true }
-       }
-       steps{
-        sh 'echo "RUN selenium tests - user account tests and app management tests"'
+        sh 'echo "RUN selenium tests - user account and app management tests"'
         sh """
           . venv/bin/activate
           pytest ./apps/integration_tests/selenium_accounts_tests.py
