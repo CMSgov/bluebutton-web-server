@@ -75,7 +75,9 @@ def login_page():
     '''
     response with login form
     '''
-    return render_template('login.html', relay=request.args.get("relay", "missing"), redirect_uri=request.args.get("redirect_uri", "missing"))
+    relay = request.args.get("relay", "missing")
+    redirect_uri = request.args.get("redirect_uri", "missing")
+    return render_template('login.html', relay=relay, redirect_uri=redirect_uri)
 
 
 @app.route('/login/', methods=['POST'])
