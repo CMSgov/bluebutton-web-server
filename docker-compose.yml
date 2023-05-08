@@ -2,10 +2,8 @@ version: '3'
 
 services:
   msls:
-    build: .
-    command: bash -c "cd dev-local ; python manage.py migrate ; python -m debugpy --listen 0.0.0.0:7890 manage.py runserver 0.0.0.0:8080 --noreload"
-    environment:
-      - DJANGO_SETTINGS_MODULE=mslsx_django.settings
+    build: ./dev-local
+    command: bash -c "python -m debugpy --listen 0.0.0.0:7890 app.py"
     ports:
       - "8080:8080"
       - "7890:7890"
@@ -32,6 +30,8 @@ services:
       - "5678:5678"
     depends_on:
       - db
+    profiles:
+      - slsx
   web_msls:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh

@@ -181,7 +181,7 @@ class SeleniumGenericTests():
         print()
         print("******************************************************************")
         print(TESTCASE_BANNER_FMT.format("START" if start else "END", test_name, api_ver, step_0,
-                                         "MSLSX" if id_service == 'true' else "SLSX"))
+                                         "Mock SLS" if id_service == 'true' else "SLSX"))
         print("******************************************************************")
         print()
 

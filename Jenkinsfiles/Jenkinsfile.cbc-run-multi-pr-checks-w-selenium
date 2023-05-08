@@ -99,7 +99,7 @@ pipeline {
        steps{
         sh """
           . venv/bin/activate
-          python runtests.py --selenium apps.integration_tests.logging_tests.LoggingTests.test_auth_fhir_flows_logging
+          pytest ./apps/integration_tests/logging_tests.py
         """
        }
     }
@@ -121,6 +121,24 @@ pipeline {
         sh """
           . venv/bin/activate
           python runtests.py --selenium apps.integration_tests.selenium_tests.SeleniumTests
+        """
+       }
+    }
+
+    stage("RUN selenium tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh 'echo "RUN selenium tests - user account tests and app management tests"'
+        sh """
+          . venv/bin/activate
+          pytest ./apps/integration_tests/selenium_accounts_tests.py
+        """
+        sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
+        sh """
+          . venv/bin/activate
+          pytest ./apps/integration_tests/selenium_tests.py
         """
        }
     }
