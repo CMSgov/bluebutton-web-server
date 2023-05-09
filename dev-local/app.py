@@ -1,5 +1,4 @@
 import os
-import json
 import base64
 
 from flask import redirect, request, render_template, jsonify, make_response, Flask
