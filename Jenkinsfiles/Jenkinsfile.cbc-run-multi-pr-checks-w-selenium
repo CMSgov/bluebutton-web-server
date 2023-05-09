@@ -27,6 +27,7 @@ pipeline {
     FHIR_CERT = credentials("bb2-integration-tests-bfd-cert")
     FHIR_KEY = credentials("bb2-integration-tests-bfd-key")
     FHIR_URL = "${params.FHIR_URL}"
+    HOSTNAME_URL = "http://localhost:8000"
   }
 
   parameters {
