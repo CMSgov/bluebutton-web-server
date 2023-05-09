@@ -183,16 +183,16 @@ class TestLoggings(TestBlueButtonAPI):
                         else:
                             event_desc = expected_events.pop(0)
                             if event_desc.get('path_regex') is not None:
-                                self.assertTrue(re.match(event_desc.get('path_regex'), p))
+                                assert re.match(event_desc.get('path_regex'), p)
                             else:
-                                self.assertEqual(p, event_desc.get('path'))
-                            self.assertTrue(validate_json_schema(event_desc.get('schema'), event_json))
+                                assert p == event_desc.get('path')
+                            assert (validate_json_schema(event_desc.get('schema'), event_json))
                 except JSONDecodeError:
                     # skip non json line
                     pass
 
             # all log events present and validated
-            self.assertEqual(len(expected_events), 0)
+            assert len(expected_events) == 0
 
     def test_auth_fhir_flows_logging(self):
         self.test_auth_grant_fhir_calls_v1()
