@@ -76,7 +76,7 @@ export USE_DEBUG=false
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
-export BB2_SERVER_STD2FILE=""
+# export BB2_SERVER_STD2FILE=""
 
 set_slsx
 
@@ -121,7 +121,7 @@ else
       rm -rf ./docker-compose/tmp/
       mkdir ./docker-compose/tmp
       export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
-      export TESTS_LIST="./apps/integration_tests/logging_tests.py"
+      export TESTS_LIST="./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
     fi
     if [[ $1 == "account" ]]
@@ -129,9 +129,9 @@ else
       # cleansing log file before run 
       rm -rf ./docker-compose/tmp/
       mkdir -p ./docker-compose/tmp
+      export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
       export TESTS_LIST="./apps/integration_tests/selenium_accounts_tests.py"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
-      export BB2_SERVER_STD2FILE="./docker-compose/tmp/bb2_account_tests.log"
     fi
   fi
 fi

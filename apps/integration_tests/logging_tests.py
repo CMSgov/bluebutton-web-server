@@ -25,7 +25,7 @@ from .log_event_schemas import (
     LOG_MIDDLEWARE_TESTCLIENT_MISCINFO_EVENT_SCHEMA
 )
 
-TEST_LOGGING_FILE = "./docker-compose/tmp/bb2_logging_test.log"
+LOG_FILE = "./docker-compose/tmp/bb2_logging_sink.log"
 MIDDLEWARE_LOG_EVENT_TYPE = "request_response_middleware"
 
 EXPECTED_LOGGING_EVENTS = [
@@ -167,7 +167,7 @@ class TestLoggings(TestBlueButtonAPI):
     the driver (selenium)
     '''
     def _validate_events(self):
-        with open(TEST_LOGGING_FILE, 'r') as f:
+        with open(LOG_FILE, 'r') as f:
             log_records = f.readlines()
             start_validation = False
             expected_events = copy.deepcopy(EXPECTED_LOGGING_EVENTS)

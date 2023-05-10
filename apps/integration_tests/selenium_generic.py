@@ -22,7 +22,7 @@ from .selenium_cases import (
     PROD_URL,
 )
 
-USER_ACCOUNT_TESTS_LOGGING_FILE = "./docker-compose/tmp/bb2_account_tests.log"
+LOG_FILE = "./docker-compose/tmp/bb2_logging_sink.log"
 
 
 # class SeleniumGenericTests(TestCase):
@@ -88,7 +88,7 @@ class SeleniumGenericTests():
         self.driver.quit()
 
     def _validate_events(self, subj_line, key_line_prefix, **kwargs):
-        with open(USER_ACCOUNT_TESTS_LOGGING_FILE, 'r') as f:
+        with open(LOG_FILE, 'r') as f:
             log_records = f.readlines()
             email_subj_cnt = 0
             key_cnt = 0
