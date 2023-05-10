@@ -155,4 +155,10 @@ https://test.medicare.gov, BBUser29001, FAIL-PW-EXPIRED
 
 # How to Use the Tool Via Jenkins CBC<a id="cbcusage"></a>
 
-Coming soon...
+Jenkins CBC can be used to run the tester using a container node.
+
+There is a Jenkins CBC project called "RUN - Login Tester". This utilizes the Jenkinsfile `Jenkinsfiles/Jenkinsfile.cbc-run-medicare-login-tester`. 
+
+The tester command options can be passed in via the build parameters at launch time.
+
+Note that this method of running the login tester will randomly get interrupted/aborted if running for too long. You should use an alternate method for runs taking over an hour or two. For example, running locally or via a canary instance are good options.
