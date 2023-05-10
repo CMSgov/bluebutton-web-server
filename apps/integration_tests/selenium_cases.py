@@ -1,9 +1,11 @@
-from django.conf import settings
+import os
 from enum import Enum
 from selenium.webdriver.common.by import By
 
+
+HOSTNAME_URL = os.environ['HOSTNAME_URL']
 PROD_URL = 'https://api.bluebutton.cms.gov'
-USER_ACTIVATION_URL_FMT = settings.HOSTNAME_URL + "/v1/accounts/activation-verify/{}"
+USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
 
 class Action(Enum):
@@ -162,7 +164,7 @@ CLICK_RESTART_TESTCLIENT = {
 LOAD_TESTCLIENT_HOME = {
     "display": "Load Test Client Home Page",
     "action": Action.LOAD_PAGE,
-    "params": [settings.HOSTNAME_URL + "/testclient"]
+    "params": [HOSTNAME_URL + "/testclient"]
 }
 
 CLICK_RADIO_NOT_SHARE = {
@@ -233,9 +235,9 @@ SEQ_AUTHORIZE_START = [
     {
         "display": "Load BB2 Landing Page ...",
         "action": Action.LOAD_PAGE,
-        "params": [settings.HOSTNAME_URL]
+        "params": [HOSTNAME_URL]
     },
-    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click link to get sample token v1/v2",
         "action": Action.GET_SAMPLE_TOKEN_START,
@@ -264,9 +266,9 @@ SEQ_AUTHORIZE_PKCE_START = [
     {
         "display": "Load BB2 Landing Page ...",
         "action": Action.LOAD_PAGE,
-        "params": [settings.HOSTNAME_URL]
+        "params": [HOSTNAME_URL]
     },
-    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click link to get sample token v1/v2 with PKCE enabled",
         "action": Action.GET_SAMPLE_TOKEN_PKCE_START,
@@ -310,7 +312,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
     },
-    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -327,7 +329,7 @@ SEQ_QUERY_FHIR_RESOURCES = [
         "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
     },
     WAIT_SECONDS,
-    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     WAIT_SECONDS,
     {
         "display": "Click 'Profile' on FHIR resources page",
@@ -393,7 +395,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "action": Action.FIND_CLICK,
         "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
     },
-    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     {
         "display": "Click 'ExplanationOfBenefit' on FHIR resources page",
         "action": Action.FIND_CLICK,
@@ -410,7 +412,7 @@ SEQ_QUERY_FHIR_RESOURCES_NO_DEMO = [
         "params": [20, By.LINK_TEXT, LNK_TXT_NAV_LAST]
     },
     WAIT_SECONDS,
-    CLICK_TESTCLIENT if not settings.HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
     WAIT_SECONDS,
     {
         "display": "Click 'Profile' on FHIR resources page",
@@ -480,7 +482,7 @@ SEQ_CREATE_USER_ACCOUNT = [
     {
         "display": "Load BB2 Landing Page ...",
         "action": Action.LOAD_PAGE,
-        "params": [settings.HOSTNAME_URL]
+        "params": [HOSTNAME_URL]
     },
     {
         "display": "Click link 'Signup' to create user account",
@@ -713,7 +715,7 @@ SEQ_DEL_APPS = [
 USER_ACCT_ACTIVATION_W_BAD_KEY = {
     "display": "Send activation request (with bad activation key)...",
     "action": Action.LOAD_PAGE,
-    "params": [USER_ACTIVATION_URL_FMT.format("bad-key-470c74445228")]
+    "params": [USER_ACTIVATION_PATH_FMT.format(HOSTNAME_URL, "bad-key-470c74445228")]
 }
 
 SEE_ACCOUNT_HAS_ISSUE_MSG = {

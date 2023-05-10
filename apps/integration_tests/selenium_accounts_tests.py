@@ -2,12 +2,12 @@ from .selenium_generic import SeleniumGenericTests
 from .selenium_cases import (
     USER_ACCT_ACTIVATION_EMAIL_SUBJ,
     USER_ACCT_ACTIVATION_KEY_PREFIX,
-    USER_ACTIVATION_URL_FMT,
+    USER_ACTIVATION_PATH_FMT,
     ACCT_TESTS,
 )
 
 
-class SeleniumUserAndAppTests(SeleniumGenericTests):
+class TestUserAndAppMgmt(SeleniumGenericTests):
 
     def testAccountAndAppMgmt(self):
         step = [0]
@@ -27,9 +27,10 @@ class SeleniumUserAndAppTests(SeleniumGenericTests):
         activation_key = self._validate_events(USER_ACCT_ACTIVATION_EMAIL_SUBJ, USER_ACCT_ACTIVATION_KEY_PREFIX)
         # good activation requests are idempotent - should not generate any extra email notifications
         # activate once
-        self._load_page(USER_ACTIVATION_URL_FMT.format(activation_key))
+        usr_activate_url = USER_ACTIVATION_PATH_FMT.format(self.hostname_url, activation_key)
+        self._load_page(usr_activate_url)
         # activate twice
-        self._load_page(USER_ACTIVATION_URL_FMT.format(activation_key))
+        self._load_page(usr_activate_url)
         # there is still one activation email
         activation_key = self._validate_events(USER_ACCT_ACTIVATION_EMAIL_SUBJ, USER_ACCT_ACTIVATION_KEY_PREFIX)
         # now login to the account and do app stuff
