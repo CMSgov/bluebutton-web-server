@@ -10,7 +10,7 @@ pipeline {
     USE_MSLSX = false
     USE_DEBUG = false
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
-    DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.dev"
+    DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.logging_it"
     OAUTHLIB_INSECURE_TRANSPORT = true
     DJANGO_SECURE_SESSION = false
     DJANGO_FHIR_CERTSTORE = "./certstore"
