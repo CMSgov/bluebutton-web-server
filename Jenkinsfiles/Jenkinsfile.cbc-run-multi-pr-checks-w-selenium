@@ -89,7 +89,7 @@ pipeline {
         sh """
           . venv/bin/activate
           mkdir ./docker-compose/tmp/
-          python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.logging_it && python manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_account_tests.log 2>&1 &)
+          python manage.py migrate && python manage.py create_admin_groups && python manage.py loaddata scopes.json && python manage.py create_blue_button_scopes && python manage.py create_test_user_and_application && python manage.py create_user_identification_label_selection && python manage.py create_test_feature_switches && (if [ ! -d 'bluebutton-css' ] ; then git clone https://github.com/CMSgov/bluebutton-css.git ; else echo 'CSS already installed.' ; fi) && echo 'starting bb2...' && (export DJANGO_SETTINGS_MODULE=hhs_oauth_server.settings.logging_it && python manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_email_to_stdout.log 2>&1 &)
         """
        }
     }
@@ -101,7 +101,21 @@ pipeline {
        steps{
         sh """
           . venv/bin/activate
+          ls -al ./docker-compose/tmp/
           pytest ./apps/integration_tests/logging_tests.py
+        """
+       }
+    }
+
+    stage("RUN selenium user and apps management tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh 'echo "RUN selenium tests - user account and app management tests"'
+        sh """
+          . venv/bin/activate
+          pytest ./apps/integration_tests/selenium_accounts_tests.py
         """
        }
     }
@@ -120,11 +134,6 @@ pipeline {
         expression { params.RUN_SELENIUM_TESTS == true }
        }
        steps{
-        sh 'echo "RUN selenium tests - user account and app management tests"'
-        sh """
-          . venv/bin/activate
-          pytest ./apps/integration_tests/selenium_accounts_tests.py
-        """
         sh 'echo "RUN selenium tests - testclient based authorization flow tests and data flow tests"'
         sh """
           . venv/bin/activate
