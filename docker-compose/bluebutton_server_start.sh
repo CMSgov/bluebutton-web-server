@@ -6,7 +6,7 @@ SUPER_USER_EMAIL=${SUPER_USER_EMAIL:-'bluebutton@example.com'}
 SUPER_USER_PASSWORD=${SUPER_USER_PASSWORD:-'bluebutton123'}
 BB20_ENABLE_REMOTE_DEBUG=${BB20_ENABLE_REMOTE_DEBUG:-false}
 BB20_REMOTE_DEBUG_WAIT_ATTACH=${BB20_REMOTE_DEBUG_WAIT_ATTACH:-false}
-## BB2_SERVER_STD2FILE=${BB2_SERVER_STD2FILE:-''}
+BB2_SERVER_STD2FILE=${BB2_SERVER_STD2FILE:-''}
 
 DJANGO_LOG_JSON_FORMAT_PRETTY=${DJANGO_LOG_JSON_FORMAT_PRETTY:-True}
 DJANGO_USER_ID_SALT=${DJANGO_USER_ID_SALT:-"6E6F747468657265616C706570706572"}
@@ -53,32 +53,32 @@ if [ "${BB20_ENABLE_REMOTE_DEBUG}" = true ]
 then
     if [ "${BB20_REMOTE_DEBUG_WAIT_ATTACH}" = true ]
     then
-        ## if [ -z "${BB2_SERVER_STD2FILE}" ]
-        ## then
-        echo "Start bluebutton server with remote debugging and wait attach..."
-        # NOTE: The "--noreload" option can be added below to disable if needed
-        python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
-        ## else
-        ##     echo "Start bluebutton server with remote debugging and wait attach..., std redirect to file: ${BB2_SERVER_STD2FILE}"
-        ##     python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_account_tests.log 2>&1
-        ## fi
+        if [ "${BB2_SERVER_STD2FILE}" = "YES" ]
+        then
+            echo "Start bluebutton server with remote debugging and wait attach..., std redirect to file: ${BB2_SERVER_STD2FILE}"
+            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_email_to_stdout.log 2>&1
+        else
+            echo "Start bluebutton server with remote debugging and wait attach..."
+            # NOTE: The "--noreload" option can be added below to disable if needed
+            python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
+        fi
     else
-        ## if [ -z "${BB2_SERVER_STD2FILE}" ]
-        ## then
+        if [ "${BB2_SERVER_STD2FILE}" = "YES" ]
+        then
+            echo "Start bluebutton server with remote debugging..., std redirect to file: ${BB2_SERVER_STD2FILE}"
+            python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_email_to_stdout.log 2>&1
+        else
             echo "Start bluebutton server with remote debugging..."
             python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000
-        ## else
-        ##     echo "Start bluebutton server with remote debugging..., std redirect to file: ${BB2_SERVER_STD2FILE}"
-        ##     python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_account_tests.log 2>&1
-        ## fi
+        fi
     fi
 else
-    ## if [ -z "${BB2_SERVER_STD2FILE}" ]
-    ## then
-    echo "Start bluebutton server ..."
-    python3 manage.py runserver 0.0.0.0:8000
-    ## else
-    ##     echo "Start bluebutton server ..., std redirect to file: ${BB2_SERVER_STD2FILE}"
-    ##     python3 manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_account_tests.log 2>&1
-    ## fi
+    if [ "${BB2_SERVER_STD2FILE}" = "YES" ]
+    then
+        echo "Start bluebutton server ..., std redirect to file: ${BB2_SERVER_STD2FILE}"
+        python3 manage.py runserver 0.0.0.0:8000 > ./docker-compose/tmp/bb2_email_to_stdout.log 2>&1
+    else
+        echo "Start bluebutton server ..."
+        python3 manage.py runserver 0.0.0.0:8000
+    fi
 fi

@@ -21,7 +21,7 @@ class Action(Enum):
     GET_SAMPLE_TOKEN_START = 10
     GET_SAMPLE_TOKEN_PKCE_START = 11
     SLEEP = 12
-    VALIDATE_EVENTS = 13
+    VALIDATE_EMAIL_NOTIFICATION = 13
 
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
@@ -558,19 +558,19 @@ SEE_ACCT_ACTIVATED_MSG = {
 
 VALIDATE_ACTIVATION_EMAIL = {
     "display": "Check BB2 server log for user account activation email and activate account",
-    "action": Action.VALIDATE_EVENTS,
+    "action": Action.VALIDATE_EMAIL_NOTIFICATION,
     "params": [USER_ACCT_ACTIVATION_EMAIL_SUBJ, USER_ACCT_ACTIVATION_KEY_PREFIX]
 }
 
 VALIDATE_1ST_APP_CREATED_EMAIL = {
     "display": "Check BB2 server log for email notification of 1st app created",
-    "action": Action.VALIDATE_EVENTS,
+    "action": Action.VALIDATE_EMAIL_NOTIFICATION,
     "params": [USER_ACCT_1ST_APP_EMAIL_SUBJ, None]
 }
 
 VALIDATE_1ST_API_CALL_EMAIL = {
     "display": "Check BB2 server log for email notification of 1st API call",
-    "action": Action.VALIDATE_EVENTS,
+    "action": Action.VALIDATE_EMAIL_NOTIFICATION,
     "params": [APP_1ST_API_CALL_EMAIL_SUBJ, None]
 }
 

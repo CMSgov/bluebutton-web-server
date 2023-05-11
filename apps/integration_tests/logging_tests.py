@@ -175,7 +175,9 @@ class TestLoggings(TestBlueButtonAPI):
                 r = log_records.pop(0)
                 try:
                     event_json = json.loads(r)
-                    if event_json.get('type', 'NO TYPE INFO') == MIDDLEWARE_LOG_EVENT_TYPE:
+                    e_type = event_json.get('type', 'NO TYPE INFO')
+                    e_user_agent = event_json.get('req_header_user_agent')
+                    if e_user_agent is not None and not e_user_agent.startswith("curl") and e_type == MIDDLEWARE_LOG_EVENT_TYPE:
                         p = event_json.get('path', None)
                         if not start_validation:
                             if p == "/":

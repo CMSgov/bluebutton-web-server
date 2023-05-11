@@ -76,7 +76,7 @@ export USE_DEBUG=false
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
-# export BB2_SERVER_STD2FILE=""
+export BB2_SERVER_STD2FILE=""
 
 set_slsx
 
@@ -129,6 +129,7 @@ else
       # cleansing log file before run 
       rm -rf ./docker-compose/tmp/
       mkdir -p ./docker-compose/tmp
+      export BB2_SERVER_STD2FILE="YES"
       export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
       export TESTS_LIST="./apps/integration_tests/selenium_accounts_tests.py"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
