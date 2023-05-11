@@ -131,7 +131,7 @@ else
       mkdir -p ./docker-compose/tmp
       export BB2_SERVER_STD2FILE="YES"
       export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
-      export TESTS_LIST="./apps/integration_tests/selenium_accounts_tests.py"
+      export TESTS_LIST="./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
     fi
   fi

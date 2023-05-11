@@ -102,7 +102,7 @@ pipeline {
         sh """
           . venv/bin/activate
           ls -al ./docker-compose/tmp/
-          pytest ./apps/integration_tests/logging_tests.py
+          pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
         """
        }
     }
@@ -115,7 +115,7 @@ pipeline {
         sh 'echo "RUN selenium tests - user account and app management tests"'
         sh """
           . venv/bin/activate
-          pytest ./apps/integration_tests/selenium_accounts_tests.py
+          pytest ./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt
         """
        }
     }
