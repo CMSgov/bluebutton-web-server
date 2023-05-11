@@ -1,4 +1,3 @@
-import sys
 from .dev import *  # lgtm [py/polluting-import]
 
 # Override audit logging handler with a file handler
