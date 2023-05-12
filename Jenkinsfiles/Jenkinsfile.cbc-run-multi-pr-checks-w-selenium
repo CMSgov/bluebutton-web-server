@@ -101,7 +101,6 @@ pipeline {
        steps{
         sh """
           . venv/bin/activate
-          ls -al ./docker-compose/tmp/
           pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
         """
        }
