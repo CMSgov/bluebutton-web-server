@@ -12,6 +12,13 @@ from urllib3.exceptions import MaxRetryError
 # CSV report at end of console out
 def csv_report():
     print("#---")
+    print("#--- SUMMARY ---")
+    print("#       SUCCESS_1 count: ", status_success1_count)
+    print("#       SUCCESS_2 count: ", status_success2_count)
+    print("#      FAIL-LOGIN count: ", status_fail_login_count)
+    print("# FAIL-PW-EXPIRED count: ", status_fail_pw_expired_count)
+    print("#    FAIL-UNKNOWN count: ", status_fail_unknown_count)
+    print("#---")
     print("#---")
     print("#--- CSV REPORT ---")
     for row in report_list:
@@ -135,6 +142,17 @@ MAX_CONNECTION_ISSUE_COUNT = (
 
 options = Options()
 
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-web-security")
+options.add_argument("--allow-running-insecure-content")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-setuid-sandbox")
+options.add_argument("--disable-webgl")
+options.add_argument("--disable-popup-blocking")
+options.add_argument("--enable-javascript")
+options.add_argument('--allow-insecure-localhost')
+options.add_argument("--whitelisted-ips=''")
+
 if HEADLESS_MODE:
     # Headless option add
     options.add_argument("--headless=new")
@@ -165,15 +183,22 @@ print("#")
 print("# Starting.... Press CTRL-c twice to abort.")
 print("#")
 
-driver_restart_counter = 1
+driver_restart_count = 1
 connection_issue_count = 0
+
+# Init report stats
+status_success1_count = 0
+status_success2_count = 0
+status_fail_login_count = 0
+status_fail_pw_expired_count = 0
+status_fail_unknown_count = 0
 
 # Loop through synth users
 for n in range(BEGIN_NUM, END_NUM + 1):
 
     status_mesg = "UNKNOWN"
 
-    if driver_restart_counter % DRIVER_RESTART_COUNT == 0:
+    if driver_restart_count % DRIVER_RESTART_COUNT == 0:
         driver = restart_selenium_driver(driver)
 
     username = f"BBUser{str(n).zfill(5)}"
@@ -207,7 +232,12 @@ for n in range(BEGIN_NUM, END_NUM + 1):
 
             if "Log out" in ps:
                 print("# LOGIN SUCCESSFUL!")
-                status_mesg = "SUCCESS"
+                status_mesg = "SUCCESS_1"
+                print("#")
+            elif "%2Fmbp%2FError_Page.aspx%3FstatusCode%3D500" in ps:
+                # NOTE: Some successful logins get the 500 error
+                print("# LOGIN SUCCESSFUL w/ 500!")
+                status_mesg = "SUCCESS_2"
                 print("#")
             else:
                 fail_mesg = fail_case_mesg(ps)
@@ -243,7 +273,18 @@ for n in range(BEGIN_NUM, END_NUM + 1):
 
     report_list.append([URL_BASE, username, status_mesg])
 
-    driver_restart_counter += 1
+    if status_mesg == "SUCCESS_1":
+        status_success1_count += 1
+    elif status_mesg == "SUCCESS_2":
+        status_success2_count += 1
+    elif status_mesg == "FAIL-LOGIN":
+        status_fail_login_count += 1
+    elif status_mesg == "FAIL-PW-EXPIRED":
+        status_fail_pw_expired_count += 1
+    elif status_mesg == "FAIL-UNKNOWN":
+        status_fail_unknown_count += 1
+
+    driver_restart_count += 1
 
 driver.quit()
 csv_report()

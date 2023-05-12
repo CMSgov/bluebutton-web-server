@@ -1,0 +1,86 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer "bb2-cbc-build-selenium-django32"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium.yaml"
+    }
+  }
+
+  environment {
+    URL_BASE = "${params.URL_BASE}"
+    BEGIN_USER_NUMBER = "${params.BEGIN_USER_NUMBER}"
+    END_USER_NUMBER = "${params.END_USER_NUMBER}"
+    SLEEP_BETWEEN_ACTIONS = "${params.SLEEP_BETWEEN_ACTIONS}"
+    MAX_RETRY = "${params.MAX_RETRY}"
+    DRIVER_RESTART_COUNT = "${params.DRIVER_RESTART_COUNT}"
+    CONNECTION_ISSUE_SLEEP = "${params.CONNECTION_ISSUE_SLEEP}"
+    MAX_CONNECTION_ISSUE_COUNT = "${params.MAX_CONNECTION_ISSUE_COUNT}"
+  }
+
+  parameters {
+    string(
+      name: "URL_BASE",
+      defaultValue: "https://test.medicare.gov",
+      description: "The medicare site base URL."
+    )
+    string(
+      name: "BEGIN_USER_NUMBER",
+      defaultValue: "0",
+      description: "The beginning synth account number. Ex. 0 for BBUser00000."
+    )
+    string(
+      name: "END_USER_NUMBER",
+      defaultValue: "10",
+      description: "The ending synth account number. Ex. 10 for BBUser00010."
+    )
+    string(
+      name: "SLEEP_BETWEEN_ACTIONS",
+      defaultValue: "1.0",
+      description: "Sleep time between actions."
+    )
+    string(
+      name: "MAX_RETRY",
+      defaultValue: "3",
+      description: "The max retry for each login attempt."
+    )
+    string(
+      name: "DRIVER_RESTART_COUNT",
+      defaultValue: "10",
+      description: "Restart the driver/browser after X logins."
+    )
+    string(
+      name: "CONNECTION_ISSUE_SLEEP",
+      defaultValue: "600",
+      description: "Sleep time when connection/network/driver issue."
+    )
+    string(
+      name: "MAX_CONNECTION_ISSUE_COUNT",
+      defaultValue: "10",
+      description: "Max connection issues before aborting!"
+    )
+  }
+
+  stages {
+
+    stage("Test medicare logins") {
+      steps {
+        sh """
+        sh scripts/medicare-test-synth-logins/setup_venv.sh
+        . /tmp/venv_python/bin/activate
+        python --version
+        python scripts/medicare-test-synth-logins/test_medicare_logins.py \
+            --url-base ${URL_BASE} \
+            --begin-user-number ${BEGIN_USER_NUMBER} \
+            --end-user-number ${END_USER_NUMBER} \
+            --sleep-between-actions  ${SLEEP_BETWEEN_ACTIONS} \
+            --max-retry ${MAX_RETRY} \
+            --driver-restart-count ${DRIVER_RESTART_COUNT} \
+            --connection-issue-sleep ${CONNECTION_ISSUE_SLEEP} \
+            --max-connection-issue-count ${MAX_CONNECTION_ISSUE_COUNT} \
+            --headless
+        """
+      }
+    }
+
+  }
+}
