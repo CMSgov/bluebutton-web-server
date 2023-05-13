@@ -28,6 +28,13 @@ fi
 
 if [ "${DB_MIGRATIONS}" = true ]
 then
+    echo "run showmigrations........"
+    python manage.py showmigrations
+    echo "run makemigrations........"
+    python manage.py makemigrations
+    echo "run again showemigrations........"
+    python manage.py showmigrations
+    
     echo "run db image migration and models initialization."
     python manage.py migrate
 

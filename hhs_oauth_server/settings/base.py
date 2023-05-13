@@ -373,10 +373,10 @@ LOGGING = env(
         },
         "loggers": {
             # handy for sql trouble shooting
-            # 'django.db.backends': {
-            #     'level': 'DEBUG',
-            #     'handlers': ['console'],
-            # },
+            'django.db.backends': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+            },
             "hhs_server": {
                 "handlers": ["console"],
                 "level": "DEBUG",
@@ -431,6 +431,8 @@ OAUTH2_PROVIDER = {
     "SCOPES_BACKEND_CLASS": "apps.dot_ext.scopes.CapabilitiesScopes",
     "OAUTH2_BACKEND_CLASS": "apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR",
     "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
+    'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
+    'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator'
 }
 
 # These choices will be available in the expires_in field

@@ -32,6 +32,8 @@ services:
       - "5678:5678"
     depends_on:
       - db
+    profiles:
+      - slsx
   web_msls:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
@@ -52,7 +54,7 @@ services:
       - mocksls
   unittests:
     build: .
-    command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
+    command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py apps.dot_ext.tests.test_form_application.TestRegisterApplicationForm.test_create_applications_with_logo
     env_file:
       - docker-compose/unittests-env-vars.env
     ports:
