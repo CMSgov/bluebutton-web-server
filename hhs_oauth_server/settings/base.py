@@ -373,10 +373,10 @@ LOGGING = env(
         },
         "loggers": {
             # handy for sql trouble shooting
-            'django.db.backends': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-            },
+            # 'django.db.backends': {
+            #     'level': 'DEBUG',
+            #     'handlers': ['console'],
+            # },
             "hhs_server": {
                 "handlers": ["console"],
                 "level": "DEBUG",

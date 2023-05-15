@@ -47,8 +47,8 @@ application.
                     <label for"id-{{ application.client_id }}">Client ID</label>
                     <input type="password" value="{{ client_id }}" id="id-{{ client_id }}"
                         onclick="copyCredential(this.id)" />
-                    <label for"secret-{{ application.client_secret }}">Client Secret</label>
-                    <input type="password" value="{{ client_secret }}" id="secret-{{ client_id }}"
+                    <label for"secret-{{ application.client_secret_plain }}">Client Secret</label>
+                    <input type="password" value="{{ client_secret_plain }}" id="secret-{{ client_id }}"
                         onclick="copyCredential(this.id)" />
                 </form>
             </div>
