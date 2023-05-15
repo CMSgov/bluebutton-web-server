@@ -42,6 +42,11 @@ class Application(AbstractApplication):
     updated = models.DateTimeField(auto_now=True)
     op_tos_uri = models.CharField(default=settings.TOS_URI, blank=True, max_length=512)
     op_policy_uri = models.CharField(default="", blank=True, max_length=512)
+    # oauth2_provider upgraded and there is a breaking change on Application.client_secret field
+    # see migration file 0005_alter_application_client_secret.py
+    # field added to save client_secret in plain text before Application.save()
+    # where the client_secret is hashed ireversible
+    client_secret_plain = models.CharField(default="", blank=True, max_length=255)
 
     # client_uri is depreciated but will continued to be referenced until it can be removed safely
     client_uri = models.URLField(
@@ -280,16 +285,25 @@ class Application(AbstractApplication):
                 except Application.DoesNotExist:
                     # new app
                     pass
+                self.copy_client_secret()
                 super().save(*args, **kwargs)
                 if app_type_changed:
                     log_dict.update({"application_saved_and_grants_deleted": "Yes"})
                     logger.info(log_dict)
         else:
+            self.copy_client_secret()
             super().save(*args, **kwargs)
 
     # dedicated save for high frequency used first / last active timestamp updates
     def save_without_validate(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+    # per oauth2_provider release note: copy client_secret before
+    # it gets hashed
+    def copy_client_secret(self, *args, **kwargs):
+        if self.client_secret is not None and len(self.client_secret) == 128:
+            # make sure it is a generated hash
+            self.client_secret_plain = self.client_secret
 
 
 class ApplicationLabel(models.Model):

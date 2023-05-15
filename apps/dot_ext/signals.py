@@ -18,20 +18,6 @@ logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 beneficiary_authorized_application = Signal(providing_args=["request", "user", "application"])
 
 
-def pre_save_application(sender, instance=None, created=False, **kwargs):
-    try:
-        logger.info("PRESAVE: client_id = {}, client_secret = {}".format(instance.client_id, instance.client_secret))
-    except Exception as e:
-        print("Exception in pre app save signal..., e={}".format(e))
-
-
-def post_save_application(sender, instance=None, created=False, **kwargs):
-    try:
-        logger.info("POSTSAVE: client_id = {}, client_secret = {}".format(instance.client_id, instance.client_secret))
-    except Exception as e:
-        print("Exception in post app save signal..., e={}".format(e))
-
-
 @waffle_function_switch('outreach_email')
 def outreach_first_application(sender, instance=None, created=False, **kwargs):
     """
@@ -83,6 +69,4 @@ def outreach_first_api_call(sender, instance=None, **kwargs):
 
 
 post_save.connect(outreach_first_application, sender=Application)
-pre_save.connect(pre_save_application, sender=Application)
-post_save.connect(post_save_application, sender=Application)
 pre_save.connect(outreach_first_api_call, sender=Token)

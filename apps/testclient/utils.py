@@ -46,7 +46,7 @@ def test_setup(include_client_secret=True, v2=False, pkce=False):
 
 def get_client_secret():
     oa2client = Application.objects.get(name="TestApp")
-    return oa2client.client_secret
+    return oa2client.client_secret_plain
 
 
 def __base64_url_encode(buffer):

@@ -77,8 +77,8 @@ The Developer Sandbox lets you register applications to get credentials to acces
             <a class="app-credentials-toggle" id="{{ application.client_id }}" tabindex="0">Show/Hide Credentials</a>
             <label for"id-{{ application.client_id }}">Client ID</label>
             <input type="password" value="{{ application.client_id }}" id="id-{{ application.client_id }}" onclick="copyCredential(this.id)" />
-            <label for"secret-{{ application.client_secret }}">Client Secret</label>
-            <input type="password" value="{{ application.client_secret }}" id="secret-{{ application.client_id }}" onclick="copyCredential(this.id)" />
+            <label for"secret-{{ application.client_secret_plain }}">Client Secret</label>
+            <input type="password" value="{{ application.client_secret_plain }}" id="secret-{{ application.client_id }}" onclick="copyCredential(this.id)" />
           </form>
           <!-- Application Action Buttons/Links -->
           <div class="app-actions">
