@@ -149,6 +149,5 @@ class Command(BaseCommand):
         print("Name:", a.name)
         print("client_id:", a.client_id)
         print("client_secret:", a.client_secret)
-        print("client_secret_plain:", a.client_secret_plain)
         print("access_token:", t.token if t else "None")
         print("redirect_uri:", a.redirect_uris)
