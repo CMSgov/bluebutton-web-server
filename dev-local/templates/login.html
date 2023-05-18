@@ -42,7 +42,7 @@
       <br>
       <br>
       <form method="post" action="/login/">
-        {% csrf_token %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></input>
         <div>
             <h3>Enter User Name:</h3>
             <label>SUB(username): </label> <input type="text" name="username" size=50></input>

@@ -22,7 +22,7 @@ from .selenium_cases import (
     PROD_URL,
 )
 
-USER_ACCOUNT_TESTS_LOGGING_FILE = "./docker-compose/tmp/bb2_account_tests.log"
+LOG_FILE = "./docker-compose/tmp/bb2_email_to_stdout.log"
 
 
 # class SeleniumGenericTests(TestCase):
@@ -81,14 +81,14 @@ class SeleniumGenericTests():
             Action.BACK: self._back,
             Action.LOGIN: self._login,
             Action.SLEEP: self._sleep,
-            Action.VALIDATE_EVENTS: self._validate_events,
+            Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
         }
 
     def teardown_method(self, method):
         self.driver.quit()
 
-    def _validate_events(self, subj_line, key_line_prefix, **kwargs):
-        with open(USER_ACCOUNT_TESTS_LOGGING_FILE, 'r') as f:
+    def _validate_email_content(self, subj_line, key_line_prefix, **kwargs):
+        with open(LOG_FILE, 'r') as f:
             log_records = f.readlines()
             email_subj_cnt = 0
             key_cnt = 0
@@ -181,7 +181,7 @@ class SeleniumGenericTests():
         print()
         print("******************************************************************")
         print(TESTCASE_BANNER_FMT.format("START" if start else "END", test_name, api_ver, step_0,
-                                         "MSLSX" if id_service == 'true' else "SLSX"))
+                                         "Mock SLS" if id_service == 'true' else "SLSX"))
         print("******************************************************************")
         print()
 

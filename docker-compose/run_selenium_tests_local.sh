@@ -16,9 +16,6 @@ export DJANGO_FHIR_CERTSTORE="/code/docker-compose/certstore"
 # BB2 service end point default
 export HOSTNAME_URL="http://bb2slsx:8000"
 
-# Backend FHIR server to use for selenium tests with FHIR requests:
-FHIR_URL="https://prod-sbx.bfd.cms.gov"
-
 # Echo function that includes script name on each line for console log readability
 echo_msg () {
     echo "$(basename $0): $*"
@@ -31,9 +28,9 @@ display_usage() {
     echo
     echo "  Use one of the following command line options for the type of test to run:"
     echo
-    echo "    slsx  = use SLSX for identity service with webdriver in headless mode (can not view browser interaction through vnc viewer)."
+    echo "    slsx  = use SLSX for identity service."
     echo
-    echo "    mslsx (default) = use MSLSX for identity service with webdriver in headless mode."
+    echo "    mslsx (default) = use MSLSX for identity service."
     echo
     echo "    account  = test user account management and application management."
     echo
@@ -44,6 +41,26 @@ display_usage() {
     echo "-h     Print this Help."
     echo "-d     Run tests in selenium debug mode (vnc view web UI interaction at http://localhost:5900)."
     echo
+}
+
+# set up using SLSX
+set_slsx () {
+    export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+    export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
+    export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
+    export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
+    export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
+    export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+}
+
+# set up using mock sls
+set_msls () {
+    export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
+    export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
+    export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
+    export DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
+    export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
+    export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
 }
 
 # main
@@ -58,14 +75,10 @@ export USE_MSLSX=true
 export USE_DEBUG=false
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
-export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
-export DJANGO_MEDICARE_SLSX_LOGIN_URI="http://msls:8080/sso/authorize?client_id=bb2api"
-export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="http://msls:8080/health"
-export DJANGO_SLSX_TOKEN_ENDPOINT="http://msls:8080/sso/session"
-export DJANGO_SLSX_SIGNOUT_ENDPOINT="http://msls:8080/sso/signout"
-export DJANGO_SLSX_USERINFO_ENDPOINT="http://msls:8080/v1/users"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 export BB2_SERVER_STD2FILE=""
+
+set_slsx
 
 # Parse command line option
 while getopts "hd" option; do
@@ -83,10 +96,12 @@ while getopts "hd" option; do
    esac
 done
 
+set_msls
+
 # Parse command line option
 if [ $# -eq 0 ]
 then
-  echo "Use MSLSX for identity service."
+  echo "Use Mock SLS for identity service."
 else
   echo $1
   if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" && $1 != "account" ]]
@@ -97,31 +112,27 @@ else
   else
     if [[ $1 == "slsx" ]]
     then
-      export USE_MSLSX=false
-      export DJANGO_MEDICARE_SLSX_REDIRECT_URI="http://bb2slsx:8000/mymedicare/sls-callback"
-      export DJANGO_MEDICARE_SLSX_LOGIN_URI="https://test.medicare.gov/sso/authorize?client_id=bb2api"
-      export DJANGO_SLSX_HEALTH_CHECK_ENDPOINT="https://test.accounts.cms.gov/health"
-      export DJANGO_SLSX_TOKEN_ENDPOINT="https://test.medicare.gov/sso/session"
-      export DJANGO_SLSX_SIGNOUT_ENDPOINT="https://test.medicare.gov/sso/signout"
-      export DJANGO_SLSX_USERINFO_ENDPOINT="https://test.accounts.cms.gov/v1/users"
+        export USE_MSLSX=false
+        set_slsx
     fi
     if [[ $1 == "logit" ]]
     then
       # cleansing log file before run 
-      rm -rf ./docker-compose/tmp/bb2_logging_test.log
+      rm -rf ./docker-compose/tmp/
       mkdir ./docker-compose/tmp
       export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
-      export TESTS_LIST="./apps/integration_tests/logging_tests.py"
+      export TESTS_LIST="./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
     fi
     if [[ $1 == "account" ]]
     then
       # cleansing log file before run 
-      rm -rf ./docker-compose/tmp/bb2_account_tests.log
+      rm -rf ./docker-compose/tmp/
       mkdir -p ./docker-compose/tmp
-      export TESTS_LIST="./apps/integration_tests/selenium_accounts_tests.py"
+      export BB2_SERVER_STD2FILE="YES"
+      export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.logging_it"
+      export TESTS_LIST="./apps/integration_tests/selenium_accounts_tests.py::TestUserAndAppMgmt::testAccountAndAppMgmt"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
-      export BB2_SERVER_STD2FILE="./docker-compose/tmp/bb2_account_tests.log"
     fi
   fi
 fi
