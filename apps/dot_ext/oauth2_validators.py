@@ -26,9 +26,6 @@ class OAuth2Validator(DotOAuth2Validator):
             return None
 
         return auth_string
-    # def get_code_challenge(self, code, request):
-    #     grant = Grant.objects.get(code=code, application=request.client)
-    #     return grant.code_challenge or None
 
 
 class SingleAccessTokenValidator(

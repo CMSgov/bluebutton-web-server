@@ -54,7 +54,7 @@ services:
       - mocksls
   unittests:
     build: .
-    command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py apps.dot_ext.tests.test_form_application.TestRegisterApplicationForm.test_create_applications_with_logo
+    command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
     env_file:
       - docker-compose/unittests-env-vars.env
     ports:

@@ -243,7 +243,7 @@ class TestDataAccessPermissions(BaseApiTest):
             "refresh_token": refresh_token,
             "redirect_uri": application.redirect_uris,
             "client_id": application.client_id,
-            "client_secret": application.client_secret,
+            "client_secret": application.client_secret_plain,
         }
         response = self.client.post("/v1/o/token/", data=refresh_post_data)
         content = json.loads(response.content)

@@ -126,7 +126,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
             'refresh_token': refresh_token_1,
             'redirect_uri': 'http://example.it',
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         content = json.loads(response.content.decode("utf-8"))
@@ -203,7 +203,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
             'refresh_token': refresh_token_1,
             'redirect_uri': 'http://example.it',
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         content = json.loads(response.content)
