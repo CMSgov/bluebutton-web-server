@@ -25,7 +25,7 @@ from .log_event_schemas import (
     LOG_MIDDLEWARE_TESTCLIENT_MISCINFO_EVENT_SCHEMA
 )
 
-TEST_LOGGING_FILE = "./docker-compose/tmp/bb2_logging_test.log"
+LOG_FILE = "./docker-compose/tmp/bb2_logging_sink.log"
 MIDDLEWARE_LOG_EVENT_TYPE = "request_response_middleware"
 
 EXPECTED_LOGGING_EVENTS = [
@@ -167,7 +167,7 @@ class TestLoggings(TestBlueButtonAPI):
     the driver (selenium)
     '''
     def _validate_events(self):
-        with open(TEST_LOGGING_FILE, 'r') as f:
+        with open(LOG_FILE, 'r') as f:
             log_records = f.readlines()
             start_validation = False
             expected_events = copy.deepcopy(EXPECTED_LOGGING_EVENTS)
@@ -175,7 +175,9 @@ class TestLoggings(TestBlueButtonAPI):
                 r = log_records.pop(0)
                 try:
                     event_json = json.loads(r)
-                    if event_json.get('type', 'NO TYPE INFO') == MIDDLEWARE_LOG_EVENT_TYPE:
+                    e_type = event_json.get('type', 'NO TYPE INFO')
+                    e_user_agent = event_json.get('req_header_user_agent')
+                    if e_user_agent is not None and not e_user_agent.startswith("curl") and e_type == MIDDLEWARE_LOG_EVENT_TYPE:
                         p = event_json.get('path', None)
                         if not start_validation:
                             if p == "/":
@@ -183,16 +185,16 @@ class TestLoggings(TestBlueButtonAPI):
                         else:
                             event_desc = expected_events.pop(0)
                             if event_desc.get('path_regex') is not None:
-                                self.assertTrue(re.match(event_desc.get('path_regex'), p))
+                                assert re.match(event_desc.get('path_regex'), p)
                             else:
-                                self.assertEqual(p, event_desc.get('path'))
-                            self.assertTrue(validate_json_schema(event_desc.get('schema'), event_json))
+                                assert p == event_desc.get('path')
+                            assert (validate_json_schema(event_desc.get('schema'), event_json))
                 except JSONDecodeError:
                     # skip non json line
                     pass
 
             # all log events present and validated
-            self.assertEqual(len(expected_events), 0)
+            assert len(expected_events) == 0
 
     def test_auth_fhir_flows_logging(self):
         self.test_auth_grant_fhir_calls_v1()

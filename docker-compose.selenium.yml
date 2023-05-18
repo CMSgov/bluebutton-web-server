@@ -37,18 +37,16 @@ services:
       - "5900:5900"
 
   msls:
-    build: .
-    command: bash -c "cd dev-local ; python manage.py migrate ; python -m debugpy --listen 0.0.0.0:7890 manage.py runserver 0.0.0.0:8080 --noreload"
-    environment:
-      - DJANGO_SETTINGS_MODULE=mslsx_django.settings
+    build: ./dev-local
+    command: bash -c "python -m debugpy --listen 0.0.0.0:7890 app.py"
     ports:
       - "8080:8080"
       - "7890:7890"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://msls:8080/sso/authorize"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://msls:8080/sso/authorize"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
 
   db:
     image: postgres
@@ -84,6 +82,6 @@ services:
       timeout: 20s
     depends_on:
       msls:
-        condition: service_healthy
+        condition: service_started
       db:
         condition: service_healthy
