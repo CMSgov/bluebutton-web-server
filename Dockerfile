@@ -1,6 +1,5 @@
 FROM python:3.8
 ENV PYTHONUNBUFFERED 1
-# ENV PYTHONDEVMODE 1
 RUN useradd -m -s /bin/bash DEV
 USER DEV
 ADD . /code
