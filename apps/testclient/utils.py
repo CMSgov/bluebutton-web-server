@@ -41,12 +41,12 @@ def test_setup(include_client_secret=True, v2=False, pkce=False):
     response['patient_uri'] = '{}/{}/fhir/Patient/'.format(host, ver)
     response['eob_uri'] = '{}/{}/fhir/ExplanationOfBenefit/'.format(host, ver)
     response['coverage_uri'] = '{}/{}/fhir/Coverage/'.format(host, ver)
-    return(response)
+    return (response)
 
 
 def get_client_secret():
     oa2client = Application.objects.get(name="TestApp")
-    return oa2client.client_secret
+    return oa2client.client_secret_plain
 
 
 def __base64_url_encode(buffer):

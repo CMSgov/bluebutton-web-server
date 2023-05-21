@@ -289,7 +289,7 @@ class BaseApiTest(TestCase):
             "code": authorization_code,
             "redirect_uri": application.redirect_uris,
             "client_id": application.client_id,
-            "client_secret": application.client_secret,
+            "client_secret": application.client_secret_plain,
         }
 
         # Test that request is successful WITH the client_secret and GOOD code_verifier

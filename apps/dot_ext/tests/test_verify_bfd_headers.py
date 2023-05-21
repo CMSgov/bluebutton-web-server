@@ -80,7 +80,7 @@ class TestBFDHeaders(BaseApiTest):
                 'code': authorization_code,
                 'redirect_uri': application.redirect_uris,
                 'client_id': application.client_id,
-                'client_secret': application.client_secret,
+                'client_secret': application.client_secret_plain,
             }
 
             response = self.client.post('/v1/o/token/', data=token_request_data)

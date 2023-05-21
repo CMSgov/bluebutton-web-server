@@ -48,7 +48,7 @@ def validate_activation_key(activation_key):
                 msg = LINK_EXPIRED_MSG
             else:
                 msg = ACCT_HAS_ISSUE_MSG
-    except(ActivationKey.DoesNotExist):
+    except (ActivationKey.DoesNotExist):
         # The key does not exist, corner case: a fabricated url with a fake activation key
         msg = ACCT_HAS_ISSUE_MSG
 

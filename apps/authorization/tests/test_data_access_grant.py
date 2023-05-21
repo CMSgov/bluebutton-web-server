@@ -227,14 +227,14 @@ class TestDataAccessGrant(BaseApiTest):
         self.assertEqual(response.status_code, 403)
 
         # 5. Create authentication headers but pass bad patient_id and expect 404
-        auth = self._create_authorization_header(application.client_id, application.client_secret)
+        auth = self._create_authorization_header(application.client_id, application.client_secret_plain)
         response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-2014000000832"),
                                     HTTP_AUTHORIZATION=auth,
                                     )
         self.assertEqual(response.status_code, 404)
 
         # 6. Create authentication headers and expect success
-        auth = self._create_authorization_header(application.client_id, application.client_secret)
+        auth = self._create_authorization_header(application.client_id, application.client_secret_plain)
         response = self.client.post('/v1/o/expire_authenticated_user/{0}/'.format("-20140000008325"),
                                     HTTP_AUTHORIZATION=auth,
                                     )

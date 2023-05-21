@@ -133,7 +133,7 @@ class DevUserSerializer(StreamableSerializerMixin, ModelSerializer):
 
     def get_identification(self, obj):
         identification = UserIdentificationLabel.objects.filter(users=obj.id).values('slug', 'name')
-        return(list(identification))
+        return (list(identification))
 
 
 class ApplicationSerializer(ModelSerializer):
@@ -176,7 +176,7 @@ class AppMetricsSerializer(ModelSerializer):
         synth_cnt = Crosswalk.synth_objects.filter(
             user__in=[item['user'] for item in distinct]).values('user', '_fhir_id').count()
 
-        return({'real': real_cnt, 'synthetic': synth_cnt})
+        return ({'real': real_cnt, 'synthetic': synth_cnt})
 
 
 class MetricsPagination(PageNumberPagination):
