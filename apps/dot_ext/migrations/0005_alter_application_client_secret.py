@@ -17,6 +17,9 @@ class Migration(migrations.Migration):
             name='client_secret_plain',
             field=models.CharField(blank=True, default='', max_length=255),
         ),
+        migrations.RunSQL(
+            "UPDATE dot_ext_application SET client_secret_plain=client_secret"
+        ),
         migrations.AlterField(
             model_name='application',
             name='client_secret',
