@@ -59,7 +59,7 @@ def init_text_list(replace_with=''):
                                              type(replace_with)))
 
     if type(replace_with) is list:
-        return(list_to_text(replace_with))
+        return (list_to_text(replace_with))
 
     new_text_list = [replace_with, ]
     return (list_to_text(new_text_list))
