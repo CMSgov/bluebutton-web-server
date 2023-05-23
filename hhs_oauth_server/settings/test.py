@@ -58,12 +58,12 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'apps.accounts.validators.'
                 'PasswordReuseAndMinAgeValidator',
         'OPTIONS': {
-                # password minimum age in seconds (5 sec)
-                'password_min_age': 2,
-                # password reuse interval in seconds (60 sec)
-                'password_reuse_interval': 10,
-                # password expire in seconds (20 sec)
-                'password_expire': 9,
+                # password minimum age in seconds (60 sec)
+                'password_min_age': 60,
+                # password reuse interval in seconds (50 minutes)
+                'password_reuse_interval': 3000,
+                # password expire in seconds (10 minutes)
+                'password_expire': 600,
         }
     },
     {
