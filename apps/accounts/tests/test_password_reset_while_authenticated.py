@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 import pytz
 from dateutil.relativedelta import relativedelta
