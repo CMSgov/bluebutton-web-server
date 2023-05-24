@@ -195,8 +195,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
 
         # add 12 minutes to time to expire current password
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC)
-                                  + relativedelta(minutes=+12)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+12)
         )
         self.client.logout()
         form_data = {'username': 'fred',
