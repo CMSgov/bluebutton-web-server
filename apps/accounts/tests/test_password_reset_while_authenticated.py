@@ -82,8 +82,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         self.user = User.objects.get(username="fred")
         # add 2 minutes to time to let min password age elapse
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC)
-                                  + relativedelta(minutes=+2)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
         )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
@@ -98,8 +97,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         url = reverse('password_change')
         # add 2 minutes to time to let min password age elapse
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC)
-                                  + relativedelta(minutes=+2)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
         )
         form_data = {'old_password': 'foobarfoobarfoobar',
                      'new_password1': 'Ichangedthepassword#123',
@@ -147,8 +145,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                      'new_password2': 'IchangedTHEpassword#123'}
         # add 2 minutes to time to let min password age elapse
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC)
-                        + relativedelta(minutes=+2)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
         )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
@@ -161,8 +158,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                      'new_password2': '2ndChange#Pass'}
         # add 2 minutes to time to let min password age elapse
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC)
-                                  + relativedelta(minutes=+2)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
         )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
@@ -175,8 +171,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                      'new_password2': 'IchangedTHEpassword#123'}
         # add 2 minutes to time to let min password age elapse
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC)
-                                  + relativedelta(minutes=+2)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+2)
         )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response,
@@ -191,8 +186,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                      'new_password2': 'IchangedTHEpassword#123'}
         # add 70 minutes to let password reuse restriction to elapse
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC)
-                                  + relativedelta(minutes=+70)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+70)
         )
         response = self.client.post(url, form_data, follow=True)
         self.assertContains(response, "Your password was updated.")
@@ -217,8 +211,7 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         self.client.logout()
         # add 20 minutes to time to show staff is not effected
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC)
-                                  + relativedelta(minutes=+20)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+20)
         )
         form_data = {'username': 'staff',
                      'password': 'foobarfoobarfoobar'}
