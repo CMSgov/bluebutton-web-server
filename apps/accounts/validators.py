@@ -1,4 +1,8 @@
-import datetime
+from datetime import (
+    datetime,
+    timezone,
+    timedelta
+)
 import re
 import warnings
 
@@ -128,14 +132,14 @@ class PasswordReuseAndMinAgeValidator(object):
         #  (4) no px in 'no reuse window' (hence no px in 'min password age'
         #      since it's asserted that password_min_age < password_reuse_interval) => pass validation
         #
-        cur_time_utc = datetime.datetime.now(datetime.timezone.utc)
+        cur_time_utc = datetime.now(timezone.utc)
         for userpassword_desc in UserPasswordDescriptor.objects.filter(user=user):
             password_hash = userpassword_desc.create_hash(password)
             passwds = None
             try:
                 if self.password_reuse_interval > 0:
                     # only check invalid reuse (colide) within reuse_interval
-                    reuse_datetime = cur_time_utc - datetime.timedelta(0, self.password_reuse_interval)
+                    reuse_datetime = cur_time_utc - timedelta(0, self.password_reuse_interval)
                     passwds = PastPassword.objects.filter(
                         Q(date_created__gt=reuse_datetime), userpassword_desc=userpassword_desc
                     ).order_by('-date_created')
@@ -151,19 +155,19 @@ class PasswordReuseAndMinAgeValidator(object):
                         raise ValidationError(
                             ("You can not use a password that is already"
                              " used in this application within password re-use interval [days hh:mm:ss]: {}.")
-                            .format(str(datetime.timedelta(seconds=self.password_reuse_interval))),
+                            .format(str(timedelta(seconds=self.password_reuse_interval))),
                             code='password_used'
                         )
             except PastPassword.DoesNotExist:
                 pass
 
             if self.password_min_age > 0 and passwds is not None and passwds.first() is not None:
-                if (datetime.datetime.now(datetime.timezone.utc)
+                if (datetime.now(timezone.utc)
                         - passwds.first().date_created).total_seconds() <= self.password_min_age:
                     # change password too soon
                     raise ValidationError(
                         "You can not change password that does not satisfy minimum password age [days hh:mm:ss]: {}."
-                        .format(str(datetime.timedelta(seconds=self.password_min_age))),
+                        .format(str(timedelta(seconds=self.password_min_age))),
                         code='password_used'
                     )
 
@@ -187,7 +191,7 @@ class PasswordReuseAndMinAgeValidator(object):
         password_hash = userpassword_desc.create_hash(password)
 
         # We are looking hash password in the database
-        tz_now = datetime.datetime.now(datetime.timezone.utc)
+        tz_now = datetime.now(timezone.utc)
         try:
             # with the timestamp now() this look up will certainly not able to get an entry
             # this is expected for new entry and re-use password (same user + password hash)
@@ -207,8 +211,8 @@ class PasswordReuseAndMinAgeValidator(object):
         help_msg = ('For security, you can not change your password again for [days hh:mm:ss]: {}, and'
                     ' your new password can not be identical to any of the '
                     'previously entered in the past [days hh:mm:ss] {}').format(
-            str(datetime.timedelta(seconds=self.password_min_age)),
-            str(datetime.timedelta(seconds=self.password_reuse_interval)))
+            str(timedelta(seconds=self.password_min_age)),
+            str(timedelta(seconds=self.password_reuse_interval)))
         return help_msg
 
     def password_expired(self, user=None):
@@ -230,7 +234,7 @@ class PasswordReuseAndMinAgeValidator(object):
             except PastPassword.DoesNotExist:
                 pass
             if passwds is not None and passwds.first() is not None:
-                if (datetime.datetime.now(datetime.timezone.utc)
+                if (datetime.now(timezone.utc)
                         - passwds.first().date_created).total_seconds() >= self.password_expire:
                     # the elapsed time since last password change / create is more than password_expire
                     passwd_expired = True
