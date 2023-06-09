@@ -425,12 +425,15 @@ AUTH_PROFILE_MODULE = "accounts.UserProfile"
 # Django Oauth Tookit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = "dot_ext.Application"
 OAUTH2_PROVIDER = {
+    'PKCE_REQUIRED': False,
     "OAUTH2_VALIDATOR_CLASS": "apps.dot_ext.oauth2_validators."
     "SingleAccessTokenValidator",
     "OAUTH2_SERVER_CLASS": "apps.dot_ext.oauth2_server.Server",
     "SCOPES_BACKEND_CLASS": "apps.dot_ext.scopes.CapabilitiesScopes",
     "OAUTH2_BACKEND_CLASS": "apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR",
     "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
+    'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
+    'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator'
 }
 
 # These choices will be available in the expires_in field

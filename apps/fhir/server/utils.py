@@ -15,7 +15,7 @@ def text_to_list(t_in='[]'):
     """
     logger.debug("text_to_list %s[%s]" % (t_in, type(t_in)))
     if type(t_in) is list:
-        return(t_in)
+        return (t_in)
     else:
         logger.debug("decoding with text_to_list %s[%s]" % (t_in, type(t_in)))
         if t_in:
@@ -59,7 +59,7 @@ def init_text_list(replace_with=''):
                                              type(replace_with)))
 
     if type(replace_with) is list:
-        return(list_to_text(replace_with))
+        return (list_to_text(replace_with))
 
     new_text_list = [replace_with, ]
     return (list_to_text(new_text_list))

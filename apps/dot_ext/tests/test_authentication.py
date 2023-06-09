@@ -66,7 +66,7 @@ class TestOAuth2Authentication(TestCase):
 
     @unittest.skipUnless(rest_framework_installed, "djangorestframework not installed")
     def test_authentication_allow(self):
-        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret)
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get("/oauth2-test/",
                                    HTTP_AUTHORIZATION=auth,
                                    HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_username))
@@ -81,27 +81,27 @@ class TestOAuth2Authentication(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_user_dne(self):
-        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret)
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get("/oauth2-test/",
                                    HTTP_AUTHORIZATION=auth,
                                    HTTP_X_AUTHENTICATION=self._create_authentication_header('bogus'))
         self.assertEqual(response.status_code, 404)
 
     def test_no_authentication(self):
-        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret)
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get("/oauth2-test/",
                                    HTTP_AUTHORIZATION=auth)
         self.assertEqual(response.status_code, 403)
 
     def test_bad_authentication(self):
-        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret)
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get("/oauth2-test/",
                                    HTTP_AUTHORIZATION=auth,
                                    HTTP_X_AUTHENTICATION="thisisabadheader")
         self.assertEqual(response.status_code, 404)
 
     def test_unknown_authentication(self):
-        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret)
+        auth = self._create_authorization_header(self.application.client_id, self.application.client_secret_plain)
         response = self.client.get("/oauth2-test/",
                                    HTTP_AUTHORIZATION=auth,
                                    HTTP_X_AUTHENTICATION="UUID thisisabadheader")

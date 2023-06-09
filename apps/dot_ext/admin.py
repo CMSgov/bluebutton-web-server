@@ -56,6 +56,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             "user",
             "client_type",
             "authorization_grant_type",
+            "client_secret_plain",
             "client_secret",
             "name",
             "skip_authorization",

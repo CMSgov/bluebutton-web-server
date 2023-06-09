@@ -330,7 +330,7 @@ class TestTokenView(BaseApiTest):
                 'code': authorization_code,
                 'redirect_uri': application.redirect_uris,
                 'client_id': application.client_id,
-                'client_secret': application.client_secret,
+                'client_secret': application.client_secret_plain,
             }
 
             response = self.client.post('/v1/o/token/', data=token_request_data)
@@ -359,7 +359,7 @@ class TestTokenView(BaseApiTest):
         self._create_test_token(anna, application)
         response = self.client.get(reverse('token_management:token-list'),
                                    HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
-                                                                                        application.client_secret),
+                                                                                        application.client_secret_plain),
                                    HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         self.assertEqual(response.status_code, 200)
         result = response.json()
@@ -453,19 +453,21 @@ class TestTokenView(BaseApiTest):
 
         response = self.client.get(reverse('token_management:token-list'),
                                    HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
-                                                                                        application.client_secret),
+                                                                                        application.client_secret_plain),
                                    HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         grant_list = response.json()
         self.assertEqual(1, len(grant_list))
+        http_authz = self._create_authorization_header(application.client_id, application.client_secret_plain)
+        http_authn = self._create_authentication_header(self.test_uuid)
         response = self.client.delete(reverse('token_management:token-detail', args=[grant_list[0]['id']]),
-                                      HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
-                                                                                           application.client_secret),
-                                      HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
+                                      HTTP_AUTHORIZATION=http_authz,
+                                      HTTP_X_AUTHENTICATION=http_authn)
         self.assertEqual(response.status_code, 204)
-        failed_response = self.client.delete(reverse('token_management:token-detail', args=[grant_list[0]['id']]),
-                                             HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
-                                                                                                  application.client_secret),
-                                             HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
+        url_1 = reverse('token_management:token-detail', args=[grant_list[0]['id']])
+        http_authz = (self._create_authorization_header(application.client_id, application.client_secret_plain))
+        http_authn = self._create_authentication_header(self.test_uuid)
+        failed_response = self.client.delete(url_1, HTTP_AUTHORIZATION=http_authz,
+                                             HTTP_X_AUTHENTICATION=http_authn)
         self.assertEqual(failed_response.status_code, 404)
         response = self.client.get('/v1/fhir/Patient',
                                    HTTP_AUTHORIZATION="Bearer " + tkn.token)
@@ -508,7 +510,7 @@ class TestTokenView(BaseApiTest):
         application.scope.add(capability_a)
         response = self.client.post(reverse('token_management:token-list'),
                                     HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
-                                                                                         application.client_secret),
+                                                                                         application.client_secret_plain),
                                     HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         self.assertEqual(response.status_code, 405)
 
@@ -524,7 +526,7 @@ class TestTokenView(BaseApiTest):
         tkn = self._create_test_token(anna, application)
         response = self.client.put(reverse('token_management:token-detail', args=[tkn.pk]),
                                    HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
-                                                                                        application.client_secret),
+                                                                                        application.client_secret_plain),
                                    HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         self.assertEqual(response.status_code, 405)
 
@@ -542,6 +544,6 @@ class TestTokenView(BaseApiTest):
 
         response = self.client.get(reverse('token_management:token-list'),
                                    HTTP_AUTHORIZATION=self._create_authorization_header(application.client_id,
-                                                                                        application.client_secret),
+                                                                                        application.client_secret_plain),
                                    HTTP_X_AUTHENTICATION=self._create_authentication_header(self.test_uuid))
         self.assertEqual(response.status_code, 403)

@@ -8,39 +8,40 @@ django-settings-export
 djangorestframework
 djangorestframework-csv
 django-filter
-django-axes==5.35.0
+django-axes
 
 # support
-django-waffle==2.0.0
-django-storages==1.12.3
+django-waffle
+django-storages
 python-dotenv
-jsonschema==3.2.0
+jsonschema
 requests
 urllib3
 requests_oauthlib
 pytz
-configparser==3.5.0
-dj-database-url==0.5.0
-pyjwt==2.4.0
-newrelic==8.7.0
-psycopg2-binary==2.9.3
+configparser==5.3.0
+dj-database-url
+pyjwt
+newrelic==8.8.0
+psycopg2-binary
 sqlparse
-Pillow==9.3.0
+Pillow
 boto3
 djangorestframework-yaml
 voluptuous
-pyyaml==6.0
-py==1.10.0
-attrs==20.3.0
-pyrsistent==0.17.3
-typing_extensions==4.2.0
-importlib-metadata<2.0
+pyyaml
+py
+attrs
+pyrsistent
+typing_extensions
+importlib-metadata
 
 # notifications
 django-ses
 
 # security and identity system
-oauthlib==3.1.0
+oauthlib
 python-openid
-django-oauth-toolkit==1.6.0
-jwcrypto==1.4.2
+django-oauth-toolkit
+# cryptography
+jwcrypto

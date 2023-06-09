@@ -168,7 +168,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         self.assertEqual(response.status_code, 401)
 
         # Setup application's client_secret
-        token_request_data.update({'client_secret': application.client_secret})
+        token_request_data.update({'client_secret': application.client_secret_plain})
 
         # Test that using a BAD code_verifier has a bad request response
         token_request_data.update({'code_verifier': 'test1234567bad9verifier23456789123456789123456789'})
@@ -250,7 +250,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -263,7 +263,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'refresh_token': refresh_tkn,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 200)
@@ -305,7 +305,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -320,7 +320,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'refresh_token': refresh_tkn,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 400)
@@ -361,7 +361,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -371,7 +371,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         revoke_request_data = {
             'token': tkn,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         rev_response = c.post('/v1/o/revoke_token/', data=revoke_request_data)
         self.assertEqual(rev_response.status_code, 200)
@@ -384,7 +384,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'refresh_token': refresh_tkn,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 400)
@@ -427,7 +427,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -483,7 +483,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -543,7 +543,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -553,7 +553,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         revoke_request_data = {
             'token': tkn,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         # set app to inactive before revoke
         application.active = False
@@ -612,7 +612,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
@@ -622,7 +622,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         introspect_request_data = {
             'token': tkn,
             'client_id': application.client_id,
-            'client_secret': application.client_secret,
+            'client_secret': application.client_secret_plain,
         }
 
         auth_headers = {'Authorization': 'Bearer %s' % tkn}

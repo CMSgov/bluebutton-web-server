@@ -22,4 +22,4 @@ class ApplicationListSerializer(ModelSerializer):
 
     def get_labels(self, obj):
         labels = ApplicationLabel.objects.filter(applications=obj.id).values('name', 'slug', 'description')
-        return(labels)
+        return (labels)
