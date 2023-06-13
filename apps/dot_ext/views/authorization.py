@@ -98,7 +98,7 @@ class AuthorizationView(DotAuthorizationView):
     def get_template_names(self):
         if waffle.switch_is_active('require-scopes'):
             if waffle.switch_is_active('new_auth'):
-                return ["design_system/new_authorize.html"]
+                return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize_v2.html"]
         else:
