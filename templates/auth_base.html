@@ -15,10 +15,23 @@
 		{% block extra_head %}
 		{% endblock %}
 	</head>
-	<body>
+	<body class="ds-u-margin--0">
 <!-- US Banner -->
-<script type = "text/javascript">  
-    function toggleBanner() {   
+<script type = "text/javascript">
+    function toggleHintText() {
+        const hint_allow = document.getElementById('allow_access');
+        const hint_block = document.getElementById('block_access');
+        if (hint_allow.style.display === 'none') {
+            hint_allow.style.display = 'inline';
+            hint_block.style.display = 'none';
+        }
+        else {
+            hint_allow.style.display = 'none';
+            hint_block.style.display = 'inline';
+        }
+    }
+
+    function toggleBanner() {
         const banner = document.getElementById('gov-banner_25');
         const icon27 = document.getElementById('icon-27');
         const styles = window.getComputedStyle(banner);
@@ -238,18 +251,6 @@
 			{% endblock %}
 
 		</main>
-
-        {% block footerBlock %}
-
-            {% include "include/footer.html" %}
-
-            {% include "include/foot.html" %}
-
-        {% endblock %}
-
-		{% block ExtraJSFoot %}
-
-		{% endblock %}
 
 	</body>
 

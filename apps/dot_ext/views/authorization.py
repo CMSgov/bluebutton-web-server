@@ -1,5 +1,6 @@
 import logging
 import waffle
+from datetime import datetime
 
 from django.http.response import HttpResponseBadRequest
 from django.template.response import TemplateResponse
@@ -43,6 +44,11 @@ log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 QP_CHECK_LIST = ["client_secret"]
 
 
+def get_grant_expiration(data_access_type):
+
+    pass
+
+
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
@@ -55,6 +61,13 @@ class AuthorizationView(DotAuthorizationView):
     def __init__(self, version=1):
         self.version = version
         super().__init__()
+
+    def get_context_data(self, **kwargs):
+        context = super(AuthorizationView, self).get_context_data(**kwargs)
+        client_id = kwargs.get('client_id')
+        application = get_application_model().objects.get(client_id=client_id)
+        context['permission_end_date'] = application.access_end_date()
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -103,7 +116,7 @@ class AuthorizationView(DotAuthorizationView):
                 return ["design_system/authorize_v2.html"]
         else:
             if waffle.switch_is_active('new_auth'):
-                return ["design_system/new_authorize.html"]
+                return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize.html"]
 

@@ -10,7 +10,7 @@
 {% block banner %}{% endblock %}
 
 {% block Content %}
-<div class="ds-l-container ds-u-padding-top--4 ds-u-padding-bottom--4">
+<div class="ds-l-container ds-u-padding-top--4 ds-u-padding-bottom--2">
         <div class="ds-u-text-align--center">
             <svg
               role="img"
@@ -46,14 +46,14 @@
         </div>
 
         <!-- Auth Options/Content Container -->
-        <div class="m-c-card ds-u-margin--7 ds-text-body--md">
+        <div class="m-c-card ds-u-margin-left--7 ds-u-margin-top--5 ds-text-body--md" style="max-width: 820px;">
 
             <div class="ds-u-margin-left--7 ds-u-margin-right--4 ds-u-margin-top--4">
 
-                <h1 class="ds-text-heading--2xl">Connect your Medicare claims data to {{ application.name }}?</h1>
+                <h1 class="ds-text-heading--2xl ds-u-margin-bottom--3">Connect your Medicare claims data to {{ application.name }}?</h1>
 
-                <p>If you connect, {{ application.name }} will have access to information about your:</p>
-                <ul>
+                <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">If you connect, {{ application.name }} will have access to information about your:</p>
+                <ul class="ds-u-margin-top--0">
                     <li class="ds-u-padding-top--1 ds-u-text-align--left">Doctor visits</li>
                     <li class="ds-u-padding-top--1 ds-u-text-align--left">Hospital visits</li>
                     <li class="ds-u-padding-top--1 ds-u-text-align--left">Prescription medications</li>
@@ -62,30 +62,33 @@
                 <hr class="ds-u-margin-top--1 ds-u-margin-bottom--1" color="#D6D7D9"/>
 
                 {% if not error %}
-                <form id="authorizationForm" method="post">
                     {% if application.require_demographic_scopes != False %}
-                        <p class="ds-u-margin-top--2">You can also grant access to your:
-                            <fieldset class="ds-c-fieldset" aria-invalid="false">
-                                <div class="ds-c-choice-wrapper">
+                    <form id="authorizationForm" method="post">
+                        <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">You can also grant access to your:
+                            <fieldset class="ds-c-fieldset">
+                              <legend class="ds-c-label" id="field_1-label">
+                              </legend>
+                              <div>
+                                <div class="ds-c-choice-wrapper ds-u-margin-bottom--2">
                                   <input
-                                    onclick="function toggleHintText() {
-
-                                    }
-                                    toggleHintText()"
+                                    onChange="toggleHintText()"
                                     class="ds-c-choice"
                                     id="checkbox_checkbox_choices_2"
                                     name="checkbox_choices"
                                     type="checkbox"
                                     value="True"
-                                    checked
+                                    checked=""
                                   />
-                                  <label class="ds-c-label- ds-u-text-align--left" for="checkbox_checkbox_choices_2">
-                                    <span class="ds-text-body--md ds-u-margin-left--3">Personal Information <br>Your name, address, date of birth, race, and gender</span>
-                                    <span class="ds-c-field__hint">Uncheck to block access to personal information</span>
+                                  <label class="ds-c-label ds-u-text-align--left" for="checkbox_checkbox_choices_2">
+                                    <span class="ds-text-body--md ds-u-margin-left--3">I agree to share my personal information (name, address, date of birth, race, and gender)</span>
                                   </label>
                                 </div>
+                                    <span class="ds-c-field__hint" id="allow_access">Uncheck to block access to personal information</span>
+                                    <span class="ds-c-field__hint" id="block_access" style="display:none;">Check to allow access to personal information</span>
+                              </div>
                             </fieldset>
                         </p>
+                        <hr class="ds-u-margin-top--1 ds-u-margin-bottom--1" color="#D6D7D9"/>
                     {% endif %}
 
                                 {% csrf_token %}
@@ -98,10 +101,8 @@
 
                                 {{ form.non_field_errors }}
 
-                <hr class="ds-u-margin-top--1 ds-u-margin-bottom--1" color="#D6D7D9"/>
-
                 <div>
-                    <p  class="ds-u-margin-top--4">
+                    <p class="ds-u-margin-top--4 ds-u-margin-bottom--0" style="display: flex;">
                         <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                             <title>Icons/Learn</title>
                             <g id="🚧-Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -117,9 +118,10 @@
                                     </g>
                                 </g>
                             </g>
-                        </svg><code class="ds-u-margin-left--3 ds-text-body--md"/>Learn more about how {{ application.name }} uses your data in their <a href="{{ application.policy_uri }}">Privacy Policy</a> and <a href="{{ application.tos_uri }}">Terms and Conditions</a>.</p>
-                    <p  class="ds-u-margin-top--1">
-                        <svg width="23.9999544px" height="16px" viewBox="0 0 23.9999544 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        </svg><span class="ds-u-margin-left--3 ds-text-body--md">Learn more about how {{ application.name }} uses your data in their <a href="{{ application.policy_uri }}">Privacy Policy</a> and <a href="{{ application.tos_uri }}">Terms and Conditions</a>.</span>
+                    </p>
+                    <p  class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex;">
+                        <svg width="23.9999544px" height="16px" alignment-baseline="baseline" viewBox="0 0 23.9999544 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                             <title>Icons/Show password</title>
                             <g id="🚧-Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                 <g id="no-demographic-option---mobile--13mo" transform="translate(-40.000023, -575.750000)" fill="#404040" fill-rule="nonzero">
@@ -132,9 +134,9 @@
                                     </g>
                                 </g>
                             </g>
-                        </svg><code class="ds-u-margin-left--3 ds-text-body--md"/>{{ application.name }} will have access to you data until
+                        </svg><span class="ds-u-margin-left--3 ds-text-body--md">{{ application.name }} will have access to your data {{ permission_end_date }}.</span>
                     </p>
-                    <p  class="ds-u-margin-top--1">
+                    <p class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex;">
                         <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                             <title>Icons/Help</title>
                             <g id="🚧-Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -146,11 +148,11 @@
                                     </g>
                                 </g>
                             </g>
-                        </svg><code class="ds-u-margin-left--3 ds-text-body--md ds-u-text-align--left"/>To stop sharing your information with {{ application.name }}, visit your <a href="https://www.medicare.gov/">Medicare.gov</a> account or call 1-800-633-4227.
+                        </svg><span class="ds-u-margin-left--3 ds-text-body--md ds-u-text-align--left">To stop sharing your information with {{ application.name }}, visit your <a href="https://www.medicare.gov/">Medicare.gov</a> account or call 1-800-633-4227.</span>
                     </p>
                 </div>
 
-                    <div class="ds-u-margin-top--4 ds-u-margin-bottom--4 ds-u-display--flex ds-u-justify-content--end">
+                    <div class="ds-u-margin-top--5 ds-u-margin-bottom--4 ds-u-display--flex ds-u-justify-content--end">
                         <input class="ds-c-button" id="deny" style="--button__background-color--hover: black;" type="submit"  value="Cancel" />
                         <code class="ds-u-margin--1"></code>
                         <input class="ds-c-button ds-c-button--solid" id="approve" type="submit" value="Connect" />
