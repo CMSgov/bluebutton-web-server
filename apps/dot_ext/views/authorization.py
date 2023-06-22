@@ -1,6 +1,5 @@
 import logging
 import waffle
-from datetime import datetime
 
 from django.http.response import HttpResponseBadRequest
 from django.template.response import TemplateResponse

@@ -40,7 +40,6 @@ TEN_HOURS = "for 10 hours"
 RESEARCH_STUDY = "until the end of the research study"
 
 
-
 class Application(AbstractApplication):
     scope = models.ManyToManyField(ProtectedCapability)
     agree = models.BooleanField(default=False)
