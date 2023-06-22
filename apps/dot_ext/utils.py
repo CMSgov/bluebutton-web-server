@@ -139,6 +139,7 @@ def validate_app_is_active(request):
 
                     except DataAccessGrant.DoesNotExist:
                         pass
+    return app
 
 
 def is_data_access_type_valid(user, data_access_type, end_date):

@@ -53,6 +53,7 @@ class AuthorizationView(DotAuthorizationView):
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+    application = None
     version = None
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
@@ -63,9 +64,7 @@ class AuthorizationView(DotAuthorizationView):
 
     def get_context_data(self, **kwargs):
         context = super(AuthorizationView, self).get_context_data(**kwargs)
-        client_id = kwargs.get('client_id')
-        application = get_application_model().objects.get(client_id=client_id)
-        context['permission_end_date'] = application.access_end_date()
+        context['permission_end_date'] = self.application.access_end_date()
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -80,7 +79,7 @@ class AuthorizationView(DotAuthorizationView):
             create_session_auth_flow_trace(request)
 
         try:
-            validate_app_is_active(request)
+            self.application = validate_app_is_active(request)
         except InvalidClientError as error:
             return TemplateResponse(
                 request,
