@@ -37,7 +37,7 @@ from apps.authorization.models import DataAccessGrant
 from .utils import is_data_access_type_valid
 
 TEN_HOURS = "for 10 hours"
-RESEARCH_STUDY = "until the end of the research study"
+RESEARCH_STUDY = "until the end of the research study on "
 
 
 class Application(AbstractApplication):
@@ -165,11 +165,11 @@ class Application(AbstractApplication):
     end_date = models.DateTimeField(null=True, blank=True,
                                     verbose_name="RESEARCH_STUDY End Date:")
 
-    def access_end_date(self):
+    def access_end_date_mesg(self):
         if self.has_one_time_only_data_access():
             return TEN_HOURS
         elif self.data_access_type == "RESEARCH_STUDY":
-            return RESEARCH_STUDY
+            return RESEARCH_STUDY + self.end_date.strftime("%B %d, %Y")
         else:
             end_date = datetime.now() + relativedelta(months=+13)
             return "until " + end_date.strftime("%B %d, %Y")
