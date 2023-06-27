@@ -148,8 +148,17 @@ class TestAuthorizationView(BaseApiTest):
         # and here we test that only the capability-a scope has been issued
         self.assertEqual(content['scope'], "capability-a")
 
-    @override_switch('require-scopes', active=True)
     def test_post_with_share_demographic_scopes(self):
+        # Test with-out new_auth switch
+        self.testing_post_with_share_demographic_scopes()
+
+    @override_switch('new_auth', active=True)
+    def test_post_with_share_demographic_scopes_new_auth_switch(self):
+        # Test with new_auth switch.
+        self.testing_post_with_share_demographic_scopes()
+
+    @override_switch('require-scopes', active=True)
+    def testing_post_with_share_demographic_scopes(self):
         """
         Test authorization related to different, beneficiary "share_demographic_scopes",
         application.require_demographic_scopes, and requested scopes values.
