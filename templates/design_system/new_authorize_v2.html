@@ -10,8 +10,8 @@
 {% block banner %}{% endblock %}
 
 {% block Content %}
-<div class="ds-l-container ds-u-padding-top--4 ds-u-padding-bottom--2">
-    <div class="ds-u-text-align--center ds-u-margin-left--7" style="max-width: 820px;">
+<div class="ds-l-container ds-u-padding-top--4 ds-u-padding-bottom--2" style="max-width: 820px;">
+    <div class="ds-u-text-align--center">
         <svg
           role="img"
           aria-labelledby="medicare-gov-1"
@@ -47,9 +47,9 @@
     </div>
 
     <!-- Auth Options/Content Container -->
-    <div class="m-c-card ds-u-margin-left--7 ds-u-margin-top--5 ds-text-body--md" style="max-width: 820px;">
+    <div class="m-c-card ds-u-margin-top--5 ds-text-body--md">
 
-        <div class="ds-u-margin-left--7 ds-u-margin-right--4 ds-u-margin-top--4">
+        <div class="ds-u-margin-left--4 ds-u-margin-right--4 ds-u-margin-top--4">
 
             <h1 class="ds-text-heading--2xl ds-u-margin-bottom--3">Connect your Medicare claims data to {{ application.name }}?</h1>
 
@@ -66,7 +66,7 @@
                 <form id="authorizationForm" method="post">
                     {% if application.require_demographic_scopes != False %}
                         <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">You can also grant access to your:
-                            <fieldset class="ds-c-fieldset">
+                            <fieldset class="ds-c-fieldset ds-u-margin-top--1">
                               <legend class="ds-c-label" id="field_1-label">
                               </legend>
                               <div>
@@ -81,7 +81,8 @@
                                     checked=""
                                   />
                                   <label class="ds-c-label ds-u-text-align--left" for="checkbox_checkbox_choices_2">
-                                    <span class="ds-text-body--md">I agree to share my personal information (name, address, date of birth, race, and gender)</span>
+
+                                    <span class="ds-text-body--md">Personal Information<br>Your name, address, date of birth, race, and gender</span>
                                   </label>
                                 </div>
                                     <span class="ds-c-field__hint" id="allow_access">Uncheck to block access to personal information</span>
