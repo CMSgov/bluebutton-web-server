@@ -43,11 +43,17 @@ log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 QP_CHECK_LIST = ["client_secret"]
 
 
+def get_grant_expiration(data_access_type):
+
+    pass
+
+
 class AuthorizationView(DotAuthorizationView):
     """
     Override the base authorization view from dot to
     use the custom AllowForm.
     """
+    application = None
     version = None
     form_class = SimpleAllowForm
     login_url = "/mymedicare/login"
@@ -55,6 +61,11 @@ class AuthorizationView(DotAuthorizationView):
     def __init__(self, version=1):
         self.version = version
         super().__init__()
+
+    def get_context_data(self, **kwargs):
+        context = super(AuthorizationView, self).get_context_data(**kwargs)
+        context['permission_end_date'] = self.application.access_end_date_mesg()
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -68,7 +79,7 @@ class AuthorizationView(DotAuthorizationView):
             create_session_auth_flow_trace(request)
 
         try:
-            validate_app_is_active(request)
+            self.application = validate_app_is_active(request)
         except InvalidClientError as error:
             return TemplateResponse(
                 request,
@@ -97,9 +108,15 @@ class AuthorizationView(DotAuthorizationView):
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
         if waffle.switch_is_active('require-scopes'):
-            return ["design_system/authorize_v2.html"]
+            if waffle.switch_is_active('new_auth'):
+                return ["design_system/new_authorize_v2.html"]
+            else:
+                return ["design_system/authorize_v2.html"]
         else:
-            return ["design_system/authorize.html"]
+            if waffle.switch_is_active('new_auth'):
+                return ["design_system/new_authorize_v2.html"]
+            else:
+                return ["design_system/authorize.html"]
 
     def get_initial(self):
         initial_data = super().get_initial()

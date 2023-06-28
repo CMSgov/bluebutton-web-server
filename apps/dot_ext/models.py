@@ -7,6 +7,8 @@ import uuid
 import apps.logging.request_logger as logging
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
@@ -33,6 +35,9 @@ from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import DataAccessGrant
 
 from .utils import is_data_access_type_valid
+
+TEN_HOURS = "for 10 hours"
+RESEARCH_STUDY = "until the end of the research study on "
 
 
 class Application(AbstractApplication):
@@ -159,6 +164,15 @@ class Application(AbstractApplication):
     # Application end_date related to data access limits.
     end_date = models.DateTimeField(null=True, blank=True,
                                     verbose_name="RESEARCH_STUDY End Date:")
+
+    def access_end_date_mesg(self):
+        if self.has_one_time_only_data_access():
+            return TEN_HOURS
+        elif self.data_access_type == "RESEARCH_STUDY":
+            return RESEARCH_STUDY + self.end_date.strftime("%B %d, %Y")
+        else:
+            end_date = datetime.now() + relativedelta(months=+13)
+            return "until " + end_date.strftime("%B %d, %Y")
 
     def scopes(self):
         scope_list = []
