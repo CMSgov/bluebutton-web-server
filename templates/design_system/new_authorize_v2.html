@@ -88,8 +88,8 @@
                                     <span class="ds-text-body--md">Personal Information<br>Your name, address, date of birth, race, and gender</span>
                                   </label>
                                 </div>
-                                    <span class="ds-c-field__hint" id="allow_access">Uncheck to block access to personal information.</span>
-                                    <span class="ds-c-field__hint" id="block_access" style="display:none;">Check to allow access to personal information.</span>
+                                    <span class="ds-c-field__hint" id="allow_access" role="presentation" aria-hidden="true">Uncheck to block access to personal information.</span>
+                                    <span class="ds-c-field__hint" id="block_access"  role="presentation" aria-hidden="true" style="display:none;">Check to allow access to personal information.</span>
                               </div>
                             </fieldset>
                         </p>
@@ -123,7 +123,7 @@
                                         </g>
                                     </g>
                                 </g>
-                            </svg><span class="ds-u-margin-left--3 ds-text-body--md">Learn more about how {{ application.name }} uses your data in their <a href="{{ application.policy_uri }}">Privacy Policy</a> and <a href="{{  }}">Terms and Conditions</a>.</span>
+                            </svg><span class="ds-u-margin-left--3 ds-text-body--md">Learn more about how {{ application.name }} uses your data in their <a href="{{ application.policy_uri }}">Privacy Policy</a> and <a href="{{ application.tos_uri }}">Terms and Conditions</a>.</span>
                         </p>
                         <p  class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center;">
                             <svg width="23.9999544px" height="16px" alignment-baseline="baseline" viewBox="0 0 23.9999544 16" version="1.1" style="flex-shrink: 0;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
