@@ -14,6 +14,7 @@
     <div class="ds-u-text-align--center">
         <svg
           role="img"
+          aria-label="medicare.gov"
           aria-labelledby="medicare-gov-1"
           width="273"
           height="39"
@@ -80,14 +81,15 @@
                                     type="checkbox"
                                     value="True"
                                     checked=""
+                                    aria-describedby="allow_access block_access"
                                   />
-                                  <label class="ds-c-label ds-u-text-align--left" for="checkbox_checkbox_choices_2">
+                                  <label class="ds-c-label ds-u-text-align--left" for="radio_1">
 
                                     <span class="ds-text-body--md">Personal Information<br>Your name, address, date of birth, race, and gender</span>
                                   </label>
                                 </div>
-                                    <span class="ds-c-field__hint" id="allow_access">Uncheck to block access to personal information</span>
-                                    <span class="ds-c-field__hint" id="block_access" style="display:none;">Check to allow access to personal information</span>
+                                    <span class="ds-c-field__hint" id="allow_access" role="presentation" aria-hidden="true">Uncheck to block access to personal information.</span>
+                                    <span class="ds-c-field__hint" id="block_access"  role="presentation" aria-hidden="true" style="display:none;">Check to allow access to personal information.</span>
                               </div>
                             </fieldset>
                         </p>
