@@ -1,5 +1,6 @@
 import logging
 import waffle
+from waffle import get_waffle_flag_model
 
 from django.http.response import HttpResponseBadRequest
 from django.template.response import TemplateResponse
@@ -107,13 +108,14 @@ class AuthorizationView(DotAuthorizationView):
 
     # TODO: Clean up use of the require-scopes feature flag  and multiple templates, when no longer required.
     def get_template_names(self):
+        flag = get_waffle_flag_model().get("limit_data_access")
         if waffle.switch_is_active('require-scopes'):
-            if waffle.switch_is_active('new_auth'):
+            if flag.id is not None and flag.is_active_for_user(self.application.user):
                 return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize_v2.html"]
         else:
-            if waffle.switch_is_active('new_auth'):
+            if flag.id is not None and flag.is_active_for_user(self.user):
                 return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize.html"]
