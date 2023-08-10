@@ -4,7 +4,7 @@ reqs-compile:
 
 # Note: requirements.dev.txt includes packages from requirements.txt also.
 reqs-download:
-	pip download -r requirements/requirements.dev.txt --dest vendor --platform linux_x86_64 --no-deps
+	pip download -r requirements/requirements.dev.txt --dest vendor --platform manylinux2014_x86_64 --abi cp38 --no-deps
 
 reqs-install:
 	pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
