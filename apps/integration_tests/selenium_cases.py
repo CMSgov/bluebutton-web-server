@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 
 
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
+USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
 PROD_URL = 'https://api.bluebutton.cms.gov'
 USER_ACTIVATION_PATH_FMT = "{}/v1/accounts/activation-verify/{}"
 
@@ -126,7 +127,13 @@ SLSX_CSS_BUTTON = "login-button"
 # Demographic info access grant form
 BTN_ID_GRANT_DEMO_ACCESS = "approve"
 BTN_ID_DENY_DEMO_ACCESS = "deny"
-BTN_ID_RADIO_NOT_SHARE = "label:nth-child(5)"
+if USE_NEW_PERM_SCREEN == "true":
+    # Below works for new auth screen
+    BTN_ID_RADIO_NOT_SHARE = "radio_1"
+else:
+    # Below works for old auth screen
+    BTN_ID_RADIO_NOT_SHARE = "label:nth-child(5)"
+
 
 # API versions
 API_V2 = "v2"
@@ -170,7 +177,15 @@ LOAD_TESTCLIENT_HOME = {
 CLICK_RADIO_NOT_SHARE = {
     "display": "Click 'Share healthcare data, but not your personal info' on DEMO info grant form",
     "action": Action.FIND_CLICK,
+    # Below works for old auth screen
     "params": [20, By.CSS_SELECTOR, BTN_ID_RADIO_NOT_SHARE]
+}
+
+CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN = {
+    "display": "Click 'Share healthcare data, but not your personal info' on DEMO info grant form (NEW PERM SCREEN)",
+    "action": Action.FIND_CLICK,
+    # Below works for new auth screen
+    "params": [20, By.ID, BTN_ID_RADIO_NOT_SHARE]
 }
 
 CLICK_AGREE_ACCESS = {
@@ -473,6 +488,13 @@ TESTS = {
         {"sequence": SEQ_AUTHORIZE_START},
         CALL_LOGIN,
         CLICK_RADIO_NOT_SHARE,
+        CLICK_AGREE_ACCESS,
+        {"sequence": SEQ_QUERY_FHIR_RESOURCES_NO_DEMO}
+    ],
+    "auth_grant_w_no_demo_new_perm_screen": [
+        {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN,
         CLICK_AGREE_ACCESS,
         {"sequence": SEQ_QUERY_FHIR_RESOURCES_NO_DEMO}
     ]
