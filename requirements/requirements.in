@@ -35,6 +35,7 @@ attrs
 pyrsistent
 typing_extensions
 importlib-metadata
+certifi==2023.7.22
 
 # notifications
 django-ses
@@ -43,5 +44,5 @@ django-ses
 oauthlib
 python-openid
 django-oauth-toolkit
-# cryptography
+cryptography==41.0.3
 jwcrypto
