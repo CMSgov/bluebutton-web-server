@@ -157,7 +157,7 @@ class TestDataAccessPermissions(BaseApiTest):
         """
         # Test profile/userinfo v1
         response = self.client.get(
-            "/v1/connect/userinfo", HTTP_AUTHORIZATION="Bearer " + access_token
+            "/v1/connect/userinfo", headers={"authorization": "Bearer " + access_token}
         )
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_detail_mesg is not None:
@@ -166,7 +166,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # Test profile/userinfo v2
         response = self.client.get(
-            "/v2/connect/userinfo", HTTP_AUTHORIZATION="Bearer " + access_token
+            "/v2/connect/userinfo", headers={"authorization": "Bearer " + access_token}
         )
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_detail_mesg is not None:
@@ -191,7 +191,7 @@ class TestDataAccessPermissions(BaseApiTest):
                 "/v2/fhir/ExplanationOfBenefit/-20140000008325",
             ]:
                 response = self.client.get(
-                    path, HTTP_AUTHORIZATION="Bearer " + access_token
+                    path, headers={"authorization": "Bearer " + access_token}
                 )
                 self.assertEqual(response.status_code, expected_response_code)
                 if expected_response_detail_mesg is not None:
@@ -216,7 +216,7 @@ class TestDataAccessPermissions(BaseApiTest):
                 "/v2/fhir/Patient",
             ]:
                 response = self.client.get(
-                    path, HTTP_AUTHORIZATION="Bearer " + access_token
+                    path, headers={"authorization": "Bearer " + access_token}
                 )
                 self.assertEqual(response.status_code, expected_response_code)
                 if expected_response_detail_mesg is not None:
@@ -861,5 +861,5 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
             expected_response_code=403,
-            expected_response_detail_mesg="You do not have permission to perform this action."
+            expected_response_detail_mesg="You do not have permission to perform this action.",
         )

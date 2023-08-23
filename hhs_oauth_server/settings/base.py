@@ -6,7 +6,7 @@ from getenv import env
 from ..utils import bool_env, int_env
 
 from django.contrib.messages import constants as messages
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from .themes import THEMES, THEME_SELECTED
 
 # project root folder
@@ -153,13 +153,12 @@ INSTALLED_APPS = [
     "rest_framework_csv",
     "django_filters",
     # 1st Party (in-house) ----------
-    'apps.accounts',
-    'apps.capabilities',
-    'apps.core',
-    'apps.wellknown',
-    'apps.health',
-    'apps.docs',
-
+    "apps.accounts",
+    "apps.capabilities",
+    "apps.core",
+    "apps.wellknown",
+    "apps.health",
+    "apps.docs",
     # Use AppConfig to set apps.dot_ext to dot_ext so that splits in
     # django.db.models.utils doesn't have more than 2 values
     # There probably should be an edit to django.db so that the split
@@ -190,8 +189,7 @@ DEV_SPECIFIC_APPS = [
     # Installation/Site Specific apps based on  -----------------
     # 'storages',
     # A test client - moved to aws-test / dev /impl settings
-    'apps.testclient',
-
+    "apps.testclient",
 ]
 
 INSTALLED_APPS += DEV_SPECIFIC_APPS
@@ -243,7 +241,7 @@ MIDDLEWARE = [
     # on failed user authentication attempts from login views.
     # If you do not want Axes to override the authentication response
     # you can skip installing the middleware and use your own views.
-    'axes.middleware.AxesMiddleware',
+    "axes.middleware.AxesMiddleware",
 ]
 
 CORS_ORIGIN_ALLOW_ALL = bool_env(env("CORS_ORIGIN_ALLOW_ALL", True))
@@ -281,7 +279,7 @@ CACHES = {
 }
 
 # keep backward compatible with AutoField instead of BigAutoField
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -302,7 +300,6 @@ MESSAGE_TAGS = {
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 # static files and media
@@ -425,15 +422,15 @@ AUTH_PROFILE_MODULE = "accounts.UserProfile"
 # Django Oauth Tookit settings and customizations
 OAUTH2_PROVIDER_APPLICATION_MODEL = "dot_ext.Application"
 OAUTH2_PROVIDER = {
-    'PKCE_REQUIRED': False,
+    "PKCE_REQUIRED": False,
     "OAUTH2_VALIDATOR_CLASS": "apps.dot_ext.oauth2_validators."
     "SingleAccessTokenValidator",
     "OAUTH2_SERVER_CLASS": "apps.dot_ext.oauth2_server.Server",
     "SCOPES_BACKEND_CLASS": "apps.dot_ext.scopes.CapabilitiesScopes",
     "OAUTH2_BACKEND_CLASS": "apps.dot_ext.oauth2_backends.OAuthLibSMARTonFHIR",
     "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
-    'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
-    'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator'
+    "CLIENT_ID_GENERATOR_CLASS": "oauth2_provider.generators.ClientIdGenerator",
+    "CLIENT_SECRET_GENERATOR_CLASS": "oauth2_provider.generators.ClientSecretGenerator",
 }
 
 # These choices will be available in the expires_in field
@@ -653,7 +650,7 @@ MEDICARE_ERROR_MSG = "An error occurred connecting to medicare.gov account"
 
 AUTHENTICATION_BACKENDS = (
     # AxesBackend should be the first backend in the AUTHENTICATION_BACKENDS list.
-    'axes.backends.AxesBackend',
+    "axes.backends.AxesBackend",
     "apps.accounts.backends.EmailAuthBackend",
     "django.contrib.auth.backends.ModelBackend",
 )

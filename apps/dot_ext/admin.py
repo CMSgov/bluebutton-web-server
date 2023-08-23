@@ -138,13 +138,13 @@ class MyApplicationAdmin(admin.ModelAdmin):
 
     raw_id_fields = ("user",)
 
+    @admin.display(description="Data Access Type")
     def get_data_access_type(self, obj):
         return obj.data_access_type
-    get_data_access_type.short_description = "Data Access Type"
 
+    @admin.display(description="Data Access End Date")
     def get_end_date(self, obj):
         return obj.end_date
-    get_end_date.short_description = "Data Access End Date"
 
 
 @admin.register(CreateNewApplication)
@@ -192,11 +192,12 @@ class MyAccessTokenAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("user", "application", "source_refresh_token")
 
+    @admin.display(
+        description="Source Refresh Token",
+        ordering="token",
+    )
     def get_source_refresh_token(self, obj):
         return obj.source_refresh_token.token if obj.source_refresh_token else None
-
-    get_source_refresh_token.admin_order_field = "token"
-    get_source_refresh_token.short_description = "Source Refresh Token"
 
 
 @admin.register(MyAuthFlowUuid)

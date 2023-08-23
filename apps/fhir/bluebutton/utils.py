@@ -17,7 +17,7 @@ from apps.fhir.server.settings import fhir_settings
 
 from oauth2_provider.models import AccessToken
 
-from apps.wellknown.views import (base_issuer, build_endpoint_info)
+from apps.wellknown.views import base_issuer, build_endpoint_info
 from .models import Crosswalk, Fhir_Response
 
 logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
@@ -26,9 +26,9 @@ logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 def get_user_from_request(request):
     """Returns a user or None with login or OAuth2 API"""
     user = None
-    if hasattr(request, 'resource_owner'):
+    if hasattr(request, "resource_owner"):
         user = request.resource_owner
-    if hasattr(request, 'user'):
+    if hasattr(request, "user"):
         if not request.user.is_anonymous:
             user = request.user
     return user
@@ -39,7 +39,7 @@ def get_ip_from_request(request):
     """Returns the IP of the request, accounting for the possibility of being
     behind a proxy.
     """
-    ip = request.META.get("HTTP_X_FORWARDED_FOR", None)
+    ip = request.headers.get("x-forwarded-for", None)
     if ip:
         # X_FORWARDED_FOR returns client1, proxy1, proxy2,...
         ip = ip.split(", ")[0]
@@ -51,10 +51,10 @@ def get_ip_from_request(request):
 def get_access_token_from_request(request):
     """Returns a user or None with login or OAuth2 API"""
     token = ""
-    if 'HTTP_AUTHORIZATION' in request.META:
-        auth_list = request.META['HTTP_AUTHORIZATION'].split(' ')
-    elif 'Authorization' in request.META:
-        auth_list = request.META['Authorization'].split(' ')
+    if "authorization" in request.headers:
+        auth_list = request.headers["authorization"].split(" ")
+    elif "Authorization" in request.META:
+        auth_list = request.META["Authorization"].split(" ")
     else:
         auth_list = []
 
@@ -66,11 +66,11 @@ def get_access_token_from_request(request):
 
 
 def get_fhir_now(my_now=None):
-    """ Format a json datetime in xs:datetime format
+    """Format a json datetime in xs:datetime format
 
-        .now(): 2012-02-17 09:52:35.033232
-        datetime.datetime.now(pytz.utc).isoformat()
-        '2012-02-17T11:58:44.789024+00:00'
+    .now(): 2012-02-17 09:52:35.033232
+    datetime.datetime.now(pytz.utc).isoformat()
+    '2012-02-17T11:58:44.789024+00:00'
 
     """
     if my_now:
@@ -84,14 +84,14 @@ def get_fhir_now(my_now=None):
 
 
 def get_timestamp(request):
-    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
-        adds request._logging_start_dt
+    """hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+    adds request._logging_start_dt
 
-        we grab it or set a timestamp and return it.
+    we grab it or set a timestamp and return it.
 
     """
 
-    if not hasattr(request, '_logging_start_dt'):
+    if not hasattr(request, "_logging_start_dt"):
         return datetime.now(pytz.utc).isoformat()
 
     else:
@@ -99,13 +99,13 @@ def get_timestamp(request):
 
 
 def get_query_id(request):
-    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
-        adds request._logging_uuid
+    """hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+    adds request._logging_uuid
 
-        we grab it or set a uuid and return it.
+    we grab it or set a uuid and return it.
 
     """
-    if not hasattr(request, '_logging_uuid'):
+    if not hasattr(request, "_logging_uuid"):
         return uuid.uuid1()
 
     else:
@@ -113,13 +113,13 @@ def get_query_id(request):
 
 
 def get_query_counter(request):
-    """ hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
-        adds request._logging_pass
+    """hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware
+    adds request._logging_pass
 
-        we grab it or set a counter and return it.
+    we grab it or set a counter and return it.
 
     """
-    if not hasattr(request, '_logging_pass'):
+    if not hasattr(request, "_logging_pass"):
         return 1
 
     else:
@@ -131,15 +131,15 @@ def generate_info_headers(request):
     result = {}
     # BB2-279 support BFD header "includeAddressFields" and always set to False
     # NOT TO include addresss info in Patient resource (refer BFD-379)
-    result['includeAddressFields'] = 'False'
+    result["includeAddressFields"] = "False"
     # get timestamp from request via Middleware, or get current time
-    result['BlueButton-OriginalQueryTimestamp'] = str(get_timestamp(request))
+    result["BlueButton-OriginalQueryTimestamp"] = str(get_timestamp(request))
 
     # get uuid or set one
-    result['BlueButton-OriginalQueryId'] = str(get_query_id(request))
+    result["BlueButton-OriginalQueryId"] = str(get_query_id(request))
 
     # get query counter or set to 1
-    result['BlueButton-OriginalQueryCounter'] = str(get_query_counter(request))
+    result["BlueButton-OriginalQueryCounter"] = str(get_query_counter(request))
 
     # Return resource_owner or user
     user = get_user_from_request(request)
@@ -148,33 +148,39 @@ def generate_info_headers(request):
         # we need to send the HicnHash or the fhir_id
         # TODO: Can the hicnHash case ever be reached? Should refactor this!
         if crosswalk.fhir_id is not None:
-            result['BlueButton-BeneficiaryId'] = 'patientId:' + str(crosswalk.fhir_id)
+            result["BlueButton-BeneficiaryId"] = "patientId:" + str(crosswalk.fhir_id)
         else:
-            result['BlueButton-BeneficiaryId'] = 'hicnHash:' + str(crosswalk.user_hicn_hash)
+            result["BlueButton-BeneficiaryId"] = "hicnHash:" + str(
+                crosswalk.user_hicn_hash
+            )
     else:
         # Set to empty
-        result['BlueButton-BeneficiaryId'] = ""
+        result["BlueButton-BeneficiaryId"] = ""
 
     if user:
-        result['BlueButton-UserId'] = str(user.id)
-        result['BlueButton-User'] = str(user)
-        if AccessToken.objects.filter(token=get_access_token_from_request(request)).exists():
+        result["BlueButton-UserId"] = str(user.id)
+        result["BlueButton-User"] = str(user)
+        if AccessToken.objects.filter(
+            token=get_access_token_from_request(request)
+        ).exists():
             at = AccessToken.objects.get(token=get_access_token_from_request(request))
-            result['BlueButton-Application'] = str(at.application.name)
-            result['BlueButton-ApplicationId'] = str(at.application.id)
+            result["BlueButton-Application"] = str(at.application.name)
+            result["BlueButton-ApplicationId"] = str(at.application.id)
             # BB2-2011 update logging w.r.t new fields application data_access_type
-            result['BlueButton-ApplicationDataAccessType'] = str(at.application.data_access_type)
-            result['BlueButton-ApplicationEndDate'] = str(at.application.end_date)
-            result['BlueButton-DeveloperId'] = str(at.application.user.id)
-            result['BlueButton-Developer'] = str(at.application.user)
+            result["BlueButton-ApplicationDataAccessType"] = str(
+                at.application.data_access_type
+            )
+            result["BlueButton-ApplicationEndDate"] = str(at.application.end_date)
+            result["BlueButton-DeveloperId"] = str(at.application.user.id)
+            result["BlueButton-Developer"] = str(at.application.user)
         else:
-            result['BlueButton-Application'] = ""
-            result['BlueButton-ApplicationId'] = ""
+            result["BlueButton-Application"] = ""
+            result["BlueButton-ApplicationId"] = ""
             # BB2-2011 update logging w.r.t new fields application data_access_type
-            result['BlueButton-ApplicationDataAccessType'] = ""
-            result['BlueButton-ApplicationEndDate'] = ""
-            result['BlueButton-DeveloperId'] = ""
-            result['BlueButton-Developer'] = ""
+            result["BlueButton-ApplicationDataAccessType"] = ""
+            result["BlueButton-ApplicationEndDate"] = ""
+            result["BlueButton-DeveloperId"] = ""
+            result["BlueButton-Developer"] = ""
 
     return result
 
@@ -190,25 +196,25 @@ def set_default_header(request, header=None):
     if header is None:
         header = {}
 
-    header['keep-alive'] = settings.REQUEST_EOB_KEEP_ALIVE
+    header["keep-alive"] = settings.REQUEST_EOB_KEEP_ALIVE
     if request.is_secure():
-        header['X-Forwarded-Proto'] = "https"
+        header["X-Forwarded-Proto"] = "https"
     else:
-        header['X-Forwarded-Proto'] = "http"
+        header["X-Forwarded-Proto"] = "http"
 
-    header['X-Forwarded-Host'] = request.get_host()
+    header["X-Forwarded-Host"] = request.get_host()
 
     originating_ip = get_ip_from_request(request)
     if originating_ip:
-        header['X-Forwarded-For'] = originating_ip
+        header["X-Forwarded-For"] = originating_ip
     else:
-        header['X-Forwarded-For'] = ""
+        header["X-Forwarded-For"] = ""
 
     return header
 
 
 def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters={}):
-    """  call to request or redirect on fail
+    """call to request or redirect on fail
     call_url = target server URL and search parameters to be sent
     crosswalk = Crosswalk record. The crosswalk is keyed off Request.user
     timeout allows a timeout in seconds to be set.
@@ -226,15 +232,16 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
     auth_state = FhirServerAuth(crosswalk)
 
     verify_state = FhirServerVerify(crosswalk)
-    if auth_state['client_auth']:
+    if auth_state["client_auth"]:
         # cert puts cert and key file together
         # (cert_file_path, key_file_path)
         # Cert_file_path and key_file_ath are fully defined paths to
         # files on the appserver.
-        logger.debug('Cert:%s , Key:%s' % (auth_state['cert_file'],
-                                           auth_state['key_file']))
+        logger.debug(
+            "Cert:%s , Key:%s" % (auth_state["cert_file"], auth_state["key_file"])
+        )
 
-        cert = (auth_state['cert_file'], auth_state['key_file'])
+        cert = (auth_state["cert_file"], auth_state["key_file"])
     else:
         cert = ()
 
@@ -243,38 +250,41 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
     header_info = set_default_header(request, header_info)
 
     header_detail = header_info
-    header_detail['BlueButton-OriginalUrl'] = request.path
-    header_detail['BlueButton-OriginalQuery'] = request.META['QUERY_STRING']
-    header_detail['BlueButton-BackendCall'] = call_url
+    header_detail["BlueButton-OriginalUrl"] = request.path
+    header_detail["BlueButton-OriginalQuery"] = request.META["QUERY_STRING"]
+    header_detail["BlueButton-BackendCall"] = call_url
 
     logger_perf.info(header_detail)
 
     try:
         if timeout:
-            r = requests.get(call_url,
-                             cert=cert,
-                             params=get_parameters,
-                             timeout=timeout,
-                             headers=header_info,
-                             verify=verify_state)
+            r = requests.get(
+                call_url,
+                cert=cert,
+                params=get_parameters,
+                timeout=timeout,
+                headers=header_info,
+                verify=verify_state,
+            )
         else:
-            r = requests.get(call_url,
-                             cert=cert,
-                             params=get_parameters,
-                             headers=header_info,
-                             verify=verify_state)
+            r = requests.get(
+                call_url,
+                cert=cert,
+                params=get_parameters,
+                headers=header_info,
+                verify=verify_state,
+            )
 
         logger.debug("Request.get:%s" % call_url)
         logger.debug("Status of Request:%s" % r.status_code)
 
-        header_detail['BlueButton-BackendResponse'] = r.status_code
+        header_detail["BlueButton-BackendResponse"] = r.status_code
 
         logger_perf.info(header_detail)
 
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=r, e=None)
 
-        logger.debug("Leaving request_call with "
-                     "fhir_Response: %s" % fhir_response)
+        logger.debug("Leaving request_call with " "fhir_Response: %s" % fhir_response)
 
     except requests.exceptions.Timeout as e:
 
@@ -288,16 +298,15 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
 
     except requests.exceptions.HTTPError as e:
         r_err = requests.exceptions.RequestException
-        logger.debug('Problem connecting to FHIR Server: %s' % call_url)
-        logger.debug('Exception: %s' % r_err)
+        logger.debug("Problem connecting to FHIR Server: %s" % call_url)
+        logger.debug("Exception: %s" % r_err)
         handle_http_error(e)
 
         fhir_response = build_fhir_response(request, call_url, crosswalk, r=None, e=e)
 
-        messages.error(request, 'Problem connecting to FHIR Server.')
+        messages.error(request, "Problem connecting to FHIR Server.")
 
-        logger.debug("HTTPError Status_code:%s" %
-                     requests.exceptions.HTTPError)
+        logger.debug("HTTPError Status_code:%s" % requests.exceptions.HTTPError)
 
     return fhir_response
 
@@ -321,18 +330,20 @@ def FhirServerAuth(crosswalk=None):
 
     auth_settings = {}
     resource_router = get_resourcerouter()
-    auth_settings['client_auth'] = resource_router.client_auth
-    auth_settings['cert_file'] = resource_router.cert_file
-    auth_settings['key_file'] = resource_router.key_file
+    auth_settings["client_auth"] = resource_router.client_auth
+    auth_settings["cert_file"] = resource_router.cert_file
+    auth_settings["key_file"] = resource_router.key_file
 
-    if auth_settings['client_auth']:
+    if auth_settings["client_auth"]:
         # join settings.FHIR_CLIENT_CERTSTORE to cert_file and key_file
-        cert_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                      auth_settings['cert_file'])
-        key_file_path = os.path.join(settings.FHIR_CLIENT_CERTSTORE,
-                                     auth_settings['key_file'])
-        auth_settings['cert_file'] = cert_file_path
-        auth_settings['key_file'] = key_file_path
+        cert_file_path = os.path.join(
+            settings.FHIR_CLIENT_CERTSTORE, auth_settings["cert_file"]
+        )
+        key_file_path = os.path.join(
+            settings.FHIR_CLIENT_CERTSTORE, auth_settings["key_file"]
+        )
+        auth_settings["cert_file"] = cert_file_path
+        auth_settings["key_file"] = key_file_path
 
     return auth_settings
 
@@ -343,44 +354,44 @@ def FhirServerVerify(crosswalk=None):
     return get_resourcerouter().verify_server
 
 
-def mask_with_this_url(request, host_path='', in_text='', find_url=''):
-    """ find_url in in_text and replace with url for this server """
+def mask_with_this_url(request, host_path="", in_text="", find_url=""):
+    """find_url in in_text and replace with url for this server"""
 
-    if in_text == '':
+    if in_text == "":
         # No text to evaluate
         return in_text
 
-    if find_url == '':
+    if find_url == "":
         # no string to find
         return in_text
 
     # Now we have something to do
     # Get the host name
     # replace_text = request.get_host()
-    if host_path.endswith('/'):
+    if host_path.endswith("/"):
         host_path = host_path[:-1]
     if type(in_text) is str:
         out_text = in_text.replace(find_url, host_path)
 
-        logger.debug('Replacing: [%s] with [%s]' % (find_url, host_path))
+        logger.debug("Replacing: [%s] with [%s]" % (find_url, host_path))
     else:
         out_text = in_text
 
-        logger.debug('Passing [%s] to [%s]' % (in_text, "out_text"))
+        logger.debug("Passing [%s] to [%s]" % (in_text, "out_text"))
 
     return out_text
 
 
-def get_host_url(request, resource_type=''):
-    """ get the full url and split on resource_type """
+def get_host_url(request, resource_type=""):
+    """get the full url and split on resource_type"""
 
     if request.is_secure():
-        http_mode = 'https://'
+        http_mode = "https://"
     else:
-        http_mode = 'http://'
+        http_mode = "http://"
 
     full_url = http_mode + request.get_host() + request.get_full_path()
-    if resource_type == '':
+    if resource_type == "":
         return full_url
     else:
         full_url_list = full_url.split(resource_type)
@@ -389,28 +400,28 @@ def get_host_url(request, resource_type=''):
 
 
 def prepend_q(pass_params):
-    """ Add ? to parameters if needed """
+    """Add ? to parameters if needed"""
     if len(pass_params) > 0:
-        if pass_params.startswith('?'):
+        if pass_params.startswith("?"):
             pass
         else:
-            pass_params = '?' + pass_params
+            pass_params = "?" + pass_params
     return pass_params
 
 
 def dt_patient_reference(user):
-    """ Get Patient Reference from Crosswalk for user """
+    """Get Patient Reference from Crosswalk for user"""
 
     if user:
         patient = crosswalk_patient_id(user)
         if patient:
-            return {'reference': patient}
+            return {"reference": patient}
 
     return None
 
 
 def crosswalk_patient_id(user):
-    """ Get patient/id from Crosswalk for user """
+    """Get patient/id from Crosswalk for user"""
 
     logger.debug("\ncrosswalk_patient_id User:%s" % user)
     try:
@@ -425,8 +436,8 @@ def crosswalk_patient_id(user):
 
 
 def get_crosswalk(user):
-    """ Receive Request.user and use as lookup in Crosswalk
-        Return Crosswalk or None
+    """Receive Request.user and use as lookup in Crosswalk
+    Return Crosswalk or None
     """
 
     if user is None or user.is_anonymous:
@@ -446,11 +457,11 @@ def get_resourcerouter(crosswalk=None):
 
 
 def handle_http_error(e):
-    """ Handle http error from request_call
+    """Handle http error from request_call
 
-     This function is under development
+    This function is under development
 
-     """
+    """
     logger.debug("In handle http_error - e:%s" % e)
 
     return e
@@ -482,27 +493,27 @@ def build_fhir_response(request, call_url, crosswalk, r=None, e=None):
     fhir_response.crosswalk = crosswalk
 
     if len(r_dir) > 0:
-        if 'status_code' in r_dir:
+        if "status_code" in r_dir:
             fhir_response._status_code = r.status_code
         else:
-            fhir_response._status_code = '000'
+            fhir_response._status_code = "000"
 
-        if 'text' in r_dir:
+        if "text" in r_dir:
             fhir_response._text = r.text
         else:
             fhir_response._text = "No Text returned"
 
-        if 'json' in r_dir:
+        if "json" in r_dir:
             fhir_response._json = r.json
         else:
             fhir_response._json = {}
 
-        if 'user' in request:
+        if "user" in request:
             fhir_response._owner = request.user + ":"
         else:
             fhir_response._owner = ":"
 
-        if 'resource_owner' in request:
+        if "resource_owner" in request:
             fhir_response._owner = request.resource_owner
         else:
             fhir_response._owner += ""
@@ -510,24 +521,25 @@ def build_fhir_response(request, call_url, crosswalk, r=None, e=None):
     elif len(e_dir) > 0:
         fhir_response.status_code = 504
         fhir_response._status_code = fhir_response.status_code
-        fhir_response._json = {"errors": ["The gateway has timed out",
-                                          "Failed to reach FHIR Database."],
-                               "code": fhir_response.status_code,
-                               "status_code": fhir_response.status_code,
-                               "text": "The gateway has timed out"}
+        fhir_response._json = {
+            "errors": ["The gateway has timed out", "Failed to reach FHIR Database."],
+            "code": fhir_response.status_code,
+            "status_code": fhir_response.status_code,
+            "text": "The gateway has timed out",
+        }
         fhir_response._text = fhir_response._json
         fhir_response._content = fhir_response._json
     else:
-        fhir_response.status_code = '000'
-        fhir_response._status_code = '000'
+        fhir_response.status_code = "000"
+        fhir_response._status_code = "000"
         fhir_response._text = "No Text returned"
         fhir_response._json = {}
 
-        if 'user' in request:
+        if "user" in request:
             fhir_response._owner = request.user + ":"
         else:
             fhir_response._owner = ":"
-        if 'resource_owner' in request:
+        if "resource_owner" in request:
             fhir_response._owner += request.resource_owner
         else:
             fhir_response._owner += ""
@@ -538,7 +550,7 @@ def build_fhir_response(request, call_url, crosswalk, r=None, e=None):
         for k in e_dir:
             if k == "characters_written":
                 pass
-            elif k == 'arg':
+            elif k == "arg":
                 for i in e.arg:
                     logger.debug("arg:%s" % i)
             else:
@@ -597,8 +609,7 @@ def build_oauth_resource(request, v2=False, format_type="json"):
 
     :return: security
     """
-    endpoints = build_endpoint_info(OrderedDict(), v2,
-                                    issuer=base_issuer(request))
+    endpoints = build_endpoint_info(OrderedDict(), v2, issuer=base_issuer(request))
 
     if format_type.lower() == "xml":
 
@@ -631,55 +642,69 @@ def build_oauth_resource(request, v2=False, format_type="json"):
     </extension>
 
 </security>
-        """ % (endpoints['token_endpoint'], endpoints['authorization_endpoint'])
+        """ % (
+            endpoints["token_endpoint"],
+            endpoints["authorization_endpoint"],
+        )
 
-    else:   # json
+    else:  # json
 
         security = {}
 
-        security['cors'] = True
-        security['service'] = [
+        security["cors"] = True
+        security["service"] = [
             {
                 "text": "OAuth",
-                "coding": [{
-                    "system": "http://hl7.org/fhir/restful-security-service",
-                    "code": "OAuth",
-                    "display": "OAuth"
-                }]
-            }, {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/restful-security-service",
+                        "code": "OAuth",
+                        "display": "OAuth",
+                    }
+                ],
+            },
+            {
                 "text": "OAuth2 using SMART-on-FHIR profile (see http://docs.smarthealthit.org)",
-                "coding": [{
-                    "system": "http://hl7.org/fhir/restful-security-service",
-                    "code": "SMART-on-FHIR",
-                    "display": "SMART-on-FHIR"
-                }]
-            }]
-        security['extension'] = [
-            {"url": "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris",
-             "extension": [
-                    {"url": "token",
-                     "valueUri": endpoints['token_endpoint']},
-                    {"url": "authorize",
-                     "valueUri": endpoints['authorization_endpoint']}]
-             }
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/restful-security-service",
+                        "code": "SMART-on-FHIR",
+                        "display": "SMART-on-FHIR",
+                    }
+                ],
+            },
+        ]
+        security["extension"] = [
+            {
+                "url": "http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris",
+                "extension": [
+                    {"url": "token", "valueUri": endpoints["token_endpoint"]},
+                    {
+                        "url": "authorize",
+                        "valueUri": endpoints["authorization_endpoint"],
+                    },
+                ],
+            }
         ]
 
     return security
 
 
 def get_patient_by_id(id, request):
-    '''
+    """
     a helper adapted to just get patient given an id out of band of auth flow
     or noraml data flow, use by tools such as BB2-Tools admin viewers
-    '''
+    """
     auth_settings = FhirServerAuth(None)
-    certs = (auth_settings['cert_file'], auth_settings['key_file'])
+    certs = (auth_settings["cert_file"], auth_settings["key_file"])
     headers = generate_info_headers(request)
-    headers['BlueButton-Application'] = "BB2-Tools"
-    headers['includeIdentifiers'] = "true"
-    url = "{}Patient/{}?_format={}".format(get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT)
+    headers["BlueButton-Application"] = "BB2-Tools"
+    headers["includeIdentifiers"] = "true"
+    url = "{}Patient/{}?_format={}".format(
+        get_resourcerouter().fhir_url, id, settings.FHIR_PARAM_FORMAT
+    )
     s = requests.Session()
-    req = requests.Request('GET', url, headers=headers)
+    req = requests.Request("GET", url, headers=headers)
     prepped = req.prepare()
     response = s.send(prepped, cert=certs, verify=False)
     response.raise_for_status()
