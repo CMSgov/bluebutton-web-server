@@ -684,11 +684,19 @@ IS_MEDIA_URL_LOCAL = False
 if env("TARGET_ENV", "") in ["dev", "test", "impl", "prod"]:
     AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     STATICFILES_LOCATION = "static/"
-    STATICFILES_STORAGE = "hhs_oauth_server.s3_storage.StaticStorage"
     STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
     AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
     MEDIAFILES_LOCATION = "media/"
-    DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
+    #DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
+    #STATICFILES_STORAGE = "hhs_oauth_server.s3_storage.StaticStorage"
+    STORAGES = {
+        "default": {
+            "BACKEND": "hhs_oauth_server.s3_storage.MediaStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "hhs_oauth_server.s3_storage.StaticStorage",
+        },
+    }
     MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
     # Email config
     SEND_EMAIL = True
