@@ -237,10 +237,10 @@ def request_call(request, call_url, crosswalk=None, timeout=None, get_parameters
         # (cert_file_path, key_file_path)
         # Cert_file_path and key_file_ath are fully defined paths to
         # files on the appserver.
-        logger.debug(
-            "Cert:%s , Key:%s" % (auth_state["cert_file"], auth_state["key_file"])
-        )
-
+        # NOTE: debug below commented to resolve CodeQL rule: py/clear-text-logging-sensitive-data
+        # logger.debug(
+        #    "Cert:%s , Key:%s" % (auth_state["cert_file"], auth_state["key_file"])
+        # )
         cert = (auth_state["cert_file"], auth_state["key_file"])
     else:
         cert = ()
