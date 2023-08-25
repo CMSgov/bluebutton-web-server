@@ -20,20 +20,21 @@ display_usage() {
     echo "Usage:"
     echo "------------------"
     echo
-    echo "Syntax: run_selenium_tests_remote.sh [-h|d] [SBX|PROD|TEST|<bb2 server url>]"
+    echo "Syntax: run_selenium_tests_remote.sh [-h|d|p] [SBX|PROD|TEST|<bb2 server url>]"
     echo
     echo "Options:"
     echo
     echo "-h     Print this Help."
     echo "-d     Run tests in selenium debug mode (vnc view web UI interaction at http://localhost:5900)."
+    echo "-p     Test for newer permissions screen. Defaults to older screen."
     echo
     echo "Examples:"
     echo
     echo "run_selenium_tests_remote.sh  https://sandbox.bluebutton.cms.gov/ (or SBX)"
     echo
-    echo "run_selenium_tests_remote.sh  https://api.bluebutton.cms.gov/ (or PROD)"
+    echo "run_selenium_tests_remote.sh -d  https://api.bluebutton.cms.gov/ (or PROD)"
     echo
-    echo "run_selenium_tests_remote.sh  https://test.bluebutton.cms.gov/ (or TEST)"
+    echo "run_selenium_tests_remote.sh -d -p  https://test.bluebutton.cms.gov/ (or TEST)"
     echo
     echo "<bb2 server url> default to SBX (https://sandbox.bluebutton.cms.gov/)"
     echo
@@ -49,29 +50,33 @@ echo_msg
 set -e -u -o pipefail
 
 export USE_DEBUG=false
+export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests-remote"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 # BB2 service end point default (SBX)
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
-export USE_DEBUG=false
 
-while getopts "hd" option; do
+
+while getopts "hdp" option; do
    case $option in
       h)
         display_usage;
         exit;;
       d)
-        export USE_DEBUG=true;
-        shift;break;;
+        export USE_DEBUG=true;;
+      p)
+        export USE_NEW_PERM_SCREEN=true;;
      \?)
         display_usage;
         exit;;
    esac
 done
 
-if [[ -n ${1-''} ]]
+eval last_arg=\$$#
+
+if [[ -n ${last_arg} ]]
 then
-    case "$1" in
+    case "${last_arg}" in
         SBX)
             export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
             ;;
@@ -82,11 +87,11 @@ then
             export HOSTNAME_URL="https://test.bluebutton.cms.gov/"
             ;;
         *)
-            if [[ $1 == 'http*' ]]
+            if [[ ${last_arg} == 'http*' ]]
             then
-                export HOSTNAME_URL=$1
+                export HOSTNAME_URL=${last_arg}
             else
-                echo "Invalid argument: " $1
+                echo "Invalid argument: " ${last_arg}
                 display_usage
                 exit 1
             fi
@@ -98,9 +103,11 @@ fi
 SYSTEM=$(uname -s)
 
 echo "USE_DEBUG=" ${USE_DEBUG}
+echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 echo "BB2 Server URL=" ${HOSTNAME_URL}
 
 export USE_DEBUG
+export USE_NEW_PERM_SCREEN
 export USE_MSLSX=false
 
 # stop all before run selenium remote tests
