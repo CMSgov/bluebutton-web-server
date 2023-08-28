@@ -64,11 +64,11 @@ services:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
     env_file:
+      # local devel specific variables go here!
+      - .env
       - docker-compose/web-env-vars.env
       - docker-compose/slsx-env-vars.env
       - docker-compose/selenium-env-vars.env
-      # local devel specific variables go here!
-      - .env
     volumes:
       - .:/code
     ports:
