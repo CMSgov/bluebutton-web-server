@@ -125,22 +125,25 @@
                                 </g>
                             </svg><span class="ds-u-margin-left--3 ds-text-body--md">Learn more about how {{ application.name }} uses your data in their <a href="{{ application.policy_uri }}">Privacy Policy</a> and <a href="{{ application.tos_uri }}">Terms and Conditions</a>.</span>
                         </p>
-                        <p  class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center;">
-                            <svg width="23.9999544px" height="16px" alignment-baseline="baseline" viewBox="0 0 23.9999544 16" version="1.1" style="flex-shrink: 0;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                <title>Icons/Show password</title>
-                                <g id="🚧-Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                    <g id="no-demographic-option---mobile--13mo" transform="translate(-40.000023, -575.750000)" fill="#404040" fill-rule="nonzero">
-                                        <g id="access-duration" transform="translate(40.000000, 564.000000)">
-                                            <g id="Icons/Show-password" transform="translate(0.000000, 11.750000)">
-                                                <g id="eye-regular" transform="translate(0.000000, -0.000000)">
-                                                    <path d="M12,3.33331195 C11.5583864,3.34023577 11.1200413,3.41039344 10.6983333,3.54166667 C10.8934003,3.88471525 10.9972621,4.2720454 11,4.66666667 C11,5.95533108 9.95533108,7 8.66666667,7 C8.2720454,6.99726213 7.88471525,6.89340027 7.54166667,6.69833333 C6.98660604,8.62336005 7.72561929,10.6875925 9.37631973,11.8229374 C11.0270202,12.9582824 13.2190201,12.9099888 14.8181159,11.7030452 C16.4172116,10.4961015 17.0645946,8.40132438 16.4252903,6.50261161 C15.785986,4.60389884 14.0034429,3.32728764 12,3.33331195 L12,3.33331195 Z M23.855,7.39166667 C21.5954167,2.98291667 17.1220833,0 12,0 C6.87791667,0 2.40333333,2.985 0.145,7.39208333 C-0.0483029532,7.77445825 -0.0483029532,8.22595841 0.145,8.60833333 C2.40458333,13.0170833 6.87791667,16 12,16 C17.1220833,16 21.5966667,13.015 23.855,8.60791667 C24.048303,8.22554175 24.048303,7.77404159 23.855,7.39166667 Z M12,14 C7.88958333,14 4.12125,11.7083333 2.08625,8 C4.12125,4.29166667 7.88916667,2 12,2 C16.1108333,2 19.87875,4.29166667 21.91375,8 C19.8791667,11.7083333 16.1108333,14 12,14 Z" id="Shape"></path>
+
+                        {% if application.data_access_type != 'RESEARCH_STUDY' %}
+                            <p  class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center;">
+                                <svg width="23.9999544px" height="16px" alignment-baseline="baseline" viewBox="0 0 23.9999544 16" version="1.1" style="flex-shrink: 0;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                    <title>Icons/Show password</title>
+                                    <g id="🚧-Medicare.gov-permissions-screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                        <g id="no-demographic-option---mobile--13mo" transform="translate(-40.000023, -575.750000)" fill="#404040" fill-rule="nonzero">
+                                            <g id="access-duration" transform="translate(40.000000, 564.000000)">
+                                                <g id="Icons/Show-password" transform="translate(0.000000, 11.750000)">
+                                                    <g id="eye-regular" transform="translate(0.000000, -0.000000)">
+                                                        <path d="M12,3.33331195 C11.5583864,3.34023577 11.1200413,3.41039344 10.6983333,3.54166667 C10.8934003,3.88471525 10.9972621,4.2720454 11,4.66666667 C11,5.95533108 9.95533108,7 8.66666667,7 C8.2720454,6.99726213 7.88471525,6.89340027 7.54166667,6.69833333 C6.98660604,8.62336005 7.72561929,10.6875925 9.37631973,11.8229374 C11.0270202,12.9582824 13.2190201,12.9099888 14.8181159,11.7030452 C16.4172116,10.4961015 17.0645946,8.40132438 16.4252903,6.50261161 C15.785986,4.60389884 14.0034429,3.32728764 12,3.33331195 L12,3.33331195 Z M23.855,7.39166667 C21.5954167,2.98291667 17.1220833,0 12,0 C6.87791667,0 2.40333333,2.985 0.145,7.39208333 C-0.0483029532,7.77445825 -0.0483029532,8.22595841 0.145,8.60833333 C2.40458333,13.0170833 6.87791667,16 12,16 C17.1220833,16 21.5966667,13.015 23.855,8.60791667 C24.048303,8.22554175 24.048303,7.77404159 23.855,7.39166667 Z M12,14 C7.88958333,14 4.12125,11.7083333 2.08625,8 C4.12125,4.29166667 7.88916667,2 12,2 C16.1108333,2 19.87875,4.29166667 21.91375,8 C19.8791667,11.7083333 16.1108333,14 12,14 Z" id="Shape"></path>
+                                                    </g>
                                                 </g>
                                             </g>
                                         </g>
                                     </g>
-                                </g>
-                            </svg><span class="ds-u-margin-left--3 ds-text-body--md">{{ application.name }} will have access to your data {{ permission_end_date }}.</span>
-                        </p>
+                                </svg><span class="ds-u-margin-left--3 ds-text-body--md">{{ application.name }} will have access to your data {{ permission_end_date }}.</span>
+                            </p>
+                        {% endif %}
                         <p class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center">
                             <svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;" xmlns:xlink="http://www.w3.org/1999/xlink">
                                 <title>Icons/Help</title>
