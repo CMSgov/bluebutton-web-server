@@ -80,7 +80,6 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
             "last_active",
         )
 
-
     def clean_agree(self):
         return self.cleaned_data.get("agree")
 
