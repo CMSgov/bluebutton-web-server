@@ -1,6 +1,5 @@
 import hashlib
 import itertools
-import pytz
 import sys
 import time
 import uuid
@@ -35,6 +34,7 @@ from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import DataAccessGrant
 
 TEN_HOURS = "for 10 hours"
+
 
 class Application(AbstractApplication):
     scope = models.ManyToManyField(ProtectedCapability)
@@ -157,7 +157,6 @@ class Application(AbstractApplication):
                                         null=True,
                                         verbose_name="Data Access Type:")
 
-
     def access_end_date_mesg(self):
         if self.has_one_time_only_data_access():
             return TEN_HOURS
@@ -217,7 +216,6 @@ class Application(AbstractApplication):
                 if default_storage.exists(file_path):
                     uri = settings.MEDIA_URL + file_path
         return uri
-
 
     # Has one time only type data access?
     def has_one_time_only_data_access(self):

@@ -1,9 +1,7 @@
-import pytz
 import json
 
 import apps.logging.request_logger as logging
 
-from datetime import datetime
 from django.contrib.auth.models import User
 from oauth2_provider.models import get_application_model
 from waffle.testutils import override_flag

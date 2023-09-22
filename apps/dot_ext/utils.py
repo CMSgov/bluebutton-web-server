@@ -6,7 +6,6 @@ from django.db import transaction
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError
-from waffle import get_waffle_flag_model
 
 from apps.authorization.models import DataAccessGrant
 
