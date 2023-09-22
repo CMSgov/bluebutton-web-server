@@ -87,7 +87,6 @@ class BaseApiTest(TestCase):
         capability=None,
         user=None,
         data_access_type=None,
-        end_date=None,
         **kwargs
     ):
         """
@@ -112,10 +111,8 @@ class BaseApiTest(TestCase):
         if data_access_type:
             application.data_access_type = data_access_type
 
-        if end_date:
-            application.end_date = end_date
 
-        if data_access_type or end_date:
+        if data_access_type:
             application.save()
 
         # add capability
@@ -326,7 +323,7 @@ class BaseApiTest(TestCase):
 
     def _create_user_app_token_grant(
         self, first_name, last_name, fhir_id, app_name, app_username, app_user_organization,
-        app_data_access_type=None, app_end_date=None
+        app_data_access_type=None
     ):
         """
         Helper method that creates a user connected to an application
@@ -351,8 +348,6 @@ class BaseApiTest(TestCase):
             # Set data access type
             if app_data_access_type:
                 application.data_access_type = app_data_access_type
-            if app_end_date:
-                application.end_date = app_end_date
 
             # Add a few capabilities
             capability_a = self._create_capability("Capability A", [])

@@ -107,12 +107,6 @@ def validate_app_is_active(request):
         pass
 
     if app and app.active:
-        # Check for application RESEARCH_STUDY type end_date expired.
-        if app.has_research_study_expired():
-            raise InvalidClientError(
-                description=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG
-            )
-
         # Is this for a token refresh request?
         post_grant_type = request.POST.get("grant_type", None)
         if post_grant_type == "refresh_token":
@@ -140,22 +134,6 @@ def validate_app_is_active(request):
                     except DataAccessGrant.DoesNotExist:
                         pass
     return app
-
-
-def is_data_access_type_valid(user, data_access_type, end_date):
-    """
-    Validate data_access_type & end_date combo is valid.
-        Returns: True/False & exception message for use.
-    """
-    flag = get_waffle_flag_model().get("limit_data_access")
-    if flag.id is not None and flag.is_active_for_user(user):
-        if data_access_type == "RESEARCH_STUDY" and end_date is None:
-            return False, "An end_date is required for the RESEARCH_STUDY type!"
-
-        if data_access_type not in ["RESEARCH_STUDY", None] and end_date is not None:
-            return False, "An end_date is ONLY required for the RESEARCH_STUDY type!"
-
-    return True, None
 
 
 def json_response_from_oauth2_error(error):

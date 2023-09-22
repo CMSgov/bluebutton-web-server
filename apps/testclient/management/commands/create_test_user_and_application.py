@@ -93,7 +93,6 @@ def create_application(user, group, app, redirect):
                                 redirect_uris=redirect_uri,
                                 user=user,
                                 data_access_type="RESEARCH_STUDY",
-                                end_date=datetime(9999, 12, 31).replace(tzinfo=pytz.UTC),
                                 client_type="confidential",
                                 authorization_grant_type="authorization-code")
 

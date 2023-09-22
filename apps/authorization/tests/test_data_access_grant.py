@@ -137,7 +137,6 @@ class TestDataAccessGrant(BaseApiTest):
 
         # 7. Test has_expired() false for RESEARCH_STUDY type
         test_app.data_access_type = "RESEARCH_STUDY"
-        test_app.end_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
         test_app.save()
         self.assertEqual(dag.has_expired(), False)
 
@@ -184,7 +183,6 @@ class TestDataAccessGrant(BaseApiTest):
 
         # 7. Test has_expired() false for RESEARCH_STUDY type
         test_app.data_access_type = "RESEARCH_STUDY"
-        test_app.end_date = datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC)
         test_app.save()
         self.assertEqual(dag.has_expired(), False)
 
