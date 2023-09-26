@@ -97,9 +97,4 @@ class ApplicationActivePermission(permissions.BasePermission):
                 settings.APPLICATION_TEMPORARILY_INACTIVE.format(app_name)
             )
 
-        # Check for application RESEARCH_STUDY type end_date expired.
-        if app_is_active:
-            if request.auth.application.has_research_study_expired():
-                raise AuthenticationFailed(settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG)
-
         return True

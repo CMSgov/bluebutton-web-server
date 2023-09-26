@@ -1,9 +1,7 @@
-import pytz
 import json
 
 import apps.logging.request_logger as logging
 
-from datetime import datetime
 from django.contrib.auth.models import User
 from oauth2_provider.models import get_application_model
 from waffle.testutils import override_flag
@@ -38,7 +36,6 @@ class TestDotExtModels(BaseApiTest):
         # Create defaults
         test_app = self._create_application("test_app", user=dev_user)
         self.assertEqual("ONE_TIME", test_app.data_access_type)
-        self.assertEqual(None, test_app.end_date)
 
         # Delete app
         test_app.delete()
@@ -49,7 +46,6 @@ class TestDotExtModels(BaseApiTest):
         )
 
         self.assertEqual("ONE_TIME", test_app.data_access_type)
-        self.assertEqual(None, test_app.end_date)
 
         # Create for THIRTEEN_MONTH
         test_app = self._create_application(
@@ -57,7 +53,6 @@ class TestDotExtModels(BaseApiTest):
         )
 
         self.assertEqual("THIRTEEN_MONTH", test_app.data_access_type)
-        self.assertEqual(None, test_app.end_date)
 
         # Create Invalid data_access_type is not valid.
         with self.assertRaisesRegex(
@@ -67,87 +62,12 @@ class TestDotExtModels(BaseApiTest):
                 "test_app", user=dev_user, data_access_type="BAD_DATA_ACCESS_TYPE"
             )
 
-        # Create ONE_TIME w/ end_date is not valid.
-        with self.assertRaisesRegex(
-            ValueError, "An end_date is ONLY required for the RESEARCH_STUDY type!"
-        ):
-            test_app = self._create_application(
-                "test_app",
-                user=dev_user,
-                data_access_type="ONE_TIME",
-                end_date=datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC),
-            )
-
-        # Create THIRTEEN_MONTH w/ end_date is not valid.
-        with self.assertRaisesRegex(
-            ValueError, "An end_date is ONLY required for the RESEARCH_STUDY type!"
-        ):
-            test_app = self._create_application(
-                "test_app",
-                user=dev_user,
-                data_access_type="ONE_TIME",
-                end_date=datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC),
-            )
-
-        # Create for RESEARCH_STUDY w/o end_date is not valid.
-        with self.assertRaisesRegex(
-            ValueError, "An end_date is required for the RESEARCH_STUDY type!"
-        ):
-            test_app = self._create_application(
-                "test_app", user=dev_user, data_access_type="RESEARCH_STUDY"
-            )
-
-        # Create for RESEARCH_STUDY w/ end_date is valid.
-        test_app = self._create_application(
-            "test_app",
-            user=dev_user,
-            data_access_type="RESEARCH_STUDY",
-            end_date=datetime(2030, 1, 15, 0, 0, 0, 0, pytz.UTC),
-        )
-        self.assertEqual("RESEARCH_STUDY", test_app.data_access_type)
-        self.assertEqual("2030-01-15 00:00:00+00:00", str(test_app.end_date))
-
         # Update invalid data_access_type choice is not valid.
         with self.assertRaisesRegex(
             ValueError, "Invalid data_access_type: BAD_DATA_ACCESS_TYPE"
         ):
             test_app.data_access_type = "BAD_DATA_ACCESS_TYPE"
             test_app.save()
-
-        # Update ONE_TIME w/ end_date (already set) is not valid.
-        with self.assertRaisesRegex(
-            ValueError, "An end_date is ONLY required for the RESEARCH_STUDY type!"
-        ):
-            test_app.data_access_type = "ONE_TIME"
-            test_app.save()
-
-        # Update ONE_TIME w/o end_date is valid.
-        test_app.data_access_type = "ONE_TIME"
-        test_app.end_date = None
-        test_app.save()
-        self.assertEqual("ONE_TIME", test_app.data_access_type)
-        self.assertEqual(None, test_app.end_date)
-
-        # Update THIRTEEN_MONTH w/o end_date is valid.
-        test_app.data_access_type = "THIRTEEN_MONTH"
-        test_app.end_date = None
-        test_app.save()
-        self.assertEqual("THIRTEEN_MONTH", test_app.data_access_type)
-        self.assertEqual(None, test_app.end_date)
-
-        # Update RESEARCH_STUDY w/o end_date is not valid.
-        with self.assertRaisesRegex(
-            ValueError, "An end_date is required for the RESEARCH_STUDY type!"
-        ):
-            test_app.data_access_type = "RESEARCH_STUDY"
-            test_app.end_date = None
-            test_app.save()
-
-        # Update RESEARCH_STUDY w/ end_date is valid.
-        test_app.data_access_type = "RESEARCH_STUDY"
-        test_app.end_date = datetime(2029, 1, 25, 0, 0, 0, 0, pytz.UTC)
-        self.assertEqual("RESEARCH_STUDY", test_app.data_access_type)
-        self.assertEqual("2029-01-25 00:00:00+00:00", str(test_app.end_date))
 
     @override_flag('limit_data_access', active=True)
     def test_application_data_access_type_change(self):
@@ -163,7 +83,6 @@ class TestDotExtModels(BaseApiTest):
         # Create defaults
         test_app = self._create_application("test_app", user=dev_user)
         self.assertEqual("ONE_TIME", test_app.data_access_type)
-        self.assertEqual(None, test_app.end_date)
 
         # fake some grants tied to the user and the app
         DataAccessGrant.objects.update_or_create(
@@ -178,9 +97,7 @@ class TestDotExtModels(BaseApiTest):
         # application.data_access_type changed from ONE_TIME to RESEARCH_STUDY
         # w/ end_date is valid.
         test_app.data_access_type = "RESEARCH_STUDY"
-        test_app.end_date = datetime(2029, 1, 25, 0, 0, 0, 0, pytz.UTC)
         self.assertEqual("RESEARCH_STUDY", test_app.data_access_type)
-        self.assertEqual("2029-01-25 00:00:00+00:00", str(test_app.end_date))
 
         test_app.save()
 
@@ -215,7 +132,6 @@ class TestDotExtModels(BaseApiTest):
         # Create defaults
         test_app_sw_off = self._create_application("test_app_sw_off", user=dev_user)
         self.assertEqual("ONE_TIME", test_app_sw_off.data_access_type)
-        self.assertEqual(None, test_app_sw_off.end_date)
 
         # fake some grants tied to the user and the app
         DataAccessGrant.objects.update_or_create(
@@ -229,9 +145,7 @@ class TestDotExtModels(BaseApiTest):
         # application.data_access_type changed from ONE_TIME to RESEARCH_STUDY
         # w/ end_date is valid.
         test_app_sw_off.data_access_type = "RESEARCH_STUDY"
-        test_app_sw_off.end_date = datetime(2029, 1, 25, 0, 0, 0, 0, pytz.UTC)
         self.assertEqual("RESEARCH_STUDY", test_app_sw_off.data_access_type)
-        self.assertEqual("2029-01-25 00:00:00+00:00", str(test_app_sw_off.end_date))
 
         test_app_sw_off.save()
 

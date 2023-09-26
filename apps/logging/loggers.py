@@ -351,7 +351,6 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
             "first_active": format_timestamp(app.first_active),
             "last_active": format_timestamp(app.last_active),
             "data_access_type": app.data_access_type,
-            "end_date": format_timestamp(app.end_date),
             "require_demographic_scopes": app.require_demographic_scopes,
             "real_bene_cnt": grant_counts.get(
                 "real", None
