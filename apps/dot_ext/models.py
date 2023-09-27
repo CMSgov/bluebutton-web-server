@@ -1,6 +1,5 @@
 import hashlib
 import itertools
-import pytz
 import sys
 import time
 import uuid
@@ -34,10 +33,7 @@ from waffle import get_waffle_flag_model
 from apps.capabilities.models import ProtectedCapability
 from apps.authorization.models import DataAccessGrant
 
-from .utils import is_data_access_type_valid
-
 TEN_HOURS = "for 10 hours"
-RESEARCH_STUDY = "until the end of the research study on "
 
 
 class Application(AbstractApplication):
@@ -150,7 +146,7 @@ class Application(AbstractApplication):
     # Type choices related to data access limits.
     APPLICATION_TYPE_CHOICES = (
         ("ONE_TIME", "ONE_TIME - No refresh token needed."),
-        ("RESEARCH_STUDY", "RESEARCH_STUDY - Expires on end_date."),
+        ("RESEARCH_STUDY", "RESEARCH_STUDY - No expiration."),
         ("THIRTEEN_MONTH", "THIRTEEN_MONTH - Access expires in 13-months."),
     )
 
@@ -161,15 +157,11 @@ class Application(AbstractApplication):
                                         null=True,
                                         verbose_name="Data Access Type:")
 
-    # Application end_date related to data access limits.
-    end_date = models.DateTimeField(null=True, blank=True,
-                                    verbose_name="RESEARCH_STUDY End Date:")
-
     def access_end_date_mesg(self):
         if self.has_one_time_only_data_access():
             return TEN_HOURS
-        elif self.data_access_type == "RESEARCH_STUDY":
-            return RESEARCH_STUDY + self.end_date.strftime("%B %d, %Y")
+        elif "RESEARCH_STUDY" in self.data_access_type:
+            return "no end date."
         else:
             end_date = datetime.now() + relativedelta(months=+13)
             return "until " + end_date.strftime("%B %d, %Y")
@@ -225,25 +217,12 @@ class Application(AbstractApplication):
                     uri = settings.MEDIA_URL + file_path
         return uri
 
-    # Has the research study expired?
-    def has_research_study_expired(self):
-        flag = get_waffle_flag_model().get("limit_data_access")
-        # if id is None, flag is empty and method can't be called.
-        if flag.id is not None and flag.is_active_for_user(self.user):
-            if self.data_access_type == "RESEARCH_STUDY":
-                if self.end_date:
-                    if self.end_date < datetime.now().replace(tzinfo=pytz.UTC):
-                        return True
-
-        return False
-
     # Has one time only type data access?
     def has_one_time_only_data_access(self):
-        flag = get_waffle_flag_model().get("limit_data_access")
-        if flag.id is not None and flag.is_active_for_user(self.user):
-            if self.data_access_type == "ONE_TIME":
+        if self.data_access_type == "ONE_TIME":
+            flag = get_waffle_flag_model().get("limit_data_access")
+            if flag.id is not None and flag.is_active_for_user(self.user):
                 return True
-
         return False
 
     # Save override to restrict invalid field combos.
@@ -251,11 +230,6 @@ class Application(AbstractApplication):
         # Check data_access_type is in choices tuple
         if not (self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)):
             raise ValueError("Invalid data_access_type: " + self.data_access_type)
-
-        is_valid, mesg = is_data_access_type_valid(self.user, self.data_access_type, self.end_date)
-
-        if not is_valid:
-            raise ValueError(mesg)
 
         flag = get_waffle_flag_model().get("limit_data_access")
         if flag.id is not None and flag.is_active_for_user(self.user):

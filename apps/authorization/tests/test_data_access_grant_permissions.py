@@ -350,10 +350,8 @@ class TestDataAccessPermissions(BaseApiTest):
             app_username="devuser1",
             app_user_organization="org1",
             app_data_access_type="RESEARCH_STUDY",
-            app_end_date=datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC),
         )
         self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
-        self.assertEqual(app.end_date, datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC))
 
         #     Test grant exists.
         self.assertTrue(
@@ -403,10 +401,6 @@ class TestDataAccessPermissions(BaseApiTest):
         app.active = True
         app.save()
 
-        # 8. Test with RESEARCH_STUDY application end_date IS NOT expired (response_code=200)
-        app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
-        app.save()
-
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"], expected_response_code=200
         )
@@ -420,7 +414,6 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # 10. Test with RESEARCH_STUDY application end_date IS expired w/o feature flag (response_code=200)
         app.data_access_type = "RESEARCH_STUDY"
-        app.end_date = datetime(1999, 1, 15, 0, 0, 0, 0, pytz.UTC)
         app.save()
 
         self._assert_call_all_fhir_endpoints(
@@ -455,10 +448,8 @@ class TestDataAccessPermissions(BaseApiTest):
             app_username="devuser1",
             app_user_organization="org1",
             app_data_access_type="RESEARCH_STUDY",
-            app_end_date=datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC),
         )
         self.assertEqual(app.data_access_type, "RESEARCH_STUDY")
-        self.assertEqual(app.end_date, datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC))
 
         #     Test grant exists.
         self.assertTrue(
@@ -508,9 +499,8 @@ class TestDataAccessPermissions(BaseApiTest):
         app.active = True
         app.save()
 
-        # 8. Test with RESEARCH_STUDY application end_date IS NOT expired (response_code=200)
+        # 8. Re-test with RESEARCH_STUDY active (response_code=200)
         app.data_access_type = "RESEARCH_STUDY"
-        app.end_date = datetime(2199, 1, 15, 0, 0, 0, 0, pytz.UTC)
         app.save()
 
         self._assert_call_all_fhir_endpoints(
@@ -522,26 +512,6 @@ class TestDataAccessPermissions(BaseApiTest):
             application=app,
             refresh_token=ac["refresh_token"],
             expected_response_code=200,
-        )
-
-        # 10. Test with RESEARCH_STUDY application end_date IS expired (response_code=401)
-        app.data_access_type = "RESEARCH_STUDY"
-        app.end_date = datetime(1999, 1, 15, 0, 0, 0, 0, pytz.UTC)
-        app.save()
-
-        self._assert_call_all_fhir_endpoints(
-            access_token=ac["access_token"],
-            expected_response_code=401,
-            expected_response_detail_mesg=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG,
-        )
-
-        # 11. Test app expired token refresh (response_code=401)
-        ac = self._assert_call_token_refresh_endpoint(
-            application=app,
-            refresh_token=ac["refresh_token"],
-            expected_response_code=401,
-            expected_response_error_mesg="invalid_client",
-            expected_response_error_description_mesg=settings.APPLICATION_RESEARCH_STUDY_ENDED_MESG,
         )
 
     @override_flag("limit_data_access", active=False)

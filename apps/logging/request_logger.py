@@ -125,10 +125,6 @@ class RequestLogger(BasicLogger):
         except Exception:
             self.standard_log_data["auth_app_data_access_type"] = None
         try:
-            self.standard_log_data["auth_app_end_date"] = request.session["auth_app_end_date"]
-        except Exception:
-            self.standard_log_data["auth_app_end_date"] = None
-        try:
             self.standard_log_data["auth_client_id"] = request.session["auth_client_id"]
         except Exception:
             self.standard_log_data["auth_client_id"] = None

@@ -47,7 +47,6 @@ LOG_MIDDLEWARE_POST_TOKEN_EVENT_SCHEMA = {
         "auth_app_id": {"type": "string"},
         "auth_app_name": {"pattern": "TestApp"},
         "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
-        "auth_app_end_date": {"pattern": "9999-12-31 00:00:00\\+00:00"},
         "auth_share_demographic_scopes": {"pattern": "^True$"},
         "auth_require_demographic_scopes": {"pattern": "^True$"},
     },
@@ -55,7 +54,7 @@ LOG_MIDDLEWARE_POST_TOKEN_EVENT_SCHEMA = {
                  "request_method", "request_scheme", "response_code",
                  "app_id", "app_name", "auth_uuid", "auth_client_id",
                  "auth_app_id", "auth_app_name",
-                 "auth_app_data_access_type", "auth_app_end_date",
+                 "auth_app_data_access_type",
                  "auth_require_demographic_scopes", ]
 }
 
@@ -96,7 +95,6 @@ LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA = {
         "auth_app_id": {"type": "string"},
         "auth_app_name": {"pattern": "TestApp"},
         "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
-        "auth_app_end_date": {"pattern": "9999-12-31 00:00:00\\+00:00"},
         "auth_require_demographic_scopes": {"pattern": "^True$"},
         "req_qparam_client_id": {"type": "string"},
         "req_qparam_response_type": {"pattern": "code"},
@@ -109,7 +107,7 @@ LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA = {
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
                  "location", "app_id", "app_name", "auth_uuid", "auth_client_id",
-                 "auth_app_data_access_type", "auth_app_end_date",
+                 "auth_app_data_access_type",
                  "auth_app_id", "auth_app_name", "auth_require_demographic_scopes",
                  "req_qparam_client_id", "req_qparam_response_type", "req_app_name", "req_app_id",
                  "path", "request_method", "request_scheme", "response_code"]
@@ -131,7 +129,6 @@ LOG_MIDDLEWARE_MEDICARE_LOGIN_EVENT_SCHEMA = {
         "auth_app_id": {"type": "string"},
         "auth_app_name": {"pattern": "TestApp"},
         "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
-        "auth_app_end_date": {"pattern": "9999-12-31 00:00:00\\+00:00"},
         "auth_require_demographic_scopes": {"pattern": "^True$"},
         "path": {"pattern": "/mymedicare/login"},
         "request_method": {"pattern": "GET"},
@@ -140,7 +137,7 @@ LOG_MIDDLEWARE_MEDICARE_LOGIN_EVENT_SCHEMA = {
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
                  "location", "auth_uuid", "auth_client_id", "auth_app_id",
-                 "auth_app_data_access_type", "auth_app_end_date",
+                 "auth_app_data_access_type",
                  "auth_app_name", "auth_require_demographic_scopes",
                  "path", "request_method", "request_scheme", "response_code"]
 }
@@ -161,7 +158,6 @@ LOG_MIDDLEWARE_MEDICARE_CALLBACK_EVENT_SCHEMA = {
         "auth_app_id": {"type": "string"},
         "auth_app_name": {"pattern": "TestApp"},
         "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
-        "auth_app_end_date": {"pattern": "9999-12-31 00:00:00\\+00:00"},
         "auth_crosswalk_action": {"enum": ["R", "C"]},
         "auth_require_demographic_scopes": {"pattern": "^True$"},
         "req_user_id": {"type": "number"},
@@ -176,7 +172,7 @@ LOG_MIDDLEWARE_MEDICARE_CALLBACK_EVENT_SCHEMA = {
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
                  "location", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name", "auth_require_demographic_scopes",
-                 "auth_app_data_access_type", "auth_app_end_date",
+                 "auth_app_data_access_type",
                  "req_user_id", "req_user_username", "req_fhir_id",
                  "path", "user", "fhir_id", "request_method", "request_scheme", "response_code"]
 }
@@ -199,7 +195,6 @@ LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA = {
         "auth_app_id": {"type": "string"},
         "auth_app_name": {"pattern": "TestApp"},
         "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
-        "auth_app_end_date": {"pattern": "9999-12-31 00:00:00\\+00:00"},
         "auth_crosswalk_action": {"enum": ["R", "C"]},
         "auth_require_demographic_scopes": {"pattern": "^True$"},
         "req_qparam_client_id": {"type": "string"},
@@ -215,7 +210,7 @@ LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA = {
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
                  "location", "app_id", "app_name", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name",
-                 "auth_app_data_access_type", "auth_app_end_date",
+                 "auth_app_data_access_type",
                  "auth_crosswalk_action", "auth_require_demographic_scopes", "req_qparam_client_id",
                  "req_qparam_response_type", "req_app_name", "req_app_id",
                  "path", "user", "fhir_id", "request_method", "request_scheme", "response_code"]
@@ -239,7 +234,6 @@ LOG_MIDDLEWARE_ACCESS_GRANT_EVENT_SCHEMA = {
         "auth_app_id": {"type": "string"},
         "auth_app_name": {"pattern": "TestApp"},
         "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
-        "auth_app_end_date": {"pattern": "9999-12-31 00:00:00\\+00:00"},
         "auth_crosswalk_action": {"enum": ["R", "C"]},
         "auth_require_demographic_scopes": {"pattern": "^True$"},
         "req_redirect_uri": {"type": "string"},
@@ -262,7 +256,7 @@ LOG_MIDDLEWARE_ACCESS_GRANT_EVENT_SCHEMA = {
     },
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
                  "location", "app_id", "app_name", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name",
-                 "auth_app_data_access_type", "auth_app_end_date",
+                 "auth_app_data_access_type",
                  "auth_crosswalk_action", "auth_require_demographic_scopes",
                  "req_redirect_uri", "req_scope", "req_user_username", "req_fhir_id",
                  "req_qparam_client_id", "req_qparam_response_type", "req_app_name", "req_app_id",

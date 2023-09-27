@@ -32,7 +32,7 @@ def get_app_creds(creds_request_id: string):
     creds_dict.update(
         {
             "client_id": app.client_id,
-            "client_secret": app.client_secret,
+            "client_secret_plain": app.client_secret_plain,
         }
     )
 
