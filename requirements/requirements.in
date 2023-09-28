@@ -44,5 +44,5 @@ django-ses
 oauthlib
 python-openid
 django-oauth-toolkit
-cryptography==41.0.3
+cryptography==41.0.4
 jwcrypto
