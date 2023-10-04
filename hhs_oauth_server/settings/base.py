@@ -235,6 +235,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.dot_ext.throttling.ThrottleMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "waffle.middleware.WaffleMiddleware",
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
@@ -295,6 +296,17 @@ MESSAGE_TAGS = {
     messages.WARNING: "warning",
     messages.ERROR: "danger",
 }
+
+# Set the list of supported languages
+LANGUAGES = [
+    ('en-us', _('English')),
+    ('es', _('Spanish')),
+    # Add more languages as needed
+]
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, ("templates/design_system/locale")),
+]
 
 # internationalization
 LANGUAGE_CODE = "en-us"
