@@ -52,7 +52,7 @@
         }
     }  
 </script>
-<section class="ds-c-usa-banner" aria-label="Official government website">
+<section class="ds-c-usa-banner" aria-label={% trans "Official government website" %}>
 <header class="ds-c-usa-banner__header" style="background-color:#f2f2f2; padding: 8px 16px 8px 16px;">
     <svg
         aria-hidden="false"
@@ -80,9 +80,9 @@
         </g>
     </svg>
     <p class="ds-c-usa-banner__header-text">
-        <span>An official website of the United States government</span>
+        <span>{% trans "An official website of the United States government" %}</span>
         <button onclick="toggleBanner()" class="ds-c-usa-banner__button" style="background-color:#f2f2f2; padding: 0; width: fit-content;" aria-expanded="false" aria-controls="gov-banner_25">
-            <span class="ds-c-usa-banner__button-text" style="background-color:#f2f2f2;">Here’s how you know</span>
+            <span class="ds-c-usa-banner__button-text" style="background-color:#f2f2f2;">{% trans "Here’s how you know" %}</span>
             <svg
             aria-hidden="true"
             class="ds-c-icon ds-c-icon--arrow ds-c-icon--arrow-down ds-c-usa-banner__action-icon"
@@ -129,12 +129,11 @@
         </g>
         </svg>
         <p class="ds-c-usa-banner__media-body">
-        <strong>Official websites use .gov</strong>
+        <strong>{% trans "Official websites use .gov" %}</strong>
         <br />
-        A
-        <strong>.gov</strong>
-        website belongs to an official government organization in the United
-        States.
+        {% trans "A " %}
+        <strong>{% trans ".gov " %}</strong>
+        {% trans "website belongs to an official government organization in the United States." %}
         </p>
     </div>
     <div class="ds-c-usa-banner__guidance">
@@ -160,10 +159,10 @@
         ></circle>
         </svg>
         <p class="ds-c-usa-banner__media-body">
-        <strong>Secure .gov websites use HTTPS</strong>
+        <strong>{% trans "Secure .gov websites use HTTPS" %}</strong>
         <br />
-        A
-        <strong>lock</strong>
+        {% trans "A " %}
+        <strong>{% trans "lock "%}</strong>
         <svg
             aria-hidden="true"
             class="ds-c-icon ds-c-icon--lock ds-c-usa-banner__lock-image"
@@ -177,10 +176,9 @@
             d="M26 0c10.493 0 19 8.507 19 19v9h3a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V32a4 4 0 0 1 4-4h3v-9C7 8.507 15.507 0 26 0zm0 8c-5.979 0-10.843 4.77-10.996 10.712L15 19v9h22v-9c0-6.075-4.925-11-11-11z"
             ></path>
         </svg>
-        or
+        {% trans "or " %}
         <strong>https://</strong>
-        means you’ve safely connected to the .gov website. Share sensitive
-        information only on official, secure websites.
+        {% trans " means you’ve safely connected to the .gov website. Share sensitive information only on official, secure websites." %}
         </p>
     </div>
     </div>
