@@ -454,7 +454,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         )
         self.assertEqual(response.status_code, 401)
 
-
     def test_refresh_with_revoked_token(self):
         redirect_uri = 'http://localhost'
         # create a user
