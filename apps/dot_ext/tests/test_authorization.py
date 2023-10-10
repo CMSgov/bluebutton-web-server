@@ -386,7 +386,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'grant_type': 'refresh_token',
             'refresh_token': refresh_tkn,
             'redirect_uri': redirect_uri,
-            'client_secret': application.client_secret_plain,
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 401)
@@ -444,7 +443,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             'grant_type': 'refresh_token',
             'refresh_token': refresh_tkn,
             'redirect_uri': redirect_uri,
-            'client_secret': application.client_secret_plain,
         }
         auth = self._create_authorization_header(application.client_id, application.client_secret_plain)
         response = self.client.post(
