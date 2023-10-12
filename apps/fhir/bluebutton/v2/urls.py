@@ -4,9 +4,16 @@ from django.contrib import admin
 from apps.fhir.bluebutton.views.read import ReadViewCoverage, ReadViewExplanationOfBenefit, ReadViewPatient
 from apps.fhir.bluebutton.views.search import SearchViewCoverage, SearchViewExplanationOfBenefit, SearchViewPatient
 
+from apps.fhir.bluebutton.views import smart_configuration 
+
 admin.autodiscover()
 
 urlpatterns = [
+    # OpenID Connect (OIDC)
+    url(r'.well-known/smart-configuration$',
+        smart_configuration,
+        name='smart-configuration-v2'),
+
     # Patient ReadView
     url(r'Patient/(?P<resource_id>[^/]+)',
         ReadViewPatient.as_view(version=2),
