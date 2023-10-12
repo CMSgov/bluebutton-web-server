@@ -1,0 +1,142 @@
+# Spanish language translation file
+# Adrian Jones <adrian.jones@adhocteam.us>, 2023.
+#
+# TRANSLATORS: text and punctuation after 'msgid' is the English text requiring translation.
+# The translation text should go within the quotation marks following the 'msgstr' identifier.
+# Please add/maintain all punctuation and whitespce found in the original text.
+#, fuzzy
+#: auth_base.html:55
+msgid "Official government website"
+msgstr ""
+
+#: auth_base.html:83
+msgid "An official website of the United States government"
+msgstr ""
+
+#: auth_base.html:85
+msgid "Here's how you know"
+msgstr ""
+
+#: auth_base.html:132
+msgid "Official websites use .gov"
+msgstr ""
+
+#: auth_base.html:134 auth_base.html:164
+msgid "A "
+msgstr ""
+
+#: auth_base.html:135
+msgid ".gov "
+msgstr ""
+
+#: auth_base.html:136
+msgid "website belongs to an official government organization in the United States."
+msgstr ""
+
+#: auth_base.html:162
+msgid "Secure .gov websites use HTTPS"
+msgstr ""
+
+#: auth_base.html:165
+msgid "lock "
+msgstr ""
+
+#: auth_base.html:179
+msgid "or "
+msgstr ""
+
+#: new_authorize_v2.html:55
+msgid "?"
+msgstr ""
+
+#: auth_base.html:181
+msgid " means you've safely connected to the .gov website. Share sensitive information only on official, secure websites."
+msgstr ""
+
+#: design_system/new_authorize_v2.html:55
+msgid "Connect your Medicare claims data to "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:57
+msgid "If you connect, "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:57
+msgid "will have access to information about your:"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:59
+msgid "Doctor visits"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:60
+msgid "Hospital visits"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:61
+msgid "Prescription medications"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:69
+msgid "You can also grant access to your:"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:88
+msgid "Personal Information"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:88
+msgid "Your name, address, date of birth, race, and gender"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:91
+msgid "Uncheck to block access to personal information."
+msgstr ""
+
+#: design_system/new_authorize_v2.html:92
+msgid "Check to allow access to personal information."
+msgstr ""
+
+#: design_system/new_authorize_v2.html:126
+msgid "Learn more about how "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:126
+msgid " uses your data in their "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:126
+msgid "Privacy Policy"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:126
+msgid " and "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:126
+msgid "Terms and Conditions"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:144
+msgid " will have access to your data until "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:159
+msgid "To stop sharing your information with "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:159
+msgid " visit your "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:159
+msgid " account or call "
+msgstr ""
+
+#: design_system/new_authorize_v2.html:164
+msgid "Cancel"
+msgstr ""
+
+#: design_system/new_authorize_v2.html:166
+msgid "Connect"
+msgstr ""
