@@ -5,138 +5,148 @@
 # The translation text should go within the quotation marks following the 'msgstr' identifier.
 # Please add/maintain all punctuation and whitespce found in the original text.
 #, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-02 14:59+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
 #: auth_base.html:55
 msgid "Official government website"
-msgstr ""
+msgstr "Sitio web oficial del gobierno"
 
 #: auth_base.html:83
 msgid "An official website of the United States government"
-msgstr ""
+msgstr "Un sitio web oficial del gobierno de los Estados Unidos"
 
 #: auth_base.html:85
 msgid "Here's how you know"
-msgstr ""
+msgstr "Así es como sabes"
 
 #: auth_base.html:132
 msgid "Official websites use .gov"
-msgstr ""
+msgstr "Los sitios web oficiales utilizan .gov"
 
 #: auth_base.html:134 auth_base.html:164
 msgid "A "
-msgstr ""
+msgstr "Un "
 
 #: auth_base.html:135
 msgid ".gov "
-msgstr ""
+msgstr ".gov "
 
 #: auth_base.html:136
 msgid "website belongs to an official government organization in the United States."
-msgstr ""
+msgstr "el sitio web pertenece a una organización gubernamental oficial en los Estados Unidos."
 
 #: auth_base.html:162
 msgid "Secure .gov websites use HTTPS"
-msgstr ""
+msgstr "Los sitios web .gov seguros utilizan HTTPS"
 
 #: auth_base.html:165
 msgid "lock "
-msgstr ""
+msgstr "cerradura "
 
 #: auth_base.html:179
 msgid "or "
-msgstr ""
-
-#: new_authorize_v2.html:55
-msgid "?"
-msgstr ""
+msgstr "o "
 
 #: auth_base.html:181
 msgid " means you've safely connected to the .gov website. Share sensitive information only on official, secure websites."
-msgstr ""
+msgstr " Significa que te has conectado de forma segura al sitio web .gov. Comparte información sensible solo en sitios web oficiales y seguros."
 
 #: design_system/new_authorize_v2.html:55
 msgid "Connect your Medicare claims data to "
-msgstr ""
+msgstr "Conecta tus datos de reclamaciones de Medicare a "
 
 #: design_system/new_authorize_v2.html:57
 msgid "If you connect, "
-msgstr ""
+msgstr "Si te conectas, "
 
 #: design_system/new_authorize_v2.html:57
 msgid "will have access to information about your:"
-msgstr ""
+msgstr "tendrás acceso a información sobre tu:"
 
 #: design_system/new_authorize_v2.html:59
 msgid "Doctor visits"
-msgstr ""
+msgstr "visitas al médico"
 
 #: design_system/new_authorize_v2.html:60
 msgid "Hospital visits"
-msgstr ""
+msgstr "visitas al hospital"
 
 #: design_system/new_authorize_v2.html:61
 msgid "Prescription medications"
-msgstr ""
+msgstr "medicamentos recetados"
 
 #: design_system/new_authorize_v2.html:69
 msgid "You can also grant access to your:"
-msgstr ""
+msgstr "También puedes otorgar acceso a tu:"
 
 #: design_system/new_authorize_v2.html:88
 msgid "Personal Information"
-msgstr ""
+msgstr "Información personal"
 
 #: design_system/new_authorize_v2.html:88
 msgid "Your name, address, date of birth, race, and gender"
-msgstr ""
+msgstr "Tu nombre, dirección, fecha de nacimiento, raza y género"
 
 #: design_system/new_authorize_v2.html:91
 msgid "Uncheck to block access to personal information."
-msgstr ""
+msgstr "Desmarca para bloquear el acceso a la información personal."
 
 #: design_system/new_authorize_v2.html:92
 msgid "Check to allow access to personal information."
-msgstr ""
+msgstr "Marca para permitir el acceso a la información personal."
 
 #: design_system/new_authorize_v2.html:126
 msgid "Learn more about how "
-msgstr ""
+msgstr "Aprender sobre cómo "
 
 #: design_system/new_authorize_v2.html:126
 msgid " uses your data in their "
-msgstr ""
+msgstr "utiliza tus datos en su "
 
 #: design_system/new_authorize_v2.html:126
 msgid "Privacy Policy"
-msgstr ""
+msgstr "Política de Privacidad"
 
 #: design_system/new_authorize_v2.html:126
 msgid " and "
-msgstr ""
+msgstr " y "
 
 #: design_system/new_authorize_v2.html:126
 msgid "Terms and Conditions"
-msgstr ""
+msgstr "Términos y Condiciones"
 
 #: design_system/new_authorize_v2.html:144
 msgid " will have access to your data until "
-msgstr ""
+msgstr " tendrá acceso a tus datos hasta que "
 
 #: design_system/new_authorize_v2.html:159
 msgid "To stop sharing your information with "
-msgstr ""
+msgstr "Para dejar de compartir tu información con "
 
 #: design_system/new_authorize_v2.html:159
 msgid " visit your "
-msgstr ""
+msgstr " visitar tu "
 
 #: design_system/new_authorize_v2.html:159
 msgid " account or call "
-msgstr ""
+msgstr " cuenta o llamar "
 
 #: design_system/new_authorize_v2.html:164
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
 #: design_system/new_authorize_v2.html:166
 msgid "Connect"
-msgstr ""
+msgstr "Conectar"
