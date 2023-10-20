@@ -40,6 +40,7 @@ display_usage() {
     echo
     echo "-h     Print this Help."
     echo "-d     Run tests in selenium debug mode (vnc view web UI interaction at http://localhost:5900)."
+    echo "-p     Use new permissions screen (defaults to old style screen)."
     echo
 }
 
@@ -73,6 +74,7 @@ set -e -u -o pipefail
 
 export USE_MSLSX=true
 export USE_DEBUG=false
+export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
@@ -81,7 +83,7 @@ export BB2_SERVER_STD2FILE=""
 set_slsx
 
 # Parse command line option
-while getopts "hd" option; do
+while getopts "hdp" option; do
    case $option in
       h)
          display_usage
@@ -90,6 +92,8 @@ while getopts "hd" option; do
          export USE_DEBUG=true
          export SERVICE_NAME="selenium-tests-debug"
          shift;break;;
+      p)
+         export USE_NEW_PERM_SCREEN=true;;
      \?)
          display_usage
          exit;;
@@ -213,6 +217,7 @@ echo "Selenium tests ..."
 echo "MSLSX=" ${USE_MSLSX}
 echo "DEBUG=" ${USE_DEBUG}
 echo "SERVICE NAME=" ${SERVICE_NAME}
+echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 
 docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "pytest ${TESTS_LIST}"
 

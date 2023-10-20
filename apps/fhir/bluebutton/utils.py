@@ -167,12 +167,9 @@ def generate_info_headers(request):
             result["BlueButton-Application"] = str(at.application.name)
             result["BlueButton-ApplicationId"] = str(at.application.id)
             # BB2-2011 update logging w.r.t new fields application data_access_type
-            result["BlueButton-ApplicationDataAccessType"] = str(
-                at.application.data_access_type
-            )
-            result["BlueButton-ApplicationEndDate"] = str(at.application.end_date)
-            result["BlueButton-DeveloperId"] = str(at.application.user.id)
-            result["BlueButton-Developer"] = str(at.application.user)
+            result['BlueButton-ApplicationDataAccessType'] = str(at.application.data_access_type)
+            result['BlueButton-DeveloperId'] = str(at.application.user.id)
+            result['BlueButton-Developer'] = str(at.application.user)
         else:
             result["BlueButton-Application"] = ""
             result["BlueButton-ApplicationId"] = ""

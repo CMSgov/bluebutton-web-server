@@ -18,7 +18,7 @@ from .models import AuthFlowUuid
 
 # List of value keys that are being tracked via request.session
 SESSION_AUTH_FLOW_TRACE_KEYS = ['auth_uuid', 'auth_client_id', 'auth_grant_type', 'auth_app_id',
-                                'auth_app_name', 'auth_app_data_access_type', 'auth_app_end_date',
+                                'auth_app_name', 'auth_app_data_access_type',
                                 'auth_pkce_method', 'auth_crosswalk_action',
                                 'auth_share_demographic_scopes', 'auth_require_demographic_scopes']
 
@@ -82,7 +82,6 @@ def create_session_auth_flow_trace(request):
                               "auth_app_id": str(application.id),
                               "auth_app_name": application.name,
                               "auth_app_data_access_type": application.data_access_type,
-                              "auth_app_end_date": str(application.end_date) if application.end_date else "",
                               "auth_require_demographic_scopes": str(application.require_demographic_scopes),
                               "auth_client_id": application.client_id,
                               "auth_pkce_method": auth_pkce_method,
@@ -103,7 +102,6 @@ def create_session_auth_flow_trace(request):
                               "auth_app_id": "",
                               "auth_app_name": "",
                               "auth_app_data_access_type": "",
-                              "auth_app_end_date": "",
                               "auth_require_demographic_scopes": "",
                               "auth_client_id": "",
                               "auth_pkce_method": "",
@@ -169,7 +167,6 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
             request.session['auth_app_id'] = str(application.id)
             request.session['auth_app_name'] = application.name
             request.session['auth_app_data_access_type'] = application.data_access_type
-            request.session['auth_app_end_date'] = str(application.end_date) if application.end_date else ""
             request.session['auth_require_demographic_scopes'] = str(application.require_demographic_scopes)
             request.session['auth_client_id'] = application.client_id
         except Application.DoesNotExist:
