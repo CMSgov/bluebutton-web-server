@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-02 14:59+0000\n"
+"POT-Creation-Date: 2023-10-18 12:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,31 +31,35 @@ msgstr "Un sitio web oficial del gobierno de los Estados Unidos"
 msgid "Here's how you know"
 msgstr "Así es como sabes"
 
-#: auth_base.html:132
+#: auth_base.html:102
+msgid "Cambiar a español"
+msgstr "Change to English"
+
+#: auth_base.html:133
 msgid "Official websites use .gov"
 msgstr "Los sitios web oficiales utilizan .gov"
 
-#: auth_base.html:134 auth_base.html:164
+#: auth_base.html:135 auth_base.html:165
 msgid "A "
 msgstr "Un "
 
-#: auth_base.html:135
+#: auth_base.html:136
 msgid ".gov "
 msgstr ".gov "
 
-#: auth_base.html:136
+#: auth_base.html:137
 msgid "website belongs to an official government organization in the United States."
 msgstr "el sitio web pertenece a una organización gubernamental oficial en los Estados Unidos."
 
-#: auth_base.html:162
+#: auth_base.html:163
 msgid "Secure .gov websites use HTTPS"
 msgstr "Los sitios web .gov seguros utilizan HTTPS"
 
-#: auth_base.html:165
+#: auth_base.html:166
 msgid "lock "
 msgstr "cerradura "
 
-#: auth_base.html:179
+#: auth_base.html:180
 msgid "or "
 msgstr "o "
 
