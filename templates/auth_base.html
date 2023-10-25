@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
+{% load i18n %}
+<html>
 	<head>
 		{% load i18n %}
 
@@ -99,6 +100,7 @@
             </svg>
         </button>
     </p>
+    <div class="ds-u-lg-align-items--end"><a href="{% url 'toggle-language' %}">{% trans "Cambiar a español" %}</a></div>
 </header>
 <div class="ds-c-usa-banner__content" id="gov-banner_25" hidden="">
     <div class="ds-c-usa-banner__guidance-container">

@@ -227,6 +227,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware",
+    "apps.authorization.language.LanguageMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     # Middleware that can send a response must be below this line
     "django.middleware.common.CommonMiddleware",
@@ -235,7 +236,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.dot_ext.throttling.ThrottleMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
+    # "django.middleware.locale.LocaleMiddleware",
     "waffle.middleware.WaffleMiddleware",
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
@@ -258,6 +259,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django_settings_export.settings_export",
@@ -299,7 +301,7 @@ MESSAGE_TAGS = {
 
 # Set the list of supported languages
 LANGUAGES = [
-    ('en-us', _('English')),
+    ('en', _('English')),
     ('es', _('Spanish')),
     # Add more languages as needed
 ]
@@ -309,7 +311,7 @@ LOCALE_PATHS = [
 ]
 
 # internationalization
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
