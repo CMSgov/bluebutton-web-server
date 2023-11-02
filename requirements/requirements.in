@@ -1,5 +1,5 @@
 # base packages
-django==3.2.21
+django==3.2.23
 django-getenv
 django-bootstrap-form
 django-cors-headers
