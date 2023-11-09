@@ -71,13 +71,13 @@ docker-compose up -d
 Or equivalently:
 
 ```
-docker-compose up -d web
+docker-compose --profile web up -d
 ```
 
 To startup the Docker containerized BB2 server using msls:
 
 ```
-docker-compose up -d web_msls
+docker-compose --profile web_msls up -d
 ```
 
 To shutdown the Docker containerized BB2 server (this is needed when switching between SLSx and MSLS modes):
@@ -112,7 +112,7 @@ docker images  # This should now show an empty list.
 Precommit config has been setup inside the repo which will make sure that the code is properly formatted prior to commiting. To setup run as follows:
 
 ```
-source venv/bin/activate (unless already done)
+source venv/Scripts/activate (unless already done)
 pip install pre-commit
 pre-commit install
 ```
@@ -218,17 +218,25 @@ Running migrations:
 ## Populate BB2 Django models with large number of records
 
 Run migrate.sh will in turn execute a django command among other things:
-
+```
 python manage.py create_test_user_and_application
+```
 
 this will populate BB2 Django models User, UserProfile, Application, Crosswalk, AccessToken with:
 
-one user 'fred', one app 'TestApp', one access token, and one corresponding crosswalk entry, which can be used for minimum test, for local tests that require large number of users, applications, etc. there
-is a command to help with that:
-
+one user 'fred', one app 'TestApp', one access token, and one corresponding crosswalk entry, which can be used for minimum test, for local tests that require large number of users, applications, etc. 
+There is a command to help with that:
+```
 python manage.py create_test_users_and_applications_batch
+```
 
-which generates 50 dev users, each has 1-5 apps, and 30k bene users which have following relations:
+which by default, generates 150 dev users, each having 1-5 apps, and 100 bene users. To change the number of users and apps generated, use the `-d`, `-a` and `-b` flags:
+```
+python manage.py create_test_users_and_applications_batch -d <number of dev users> -b <number of bene users> -a <maximum number of apps per dev user>
+```
+These are also listed when specifying `--help` on the command.
+
+The generated users and apps have the following relations:
 
 1. dev users and apps created date are spread over past 700 days randomly
 2. each bene sign up (grant access) with 1-3 apps by aproximately: 70% 1 app, 25% 2 apps, 5% 3 apps and
@@ -236,12 +244,11 @@ which generates 50 dev users, each has 1-5 apps, and 30k bene users which have f
 4. benes sign up dates are randomized and set to a date approximately 10 days after apps created date
 5. apps' client type, grant type, opt in/out of demographic info access are also randomly generated per a percent distribution
 
-the data generation command assumes that the 30k synthetic beneficiary records in rif files are present
+The data generation command assumes that the number of synthetic beneficiary records desired are in the rif files
 under BB2 local repo base directory:
 
 <bb2_local_repo_base>/synthetic-data/
 
-for detailed info about the synthetic data and how to fetch them, refer to: https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-model/bfd-model-rif-samples/dev/design-sample-data-sets.md
 
 ## Running tests from your host
 
@@ -282,7 +289,6 @@ convertion using the following command:
 
 ```
 git config --global core.autocrlf true
-
 ```
 
 in case, with above git core.autocrlf setting, some steps e.g. migrate.sh still chokes (file not found etc.),
@@ -354,18 +360,16 @@ export HOST="http://localhost:8000"
 
 ```
 
-Get Pateint FHIR Resource json
+Get Patient FHIR Resource json
 
 ```
 curl --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/Patient/${BENE_ID}"
-
 ```
 
 Get ExplanationOfBenefit FHIR Resource json
 
 ```
 curl -k -v --header "Authorization: Bearer ${ACCESS_TOKEN}"  "${HOST}/v1/fhir/ExplanationOfBenefit/?Patient=${BENE_ID}"
-
 ```
 
 ## Developing and Running Integration Tests in Local Development
@@ -483,10 +487,14 @@ You can run selenium tests against a local bb2 server by following below steps:
 
 You can run selenium tests against a remote bb2 server by following below steps:
 
-1. From the base directory of the local repo run:
-2. ./docker-compose/run_selenium_tests_remote.sh SBX (run selenium tests against bb2 server on SBX)
-3. ./docker-compose/run_selenium_tests_remote.sh -d SBX (run selenium tests in debug against bb2 server on SBX)
-4. the argument can be the remote ENV's name, it can also be the URL alternatively
-5. ./docker-compose/run_selenium_tests_remote.sh https://sandbox.bluebutton.cms.gov/
-6. ./docker-compose/run_selenium_tests_remote.sh -d https://sandbox.bluebutton.cms.gov/
+From the base directory of the local repo run:
+```
+./docker-compose/run_selenium_tests_remote.sh SBX (run selenium tests against bb2 server on SBX)
+./docker-compose/run_selenium_tests_remote.sh -d SBX (run selenium tests in debug against bb2 server on SBX)
+```
+The argument can be the remote ENV's name, it can also be the URL alternatively:
+```
+./docker-compose/run_selenium_tests_remote.sh https://sandbox.bluebutton.cms.gov/
+./docker-compose/run_selenium_tests_remote.sh -d https://sandbox.bluebutton.cms.gov/
+```
 

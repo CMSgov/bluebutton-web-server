@@ -32,6 +32,9 @@ APPLICATION_SCOPES_FULL = ['patient/Patient.read', 'profile',
                            'capability-a', 'capability-b']
 APPLICATION_SCOPES_NON_DEMOGRAPHIC = ['patient/ExplanationOfBenefit.read',
                                       'patient/Coverage.read', 'capability-a', 'capability-b']
+DEFAULT_BENE_COUNT = 100
+DEFAULT_DEV_COUNT = 150
+DEFAULT_MAX_APPS_PER_DEV = 5
 
 
 def create_group(name="BlueButton"):
@@ -44,9 +47,10 @@ def create_group(name="BlueButton"):
     return g
 
 
-def create_dev_users_apps_and_bene_crosswalks(group):
+def create_dev_users_apps_and_bene_crosswalks(group, bene_count, dev_count, app_max):
     #
-    # generate dev users dev0001 - dev1000, with password, email, security questions, etc.
+    # generate dev users dev0001, dev0002, dev0003 etc, with password, email, security questions, etc.
+    # Counts are based on the inputs, but if undefined,will default to the defaults defined above
     # each dev user can have 1 to many applications: dev0001-app01, dev0001-app02
     # generate crosswalk bene users with FHIR-ID. HICN-HASH, MBI-HASH etc
     #
@@ -101,7 +105,7 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                     synthetic_bene_cnt += 1
                     print(".", end="", flush=True)
                     time.sleep(.05)
-                    if count > 100:
+                    if count > bene_count:
                         break
         bene_rif.close()
         file_cnt += 1
@@ -111,10 +115,10 @@ def create_dev_users_apps_and_bene_crosswalks(group):
 
     scope_all = ' '.join(APPLICATION_SCOPES_FULL)
     scope_no_demo = ' '.join(APPLICATION_SCOPES_NON_DEMOGRAPHIC)
-    # create 100 dev users
+    # create dev users according dev-count parameter, default to 100
     # generate access tokens + refresh tokens + archived tokens for random picked benes for each app
     app_index = 0
-    for i in range(150):
+    for i in range(dev_count):
         dev_u_fn = "DevUserFN{}".format(i)
         dev_u_ln = "DevUserLN{}".format(i)
         u = User.objects.create_user(username="{}.{}".format(dev_u_fn, dev_u_ln),
@@ -134,7 +138,7 @@ def create_dev_users_apps_and_bene_crosswalks(group):
                                    password_reset_answer_3='Bentley')
         u.groups.add(group)
         # 1-5 apps per DEV user
-        app_cnt = randint(1, 5)
+        app_cnt = randint(1, app_max)
         print(">>>>generating apps for user={}".format(u.username))
         for i in range(app_cnt):
             app_index += 1
@@ -267,8 +271,19 @@ class Command(BaseCommand):
             ' apps for each of them, create 30k bene users from s3 bucket '
             'synthetic data and crosswalk for each bene.')
 
+    def add_arguments(self, parser):
+        parser.add_argument("-b", "--bene-count", default=DEFAULT_BENE_COUNT, help="Total number of bene to be created.")
+        parser.add_argument("-d", "--dev-count", default=DEFAULT_DEV_COUNT, help="Total number of devs to be created.")
+        parser.add_argument("-a", "--app-max", default=DEFAULT_MAX_APPS_PER_DEV, help="Maximum number of apps per dev.")
+
     def handle(self, *args, **options):
+        bene_count = int(options["bene_count"])
+        dev_count = int(options["dev_count"])
+        app_max = int(options["app_max"])
         g = create_group()
-        create_dev_users_apps_and_bene_crosswalks(g)
+        create_dev_users_apps_and_bene_crosswalks(g,
+            bene_count,
+            dev_count,
+            app_max)
         # update grants
         update_grants()
