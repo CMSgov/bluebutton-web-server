@@ -248,8 +248,6 @@ class Application(AbstractApplication):
                 app_from_db = None
                 try:
                     app_from_db = Application.objects.get(pk=self.id)
-                    self.copy_client_secret()
-                    super().save(*args, **kwargs)
                     if app_from_db is not None:
                         if self.data_access_type != app_from_db.data_access_type:
                             # log audit event: application data access type changed
@@ -274,7 +272,7 @@ class Application(AbstractApplication):
                             elif "THIRTEEN_MONTH" in self.data_access_type:
                                 grants = DataAccessGrant.objects.filter(application=self)
                                 for grant in grants:
-                                    grant.update_expiration_date()
+                                    grant.update_expiration_date(True)
                                 end_time = time.time()
                                 update_stats = {
                                     "elapsed_seconds": end_time - start_time,
@@ -287,6 +285,8 @@ class Application(AbstractApplication):
                 except Application.DoesNotExist:
                     # new app
                     pass
+                self.copy_client_secret()
+                super().save(*args, **kwargs)
                 if app_type_changed:
                     log_dict.update({"application_saved_and_grants_updated_or_deleted": "Yes"})
                     logger.info(log_dict)
