@@ -39,7 +39,7 @@ class DataAccessGrant(models.Model):
     def user(self):
         return self.beneficiary
 
-    def update_expiration_date(self, set_to_13_month=False):
+    def update_expiration_date(self):
         # For THIRTEEN_MONTH type update expiration_date
         if self.application:
             flag = get_waffle_flag_model().get("limit_data_access")
