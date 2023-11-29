@@ -46,6 +46,10 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
 
     raw_id_fields = ("application",)
 
+    @admin.display(
+        description="User of the application",
+        ordering="get_user",
+    )
     def get_user(self, obj):
         usr = None
         app = Application.objects.get(pk=obj.application_id)
@@ -53,9 +57,10 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
             usr = User.objects.get(pk=app.user_id)
         return usr
 
-    get_user.admin_order_field = "get_user"
-    get_user.short_description = "User of the application"
-
+    @admin.display(
+        description="Organization of the application",
+        ordering="get_organization",
+    )
     def get_organization(self, obj):
         organization = None
         usr = None
@@ -68,14 +73,12 @@ class MyCredentialingRequestAdmin(admin.ModelAdmin):
                 organization = usrprofile.organization_name
         return organization
 
-    get_organization.admin_order_field = "get_organization"
-    get_organization.short_description = "Organization of the application"
-
+    @admin.display(
+        description="URL for credentials request",
+        ordering="get_creds_req_url",
+    )
     def get_creds_req_url(self, obj):
         return get_url(obj.id)
-
-    get_creds_req_url.admin_order_field = "get_creds_req_url"
-    get_creds_req_url.short_description = "URL for credentials request"
 
     def save_model(self, request, obj, form, change):
         app = Application.objects.get(id=obj.application.id)

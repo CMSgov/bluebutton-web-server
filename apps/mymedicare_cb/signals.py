@@ -1,6 +1,6 @@
 import django.dispatch
 
-post_sls = django.dispatch.Signal(providing_args=["response"])
+post_sls = django.dispatch.Signal()
 
 
 def response_hook_wrapper(*wrapper_args, **wrapper_kwargs):

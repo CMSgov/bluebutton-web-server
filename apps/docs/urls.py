@@ -1,6 +1,6 @@
-from django.conf.urls import url
+from django.urls import path
 from .views import openapi
 
 urlpatterns = [
-    url(r'^openapi$', openapi, name='bluebutton_openapi'),
+    path("openapi", openapi, name="bluebutton_openapi"),
 ]

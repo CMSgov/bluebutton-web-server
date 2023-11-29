@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from rest_framework import status
-from django.conf.urls import include, url
+from django.urls import include, path, re_path
 from django.contrib import admin
 from apps.accounts.views.oauth2_profile import openidconnect_userinfo
 from apps.fhir.bluebutton.views.home import fhir_conformance, fhir_conformance_v2
@@ -15,27 +15,33 @@ ADMIN_REDIRECTOR = getattr(settings, "ADMIN_PREPEND_URL", "")
 
 
 urlpatterns = [
-    url(r'^health', include('apps.health.urls')),
-    url(r'^.well-known/', include('apps.wellknown.urls')),
-    url(r"^forms/", include("apps.forms.urls")),
-    url(r'^v1/accounts/', include('apps.accounts.urls')),
-    url(r'^v1/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo'),
-    url(r'^v1/fhir/metadata$', fhir_conformance, name='fhir_conformance_metadata'),
-    url(r'^v1/fhir/', include('apps.fhir.bluebutton.urls')),
-    url(r'^v1/o/', include('apps.dot_ext.urls')),
-    url(r'^v1/o/', include('apps.authorization.urls')),
-    url(r'^v1/', include('apps.openapi.urls')),
-    url(r'^v2/accounts/', include('apps.accounts.v2.urls')),
-    url(r'^v2/connect/userinfo', openidconnect_userinfo, name='openid_connect_userinfo_v2'),
-    url(r'^v2/fhir/metadata$', fhir_conformance_v2, name='fhir_conformance_metadata_v2'),
-    url(r'^v2/fhir/', include('apps.fhir.bluebutton.v2.urls')),
-    url(r'^v2/o/', include('apps.dot_ext.v2.urls')),
-    url(r'^v2/o/', include('apps.authorization.v2.urls')),
-    url(r'^v2/', include('apps.openapi.urls')),
-    url(r'^docs/', include('apps.docs.urls')),
-    url(r'^' + ADMIN_REDIRECTOR + 'admin/metrics/', include('apps.metrics.urls')),
-    url(r'^' + ADMIN_REDIRECTOR + 'admin/', admin.site.urls),
-    url(r'^creds', include('apps.creds.urls')),
+    path("health", include("apps.health.urls")),
+    re_path(r"^.well-known/", include("apps.wellknown.urls")),
+    path("forms/", include("apps.forms.urls")),
+    path("v1/accounts/", include("apps.accounts.urls")),
+    re_path(
+        r"^v1/connect/userinfo", openidconnect_userinfo, name="openid_connect_userinfo"
+    ),
+    path("v1/fhir/metadata", fhir_conformance, name="fhir_conformance_metadata"),
+    path("v1/fhir/", include("apps.fhir.bluebutton.urls")),
+    path("v1/o/", include("apps.dot_ext.urls")),
+    path("v1/o/", include("apps.authorization.urls")),
+    path("v1/", include("apps.openapi.urls")),
+    path("v2/accounts/", include("apps.accounts.v2.urls")),
+    re_path(
+        r"^v2/connect/userinfo",
+        openidconnect_userinfo,
+        name="openid_connect_userinfo_v2",
+    ),
+    path("v2/fhir/metadata", fhir_conformance_v2, name="fhir_conformance_metadata_v2"),
+    path("v2/fhir/", include("apps.fhir.bluebutton.v2.urls")),
+    path("v2/o/", include("apps.dot_ext.v2.urls")),
+    path("v2/o/", include("apps.authorization.v2.urls")),
+    path("v2/", include("apps.openapi.urls")),
+    path("docs/", include("apps.docs.urls")),
+    re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
+    re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
+    path("creds", include("apps.creds.urls")),
 ]
 
 # If running in local development, add the media and static urls:
@@ -45,17 +51,17 @@ if settings.IS_MEDIA_URL_LOCAL is True:
 
 if IsAppInstalled("apps.testclient"):
     urlpatterns += [
-        url(r"^testclient/", include("apps.testclient.urls")),
+        path("testclient/", include("apps.testclient.urls")),
     ]
 
 if IsAppInstalled("apps.mymedicare_cb"):
     urlpatterns += [
-        url(r"^mymedicare/", include("apps.mymedicare_cb.urls")),
+        path("mymedicare/", include("apps.mymedicare_cb.urls")),
     ]
 
 if not getattr(settings, "NO_UI", False):
     urlpatterns += [
-        url(r"", include("apps.home.urls")),
+        path("", include("apps.home.urls")),
     ]
 
 handler500 = "hhs_oauth_server.urls.server_error"

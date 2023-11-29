@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import ArchivedDataAccessGrant, DataAccessGrant
 
 
+@admin.register(DataAccessGrant)
 class DataAccessGrantAdmin(admin.ModelAdmin):
     list_display = (
         "application",
@@ -21,6 +22,7 @@ class DataAccessGrantAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(ArchivedDataAccessGrant)
 class ArchivedDataAccessGrantAdmin(admin.ModelAdmin):
     list_display = (
         "application",
@@ -38,7 +40,3 @@ class ArchivedDataAccessGrantAdmin(admin.ModelAdmin):
         "application__name",
         "beneficiary__username",
     )
-
-
-admin.site.register(DataAccessGrant, DataAccessGrantAdmin)
-admin.site.register(ArchivedDataAccessGrant, ArchivedDataAccessGrantAdmin)
