@@ -3,6 +3,8 @@ import itertools
 import sys
 import time
 import uuid
+import pytz
+
 import apps.logging.request_logger as logging
 
 from datetime import datetime
@@ -272,7 +274,10 @@ class Application(AbstractApplication):
                             elif "THIRTEEN_MONTH" in self.data_access_type:
                                 grants = DataAccessGrant.objects.filter(application=self)
                                 for grant in grants:
-                                    grant.update_expiration_date(True)
+                                    grant.expiration_date = datetime.now().replace(
+                                        tzinfo=pytz.UTC
+                                    ) + relativedelta(months=+13)
+                                    grant.save()
                                 end_time = time.time()
                                 update_stats = {
                                     "elapsed_seconds": end_time - start_time,
