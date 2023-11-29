@@ -801,7 +801,7 @@ GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA = {
         "active": {"type": "boolean"},
         "first_active": {"type": "null"},
         "last_active": {"type": "null"},
-        "data_access_type": {"pattern": "ONE_TIME"},
+        "data_access_type": {"type": "string"},
         "require_demographic_scopes": {"type": "boolean"},
         "real_bene_cnt": {"type": "integer"},
         "synth_bene_cnt": {"type": "integer"},
@@ -823,6 +823,7 @@ GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA = {
         "user_date_joined": {"type": "string"},
         "user_last_login": {"type": "null"},
         "user_organization": {"type": "string"},
+        "user_limit_data_access": {"type": "boolean"},
     },
     "required": [
         "type",
@@ -855,5 +856,6 @@ GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA = {
         "user_date_joined",
         "user_last_login",
         "user_organization",
+        "user_limit_data_access",
     ],
 }
