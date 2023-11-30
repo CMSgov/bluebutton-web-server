@@ -22,7 +22,7 @@ from django.db.models.signals import (
 from django.template.defaultfilters import truncatechars
 from django.urls import reverse
 from django.utils.dateparse import parse_duration
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from oauth2_provider.models import (
     AbstractApplication,
     get_access_token_model,
@@ -153,11 +153,13 @@ class Application(AbstractApplication):
     )
 
     # Type related to data access limits.
-    data_access_type = models.CharField(default="ONE_TIME",
-                                        choices=APPLICATION_TYPE_CHOICES,
-                                        max_length=16,
-                                        null=True,
-                                        verbose_name="Data Access Type:")
+    data_access_type = models.CharField(
+        default="ONE_TIME",
+        choices=APPLICATION_TYPE_CHOICES,
+        max_length=16,
+        null=True,
+        verbose_name="Data Access Type:",
+    )
 
     def access_end_date_mesg(self):
         if self.has_one_time_only_data_access():
@@ -230,7 +232,9 @@ class Application(AbstractApplication):
     # Save override to restrict invalid field combos.
     def save(self, *args, **kwargs):
         # Check data_access_type is in choices tuple
-        if not (self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)):
+        if not (
+            self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)
+        ):
             raise ValueError("Invalid data_access_type: " + self.data_access_type)
 
         flag = get_waffle_flag_model().get("limit_data_access")
@@ -254,13 +258,15 @@ class Application(AbstractApplication):
                         if self.data_access_type != app_from_db.data_access_type:
                             # log audit event: application data access type changed
                             start_time = time.time()
-                            log_dict.update({
-                                "application_id": self.id,
-                                "application_name": self.name,
-                                "data_access_type_old": app_from_db.data_access_type,
-                                "data_access_type_new": self.data_access_type,
-                                "grant_start": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                            })
+                            log_dict.update(
+                                {
+                                    "application_id": self.id,
+                                    "application_name": self.name,
+                                    "data_access_type_old": app_from_db.data_access_type,
+                                    "data_access_type_new": self.data_access_type,
+                                    "grant_start": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                                }
+                            )
                             logger.info(log_dict)
                             if self.has_one_time_only_data_access():
                                 dag_deleted = DataAccessGrant.objects.filter(application=self).delete()
@@ -562,7 +568,9 @@ def get_token_bene_counts(application=None):
 
     if application:
         token_queryset = token_queryset.filter(application=application)
-        archived_token_queryset = archived_token_queryset.filter(application=application)
+        archived_token_queryset = archived_token_queryset.filter(
+            application=application
+        )
 
     # Get AccessToken and ArchivedTokentable count
     counts_returned["total"] = token_queryset.count()
@@ -588,9 +596,12 @@ def get_token_bene_counts(application=None):
 
     # Global real/synth bene and app pair counts. This should match grant counts.
     if not application:
-        counts_returned["real_bene_app_pair_deduped"] = real_token_queryset.values("user", "application").distinct().count()
-        counts_returned["synthetic_bene_app_pair_deduped"] = synthetic_token_queryset.values(
-            "user", "application").distinct().count()
+        counts_returned["real_bene_app_pair_deduped"] = (
+            real_token_queryset.values("user", "application").distinct().count()
+        )
+        counts_returned["synthetic_bene_app_pair_deduped"] = (
+            synthetic_token_queryset.values("user", "application").distinct().count()
+        )
 
     counts_returned["deduped_elapsed"] = round(
         datetime.utcnow().timestamp() - start_time, 3

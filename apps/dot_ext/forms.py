@@ -4,7 +4,7 @@ import uuid
 from django import forms
 from django.conf import settings
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from oauth2_provider.forms import AllowForm as DotAllowForm
 from oauth2_provider.models import get_application_model
 from apps.accounts.models import UserProfile
@@ -47,7 +47,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         agree_label = (
-            u'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*'
+            'Yes I have read and agree to the <a target="_blank" href="%s">API Terms of Service Agreement</a>*'
             % (settings.TOS_URI)
         )
         super(CustomRegisterApplicationForm, self).__init__(*args, **kwargs)
@@ -126,10 +126,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                         Note that names are case-insensitive.
                                         """
             )
-        if (
-            not app_model.objects.filter(name__iexact=name)
-            .exists()
-        ):
+        if not app_model.objects.filter(name__iexact=name).exists():
             # new app, restrict app name to only printable ASCII (32-127)
             if not (str(name).isprintable() and str(name).isascii()):
                 raise forms.ValidationError(
@@ -138,7 +135,9 @@ class CustomRegisterApplicationForm(forms.ModelForm):
                                             Allowed characters:
                                             Alphanumeric characters 0 to 9, a to z, A to Z, space character,
                                             Special characters {}
-                                            """.format(name, PRINTABLE_SPECIAL_ASCII)
+                                            """.format(
+                        name, PRINTABLE_SPECIAL_ASCII
+                    )
                 )
         return name
 

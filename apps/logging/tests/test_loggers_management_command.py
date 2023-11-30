@@ -16,7 +16,9 @@ from apps.dot_ext.utils import (
 from apps.fhir.bluebutton.models import Crosswalk, ArchivedCrosswalk
 import apps.logging.request_logger as logging
 from apps.logging.utils import redirect_loggers, cleanup_logger, get_log_content
-from apps.test import BaseApiTest
+from apps.test import BaseApiTest, flag_is_active
+# waffle override_flag decorator make flag true or false for everyone
+from waffle.testutils import override_flag
 
 from .audit_logger_schemas import (
     GLOBAL_STATE_METRICS_LOG_SCHEMA,
@@ -267,6 +269,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 "token_synthetic_bene_count",
                 "token_table_count",
                 "token_archived_table_count",
+                "user_limit_data_access",
+                "data_access_type",
             ]
 
             # Update Json Schema
@@ -280,6 +284,15 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                         "type"
                     ]
                     == "boolean"
+                ):
+                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][f][
+                        "enum"
+                    ] = validate_apps_dict[app_name][f]
+                elif (
+                    TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][f][
+                        "type"
+                    ]
+                    == "string"
                 ):
                     TEST_GLOBAL_STATE_METRICS_PER_APP_LOG_SCHEMA["properties"][f][
                         "enum"
@@ -303,7 +316,10 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                 )
             )
 
+    @override_flag('limit_data_access', active=True)
     def test_management_command_logging(self):
+        assert flag_is_active('limit_data_access')
+
         """
         Setup variety of real/synth users, apps and grants for testing global state metrics logging.
         """
@@ -510,6 +526,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_synthetic_bene_count": 5,
                     "token_table_count": 8,
                     "token_archived_table_count": 0,
+                    "user_limit_data_access": [True],
+                    "data_access_type": ["ONE_TIME"],
                 }
             }
         )
@@ -532,6 +550,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_synthetic_bene_count": 2,
                     "token_table_count": 7,
                     "token_archived_table_count": 0,
+                    "user_limit_data_access": [True],
+                    "data_access_type": ["ONE_TIME"],
                 }
             }
         )
@@ -608,6 +628,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_synthetic_bene_count": 2,
                     "token_table_count": 2,
                     "token_archived_table_count": 0,
+                    "user_limit_data_access": [True],
+                    "data_access_type": ["ONE_TIME"],
                 }
             }
         )
@@ -849,6 +871,8 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_synthetic_bene_count": 7,
                     "token_table_count": 17,
                     "token_archived_table_count": 0,
+                    "user_limit_data_access": [True],
+                    "data_access_type": ["ONE_TIME"],
                 }
             }
         )

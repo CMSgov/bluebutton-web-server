@@ -1,4 +1,4 @@
-from django.conf.urls import include, url
+from django.urls import include, path, re_path
 from django.contrib import admin
 from .views import (
     BeneMetricsView,
@@ -17,17 +17,28 @@ from .views import (
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^beneficiaries$', BeneMetricsView.as_view(), name='beneficiaries'),
-    url(r'^applications/(?P<pk>\d+)$', AppMetricsDetailView.as_view(), name='applications-detail'),
-    url(r'^applications/$', AppMetricsView.as_view(), name='applications'),
-    url(r'^crosswalks/check$', CheckCrosswalksView.as_view(), name='check-crosswalks'),
-    url(r'^developers/$', DevelopersView.as_view(), name='developers'),
-    url(r'^tokens$', TokenMetricsView.as_view(), name='tokens'),
-    url(r'^tokens/archive$', ArchivedTokenView.as_view(), name='archived-tokens'),
-    url(r'^grants$', DataAccessGrantView.as_view(), name='grants'),
-    url(r'^grants/archive$', ArchivedDataAccessGrantView.as_view(), name='archive-grants'),
-    url(r'^grants/check$', CheckDataAccessGrantsView.as_view(), name='check-grants'),
-    url(r'^raw/', include([
-        url(r'^developers', DevelopersStreamView.as_view()),
-    ]))
+    path("beneficiaries", BeneMetricsView.as_view(), name="beneficiaries"),
+    path(
+        "applications/<int:pk>",
+        AppMetricsDetailView.as_view(),
+        name="applications-detail",
+    ),
+    path("applications/", AppMetricsView.as_view(), name="applications"),
+    path("crosswalks/check", CheckCrosswalksView.as_view(), name="check-crosswalks"),
+    path("developers/", DevelopersView.as_view(), name="developers"),
+    path("tokens", TokenMetricsView.as_view(), name="tokens"),
+    path("tokens/archive", ArchivedTokenView.as_view(), name="archived-tokens"),
+    path("grants", DataAccessGrantView.as_view(), name="grants"),
+    path(
+        "grants/archive", ArchivedDataAccessGrantView.as_view(), name="archive-grants"
+    ),
+    path("grants/check", CheckDataAccessGrantsView.as_view(), name="check-grants"),
+    path(
+        "raw/",
+        include(
+            [
+                re_path(r"^developers", DevelopersStreamView.as_view()),
+            ]
+        ),
+    ),
 ]
