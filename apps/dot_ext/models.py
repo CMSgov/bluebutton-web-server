@@ -247,7 +247,7 @@ class Application(AbstractApplication):
             app_type_changed = False
 
             log_dict = {
-                "type": "application data access type change",
+                "type": "application_data_access_type_change",
             }
             with transaction.atomic():
                 # need to put delete and save in a transaction
@@ -267,7 +267,6 @@ class Application(AbstractApplication):
                                     "grant_start": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
                                 }
                             )
-                            logger.info(log_dict)
                             if self.has_one_time_only_data_access():
                                 dag_deleted = DataAccessGrant.objects.filter(application=self).delete()
                                 end_time = time.time()
@@ -292,7 +291,6 @@ class Application(AbstractApplication):
                                 }
                                 log_dict.update(update_stats)
                             app_type_changed = True
-                            logger.info(log_dict)
                 except Application.DoesNotExist:
                     # new app
                     pass
