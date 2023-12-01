@@ -108,9 +108,9 @@ class TestDotExtModels(BaseApiTest):
         log_content = get_log_content(self.logger_registry, logging.AUDIT_APPLICATION_TYPE_CHANGE)
         self.assertIsNotNone(log_content)
         log_entries = log_content.splitlines()
-        self.assertEqual(len(log_entries), 3)
-        last_log_entry_json = json.loads(log_entries[2])
-        self.assertEqual(last_log_entry_json['application_saved_and_grants_updated_or_deleted'], "Yes")
+        self.assertEqual(len(log_entries), 1)
+        log_entry_json = json.loads(log_entries[0])
+        self.assertEqual(log_entry_json['application_saved_and_grants_updated_or_deleted'], "Yes")
 
     @override_flag('limit_data_access', active=False)
     def test_application_data_access_type_change_switch_off(self):
