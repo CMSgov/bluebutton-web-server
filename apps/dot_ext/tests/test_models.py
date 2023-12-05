@@ -98,25 +98,19 @@ class TestDotExtModels(BaseApiTest):
         # w/ end_date is valid.
         test_app.data_access_type = "RESEARCH_STUDY"
         self.assertEqual("RESEARCH_STUDY", test_app.data_access_type)
-
         test_app.save()
 
         try:
-            grants = DataAccessGrant.objects.get(application__name="test_app")
-            self.fail("Expecting grants for 'test_app' archived due to test_app data access type changed.")
+            DataAccessGrant.objects.get(application__name="test_app")
         except DataAccessGrant.DoesNotExist:
-            pass
-
-        archived_grants = ArchivedDataAccessGrant.objects.filter(application__name="test_app")
-
-        self.assertTrue(archived_grants.count() > 0)
+            self.fail("Expecting grants for 'test_app' to carry over due to change to Research type app.")
 
         log_content = get_log_content(self.logger_registry, logging.AUDIT_APPLICATION_TYPE_CHANGE)
         self.assertIsNotNone(log_content)
         log_entries = log_content.splitlines()
-        self.assertEqual(len(log_entries), 3)
-        last_log_entry_json = json.loads(log_entries[2])
-        self.assertEqual(last_log_entry_json['application_saved_and_grants_deleted'], "Yes")
+        self.assertEqual(len(log_entries), 1)
+        log_entry_json = json.loads(log_entries[0])
+        self.assertEqual(log_entry_json['application_saved_and_grants_updated_or_deleted'], "Yes")
 
     @override_flag('limit_data_access', active=False)
     def test_application_data_access_type_change_switch_off(self):

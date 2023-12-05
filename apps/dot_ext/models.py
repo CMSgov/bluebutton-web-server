@@ -3,6 +3,8 @@ import itertools
 import sys
 import time
 import uuid
+import pytz
+
 import apps.logging.request_logger as logging
 
 from datetime import datetime
@@ -245,7 +247,7 @@ class Application(AbstractApplication):
             app_type_changed = False
 
             log_dict = {
-                "type": "application data access type change",
+                "type": "application_data_access_type_change",
             }
             with transaction.atomic():
                 # need to put delete and save in a transaction
@@ -262,33 +264,40 @@ class Application(AbstractApplication):
                                     "application_name": self.name,
                                     "data_access_type_old": app_from_db.data_access_type,
                                     "data_access_type_new": self.data_access_type,
-                                    "grant_delete_start": datetime.now().strftime(
-                                        "%m/%d/%Y, %H:%M:%S"
-                                    ),
+                                    "grant_start": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
                                 }
                             )
-                            logger.info(log_dict)
-                            dag_deleted = DataAccessGrant.objects.filter(
-                                application=self
-                            ).delete()
+                            if self.has_one_time_only_data_access():
+                                dag_deleted = DataAccessGrant.objects.filter(application=self).delete()
+                                end_time = time.time()
+                                delete_stats = {
+                                    "elapsed_seconds": end_time - start_time,
+                                    "number_of_grant_deleted": dag_deleted[0],
+                                    "grant_delete_complete": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+                                }
+                                log_dict.update(delete_stats)
+                            elif "THIRTEEN_MONTH" in self.data_access_type:
+                                grants = DataAccessGrant.objects.filter(application=self)
+                                for grant in grants:
+                                    grant.expiration_date = datetime.now().replace(
+                                        tzinfo=pytz.UTC
+                                    ) + relativedelta(months=+13)
+                                    grant.save()
+                                end_time = time.time()
+                                update_stats = {
+                                    "elapsed_seconds": end_time - start_time,
+                                    "number_of_grants_updated": grants.count(),
+                                    "grant_update_complete": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+                                }
+                                log_dict.update(update_stats)
                             app_type_changed = True
-                            end_time = time.time()
-                            delete_stats = {
-                                "elapsed_seconds": end_time - start_time,
-                                "number_of_grant_deleted": dag_deleted[0],
-                                "grant_delete_complete": datetime.now().strftime(
-                                    "%m/%d/%Y, %H:%M:%S"
-                                ),
-                            }
-                            log_dict.update(delete_stats)
-                            logger.info(log_dict)
                 except Application.DoesNotExist:
                     # new app
                     pass
                 self.copy_client_secret()
                 super().save(*args, **kwargs)
                 if app_type_changed:
-                    log_dict.update({"application_saved_and_grants_deleted": "Yes"})
+                    log_dict.update({"application_saved_and_grants_updated_or_deleted": "Yes"})
                     logger.info(log_dict)
         else:
             self.copy_client_secret()
