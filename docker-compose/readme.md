@@ -234,7 +234,7 @@ which by default, generates 150 dev users, each having 1-5 apps, and 100 bene us
 ```
 python manage.py create_test_users_and_applications_batch -d <number of dev users> -b <number of bene users> -a <maximum number of apps per dev user>
 ```
-These are also listed when specifying `--help` on the command.
+To change the number of refresh tokens or archived tokens per user, use the `-r` flag to modify refresh token count and the `-t` flag for archived token count. These are also listed when specifying `--help` on the command.
 
 The generated users and apps have the following relations:
 

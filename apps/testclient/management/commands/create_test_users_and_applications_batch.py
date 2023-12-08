@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from os import listdir
 from random import randint, randrange, choice, sample
 from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -46,8 +47,25 @@ def create_group(name="BlueButton"):
         print("%s group pre-existing. Create skipped." % (name))
     return g
 
+# To avoid naming collisions when running this command more than once
+def get_first_available_number(firstname):
+    try:
+        latest = User.objects.filter(
+            first_name__contains=firstname).latest('first_name')
+    except ObjectDoesNotExist:
+        return 0
+    # pull the number out of the name
+    begin = ''.join(x for x in latest.first_name if x.isdigit())
+    return int(begin) + 1
 
-def create_dev_users_apps_and_bene_crosswalks(group, bene_count, dev_count, app_max):
+def create_dev_users_apps_and_bene_crosswalks(
+        group,
+        bene_count,
+        dev_count,
+        app_max,
+        refresh_count,
+        archived_count
+):
     #
     # generate dev users dev0001, dev0002, dev0003 etc, with password, email, security questions, etc.
     # Counts are based on the inputs, but if undefined,will default to the defaults defined above
@@ -64,10 +82,14 @@ def create_dev_users_apps_and_bene_crosswalks(group, bene_count, dev_count, app_
     count = 0
     file_cnt = 0
     synthetic_bene_cnt = 0
+    begin_number = get_first_available_number("bene")
+
     for f in files:
         print("file={}".format(f))
         bene_rif = open('./synthetic-data/{}'.format(f), 'r')
         while True:
+            if count == bene_count:
+                break
             line = bene_rif.readline()
             if not line:
                 break
@@ -78,9 +100,9 @@ def create_dev_users_apps_and_bene_crosswalks(group, bene_count, dev_count, app_
                 fhir_id = flds[1]
                 mbi = flds[14]
                 hicn = flds[18]
-                fn = "bene{}".format(count)
-                ln = "user{}".format(count)
-                count += 1
+                fn = "bene{}".format(count + begin_number)
+                ln = "user{}".format(count + begin_number)
+
                 # skip fred
                 if fhir_id != '-20140000008325':
                     args = {
@@ -94,33 +116,36 @@ def create_dev_users_apps_and_bene_crosswalks(group, bene_count, dev_count, app_
                         "email": fn + '.' + ln + "@xyz.net",
                     }
                     slsx_client = OAuth2ConfigSLSx(args)
-                    u = create_beneficiary_record(slsx_client, fhir_id)
-                    date_picked = datetime.utcnow() - timedelta(days=randrange(700))
-                    u.date_joined = date_picked.replace(tzinfo=pytz.utc)
-                    u.save()
-                    c = Crosswalk.objects.get(user=u)
-                    c.created = u.date_joined
-                    c.save()
-                    bene_pk_list.append(u.pk)
-                    synthetic_bene_cnt += 1
-                    print(".", end="", flush=True)
-                    time.sleep(.05)
-                    if count > bene_count:
-                        break
+                    try:
+                        u = create_beneficiary_record(slsx_client, fhir_id)
+                        date_picked = datetime.utcnow() - timedelta(days=randrange(700))
+                        u.date_joined = date_picked.replace(tzinfo=pytz.utc)
+                        u.save()
+                        c = Crosswalk.objects.get(user=u)
+                        c.created = u.date_joined
+                        c.save()
+                        bene_pk_list.append(u.pk)
+                        synthetic_bene_cnt += 1
+                        count += 1
+                        print(".", end="", flush=True)
+                        time.sleep(.05)
+                    except ValidationError:
+                        # If there is something wrong during 'create_beneficiary_record'
+                        # i.e. 'user already exists', just try the next .rif record
+                        continue
         bene_rif.close()
         file_cnt += 1
         print("RIF file processed = {}, synthetic bene generated = {}".format(file_cnt, synthetic_bene_cnt))
         if file_cnt >= 1:
             break
 
-    scope_all = ' '.join(APPLICATION_SCOPES_FULL)
-    scope_no_demo = ' '.join(APPLICATION_SCOPES_NON_DEMOGRAPHIC)
     # create dev users according dev-count parameter, default to 100
     # generate access tokens + refresh tokens + archived tokens for random picked benes for each app
     app_index = 0
+    begin_number = get_first_available_number("DevUserFN")
     for i in range(dev_count):
-        dev_u_fn = "DevUserFN{}".format(i)
-        dev_u_ln = "DevUserLN{}".format(i)
+        dev_u_fn = "DevUserFN{}".format(i + begin_number)
+        dev_u_ln = "DevUserLN{}".format(i + begin_number)
         u = User.objects.create_user(username="{}.{}".format(dev_u_fn, dev_u_ln),
                                      first_name=dev_u_fn,
                                      last_name=dev_u_ln,
@@ -137,8 +162,8 @@ def create_dev_users_apps_and_bene_crosswalks(group, bene_count, dev_count, app_
                                    password_reset_question_3='3',
                                    password_reset_answer_3='Bentley')
         u.groups.add(group)
-        # 1-5 apps per DEV user
-        app_cnt = randint(1, app_max)
+        # apps per DEV user
+        app_cnt = randint(1, app_max) if app_max > 0 else 0
         print(">>>>generating apps for user={}".format(u.username))
         for i in range(app_cnt):
             app_index += 1
@@ -187,45 +212,47 @@ def create_dev_users_apps_and_bene_crosswalks(group, bene_count, dev_count, app_
     for bpk in bene_pk_list:
         seed = randint(1, 10)
         b = User.objects.get(pk=bpk)
-        tokens = []
-        if seed <= 7:
+        # check how many apps there are because there may be only 1
+        # (caller can specify 0 for the app option)
+        if seed <= 7 or len(app_list) == 1:
             # sign up to 1 app
-            tokens.append(create_test_access_refresh_archived_tokens(b, choice(app_list)))
-        elif seed <= 9:
+            create_test_access_refresh_archived_tokens(
+                b, choice(app_list), refresh_count, archived_count, seed)
+        elif seed <= 9 and len(app_list) > 1:
             # sign up to 2 apps
             a2 = sample(app_list, 2)
-            tokens.append(create_test_access_refresh_archived_tokens(b, a2[0],))
-            tokens.append(create_test_access_refresh_archived_tokens(b, a2[1]))
-        else:
+            create_test_access_refresh_archived_tokens(
+                b, a2[0], refresh_count, archived_count, seed)
+            create_test_access_refresh_archived_tokens(
+                b, a2[1], refresh_count, archived_count, seed)
+        elif len(app_list) > 2:
             # sign up to 3 apps
             a3 = sample(app_list, 3)
-            tokens.append(create_test_access_refresh_archived_tokens(b, a3[0]))
-            tokens.append(create_test_access_refresh_archived_tokens(b, a3[1]))
-            tokens.append(create_test_access_refresh_archived_tokens(b, a3[2]))
-
-        # set scopes of at, ot: 80% grant demo info access, 20% deny
-        if seed <= 8:
-            for t in tokens:
-                t[0].scope = scope_all
-                t[0].save()
-                t[2].scope = scope_all
-                t[2].save()
-        else:
-            for t in tokens:
-                t[0].scope = scope_no_demo
-                t[0].save()
-                t[2].scope = scope_no_demo
-                t[2].save()
+            create_test_access_refresh_archived_tokens(
+                b, a3[0], refresh_count, archived_count, seed)
+            create_test_access_refresh_archived_tokens(
+                b, a3[1], refresh_count, archived_count, seed)
+            create_test_access_refresh_archived_tokens(
+                b, a3[2], refresh_count, archived_count, seed)
 
 
-def create_test_access_refresh_archived_tokens(user, application):
+def create_test_access_refresh_archived_tokens(
+        user,
+        application,
+        refresh_count,
+        archived_count,
+        seed
+):
+    scope_all = ' '.join(APPLICATION_SCOPES_FULL)
+    scope_no_demo = ' '.join(APPLICATION_SCOPES_NON_DEMOGRAPHIC)
     now = datetime.utcnow()
     expires = now + timedelta(days=10)
 
-    scopes = application.scope.all()
-    scope = []
-    for s in scopes:
-        scope.append(s.slug)
+    # set scopes of at, ot: 80% grant demo info access, 20% deny
+    if seed <= 8:
+        scope = scope_all
+    else:
+        scope = scope_no_demo
 
     # a.created
     # u.created
@@ -234,56 +261,70 @@ def create_test_access_refresh_archived_tokens(user, application):
     # rt should be created about the same as at
     # ot should be later that at a random date
     ref_date = application.created if application.created > user.date_joined else user.date_joined
+    date_created = ref_date + timedelta(days=1)
 
     at = AccessToken.objects.create(user=user, application=application,
                                     token=uuid.uuid4().hex,
                                     expires=expires.replace(tzinfo=pytz.utc),
-                                    scope=' '.join(scope))
-
-    rt = RefreshToken.objects.create(user=user, application=application,
-                                     token=uuid.uuid4().hex)
-
-    date_created = ref_date + timedelta(days=1)
+                                    scope=scope)
     at.created = date_created.replace(tzinfo=pytz.utc)
     at.save()
-    rt.created = at.created
-    rt.save()
+
+    for i in range(refresh_count):
+        rt = RefreshToken.objects.create(user=user, application=application,
+                                     token=uuid.uuid4().hex)
+        rt.created = at.created
+        rt.save()
 
     # archived token: created, updated, archived_at datetime fields
-    ot = ArchivedToken.objects.create(user=user,
+    for i in range(archived_count):
+        ot = ArchivedToken.objects.create(user=user,
                                       application=application,
                                       token=uuid.uuid4().hex,
                                       expires=expires.replace(tzinfo=pytz.utc),
                                       created=at.created,
                                       updated=at.created,
                                       archived_at=at.created,
-                                      scope=' '.join(scope))
+                                      scope=scope)
 
-    date_archived = ot.created + timedelta(days=10)
-    ot.archived_at = date_archived.replace(tzinfo=pytz.utc)
-    ot.save()
-
-    return (at, rt, ot)
+        date_archived = ot.created + timedelta(days=10)
+        ot.archived_at = date_archived.replace(tzinfo=pytz.utc)
+        ot.save()
 
 
 class Command(BaseCommand):
-    help = ('Create 1000 dev user and create 1-5'
-            ' apps for each of them, create 30k bene users from s3 bucket '
+    help = ('Create dev users and create'
+            ' apps for each of them, create bene users from '
             'synthetic data and crosswalk for each bene.')
 
     def add_arguments(self, parser):
-        parser.add_argument("-b", "--bene-count", default=DEFAULT_BENE_COUNT, help="Total number of bene to be created.")
-        parser.add_argument("-d", "--dev-count", default=DEFAULT_DEV_COUNT, help="Total number of devs to be created.")
-        parser.add_argument("-a", "--app-max", default=DEFAULT_MAX_APPS_PER_DEV, help="Maximum number of apps per dev.")
+        parser.add_argument("-b", "--bene-count", default=DEFAULT_BENE_COUNT,
+                            help="Total number of bene to be created. "
+                            "If none, defaults to {}.".format(DEFAULT_BENE_COUNT))
+        parser.add_argument("-d", "--dev-count", default=DEFAULT_DEV_COUNT,
+                            help="Total number of devs to be created. "
+                            "If none, defaults to {}.". format(DEFAULT_DEV_COUNT))
+        parser.add_argument("-a", "--app-max", default=DEFAULT_MAX_APPS_PER_DEV,
+                            help="Maximum number of apps per dev. "
+                            "If none, defaults to {}.".format(DEFAULT_MAX_APPS_PER_DEV))
+        parser.add_argument("-r", "--refresh-tokens", default=1,
+                            help="Refresh tokens per bene user. If none, defaults to 1.")
+        parser.add_argument("-t", "--archived-tokens", default=1,
+                            help="Archived tokens per bene user. If none, defaults to 1.")
 
     def handle(self, *args, **options):
         bene_count = int(options["bene_count"])
         dev_count = int(options["dev_count"])
         app_max = int(options["app_max"])
+        refresh_tokens = int(options["refresh_tokens"])
+        archived_tokens = int(options["archived_tokens"])
         g = create_group()
-        create_dev_users_apps_and_bene_crosswalks(g,
+        create_dev_users_apps_and_bene_crosswalks(
+            g,
             bene_count,
             dev_count,
-            app_max)
+            app_max,
+            refresh_tokens,
+            archived_tokens)
         # update grants
         update_grants()
