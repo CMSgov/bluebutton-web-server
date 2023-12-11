@@ -99,7 +99,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         # Scopes to be requested in the authorization request
         payload['scope'] = ' '.join(request_scopes)
 
-        # ------ TEST #1: 1st authorization: Beneficary authorizes to share demographic data. ------
+        # ------ TEST #1: 1st authorization: Beneficiary authorizes to share demographic data. ------
         payload['share_demographic_scopes'] = True
 
         # Perform authorization request
@@ -157,7 +157,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(DataAccessGrant.objects.count(), 1)
         self.assertEqual(ArchivedDataAccessGrant.objects.count(), 0)
 
-        # ------ TEST #3:  3nd authorization: Beneficary authorizes NOT to share demographic data. ------
+        # ------ TEST #3:  3nd authorization: Beneficiary authorizes NOT to share demographic data. ------
         payload['share_demographic_scopes'] = False
 
         # Perform authorization request
@@ -212,7 +212,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(content.get('error', None), "invalid_grant")
 
-        # ------ TEST #6: Beneficary authorizes to share FULL demographic data again.. ------
+        # ------ TEST #6: Beneficiary authorizes to share FULL demographic data again.. ------
         payload['share_demographic_scopes'] = True
 
         # Perform authorization request
@@ -253,7 +253,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(DataAccessGrant.objects.count(), 1)
         self.assertEqual(ArchivedDataAccessGrant.objects.count(), 1)
 
-        # ------ TEST #8:  Beneficary authorizes NOT to share demographic data, but application
+        # ------ TEST #8:  Beneficiary authorizes NOT to share demographic data, but application
         #                  does not exchange code for access_token. Test that token_3 has been removed.
         payload['share_demographic_scopes'] = False
 
@@ -279,7 +279,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(DataAccessGrant.objects.count(), 1)
         self.assertEqual(ArchivedDataAccessGrant.objects.count(), 2)
 
-        # ------ TEST #9: Beneficary authorizes to share FULL demographic data, then chooses DENY on consent page ------
+        # ------ TEST #9: Beneficiary authorizes to share FULL demographic data, then chooses DENY on consent page ------
         payload['share_demographic_scopes'] = True
 
         # Perform authorization request
@@ -325,7 +325,7 @@ class TestBeneficiaryDemographicScopesChanges(BaseApiTest):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(content.get('detail', None), "Authentication credentials were not provided.")
 
-        # ------ TEST #10: Beneficary shares FULL and application REQUIRES. Then APPLICATION changes to NOT required ------
+        # ------ TEST #10: Beneficiary shares FULL and application REQUIRES. Then APPLICATION changes to NOT required ------
         payload['share_demographic_scopes'] = True
 
         # Beneficiary chooses the ALLOW button choice on consent page
