@@ -168,7 +168,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         require_demographic_scopes = self.cleaned_data.get("require_demographic_scopes")
         if type(require_demographic_scopes) != bool:
             msg = _(
-                "Does your application need to collect beneficary demographic information must be (Yes/No)."
+                "Does your application need to collect beneficiary demographic information must be (Yes/No)."
             )
             raise forms.ValidationError(msg)
         return require_demographic_scopes
@@ -278,7 +278,7 @@ class CreateNewApplicationForm(forms.ModelForm):
         require_demographic_scopes = self.cleaned_data.get("require_demographic_scopes")
         if type(require_demographic_scopes) != bool:
             msg = _(
-                "Does your application need to collect beneficary demographic information must be (Yes/No)."
+                "Does your application need to collect beneficiary demographic information must be (Yes/No)."
             )
             raise forms.ValidationError(msg)
         return require_demographic_scopes
