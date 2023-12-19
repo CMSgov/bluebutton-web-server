@@ -2,7 +2,11 @@ from django.conf.urls import url
 from django.contrib import admin
 
 from apps.fhir.bluebutton.views.read import ReadViewCoverage, ReadViewExplanationOfBenefit, ReadViewPatient
-from apps.fhir.bluebutton.views.search import SearchViewCoverage, SearchViewExplanationOfBenefit, SearchViewPatient
+from apps.fhir.bluebutton.views.search import (
+    SearchViewCoverage,
+    SearchViewExplanationOfBenefit,
+    SearchViewPatient,
+)
 
 admin.autodiscover()
 
@@ -36,4 +40,9 @@ urlpatterns = [
     url(r'ExplanationOfBenefit[/]?',
         SearchViewExplanationOfBenefit.as_view(),
         name='bb_oauth_fhir_eob_search'),
+
+    # Digital Insurance Card View
+    # url(r'DigitalInsurance[/]?',
+    #     SearchViewInsurance.as_view(),
+    #     name='bb_oauth_dic_view'),
 ]
