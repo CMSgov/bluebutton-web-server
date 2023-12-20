@@ -110,7 +110,7 @@ class TestDotExtModels(BaseApiTest):
         self.assertEqual(len(log_entries), 1)
         log_entry_json = json.loads(log_entries[0])
         self.assertEqual(log_entry_json['type'], "application_data_access_type_change")
-        self.assertEqual(log_entry_json['data_access_type_old'], "ONE_TIME")
+        self.assertEqual(log_entry_json['data_access_type_old'], "THIRTEEN_MONTH")
         self.assertEqual(log_entry_json['data_access_type_new'], "RESEARCH_STUDY")
 
     @override_flag('limit_data_access', active=False)
