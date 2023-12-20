@@ -1,9 +1,7 @@
 import hashlib
 import itertools
 import sys
-import time
 import uuid
-import pytz
 
 import apps.logging.request_logger as logging
 
@@ -14,7 +12,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
 from django.core.validators import RegexValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.signals import (
     post_delete,
@@ -33,7 +31,6 @@ from urllib.parse import urlparse
 from waffle import get_waffle_flag_model
 
 from apps.capabilities.models import ProtectedCapability
-from apps.authorization.models import DataAccessGrant
 
 TEN_HOURS = "for 10 hours"
 
@@ -237,71 +234,30 @@ class Application(AbstractApplication):
         ):
             raise ValueError("Invalid data_access_type: " + self.data_access_type)
 
-        flag = get_waffle_flag_model().get("limit_data_access")
-        if flag.id is not None and flag.is_active_for_user(self.user):
-            # Check if data_access_type is changed
-            # if so, need to void all grants associated
+        # Check if data_access_type is changed
+        # if so, log and leave existing access grants unchanged
+        app_from_db = None
+        try:
+            app_from_db = Application.objects.get(pk=self.id)
 
-            logger = logging.getLogger(logging.AUDIT_APPLICATION_TYPE_CHANGE, None)
+            if app_from_db is not None:
+                if self.data_access_type != app_from_db.data_access_type:
+                    logger = logging.getLogger(logging.AUDIT_APPLICATION_TYPE_CHANGE, None)
 
-            app_type_changed = False
-
-            log_dict = {
-                "type": "application_data_access_type_change",
-            }
-            with transaction.atomic():
-                # need to put delete and save in a transaction
-                app_from_db = None
-                try:
-                    app_from_db = Application.objects.get(pk=self.id)
-                    if app_from_db is not None:
-                        if self.data_access_type != app_from_db.data_access_type:
-                            # log audit event: application data access type changed
-                            start_time = time.time()
-                            log_dict.update(
-                                {
-                                    "application_id": self.id,
-                                    "application_name": self.name,
-                                    "data_access_type_old": app_from_db.data_access_type,
-                                    "data_access_type_new": self.data_access_type,
-                                    "grant_start": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                                }
-                            )
-                            if self.has_one_time_only_data_access():
-                                dag_deleted = DataAccessGrant.objects.filter(application=self).delete()
-                                end_time = time.time()
-                                delete_stats = {
-                                    "elapsed_seconds": end_time - start_time,
-                                    "number_of_grant_deleted": dag_deleted[0],
-                                    "grant_delete_complete": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-                                }
-                                log_dict.update(delete_stats)
-                            elif "THIRTEEN_MONTH" in self.data_access_type:
-                                grants = DataAccessGrant.objects.filter(application=self)
-                                for grant in grants:
-                                    grant.expiration_date = datetime.now().replace(
-                                        tzinfo=pytz.UTC
-                                    ) + relativedelta(months=+13)
-                                    grant.save()
-                                end_time = time.time()
-                                update_stats = {
-                                    "elapsed_seconds": end_time - start_time,
-                                    "number_of_grants_updated": grants.count(),
-                                    "grant_update_complete": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-                                }
-                                log_dict.update(update_stats)
-                            app_type_changed = True
-                except Application.DoesNotExist:
-                    # new app
-                    pass
-                self.copy_client_secret()
-                super().save(*args, **kwargs)
-                if app_type_changed:
-                    log_dict.update({"application_saved_and_grants_updated_or_deleted": "Yes"})
+                    # log audit event: application data access type changed
+                    log_dict = {
+                        "type": "application_data_access_type_change",
+                        "application_id": self.id,
+                        "application_name": self.name,
+                        "data_access_type_old": app_from_db.data_access_type,
+                        "data_access_type_new": self.data_access_type,
+                    }
                     logger.info(log_dict)
-        else:
-            self.copy_client_secret()
-            super().save(*args, **kwargs)
+        except Application.DoesNotExist:
+            # new app
+            pass
+        self.copy_client_secret()
+        super().save(*args, **kwargs)
 
     # dedicated save for high frequency used first / last active timestamp updates
     def save_without_validate(self, *args, **kwargs):
