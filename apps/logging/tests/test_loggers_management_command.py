@@ -527,7 +527,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_table_count": 8,
                     "token_archived_table_count": 0,
                     "user_limit_data_access": [True],
-                    "data_access_type": ["ONE_TIME"],
+                    "data_access_type": ["THIRTEEN_MONTH"],
                 }
             }
         )
@@ -551,7 +551,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_table_count": 7,
                     "token_archived_table_count": 0,
                     "user_limit_data_access": [True],
-                    "data_access_type": ["ONE_TIME"],
+                    "data_access_type": ["THIRTEEN_MONTH"],
                 }
             }
         )
@@ -629,7 +629,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_table_count": 2,
                     "token_archived_table_count": 0,
                     "user_limit_data_access": [True],
-                    "data_access_type": ["ONE_TIME"],
+                    "data_access_type": ["THIRTEEN_MONTH"],
                 }
             }
         )
@@ -872,7 +872,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
                     "token_table_count": 17,
                     "token_archived_table_count": 0,
                     "user_limit_data_access": [True],
-                    "data_access_type": ["ONE_TIME"],
+                    "data_access_type": ["THIRTEEN_MONTH"],
                 }
             }
         )

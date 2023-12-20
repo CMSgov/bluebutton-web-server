@@ -35,7 +35,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app = self._create_application("test_app", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app.data_access_type)
 
         # Delete app
         test_app.delete()
@@ -82,7 +82,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app = self._create_application("test_app", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app.data_access_type)
 
         # fake some grants tied to the user and the app
         DataAccessGrant.objects.update_or_create(
@@ -125,7 +125,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app_sw_off = self._create_application("test_app_sw_off", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app_sw_off.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app_sw_off.data_access_type)
 
         # fake some grants tied to the user and the app
         DataAccessGrant.objects.update_or_create(

@@ -154,7 +154,7 @@ class Application(AbstractApplication):
 
     # Type related to data access limits.
     data_access_type = models.CharField(
-        default="ONE_TIME",
+        default="THIRTEEN_MONTH",
         choices=APPLICATION_TYPE_CHOICES,
         max_length=16,
         null=True,
