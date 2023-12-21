@@ -35,7 +35,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app = self._create_application("test_app", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app.data_access_type)
 
         # Delete app
         test_app.delete()
@@ -81,7 +81,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app = self._create_application("test_app", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app.data_access_type)
 
         # fake some grants tied to the user and the app
         DataAccessGrant.objects.update_or_create(
@@ -110,7 +110,7 @@ class TestDotExtModels(BaseApiTest):
         self.assertEqual(len(log_entries), 1)
         log_entry_json = json.loads(log_entries[0])
         self.assertEqual(log_entry_json['type'], "application_data_access_type_change")
-        self.assertEqual(log_entry_json['data_access_type_old'], "ONE_TIME")
+        self.assertEqual(log_entry_json['data_access_type_old'], "THIRTEEN_MONTH")
         self.assertEqual(log_entry_json['data_access_type_new'], "RESEARCH_STUDY")
 
     @override_flag('limit_data_access', active=False)
@@ -125,7 +125,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app_sw_off = self._create_application("test_app_sw_off", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app_sw_off.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app_sw_off.data_access_type)
 
         # fake some grants tied to the user and the app
         DataAccessGrant.objects.update_or_create(

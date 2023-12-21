@@ -280,7 +280,7 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         # 2. Test application data access type
-        self.assertEqual(app.data_access_type, "ONE_TIME")
+        self.assertEqual(app.data_access_type, "THIRTEEN_MONTH")
 
         # 3. Test grant obj created OK.
         dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
