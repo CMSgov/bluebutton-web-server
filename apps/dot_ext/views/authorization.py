@@ -65,7 +65,8 @@ class AuthorizationView(DotAuthorizationView):
 
     def get_context_data(self, **kwargs):
         context = super(AuthorizationView, self).get_context_data(**kwargs)
-        context['permission_end_date'] = self.application.access_end_date_mesg()
+        context['permission_end_date_text'] = self.application.access_end_date_text()
+        context['permission_end_date'] = self.application.access_end_date()
         return context
 
     def dispatch(self, request, *args, **kwargs):

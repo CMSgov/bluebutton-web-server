@@ -1,6 +1,7 @@
 {% extends "auth_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load l10n %}
 {% load bootstrap %}
 
 {% block navigation %}{% endblock %}
@@ -141,7 +142,7 @@
                                             </g>
                                         </g>
                                     </g>
-                                </svg><span class="ds-u-margin-left--3 ds-text-body--md">{{ application.name }} will have access to your data {{ permission_end_date }}.</span>
+                                </svg><span class="ds-u-margin-left--3 ds-text-body--md">{{ application.name }} will have access to your data {{ permission_end_date_text }}{% if permission_end_date is not None %}{{ permission_end_date|localize }}{% endif %}.</span>
                             </p>
                         {% endif %}
                         <p class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center">
