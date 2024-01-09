@@ -32,6 +32,7 @@
                 {% switch "enable_swaggerui" %}
                     <a href="{% url 'bluebutton_openapi' %}" target='_blank' rel="noopener noreferrer" style="outline-color: transparent; background-color: transparent">API Reference</a>
                 {% endswitch %}
+                <a href="https://bluebutton.cms.gov/guide/" style="outline-color: transparent; background-color: transparent">Production Access Guide</a>
                 <a href="{% url 'test_links' %}" style="outline-color: transparent; background-color: transparent">Test Client</a>
 
                 {% if user.is_authenticated %}
