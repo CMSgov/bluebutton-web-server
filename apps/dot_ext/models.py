@@ -158,14 +158,22 @@ class Application(AbstractApplication):
         verbose_name="Data Access Type:",
     )
 
-    def access_end_date_mesg(self):
+    # Text and date must be separated so that built-in Django localization
+    # will recognize that the date should be localized when tagged
+    def access_end_date_text(self):
         if self.has_one_time_only_data_access():
             return TEN_HOURS
         elif "RESEARCH_STUDY" in self.data_access_type:
             return "no end date."
         else:
+            return "until "
+
+    def access_end_date(self):
+        if self.data_access_type == "THIRTEEN_MONTH":
             end_date = datetime.now() + relativedelta(months=+13)
-            return "until " + end_date.strftime("%B %d, %Y")
+            return end_date.date
+        else:
+            return None
 
     def scopes(self):
         scope_list = []
