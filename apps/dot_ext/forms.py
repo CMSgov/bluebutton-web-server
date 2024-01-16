@@ -19,9 +19,11 @@ logger = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
 PRINTABLE_SPECIAL_ASCII = "!\"#$%&'()*+,-/:;<=>?@[\\]^_`{|}~"
 
+# TODO Consider refactoring the following two forms which are possibly redundant
+# Refer to comment on BB2-2933
+
 
 class CustomRegisterApplicationForm(forms.ModelForm):
-
     logo_image = forms.ImageField(
         label="Logo URI Image Upload",
         required=False,
@@ -166,7 +168,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
 
     def clean_require_demographic_scopes(self):
         require_demographic_scopes = self.cleaned_data.get("require_demographic_scopes")
-        if type(require_demographic_scopes) != bool:
+        if not isinstance(require_demographic_scopes, bool):
             msg = _(
                 "Does your application need to collect beneficiary demographic information must be (Yes/No)."
             )
@@ -235,6 +237,8 @@ class CreateNewApplicationForm(forms.ModelForm):
             "description",
         )
 
+    # Duplication of clean_name() from above form, see TODO comment at start of file
+    # about candidate for refactoring
     def clean_name(self):
 
         name = self.cleaned_data.get("name")
@@ -253,6 +257,19 @@ class CreateNewApplicationForm(forms.ModelForm):
                                         Note that names are case-insensitive.
                                         """
             )
+        if not app_model.objects.filter(name__iexact=name).exists():
+            # new app, restrict app name to only printable ASCII (32-127)
+            if not (str(name).isprintable() and str(name).isascii()):
+                raise forms.ValidationError(
+                    """
+                            Invalid character(s) in application name ({}),
+                            Allowed characters:
+                            Alphanumeric characters 0 to 9, a to z, A to Z, space character,
+                            Special characters {}
+                            """.format(
+                        name, PRINTABLE_SPECIAL_ASCII
+                    )
+                )
         return name
 
     def clean_logo_image(self):
@@ -276,7 +293,7 @@ class CreateNewApplicationForm(forms.ModelForm):
     def clean_require_demographic_scopes(self):
 
         require_demographic_scopes = self.cleaned_data.get("require_demographic_scopes")
-        if type(require_demographic_scopes) != bool:
+        if not isinstance(require_demographic_scopes, bool):
             msg = _(
                 "Does your application need to collect beneficiary demographic information must be (Yes/No)."
             )
