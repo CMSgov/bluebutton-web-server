@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, ConsentRequired
 
 from apps.authorization.models import DataAccessGrant
 
@@ -113,23 +113,24 @@ def validate_app_is_active(request):
                     description=settings.APPLICATION_ONE_TIME_REFRESH_NOT_ALLOWED_MESG
                 )
 
-            # Check if data access grant is expired for THIRTEEN_MONTH app type?
-            if hasattr(request, 'user'):
-                if not request.user.is_anonymous:
-                    try:
-                        dag = DataAccessGrant.objects.get(
-                            beneficiary=request.user,
-                            application=app
+            refresh_code = request.POST.get("refresh_token")
+            try:
+                refresh_token = RefreshToken.objects.get(token=refresh_code)
+                dag = DataAccessGrant.objects.get(
+                    beneficiary=refresh_token.user,
+                    application=app
+                )
+
+                if dag:
+                    if dag.has_expired():
+                        raise ConsentRequired(
+                            description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
                         )
 
-                        if dag:
-                            if dag.has_expired():
-                                raise InvalidClientError(
-                                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
-                                )
-
-                    except DataAccessGrant.DoesNotExist:
-                        pass
+            except DataAccessGrant.DoesNotExist:
+                pass
+            except RefreshToken.DoesNotExist:
+                pass
     elif app and not app.active:
         raise InvalidClientError(
             description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
