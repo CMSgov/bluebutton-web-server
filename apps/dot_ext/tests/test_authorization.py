@@ -387,8 +387,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
             application=application
         )
         dag.expiration_date = datetime.now().replace(
-                        tzinfo=pytz.UTC
-                    ) + relativedelta(months=-1)
+            tzinfo=pytz.UTC
+        ) + relativedelta(months=-1)
         dag.save()
         at.delete()
         refresh_request_data = {
@@ -400,7 +400,6 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         }
         response = self.client.post(reverse('oauth2_provider:token'), data=refresh_request_data)
         self.assertEqual(response.status_code, 400)
-
 
     @override_flag('limit_data_access', active=True)
     def test_refresh_with_one_time_access_retrieve_app_using_refresh_token(self):
