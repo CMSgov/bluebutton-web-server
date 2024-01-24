@@ -23,6 +23,7 @@ class Action(Enum):
     GET_SAMPLE_TOKEN_PKCE_START = 11
     SLEEP = 12
     VALIDATE_EMAIL_NOTIFICATION = 13
+    CHECK_DATE_FORMAT = 14
 
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
@@ -54,6 +55,9 @@ LNK_TXT_COVERAGE = "Coverage"
 LNK_TXT_PROFILE = "Profile"
 LNK_TXT_METADATA = "FHIR Metadata"
 LNK_TXT_OIDC_DISCOVERY = "OIDC Discovery"
+# Spanish-English toggle link
+LNK_TXT_SPANISH = "Cambiar a español"
+LNK_TXT_ENGLISH = "Change to English"
 # FHIR result page label H2
 LAB_FHIR_RESULTPAGE_H2 = "h2"
 CONTENT_FHIR_RESULTPAGE_PRE = "pre"
@@ -101,6 +105,15 @@ USER_ACCT_ACTIVATED_MSG = "Your account has been activated. You may now login."
 USER_NOT_ACTIVE_ALERT_MSG = "Please click the verification link in your email before logging in."
 USER_ACTIVATE_BAD_KEY_MSG = "There may be an issue with your account. Contact us at bluebuttonapi@cms.hhs.gov"
 USER_LNK_TXT_ACCT_LOGOUT = "Logout"
+
+# language and localization checking
+AUTH_SCREEN_ID_LANG = "connect_app"
+AUTH_SCREEN_ID_END_DATE = "permission_end_date"
+AUTH_SCREEN_ES_TXT = "Conecta tus datos de reclamaciones"
+AUTH_SCREEN_EN_TXT = "Connect your Medicare claims"
+# regex for date formats
+AUTH_SCREEN_ES_DATE_FORMAT = "^\\d{1,2} de \\w+ de \\d{4}"
+AUTH_SCREEN_EN_DATE_FORMAT = "^\\w{3}\\. \\d{1,2}, \\d{4}"
 
 # app form
 LNK_TXT_APP_ADD = "Add an Application"
@@ -198,6 +211,18 @@ CLICK_DENY_ACCESS = {
     "display": "Click 'Deny' on DEMO info grant form",
     "action": Action.FIND_CLICK,
     "params": [20, By.ID, BTN_ID_DENY_DEMO_ACCESS]
+}
+
+CLICK_SPANISH = {
+    "display": "Click Spanish language link",
+    "action": Action.FIND_CLICK,
+    "params": [20, By.LINK_TEXT, LNK_TXT_SPANISH]
+}
+
+CLICK_ENGLISH = {
+    "display": "Click English language link",
+    "action": Action.FIND_CLICK,
+    "params": [20, By.LINK_TEXT, LNK_TXT_ENGLISH]
 }
 
 CALL_LOGIN = {
@@ -497,6 +522,39 @@ TESTS = {
         CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN,
         CLICK_AGREE_ACCESS,
         {"sequence": SEQ_QUERY_FHIR_RESOURCES_NO_DEMO}
+    ]
+}
+
+SPANISH_TESTS = {
+    "toggle_language": [
+        {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        # Wait to make sure we're logged in because login page also has Spanish link
+        WAIT_SECONDS,
+        WAIT_SECONDS,
+        CLICK_SPANISH,
+        {
+            "display": "Check for language change to Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
+        },
+        {
+            "display": "Check Spanish date format",
+            "action": Action.CHECK_DATE_FORMAT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT]
+        },
+        CLICK_ENGLISH,
+        {
+            "display": "Check for language change to English",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_EN_TXT]
+        },
+        {
+            "display": "Check English date format",
+            "action": Action.CHECK_DATE_FORMAT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT]
+        },
+        CLICK_AGREE_ACCESS
     ]
 }
 
