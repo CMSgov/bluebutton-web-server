@@ -1,6 +1,7 @@
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import activate
 
+
 class LanguageMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
