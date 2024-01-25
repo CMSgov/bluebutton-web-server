@@ -127,10 +127,10 @@ def validate_app_is_active(request):
                             description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
                         )
 
-            except DataAccessGrant.DoesNotExist:
-                pass
-            except RefreshToken.DoesNotExist:
-                pass
+            except (DataAccessGrant.DoesNotExist, RefreshToken.DoesNotExist):
+                raise InvalidGrantError(
+                    description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
+                )
     elif app and not app.active:
         raise InvalidClientError(
             description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
