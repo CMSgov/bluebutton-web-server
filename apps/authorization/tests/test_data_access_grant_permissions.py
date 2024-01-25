@@ -725,7 +725,7 @@ class TestDataAccessPermissions(BaseApiTest):
             application=app,
             refresh_token=ac["refresh_token"],
             expected_response_code=400,
-            expected_response_error_mesg="consent_required",
+            expected_response_error_mesg="invalid_grant",
             expected_response_error_description_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
 

@@ -15,7 +15,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauth2_provider.models import get_application_model
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError, ConsentRequired
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
 
 from apps.dot_ext.scopes import CapabilitiesScopes
@@ -289,7 +289,7 @@ class TokenView(DotTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except (InvalidClientError, ConsentRequired) as error:
+        except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
 
         return super().post(request, args, kwargs)

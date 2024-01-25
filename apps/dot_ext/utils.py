@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.http.response import JsonResponse
 from oauth2_provider.models import AccessToken, RefreshToken, get_application_model
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError, ConsentRequired
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 
 from apps.authorization.models import DataAccessGrant
 
@@ -123,7 +123,7 @@ def validate_app_is_active(request):
 
                 if dag:
                     if dag.has_expired():
-                        raise ConsentRequired(
+                        raise InvalidGrantError(
                             description=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG
                         )
 
