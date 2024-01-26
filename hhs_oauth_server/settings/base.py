@@ -227,7 +227,6 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware",
-    "apps.authorization.language.LanguageMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     # Must be before CommonMiddleware but after SessionMiddleware
     "django.middleware.locale.LocaleMiddleware",
