@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-18 12:01+0000\n"
+"POT-Creation-Date: 2024-01-26 16:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,138 +19,152 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: auth_base.html:55
+#: templates/auth_base.html:56
 msgid "Official government website"
 msgstr "Sitio web oficial del gobierno"
 
-#: auth_base.html:83
+#: templates/auth_base.html:84
 msgid "An official website of the United States government"
-msgstr "Un sitio web oficial del gobierno de los Estados Unidos"
+msgstr "Un sitio oficial del Gobierno de Estados Unidos"
 
-#: auth_base.html:85
+#: templates/auth_base.html:86
 msgid "Here's how you know"
-msgstr "Así es como sabes"
+msgstr "Así es como usted puede verificarlo"
 
-#: auth_base.html:102
+#: templates/auth_base.html:103
 msgid "Cambiar a español"
 msgstr "Change to English"
 
-#: auth_base.html:133
+#: templates/auth_base.html:134
 msgid "Official websites use .gov"
-msgstr "Los sitios web oficiales utilizan .gov"
+msgstr "Los sitios web oficiales usan .gov"
 
-#: auth_base.html:135 auth_base.html:165
+#: templates/auth_base.html:136 templates/auth_base.html:166
 msgid "A "
 msgstr "Un "
 
-#: auth_base.html:136
+#: templates/auth_base.html:137
 msgid ".gov "
 msgstr ".gov "
 
-#: auth_base.html:137
-msgid "website belongs to an official government organization in the United States."
-msgstr "el sitio web pertenece a una organización gubernamental oficial en los Estados Unidos."
+#: templates/auth_base.html:138
+msgid ""
+"website belongs to an official government organization in the United States."
+msgstr ""
+"pertenece a una organización oficial del Gobierno de Estados Unidos."
 
-#: auth_base.html:163
+#: templates/auth_base.html:164
 msgid "Secure .gov websites use HTTPS"
-msgstr "Los sitios web .gov seguros utilizan HTTPS"
+msgstr "Los sitios web seguros .gov usan HTTPS"
 
-#: auth_base.html:166
+#: templates/auth_base.html:167
 msgid "lock "
-msgstr "cerradura "
+msgstr "candado "
 
-#: auth_base.html:180
+#: templates/auth_base.html:181
 msgid "or "
 msgstr "o "
 
-#: auth_base.html:181
-msgid " means you've safely connected to the .gov website. Share sensitive information only on official, secure websites."
-msgstr " Significa que te has conectado de forma segura al sitio web .gov. Comparte información sensible solo en sitios web oficiales y seguros."
+#: templates/auth_base.html:183
+msgid ""
+" means you've safely connected to the .gov website. Share sensitive "
+"information only on official, secure websites."
+msgstr ""
+" significa que usted se conectó de forma segura a un sitio web .gov. "
+"Comparta información sensible sólo en sitios web oficiales y seguros."
 
-#: design_system/new_authorize_v2.html:55
+#: templates/design_system/new_authorize_v2.html:56
 msgid "Connect your Medicare claims data to "
-msgstr "Conecta tus datos de reclamaciones de Medicare a "
+msgstr "¿Conectar los datos de sus reclamos de Medicare a "
 
-#: design_system/new_authorize_v2.html:57
+#: templates/design_system/new_authorize_v2.html:58
 msgid "If you connect, "
-msgstr "Si te conectas, "
+msgstr "Si se conecta, "
 
-#: design_system/new_authorize_v2.html:57
+#: templates/design_system/new_authorize_v2.html:58
 msgid "will have access to information about your:"
-msgstr "tendrás acceso a información sobre tu:"
+msgstr "tiene acceso a la información sobre su:"
 
-#: design_system/new_authorize_v2.html:59
+#: templates/design_system/new_authorize_v2.html:60
 msgid "Doctor visits"
-msgstr "visitas al médico"
+msgstr "Visitas al médico"
 
-#: design_system/new_authorize_v2.html:60
+#: templates/design_system/new_authorize_v2.html:61
 msgid "Hospital visits"
-msgstr "visitas al hospital"
+msgstr "Visitas al hospital"
 
-#: design_system/new_authorize_v2.html:61
+#: templates/design_system/new_authorize_v2.html:62
 msgid "Prescription medications"
-msgstr "medicamentos recetados"
+msgstr "Medicamentos recetados"
 
-#: design_system/new_authorize_v2.html:69
+#: templates/design_system/new_authorize_v2.html:70
 msgid "You can also grant access to your:"
-msgstr "También puedes otorgar acceso a tu:"
+msgstr "También puede darle acceso a su:"
 
-#: design_system/new_authorize_v2.html:88
+#: templates/design_system/new_authorize_v2.html:89
 msgid "Personal Information"
 msgstr "Información personal"
 
-#: design_system/new_authorize_v2.html:88
+#: templates/design_system/new_authorize_v2.html:89
 msgid "Your name, address, date of birth, race, and gender"
-msgstr "Tu nombre, dirección, fecha de nacimiento, raza y género"
+msgstr "Su nombre, dirección, fecha de nacimiento y género"
 
-#: design_system/new_authorize_v2.html:91
+#: templates/design_system/new_authorize_v2.html:92
 msgid "Uncheck to block access to personal information."
-msgstr "Desmarca para bloquear el acceso a la información personal."
+msgstr "Quite la marca para bloquear el acceso a información personal"
 
-#: design_system/new_authorize_v2.html:92
+#: templates/design_system/new_authorize_v2.html:93
 msgid "Check to allow access to personal information."
 msgstr "Marca para permitir el acceso a la información personal."
 
-#: design_system/new_authorize_v2.html:126
+#: templates/design_system/new_authorize_v2.html:127
 msgid "Learn more about how "
-msgstr "Aprender sobre cómo "
+msgstr "Obtenga más información sobre cómo "
 
-#: design_system/new_authorize_v2.html:126
+#: templates/design_system/new_authorize_v2.html:127
 msgid " uses your data in their "
-msgstr "utiliza tus datos en su "
+msgstr " utiliza sus datos en su "
 
-#: design_system/new_authorize_v2.html:126
+#: templates/design_system/new_authorize_v2.html:127
 msgid "Privacy Policy"
 msgstr "Política de Privacidad"
 
-#: design_system/new_authorize_v2.html:126
+#: templates/design_system/new_authorize_v2.html:127
 msgid " and "
 msgstr " y "
 
-#: design_system/new_authorize_v2.html:126
+#: templates/design_system/new_authorize_v2.html:127
 msgid "Terms and Conditions"
 msgstr "Términos y Condiciones"
 
-#: design_system/new_authorize_v2.html:144
-msgid " will have access to your data until "
-msgstr " tendrá acceso a tus datos hasta que "
+#: templates/design_system/new_authorize_v2.html:145
+msgid " will have access to your data "
+msgstr " tendrá acceso a sus datos "
 
-#: design_system/new_authorize_v2.html:159
+#: templates/design_system/new_authorize_v2.html:145
+msgid "until "
+msgstr "hasta el "
+
+#: templates/design_system/new_authorize_v2.html:145
+msgid "for 10 hours"
+msgstr "durante 10 horas"
+
+#: templates/design_system/new_authorize_v2.html:160
 msgid "To stop sharing your information with "
-msgstr "Para dejar de compartir tu información con "
+msgstr "Para dejar de compartir su información con "
 
-#: design_system/new_authorize_v2.html:159
+#: templates/design_system/new_authorize_v2.html:160
 msgid " visit your "
-msgstr " visitar tu "
+msgstr " visite su cuenta de "
 
-#: design_system/new_authorize_v2.html:159
+#: templates/design_system/new_authorize_v2.html:160
 msgid " account or call "
-msgstr " cuenta o llamar "
+msgstr " o llame al "
 
-#: design_system/new_authorize_v2.html:164
+#: templates/design_system/new_authorize_v2.html:165
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: design_system/new_authorize_v2.html:166
+#: templates/design_system/new_authorize_v2.html:167
 msgid "Connect"
 msgstr "Conectar"

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -22,12 +23,12 @@ from django.utils.translation import get_language
 def toggle_language(request):
     current_language = get_language()
     new_language = 'es' if 'en' in current_language else 'en'
-    request.session['django_language'] = new_language
-    request.LANGUAGE_CODE = new_language
 
     referring_page = request.META.get('HTTP_REFERER')
     if referring_page:
-        return HttpResponseRedirect(referring_page)
+        response = HttpResponseRedirect(referring_page)
+        response.set_cookie(settings.LANGUAGE_COOKIE_NAME, new_language)
+        return response
     else:
         return HttpResponseRedirect('/')
 

@@ -229,6 +229,8 @@ MIDDLEWARE = [
     "hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware",
     "apps.authorization.language.LanguageMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    # Must be before CommonMiddleware but after SessionMiddleware
+    "django.middleware.locale.LocaleMiddleware",
     # Middleware that can send a response must be below this line
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -236,7 +238,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.dot_ext.throttling.ThrottleMiddleware",
-    # "django.middleware.locale.LocaleMiddleware",
     "waffle.middleware.WaffleMiddleware",
     # AxesMiddleware should be the last middleware in the MIDDLEWARE list.
     # It only formats user lockout messages and renders Axes lockout responses
