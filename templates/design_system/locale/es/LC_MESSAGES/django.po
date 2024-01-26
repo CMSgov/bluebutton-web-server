@@ -115,7 +115,7 @@ msgstr "Quite la marca para bloquear el acceso a información personal"
 
 #: templates/design_system/new_authorize_v2.html:93
 msgid "Check to allow access to personal information."
-msgstr "Marca para permitir el acceso a la información personal."
+msgstr "Marque para permitir el acceso a la información personal."
 
 #: templates/design_system/new_authorize_v2.html:127
 msgid "Learn more about how "
@@ -153,18 +153,22 @@ msgstr "durante 10 horas"
 msgid "To stop sharing your information with "
 msgstr "Para dejar de compartir su información con "
 
-#: templates/design_system/new_authorize_v2.html:160
+#: templates/design_system/new_authorize_v2.html:161
+msgid "https://www.medicare.gov/"
+msgstr "https://es.medicare.gov/"
+
+#: templates/design_system/new_authorize_v2.html:161
 msgid " visit your "
 msgstr " visite su cuenta de "
 
-#: templates/design_system/new_authorize_v2.html:160
+#: templates/design_system/new_authorize_v2.html:161
 msgid " account or call "
 msgstr " o llame al "
 
-#: templates/design_system/new_authorize_v2.html:165
+#: templates/design_system/new_authorize_v2.html:166
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: templates/design_system/new_authorize_v2.html:167
+#: templates/design_system/new_authorize_v2.html:168
 msgid "Connect"
 msgstr "Conectar"
