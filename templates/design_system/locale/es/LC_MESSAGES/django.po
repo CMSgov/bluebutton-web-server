@@ -39,31 +39,26 @@ msgstr "Change to English"
 msgid "Official websites use .gov"
 msgstr "Los sitios web oficiales usan .gov"
 
-#: templates/auth_base.html:136 templates/auth_base.html:166
-msgid "A "
-msgstr "Un "
-
-#: templates/auth_base.html:137
-msgid ".gov "
-msgstr ".gov "
-
-#: templates/auth_base.html:138
-msgid ""
-"website belongs to an official government organization in the United States."
-msgstr ""
-"pertenece a una organización oficial del Gobierno de Estados Unidos."
+#: templates/auth_base.html:136
+msgid "A <strong>.gov</strong> website belongs to an official "
+"government organization in the United States."
+msgstr "Un sitio web <strong>.gov</strong> pertenece a una organización "
+"oficial del Gobierno de Estados Unidos."
 
 #: templates/auth_base.html:164
 msgid "Secure .gov websites use HTTPS"
 msgstr "Los sitios web seguros .gov usan HTTPS"
 
 #: templates/auth_base.html:167
-msgid "lock "
-msgstr "candado "
+msgid "A <strong>lock</strong> "
+msgstr "Un <strong>candado</strong> "
 
 #: templates/auth_base.html:181
-msgid "or "
-msgstr "o "
+msgid "or <strong>https://</strong> means you've safely connected to "
+"the .gov website. Share sensitive information only on official, secure websites."
+msgstr "o <strong>https://</strong> significa que usted se conectó "
+"de forma segura a un sitio web .gov. Comparta información sensible "
+"sólo en sitios web oficiales y seguros."
 
 #: templates/auth_base.html:183
 msgid ""
