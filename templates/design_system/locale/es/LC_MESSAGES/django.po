@@ -78,7 +78,7 @@ msgstr "Si se conecta, "
 
 #: templates/design_system/new_authorize_v2.html:58
 msgid "will have access to information about your:"
-msgstr "tiene acceso a la información sobre su:"
+msgstr "tendrá acceso a la información sobre sus:"
 
 #: templates/design_system/new_authorize_v2.html:60
 msgid "Doctor visits"
