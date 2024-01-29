@@ -51,7 +51,39 @@
             icon27.classList.remove('ds-c-icon--arrow-up');
             icon27.classList.add('ds-c-icon--arrow-down');
         }
-    }  
+    }
+
+    function setCookie(name, value) {
+        var expires = "";
+
+        var date = new Date();
+        // 1 hour expiration
+        date.setTime(date.getTime() + (60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+      }
+
+      function getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+      }
+
+    function toggleLanguage() {
+        var lang = getCookie("{{settings.LANGUAGE_COOKIE_NAME}}");
+        if(lang == 'en' || lang == null) {
+            setCookie("{{settings.LANGUAGE_COOKIE_NAME}}", 'es')
+        } else {
+            setCookie("{{settings.LANGUAGE_COOKIE_NAME}}", 'en')
+        }
+        window.location.reload();
+    }
 </script>
 <section class="ds-c-usa-banner" aria-label={% trans "Official government website" %}>
 <header class="ds-c-usa-banner__header" style="background-color:#f2f2f2; padding: 8px 16px 8px 16px;">
@@ -100,7 +132,7 @@
             </svg>
         </button>
     </p>
-    <div class="ds-u-margin-left--auto ds-u-margin-right--0"><a href="{% url 'toggle-language' %}">{% trans "Cambiar a español" %}</a></div>
+    <div class="ds-u-margin-left--auto ds-u-margin-right--0"><a href="#" onclick="toggleLanguage();">{% trans "Cambiar a español" %}</a></div>
 </header>
 <div class="ds-c-usa-banner__content" id="gov-banner_25" hidden="">
     <div class="ds-c-usa-banner__guidance-container">

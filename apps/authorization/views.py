@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -16,21 +15,6 @@ from apps.dot_ext.authentication import SLSAuthentication
 from .models import DataAccessGrant
 from ..dot_ext.utils import get_application_from_meta
 from ..fhir.bluebutton.models import Crosswalk
-from django.http import HttpResponseRedirect
-from django.utils.translation import get_language
-
-
-def toggle_language(request):
-    current_language = get_language()
-    new_language = 'es' if 'en' in current_language else 'en'
-
-    referring_page = request.META.get('HTTP_REFERER')
-    if referring_page:
-        response = HttpResponseRedirect(referring_page)
-        response.set_cookie(settings.LANGUAGE_COOKIE_NAME, new_language)
-        return response
-    else:
-        return HttpResponseRedirect('/')
 
 
 Application = get_application_model()
