@@ -704,10 +704,10 @@ class TestDataAccessPermissions(BaseApiTest):
         #    Test has_expired() is false before time change
         self.assertFalse(dag.has_expired())
 
-        #    Mock future date 13 months and 1-hour in future.
+        #    Mock future date 13 months and 2-days in future.
         StubDate.now = classmethod(
             lambda cls: datetime.now().replace(tzinfo=pytz.UTC)
-            + relativedelta(months=+13, hours=+1)
+            + relativedelta(months=+13, days=+2)
         )
 
         #    Test has_expired() is true after time change
@@ -737,7 +737,7 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         # 9. Test RE-AUTH works as expected in #10 thru end of tests.
-        #    Note that the time was previously mocked +13 months & 1-hour.
+        #    Note that the time was previously mocked +13 months & 2-days.
 
         # 10. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
