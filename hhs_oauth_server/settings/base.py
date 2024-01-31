@@ -228,6 +228,8 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "hhs_oauth_server.request_logging.RequestTimeLoggingMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    # Must be before CommonMiddleware but after SessionMiddleware
+    "django.middleware.locale.LocaleMiddleware",
     # Middleware that can send a response must be below this line
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -257,6 +259,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django_settings_export.settings_export",
@@ -296,8 +299,19 @@ MESSAGE_TAGS = {
     messages.ERROR: "danger",
 }
 
+# Set the list of supported languages
+LANGUAGES = [
+    ('en', _('English')),
+    ('es', _('Spanish')),
+    # Add more languages as needed
+]
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, ("templates/design_system/locale")),
+]
+
 # internationalization
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
@@ -534,6 +548,7 @@ SETTINGS_EXPORT = [
     "ALLOW_END_USER_EXTERNAL_AUTH",
     "OPTIONAL_INSTALLED_APPS",
     "INSTALLED_APPS",
+    "LANGUAGE_COOKIE_NAME"
 ]
 
 SESSION_COOKIE_AGE = 5400

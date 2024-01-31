@@ -1,0 +1,169 @@
+# Spanish language translation file
+# Adrian Jones <adrian.jones@adhocteam.us>, 2023.
+#
+# TRANSLATORS: text and punctuation after 'msgid' is the English text requiring translation.
+# The translation text should go within the quotation marks following the 'msgstr' identifier.
+# Please add/maintain all punctuation and whitespce found in the original text.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-26 16:11+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/auth_base.html:56
+msgid "Official government website"
+msgstr "Sitio web oficial del gobierno"
+
+#: templates/auth_base.html:84
+msgid "An official website of the United States government"
+msgstr "Un sitio oficial del Gobierno de Estados Unidos"
+
+#: templates/auth_base.html:86
+msgid "Here's how you know"
+msgstr "Así es como usted puede verificarlo"
+
+#: templates/auth_base.html:103
+msgid "Cambiar a español"
+msgstr "Change to English"
+
+#: templates/auth_base.html:134
+msgid "Official websites use .gov"
+msgstr "Los sitios web oficiales usan .gov"
+
+#: templates/auth_base.html:136
+msgid "A <strong>.gov</strong> website belongs to an official "
+"government organization in the United States."
+msgstr "Un sitio web <strong>.gov</strong> pertenece a una organización "
+"oficial del Gobierno de Estados Unidos."
+
+#: templates/auth_base.html:164
+msgid "Secure .gov websites use HTTPS"
+msgstr "Los sitios web seguros .gov usan HTTPS"
+
+#: templates/auth_base.html:167
+msgid "A <strong>lock</strong> "
+msgstr "Un <strong>candado</strong> "
+
+#: templates/auth_base.html:181
+msgid "or <strong>https://</strong> means you've safely connected to "
+"the .gov website. Share sensitive information only on official, secure websites."
+msgstr "o <strong>https://</strong> significa que usted se conectó "
+"de forma segura a un sitio web .gov. Comparta información sensible "
+"sólo en sitios web oficiales y seguros."
+
+#: templates/auth_base.html:183
+msgid ""
+" means you've safely connected to the .gov website. Share sensitive "
+"information only on official, secure websites."
+msgstr ""
+" significa que usted se conectó de forma segura a un sitio web .gov. "
+"Comparta información sensible sólo en sitios web oficiales y seguros."
+
+#: templates/design_system/new_authorize_v2.html:56
+msgid "Connect your Medicare claims data to "
+msgstr "¿Conectar los datos de sus reclamos de Medicare a "
+
+#: templates/design_system/new_authorize_v2.html:58
+msgid "If you connect, "
+msgstr "Si se conecta, "
+
+#: templates/design_system/new_authorize_v2.html:58
+msgid "will have access to information about your:"
+msgstr "tendrá acceso a la información sobre sus:"
+
+#: templates/design_system/new_authorize_v2.html:60
+msgid "Doctor visits"
+msgstr "Visitas al médico"
+
+#: templates/design_system/new_authorize_v2.html:61
+msgid "Hospital visits"
+msgstr "Visitas al hospital"
+
+#: templates/design_system/new_authorize_v2.html:62
+msgid "Prescription medications"
+msgstr "Medicamentos recetados"
+
+#: templates/design_system/new_authorize_v2.html:70
+msgid "You can also grant access to your:"
+msgstr "También puede darle acceso a su:"
+
+#: templates/design_system/new_authorize_v2.html:89
+msgid "Personal Information"
+msgstr "Información personal"
+
+#: templates/design_system/new_authorize_v2.html:89
+msgid "Your name, address, date of birth, race, and gender"
+msgstr "Su nombre, dirección, fecha de nacimiento y género"
+
+#: templates/design_system/new_authorize_v2.html:92
+msgid "Uncheck to block access to personal information."
+msgstr "Quite la marca para bloquear el acceso a información personal"
+
+#: templates/design_system/new_authorize_v2.html:93
+msgid "Check to allow access to personal information."
+msgstr "Marque para permitir el acceso a la información personal."
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid "Learn more about how "
+msgstr "Obtenga más información sobre cómo "
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid " uses your data in their "
+msgstr " utiliza sus datos en su "
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid "Privacy Policy"
+msgstr "Política de Privacidad"
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid " and "
+msgstr " y "
+
+#: templates/design_system/new_authorize_v2.html:127
+msgid "Terms and Conditions"
+msgstr "Términos y Condiciones"
+
+#: templates/design_system/new_authorize_v2.html:145
+msgid " will have access to your data "
+msgstr " tendrá acceso a sus datos "
+
+#: templates/design_system/new_authorize_v2.html:145
+msgid "until "
+msgstr "hasta el "
+
+#: templates/design_system/new_authorize_v2.html:145
+msgid "for 10 hours"
+msgstr "durante 10 horas"
+
+#: templates/design_system/new_authorize_v2.html:160
+msgid "To stop sharing your information with "
+msgstr "Para dejar de compartir su información con "
+
+#: templates/design_system/new_authorize_v2.html:161
+msgid "https://www.medicare.gov/"
+msgstr "https://es.medicare.gov/"
+
+#: templates/design_system/new_authorize_v2.html:161
+msgid " visit your "
+msgstr " visite su cuenta de "
+
+#: templates/design_system/new_authorize_v2.html:161
+msgid " account or call "
+msgstr " o llame al "
+
+#: templates/design_system/new_authorize_v2.html:166
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/design_system/new_authorize_v2.html:168
+msgid "Connect"
+msgstr "Conectar"
