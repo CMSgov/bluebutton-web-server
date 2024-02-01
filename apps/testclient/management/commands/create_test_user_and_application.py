@@ -92,7 +92,7 @@ def create_application(user, group, app, redirect):
     a = Application.objects.create(name=app_name,
                                 redirect_uris=redirect_uri,
                                 user=user,
-                                data_access_type="RESEARCH_STUDY",
+                                data_access_type="THIRTEEN_MONTH",
                                 client_type="confidential",
                                 authorization_grant_type="authorization-code")
 

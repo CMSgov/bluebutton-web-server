@@ -1,5 +1,6 @@
 import os
 import time
+import re
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -82,6 +83,7 @@ class SeleniumGenericTests():
             Action.LOGIN: self._login,
             Action.SLEEP: self._sleep,
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
+            Action.CHECK_DATE_FORMAT: self._check_date_format
         }
 
     def teardown_method(self, method):
@@ -164,6 +166,11 @@ class SeleniumGenericTests():
     def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         assert content_txt in elem.text
+
+    def _check_date_format(self, timeout_sec, by, by_expr, format, **kwargs):
+        elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
+        pattern = re.compile(format)
+        assert pattern.match(elem.text)
 
     def _back(self, **kwargs):
         self.driver.back()

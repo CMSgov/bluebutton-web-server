@@ -53,7 +53,7 @@
 
         <div class="ds-u-margin-left--4 ds-u-margin-right--4 ds-u-margin-top--4">
 
-            <h1 class="ds-text-heading--2xl ds-u-margin-bottom--3">{% trans "Connect your Medicare claims data to "%}{{ application.name }}?</h1>
+            <h1 class="ds-text-heading--2xl ds-u-margin-bottom--3"><span id="connect_app">{% trans "Connect your Medicare claims data to "%}</span>{{ application.name }}?</h1>
 
             <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">{% trans "If you connect, " %}{{ application.name }} {% trans "will have access to information about your:" %}</p>
             <ul class="ds-u-margin-top--0">
@@ -142,7 +142,10 @@
                                             </g>
                                         </g>
                                     </g>
-                                </svg><span class="ds-u-margin-left--3 ds-text-body--md">{{ application.name }}{% trans " will have access to your data " %}{% trans permission_end_date_text %}{% if permission_end_date is not None %}{{ permission_end_date|localize }}{% endif %}.</span>
+                                </svg><span class="ds-u-margin-left--3 ds-text-body--md">
+                                    {{ application.name }}{% trans " will have access to your data "%}{%trans permission_end_date_text %}
+                                    {% if permission_end_date is not None %}<span id="permission_end_date">{{ permission_end_date|localize }}</span>{% endif %}.
+                                </span>
                             </p>
                         {% endif %}
                         <p class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center">
