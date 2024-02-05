@@ -113,7 +113,8 @@ AUTH_SCREEN_ES_TXT = "Conectar los datos de sus reclamos de Medicare"
 AUTH_SCREEN_EN_TXT = "Connect your Medicare claims"
 # regex for date formats
 AUTH_SCREEN_ES_DATE_FORMAT = "^\\d{1,2} de \\w+ de \\d{4}"
-AUTH_SCREEN_EN_DATE_FORMAT = "^\\w{3}\\. \\d{1,2}, \\d{4}"
+# Django en locale date format is 3 letter abbrev plus period or full month name (e.g. March, May)
+AUTH_SCREEN_EN_DATE_FORMAT = "^(\\w{3}\\.|\\w+) \\d{1,2}, \\d{4}"
 
 # app form
 LNK_TXT_APP_ADD = "Add an Application"
