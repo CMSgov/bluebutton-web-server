@@ -133,6 +133,9 @@ class RequestLogger(BasicLogger):
         except Exception:
             self.standard_log_data["auth_pkce_method"] = None
 
+        if request.session.get("language", None) is not None:
+            self.standard_log_data["language"] = request.session["language"]
+
         self.standard_log_data.update(get_session_auth_flow_trace(request))
 
     def format_for_output(self, data_dict, cls=None):
