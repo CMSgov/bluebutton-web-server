@@ -100,7 +100,7 @@ class AuthorizationView(DotAuthorizationView):
         # Store the lang parameter value on the server side with session keyS
         lang = request.GET.get('lang', None)
         if lang is not None and (lang == 'en' or lang == 'es'):
-            request.session['language'] = lang
+            request.session['auth_language'] = lang
         return super().dispatch(request, *args, **kwargs)
 
     def sensitive_info_check(self, request):

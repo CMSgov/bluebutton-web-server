@@ -134,7 +134,7 @@ class RequestLogger(BasicLogger):
             self.standard_log_data["auth_pkce_method"] = None
 
         try:
-            self.standard_log_data["language"] = request.session["language"]
+            self.standard_log_data["auth_language"] = request.session["auth_language"]
         except Exception:
             pass
 

@@ -160,7 +160,7 @@ def mymedicare_login(request, version=1):
     mymedicare_login_url = "%s&%s=%s&redirect_uri=%s" % (
         mymedicare_login_url, relay_param_name, state, redirect)
     # Check if language was saved server-side for this session
-    language = request.session.get('language', None)
+    language = request.session.get('auth_language', None)
     if language is not None:
         # Modify the Medicare login url according to the stored language
         if language == 'es':
