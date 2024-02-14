@@ -133,6 +133,11 @@ class RequestLogger(BasicLogger):
         except Exception:
             self.standard_log_data["auth_pkce_method"] = None
 
+        try:
+            self.standard_log_data["auth_language"] = request.session["auth_language"]
+        except Exception:
+            pass
+
         self.standard_log_data.update(get_session_auth_flow_trace(request))
 
     def format_for_output(self, data_dict, cls=None):

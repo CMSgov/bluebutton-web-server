@@ -531,3 +531,43 @@ class TestAuditEventLoggers(BaseApiTest):
         self.assertEqual(json_rec.get("req_qparam_client_id"), non_exist_client_id)
         self.assertEqual(json_rec.get("req_app_name"), "")
         self.assertEqual(json_rec.get("req_app_id"), "")
+
+    def test_auth_flow_lang_logger(self, v2=False):
+        # copy and adapted to test auth flow logger
+        redirect_uri = "http://localhost"
+        capability_a = self._create_capability("Capability A", [])
+        capability_b = self._create_capability("Capability B", [])
+        application = self._create_application(
+            "an app",
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect_uri,
+        )
+        application.scope.add(capability_a, capability_b)
+        # No user already logged in so that the authorization flow goes through
+        # dispatch
+
+        payload = {
+            "client_id": application.client_id,
+            "response_type": "code",
+            "redirect_uri": redirect_uri,
+            "lang": "es",
+        }
+
+        response = self.client.get("/v2/o/authorize", data=payload)
+        payload = {
+            "client_id": application.client_id,
+            "response_type": "code",
+            "redirect_uri": redirect_uri,
+            "scope": ["capability-a"],
+            "expires_in": 86400,
+            "allow": True,
+        }
+        response = self.client.post(response["Location"], data=payload)
+        request_log_content = get_log_content(self.logger_registry,
+                                              logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
+        self.assertIsNotNone(request_log_content)
+        quoted_strings = re.findall("{[^{}]+}", request_log_content)
+        self.assertEqual(len(quoted_strings), 2)
+
+        second_stanza_dict = json.loads(quoted_strings[1])
+        self.assertEqual(second_stanza_dict.get("auth_language"), "es")

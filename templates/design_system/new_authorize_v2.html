@@ -143,8 +143,8 @@
                                         </g>
                                     </g>
                                 </svg><span class="ds-u-margin-left--3 ds-text-body--md">
-                                    {{ application.name }}{% trans " will have access to your data "%}{%trans permission_end_date_text %}
-                                    {% if permission_end_date is not None %}<span id="permission_end_date">{{ permission_end_date|localize }}</span>{% endif %}.
+                                    {{ application.name }}{% trans " will have access to your data "%}{%trans permission_end_date_text %}{% if permission_end_date is None %}.
+                                    {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>{% endif %}
                                 </span>
                             </p>
                         {% endif %}

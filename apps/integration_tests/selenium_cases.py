@@ -24,6 +24,7 @@ class Action(Enum):
     SLEEP = 12
     VALIDATE_EMAIL_NOTIFICATION = 13
     CHECK_DATE_FORMAT = 14
+    COPY_LINK_AND_LOAD_WITH_PARAM = 15
 
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
@@ -113,7 +114,9 @@ AUTH_SCREEN_ES_TXT = "Conectar los datos de sus reclamos de Medicare"
 AUTH_SCREEN_EN_TXT = "Connect your Medicare claims"
 # regex for date formats
 AUTH_SCREEN_ES_DATE_FORMAT = "^\\d{1,2} de \\w+ de \\d{4}"
-AUTH_SCREEN_EN_DATE_FORMAT = "^\\w{3}\\. \\d{1,2}, \\d{4}"
+# Django en locale date format is 3 letter abbrev plus period or full month name (e.g. March, May)
+AUTH_SCREEN_EN_DATE_FORMAT = "^(\\w{3}\\.|\\w+) \\d{1,2}, \\d{4}"
+SLSX_LOGIN_BUTTON_SPANISH = "Entrar"
 
 # app form
 LNK_TXT_APP_ADD = "Add an Application"
@@ -321,6 +324,24 @@ SEQ_AUTHORIZE_PKCE_START = [
     {
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",
         "action": Action.FIND_CLICK,
+        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+    },
+]
+
+SEQ_AUTHORIZE_LANG_PARAM_START = [
+    {
+        "display": "Load BB2 Landing Page ...",
+        "action": Action.LOAD_PAGE,
+        "params": [HOSTNAME_URL]
+    },
+    CLICK_TESTCLIENT if not HOSTNAME_URL.startswith(PROD_URL) else LOAD_TESTCLIENT_HOME,
+    {
+        "display": "Click link to get sample token v1/v2",
+        "action": Action.GET_SAMPLE_TOKEN_START,
+    },
+    {
+        "display": "Call authorize endpoint with lang param - start authorization",
+        "action": Action.COPY_LINK_AND_LOAD_WITH_PARAM,
         "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
     },
 ]
@@ -553,6 +574,23 @@ SPANISH_TESTS = {
             "display": "Check English date format",
             "action": Action.CHECK_DATE_FORMAT,
             "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT]
+        },
+        CLICK_AGREE_ACCESS
+    ],
+    "authorize_lang_param": [
+        {"sequence": SEQ_AUTHORIZE_LANG_PARAM_START},
+        {
+            "display": "Check for Medicare.gov login page already in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, SLSX_CSS_BUTTON, SLSX_LOGIN_BUTTON_SPANISH]
+        },
+        CALL_LOGIN,
+        WAIT_SECONDS,
+        WAIT_SECONDS,
+        {
+            "display": "Check for authorization screen language already in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
         },
         CLICK_AGREE_ACCESS
     ]

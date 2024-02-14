@@ -52,6 +52,7 @@ set -e -u -o pipefail
 export USE_DEBUG=false
 export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests-remote"
+# TODO optionally add the Spanish selenium tests here if desired
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 # BB2 service end point default (SBX)
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"

@@ -83,7 +83,8 @@ class SeleniumGenericTests():
             Action.LOGIN: self._login,
             Action.SLEEP: self._sleep,
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
-            Action.CHECK_DATE_FORMAT: self._check_date_format
+            Action.CHECK_DATE_FORMAT: self._check_date_format,
+            Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param
         }
 
     def teardown_method(self, method):
@@ -171,6 +172,12 @@ class SeleniumGenericTests():
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         pattern = re.compile(format)
         assert pattern.match(elem.text)
+
+    def _copy_link_and_load_with_param(self, timeout_sec, by, by_expr, **kwargs):
+        elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
+        assert elem is not None
+        url = elem.get_attribute('href') + "&lang=es"
+        self.driver.get(url)
 
     def _back(self, **kwargs):
         self.driver.back()
