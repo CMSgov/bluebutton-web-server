@@ -13,13 +13,14 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.utils import timezone
 from oauth2_provider.models import AccessToken, RefreshToken
 
 from apps.accounts.models import UserProfile
 from apps.fhir.bluebutton.models import Crosswalk
 from apps.dot_ext.models import Application, ArchivedToken
 from apps.capabilities.models import ProtectedCapability
-from apps.authorization.models import update_grants
+from apps.authorization.models import update_grants, ArchivedDataAccessGrant
 from apps.mymedicare_cb.models import create_beneficiary_record
 from apps.mymedicare_cb.authorization import OAuth2ConfigSLSx
 
@@ -64,7 +65,8 @@ def create_dev_users_apps_and_bene_crosswalks(
         dev_count,
         app_max,
         refresh_count,
-        archived_count
+        archived_tokens,
+        archived_grants
 ):
     #
     # generate dev users dev0001, dev0002, dev0003 etc, with password, email, security questions, etc.
@@ -188,7 +190,7 @@ def create_dev_users_apps_and_bene_crosswalks(
                                            require_demographic_scopes=False if app_index % 20 == 0 else True,
                                            client_type=cl_type,
                                            authorization_grant_type=auth_grant_type)
-            date_created = datetime.utcnow() - timedelta(days=randrange(700))
+            date_created = timezone.now() - timedelta(days=randrange(700))
             a.created = date_created.replace(tzinfo=pytz.utc)
             u.date_joined = date_created - timedelta(days=randint(1, 10))
             u.save()
@@ -216,31 +218,34 @@ def create_dev_users_apps_and_bene_crosswalks(
         # (caller can specify 0 for the app option)
         if seed <= 7 or len(app_list) == 1:
             # sign up to 1 app
-            create_test_access_refresh_archived_tokens(
-                b, choice(app_list), refresh_count, archived_count, seed)
+            create_test_access_refresh_archived_objects(
+                b, choice(app_list), refresh_count, archived_tokens,
+                archived_grants, seed)
+
         elif seed <= 9 and len(app_list) > 1:
             # sign up to 2 apps
             a2 = sample(app_list, 2)
-            create_test_access_refresh_archived_tokens(
-                b, a2[0], refresh_count, archived_count, seed)
-            create_test_access_refresh_archived_tokens(
-                b, a2[1], refresh_count, archived_count, seed)
+            create_test_access_refresh_archived_objects(
+                b, a2[0], refresh_count, archived_tokens, archived_grants, seed)
+            create_test_access_refresh_archived_objects(
+                b, a2[1], refresh_count, archived_tokens, archived_grants, seed)
         elif len(app_list) > 2:
             # sign up to 3 apps
             a3 = sample(app_list, 3)
-            create_test_access_refresh_archived_tokens(
-                b, a3[0], refresh_count, archived_count, seed)
-            create_test_access_refresh_archived_tokens(
-                b, a3[1], refresh_count, archived_count, seed)
-            create_test_access_refresh_archived_tokens(
-                b, a3[2], refresh_count, archived_count, seed)
+            create_test_access_refresh_archived_objects(
+                b, a3[0], refresh_count, archived_tokens, archived_grants, seed)
+            create_test_access_refresh_archived_objects(
+                b, a3[1], refresh_count, archived_tokens, archived_grants, seed)
+            create_test_access_refresh_archived_objects(
+                b, a3[2], refresh_count, archived_tokens, archived_grants, seed)
 
 
-def create_test_access_refresh_archived_tokens(
+def create_test_access_refresh_archived_objects(
         user,
         application,
         refresh_count,
-        archived_count,
+        archived_token_count,
+        archived_grant_count,
         seed
 ):
     scope_all = ' '.join(APPLICATION_SCOPES_FULL)
@@ -269,15 +274,17 @@ def create_test_access_refresh_archived_tokens(
                                     scope=scope)
     at.created = date_created.replace(tzinfo=pytz.utc)
     at.save()
+    print("<<< access token created for " + user.username + "/" + application.name)
 
     for i in range(refresh_count):
         rt = RefreshToken.objects.create(user=user, application=application,
                                      token=uuid.uuid4().hex)
         rt.created = at.created
         rt.save()
+        print("<<< " + user.username + " refresh token " + str(i) + " generated")
 
     # archived token: created, updated, archived_at datetime fields
-    for i in range(archived_count):
+    for i in range(archived_token_count):
         ot = ArchivedToken.objects.create(user=user,
                                       application=application,
                                       token=uuid.uuid4().hex,
@@ -290,6 +297,18 @@ def create_test_access_refresh_archived_tokens(
         date_archived = ot.created + timedelta(days=10)
         ot.archived_at = date_archived.replace(tzinfo=pytz.utc)
         ot.save()
+        print("<<< " + user.username + " archived token " + str(i) + " generated")
+
+    past_date = timezone.now() - timedelta(days=2)
+    for i in range(archived_grant_count):
+        adag = ArchivedDataAccessGrant.objects.create(beneficiary=user,
+                                      application=application,
+                                      expiration_date=past_date,
+                                      created_at=past_date - timedelta(days=2),
+                                      archived_at=past_date)
+        past_date = past_date - timedelta(days=2)
+        adag.save()
+        print("<<< " + user.username + "archived grant " + str(i) + " generated")
 
 
 class Command(BaseCommand):
@@ -311,6 +330,9 @@ class Command(BaseCommand):
                             help="Refresh tokens per bene user. If none, defaults to 1.")
         parser.add_argument("-t", "--archived-tokens", default=1,
                             help="Archived tokens per bene user. If none, defaults to 1.")
+        parser.add_argument("-g", "--archived-access-grants", default=0,
+                            help="Archived access grants per user/app combination. "
+                            "If none, defaults to 0.")
 
     def handle(self, *args, **options):
         bene_count = int(options["bene_count"])
@@ -318,6 +340,7 @@ class Command(BaseCommand):
         app_max = int(options["app_max"])
         refresh_tokens = int(options["refresh_tokens"])
         archived_tokens = int(options["archived_tokens"])
+        archived_grants = int(options["archived_access_grants"])
         g = create_group()
         create_dev_users_apps_and_bene_crosswalks(
             g,
@@ -325,6 +348,7 @@ class Command(BaseCommand):
             dev_count,
             app_max,
             refresh_tokens,
-            archived_tokens)
+            archived_tokens,
+            archived_grants)
         # update grants
         update_grants()
