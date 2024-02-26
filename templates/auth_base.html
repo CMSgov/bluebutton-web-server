@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
+{% load i18n %}
+<html>
 	<head>
 		{% load i18n %}
 
@@ -50,9 +51,41 @@
             icon27.classList.remove('ds-c-icon--arrow-up');
             icon27.classList.add('ds-c-icon--arrow-down');
         }
-    }  
+    }
+
+    function setCookie(name, value) {
+        var expires = "";
+
+        var date = new Date();
+        // 1 hour expiration
+        date.setTime(date.getTime() + (60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+      }
+
+      function getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+      }
+
+    function toggleLanguage() {
+        var lang = getCookie("{{settings.LANGUAGE_COOKIE_NAME}}");
+        if(lang == 'en' || lang == null) {
+            setCookie("{{settings.LANGUAGE_COOKIE_NAME}}", 'es')
+        } else {
+            setCookie("{{settings.LANGUAGE_COOKIE_NAME}}", 'en')
+        }
+        window.location.reload();
+    }
 </script>
-<section class="ds-c-usa-banner" aria-label="Official government website">
+<section class="ds-c-usa-banner" aria-label={% trans "Official government website" %}>
 <header class="ds-c-usa-banner__header" style="background-color:#f2f2f2; padding: 8px 16px 8px 16px;">
     <svg
         aria-hidden="false"
@@ -80,9 +113,9 @@
         </g>
     </svg>
     <p class="ds-c-usa-banner__header-text">
-        <span>An official website of the United States government</span>
+        <span>{% trans "An official website of the United States government" %}</span>
         <button onclick="toggleBanner()" class="ds-c-usa-banner__button" style="background-color:#f2f2f2; padding: 0; width: fit-content;" aria-expanded="false" aria-controls="gov-banner_25">
-            <span class="ds-c-usa-banner__button-text" style="background-color:#f2f2f2;">Here’s how you know</span>
+            <span class="ds-c-usa-banner__button-text" style="background-color:#f2f2f2;">{% trans "Here's how you know" %}</span>
             <svg
             aria-hidden="true"
             class="ds-c-icon ds-c-icon--arrow ds-c-icon--arrow-down ds-c-usa-banner__action-icon"
@@ -99,6 +132,7 @@
             </svg>
         </button>
     </p>
+    <div class="ds-u-margin-left--auto ds-u-margin-right--0"><a href="#" onclick="toggleLanguage();" id="lang_toggle">{% trans "Cambiar a español" %}</a></div>
 </header>
 <div class="ds-c-usa-banner__content" id="gov-banner_25" hidden="">
     <div class="ds-c-usa-banner__guidance-container">
@@ -129,12 +163,9 @@
         </g>
         </svg>
         <p class="ds-c-usa-banner__media-body">
-        <strong>Official websites use .gov</strong>
+        <strong>{% trans "Official websites use .gov" %}</strong>
         <br />
-        A
-        <strong>.gov</strong>
-        website belongs to an official government organization in the United
-        States.
+        {% trans "A <strong>.gov</strong> website belongs to an official government organization in the United States." %}
         </p>
     </div>
     <div class="ds-c-usa-banner__guidance">
@@ -160,10 +191,10 @@
         ></circle>
         </svg>
         <p class="ds-c-usa-banner__media-body">
-        <strong>Secure .gov websites use HTTPS</strong>
+        <strong>{% trans "Secure .gov websites use HTTPS" %}</strong>
         <br />
-        A
-        <strong>lock</strong>
+        {% trans "A <strong>lock</strong> " %}(
+        
         <svg
             aria-hidden="true"
             class="ds-c-icon ds-c-icon--lock ds-c-usa-banner__lock-image"
@@ -176,11 +207,8 @@
             fill-rule="evenodd"
             d="M26 0c10.493 0 19 8.507 19 19v9h3a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V32a4 4 0 0 1 4-4h3v-9C7 8.507 15.507 0 26 0zm0 8c-5.979 0-10.843 4.77-10.996 10.712L15 19v9h22v-9c0-6.075-4.925-11-11-11z"
             ></path>
-        </svg>
-        or
-        <strong>https://</strong>
-        means you’ve safely connected to the .gov website. Share sensitive
-        information only on official, secure websites.
+        </svg> )
+        {% trans "or <strong>https://</strong> means you've safely connected to the .gov website. Share sensitive information only on official, secure websites." %}
         </p>
     </div>
     </div>

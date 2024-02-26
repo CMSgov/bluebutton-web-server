@@ -21,8 +21,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import ugettext
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 
 from .emails import send_activation_key_via_email
 
@@ -227,8 +227,12 @@ class ActivationKey(models.Model):
     def save(self, **kwargs):
         now = pytz.utc.localize(datetime.utcnow())
         # need to pop the custom arg out since it is not accepted by super
-        expires_override = kwargs.pop('expires', None)
-        self.expires = expires_override if expires_override else (now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS))
+        expires_override = kwargs.pop("expires", None)
+        self.expires = (
+            expires_override
+            if expires_override
+            else (now + timedelta(days=settings.SIGNUP_TIMEOUT_DAYS))
+        )
         super(ActivationKey, self).save(**kwargs)
 
 
@@ -304,7 +308,7 @@ def export_admin_log(sender, instance, **kwargs):
     msg = ""
     if isinstance(instance, LogEntry):
         if instance.action_flag == ADDITION:
-            msg = ugettext(
+            msg = gettext(
                 'User "%(user)s" added %(content_type)s object. "%(object)s" added at %(action_time)s'
             ) % {
                 "user": instance.user,
@@ -314,7 +318,7 @@ def export_admin_log(sender, instance, **kwargs):
             }
 
         elif instance.action_flag == CHANGE:
-            msg = ugettext(
+            msg = gettext(
                 'User "%(user)s" changed %(content_type)s object. "%(object)s" - %(changes)s at %(action_time)s'
             ) % {
                 "user": instance.user,
@@ -325,7 +329,7 @@ def export_admin_log(sender, instance, **kwargs):
             }
 
         elif instance.action_flag == DELETION:
-            msg = ugettext(
+            msg = gettext(
                 'User  "%(user)s" deleted %(content_type)s object. "%(object)s" deleted at %(action_time)s'
             ) % {
                 "user": instance.user,

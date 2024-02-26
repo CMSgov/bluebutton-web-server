@@ -35,7 +35,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app = self._create_application("test_app", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app.data_access_type)
 
         # Delete app
         test_app.delete()
@@ -72,8 +72,7 @@ class TestDotExtModels(BaseApiTest):
     @override_flag('limit_data_access', active=True)
     def test_application_data_access_type_change(self):
         """
-        Test the application.data_access_type change, this triggers associated grants
-        removal (become archived grants)
+        Test the application.data_access_type change, make sure the change is logged
         """
         assert flag_is_active('limit_data_access')
 
@@ -82,7 +81,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app = self._create_application("test_app", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app.data_access_type)
 
         # fake some grants tied to the user and the app
         DataAccessGrant.objects.update_or_create(
@@ -98,31 +97,26 @@ class TestDotExtModels(BaseApiTest):
         # w/ end_date is valid.
         test_app.data_access_type = "RESEARCH_STUDY"
         self.assertEqual("RESEARCH_STUDY", test_app.data_access_type)
-
         test_app.save()
 
         try:
-            grants = DataAccessGrant.objects.get(application__name="test_app")
-            self.fail("Expecting grants for 'test_app' archived due to test_app data access type changed.")
+            DataAccessGrant.objects.get(application__name="test_app")
         except DataAccessGrant.DoesNotExist:
-            pass
-
-        archived_grants = ArchivedDataAccessGrant.objects.filter(application__name="test_app")
-
-        self.assertTrue(archived_grants.count() > 0)
+            self.fail("Expecting grants for 'test_app' to carry over, no existing grants should be affected.")
 
         log_content = get_log_content(self.logger_registry, logging.AUDIT_APPLICATION_TYPE_CHANGE)
         self.assertIsNotNone(log_content)
         log_entries = log_content.splitlines()
-        self.assertEqual(len(log_entries), 3)
-        last_log_entry_json = json.loads(log_entries[2])
-        self.assertEqual(last_log_entry_json['application_saved_and_grants_deleted'], "Yes")
+        self.assertEqual(len(log_entries), 1)
+        log_entry_json = json.loads(log_entries[0])
+        self.assertEqual(log_entry_json['type'], "application_data_access_type_change")
+        self.assertEqual(log_entry_json['data_access_type_old'], "THIRTEEN_MONTH")
+        self.assertEqual(log_entry_json['data_access_type_new'], "RESEARCH_STUDY")
 
     @override_flag('limit_data_access', active=False)
     def test_application_data_access_type_change_switch_off(self):
         """
-        Test the application.data_access_type change, this will NOT trigger associated grants
-        removal due to switch off
+        Test the application.data_access_type change, access grants will not be affected
         """
         assert (not flag_is_active('limit_data_access'))
 
@@ -131,7 +125,7 @@ class TestDotExtModels(BaseApiTest):
 
         # Create defaults
         test_app_sw_off = self._create_application("test_app_sw_off", user=dev_user)
-        self.assertEqual("ONE_TIME", test_app_sw_off.data_access_type)
+        self.assertEqual("THIRTEEN_MONTH", test_app_sw_off.data_access_type)
 
         # fake some grants tied to the user and the app
         DataAccessGrant.objects.update_or_create(
@@ -162,8 +156,8 @@ class TestDotExtModels(BaseApiTest):
 
         log_content = get_log_content(self.logger_registry, logging.AUDIT_APPLICATION_TYPE_CHANGE)
 
-        # no event logged
-        self.assertFalse(log_content)
+        # this will be logged
+        self.assertTrue(log_content)
 
     def test_application_count_funcs(self):
         """

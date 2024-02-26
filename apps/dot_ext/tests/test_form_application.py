@@ -5,7 +5,7 @@ from PIL import Image
 from io import BytesIO
 
 from apps.test import BaseApiTest
-from apps.dot_ext.forms import CustomRegisterApplicationForm
+from apps.dot_ext.forms import CustomRegisterApplicationForm, CreateNewApplicationForm
 from apps.dot_ext.admin import CustomAdminApplicationForm
 
 
@@ -52,6 +52,18 @@ class TestRegisterApplicationForm(BaseApiTest):
         # Test form with invalid app name has error (app name contains non-ascii char(s)).
         data = {'name': 'BB2-1666-test-app w trade mark®'}
         form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertTrue("Invalid character(s) in application name" in str(form.errors.get('name')))
+
+        # Test form with invalid app name has error (app name contains en dashes).
+        data = {'name': 'BB2–2993–en–dash'}
+        form = CreateNewApplicationForm(data)  # don't include user, this form auto creates one
+        form.is_valid()
+        self.assertTrue("Invalid character(s) in application name" in str(form.errors.get('name')))
+
+        # Test form with invalid app name has error (app name contains em dashes).
+        data = {'name': 'BB2—2993—em—dash'}
+        form = CreateNewApplicationForm(data)
         form.is_valid()
         self.assertTrue("Invalid character(s) in application name" in str(form.errors.get('name')))
 
@@ -204,6 +216,24 @@ class TestRegisterApplicationForm(BaseApiTest):
         # Test require_demographic_scopes invalid value
         data = {'require_demographic_scopes': None}
         form = CustomRegisterApplicationForm(user, data)
+        form.is_valid()
+        self.assertNotEqual(form.errors.get('require_demographic_scopes'), None)
+
+        # Test require_demographic_scopes value True
+        data = {'require_demographic_scopes': True}
+        form = CreateNewApplicationForm(data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('require_demographic_scopes'), None)
+
+        # Test require_demographic_scopes value False
+        data = {'require_demographic_scopes': False}
+        form = CreateNewApplicationForm(data)
+        form.is_valid()
+        self.assertEqual(form.errors.get('require_demographic_scopes'), None)
+
+        # Test require_demographic_scopes invalid value
+        data = {'require_demographic_scopes': None}
+        form = CreateNewApplicationForm(data)
         form.is_valid()
         self.assertNotEqual(form.errors.get('require_demographic_scopes'), None)
 

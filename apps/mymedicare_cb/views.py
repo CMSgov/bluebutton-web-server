@@ -159,6 +159,14 @@ def mymedicare_login(request, version=1):
     request.session[relay_param_name] = state
     mymedicare_login_url = "%s&%s=%s&redirect_uri=%s" % (
         mymedicare_login_url, relay_param_name, state, redirect)
+    # Check if language was saved server-side for this session
+    language = request.session.get('auth_language', None)
+    if language is not None:
+        # Modify the Medicare login url according to the stored language
+        if language == 'es':
+            mymedicare_login_url += "&lang=es-mx"
+        elif language == 'en':
+            mymedicare_login_url += "&lang=en-us"
     next_uri = request.GET.get('next', "")
 
     AnonUserState.objects.create(state=state, next_uri=next_uri)
@@ -166,4 +174,9 @@ def mymedicare_login(request, version=1):
     # Update authorization flow trace AuthFlowUuid with state for pickup in authenticate().
     update_instance_auth_flow_trace_with_state(request, state)
 
-    return HttpResponseRedirect(mymedicare_login_url)
+    response = HttpResponseRedirect(mymedicare_login_url)
+    if language is not None:
+        # Set browser cookie so Django will translate authorization screen to correct language
+        response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language)
+
+    return response

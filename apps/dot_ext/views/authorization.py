@@ -15,7 +15,7 @@ from oauth2_provider.views.introspect import (
     IntrospectTokenView as DotIntrospectTokenView,
 )
 from oauth2_provider.models import get_application_model
-from oauthlib.oauth2.rfc6749.errors import InvalidClientError
+from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from urllib.parse import urlparse, parse_qs
 
 from apps.dot_ext.scopes import CapabilitiesScopes
@@ -65,7 +65,8 @@ class AuthorizationView(DotAuthorizationView):
 
     def get_context_data(self, **kwargs):
         context = super(AuthorizationView, self).get_context_data(**kwargs)
-        context['permission_end_date'] = self.application.access_end_date_mesg()
+        context['permission_end_date_text'] = self.application.access_end_date_text()
+        context['permission_end_date'] = self.application.access_end_date()
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -96,6 +97,10 @@ class AuthorizationView(DotAuthorizationView):
             return result
 
         request.session['version'] = self.version
+        # Store the lang parameter value on the server side with session keyS
+        lang = request.GET.get('lang', None)
+        if lang is not None and (lang == 'en' or lang == 'es'):
+            request.session['auth_language'] = lang
         return super().dispatch(request, *args, **kwargs)
 
     def sensitive_info_check(self, request):
@@ -288,7 +293,7 @@ class TokenView(DotTokenView):
     def post(self, request, *args, **kwargs):
         try:
             validate_app_is_active(request)
-        except InvalidClientError as error:
+        except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
 
         return super().post(request, args, kwargs)

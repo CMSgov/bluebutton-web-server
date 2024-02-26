@@ -1,8 +1,8 @@
 import hashlib
 import itertools
 import sys
-import time
 import uuid
+
 import apps.logging.request_logger as logging
 
 from datetime import datetime
@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
 from django.core.validators import RegexValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.signals import (
     post_delete,
@@ -20,7 +20,7 @@ from django.db.models.signals import (
 from django.template.defaultfilters import truncatechars
 from django.urls import reverse
 from django.utils.dateparse import parse_duration
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from oauth2_provider.models import (
     AbstractApplication,
     get_access_token_model,
@@ -31,9 +31,8 @@ from urllib.parse import urlparse
 from waffle import get_waffle_flag_model
 
 from apps.capabilities.models import ProtectedCapability
-from apps.authorization.models import DataAccessGrant
 
-TEN_HOURS = "for 10 hours"
+TEN_HOURS = _("for 10 hours")
 
 
 class Application(AbstractApplication):
@@ -138,7 +137,7 @@ class Application(AbstractApplication):
     first_active = models.DateTimeField(blank=True, null=True)
     last_active = models.DateTimeField(blank=True, null=True)
 
-    # Does this application need to collect beneficary demographic information? YES = True/Null NO = False
+    # Does this application need to collect beneficiary demographic information? YES = True/Null NO = False
     require_demographic_scopes = models.BooleanField(
         default=True, null=True, verbose_name="Are demographic scopes required?"
     )
@@ -151,20 +150,29 @@ class Application(AbstractApplication):
     )
 
     # Type related to data access limits.
-    data_access_type = models.CharField(default="ONE_TIME",
-                                        choices=APPLICATION_TYPE_CHOICES,
-                                        max_length=16,
-                                        null=True,
-                                        verbose_name="Data Access Type:")
+    data_access_type = models.CharField(
+        default="THIRTEEN_MONTH",
+        choices=APPLICATION_TYPE_CHOICES,
+        max_length=16,
+        null=True,
+        verbose_name="Data Access Type:",
+    )
 
-    def access_end_date_mesg(self):
+    # Text and date must be separated so that built-in Django localization
+    # will recognize that the date should be localized when tagged
+    def access_end_date_text(self):
         if self.has_one_time_only_data_access():
             return TEN_HOURS
-        elif "RESEARCH_STUDY" in self.data_access_type:
-            return "no end date."
+        # no message displayed for RESEARCH_STUDY
         else:
+            return _("until ")
+
+    def access_end_date(self):
+        if self.data_access_type == "THIRTEEN_MONTH":
             end_date = datetime.now() + relativedelta(months=+13)
-            return "until " + end_date.strftime("%B %d, %Y")
+            return end_date.date
+        else:
+            return None
 
     def scopes(self):
         scope_list = []
@@ -228,59 +236,35 @@ class Application(AbstractApplication):
     # Save override to restrict invalid field combos.
     def save(self, *args, **kwargs):
         # Check data_access_type is in choices tuple
-        if not (self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)):
+        if not (
+            self.data_access_type in itertools.chain(*self.APPLICATION_TYPE_CHOICES)
+        ):
             raise ValueError("Invalid data_access_type: " + self.data_access_type)
 
-        flag = get_waffle_flag_model().get("limit_data_access")
-        if flag.id is not None and flag.is_active_for_user(self.user):
-            # Check if data_access_type is changed
-            # if so, need to void all grants associated
+        # Check if data_access_type is changed
+        # if so, log and leave existing access grants unchanged
+        app_from_db = None
+        try:
+            app_from_db = Application.objects.get(pk=self.id)
 
-            logger = logging.getLogger(logging.AUDIT_APPLICATION_TYPE_CHANGE, None)
+            if app_from_db is not None:
+                if self.data_access_type != app_from_db.data_access_type:
+                    logger = logging.getLogger(logging.AUDIT_APPLICATION_TYPE_CHANGE, None)
 
-            app_type_changed = False
-
-            log_dict = {
-                "type": "application data access type change",
-            }
-            with transaction.atomic():
-                # need to put delete and save in a transaction
-                app_from_db = None
-                try:
-                    app_from_db = Application.objects.get(pk=self.id)
-                    if app_from_db is not None:
-                        if self.data_access_type != app_from_db.data_access_type:
-                            # log audit event: application data access type changed
-                            start_time = time.time()
-                            log_dict.update({
-                                "application_id": self.id,
-                                "application_name": self.name,
-                                "data_access_type_old": app_from_db.data_access_type,
-                                "data_access_type_new": self.data_access_type,
-                                "grant_delete_start": datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                            })
-                            logger.info(log_dict)
-                            dag_deleted = DataAccessGrant.objects.filter(application=self).delete()
-                            app_type_changed = True
-                            end_time = time.time()
-                            delete_stats = {
-                                "elapsed_seconds": end_time - start_time,
-                                "number_of_grant_deleted": dag_deleted[0],
-                                "grant_delete_complete": datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-                            }
-                            log_dict.update(delete_stats)
-                            logger.info(log_dict)
-                except Application.DoesNotExist:
-                    # new app
-                    pass
-                self.copy_client_secret()
-                super().save(*args, **kwargs)
-                if app_type_changed:
-                    log_dict.update({"application_saved_and_grants_deleted": "Yes"})
+                    # log audit event: application data access type changed
+                    log_dict = {
+                        "type": "application_data_access_type_change",
+                        "application_id": self.id,
+                        "application_name": self.name,
+                        "data_access_type_old": app_from_db.data_access_type,
+                        "data_access_type_new": self.data_access_type,
+                    }
                     logger.info(log_dict)
-        else:
-            self.copy_client_secret()
-            super().save(*args, **kwargs)
+        except Application.DoesNotExist:
+            # new app
+            pass
+        self.copy_client_secret()
+        super().save(*args, **kwargs)
 
     # dedicated save for high frequency used first / last active timestamp updates
     def save_without_validate(self, *args, **kwargs):
@@ -545,7 +529,9 @@ def get_token_bene_counts(application=None):
 
     if application:
         token_queryset = token_queryset.filter(application=application)
-        archived_token_queryset = archived_token_queryset.filter(application=application)
+        archived_token_queryset = archived_token_queryset.filter(
+            application=application
+        )
 
     # Get AccessToken and ArchivedTokentable count
     counts_returned["total"] = token_queryset.count()
@@ -571,9 +557,12 @@ def get_token_bene_counts(application=None):
 
     # Global real/synth bene and app pair counts. This should match grant counts.
     if not application:
-        counts_returned["real_bene_app_pair_deduped"] = real_token_queryset.values("user", "application").distinct().count()
-        counts_returned["synthetic_bene_app_pair_deduped"] = synthetic_token_queryset.values(
-            "user", "application").distinct().count()
+        counts_returned["real_bene_app_pair_deduped"] = (
+            real_token_queryset.values("user", "application").distinct().count()
+        )
+        counts_returned["synthetic_bene_app_pair_deduped"] = (
+            synthetic_token_queryset.values("user", "application").distinct().count()
+        )
 
     counts_returned["deduped_elapsed"] = round(
         datetime.utcnow().timestamp() - start_time, 3

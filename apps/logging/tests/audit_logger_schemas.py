@@ -161,7 +161,7 @@ AUTHORIZATION_LOG_SCHEMA = {
         "auth_client_id": {"type": "string"},
         "auth_app_id": {"pattern": "^1$"},
         "auth_app_name": {"pattern": "an app"},
-        "auth_app_data_access_type": {"pattern": "ONE_TIME"},
+        "auth_app_data_access_type": {"pattern": "THIRTEEN_MONTH"},
         "auth_pkce_method": {"type": "null"},
         "auth_share_demographic_scopes": {"pattern": "^$"},
         "auth_require_demographic_scopes": {"pattern": "^True$"},

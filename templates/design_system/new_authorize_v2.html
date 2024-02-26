@@ -1,6 +1,7 @@
 {% extends "auth_base.html" %}
 {% load static %}
 {% load i18n %}
+{% load l10n %}
 {% load bootstrap %}
 
 {% block navigation %}{% endblock %}
@@ -52,13 +53,13 @@
 
         <div class="ds-u-margin-left--4 ds-u-margin-right--4 ds-u-margin-top--4">
 
-            <h1 class="ds-text-heading--2xl ds-u-margin-bottom--3">Connect your Medicare claims data to {{ application.name }}?</h1>
+            <h1 class="ds-text-heading--2xl ds-u-margin-bottom--3"><span id="connect_app">{% trans "Connect your Medicare claims data to "%}</span>{{ application.name }}?</h1>
 
-            <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">If you connect, {{ application.name }} will have access to information about your:</p>
+            <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">{% trans "If you connect, " %}{{ application.name }} {% trans "will have access to information about your:" %}</p>
             <ul class="ds-u-margin-top--0">
-                <li class="ds-u-padding-top--1 ds-u-text-align--left">Doctor visits</li>
-                <li class="ds-u-padding-top--1 ds-u-text-align--left">Hospital visits</li>
-                <li class="ds-u-padding-top--1 ds-u-text-align--left">Prescription medications</li>
+                <li class="ds-u-padding-top--1 ds-u-text-align--left">{% trans "Doctor visits" %}</li>
+                <li class="ds-u-padding-top--1 ds-u-text-align--left">{% trans "Hospital visits" %}</li>
+                <li class="ds-u-padding-top--1 ds-u-text-align--left">{% trans "Prescription medications" %}</li>
             </ul>
 
             <hr class="ds-u-margin-top--1 ds-u-margin-bottom--1" color="#D6D7D9"/>
@@ -66,7 +67,7 @@
             {% if not error %}
                 <form id="authorizationForm" method="post">
                     {% if application.require_demographic_scopes != False %}
-                        <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">You can also grant access to your:
+                        <p class="ds-u-margin-top--2 ds-u-margin-bottom--0">{% trans "You can also grant access to your:" %}
                             <fieldset class="ds-c-fieldset ds-u-margin-top--1">
                               <legend class="ds-c-label" id="field_1-label">
                               </legend>
@@ -85,11 +86,11 @@
                                   />
                                   <label class="ds-c-label ds-u-text-align--left" for="radio_1">
 
-                                    <span class="ds-text-body--md">Personal Information<br>Your name, address, date of birth, race, and gender</span>
+                                    <span class="ds-text-body--md">{% trans "Personal Information" %}<br>{% trans "Your name, address, date of birth, race, and gender" %}</span>
                                   </label>
                                 </div>
-                                    <span class="ds-c-field__hint" id="allow_access" role="presentation" aria-hidden="true">Uncheck to block access to personal information.</span>
-                                    <span class="ds-c-field__hint" id="block_access"  role="presentation" aria-hidden="true" style="display:none;">Check to allow access to personal information.</span>
+                                    <span class="ds-c-field__hint" id="allow_access" role="presentation" aria-hidden="true">{% trans "Uncheck to block access to personal information." %}</span>
+                                    <span class="ds-c-field__hint" id="block_access"  role="presentation" aria-hidden="true" style="display:none;">{% trans "Check to allow access to personal information." %}</span>
                               </div>
                             </fieldset>
                         </p>
@@ -123,7 +124,7 @@
                                         </g>
                                     </g>
                                 </g>
-                            </svg><span class="ds-u-margin-left--3 ds-text-body--md">Learn more about how {{ application.name }} uses your data in their <a href="{{ application.policy_uri }}">Privacy Policy</a> and <a href="{{ application.tos_uri }}">Terms and Conditions</a>.</span>
+                            </svg><span class="ds-u-margin-left--3 ds-text-body--md">{% trans "Learn more about how " %}{{ application.name }}{% trans " uses your data in their " %}<a href="{{ application.policy_uri }}">{% trans "Privacy Policy" %}</a>{% trans " and " %}<a href="{{ application.tos_uri }}">{% trans "Terms and Conditions" %}</a>.</span>
                         </p>
 
                         {% if application.data_access_type != 'RESEARCH_STUDY' %}
@@ -141,7 +142,10 @@
                                             </g>
                                         </g>
                                     </g>
-                                </svg><span class="ds-u-margin-left--3 ds-text-body--md">{{ application.name }} will have access to your data {{ permission_end_date }}.</span>
+                                </svg><span class="ds-u-margin-left--3 ds-text-body--md">
+                                    {{ application.name }}{% trans " will have access to your data "%}{%trans permission_end_date_text %}{% if permission_end_date is None %}.
+                                    {% else %}<span id="permission_end_date">{{ permission_end_date|localize }}.</span>{% endif %}
+                                </span>
                             </p>
                         {% endif %}
                         <p class="ds-u-margin-top--5 ds-u-margin-bottom--0" style="display: flex; align-items: center">
@@ -156,14 +160,15 @@
                                         </g>
                                     </g>
                                 </g>
-                            </svg><span class="ds-u-margin-left--3 ds-text-body--md ds-u-text-align--left">To stop sharing your information with {{ application.name }}, visit your <a href="https://www.medicare.gov/">Medicare.gov</a> account or call <span  style="white-space: nowrap;">1-800-633-4227.</span></span>
+                            </svg><span class="ds-u-margin-left--3 ds-text-body--md ds-u-text-align--left">{% trans "To stop sharing your information with " %}{{ application.name }},{% trans " visit your " %}
+                                <a href={%trans "https://www.medicare.gov/"%}>Medicare.gov</a>{% trans " account or call " %}<span  style="white-space: nowrap;">1-800-633-4227.</span></span>
                         </p>
                     </div>
 
                     <div class="ds-u-margin-top--5 ds-u-margin-bottom--4 ds-u-display--flex ds-u-justify-content--end">
-                        <input class="ds-c-button" id="deny" style="--button__background-color--hover: black;" type="submit"  value="Cancel"/>
+                        <input class="ds-c-button" id="deny" style="--button__background-color--hover: black;" type="submit"  value={% trans "Cancel" %}>
                         <code class="ds-u-margin--1"></code>
-                        <input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="allow" value="Connect" />
+                        <input class="ds-c-button ds-c-button--solid" id="approve" type="submit" name="allow" value={% trans "Connect" %}>
                     </div>
 
                 </form>

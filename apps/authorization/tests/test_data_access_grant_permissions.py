@@ -157,7 +157,7 @@ class TestDataAccessPermissions(BaseApiTest):
         """
         # Test profile/userinfo v1
         response = self.client.get(
-            "/v1/connect/userinfo", HTTP_AUTHORIZATION="Bearer " + access_token
+            "/v1/connect/userinfo", headers={"authorization": "Bearer " + access_token}
         )
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_detail_mesg is not None:
@@ -166,7 +166,7 @@ class TestDataAccessPermissions(BaseApiTest):
 
         # Test profile/userinfo v2
         response = self.client.get(
-            "/v2/connect/userinfo", HTTP_AUTHORIZATION="Bearer " + access_token
+            "/v2/connect/userinfo", headers={"authorization": "Bearer " + access_token}
         )
         self.assertEqual(response.status_code, expected_response_code)
         if expected_response_detail_mesg is not None:
@@ -191,7 +191,7 @@ class TestDataAccessPermissions(BaseApiTest):
                 "/v2/fhir/ExplanationOfBenefit/-20140000008325",
             ]:
                 response = self.client.get(
-                    path, HTTP_AUTHORIZATION="Bearer " + access_token
+                    path, headers={"authorization": "Bearer " + access_token}
                 )
                 self.assertEqual(response.status_code, expected_response_code)
                 if expected_response_detail_mesg is not None:
@@ -216,7 +216,7 @@ class TestDataAccessPermissions(BaseApiTest):
                 "/v2/fhir/Patient",
             ]:
                 response = self.client.get(
-                    path, HTTP_AUTHORIZATION="Bearer " + access_token
+                    path, headers={"authorization": "Bearer " + access_token}
                 )
                 self.assertEqual(response.status_code, expected_response_code)
                 if expected_response_detail_mesg is not None:
@@ -280,7 +280,7 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         # 2. Test application data access type
-        self.assertEqual(app.data_access_type, "ONE_TIME")
+        self.assertEqual(app.data_access_type, "THIRTEEN_MONTH")
 
         # 3. Test grant obj created OK.
         dag = DataAccessGrant.objects.get(beneficiary=user, application=app)
@@ -704,10 +704,10 @@ class TestDataAccessPermissions(BaseApiTest):
         #    Test has_expired() is false before time change
         self.assertFalse(dag.has_expired())
 
-        #    Mock future date 13 months and 1-hour in future.
+        #    Mock future date 13 months and 2-days in future.
         StubDate.now = classmethod(
             lambda cls: datetime.now().replace(tzinfo=pytz.UTC)
-            + relativedelta(months=+13, hours=+1)
+            + relativedelta(months=+13, days=+2)
         )
 
         #    Test has_expired() is true after time change
@@ -720,12 +720,12 @@ class TestDataAccessPermissions(BaseApiTest):
             + relativedelta(months=+13, hours=-1),
         )
 
-        # 7. Test token refresh is disabled when data access expired (response_code=401)
+        # 7. Test token refresh is disabled when data access expired (response_code=400)
         self._assert_call_token_refresh_endpoint(
             application=app,
             refresh_token=ac["refresh_token"],
-            expected_response_code=401,
-            expected_response_error_mesg="invalid_client",
+            expected_response_code=400,
+            expected_response_error_mesg="invalid_grant",
             expected_response_error_description_mesg=settings.APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG,
         )
 
@@ -737,7 +737,7 @@ class TestDataAccessPermissions(BaseApiTest):
         )
 
         # 9. Test RE-AUTH works as expected in #10 thru end of tests.
-        #    Note that the time was previously mocked +13 months & 1-hour.
+        #    Note that the time was previously mocked +13 months & 2-days.
 
         # 10. Use helper method to create app, user, authorized grant & access token.
         user, app, ac = self._create_user_app_token_grant(
@@ -831,5 +831,5 @@ class TestDataAccessPermissions(BaseApiTest):
         self._assert_call_all_fhir_endpoints(
             access_token=ac["access_token"],
             expected_response_code=403,
-            expected_response_detail_mesg="You do not have permission to perform this action."
+            expected_response_detail_mesg="You do not have permission to perform this action.",
         )

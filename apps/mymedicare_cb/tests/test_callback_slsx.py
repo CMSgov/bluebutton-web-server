@@ -519,7 +519,7 @@ class MyMedicareSLSxBlueButtonClientApiUserInfoTest(BaseApiTest):
 
             5. The bene's HICN has been changed in the mock SLSx user_info response.
 
-               This is for the use case where a beneficary's HICN has been changed in the
+               This is for the use case where a beneficiary's HICN has been changed in the
                SLSx/BEDAP upstream identity service.
 
                This response is mocked by:  MockUrlSLSxResponses.slsx_user_info_mock_changed_hicn
