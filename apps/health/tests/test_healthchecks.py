@@ -19,12 +19,10 @@ class TestHealthchecks(BaseApiTest):
         }
 
     def test_health_external(self):
-        with HTTMock(self.catchall):
-            self._call_health_external_endpoint(False)
+        self._call_health_external_endpoint(False)
 
     def test_health_external_endpoint_v2(self):
-        with HTTMock(self.catchall):
-            self._call_health_external_endpoint(True)
+        self._call_health_external_endpoint(True)
 
     def _call_health_external_endpoint(self, v2=False):
         with HTTMock(self.catchall):
