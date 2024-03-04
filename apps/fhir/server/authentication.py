@@ -154,7 +154,7 @@ def match_fhir_id(mbi_hash, hicn_hash, request=None):
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "M", str(err))
             # Don't return a 404 because retrying later will not fix this.
-            raise UpstreamServerException(str(err))
+            raise UpstreamServerException(err.detail)
 
         if fhir_id:
             # Found beneficiary!
@@ -168,7 +168,7 @@ def match_fhir_id(mbi_hash, hicn_hash, request=None):
     except UpstreamServerException as err:
         log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "H", str(err))
         # Don't return a 404 because retrying later will not fix this.
-        raise UpstreamServerException(str(err))
+        raise UpstreamServerException(err.detail)
 
     if fhir_id:
         # Found beneficiary!
