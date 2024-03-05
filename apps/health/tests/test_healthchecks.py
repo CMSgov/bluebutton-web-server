@@ -12,11 +12,15 @@ class TestHealthchecks(BaseApiTest):
         self.url = "http://localhost"
 
     @all_requests
-    def catchall(url, req, params):
+    def catchall(self, url, req):
         return {
             'status_code': 200,
             'content': '{"test": 1}',  # bfd check looks for json for success
         }
+
+    @all_requests
+    def fail(self, url, req):
+        raise Exception("Something failed")
 
     def test_health_external(self):
         self._call_health_external_endpoint(False)
@@ -76,3 +80,10 @@ class TestHealthchecks(BaseApiTest):
         except KeyError:
             pass
         self.assertEqual(msg, "all's well")
+
+    def test_health_sls_fail(self):
+        with HTTMock(self.fail):
+            response = self.client.get(self.url + "/health/sls")
+        self.assertEqual(response.status_code, 503)
+        self.assertRegex(json.loads(response.content)["detail"],
+                         "^Service temporarily unavailable.*")
