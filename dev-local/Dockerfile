@@ -1,4 +1,4 @@
-FROM python:3.7.13
+FROM python:3.8
 RUN useradd -m -s /bin/bash DEVLOCAL
 USER DEVLOCAL
 ADD . /code

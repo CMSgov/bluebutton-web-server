@@ -29,7 +29,7 @@ Pillow==10.0.1
 boto3
 djangorestframework-yaml
 voluptuous
-pyyaml
+pyyaml==6.0.1
 py
 attrs
 pyrsistent

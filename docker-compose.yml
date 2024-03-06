@@ -14,7 +14,7 @@ services:
     env_file:
       - docker-compose/db-env-vars.env
     ports:
-      - "5432:5432"
+      - "5439:5439"
   web:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
