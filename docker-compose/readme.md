@@ -60,12 +60,12 @@ To enable usage of the AWS CLI/Boto3 for AWS services (for example S3 or Kinesis
   source ~/bin/source_aws.sh
   ```
 
-To setup any ENV variables specific to your local development work, add them to the `.env` file. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker-compose/bluebutton_server_start.sh` web server startup script.
+To setup any ENV variables specific to your local development work, add them to the `.env` file. Minimally you should copy `.env.example` in the root of the repository into a `.env` file in the same place. This file is in the `.gitignore`, so will not get added in commits (local use only). You can also override ENVs used in the `docker-compose/bluebutton_server_start.sh` web server startup script.
 
 To startup the Docker containerized BB2 server using slsx:
 
 ```
-docker-compose up -d
+docker-compose --profile slsx up -d
 ```
 
 Or equivalently:
@@ -83,7 +83,7 @@ docker-compose --profile web_msls up -d
 To shutdown the Docker containerized BB2 server (this is needed when switching between SLSx and MSLS modes):
 
 ```
-docker-compose down
+docker-compose --profile <profile_used> down
 ```
 
 To monitor BB2 server logging:

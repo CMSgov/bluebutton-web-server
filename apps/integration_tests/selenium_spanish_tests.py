@@ -8,6 +8,13 @@ USE_NEW_PERM_SCREEN = "true"
 '''
 For running against an actual SlSx server (i.e. TEST, SBX),
 not for the mock SLSx implementation
+
+IMPORTANT NOTE: Assumes that the test client app on the BB2 server
+that you are testing is a THIRTEEN_MONTH app and that the app user
+has the limit_data_access flag ON. This test will fail unless these
+conditions are met. Do not include as part of smoke tests until
+limit_data_access flag is on for everyone and TestApp is THIRTEEN_MONTH
+on all environments.
 '''
 
 

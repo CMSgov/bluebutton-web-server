@@ -53,6 +53,8 @@ export USE_DEBUG=false
 export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests-remote"
 # TODO optionally add the Spanish selenium tests here if desired
+# To test the spanish tests using this script just replace
+# selenium_tests below with selenium_spanish_tests
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 # BB2 service end point default (SBX)
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
