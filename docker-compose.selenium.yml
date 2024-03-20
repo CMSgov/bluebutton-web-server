@@ -13,24 +13,11 @@ services:
     depends_on:
       bb2slsx:
         condition: service_healthy
-
-  selenium-tests-debug:
-    build:
-      context: ./
-      dockerfile: Dockerfile.selenium
-    command: pytest ./apps/integration_tests/selenium_tests.py
-    env_file:
-      - docker-compose/selenium-env-vars.env
-    volumes:
-      - .:/code
-    depends_on:
-      bb2slsx:
-        condition: service_healthy
       chrome:
         condition: service_started
 
   chrome:
-    image: selenium/standalone-chrome-debug
+    image: seleniarm/standalone-chromium
     hostname: chrome
     ports:
       - "4444:4444"

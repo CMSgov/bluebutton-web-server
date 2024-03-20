@@ -1,4 +1,4 @@
-FROM selenium/standalone-chrome-debug
+FROM seleniarm/standalone-chromium
 
 ENV PYTHONUNBUFFERED 1
 # libpq-dev: ubuntu dev lib for psypsycopg2 sdist build
