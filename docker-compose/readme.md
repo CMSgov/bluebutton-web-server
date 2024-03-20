@@ -489,12 +489,10 @@ You can run selenium tests against a remote bb2 server by following below steps:
 
 From the base directory of the local repo run:
 ```
-./docker-compose/run_selenium_tests_remote.sh SBX (run selenium tests against bb2 server on SBX)
-./docker-compose/run_selenium_tests_remote.sh -d SBX (run selenium tests in debug against bb2 server on SBX)
+./docker-compose/run_selenium_tests_remote.sh -d SBX
 ```
 The argument can be the remote ENV's name, it can also be the URL alternatively:
 ```
-./docker-compose/run_selenium_tests_remote.sh https://sandbox.bluebutton.cms.gov/
 ./docker-compose/run_selenium_tests_remote.sh -d https://sandbox.bluebutton.cms.gov/
 ```
 
