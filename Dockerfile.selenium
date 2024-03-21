@@ -1,9 +1,9 @@
-FROM seleniarm/standalone-chromium
+FROM selenium/standalone-chrome
 
 ENV PYTHONUNBUFFERED 1
-# libpq-dev: ubuntu dev lib for psypsycopg2 sdist build
 USER root
-RUN apt-get update ; apt-get install -yq python3.8 python3.8-venv python3-pip git curl libpq-dev libffi-dev
+RUN apt-get update ; apt-get install -yq git curl libpq-dev libffi-dev
+RUN apt-get update ; apt-get install -yq python3 python3-venv
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
 RUN useradd -m -s /bin/bash DEV
 USER DEV
