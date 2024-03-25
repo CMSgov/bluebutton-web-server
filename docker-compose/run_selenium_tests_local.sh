@@ -81,7 +81,7 @@ export BB2_SERVER_STD2FILE=""
 set_slsx
 
 # Parse command line option
-while getopts "hdp" option; do
+while getopts "hp" option; do
    case $option in
       h)
          display_usage

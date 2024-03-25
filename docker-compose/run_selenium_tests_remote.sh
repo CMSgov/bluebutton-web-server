@@ -56,7 +56,7 @@ export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
 
 
-while getopts "hdp" option; do
+while getopts "hp" option; do
    case $option in
       h)
         display_usage;
