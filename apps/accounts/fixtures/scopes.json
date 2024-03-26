@@ -80,5 +80,44 @@
             "protected_resources": "[[\"POST\", \"/v[12]/o/introspect\"]]",
             "default": "False"
         }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 7,
+        "fields": {
+            "title": "C4DIC Patient",
+            "slug": "c4dic/Patient.read",
+            "group": 5,
+            "description": "Carin compliant patient resource for digital insurance card.",
+            "protected_resources": "[]",
+            "protected_resources": "[[\"GET\", \"/v[12]/fhir/InsurancePat[/]?$\"]]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 8,
+        "fields": {
+            "title": "C4DIC Coverage",
+            "slug": "c4dic/Coverage.read",
+            "group": 5,
+            "description": "Carin compliant coverage resource for digital insurance card.",
+            "protected_resources": "[]",
+            "protected_resources": "[[\"GET\", \"/v[12]/fhir/InsuranceCover[/]?$\"]]",
+            "default": "True"
+        }
+    },
+    {
+        "model": "capabilities.protectedcapability",
+        "pk": 9,
+        "fields": {
+            "title": "C4DIC Organization",
+            "slug": "c4dic/Organization.read",
+            "group": 5,
+            "description": "Carin compliant organization resource for digital insurance card.",
+            "protected_resources": "[]",
+            "protected_resources": "[[\"GET\", \"/v[12]/fhir/InsuranceOrg[/]?$\"]]",
+            "default": "True"
+        }
     }
 ]

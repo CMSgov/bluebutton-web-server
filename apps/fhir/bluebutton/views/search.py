@@ -1,3 +1,4 @@
+from datetime import datetime
 from voluptuous import (
     Required,
     All,
@@ -8,6 +9,7 @@ from voluptuous import (
     REMOVE_EXTRA,
 )
 from rest_framework import (permissions)
+from rest_framework.response import Response
 
 from apps.fhir.bluebutton.constants import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 from apps.fhir.bluebutton.views.generic import FhirDataView
@@ -59,6 +61,63 @@ class SearchView(FhirDataView):
         else:
             return "{}/{}/fhir/{}/".format(resource_router.fhir_url, 'v2' if self.version == 2 else 'v1',
                                            resource_type)
+
+
+class SearchViewInsurancePatient(SearchView):
+    # Class used for Patient resource search view
+    PATIENT_KEYS = ['meta', 'name', 'id']
+
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "Patient"
+
+    def build_parameters(self, request, *args, **kwargs):
+        return {
+            '_format': 'application/json+fhir',
+            '_id': request.crosswalk.fhir_id,
+        }
+
+    def get(self, request, *args, **kwargs):
+        patient = super().get(request, *args, **kwargs)
+        patient_resource = patient.data['entry'][0]['resource']
+        filtered_patient = {key: patient_resource[key] for key in self.PATIENT_KEYS}
+        return Response(filtered_patient)
+
+
+class SearchViewInsuranceCoverage(SearchView):
+    # Class used for Coverage resource search view
+    COVERAGE_KEYS = ['status', 'type', 'subscriberId', 'relationship', 'payor', 'class']
+
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "Coverage"
+
+    def build_parameters(self, request, *args, **kwargs):
+        return {
+            '_format': 'application/json+fhir',
+            'beneficiary': 'Patient/' + request.crosswalk.fhir_id,
+        }
+
+    def get(self, request, *args, **kwargs):
+        coverage = super().get(request, *args, **kwargs)
+        out_data = []
+        for entry in coverage.data['entry']:
+            coverage_resource = entry['resource']
+            filtered_coverage = {key: coverage_resource[key] for key in self.COVERAGE_KEYS}
+            filtered_coverage['period'] = '05-10-2020'
+            out_data.append(filtered_coverage)
+        return Response(out_data)
+
+
+class SearchViewInsuranceOrganization(SearchView):
+
+        def __init__(self, version=1):
+            super().__init__(version)
+            self.resource_type = "Coverage"
+
+        def get(self, request, *args, **kwargs):
+            out_data = [{'active': 'true', 'name': 'Centers for Medicare and Medicaid Services'}]
+            return Response(out_data)
 
 
 class SearchViewPatient(SearchView):
