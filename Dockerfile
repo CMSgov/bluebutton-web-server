@@ -8,7 +8,15 @@ RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip install --upgrade pip
+RUN pip config set global.trusted-host "pypi.org files.pythonhosted.org pypi.python.org"
 RUN pip install --upgrade pip-tools
-RUN pip install --upgrade setuptools
+RUN pip install --upgrade setuptools --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org
+RUN pip install backports.zoneinfo
+RUN pip install charset-normalizer==3.1.0
+RUN pip install cryptography==41.0.7
+RUN pip install debugpy==1.6.7 --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org
+RUN pip install newrelic==8.8.0
+RUN pip install pillow==10.2.0
+RUN pip install pyyaml==6.0
+RUN pip install wrapt==1.15.0
 RUN pip install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
-
