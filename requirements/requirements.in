@@ -38,11 +38,11 @@ importlib-metadata
 certifi
 
 # notifications
-django-ses
+django-ses==3.5.0
 
 # security and identity system
 oauthlib
 python-openid
 django-oauth-toolkit
-cryptography
-jwcrypto
+cryptography==42.0.4
+jwcrypto==1.5.6
