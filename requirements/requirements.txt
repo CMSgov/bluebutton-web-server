@@ -201,7 +201,7 @@ configparser==5.3.0 \
     --hash=sha256:8be267824b541c09b08db124917f48ab525a6c3e837011f3130781a224c57090 \
     --hash=sha256:b065779fd93c6bf4cee42202fa4351b4bb842e96a3fb469440e484517a49b9fa
     # via -r requirements/requirements.in
-cryptography==41.0.7 \
+cryptography==42.0.4 \
     --hash=sha256:079b85658ea2f59c4f43b70f8119a52414cdb7be34da5d019a77bf96d473b960 \
     --hash=sha256:09616eeaef406f99046553b8a40fbf8b1e70795a91885ba4c96a70793de5504a \
     --hash=sha256:13f93ce9bea8016c253b34afc6bd6a75993e5c40672ed5405a9c832f0d4a00bc \
@@ -283,7 +283,7 @@ django-oauth-toolkit==2.2.0 \
     --hash=sha256:46890decb24a34e2a5382debeaf7752e50d90b7a11716cf2a9fd067097ec0963 \
     --hash=sha256:abd85c74af525a62365ec2049113e73a2ff8b46ef906e7104a7ba968ef02a11d
     # via -r requirements/requirements.in
-django-ses==3.4.1 \
+django-ses==3.5.0 \
     --hash=sha256:3e798fbb4507664c6160b3c5ed6daafb94781cecd965601a3e002eccdd224f7f \
     --hash=sha256:900b4c27a8fdebf93f2f583b8ed1171d6cfd67c5aa796a5dd39358780652c257
     # via -r requirements/requirements.in
@@ -333,7 +333,7 @@ jsonschema==4.17.3 \
     --hash=sha256:0f864437ab8b6076ba6707453ef8f98a6a0d512a80e93f8abdb676f737ecb60d \
     --hash=sha256:a870ad254da1a8ca84b6a2905cac29d265f805acc57af304784962a2aa6508f6
     # via -r requirements/requirements.in
-jwcrypto==1.4.2 \
+jwcrypto==1.5.6 \
     --hash=sha256:80a35e9ed1b3b2c43ce03d92c5d48e6d0b6647e2aa2618e4963448923d78a37b
     # via
     #   -r requirements/requirements.in
@@ -745,3 +745,4 @@ zipp==3.15.0 \
 # pinned when the requirements file includes hashes and the requirement is not
 # satisfied by a package already installed. Consider using the --allow-unsafe flag.
 # setuptools
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
