@@ -36,7 +36,6 @@ pyrsistent
 typing_extensions
 importlib-metadata
 certifi
-setuptools
 
 # notifications
 django-ses==3.5.0
