@@ -17,6 +17,7 @@ django-storages
 python-dotenv
 jsonschema
 importlib-resources==5.12.0
+pkgutil-resolve-name==1.3.10
 requests
 urllib3
 requests_oauthlib
