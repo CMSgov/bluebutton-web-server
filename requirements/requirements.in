@@ -16,8 +16,8 @@ django-waffle
 django-storages
 python-dotenv
 jsonschema
-importlib-resources==5.12.0
-pkgutil-resolve-name==1.3.10
+importlib-resources
+pkgutil-resolve-name
 requests
 urllib3
 requests_oauthlib
@@ -41,11 +41,11 @@ importlib-metadata
 certifi
 
 # notifications
-django-ses==3.5.0
+django-ses
 
 # security and identity system
 oauthlib
 python-openid
 django-oauth-toolkit
 cryptography
-jwcrypto==1.5.6
+jwcrypto
