@@ -323,6 +323,54 @@ bluebutton server, this is needed when debugging logic during bluebutton server 
 BB2_REMOTE_DEBUG_WAIT_ATTACH=true
 ```
 
+## Setting up visual studio code for remote debug
+Add below contents to `.vscode/launch.json`
+```
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Remote Attach",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "0.0.0.0",
+                "port": 6789
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
+                }
+            ]
+        }
+    ]
+}
+```
+Note: Above we are using port `6789` this is because `unittests` section in docker-compose.yaml runs server on 6789.
+On mac in some cases this port is used by `elastic-a root service`, therefore this port cannot be used for debugging.
+For this update docker-compose.yaml `unittests` service to use new port. See exmaple below
+
+```
+ unittests:
+    build: .
+    command: python3 -m debugpy --listen 0.0.0.0:6889 --wait-for-client runtests.py
+    env_file:
+      - docker-compose/unittests-env-vars.env
+    ports:
+      - "6889:6889" # --------------- Update this port, should be same as port used in command above
+    volumes:
+      - .:/code
+    profiles:
+      - tests
+
+```
+Also, update launch.json to use this new port
+
+
 ## Remote debugging Blue Button unit tests
 
 Run the docker-compose command below to start the unittests with debugpy and for it to wait on port 6789 for the debugger to attach.
@@ -331,6 +379,15 @@ Attach to the unittests from an IDE (e.g. VSCode), then put break points in the 
 ```
 docker-compose up -d unittests
 
+```
+Now we can use Run and Debug in visual studio code and execute `Python Debugger: Remote Attach`
+This name is same as one provided in launch.json above.
+
+We should be able to see breakpoints are hit.
+
+## View Unit test logs
+```
+docker-compose logs --tail 500 -f unittests
 ```
 
 ## Test and Verify Using Sample Clients
