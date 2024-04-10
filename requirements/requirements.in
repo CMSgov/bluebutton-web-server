@@ -11,10 +11,13 @@ django-filter
 django-axes
 
 # support
+backports.zoneinfo
 django-waffle
 django-storages
 python-dotenv
 jsonschema
+importlib-resources
+pkgutil-resolve-name
 requests
 urllib3
 requests_oauthlib
