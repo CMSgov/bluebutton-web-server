@@ -462,37 +462,20 @@ You can run selenium tests against a local bb2 server by following below steps:
    ./docker-compose/run_selenium_tests_local.sh account
    ```
 
-3. To debug tests (visualize browser interaction): point VNC client to localhost:5900
-
-   1. requires installation of vnc viewer, password (secret)
-   2. Start tests using -d option as shown below:
-
-   use MSLSX (default)
-
-   ```
-   ./docker-compose/run_selenium_tests_local.sh -d
-   ```
-
-   ```
-   ./docker-compose/run_selenium_tests_local.sh -d mslsx
-   ```
-
-   use SLSX
-
-   ```
-   ./docker-compose/run_selenium_tests_local.sh -d slsx
-   ```
-
 ## Running Selenium tests on remote BB2 server (SBX, TEST, PROD)
 
 You can run selenium tests against a remote bb2 server by following below steps:
 
 From the base directory of the local repo run:
 ```
-./docker-compose/run_selenium_tests_remote.sh -d SBX
+./docker-compose/run_selenium_tests_remote.sh -p SBX/TEST
+```
+or
+```
+./docker-compose/run_selenium_tests_remote.sh PROD
 ```
 The argument can be the remote ENV's name, it can also be the URL alternatively:
 ```
-./docker-compose/run_selenium_tests_remote.sh -d https://sandbox.bluebutton.cms.gov/
+./docker-compose/run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/
 ```
 
