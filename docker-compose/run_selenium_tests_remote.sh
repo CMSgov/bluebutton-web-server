@@ -29,11 +29,11 @@ display_usage() {
     echo
     echo "Examples:"
     echo
-    echo "run_selenium_tests_remote.sh  https://sandbox.bluebutton.cms.gov/ (or SBX)"
+    echo "run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/ (or SBX)"
     echo
-    echo "run_selenium_tests_remote.sh -d  https://api.bluebutton.cms.gov/ (or PROD)"
+    echo "run_selenium_tests_remote.sh  https://api.bluebutton.cms.gov/ (or PROD)"
     echo
-    echo "run_selenium_tests_remote.sh -d -p  https://test.bluebutton.cms.gov/ (or TEST)"
+    echo "run_selenium_tests_remote.sh -p  https://test.bluebutton.cms.gov/ (or TEST)"
     echo
     echo "<bb2 server url> default to SBX (https://sandbox.bluebutton.cms.gov/)"
     echo
