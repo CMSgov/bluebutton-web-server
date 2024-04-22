@@ -468,7 +468,7 @@ You can run selenium tests against a remote bb2 server by following below steps:
 
 From the base directory of the local repo run:
 ```
-./docker-compose/run_selenium_tests_remote.sh -p SBX/TEST
+./docker-compose/run_selenium_tests_remote.sh -p [SBX | TEST]
 ```
 or
 ```
