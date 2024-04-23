@@ -8,7 +8,6 @@ pipeline {
 
   environment {
     USE_MSLSX = false
-    USE_DEBUG = false
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.logging_it"
     OAUTHLIB_INSECURE_TRANSPORT = true
@@ -57,7 +56,7 @@ pipeline {
           python -m venv venv
           . venv/bin/activate
           pip install selenium pytest Flask Flask-WTF
-          pip install cryptography==39.0.1
+          pip install cryptography==42.0.4
           make reqs-install-dev
         """
       }

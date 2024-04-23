@@ -39,7 +39,6 @@ display_usage() {
     echo "Options:"
     echo
     echo "-h     Print this Help."
-    echo "-d     Run tests in selenium debug mode (vnc view web UI interaction at http://localhost:5900)."
     echo "-p     Use new permissions screen (defaults to old style screen)."
     echo
 }
@@ -73,7 +72,6 @@ echo_msg
 set -e -u -o pipefail
 
 export USE_MSLSX=true
-export USE_DEBUG=false
 export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
@@ -83,15 +81,11 @@ export BB2_SERVER_STD2FILE=""
 set_slsx
 
 # Parse command line option
-while getopts "hdp" option; do
+while getopts "hp" option; do
    case $option in
       h)
          display_usage
          exit;;
-      d)
-         export USE_DEBUG=true
-         export SERVICE_NAME="selenium-tests-debug"
-         shift;break;;
       p)
          export USE_NEW_PERM_SCREEN=true;;
      \?)
@@ -215,7 +209,6 @@ export DJANGO_SLSX_CLIENT_SECRET=${DJANGO_SLSX_CLIENT_SECRET}
 
 echo "Selenium tests ..."
 echo "MSLSX=" ${USE_MSLSX}
-echo "DEBUG=" ${USE_DEBUG}
 echo "SERVICE NAME=" ${SERVICE_NAME}
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 

@@ -11,10 +11,13 @@ django-filter
 django-axes
 
 # support
+backports.zoneinfo
 django-waffle
 django-storages
 python-dotenv
 jsonschema
+importlib-resources
+pkgutil-resolve-name
 requests
 urllib3
 requests_oauthlib
@@ -25,7 +28,7 @@ pyjwt
 newrelic
 psycopg2-binary
 sqlparse
-Pillow==10.0.1
+Pillow==10.2.0
 boto3
 djangorestframework-yaml
 voluptuous
