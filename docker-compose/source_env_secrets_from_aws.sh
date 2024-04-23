@@ -23,7 +23,7 @@ echo_msg () {
 # Set bash builtins for safety
 set -e -u -o pipefail
 
-echo_msg " - Sourcing ENV secrets from: AWS PARAMETER STORE"
+echo_msg " - Sourcing ENV secrets from: AWS Secrets Manager"
 echo_msg
 
 # BFD prod-sbx settings
