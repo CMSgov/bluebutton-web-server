@@ -86,30 +86,11 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     required_css_class = "required"
 
     def clean(self):
-        client_type = self.cleaned_data.get("client_type")
-        authorization_grant_type = self.cleaned_data.get("authorization_grant_type")
-
-        msg = ""
-        validate_error = False
-
-        # Validate choices
-        if not (
-            client_type == "confidential"
-            and authorization_grant_type == "authorization-code"
-        ):
-            validate_error = True
-            msg += (
-                "Only a confidential client and "
-                "authorization-code grant type are allowed at this time."
-            )
-
-        if validate_error:
-            msg_output = _(msg)
-            raise forms.ValidationError(msg_output)
-        else:
-            pass
-
-        return self.cleaned_data
+        cleaned_data = super().clean()
+        # Since these are the only options for these fields, they were removed from the form, but are still relevant.
+        cleaned_data["client_type"] = "confidential"
+        cleaned_data["authorization_grant_type"] = "authorization-code"
+        return cleaned_data
 
     def clean_name(self):
         name = self.cleaned_data.get("name")
