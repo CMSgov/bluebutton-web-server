@@ -4,6 +4,11 @@ from django.http import HttpResponse
 
 
 class ExportCsvMixin:
+    """Django admin mixin class to allow the addition of an "export_as_csv" action.
+
+    To use, add this class to a model that inherits a Django admin class (eg. admin.ModelAdmin)
+    and add "export_as_csv" to the class action list.
+    """
     def export_as_csv(self, request, queryset):
 
         meta = self.model._meta
