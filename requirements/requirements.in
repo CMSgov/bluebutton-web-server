@@ -1,5 +1,5 @@
 # base packages
-django==4.2.7
+django==4.2.11
 django-getenv
 django-bootstrap-form
 django-cors-headers
