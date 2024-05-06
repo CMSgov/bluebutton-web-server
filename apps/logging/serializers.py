@@ -195,7 +195,6 @@ class FHIRRequest(Request):
             "access_token_hash": hashlib.sha256(str(access_token).encode("utf-8")).hexdigest(),
         }
 
-
     def to_dict(self):
         access_token_info = self.access_token_info()
         return {
