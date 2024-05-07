@@ -55,8 +55,6 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          pip install selenium pytest Flask Flask-WTF
-          pip install cryptography==42.0.4
           make reqs-install-dev
         """
       }

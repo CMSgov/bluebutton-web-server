@@ -7,4 +7,8 @@ django-debug-toolbar
 httmock
 beautifulsoup4
 debugpy
+selenium 
+pytest 
+Flask 
+Flask-WTF
 
