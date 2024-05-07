@@ -2,7 +2,7 @@
 # test and development
 # coverage
 # python-coveralls
-flake8
+flake8 == 6.0.*
 django-debug-toolbar
 httmock
 beautifulsoup4
