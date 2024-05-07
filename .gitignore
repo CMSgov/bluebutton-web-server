@@ -93,3 +93,5 @@ docker-compose/certstore/
 # dev tools dir for placing scripts you don't want checked in
 dev-tools/
 
+#dont upload packages
+vendor/
