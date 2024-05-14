@@ -97,7 +97,7 @@ class FhirDataView(APIView):
             access_token = req_meta["HTTP_AUTHORIZATION"].split(" ")[1]
             try:
                 at = AccessToken.objects.get(token=access_token)
-                logger.info(f"ACCESS_TOKEN_ID: {at.application.id}")
+                logger.info(f"ACCESS_TOKEN_ID: {at.id}")
                 logger.info(f"ACCESS_TOKEN_HASH: {hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()}")
             except ObjectDoesNotExist:
                 pass
