@@ -2,6 +2,8 @@ from django import forms
 from django.contrib import admin
 from oauth2_provider.models import AccessToken
 from oauth2_provider.models import get_application_model
+
+from .csv import ExportCsvMixin
 from .forms import CreateNewApplicationForm, CustomRegisterApplicationForm
 from .models import ApplicationLabel, AuthFlowUuid
 
@@ -85,7 +87,7 @@ class CustomAdminApplicationForm(CustomRegisterApplicationForm):
 
 
 @admin.register(MyApplication)
-class MyApplicationAdmin(admin.ModelAdmin):
+class MyApplicationAdmin(admin.ModelAdmin, ExportCsvMixin):
     form = CustomAdminApplicationForm
     list_display = (
         "name",
@@ -120,6 +122,8 @@ class MyApplicationAdmin(admin.ModelAdmin):
     )
 
     raw_id_fields = ("user",)
+
+    actions = ["export_as_csv"]
 
     @admin.display(description="Data Access Type")
     def get_data_access_type(self, obj):

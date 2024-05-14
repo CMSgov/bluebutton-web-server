@@ -6,6 +6,10 @@ reqs-compile:
 reqs-download:
 	pip download -r requirements/requirements.dev.txt --dest vendor --platform manylinux2014_x86_64 --abi cp38 --no-deps
 
+#Note: Only installs prod requirements NOT RECOMMENDED FOR DEVELOPMENT.
+reqs-download-prod:
+	pip download -r requirements/requirements.txt --dest vendor --platform manylinux2014_x86_64 --abi cp38 --no-deps	
+
 reqs-install:
 	pip install -r requirements/requirements.txt --no-index --find-links ./vendor/
 
