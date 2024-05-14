@@ -1,8 +1,12 @@
+import hashlib
+
 import voluptuous
 import logging
 
 import apps.logging.request_logger as bb2logging
 
+from django.core.exceptions import ObjectDoesNotExist
+from oauth2_provider.models import AccessToken
 from requests import Session, Request
 from rest_framework import (exceptions, permissions)
 from rest_framework.parsers import JSONParser
@@ -87,6 +91,14 @@ class FhirDataView(APIView):
         logger.debug("resource_type: %s" % resource_type)
         logger.debug("Interaction: read")
         logger.debug("Request.path: %s" % request.path)
+        access_token = request.META["HTTP_AUTHORIZATION"].split(" ")[1]
+
+        try:
+            at = AccessToken.objects.get(token=access_token)
+            logger.info(f"ACCESS_TOKEN_ID: {at.application.id}")
+            logger.info(f"ACCESS_TOKEN_HASH: {hashlib.sha256(str(access_token).encode('utf-8')).hexdigest()}")
+        except ObjectDoesNotExist:
+            pass
 
         request.resource_type = resource_type
 

@@ -1,12 +1,6 @@
 import json
 import hashlib
 
-from oauth2_provider.models import AccessToken
-
-from apps.fhir.bluebutton.utils import get_access_token_from_request
-
-from django.core.exceptions import ObjectDoesNotExist
-
 
 class DataAccessGrantSerializer:
     tkn = None
@@ -169,34 +163,7 @@ class FHIRRequest(Request):
     def path(self):
         return self.req.headers.get('BlueButton-OriginalUrl')
 
-    def access_token_info(self):
-        if hasattr(self.req, "original"):
-            req = self.req.original
-        else:
-            req = self.req
-
-        if not hasattr(req, "META"):
-            req.META = {}
-
-        access_token = getattr(
-            req, "auth", get_access_token_from_request(req)
-        )
-
-        try:
-            at = AccessToken.objects.get(token=access_token)
-        except ObjectDoesNotExist:
-            return {
-                "access_token_id": "",
-                "access_token_hash": "",
-            }
-
-        return {
-            "access_token_id": at.application.id,
-            "access_token_hash": hashlib.sha256(str(access_token).encode("utf-8")).hexdigest(),
-        }
-
     def to_dict(self):
-        access_token_info = self.access_token_info()
         return {
             "type": "fhir_pre_fetch",
             "uuid": self.uuid(),
@@ -207,8 +174,6 @@ class FHIRRequest(Request):
             "application": self.application(),
             "path": self.path(),
             "start_time": self.start_time(),
-            "access_token_id": access_token_info["access_token_id"],
-            "access_token_hash": access_token_info["access_token_hash"],
         }
 
 

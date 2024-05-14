@@ -90,6 +90,9 @@ bluebutton-css/
 docker-compose/certstore/
 */certstore/*
 
+# tmp files
+docker-compose/tmp/
+
 # dev tools dir for placing scripts you don't want checked in
 dev-tools/
 
