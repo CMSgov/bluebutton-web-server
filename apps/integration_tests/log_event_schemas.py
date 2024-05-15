@@ -97,6 +97,7 @@ LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA = {
         "auth_app_data_access_type": {"pattern": "RESEARCH_STUDY"},
         "auth_require_demographic_scopes": {"pattern": "^True$"},
         "req_qparam_client_id": {"type": "string"},
+        "req_qparam_lang": {"type": "string"},
         "req_qparam_response_type": {"pattern": "code"},
         "req_app_name": {"pattern": "TestApp"},
         "req_app_id": {"type": "number"},
@@ -109,7 +110,7 @@ LOG_MIDDLEWARE_AUTH_START_EVENT_SCHEMA = {
                  "location", "app_id", "app_name", "auth_uuid", "auth_client_id",
                  "auth_app_data_access_type",
                  "auth_app_id", "auth_app_name", "auth_require_demographic_scopes",
-                 "req_qparam_client_id", "req_qparam_response_type", "req_app_name", "req_app_id",
+                 "req_qparam_client_id", "req_qparam_lang", "req_qparam_response_type", "req_app_name", "req_app_id",
                  "path", "request_method", "request_scheme", "response_code"]
 }
 
@@ -198,6 +199,7 @@ LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA = {
         "auth_crosswalk_action": {"enum": ["R", "C"]},
         "auth_require_demographic_scopes": {"pattern": "^True$"},
         "req_qparam_client_id": {"type": "string"},
+        "req_qparam_lang": {"type": "string"},
         "req_qparam_response_type": {"pattern": "code"},
         "req_app_name": {"pattern": "TestApp"},
         "req_app_id": {"type": "number"},
@@ -211,7 +213,7 @@ LOG_MIDDLEWARE_AUTHORIZE_EVENT_SCHEMA = {
     "required": ["type", "size", "start_time", "end_time", "ip_addr", "request_uuid",
                  "location", "app_id", "app_name", "auth_uuid", "auth_client_id", "auth_app_id", "auth_app_name",
                  "auth_app_data_access_type",
-                 "auth_crosswalk_action", "auth_require_demographic_scopes", "req_qparam_client_id",
+                 "auth_crosswalk_action", "auth_require_demographic_scopes", "req_qparam_client_id", "req_qparam_lang",
                  "req_qparam_response_type", "req_app_name", "req_app_id",
                  "path", "user", "fhir_id", "request_method", "request_scheme", "response_code"]
 }
@@ -244,6 +246,7 @@ LOG_MIDDLEWARE_ACCESS_GRANT_EVENT_SCHEMA = {
         "req_user_username": {"type": "string"},
         "req_fhir_id": {"type": "string"},
         "req_qparam_client_id": {"type": "string"},
+        "req_qparam_lang": {"type": "string"},
         "req_qparam_response_type": {"pattern": "code"},
         "req_app_name": {"pattern": "TestApp"},
         "req_app_id": {"type": "number"},
@@ -259,7 +262,7 @@ LOG_MIDDLEWARE_ACCESS_GRANT_EVENT_SCHEMA = {
                  "auth_app_data_access_type",
                  "auth_crosswalk_action", "auth_require_demographic_scopes",
                  "req_redirect_uri", "req_scope", "req_user_username", "req_fhir_id",
-                 "req_qparam_client_id", "req_qparam_response_type", "req_app_name", "req_app_id",
+                 "req_qparam_client_id", "req_qparam_lang", "req_qparam_response_type", "req_app_name", "req_app_id",
                  "path", "user", "fhir_id", "request_method", "request_scheme", "response_code"]
 }
 
