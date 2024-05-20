@@ -512,7 +512,6 @@ REQUEST_PARTIAL_LOG_REC_SCHEMA = {
         "ip_addr",
         "request_uuid",
         "req_qparam_client_id",
-        "req_qparam_lang",
         "req_app_id",
         "req_app_name",
         "path",
