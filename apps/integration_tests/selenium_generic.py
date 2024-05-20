@@ -27,7 +27,7 @@ LOG_FILE = "./docker-compose/tmp/bb2_email_to_stdout.log"
 
 
 # class SeleniumGenericTests(TestCase):
-class SeleniumGenericTests():
+class SeleniumGenericTests:
     '''
     A base selenium tests to be extended by
     other selenium tests covering functional areas
