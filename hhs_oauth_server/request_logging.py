@@ -245,9 +245,6 @@ class RequestResponseLog(object):
             self._log_msg_update_from_dict(
                 request_headers, "req_header_bluebutton_app_version", "X-BLUEBUTTON-APP-VERSION"
             )
-            self._log_msg_update_from_dict(
-                request_headers, "req_header_accept_language", "Accept-Language"
-            )
 
         """
         --- Logging items from request.body ---
