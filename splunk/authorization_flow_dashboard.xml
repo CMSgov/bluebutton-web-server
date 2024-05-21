@@ -204,6 +204,12 @@
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
     </search>
+    <search id="baseSearch13">
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/$apiVersionsPattern$/o/authorize/" message.req_qparam_lang="es-mx" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method message.req_qparam_lang</query>
+        <earliest>$t_local.earliest$</earliest>
+        <latest>$t_local.latest$</latest>
+        <sampleRatio>1</sampleRatio>
+    </search>
     <row>
         <panel>
             <title>1. Initial Authorization</title>
@@ -352,6 +358,20 @@
                         <set token="tokTcCount">$result.count$</set>
                     </done>
                     <query>search message.auth_grant_type=authorization_code | stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+            </single>
+        </panel>
+        <panel>
+            <title>13. Spanish Language Authorization</title>
+            <single>
+                <search base="baseSearch13">
+                    <done>
+                        <set token="tokEpCount">$result.count$</set>
+                    </done>
+                    <query>search "message.req_qparam_lang"="es-mx" | stats count</query>
                 </search>
                 <option name="drilldown">all</option>
                 <option name="height">226</option>

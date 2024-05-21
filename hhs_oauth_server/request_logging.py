@@ -339,6 +339,7 @@ class RequestResponseLog(object):
             self._log_msg_update_from_querydict("req_qparam_beneficiary", "beneficiary")
             self._log_msg_update_from_querydict("req_qparam_beneficiary", "Beneficiary")
             self._log_msg_update_from_querydict("req_qparam_client_id", "client_id")
+            self._log_msg_update_from_querydict("req_qparam_lang", "lang")
             self._log_msg_update_from_querydict("req_qparam_count", "count")
             self._log_msg_update_from_querydict("req_qparam_format", "_format")
             self._log_msg_update_from_querydict(

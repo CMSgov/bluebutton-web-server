@@ -496,6 +496,7 @@ REQUEST_PARTIAL_LOG_REC_SCHEMA = {
         "ip_addr": {"type": "string", "format": "ip-address"},
         "request_uuid": {"type": "string", "format": "uuid"},
         "req_qparam_client_id": {"type": "string"},
+        "req_qparam_lang": {"type": "string"},
         "req_app_id": {"type": "string"},
         "req_app_name": {"type": "string"},
         "path": {"enum": ["/v1/o/authorize/", "/v2/o/authorize/"]},
