@@ -400,7 +400,7 @@ class RequestResponseLog(object):
                 ).hexdigest()
                 self.log_msg["access_token_scopes"] = " ".join([s for s in at.scopes])
                 self._log_msg_update_from_object(
-                    at.application, "access_token_id", "id"
+                    at, "access_token_id", "id"
                 )
 
                 self._log_msg_update_from_object(at.application, "app_name", "name")
