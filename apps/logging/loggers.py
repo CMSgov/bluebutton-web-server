@@ -341,7 +341,7 @@ def log_global_state_metrics(group_timestamp=None, report_flag=True):
         grant_counts = get_grant_bene_counts(application=app)
 
         flag = get_waffle_flag_model().get("limit_data_access")
-        user_limit_data_access = flag.is_active_for_user(app.user) if flag.id is not None else None
+        user_limit_data_access = flag.rollout or (flag.is_active_for_user(app.user) if flag.id is not None else None)
 
         log_dict = {
             "type": "global_state_metrics_per_app",
