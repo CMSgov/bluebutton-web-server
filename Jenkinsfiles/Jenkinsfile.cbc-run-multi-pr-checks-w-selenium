@@ -57,6 +57,7 @@ pipeline {
           . venv/bin/activate
           make reqs-download
           make reqs-install-dev
+          pip install --upgrade coverage
         """
       }
     }
@@ -74,7 +75,7 @@ pipeline {
       steps{
         sh """
           . venv/bin/activate
-          python runtests.py
+          coverage run runtests.py && coverage report -m
         """
       }
     }

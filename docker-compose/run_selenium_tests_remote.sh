@@ -102,7 +102,7 @@ SYSTEM=$(uname -s)
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 echo "BB2 Server URL=" ${HOSTNAME_URL}
 
-export USE_NEW_PERM_SCREEN
+## export USE_NEW_PERM_SCREEN
 export USE_MSLSX=false
 
 # stop all before run selenium remote tests

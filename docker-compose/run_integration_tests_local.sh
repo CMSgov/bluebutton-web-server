@@ -244,7 +244,8 @@ else
                                             pip install -r requirements/requirements.txt \
                                                           --no-index --find-links ./vendor/; \
                                             pip install sqlparse; \
-            python runtests.py --integration ${INTEGRATION_TESTS_LIST}"
+            coverage run runtests.py --integration ${INTEGRATION_TESTS_LIST}; \
+            coverage report -m"
     fi
 fi
 

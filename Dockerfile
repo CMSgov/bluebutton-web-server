@@ -10,4 +10,5 @@ ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip install --upgrade pip
 RUN pip install --upgrade pip-tools
 RUN pip install --upgrade setuptools
+RUN pip install --upgrade coverage
 RUN pip install -r requirements/requirements.dev.txt --no-index --find-links ./vendor/
