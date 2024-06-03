@@ -535,4 +535,3 @@ The argument can be the remote ENV's name, it can also be the URL alternatively:
 ```
 ./docker-compose/run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/
 ```
-
