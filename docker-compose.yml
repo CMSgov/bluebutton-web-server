@@ -54,12 +54,16 @@ services:
     platform: linux/amd64
   sonarqube:
     image: sonarqube:community
+    environment:
+      - SONAR_WEB_PORT=9009
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
     ports:
-      - "9000:9000"
+      - "9009:9009"
+    profiles:
+      - sonarserver
   unittests:
     build: .
     command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py
@@ -82,7 +86,7 @@ services:
       - coverage
   sonardemo:
     build: .
-    command: bash -c "sonar-scanner -Dsonar.projectKey=BB2 -Dsonar.sources=. -Dsonar.python.coverage.reportPaths=coverage.xml -Dsonar.host.url=http://sonarqube:9000 -Dsonar.token=sqp_9f1dcd7f83b3b12be28008a6e0a595352a852bec"
+    command: bash -c "sonar-scanner -Dsonar.projectKey=BB2 -Dsonar.sources=. -Dsonar.python.coverage.reportPaths=coverage.xml -Dsonar.host.url=http://sonarqube:9009 -Dsonar.token=sqp_9f1dcd7f83b3b12be28008a6e0a595352a852bec"
     volumes:
       - .:/code
     profiles:
