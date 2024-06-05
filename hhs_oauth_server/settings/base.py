@@ -713,6 +713,7 @@ if env("TARGET_ENV", "") in ["dev", "test", "impl", "prod"]:
     MEDIA_URL = "https://%s/%s" % (AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
     # Email config
     SEND_EMAIL = True
+    CSRF_COOKIE_SECURE = True
 else:
     # Setup S3 media storage only for local docker testing.
     # NOTE: To test, place variables in the .env file of the project root directory.

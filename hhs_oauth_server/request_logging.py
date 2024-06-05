@@ -339,6 +339,7 @@ class RequestResponseLog(object):
             self._log_msg_update_from_querydict("req_qparam_beneficiary", "beneficiary")
             self._log_msg_update_from_querydict("req_qparam_beneficiary", "Beneficiary")
             self._log_msg_update_from_querydict("req_qparam_client_id", "client_id")
+            self._log_msg_update_from_querydict("req_qparam_lang", "lang")
             self._log_msg_update_from_querydict("req_qparam_count", "count")
             self._log_msg_update_from_querydict("req_qparam_format", "_format")
             self._log_msg_update_from_querydict(
@@ -399,7 +400,7 @@ class RequestResponseLog(object):
                 ).hexdigest()
                 self.log_msg["access_token_scopes"] = " ".join([s for s in at.scopes])
                 self._log_msg_update_from_object(
-                    at.application, "access_token_id", "id"
+                    at, "access_token_id", "id"
                 )
 
                 self._log_msg_update_from_object(at.application, "app_name", "name")

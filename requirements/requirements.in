@@ -1,5 +1,5 @@
 # base packages
-django==4.2.7
+django == 4.2.11
 django-getenv
 django-bootstrap-form
 django-cors-headers
@@ -11,10 +11,13 @@ django-filter
 django-axes
 
 # support
+backports.zoneinfo
 django-waffle
 django-storages
 python-dotenv
 jsonschema
+importlib-resources
+pkgutil-resolve-name
 requests
 urllib3
 requests_oauthlib
@@ -24,8 +27,8 @@ dj-database-url
 pyjwt
 newrelic
 psycopg2-binary
-sqlparse
-Pillow==10.0.1
+sqlparse >= 0.5.0
+Pillow >= 10.3.0
 boto3
 djangorestframework-yaml
 voluptuous
@@ -44,5 +47,5 @@ django-ses
 oauthlib
 python-openid
 django-oauth-toolkit
-cryptography
+cryptography >= 42.0.6
 jwcrypto

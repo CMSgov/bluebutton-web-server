@@ -32,6 +32,7 @@ services:
       - db
     profiles:
       - slsx
+    platform: linux/amd64
   web_msls:
     build: .
     command: ./docker-compose/bluebutton_server_start.sh
@@ -50,6 +51,7 @@ services:
       - msls
     profiles:
       - mocksls
+    platform: linux/amd64
   unittests:
     build: .
     command: python3 -m debugpy --listen 0.0.0.0:6789 --wait-for-client runtests.py

@@ -25,16 +25,15 @@ display_usage() {
     echo "Options:"
     echo
     echo "-h     Print this Help."
-    echo "-d     Run tests in selenium debug mode (vnc view web UI interaction at http://localhost:5900)."
     echo "-p     Test for newer permissions screen. Defaults to older screen."
     echo
     echo "Examples:"
     echo
-    echo "run_selenium_tests_remote.sh  https://sandbox.bluebutton.cms.gov/ (or SBX)"
+    echo "run_selenium_tests_remote.sh -p https://sandbox.bluebutton.cms.gov/ (or SBX)"
     echo
-    echo "run_selenium_tests_remote.sh -d  https://api.bluebutton.cms.gov/ (or PROD)"
+    echo "run_selenium_tests_remote.sh  https://api.bluebutton.cms.gov/ (or PROD)"
     echo
-    echo "run_selenium_tests_remote.sh -d -p  https://test.bluebutton.cms.gov/ (or TEST)"
+    echo "run_selenium_tests_remote.sh -p  https://test.bluebutton.cms.gov/ (or TEST)"
     echo
     echo "<bb2 server url> default to SBX (https://sandbox.bluebutton.cms.gov/)"
     echo
@@ -49,7 +48,6 @@ echo_msg
 # Set bash builtins for safety
 set -e -u -o pipefail
 
-export USE_DEBUG=false
 export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests-remote"
 # TODO optionally add the Spanish selenium tests here if desired
@@ -58,13 +56,11 @@ export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
 export HOSTNAME_URL="https://sandbox.bluebutton.cms.gov/"
 
 
-while getopts "hdp" option; do
+while getopts "hp" option; do
    case $option in
       h)
         display_usage;
         exit;;
-      d)
-        export USE_DEBUG=true;;
       p)
         export USE_NEW_PERM_SCREEN=true;;
      \?)
@@ -103,23 +99,15 @@ fi
 # Set SYSTEM
 SYSTEM=$(uname -s)
 
-echo "USE_DEBUG=" ${USE_DEBUG}
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 echo "BB2 Server URL=" ${HOSTNAME_URL}
 
-export USE_DEBUG
 export USE_NEW_PERM_SCREEN
 export USE_MSLSX=false
 
 # stop all before run selenium remote tests
 docker-compose -f docker-compose.selenium.remote.yml down --remove-orphans
-
-if $USE_DEBUG
-then
-    docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests-debug bash -c "pytest ${TESTS_LIST}"
-else
-    docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "pytest ${TESTS_LIST}"
-fi
+docker-compose -f docker-compose.selenium.remote.yml run selenium-remote-tests bash -c "pytest ${TESTS_LIST}"
 
 # Stop containers after use
 echo_msg

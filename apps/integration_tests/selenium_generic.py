@@ -27,7 +27,7 @@ LOG_FILE = "./docker-compose/tmp/bb2_email_to_stdout.log"
 
 
 # class SeleniumGenericTests(TestCase):
-class SeleniumGenericTests():
+class SeleniumGenericTests:
     '''
     A base selenium tests to be extended by
     other selenium tests covering functional areas
@@ -45,9 +45,8 @@ class SeleniumGenericTests():
 
         self.hostname_url = os.environ['HOSTNAME_URL']
         self.use_mslsx = os.environ['USE_MSLSX']
-        self.use_debug = os.environ['USE_DEBUG']
         self.login_seq = SEQ_LOGIN_MSLSX if self.use_mslsx == 'true' else SEQ_LOGIN_SLSX
-        print("use_mslsx={}, use_debug={}, hostname_url={}".format(self.use_mslsx, self.use_debug, self.hostname_url))
+        print("use_mslsx={},  hostname_url={}".format(self.use_mslsx, self.hostname_url))
 
         opt = webdriver.ChromeOptions()
         opt.add_argument("--disable-dev-shm-usage")
@@ -62,12 +61,8 @@ class SeleniumGenericTests():
         opt.add_argument('--window-size=1920,1080')
         opt.add_argument("--whitelisted-ips=''")
 
-        if self.use_debug == 'true':
-            self.driver = webdriver.Remote(
-                command_executor='http://chrome:4444/wd/hub', options=opt)
-        else:
-            opt.add_argument('--headless')
-            self.driver = webdriver.Chrome(options=opt)
+        self.driver = webdriver.Remote(
+            command_executor='http://chrome:4444/wd/hub', options=opt)
 
         self.actions = {
             Action.LOAD_PAGE: self._load_page,
