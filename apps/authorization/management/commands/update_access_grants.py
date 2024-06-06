@@ -16,7 +16,6 @@ class Command(BaseCommand):
         parser.add_argument('--all', action='store_true', help="Update access grants for all applications")
         parser.set_defaults(all=False)
 
-
     def handle(self, *args, **options):
         if options['applications']:
             application_ids = options['applications'].split(',')
@@ -37,5 +36,3 @@ class Command(BaseCommand):
                     grant.update_expiration_date()
             else:
                 continue
-
-
