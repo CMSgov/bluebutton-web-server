@@ -111,3 +111,10 @@ def get_supported_resources(resources, resource_names):
                     resource_list.append(item)
 
     return resource_list
+
+
+def get_response_json(resource_file_name):
+    response_file = open("./apps/fhir/bluebutton/views/fhir_resources/{}.json".format(resource_file_name), 'r')
+    resource = json.load(response_file)
+    response_file.close()
+    return resource

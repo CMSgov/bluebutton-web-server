@@ -1,9 +1,11 @@
 from rest_framework import permissions
+from rest_framework.response import Response
 
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from ..permissions import (ReadCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
 from apps.fhir.bluebutton.views.generic import FhirDataView
+from apps.fhir.bluebutton.views.home import get_response_json
 
 
 #####################################################################
@@ -53,6 +55,14 @@ class ReadViewPatient(ReadView):
         super().__init__(version)
         self.resource_type = "Patient"
 
+    def get(self, request, *args, **kwargs):
+        c4dic = request.query_params[
+                    '_profile'] == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient"
+        if c4dic:
+            return Response(get_response_json("patient_read_c4dic"))
+        else:
+            return super().get(request, *args, **kwargs)
+
 
 class ReadViewCoverage(ReadView):
     # Class used for Patient resource
@@ -60,9 +70,27 @@ class ReadViewCoverage(ReadView):
         super().__init__(version)
         self.resource_type = "Coverage"
 
+    def get(self, request, *args, **kwargs):
+        c4dic = request.query_params[
+                    '_profile'] == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage"
+        if c4dic:
+            return Response(get_response_json("coverage_read_c4dic"))
+        else:
+            return super().get(request, *args, **kwargs)
+
 
 class ReadViewExplanationOfBenefit(ReadView):
     # Class used for Patient resource
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "ExplanationOfBenefit"
+
+
+class ReadViewOrganization(ReadView):
+    # Class used for Patient resource
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "Organization"
+
+    def get(self, request, *args, **kwargs):
+        return Response(get_response_json("organization_read_c4dic"))
