@@ -63,3 +63,12 @@ services:
       - .:/code
     profiles:
       - tests
+  tests:
+    build: .
+    command: python3 runtests.py
+    env_file:
+      - docker-compose/unittests-env-vars.env
+    volumes:
+      - .:/code
+    profiles:
+      - justtests
