@@ -115,12 +115,12 @@ class AuthorizationView(DotAuthorizationView):
     def get_template_names(self):
         flag = get_waffle_flag_model().get("limit_data_access")
         if waffle.switch_is_active('require-scopes'):
-            if flag.id is not None and flag.is_active_for_user(self.application.user):
+            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.application.user)):
                 return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize_v2.html"]
         else:
-            if flag.id is not None and flag.is_active_for_user(self.user):
+            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.user)):
                 return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize.html"]
