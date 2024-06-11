@@ -95,11 +95,13 @@ def validate_app_is_active(request):
     Utility function to check that an application
     is an active, valid application.
     This method will pull the application from the
-    request and then check the active flag.
+    request and then check the active flag and the
+    data access grant (dag) validity.
     RETURN:
-        application or None
+        application, dag. Values may be None for either.
     """
     app = get_application_from_meta(request)
+    dag = None
     if not app:
         app = get_application_from_data(request)
 
@@ -136,7 +138,7 @@ def validate_app_is_active(request):
             description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
         )
 
-    return app
+    return app, dag
 
 
 def get_application_from_data(request):

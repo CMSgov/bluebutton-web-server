@@ -1,13 +1,17 @@
+import json
 import logging
+from time import strftime, localtime
+
 import waffle
 from waffle import get_waffle_flag_model
 
-from django.http.response import HttpResponseBadRequest
+from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauth2_provider.exceptions import OAuthToolkitError
+from oauth2_provider.views.base import app_authorized, get_access_token_model
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
@@ -81,7 +85,7 @@ class AuthorizationView(DotAuthorizationView):
             create_session_auth_flow_trace(request)
 
         try:
-            self.application = validate_app_is_active(request)
+            self.application = validate_app_is_active(request)[0]
         except InvalidClientError as error:
             return TemplateResponse(
                 request,
@@ -291,12 +295,42 @@ class ApprovalView(AuthorizationView):
 class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
+        """Subclass of oauth2_provider.views.base.TokenView
+        to support checking application active/DAG status and
+        modification of the access token to include access
+        grant expiry.
+
+        RETURN:
+            response: HTTPResponse containing serialized access
+            token response.
+        """
         try:
-            validate_app_is_active(request)
+            dag = validate_app_is_active(request)[1]
+            if dag is not None:
+                dag_expiry = strftime('%Y-%m-%d %H:%M:%S', dag.expiration_date)
+            else:
+                dag_expiry = None
         except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
 
-        return super().post(request, args, kwargs)
+        url, headers, body, status = self.create_token_response(request)
+        if status == 200:
+            body = json.loads(body)
+            access_token = body.get("access_token")
+            if access_token is not None:
+                token = get_access_token_model().objects.get(
+                    token=access_token)
+                app_authorized.send(
+                    sender=self, request=request,
+                    token=token)
+                if dag_expiry is None:
+                    dag_expiry = strftime('%Y-%m-%d %H:%M:%S', localtime(body.get("expires_at")))
+                body['access_grant_expiry'] = dag_expiry
+                body = json.dumps(body)
+        response = HttpResponse(content=body, status=status)
+        for k, v in headers.items():
+            response[k] = v
+        return response
 
 
 @method_decorator(csrf_exempt, name="dispatch")
