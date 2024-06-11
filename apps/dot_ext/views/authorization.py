@@ -325,7 +325,7 @@ class TokenView(DotTokenView):
                     token=token)
                 if dag_expiry is None:
                     dag_expiry = strftime('%Y-%m-%d %H:%M:%S', localtime(body.get("expires_at")))
-                body['access_grant_expiry'] = dag_expiry
+                body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
         response = HttpResponse(content=body, status=status)
         for k, v in headers.items():
