@@ -92,7 +92,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     def clean(self):
         client_type = self.cleaned_data.get("client_type")
         authorization_grant_type = self.cleaned_data.get("authorization_grant_type")
-
         msg = ""
         validate_error = False
 
@@ -180,6 +179,8 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         return require_demographic_scopes
 
     def save(self, *args, **kwargs):
+        self.instance.client_type = "confidential"
+        self.instance.authorization_grant_type = "authorization-code"
         app = self.instance
         # Only log agreement from a Register form
         if app.agree and type(self) == CustomRegisterApplicationForm:
