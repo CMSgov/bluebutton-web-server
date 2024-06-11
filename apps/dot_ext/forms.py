@@ -62,8 +62,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.fields["client_type"].required = False
         self.fields["authorization_grant_type"].label = "Authorization Grant Type*"
         self.fields["authorization_grant_type"].required = False
-        authorization_grant_type = self.fields["authorization_grant_type"]
-        authorization_grant_type.widget = authorization_grant_type.hidden_widget()
         self.fields["redirect_uris"].label = "Redirect URIs*"
         self.fields["logo_uri"].disabled = True
 
@@ -92,26 +90,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     def clean(self):
         client_type = self.cleaned_data.get("client_type")
         authorization_grant_type = self.cleaned_data.get("authorization_grant_type")
-        msg = ""
-        validate_error = False
-
-        #Validate choices
-        if not (
-            client_type == "confidential"
-            and authorization_grant_type == "authorization-code"
-        ):
-            #validate_error = True
-            msg += (
-                "Only a confidential client and "
-                "authorization-code grant type are allowed at this time."
-            )
-
-        if validate_error:
-            msg_output = _(msg)
-            raise forms.ValidationError(msg_output)
-        else:
-            pass
-
         return self.cleaned_data
 
     def clean_name(self):
