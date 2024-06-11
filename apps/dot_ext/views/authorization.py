@@ -306,8 +306,8 @@ class TokenView(DotTokenView):
         """
         try:
             dag = validate_app_is_active(request)[1]
-            if dag is not None:
-                dag_expiry = strftime('%Y-%m-%d %H:%M:%S', dag.expiration_date.timestamp())
+            if dag is not None and dag.expiration_date is not None:
+                dag_expiry = strftime('%Y-%m-%d %H:%M:%S', dag.expiration_date.timetuple())
             else:
                 dag_expiry = None
         except (InvalidClientError, InvalidGrantError) as error:
