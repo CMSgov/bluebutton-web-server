@@ -88,8 +88,6 @@ class CustomRegisterApplicationForm(forms.ModelForm):
     required_css_class = "required"
 
     def clean(self):
-        client_type = self.cleaned_data.get("client_type")
-        authorization_grant_type = self.cleaned_data.get("authorization_grant_type")
         return self.cleaned_data
 
     def clean_name(self):
