@@ -55,6 +55,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
+          pip install django-bootstrap-form==3.4
           make reqs-download
           make reqs-install-dev
         """
