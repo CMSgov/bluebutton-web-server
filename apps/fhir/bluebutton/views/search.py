@@ -1,4 +1,3 @@
-from datetime import datetime
 from voluptuous import (
     Required,
     All,
