@@ -8,6 +8,7 @@ pipeline {
 
   environment {
     USE_MSLSX = false
+    USE_NEW_PERM_SCREEN = true
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.logging_it"
     OAUTHLIB_INSECURE_TRANSPORT = true
@@ -93,17 +94,17 @@ pipeline {
        }
     }
 
-    // stage("RUN logging integration tests") {
-    //    when {
-    //     expression { params.RUN_SELENIUM_TESTS == true }
-    //    }
-    //    steps{
-    //     sh """
-    //       . venv/bin/activate
-    //       pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
-    //     """
-    //    }
-    // }
+    stage("RUN logging integration tests") {
+       when {
+        expression { params.RUN_SELENIUM_TESTS == true }
+       }
+       steps{
+        sh """
+          . venv/bin/activate
+          pytest ./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging
+        """
+       }
+    }
 
     stage("RUN selenium user and apps management tests") {
        when {
