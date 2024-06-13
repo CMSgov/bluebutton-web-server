@@ -257,7 +257,7 @@ class TestRegisterApplicationForm(BaseApiTest):
         # Test that passing_app_fields are OK/valid.
         form = CustomRegisterApplicationForm(user, passing_app_fields)
         self.assertTrue(form.is_valid())
-        
+
     def test_create_applications_with_logo(self):
         """
         regression test: BB2-66: Fix-logo-display-in-Published-Applications-API
