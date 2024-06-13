@@ -55,7 +55,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
-          pip install django-settings-export==1.2.1 django-bootstrap-form==3.4 djangorestframework-csv==2.1.1
+          pip install django-settings-export==1.2.1 django-bootstrap-form==3.4 djangorestframework-csv==2.1.1 python-openid==2.2.5
           make reqs-download
           make reqs-install-dev
         """
