@@ -56,8 +56,8 @@ class ReadViewPatient(ReadView):
         self.resource_type = "Patient"
 
     def get(self, request, *args, **kwargs):
-        c4dic = request.query_params['_profile'] == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient"
-        if c4dic:
+        profile = request.query_params.get('_profile', '')
+        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient":
             return Response(get_response_json("patient_read_c4dic"))
         else:
             return super().get(request, *args, **kwargs)
@@ -70,8 +70,8 @@ class ReadViewCoverage(ReadView):
         self.resource_type = "Coverage"
 
     def get(self, request, *args, **kwargs):
-        c4dic = request.query_params['_profile'] == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage"
-        if c4dic:
+        profile = request.query_params.get('_profile', '')
+        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient":
             return Response(get_response_json("coverage_read_c4dic"))
         else:
             return super().get(request, *args, **kwargs)
