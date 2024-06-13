@@ -1,0 +1,143 @@
+{
+  "resourceType": "Organization",
+  "id": "Example-PayerOrganization1",
+  "meta": {
+    "versionId": "4",
+    "lastUpdated": "2021-08-16T14:08:24.329+00:00",
+    "profile": [
+      "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Organization"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "\u003Cdiv xmlns=\"http://www.w3.org/1999/xhtml\"\u003E\u003Cp\u003E\u003Cb\u003EGenerated Narrative: Organization\u003C/b\u003E\u003Ca name=\"Example-PayerOrganization1\"\u003E \u003C/a\u003E\u003Ca name=\"hcExample-PayerOrganization1\"\u003E \u003C/a\u003E\u003C/p\u003E\u003Cdiv style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"\u003E\u003Cp style=\"margin-bottom: 0px\"\u003EResource Organization &quot;Example-PayerOrganization1&quot; Version &quot;4&quot; Updated &quot;2021-08-16 14:08:24+0000&quot; \u003C/p\u003E\u003Cp style=\"margin-bottom: 0px\"\u003EProfile: \u003Ca href=\"StructureDefinition-C4DIC-Organization.html\"\u003EC4DIC Organization\u003C/a\u003E\u003C/p\u003E\u003C/div\u003E\u003Cp\u003E\u003Cb\u003Eidentifier\u003C/b\u003E: Payer ID/45002\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Eactive\u003C/b\u003E: true\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Ename\u003C/b\u003E: Acme Insurance Co\u003C/p\u003E\u003Cblockquote\u003E\u003Cp\u003E\u003Cb\u003Econtact\u003C/b\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Epurpose\u003C/b\u003E: Pharmacists \u003Cspan style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"\u003E (\u003Ca href=\"CodeSystem-C4DICExtendedContactTypeCS.html\"\u003EC4DIC Extended Contact Type\u003C/a\u003E#pharma)\u003C/span\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Etelecom\u003C/b\u003E: ph: 1-800-123-4988\u003C/p\u003E\u003C/blockquote\u003E\u003Cblockquote\u003E\u003Cp\u003E\u003Cb\u003Econtact\u003C/b\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Epurpose\u003C/b\u003E: Patient \u003Cspan style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"\u003E (\u003Ca href=\"http://terminology.hl7.org/5.3.0/CodeSystem-contactentity-type.html\"\u003EContact entity type\u003C/a\u003E#PATINF)\u003C/span\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Etelecom\u003C/b\u003E: ph: 1-800-465-2222, \u003Ca href=\"http://acmeinsurance.com\"\u003Ehttp://acmeinsurance.com\u003C/a\u003E\u003C/p\u003E\u003C/blockquote\u003E\u003Cblockquote\u003E\u003Cp\u003E\u003Cb\u003Econtact\u003C/b\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Epurpose\u003C/b\u003E: Mail Order Pharmacy \u003Cspan style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"\u003E (\u003Ca href=\"CodeSystem-C4DICExtendedContactTypeCS.html\"\u003EC4DIC Extended Contact Type\u003C/a\u003E#rxmailorder)\u003C/span\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Etelecom\u003C/b\u003E: ph: 1-888-466-1234\u003C/p\u003E\u003C/blockquote\u003E\u003Cblockquote\u003E\u003Cp\u003E\u003Cb\u003Econtact\u003C/b\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Epurpose\u003C/b\u003E: Provider Service \u003Cspan style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"\u003E (\u003Ca href=\"CodeSystem-C4DICExtendedContactTypeCS.html\"\u003EC4DIC Extended Contact Type\u003C/a\u003E#provider)\u003C/span\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Etelecom\u003C/b\u003E: ph: 1-800-444-3333\u003C/p\u003E\u003C/blockquote\u003E\u003Cblockquote\u003E\u003Cp\u003E\u003Cb\u003Econtact\u003C/b\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Epurpose\u003C/b\u003E: Virtual Care Services \u003Cspan style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"\u003E (\u003Ca href=\"CodeSystem-C4DICExtendedContactTypeCS.html\"\u003EC4DIC Extended Contact Type\u003C/a\u003E#virtual)\u003C/span\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Etelecom\u003C/b\u003E: \u003Ca href=\"http://virtualdoctor.com\"\u003Ehttp://virtualdoctor.com\u003C/a\u003E\u003C/p\u003E\u003C/blockquote\u003E\u003Cblockquote\u003E\u003Cp\u003E\u003Cb\u003Econtact\u003C/b\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Epurpose\u003C/b\u003E: Payor \u003Cspan style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"\u003E (\u003Ca href=\"http://terminology.hl7.org/5.3.0/CodeSystem-contactentity-type.html\"\u003EContact entity type\u003C/a\u003E#PAYOR)\u003C/span\u003E\u003C/p\u003E\u003Cp\u003E\u003Cb\u003Eaddress\u003C/b\u003E: P.O. Box 1111 Miami, FL 20222-4021\u003C/p\u003E\u003C/blockquote\u003E\u003C/div\u003E"
+  },
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/us/insurance-card/CodeSystem/C4DICIdentifierType",
+            "code": "payerid"
+          }
+        ]
+      },
+      "value": "45002"
+    }
+  ],
+  "active": true,
+  "name": "Acme Insurance Co",
+  "contact": [
+    {
+      "purpose": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/us/insurance-card/CodeSystem/C4DICExtendedContactTypeCS",
+            "code": "pharma",
+            "display": "Pharmacists"
+          }
+        ]
+      },
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "1-800-123-4988"
+        }
+      ]
+    },
+    {
+      "purpose": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code": "PATINF",
+            "display": "Patient"
+          }
+        ]
+      },
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "1-800-465-2222"
+        },
+        {
+          "system": "url",
+          "value": "http://acmeinsurance.com"
+        }
+      ]
+    },
+    {
+      "purpose": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/us/insurance-card/CodeSystem/C4DICExtendedContactTypeCS",
+            "code": "rxmailorder",
+            "display": "Mail Order Pharmacy"
+          }
+        ]
+      },
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "1-888-466-1234"
+        }
+      ]
+    },
+    {
+      "purpose": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/us/insurance-card/CodeSystem/C4DICExtendedContactTypeCS",
+            "code": "provider",
+            "display": "Provider Service"
+          }
+        ]
+      },
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "1-800-444-3333"
+        }
+      ]
+    },
+    {
+      "purpose": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/us/insurance-card/CodeSystem/C4DICExtendedContactTypeCS",
+            "code": "virtual",
+            "display": "Virtual Care Services"
+          }
+        ]
+      },
+      "telecom": [
+        {
+          "system": "url",
+          "value": "http://virtualdoctor.com"
+        }
+      ]
+    },
+    {
+      "purpose": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/contactentity-type",
+            "code": "PAYOR",
+            "display": "Payor"
+          }
+        ]
+      },
+      "address": {
+        "type": "postal",
+        "text": "P.O. Box 1111 Miami, FL 20222-4021",
+        "line": [
+          "P.O. Box 1111"
+        ],
+        "city": "Miami",
+        "state": "FL",
+        "postalCode": "20222-4021",
+        "country": "US"
+      }
+    }
+  ]
+}
