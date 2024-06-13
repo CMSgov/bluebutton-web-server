@@ -63,6 +63,14 @@ pipeline {
       }
     }
 
+    stage("Checkout bluebutton-css") {
+      steps {
+        sh """
+          git clone https://github.com/CMSgov/bluebutton-css.git
+        """
+      }
+    }
+
     stage("CHECK Flake8 Python Lint/Style") {
       steps{
         sh """
