@@ -7,7 +7,7 @@ pipeline {
   }
 
   environment {
-    USE_MSLSX = false
+    USE_MSLSX = true
     USE_NEW_PERM_SCREEN = true
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.logging_it"
