@@ -32,7 +32,7 @@ class UserTypeFilter(admin.SimpleListFilter):
 
 class ActiveAccountFilter(admin.SimpleListFilter):
     title = "User activation status"
-    parameter_name = "is_active"
+    parameter_name = "status"
 
     def lookups(self, request, model_admin):
         return [
