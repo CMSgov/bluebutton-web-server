@@ -339,7 +339,6 @@ class TokenView(DotTokenView):
         return response
 
 
-
 @method_decorator(csrf_exempt, name="dispatch")
 class RevokeTokenView(DotRevokeTokenView):
 
