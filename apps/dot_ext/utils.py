@@ -98,10 +98,9 @@ def validate_app_is_active(request):
     request and then check the active flag and the
     data access grant (dag) validity.
     RETURN:
-        application, dag. Values may be None for either.
+        application or None
     """
     app = get_application_from_meta(request)
-    dag = None
     if not app:
         app = get_application_from_data(request)
 
@@ -138,7 +137,7 @@ def validate_app_is_active(request):
             description=settings.APPLICATION_TEMPORARILY_INACTIVE.format(app.name)
         )
 
-    return app, dag
+    return app
 
 
 def get_application_from_data(request):

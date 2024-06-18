@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime, timedelta
 from time import strftime, localtime
 
 import waffle
@@ -41,7 +42,7 @@ from ..utils import (
     validate_app_is_active,
     json_response_from_oauth2_error,
 )
-
+from ...authorization.models import DataAccessGrant
 
 log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -85,7 +86,7 @@ class AuthorizationView(DotAuthorizationView):
             create_session_auth_flow_trace(request)
 
         try:
-            self.application = validate_app_is_active(request)[0]
+            self.application = validate_app_is_active(request)
         except InvalidClientError as error:
             return TemplateResponse(
                 request,
@@ -295,42 +296,48 @@ class ApprovalView(AuthorizationView):
 class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
-        """Subclass of oauth2_provider.views.base.TokenView
-        to support checking application active/DAG status and
-        modification of the access token to include access
-        grant expiry.
-
-        RETURN:
-            response: HTTPResponse containing serialized access
-            token response.
-        """
+        dag = None
+        dag_expiry = None
         try:
-            dag = validate_app_is_active(request)[1]
-            if dag is not None and dag.expiration_date is not None:
-                dag_expiry = strftime('%Y-%m-%d %H:%M:%S', dag.expiration_date.timetuple())
-            else:
-                dag_expiry = None
+            app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
 
+        if app.data_access_type == "THIRTEEN_MONTH":
+            try:
+                dag = DataAccessGrant.objects.get(
+                    beneficiary=request.user.id,
+                    application=app
+                )
+                if dag is not None and dag.expiration_date is not None:
+                    dag_expiry = strftime('%Y-%m-%d %H:%M:%S', dag.expiration_date.timetuple())
+                else:
+                    dag_expiry = None
+            except DataAccessGrant.DoesNotExist:
+                future_dag_expiration = datetime.now() + timedelta(weeks=56)
+                dag_expiry = strftime('%Y-%m-%d %H:%M:%S', future_dag_expiration.timetuple())
+
         url, headers, body, status = self.create_token_response(request)
+
         if status == 200:
             body = json.loads(body)
             access_token = body.get("access_token")
+            if dag_expiry is None:
+                dag_expiry = strftime('%Y-%m-%d %H:%M:%S', localtime(body.get("expires_at")))
             if access_token is not None:
                 token = get_access_token_model().objects.get(
                     token=access_token)
                 app_authorized.send(
                     sender=self, request=request,
                     token=token)
-                if dag_expiry is None:
-                    dag_expiry = strftime('%Y-%m-%d %H:%M:%S', localtime(body.get("expires_at")))
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
+
         response = HttpResponse(content=body, status=status)
         for k, v in headers.items():
             response[k] = v
         return response
+
 
 
 @method_decorator(csrf_exempt, name="dispatch")
