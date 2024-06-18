@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
@@ -8,7 +9,6 @@ from .models import (
     ActivationKey,
     UserIdentificationLabel,
 )
-
 
 admin.site.register(ActivationKey)
 admin.site.register(ValidPasswordResetKey)
@@ -30,8 +30,36 @@ class UserTypeFilter(admin.SimpleListFilter):
         return queryset
 
 
-class UserAdmin(DjangoUserAdmin):
+class ActiveAccountFilter(admin.SimpleListFilter):
+    title = "User activation status"
+    parameter_name = "status"
 
+    def lookups(self, request, model_admin):
+        return [
+            ("active", "Active"),
+            ("inactive_all", "Inactive"),
+            ("inactive_expired", "Inactive (expired activation key)")
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "inactive_expired":
+            return queryset.filter(
+                is_active=False,
+                activationkey__key_status="expired",
+            ) | queryset.filter(
+                # Since the activation keys only reach "expired" status when they are
+                # used post-expiration, we need to check the "created" status as well
+                is_active=False,
+                activationkey__key_status="created",
+                activationkey__expires__lt=(datetime.today()),
+            )
+        elif self.value() == "inactive_all":
+            return queryset.filter(is_active=False)
+        elif self.value() == "active":
+            return queryset.filter(is_active=True)
+
+
+class UserAdmin(DjangoUserAdmin):
     list_display = (
         "username",
         "get_type",
@@ -43,7 +71,7 @@ class UserAdmin(DjangoUserAdmin):
         "date_joined",
     )
 
-    list_filter = (UserTypeFilter,)
+    list_filter = (UserTypeFilter, ActiveAccountFilter,)
 
     @admin.display(
         description="Type",
