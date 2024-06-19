@@ -584,7 +584,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         redirect_uri = 'http://localhost'
 
         # create a user
-        user = self._create_user('anna', '123456')
+        self._create_user('anna', '123456')
 
         # create an application and add capabilities
         application = self._create_application(
