@@ -6,16 +6,16 @@
 <input type="text" name="name" maxlength="255" required="" id="id_name" value="{{ application.name }}" autocomplete="turn_autocomplete_off">
 
 <!-- App Client Type -->
-<label for="id_client_type">OAuth - Client Type</label>
+<!-- <label for="id_client_type">OAuth - Client Type</label>
 <select name="client_type" required="" id="id_client_type">
 	<option value="confidential" {% if application.client_type != "public" %} selected {% endif %}>Confidential</option>
-</select>
+</select> -->
 
 <!-- App Grant Type -->
-<label for="id_authorization_grant_type">Authorization Grant Type*</label>
+<!-- <label for="id_authorization_grant_type">Authorization Grant Type*</label>
 <select name="authorization_grant_type" id="id_authorization_grant_type">
 	<option value="authorization-code" {% if application.authorization_grant_type != "implicit" %} selected {% endif %}>Authorization code</option>
-</select>
+</select> -->
 
 <!-- App Redirect URIs -->
 <label for="id_redirect_uris">Callback URLs / Redirect URIs</label>
