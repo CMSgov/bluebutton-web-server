@@ -1,4 +1,4 @@
-FROM selenium/standalone-chrome
+FROM seleniarm/standalone-chromium
 
 ENV PYTHONUNBUFFERED 1
 USER root
