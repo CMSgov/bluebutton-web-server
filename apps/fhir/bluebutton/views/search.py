@@ -109,7 +109,7 @@ class SearchViewCoverage(SearchView):
 
     def get(self, request, *args, **kwargs):
         profile = request.query_params.get('_profile', '')
-        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient":
+        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage":
             return Response(get_response_json("coverage_search_c4dic"))
         else:
             return super().get(request, *args, **kwargs)
