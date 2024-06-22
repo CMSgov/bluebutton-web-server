@@ -258,6 +258,31 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, passing_app_fields)
         self.assertTrue(form.is_valid())
 
+        # Test client_type = 'confidential' and authorization_grant_type = 'authorization-code' regardless of input
+        data = passing_app_fields
+        data['client_type'] = 'confidential'
+        data['authorization_grant_type'] = 'implicit'
+        form = CustomRegisterApplicationForm(user, data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data.get('client_type'), 'confidential')
+        self.assertEqual(form.cleaned_data.get('authorization_grant_type'), 'authorization-code')
+
+        data = passing_app_fields
+        data['client_type'] = 'public'
+        data['authorization_grant_type'] = 'authorization-code'
+        form = CustomRegisterApplicationForm(user, data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data.get('client_type'), 'confidential')
+        self.assertEqual(form.cleaned_data.get('authorization_grant_type'), 'authorization-code')
+
+        data = passing_app_fields
+        data['client_type'] = 'public'
+        data['authorization_grant_type'] = 'implicit'
+        form = CustomRegisterApplicationForm(user, data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data.get('client_type'), 'confidential')
+        self.assertEqual(form.cleaned_data.get('authorization_grant_type'), 'authorization-code')
+
     def test_create_applications_with_logo(self):
         """
         regression test: BB2-66: Fix-logo-display-in-Published-Applications-API
