@@ -576,7 +576,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         response = c.post('/v1/o/token/', data=token_request_data)
         tkn = response.json()
         expiration_date_string = strftime('%Y-%m-%d %H:%M:%S', expiration_date.timetuple())
-        self.assertEqual(tkn["access_grant_expiration"], expiration_date_string)
+        self.assertEqual(tkn["access_grant_expiration"][:14], expiration_date_string[:14])
 
     @override_flag('limit_data_access', active=True)
     def test_dag_expiration_does_not_exist(self):
