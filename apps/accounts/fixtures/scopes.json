@@ -80,17 +80,5 @@
       "protected_resources": "[[\"POST\", \"/v[12]/o/introspect\"]]",
       "default": "False"
     }
-  },
-  {
-    "model": "capabilities.protectedcapability",
-    "pk": 7,
-    "fields": {
-      "title": "My Medicare payer information.",
-      "slug": "patient/Organization.read",
-      "group": 5,
-      "description": "Organization FHIR Resource",
-      "protected_resources": "[\n  [\n    \"GET\",\n   \"/v[12]/fhir/Organization[/]?$\"\n  ],\n  [\n    \"GET\",\n   \"/v[12]/fhir/Organization[/?].*$\"\n  ]\n]",
-      "default": "True"
-    }
   }
 ]

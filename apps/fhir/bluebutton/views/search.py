@@ -87,9 +87,9 @@ class SearchViewPatient(SearchView):
         }
 
     def get(self, request, *args, **kwargs):
-        profile = request.query_params.get('_profile', '')
-        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient":
-            return Response(get_response_json("patient_search_c4dic"))
+        return_c4dic = True
+        if return_c4dic:
+            return Response(get_response_json("bfd-c4dic-patient-search"))
         else:
             return super().get(request, *args, **kwargs)
 
@@ -109,8 +109,8 @@ class SearchViewCoverage(SearchView):
 
     def get(self, request, *args, **kwargs):
         profile = request.query_params.get('_profile', '')
-        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient":
-            return Response(get_response_json("coverage_search_c4dic"))
+        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage":
+            return Response(get_response_json("bfd-c4dic-coverage-search"))
         else:
             return super().get(request, *args, **kwargs)
 
