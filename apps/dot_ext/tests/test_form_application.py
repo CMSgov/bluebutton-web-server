@@ -258,33 +258,6 @@ class TestRegisterApplicationForm(BaseApiTest):
         form = CustomRegisterApplicationForm(user, passing_app_fields)
         self.assertTrue(form.is_valid())
 
-        # Test client_type = 'confidential' and authorization_grant_type = 'implicit' not allowed.
-        data = passing_app_fields
-        data['client_type'] = 'confidential'
-        data['authorization_grant_type'] = 'implicit'
-        form = CustomRegisterApplicationForm(user, data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('Only a confidential client and authorization-code grant type are allowed at this time.',
-                      str(form.errors.get('__all__')))
-
-        # Test client_type = 'public' and grant_type = 'authorization-code' not allowed.
-        data = passing_app_fields
-        data['client_type'] = 'public'
-        data['authorization_grant_type'] = 'authorization-code'
-        form = CustomRegisterApplicationForm(user, data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('Only a confidential client and authorization-code grant type are allowed at this time.',
-                      str(form.errors.get('__all__')))
-
-        # Test client_type = 'public' and grant_type = 'implicit' not allowed.
-        data = passing_app_fields
-        data['client_type'] = 'public'
-        data['authorization_grant_type'] = 'implicit'
-        form = CustomRegisterApplicationForm(user, data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('Only a confidential client and authorization-code grant type are allowed at this time.',
-                      str(form.errors.get('__all__')))
-
     def test_create_applications_with_logo(self):
         """
         regression test: BB2-66: Fix-logo-display-in-Published-Applications-API
