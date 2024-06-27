@@ -1,0 +1,79 @@
+{
+  "resourceType": "Coverage",
+  "id": "c4dic-567834",
+  "meta": {
+    "lastUpdated": "2024-06-26T15:40:21.850-07:00",
+    "profile": [
+      "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage|1.1"
+    ]
+  },
+  "contained": [
+    {
+      "resourceType": "Organization",
+      "id": "provider-org",
+      "meta": {
+        "profile": [
+          "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Organization|1.1"
+        ]
+      }
+    }
+  ],
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+            "code": "MB",
+            "display": "Member Number"
+          }
+        ]
+      },
+      "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
+      "value": "567834",
+      "assigner": {
+        "reference": "#provider-org"
+      }
+    }
+  ],
+  "type": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "SUBSIDIZ"
+      }
+    ]
+  },
+  "subscriberId": "3456789",
+  "beneficiary": {
+    "reference": "Patient/567834"
+  },
+  "relationship": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+        "code": "self",
+        "display": "Self"
+      }
+    ]
+  },
+  "payor": [
+    {
+      "reference": "#provider-org"
+    }
+  ],
+  "class": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+            "code": "group",
+            "display": "Group"
+          }
+        ]
+      },
+      "value": "Medicare"
+    }
+  ]
+}

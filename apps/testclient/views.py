@@ -31,7 +31,6 @@ ENDPOINT_URL_FMT = {
     "coverage": "{}/{}/fhir/Coverage/?_format=json",
 }
 
-
 NAV_URI_FMT = "{}&_count={}&startIndex={}&{}={}"
 
 
@@ -56,7 +55,6 @@ def _extract_page_nav(request, fhir_json):
 
 
 def _get_data_json(request, name, params):
-
     oas = _get_oauth2_session_with_token(request)
 
     nav_link = request.GET.get('nav_link', None)
@@ -87,7 +85,8 @@ def _get_data_json(request, name, params):
 
 
 def _convert_to_json(json_response):
-    return json.loads(json_response.content) if json_response.status_code == 200 else {"error": json_response.status_code}
+    return json.loads(json_response.content) if json_response.status_code == 200 else {
+        "error": json_response.status_code}
 
 
 def _get_oauth2_session_with_token(request):
@@ -139,7 +138,7 @@ def callback(request):
     except MissingTokenError:
         logmsg = "Failed to get token from %s" % (request.session['token_uri'])
         logger.error(logmsg)
-        return JsonResponse({'error': 'Failed to get token from',
+        return JsonResponse({'error': logmsg,
                              'code': 'MissingTokenError',
                              'help': 'Try authorizing again.'}, status=500)
 
@@ -192,7 +191,6 @@ def test_userinfo_v2(request):
 @never_cache
 @waffle_switch('enable_testclient')
 def test_userinfo(request, version=1):
-
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
@@ -248,7 +246,6 @@ def test_coverage_v2(request):
 @never_cache
 @waffle_switch('enable_testclient')
 def test_coverage(request, version=1):
-
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
@@ -278,7 +275,6 @@ def test_patient_v2(request):
 @never_cache
 @waffle_switch('enable_testclient')
 def test_patient(request, version=1):
-
     if 'token' not in request.session:
         return redirect('test_links', permanent=True)
 
