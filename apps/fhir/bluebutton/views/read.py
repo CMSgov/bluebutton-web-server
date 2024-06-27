@@ -82,3 +82,13 @@ class ReadViewExplanationOfBenefit(ReadView):
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "ExplanationOfBenefit"
+
+
+class ReadViewOrganization(ReadView):
+    # Class used for Patient resource
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "Organization"
+
+    def get(self, request, *args, **kwargs):
+        return Response(get_response_json("organization_read_c4dic"))
