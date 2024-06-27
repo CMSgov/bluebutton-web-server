@@ -63,6 +63,16 @@ class SearchView(FhirDataView):
                                            resource_type)
 
 
+class SearchViewOrganization(SearchView):
+
+    def __init__(self, version=1):
+        super().__init__(version)
+        self.resource_type = "Organization"
+
+    def get(self, request, *args, **kwargs):
+        return Response(get_response_json("organization_search_c4dic"))
+
+
 class SearchViewPatient(SearchView):
     # Class used for Patient resource search view
 
