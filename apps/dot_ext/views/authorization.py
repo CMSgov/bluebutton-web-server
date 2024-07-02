@@ -1,7 +1,7 @@
 import json
 import logging
-from datetime import datetime, timedelta
-from time import strftime, localtime
+from datetime import datetime
+from time import strftime
 
 import waffle
 from waffle import get_waffle_flag_model
@@ -296,40 +296,41 @@ class ApprovalView(AuthorizationView):
 class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
-        dag = None
-        dag_expiry = None
         try:
             app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
-
-        if app.data_access_type == "THIRTEEN_MONTH":
-            try:
-                dag = DataAccessGrant.objects.get(
-                    beneficiary=request.user.id,
-                    application=app
-                )
-                if dag is not None and dag.expiration_date is not None:
-                    dag_expiry = strftime('%Y-%m-%d %H:%M:%S', dag.expiration_date.timetuple())
-                else:
-                    dag_expiry = None
-            except DataAccessGrant.DoesNotExist:
-                future_dag_expiration = datetime.now() + timedelta(weeks=56)
-                dag_expiry = strftime('%Y-%m-%d %H:%M:%S', future_dag_expiration.timetuple())
 
         url, headers, body, status = self.create_token_response(request)
 
         if status == 200:
             body = json.loads(body)
             access_token = body.get("access_token")
-            if dag_expiry is None:
-                dag_expiry = strftime('%Y-%m-%d %H:%M:%S', localtime(body.get("expires_at")))
+
+            dag_expiry = ""
             if access_token is not None:
                 token = get_access_token_model().objects.get(
                     token=access_token)
                 app_authorized.send(
                     sender=self, request=request,
                     token=token)
+
+                if app.data_access_type == "THIRTEEN_MONTH":
+                    try:
+                        dag = DataAccessGrant.objects.get(
+                            beneficiary=token.user,
+                            application=app
+                        )
+                        if dag.expiration_date is not None:
+                            dag_expiry = strftime('%Y-%m-%d %H:%M:%SZ', dag.expiration_date.timetuple())
+                    except DataAccessGrant.DoesNotExist:
+                        dag_expiry = ""
+
+                elif app.data_access_type == "ONE_TIME" and body.get("expires_at") is not None:
+                    dag_expiry = datetime.utcfromtimestamp(body.get("expires_at")).strftime('%Y-%m-%d %H:%M:%SZ')
+                elif app.data_access_type == "RESEARCH_STUDY":
+                    dag_expiry = ""
+
                 body['access_grant_expiration'] = dag_expiry
                 body = json.dumps(body)
 

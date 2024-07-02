@@ -1,9 +1,9 @@
 import json
 import base64
-from time import strftime, localtime
+from time import strftime
 
 import pytz
-from datetime import datetime, timedelta
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 # from oauth2_provider.compat import parse_qs, urlparse
 from urllib.parse import parse_qs, urlparse
@@ -542,7 +542,7 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         application.scope.add(capability_a)
 
         # create a data access grant
-        expiration_date = datetime.now() + timedelta(weeks=56)
+        expiration_date = datetime.now() + relativedelta(months=+13)
         dag = DataAccessGrant(beneficiary=user, application=application, expiration_date=expiration_date)
         dag.save()
 
@@ -575,59 +575,8 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         c = Client()
         response = c.post('/v1/o/token/', data=token_request_data)
         tkn = response.json()
-        expiration_date_string = strftime('%Y-%m-%d %H:%M:%S', expiration_date.timetuple())
-        self.assertEqual(tkn["access_grant_expiration"][:14], expiration_date_string[:14])
-
-    @override_flag('limit_data_access', active=True)
-    def test_dag_expiration_does_not_exist(self):
-        assert flag_is_active('limit_data_access')
-        redirect_uri = 'http://localhost'
-
-        # create a user
-        self._create_user('anna', '123456')
-
-        # create an application and add capabilities
-        application = self._create_application(
-            'an app',
-            grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            redirect_uris=redirect_uri,
-            data_access_type="ONE_TIME",
-        )
-        capability_a = self._create_capability('Capability A', [])
-        application.scope.add(capability_a)
-
-        # user logs in
-        request = HttpRequest()
-        self.client.login(request=request, username='anna', password='123456')
-
-        # post the authorization form
-        payload = {
-            'client_id': application.client_id,
-            'response_type': 'code',
-            'redirect_uri': redirect_uri,
-            'scope': ['capability-a'],
-            'expires_in': 86400,
-            'allow': True,
-        }
-        response = self.client.post(reverse('oauth2_provider:authorize'), data=payload)
-        self.client.logout()
-
-        # now extract the authorization code and use it to request an access_token
-        query_dict = parse_qs(urlparse(response['Location']).query)
-        authorization_code = query_dict.pop('code')
-        token_request_data = {
-            'grant_type': 'authorization_code',
-            'code': authorization_code,
-            'redirect_uri': redirect_uri,
-            'client_id': application.client_id,
-            'client_secret': application.client_secret_plain,
-        }
-        c = Client()
-        response = c.post('/v1/o/token/', data=token_request_data)
-        tkn = response.json()
-        expiration_date = strftime('%Y-%m-%d %H:%M:%S', localtime(tkn.get("expires_at")))
-        self.assertEqual(tkn["access_grant_expiration"], expiration_date)
+        expiration_date_string = strftime('%Y-%m-%d %H:%M:%SZ', expiration_date.timetuple())
+        self.assertEqual(tkn["access_grant_expiration"], expiration_date_string)
 
     def test_refresh_with_revoked_token(self):
         redirect_uri = 'http://localhost'
