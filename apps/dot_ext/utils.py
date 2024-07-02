@@ -95,7 +95,8 @@ def validate_app_is_active(request):
     Utility function to check that an application
     is an active, valid application.
     This method will pull the application from the
-    request and then check the active flag.
+    request and then check the active flag and the
+    data access grant (dag) validity.
     RETURN:
         application or None
     """
