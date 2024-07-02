@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+from .common_utils import extract_href_from_html, extract_last_part_of_url
 
 from .selenium_cases import (
     Action,
@@ -96,9 +97,10 @@ class SeleniumGenericTests:
                 if r.startswith(subj_line):
                     # print("SUBJ: {}".format(r))
                     email_subj_cnt += 1
-                elif key_line_prefix is not None and r.startswith(key_line_prefix):
+                elif key_line_prefix is not None and key_line_prefix in r:
                     # print("KEY: {}".format(r))
-                    ak = r.split(key_line_prefix)[1]
+                    href = extract_href_from_html(r)
+                    ak = extract_last_part_of_url(href)
                     key_cnt += 1
                 else:
                     pass
