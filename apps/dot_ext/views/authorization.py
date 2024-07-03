@@ -1,13 +1,18 @@
+import json
 import logging
+from datetime import datetime, timedelta
+from time import strftime
+
 import waffle
 from waffle import get_waffle_flag_model
 
-from django.http.response import HttpResponseBadRequest
+from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from oauth2_provider.exceptions import OAuthToolkitError
+from oauth2_provider.views.base import app_authorized, get_access_token_model
 from oauth2_provider.views.base import AuthorizationView as DotAuthorizationView
 from oauth2_provider.views.base import TokenView as DotTokenView
 from oauth2_provider.views.base import RevokeTokenView as DotRevokeTokenView
@@ -37,7 +42,7 @@ from ..utils import (
     validate_app_is_active,
     json_response_from_oauth2_error,
 )
-
+from ...authorization.models import DataAccessGrant
 
 log = logging.getLogger(bb2logging.HHS_SERVER_LOGNAME_FMT.format(__name__))
 
@@ -292,11 +297,48 @@ class TokenView(DotTokenView):
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
         try:
-            validate_app_is_active(request)
+            app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
 
-        return super().post(request, args, kwargs)
+        url, headers, body, status = self.create_token_response(request)
+
+        if status == 200:
+            body = json.loads(body)
+            access_token = body.get("access_token")
+
+            dag_expiry = ""
+            if access_token is not None:
+                token = get_access_token_model().objects.get(
+                    token=access_token)
+                app_authorized.send(
+                    sender=self, request=request,
+                    token=token)
+
+                if app.data_access_type == "THIRTEEN_MONTH":
+                    try:
+                        dag = DataAccessGrant.objects.get(
+                            beneficiary=token.user,
+                            application=app
+                        )
+                        if dag.expiration_date is not None:
+                            dag_expiry = strftime('%Y-%m-%d %H:%M:%SZ', dag.expiration_date.timetuple())
+                    except DataAccessGrant.DoesNotExist:
+                        dag_expiry = ""
+
+                elif app.data_access_type == "ONE_TIME":
+                    expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
+                    dag_expiry = expires_at.strftime('%Y-%m-%d %H:%M:%SZ')
+                elif app.data_access_type == "RESEARCH_STUDY":
+                    dag_expiry = ""
+
+                body['access_grant_expiration'] = dag_expiry
+                body = json.dumps(body)
+
+        response = HttpResponse(content=body, status=status)
+        for k, v in headers.items():
+            response[k] = v
+        return response
 
 
 @method_decorator(csrf_exempt, name="dispatch")
