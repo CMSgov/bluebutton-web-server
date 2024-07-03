@@ -327,7 +327,7 @@ class TokenView(DotTokenView):
                         dag_expiry = ""
 
                 elif app.data_access_type == "ONE_TIME":
-                    expires_at = datetime.utcnow() + timedelta(seconds=36000)
+                    expires_at = datetime.utcnow() + timedelta(seconds=body['expires_in'])
                     dag_expiry = expires_at.strftime('%Y-%m-%d %H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
