@@ -1,0 +1,98 @@
+{
+  "resourceType": "Bundle",
+  "id": "0c217c0f-79aa-423f-b770-1537a957fd9f",
+  "meta": {
+    "lastUpdated": "2024-06-26T15:40:22.104-07:00"
+  },
+  "type": "searchset",
+  "total": 1,
+  "link": [
+    {
+      "relation": "self",
+      "url": "https://localhost:6500/v2/fhir/Coverage?_format=json&_profile=http%3A%2F%2Fhl7.org%2Ffhir%2Fus%2Finsurance-card%2FStructureDefinition%2FC4DIC-Coverage&beneficiary=567834"
+    }
+  ],
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Coverage",
+        "id": "c4dic-567834",
+        "meta": {
+          "lastUpdated": "2024-06-26T15:40:21.850-07:00",
+          "profile": [
+            "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage|1.1"
+          ]
+        },
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "provider-org",
+            "meta": {
+              "profile": [
+                "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Organization|1.1"
+              ]
+            }
+          }
+        ],
+        "identifier": [
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                  "code": "MB",
+                  "display": "Member Number"
+                }
+              ]
+            },
+            "system": "https://bluebutton.cms.gov/resources/variables/bene_id",
+            "value": "567834",
+            "assigner": {
+              "reference": "#provider-org"
+            }
+          }
+        ],
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+              "code": "SUBSIDIZ"
+            }
+          ]
+        },
+        "subscriberId": "3456789",
+        "beneficiary": {
+          "reference": "Patient/567834"
+        },
+        "relationship": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+              "code": "self",
+              "display": "Self"
+            }
+          ]
+        },
+        "payor": [
+          {
+            "reference": "#provider-org"
+          }
+        ],
+        "class": [
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                  "code": "group",
+                  "display": "Group"
+                }
+              ]
+            },
+            "value": "Medicare"
+          }
+        ]
+      }
+    }
+  ]
+}
