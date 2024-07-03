@@ -74,7 +74,7 @@ MSLSX_CSS_BUTTON = "button"
 # email notification subjects
 USER_ACCT_ACTIVATION_EMAIL_SUBJ = "Subject: Verify Your Blue Button 2.0 Developer Sandbox Account"
 USER_ACCT_1ST_APP_EMAIL_SUBJ = "Subject: Congrats on Registering Your First Application!"
-USER_ACCT_ACTIVATION_KEY_PREFIX = "Activation Key: "
+USER_ACCT_ACTIVATION_KEY_PREFIX = 'title="Verify Your Email"'
 APP_1ST_API_CALL_EMAIL_SUBJ = "Subject: Congrats on Making Your First API Call"
 
 # create user account form fields
