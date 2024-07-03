@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import strftime
 
 import waffle
@@ -326,8 +326,9 @@ class TokenView(DotTokenView):
                     except DataAccessGrant.DoesNotExist:
                         dag_expiry = ""
 
-                elif app.data_access_type == "ONE_TIME" and body.get("expires_at") is not None:
-                    dag_expiry = datetime.utcfromtimestamp(body.get("expires_at")).strftime('%Y-%m-%d %H:%M:%SZ')
+                elif app.data_access_type == "ONE_TIME":
+                    expires_at = datetime.utcnow() + timedelta(seconds=36000)
+                    dag_expiry = expires_at.strftime('%Y-%m-%d %H:%M:%SZ')
                 elif app.data_access_type == "RESEARCH_STUDY":
                     dag_expiry = ""
 
