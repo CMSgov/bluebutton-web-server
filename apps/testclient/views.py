@@ -111,7 +111,7 @@ def restart(request):
 
 @waffle_switch('enable_testclient')
 def callback(request):
-    # Authorization has been denied or another error has occured, remove token if existing
+    # Authorization has been denied or another error has occurred, remove token if existing
     # and redirect to home page view to force re-authorization
     if 'error' in request.GET:
         if 'token' in request.session:

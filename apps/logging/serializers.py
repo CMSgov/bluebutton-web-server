@@ -1,5 +1,8 @@
 import json
 import hashlib
+from apps.dot_ext.loggers import (
+    get_session_auth_flow_trace,
+)
 
 
 class DataAccessGrantSerializer:
@@ -39,9 +42,10 @@ class Token:
     tkn = None
     action = None
 
-    def __init__(self, obj, action=None):
+    def __init__(self, obj, action=None, request=None):
         self.tkn = obj
         self.action = action
+        self.request = request
 
     def to_dict(self):
         # seems like this should be a serializer
@@ -56,7 +60,10 @@ class Token:
             scopes = " ".join(scopes_dict.keys())
         else:
             scopes = ""
-
+        # splunk dashboard auth flow dashboard baseSearch12
+        auth_dict = get_session_auth_flow_trace(self.request)
+        param_lang = self.request.POST.get('lang', self.request.POST.get('Lang', "")) if self.request is not None else ""
+        lang = auth_dict.get('auth_language', param_lang)
         result = {
             "type": "AccessToken",
             "action": self.action,
@@ -84,6 +91,7 @@ class Token:
                 "fhir_id": getattr(crosswalk, "fhir_id", None),
                 "user_id_type": getattr(crosswalk, "user_id_type", None),
             },
+            "auth_language": lang,
         }
 
         return result

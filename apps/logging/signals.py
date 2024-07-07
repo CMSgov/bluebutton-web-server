@@ -28,12 +28,16 @@ from .serializers import (
     FHIRResponseForAuth,
 )
 
+from apps.dot_ext.loggers import (
+    get_session_auth_flow_trace,
+)
+
 
 @receiver(app_authorized)
 def handle_token_created(sender, request, token, **kwargs):
     # Get auth flow dict from session for logging
     token_logger = logging.getLogger(logging.AUDIT_AUTHZ_TOKEN_LOGGER, request)
-    token_logger.info(Token(token, action="authorized").to_dict())
+    token_logger.info(Token(token, action="authorized", request=request).to_dict())
 
 
 @receiver(beneficiary_authorized_application)
@@ -62,7 +66,10 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         # TODO consider logging exception name here
         # once we get the generic logger hooked up
         pass
-
+    # splunk dashboard auth flow baseSearch11
+    auth_dict = get_session_auth_flow_trace(request)
+    param_lang = request.GET.get('lang', request.GET.get('Lang', ""))
+    lang = auth_dict.get('auth_language', param_lang)
     log_dict = {
         "type": "Authorization",
         "auth_status": auth_status,
@@ -83,6 +90,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         "access_token_delete_cnt": access_token_delete_cnt,
         "refresh_token_delete_cnt": access_token_delete_cnt,
         "data_access_grant_delete_cnt": data_access_grant_delete_cnt,
+        "auth_language": lang,
     }
 
     token_logger.info(log_dict)

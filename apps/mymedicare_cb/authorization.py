@@ -14,6 +14,9 @@ from apps.logging.serializers import SLSxTokenResponse, SLSxUserInfoResponse
 
 from .signals import response_hook_wrapper
 from .validators import is_mbi_format_valid, is_mbi_format_synthetic
+from apps.dot_ext.loggers import (
+    get_session_auth_flow_trace,
+)
 
 
 MSG_SLS_RESP_MISSING_AUTHTOKEN = "Exchange auth_token is missing in response error"
@@ -365,7 +368,10 @@ class OAuth2ConfigSLSx(object):
         # asserts is a list of tuple : (boolean expression, err message)
         # iterate boolean expressions and log err message if the expression evalaute to true
         logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
-
+        # splunk dashboard auth flow dashboard baseSearch3
+        auth_dict = get_session_auth_flow_trace(request)
+        param_lang = request.GET.get('lang', request.GET.get('Lang', "")) if request is not None else ""
+        lang = auth_dict.get('auth_language', param_lang)
         log_dict = {
             "type": "Authentication:start",
             "sls_status": "FAIL",
@@ -380,6 +386,7 @@ class OAuth2ConfigSLSx(object):
             "sls_mbi_format_synthetic": None,
             "sls_hicn_hash": None,
             "sls_mbi_hash": None,
+            "auth_language": lang,
         }
 
         for t in asserts:
@@ -413,7 +420,10 @@ class OAuth2ConfigSLSx(object):
 
     def log_event(self, request, extra):
         logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
-
+        # splunk dashboard auth flow dashboard baseSearch3
+        auth_dict = get_session_auth_flow_trace(request)
+        param_lang = request.GET.get('lang', request.GET.get('Lang', ""))
+        lang = auth_dict.get('auth_language', param_lang)
         log_dict = {
             "type": "Authentication:start",
             "sub": self.user_id,
@@ -428,6 +438,7 @@ class OAuth2ConfigSLSx(object):
             "sls_mbi_format_synthetic": self.mbi_format_synthetic,
             "sls_hicn_hash": self.hicn_hash,
             "sls_mbi_hash": self.mbi_hash,
+            "auth_language": lang,
         }
 
         log_dict.update(extra)
@@ -435,10 +446,15 @@ class OAuth2ConfigSLSx(object):
 
     def log_authn_success(self, request, extra):
         logger = logging.getLogger(logging.AUDIT_AUTHN_SLS_LOGGER, request)
+        # splunk dashboard auth flow dashboard baseSearch7
+        auth_dict = get_session_auth_flow_trace(request)
+        param_lang = request.GET.get('lang', request.GET.get('Lang', ""))
+        lang = auth_dict.get('auth_language', param_lang)
         log_dict = {
             "type": "Authentication:success",
             "sub": self.user_id,
             "user": None,
+            "auth_language": lang,
         }
         log_dict.update(extra)
         logger.info(log_dict)
