@@ -8,7 +8,7 @@
 	<!-- Setup of BASE searches to be used in panels -->
 	<search id="baseSearch1">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/$apiVersionsPattern$/o/authorize/" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.path" | search "message.path"="/$apiVersionsPattern$/o/authorize/" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -22,7 +22,7 @@
 	</search>
 	<search id="baseSearch2">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/mymedicare/login" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.path" | search "message.path"="/mymedicare/login" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.auth_pkce_method message.response_code message.location
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -36,7 +36,7 @@
 	</search>
 	<search id="baseSearch3">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.type" | search "message.type"="Authentication:start" | fields time message.auth_app_name message.auth_uuid message.sub message.sls_status message.sls_status_mesg message.sls_mbi_format_valid message.sls_mbi_format_synthetic message.sls_mbi_format_msg message.sls_mbi_hash message.sls_hicn_hash message.auth_pkce_method
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -50,7 +50,7 @@
 	</search>
 	<search id="baseSearch4">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | fields time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.type" | search "message.type"="fhir.server.authentication.match_fhir_id" | fields time message.auth_uuid message.fhir_id message.match_found message.hash_lookup_type message.auth_app_name message.hash_lookup_mesg message.mbi_hash message.hicn_hash message.auth_pkce_method
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -64,7 +64,7 @@
 	</search>
 	<search id="baseSearch5">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="CREATE beneficiary record" OR "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -78,7 +78,7 @@
 	</search>
 	<search id="baseSearch6a">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.type" | search "message.type"="mymedicare_cb:get_and_update_user" | search "message.mesg"="RETURN existing beneficiary record" | fields time message.auth_uuid message.crosswalk.fhir_id message.crosswalk.user_id_type message.hash_lookup_type message.auth_app_name message.mesg message.mbi_hash message.hicn_hash message.auth_pkce_method message.status
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -92,7 +92,7 @@
 	</search>
 	<search id="baseSearch6b">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.type" | search "message.type"="mymedicare_cb:create_beneficiary_record" | fields time message.auth_uuid message.fhir_id message.username message.auth_app_name message.mesg mesg message.user_mbi_hash message.user_hicn_hash message.auth_pkce_method message.status
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -106,7 +106,7 @@
 	</search>
 	<search id="baseSearch7">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authentication:success" | fields time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.type" | search "message.type"="Authentication:success" | fields time message.auth_uuid message.auth_crosswalk_action message.sub message.user.crosswalk.fhir_id message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -120,7 +120,7 @@
 	</search>
 	<search id="baseSearch8">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | fields time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.path" | search "message.path"="/mymedicare/sls-callback" | fields time message.auth_uuid message.ip_addr message.response_code message.auth_app_name message.auth_pkce_type message.location
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -134,7 +134,7 @@
 	</search>
 	<search id="baseSearch9">
 		<query>
-			<![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"="^/$apiVersionsRegex$/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method ]]>
+			<![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.path" | regex "message.path"="^/$apiVersionsRegex$/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method ]]>
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -148,7 +148,7 @@
 	</search>
 	<search id="baseSearch10">
 		<query>
-			<![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | regex "message.path"="^/$apiVersionsRegex$/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location]]>
+			<![CDATA[index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.path" | regex "message.path"="^/$apiVersionsRegex$/o/authorize/(?P<uuid>[\w-]+)/$" | search "message.location"!="" | fields time message.auth_uuid message.ip_addr message.response_code message.user message.auth_app_name message.auth_pkce_method message.location]]>
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -162,7 +162,7 @@
 	</search>
 	<search id="baseSearch11">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.type" | search "message.type"="Authorization" | fields time message.auth_uuid message.auth_status message.message.application.name message.user.username message.user.crosswalk.fhir_id message.allow message.auth_share_demographic_scopes message.auth_require_demographic_scopes message.user.crosswalk.user_id_type message.auth_app_name message.user.crosswalk.user_mbi_hash message.user.crosswalk.user_hicn_hash message.auth_pkce_method message.scopes message.data_access_grant_delete_cnt message.access_token_delete_cnt message.refresh_token_delete_cnt message.auth_crosswalk_action
 		</query>
 		<earliest>
 			$t_local.earliest$
@@ -176,7 +176,7 @@
 	</search>
 	<search id="baseSearch12">
 		<query>
-			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authApplicationNameExpr$ | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.crosswalk.fhir_id message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes message.scopes message.req_qparam_lang
+			index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authApplicationNameExpr$ | spath "message.auth_language" | search "message.auth_language"="$langPattern$" | spath "message.type" | search "message.type"="AccessToken" | search message.action="authorized" | fields time message.auth_uuid message.application.name message.crosswalk.fhir_id message.user.username message.auth_app_name message.auth_pkce_method message.access_token message.action message.auth_crosswalk_action message.auth_grant_type message.auth_require_demographic_scopes message.auth_share_demographic_scopes message.scopes message.req_qparam_lang
 		</query>
 		<earliest>
 			$t_local.earliest$
