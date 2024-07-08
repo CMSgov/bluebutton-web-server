@@ -73,6 +73,7 @@ def create_session_auth_flow_trace(request):
 
     client_id_param = request.GET.get("client_id", None)
     auth_pkce_method = request.GET.get("code_challenge_method", None)
+    auth_language = request.GET.get("lang", None)
 
     if client_id_param:
         try:
@@ -86,7 +87,8 @@ def create_session_auth_flow_trace(request):
                               "auth_require_demographic_scopes": str(application.require_demographic_scopes),
                               "auth_client_id": application.client_id,
                               "auth_pkce_method": auth_pkce_method,
-                              }
+                                "auth_language": auth_language,
+                            }
             set_session_auth_flow_trace(request, auth_flow_dict)
 
             try:
@@ -94,7 +96,8 @@ def create_session_auth_flow_trace(request):
                 with transaction.atomic():
                     AuthFlowUuid.objects.create(auth_uuid=new_auth_uuid,
                                                 client_id=application.client_id,
-                                                auth_pkce_method=auth_pkce_method)
+                                                auth_pkce_method=auth_pkce_method,
+                                                auth_language=auth_language)
             except IntegrityError:
                 pass
         except Application.DoesNotExist:
@@ -106,6 +109,7 @@ def create_session_auth_flow_trace(request):
                               "auth_require_demographic_scopes": "",
                               "auth_client_id": "",
                               "auth_pkce_method": "",
+                              "auth_language": "",
                               }
             set_session_auth_flow_trace(request, auth_flow_dict)
 
@@ -160,6 +164,8 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
             request.session['auth_crosswalk_action'] = auth_flow_uuid.auth_crosswalk_action
         if auth_flow_uuid.auth_share_demographic_scopes is not None:
             request.session['auth_share_demographic_scopes'] = str(auth_flow_uuid.auth_share_demographic_scopes)
+        if auth_flow_uuid.auth_language is not None:
+                    request.session['auth_language'] = auth_flow_uuid.auth_language
 
         try:
             application = Application.objects.get(client_id=auth_flow_uuid.client_id)

@@ -28,9 +28,7 @@ from .serializers import (
     FHIRResponseForAuth,
 )
 
-from apps.dot_ext.loggers import (
-    get_session_auth_flow_trace,
-)
+from apps.logging.utils import lookup_language
 
 
 @receiver(app_authorized)
@@ -67,9 +65,7 @@ def handle_app_authorized(sender, request, auth_status, auth_status_code, user, 
         # once we get the generic logger hooked up
         pass
     # splunk dashboard auth flow baseSearch11
-    auth_dict = get_session_auth_flow_trace(request)
-    param_lang = request.GET.get('lang', request.GET.get('Lang', ""))
-    lang = auth_dict.get('auth_language', param_lang)
+    lang = lookup_language(request)
     log_dict = {
         "type": "Authorization",
         "auth_status": auth_status,

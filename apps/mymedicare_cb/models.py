@@ -11,9 +11,7 @@ from apps.fhir.bluebutton.models import ArchivedCrosswalk, Crosswalk
 from apps.fhir.server.authentication import match_fhir_id
 
 from .authorization import OAuth2ConfigSLSx, MedicareCallbackExceptionType
-from apps.dot_ext.loggers import (
-    get_session_auth_flow_trace,
-)
+from apps.logging.utils import lookup_language
 
 
 class BBMyMedicareCallbackCrosswalkCreateException(APIException):
@@ -60,9 +58,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
         hicn_hash=slsx_client.hicn_hash, request=request
     )
     # splunk auth flow baseSearch5 baseSearch6a
-    auth_dict = get_session_auth_flow_trace(request)
-    param_lang = request.GET.get('lang', request.GET.get('Lang', "")) if request is not None else ""
-    lang = auth_dict.get('auth_language', param_lang)
+    lang = lookup_language(request)
     log_dict = {
         "type": "mymedicare_cb:get_and_update_user",
         "subject": slsx_client.user_id,
@@ -184,9 +180,7 @@ def create_beneficiary_record(slsx_client: OAuth2ConfigSLSx, fhir_id=None, user_
 
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
     # splunk dashboard auth flow baseSearch6b
-    auth_dict = get_session_auth_flow_trace(request)
-    param_lang = request.GET.get('lang', request.GET.get('Lang', "")) if request is not None else ""
-    lang = auth_dict.get('auth_language', param_lang)
+    lang = lookup_language(request)
     log_dict = {
         "type": "mymedicare_cb:create_beneficiary_record",
         "username": slsx_client.user_id,

@@ -1,8 +1,6 @@
 import json
 import hashlib
-from apps.dot_ext.loggers import (
-    get_session_auth_flow_trace,
-)
+from apps.logging.utils import lookup_language
 
 
 class DataAccessGrantSerializer:
@@ -61,9 +59,7 @@ class Token:
         else:
             scopes = ""
         # splunk dashboard auth flow dashboard baseSearch12
-        auth_dict = get_session_auth_flow_trace(self.request)
-        param_lang = self.request.POST.get('lang', self.request.POST.get('Lang', "")) if self.request is not None else ""
-        lang = auth_dict.get('auth_language', param_lang)
+        lang = lookup_language(self.request)
         result = {
             "type": "AccessToken",
             "action": self.action,

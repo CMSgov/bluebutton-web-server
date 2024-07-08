@@ -1,8 +1,6 @@
 import apps.logging.request_logger as logging
 
-from apps.dot_ext.loggers import (
-    get_session_auth_flow_trace,
-)
+from apps.logging.utils import lookup_language
 
 """
   Logger functions for fhir/server module
@@ -17,9 +15,7 @@ def log_match_fhir_id(request, fhir_id, mbi_hash, hicn_hash,
     '''
     match_fhir_id_logger = logging.getLogger(logging.AUDIT_AUTHN_MATCH_FHIR_ID_LOGGER, request)
     # splunk dashboard auth flow baseSearch4
-    auth_dict = get_session_auth_flow_trace(request)
-    param_lang = request.GET.get('lang', request.GET.get('Lang', ""))
-    lang = auth_dict.get('auth_language', param_lang)
+    lang = lookup_language(request)
     match_fhir_id_logger.info({
         "type": "fhir.server.authentication.match_fhir_id",
         "fhir_id": fhir_id,
