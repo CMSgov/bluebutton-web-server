@@ -87,8 +87,8 @@ def create_session_auth_flow_trace(request):
                               "auth_require_demographic_scopes": str(application.require_demographic_scopes),
                               "auth_client_id": application.client_id,
                               "auth_pkce_method": auth_pkce_method,
-                                "auth_language": auth_language,
-                            }
+                              "auth_language": auth_language,
+                              }
             set_session_auth_flow_trace(request, auth_flow_dict)
 
             try:
@@ -165,7 +165,7 @@ def set_session_values_from_auth_flow_uuid(request, auth_flow_uuid):
         if auth_flow_uuid.auth_share_demographic_scopes is not None:
             request.session['auth_share_demographic_scopes'] = str(auth_flow_uuid.auth_share_demographic_scopes)
         if auth_flow_uuid.auth_language is not None:
-                    request.session['auth_language'] = auth_flow_uuid.auth_language
+            request.session['auth_language'] = auth_flow_uuid.auth_language
 
         try:
             application = Application.objects.get(client_id=auth_flow_uuid.client_id)
