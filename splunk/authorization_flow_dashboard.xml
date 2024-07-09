@@ -1,5 +1,5 @@
-<form>
-    <label>BB2 Authorization Flow Dashboard</label>
+<form version="1.1">
+    <label>BB2 Authorization Flow Dashboard (BB2-3276)</label>
     <description>Dashboard panels related to the authorization flow log tracing</description>
     <fieldset submitButton="false"></fieldset>
     <row>
@@ -205,7 +205,7 @@
         <sampleRatio>1</sampleRatio>
     </search>
     <search id="baseSearch13">
-        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/$apiVersionsPattern$/o/authorize/" message.req_qparam_lang="es-mx" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method message.req_qparam_lang</query>
+        <query>index=bluebutton source="/var/log/pyapps/perf_mon.log*" host=$bbEnv$ env=$bbEnvLabel$ $authAppNameExpr$ | spath "message.path" | search "message.path"="/$apiVersionsPattern$/o/authorize/" message.req_qparam_lang="es*" | fields time message.auth_uuid message.auth_app_name message.ip_addr message.response_code message.path message.auth_pkce_method message.req_qparam_lang</query>
         <earliest>$t_local.earliest$</earliest>
         <latest>$t_local.latest$</latest>
         <sampleRatio>1</sampleRatio>
@@ -364,23 +364,8 @@
                 <option name="refresh.display">progressbar</option>
             </single>
         </panel>
-        <panel>
-            <title>13. Spanish Language Authorization</title>
-            <single>
-                <search base="baseSearch13">
-                    <done>
-                        <set token="tokEpCount">$result.count$</set>
-                    </done>
-                    <query>search "message.req_qparam_lang"="es-mx" | stats count</query>
-                </search>
-                <option name="drilldown">all</option>
-                <option name="height">226</option>
-                <option name="refresh.display">progressbar</option>
-            </single>
-        </panel>
     </row>
     <row>
-
         <panel>
             <chart>
                 <title>Initial Authorization Request / Authorization Completed %</title>
@@ -394,6 +379,23 @@
                 <option name="height">226</option>
                 <option name="refresh.display">progressbar</option>
             </chart>
+        </panel>
+        <panel>
+            <title>Spanish Language Authorization Count</title>
+            <single>
+                <search base="baseSearch13">
+                <done>
+                    <set token="tokEpCountLang">$result.count$</set>
+                </done>
+                <query>stats count</query>
+                </search>
+                <option name="drilldown">all</option>
+                <option name="height">226</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                <link target="_blank">search?q=index%3Dbluebutton%20source%3D%22%2Fvar%2Flog%2Fpyapps%2Fperf_mon.log*%22%7C%20spath%20%22message.req_qparam_lang%22%20%7C%20search%20%22message.path%22%3D%22%2Fv*%2Fo%2Fauthorize%2F*%22%20message.req_qparam_lang%3D%22es*%22%20%7C%20fields%20time%20message.auth_uuid%20message.auth_app_name%20message.ip_addr%20message.response_code%20message.path%20message.auth_pkce_method%20message.req_qparam_lang%20%7C%20stats%20count&amp;earliest=$t_local.earliest$&amp;latest=$t_local.latest$</link>
+                </drilldown>
+            </single>
         </panel>
     </row>
     <row>
@@ -462,7 +464,7 @@
                     <done>
                         <set token="tokInitOkCount">$result.count$</set>
                     </done>
-                    <query>stats count</query>
+                    <query>search "message.response_code"="302" | stats count</query>
                 </search>
                 <option name="drilldown">all</option>
                 <option name="height">226</option>
@@ -1359,7 +1361,7 @@
             </single>
         </panel>
         <panel>
-            <title>SUCCESSFUL Events (response_code=302)</title>
+            <title>SUCCESSFUL Events (response_code="302")</title>
             <single>
                 <search base="baseSearch8">
                     <done>
@@ -1567,7 +1569,7 @@
             </single>
         </panel>
         <panel>
-            <title>SUCCESSFUL Events (response_code=302)</title>
+            <title>SUCCESSFUL Events (response_code="302")</title>
             <single>
                 <search base="baseSearch10">
                     <done>
