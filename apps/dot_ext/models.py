@@ -33,6 +33,7 @@ from waffle import get_waffle_flag_model
 from apps.capabilities.models import ProtectedCapability
 
 TEN_HOURS = _("for 10 hours")
+THIRTEEN_MONTHS = _("for 13 months, until ")
 
 
 class Application(AbstractApplication):
@@ -165,7 +166,7 @@ class Application(AbstractApplication):
             return TEN_HOURS
         # no message displayed for RESEARCH_STUDY
         else:
-            return _("until ")
+            return THIRTEEN_MONTHS
 
     def access_end_date(self):
         if self.data_access_type == "THIRTEEN_MONTH":

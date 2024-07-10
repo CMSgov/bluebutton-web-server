@@ -110,7 +110,7 @@ USER_LNK_TXT_ACCT_LOGOUT = "Logout"
 # language and localization checking
 AUTH_SCREEN_ID_LANG = "connect_app"
 AUTH_SCREEN_ID_END_DATE = "permission_end_date"
-AUTH_SCREEN_ES_TXT = "Conectar los datos de sus reclamos de Medicare"
+AUTH_SCREEN_ES_TXT = "Desea compartir sus datos de Medicare"
 AUTH_SCREEN_EN_TXT = "Connect your Medicare claims"
 # regex for date formats
 AUTH_SCREEN_ES_DATE_FORMAT = "^\\d{1,2} de \\w+ de \\d{4}"
