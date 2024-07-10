@@ -133,15 +133,15 @@ msgstr " y "
 msgid "Terms and Conditions"
 msgstr "Términos y Condiciones"
 
-#: templates/design_system/new_authorize_v2.html:146
+#: templates/design_system/new_authorize_v2.html:145
 msgid " will have access to your data "
 msgstr " tendrá acceso a sus datos "
 
-#: templates/design_system/new_authorize_v2.html:146
+#: templates/design_system/new_authorize_v2.html:145
 msgid "for 13 months, until "
 msgstr "durante 13 meses, hasta el "
 
-#: templates/design_system/new_authorize_v2.html:146
+#: templates/design_system/new_authorize_v2.html:145
 msgid "for 10 hours"
 msgstr "durante 10 horas"
 
