@@ -94,6 +94,8 @@ while getopts "hp" option; do
    esac
 done
 
+eval last_arg=\$$#
+
 set_msls
 
 # Parse command line option
@@ -101,19 +103,19 @@ if [ $# -eq 0 ]
 then
   echo "Use Mock SLS for identity service."
 else
-  echo $1
-  if [[ $1 != "slsx" && $1 != "mslsx" && $1 != "logit" && $1 != "account" ]]
+  echo $last_arg
+  if [[ $last_arg != "slsx" && $last_arg != "mslsx" && $last_arg != "logit" && $last_arg != "account" ]]
   then
-    echo "Invalid argument: " $1
+    echo "Invalid argument: " $last_arg
     display_usage
     exit 1
   else
-    if [[ $1 == "slsx" ]]
+    if [[ $last_arg == "slsx" ]]
     then
         export USE_MSLSX=false
         set_slsx
     fi
-    if [[ $1 == "logit" ]]
+    if [[ $last_arg == "logit" ]]
     then
       # cleansing log file before run 
       rm -rf ./docker-compose/tmp/
@@ -122,7 +124,7 @@ else
       export TESTS_LIST="./apps/integration_tests/logging_tests.py::TestLoggings::test_auth_fhir_flows_logging"
       export DJANGO_LOG_JSON_FORMAT_PRETTY=False
     fi
-    if [[ $1 == "account" ]]
+    if [[ $last_arg == "account" ]]
     then
       # cleansing log file before run 
       rm -rf ./docker-compose/tmp/
