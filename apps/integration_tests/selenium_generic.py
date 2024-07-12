@@ -85,8 +85,7 @@ class SeleniumGenericTests:
             Action.SLEEP: self._sleep,
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
             Action.CHECK_DATE_FORMAT: self._check_date_format,
-            Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param,
-            Action.MATCH_EXPIRE_DATE_AND_VALIDATE: self._match_expire_date_and_validate
+            Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param
         }
 
     def teardown_method(self, method):

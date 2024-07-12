@@ -5,7 +5,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.selenium
-    command: pytest ./apps/integration_tests/selenium_tests.py
+    command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:

@@ -568,12 +568,12 @@ SPANISH_TESTS = {
         {
             "display": "Check for authorization screen expire info in Spanish",
             "action": Action.CONTAIN_TEXT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT, ES_ES]
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
         },
         {
             "display": "Check Spanish date format and validate",
             "action": Action.CHECK_DATE_FORMAT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT]
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
         },
         CLICK_ENGLISH,
         {
@@ -584,12 +584,12 @@ SPANISH_TESTS = {
         {
             "display": "Check for authorization screen access grant expire info in English",
             "action": Action.CONTAIN_TEXT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT, EN_US]
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT]
         },
         {
             "display": "Check English date format and validate",
             "action": Action.CHECK_DATE_FORMAT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT]
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT, EN_US]
         },
         CLICK_AGREE_ACCESS
     ],
