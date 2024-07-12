@@ -197,9 +197,9 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
     @mock.patch("apps.accounts.validators.datetime", StubDate)
     def test_no_password_expire(self):
         self.client.logout()
-        # add 20 minutes to time to show staff is not effected
+        # add 90 days to time to show staff is not effected
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+20)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90)
         )
         form_data = {'username': 'fred',
                      'password': 'foobarfoobarfoobar'}
