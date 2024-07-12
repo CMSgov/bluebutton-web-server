@@ -4,6 +4,7 @@
 # TRANSLATORS: text and punctuation after 'msgid' is the English text requiring translation.
 # The translation text should go within the quotation marks following the 'msgstr' identifier.
 # Please add/maintain all punctuation and whitespce found in the original text.
+# When updating this file, run `django-admin compilemessages` for the changes to be compiled.
 #, fuzzy
 msgid ""
 msgstr ""
@@ -70,11 +71,11 @@ msgstr ""
 
 #: templates/design_system/new_authorize_v2.html:56
 msgid "Connect your Medicare claims data to "
-msgstr "¿Conectar los datos de sus reclamos de Medicare a "
+msgstr "¿Desea compartir sus datos de Medicare con "
 
 #: templates/design_system/new_authorize_v2.html:58
 msgid "If you connect, "
-msgstr "Si se conecta, "
+msgstr "Si los comparte, "
 
 #: templates/design_system/new_authorize_v2.html:58
 msgid "will have access to information about your:"
@@ -94,7 +95,7 @@ msgstr "Medicamentos recetados"
 
 #: templates/design_system/new_authorize_v2.html:70
 msgid "You can also grant access to your:"
-msgstr "También puede darle acceso a su:"
+msgstr "También puede compartir su:"
 
 #: templates/design_system/new_authorize_v2.html:89
 msgid "Personal Information"
@@ -102,15 +103,15 @@ msgstr "Información personal"
 
 #: templates/design_system/new_authorize_v2.html:89
 msgid "Your name, address, date of birth, race, and gender"
-msgstr "Su nombre, dirección, fecha de nacimiento y género"
+msgstr "Su nombre, dirección, fecha de nacimiento y sexo"
 
 #: templates/design_system/new_authorize_v2.html:92
 msgid "Uncheck to block access to personal information."
-msgstr "Quite la marca para bloquear el acceso a información personal"
+msgstr "Quite la marca para no compartir su información personal"
 
 #: templates/design_system/new_authorize_v2.html:93
 msgid "Check to allow access to personal information."
-msgstr "Marque para permitir el acceso a la información personal."
+msgstr "Añade la marca para compartir su información personal."
 
 #: templates/design_system/new_authorize_v2.html:127
 msgid "Learn more about how "
@@ -137,8 +138,8 @@ msgid " will have access to your data "
 msgstr " tendrá acceso a sus datos "
 
 #: templates/design_system/new_authorize_v2.html:145
-msgid "until "
-msgstr "hasta el "
+msgid "for 13 months, until "
+msgstr "durante 13 meses, hasta el "
 
 #: templates/design_system/new_authorize_v2.html:145
 msgid "for 10 hours"
