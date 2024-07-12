@@ -110,12 +110,15 @@ USER_LNK_TXT_ACCT_LOGOUT = "Logout"
 # language and localization checking
 AUTH_SCREEN_ID_LANG = "connect_app"
 AUTH_SCREEN_ID_END_DATE = "permission_end_date"
-AUTH_SCREEN_ES_TXT = "Conectar los datos de sus reclamos de Medicare"
+AUTH_SCREEN_ID_EXPIRE_INFO = "permission_expire_info"
 AUTH_SCREEN_EN_TXT = "Connect your Medicare claims"
+AUTH_SCREEN_ES_TXT = "Conectar los datos de sus reclamos de Medicare"
+AUTH_SCREEN_EN_EXPIRE_INFO_TXT = "TestApp will have access to your data until"
+AUTH_SCREEN_ES_EXPIRE_INFO_TXT = "TestApp tendrá acceso a sus datos hasta el"
 # regex for date formats
-AUTH_SCREEN_ES_DATE_FORMAT = "^\\d{1,2} de \\w+ de \\d{4}"
+AUTH_SCREEN_ES_DATE_FORMAT = "^(?P<day>\\d{1,2}) de (?P<month>\\w+) de (?P<year>\\d{4})"
 # Django en locale date format is 3 letter abbrev plus period or full month name (e.g. March, May)
-AUTH_SCREEN_EN_DATE_FORMAT = "^(\\w{3}\\.|\\w+) \\d{1,2}, \\d{4}"
+AUTH_SCREEN_EN_DATE_FORMAT = "^(?P<month>\\w{3}\\.|\\w+) (?P<day>\\d{1,2}), (?P<year>\\d{4})"
 SLSX_LOGIN_BUTTON_SPANISH = "Entrar"
 
 # app form
@@ -150,6 +153,9 @@ else:
     # Below works for old auth screen
     BTN_ID_RADIO_NOT_SHARE = "label:nth-child(5)"
 
+# Supported Locale
+EN_US = "en_US"
+ES_ES = "es_ES"
 
 # API versions
 API_V2 = "v2"
@@ -560,7 +566,12 @@ SPANISH_TESTS = {
             "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
         },
         {
-            "display": "Check Spanish date format",
+            "display": "Check for authorization screen expire info in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT, ES_ES]
+        },
+        {
+            "display": "Check Spanish date format and validate",
             "action": Action.CHECK_DATE_FORMAT,
             "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT]
         },
@@ -571,7 +582,12 @@ SPANISH_TESTS = {
             "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_EN_TXT]
         },
         {
-            "display": "Check English date format",
+            "display": "Check for authorization screen access grant expire info in English",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT, EN_US]
+        },
+        {
+            "display": "Check English date format and validate",
             "action": Action.CHECK_DATE_FORMAT,
             "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT]
         },

@@ -1,7 +1,10 @@
 import os
 import time
 import re
+import locale
+import calendar
 
+from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -22,6 +25,8 @@ from .selenium_cases import (
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
     PROD_URL,
+    ES_ES,
+    EN_US,
 )
 
 LOG_FILE = "./docker-compose/tmp/bb2_email_to_stdout.log"
@@ -80,7 +85,8 @@ class SeleniumGenericTests:
             Action.SLEEP: self._sleep,
             Action.VALIDATE_EMAIL_NOTIFICATION: self._validate_email_content,
             Action.CHECK_DATE_FORMAT: self._check_date_format,
-            Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param
+            Action.COPY_LINK_AND_LOAD_WITH_PARAM: self._copy_link_and_load_with_param,
+            Action.MATCH_EXPIRE_DATE_AND_VALIDATE: self._match_expire_date_and_validate
         }
 
     def teardown_method(self, method):
@@ -165,10 +171,32 @@ class SeleniumGenericTests:
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         assert content_txt in elem.text
 
-    def _check_date_format(self, timeout_sec, by, by_expr, format, **kwargs):
+    def _check_date_format(self, timeout_sec, by, by_expr, format, lang, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         pattern = re.compile(format)
-        assert pattern.match(elem.text)
+        m = pattern.match(elem.text)
+        try:
+            day = m.group('day')
+            month = m.group('month')
+            year = m.group('year')
+            month_num = 0
+            if lang == ES_ES:
+                # for ES_ES, month is full name
+                locale.setlocale(locale.LC_ALL, ES_ES)
+                month_num = calendar.list(calendar.month_name).index(month)
+            else:
+                # for EN_US, month is abbr
+                locale.setlocale(locale.LC_ALL, EN_US)
+                month_num = calendar.list(calendar.month_abbr).index(month)
+            locale.setlocale(locale.getdefaultlocale())
+            if month_num:
+                expire_date = datetime(year, month_num, day)
+                # 395 is 13 month
+                assert expire_date - datetime.today > timedelta(days=394)
+        except IndexError as e:
+            # bad date value
+            print(e)
+            assert 1 < 0
 
     def _copy_link_and_load_with_param(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
