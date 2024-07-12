@@ -63,8 +63,6 @@ AUTH_PASSWORD_VALIDATORS = [
                 'password_min_age': 60,
                 # password reuse interval in seconds (50 minutes)
                 'password_reuse_interval': 3000,
-                # password expire in seconds (10 minutes)
-                'password_expire': 600,
         }
     },
     {

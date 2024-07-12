@@ -85,32 +85,20 @@ class PasswordReuseAndMinAgeValidator(object):
 
     def __init__(self,
                  password_min_age=60 * 60 * 24,
-                 password_reuse_interval=60 * 60 * 24 * 120,
-                 password_expire=60 * 60 * 24 * 30):
+                 password_reuse_interval=60 * 60 * 24 * 120):
 
         msg1 = "Invalid OPTIONS, password_min_age < password_reuse_interval expected, " \
                "but having password_min_age({}) >= password_reuse_interval({})"
-        msg2 = "Invalid OPTIONS, password_expire < password_reuse_interval expected, " \
-               "but having password_expire({}) >= password_reuse_interval({})"
-        msg3 = "Invalid OPTIONS, password_min_age < password_expire expected, " \
-               "but having password_expire({}) >= password_reuse_interval({})"
 
         check_opt_err = []
         if password_min_age > 0 and password_reuse_interval > 0 \
                 and password_min_age > password_reuse_interval:
             check_opt_err.append(msg1.format(password_min_age, password_reuse_interval))
-        if password_expire > 0 and password_reuse_interval > 0 \
-                and password_expire > password_reuse_interval:
-            check_opt_err.append(msg2.format(password_expire, password_reuse_interval))
-        if password_min_age > 0 and password_expire > 0 \
-                and password_min_age > password_expire:
-            check_opt_err.append(msg3.format(password_min_age, password_expire))
         if len(check_opt_err) > 0:
             raise ValueError(check_opt_err)
 
         self.password_min_age = password_min_age
         self.password_reuse_interval = password_reuse_interval
-        self.password_expire = password_expire
 
     def validate(self, password, user=None):
         if not user or getattr(user, 'pk', None) is None or isinstance(getattr(user, 'pk', None), property):
@@ -214,28 +202,3 @@ class PasswordReuseAndMinAgeValidator(object):
             str(timedelta(seconds=self.password_min_age)),
             str(timedelta(seconds=self.password_reuse_interval)))
         return help_msg
-
-    def password_expired(self, user=None):
-        passwd_expired = False
-        if user.is_staff or user.is_superuser:
-            # for staff and above do not enforce password expire
-            return passwd_expired
-        if self.password_expire <= 0:
-            # password never expire, password_expire set to 0 or negative
-            # effectively disable password expire
-            return passwd_expired
-        for userpassword_desc in UserPasswordDescriptor.objects.filter(user=user):
-            passwds = None
-            try:
-                # only check invalid reuse within reuse_interval
-                passwds = PastPassword.objects.filter(
-                    userpassword_desc=userpassword_desc
-                ).order_by('-date_created')
-            except PastPassword.DoesNotExist:
-                pass
-            if passwds is not None and passwds.first() is not None:
-                if (datetime.now(timezone.utc)
-                        - passwds.first().date_created).total_seconds() >= self.password_expire:
-                    # the elapsed time since last password change / create is more than password_expire
-                    passwd_expired = True
-        return passwd_expired
