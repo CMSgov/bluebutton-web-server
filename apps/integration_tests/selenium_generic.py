@@ -1,8 +1,6 @@
 import os
 import time
 import re
-import locale
-import calendar
 
 from datetime import datetime, timedelta
 from selenium import webdriver
@@ -26,10 +24,12 @@ from .selenium_cases import (
     SEQ_LOGIN_SLSX,
     PROD_URL,
     ES_ES,
-    EN_US,
 )
 
 LOG_FILE = "./docker-compose/tmp/bb2_email_to_stdout.log"
+EN_MONTH_ABBR = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.']
+ES_MONTH_NAME = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre',
+                 'octubre', 'noviembre', 'diciembre']
 
 
 # class SeleniumGenericTests(TestCase):
@@ -168,34 +168,45 @@ class SeleniumGenericTests:
 
     def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
+        print("==================")
+        print("content_txt :" + content_txt)
+        print("element txt :" + elem.text)
+        print("==================")
         assert content_txt in elem.text
 
     def _check_date_format(self, timeout_sec, by, by_expr, format, lang, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         pattern = re.compile(format)
         m = pattern.match(elem.text)
+        print("date: " + elem.text)
         try:
             day = m.group('day')
             month = m.group('month')
             year = m.group('year')
-            month_num = 0
-            if lang == ES_ES:
-                # for ES_ES, month is full name
-                locale.setlocale(locale.LC_ALL, ES_ES)
-                month_num = calendar.list(calendar.month_name).index(month)
+            month_num = -1
+            try:
+                if lang == ES_ES:
+                    # for ES_ES, month is full name
+                    # locale.setlocale(locale.LC_ALL, ES_ES) - choose not to use locale package (it might be thread unsafe)
+                    # use a pre-built array to do month name -> month num mapping
+                    month_num = ES_MONTH_NAME.index(month)
+                else:
+                    # for EN_US, month is abbr
+                    month_num = EN_MONTH_ABBR.index(month)
+            except ValueError as v:
+                print(v)
+                assert 1 < 0, "Invalid month name or abbr." + month
+            print("year: " + year + ", month: " + str(month_num) + ", day: " + day)
+            if month_num >= 0:
+                expire_date = datetime(int(year), month_num + 1, int(day))
+                # 395 is 13 month, validate it's in that range
+                assert (expire_date - datetime.today()) > timedelta(days=394), "Expiration date not 13 month away."
             else:
-                # for EN_US, month is abbr
-                locale.setlocale(locale.LC_ALL, EN_US)
-                month_num = calendar.list(calendar.month_abbr).index(month)
-            locale.setlocale(locale.getdefaultlocale())
-            if month_num:
-                expire_date = datetime(year, month_num, day)
-                # 395 is 13 month
-                assert expire_date - datetime.today > timedelta(days=394)
+                assert 1 < 0, "Invalid month name or name abbr." + month
         except IndexError as e:
             # bad date value
             print(e)
-            assert 1 < 0
+            assert 1 < 0, "Malformed date value" + elem.text
 
     def _copy_link_and_load_with_param(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))
