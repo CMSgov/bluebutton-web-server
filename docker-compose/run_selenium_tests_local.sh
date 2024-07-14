@@ -75,7 +75,6 @@ export USE_MSLSX=true
 export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests"
 export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
-# export TESTS_LIST="./apps/integration_tests/selenium_spanish_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 export BB2_SERVER_STD2FILE=""
 

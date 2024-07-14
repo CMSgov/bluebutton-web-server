@@ -168,10 +168,6 @@ class SeleniumGenericTests:
 
     def _check_page_content(self, timeout_sec, by, by_expr, content_txt, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
-        print("==================")
-        print("content_txt :" + content_txt)
-        print("element txt :" + elem.text)
-        print("==================")
         assert content_txt in elem.text
 
     def _check_date_format(self, timeout_sec, by, by_expr, format, lang, **kwargs):

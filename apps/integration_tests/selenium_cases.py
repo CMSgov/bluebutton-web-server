@@ -593,71 +593,71 @@ TESTS = {
 }
 
 SPANISH_TESTS = {
-    # "toggle_language": [
-    #     # kick off default test client
-    #     {"sequence": SEQ_AUTHORIZE_START},
-    #     CALL_LOGIN,
-    #     # Wait to make sure we're logged in because login page also has Spanish link
-    #     WAIT_SECONDS,
-    #     WAIT_SECONDS,
-    #     CLICK_SPANISH,
-    #     {
-    #         "display": "Check for language change to Spanish",
-    #         "action": Action.CONTAIN_TEXT,
-    #         "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
-    #     },
-    #     CLICK_ENGLISH,
-    #     {
-    #         "display": "Check for language change to English",
-    #         "action": Action.CONTAIN_TEXT,
-    #         "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_EN_TXT]
-    #     },
-    #     {
-    #         "display": "Check for authorization screen access grant expire info in English",
-    #         "action": Action.CONTAIN_TEXT,
-    #         "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT]
-    #     },
-    #     {
-    #         "display": "Check English date format and validate",
-    #         "action": Action.CHECK_DATE_FORMAT,
-    #         "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT, EN_US]
-    #     },
-    #     CLICK_AGREE_ACCESS
-    # ],
-    # "authorize_lang_param": [
-    #     # direct medicare login by inject a lang=es at the end of the url
-    #     {"sequence": SEQ_AUTHORIZE_LANG_PARAM_START},
-    #     {
-    #         "display": "Check for Medicare.gov login page already in Spanish",
-    #         "action": Action.CONTAIN_TEXT,
-    #         "params": [20, By.ID, SLSX_CSS_BUTTON, SLSX_LOGIN_BUTTON_SPANISH]
-    #     },
-    #     # note, for now CALL_LOGIN does not use locale based text to look up elements
-    #     # so it is lang agnostic
-    #     CALL_LOGIN,
-    #     WAIT_SECONDS,
-    #     WAIT_SECONDS,
-    #     # check the title
-    #     {
-    #         "display": "Check for authorization screen language already in Spanish",
-    #         "action": Action.CONTAIN_TEXT,
-    #         "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
-    #     },
-    #     # now check the expiration info section
-    #     {
-    #         "display": "Check for authorization screen expire info in Spanish",
-    #         "action": Action.CONTAIN_TEXT,
-    #         "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
-    #     },
-    #     {
-    #         "display": "Check Spanish date format and validate",
-    #         "action": Action.CHECK_DATE_FORMAT,
-    #         "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
-    #     },
-    #     # the 'approve' and 'deny' button click not using locale based text
-    #     # so it is lang agnostic
-    #     CLICK_AGREE_ACCESS
-    # ],
+    "toggle_language": [
+        # kick off default test client
+        {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        # Wait to make sure we're logged in because login page also has Spanish link
+        WAIT_SECONDS,
+        WAIT_SECONDS,
+        CLICK_SPANISH,
+        {
+            "display": "Check for language change to Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
+        },
+        CLICK_ENGLISH,
+        {
+            "display": "Check for language change to English",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_EN_TXT]
+        },
+        {
+            "display": "Check for authorization screen access grant expire info in English",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT]
+        },
+        {
+            "display": "Check English date format and validate",
+            "action": Action.CHECK_DATE_FORMAT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT, EN_US]
+        },
+        CLICK_AGREE_ACCESS
+    ],
+    "authorize_lang_param": [
+        # direct medicare login by inject a lang=es at the end of the url
+        {"sequence": SEQ_AUTHORIZE_LANG_PARAM_START},
+        {
+            "display": "Check for Medicare.gov login page already in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, SLSX_CSS_BUTTON, SLSX_LOGIN_BUTTON_SPANISH]
+        },
+        # note, for now CALL_LOGIN does not use locale based text to look up elements
+        # so it is lang agnostic
+        CALL_LOGIN,
+        WAIT_SECONDS,
+        WAIT_SECONDS,
+        # check the title
+        {
+            "display": "Check for authorization screen language already in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
+        },
+        # now check the expiration info section
+        {
+            "display": "Check for authorization screen expire info in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
+        },
+        {
+            "display": "Check Spanish date format and validate",
+            "action": Action.CHECK_DATE_FORMAT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
+        },
+        # the 'approve' and 'deny' button click not using locale based text
+        # so it is lang agnostic
+        CLICK_AGREE_ACCESS
+    ],
     "authorize_lang_spanish_button": [
         {"sequence": SEQ_AUTHORIZE_START_SPANISH},
         # note, CALL_LOGIN does not use locale based text to look up elements
