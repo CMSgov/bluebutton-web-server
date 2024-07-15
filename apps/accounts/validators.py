@@ -86,7 +86,7 @@ class PasswordReuseAndMinAgeValidator(object):
     def __init__(self,
                  password_min_age=60 * 60 * 24,
                  password_reuse_interval=60 * 60 * 24 * 120,
-                 password_expire=60 * 60 * 24 * 30):
+                 password_expire=0):
 
         msg1 = "Invalid OPTIONS, password_min_age < password_reuse_interval expected, " \
                "but having password_min_age({}) >= password_reuse_interval({})"
@@ -96,14 +96,11 @@ class PasswordReuseAndMinAgeValidator(object):
                "but having password_expire({}) >= password_reuse_interval({})"
 
         check_opt_err = []
-        if password_min_age > 0 and password_reuse_interval > 0 \
-                and password_min_age > password_reuse_interval:
+        if 0 < password_reuse_interval < password_min_age:
             check_opt_err.append(msg1.format(password_min_age, password_reuse_interval))
-        if password_expire > 0 and password_reuse_interval > 0 \
-                and password_expire > password_reuse_interval:
+        if 0 < password_reuse_interval < password_expire:
             check_opt_err.append(msg2.format(password_expire, password_reuse_interval))
-        if password_min_age > 0 and password_expire > 0 \
-                and password_min_age > password_expire:
+        if 0 < password_expire < password_min_age:
             check_opt_err.append(msg3.format(password_min_age, password_expire))
         if len(check_opt_err) > 0:
             raise ValueError(check_opt_err)
@@ -234,8 +231,7 @@ class PasswordReuseAndMinAgeValidator(object):
             except PastPassword.DoesNotExist:
                 pass
             if passwds is not None and passwds.first() is not None:
-                if (datetime.now(timezone.utc)
-                        - passwds.first().date_created).total_seconds() >= self.password_expire:
+                if (datetime.now(timezone.utc) - passwds.first().date_created).total_seconds() >= self.password_expire:
                     # the elapsed time since last password change / create is more than password_expire
                     passwd_expired = True
         return passwd_expired
