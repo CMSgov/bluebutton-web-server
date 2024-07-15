@@ -100,7 +100,7 @@ class PasswordReuseAndMinAgeValidator(object):
             check_opt_err.append(msg1.format(password_min_age, password_reuse_interval))
         if 0 < password_reuse_interval < password_expire:
             check_opt_err.append(msg2.format(password_expire, password_reuse_interval))
-        if password_min_age > 0 and 0 < password_expire < password_min_age:
+        if 0 < password_expire < password_min_age:
             check_opt_err.append(msg3.format(password_min_age, password_expire))
         if len(check_opt_err) > 0:
             raise ValueError(check_opt_err)
