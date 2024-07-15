@@ -71,6 +71,8 @@ done
 
 eval last_arg=\$$#
 
+echo "last arg: " $last_arg
+
 if [[ -n ${last_arg} ]]
 then
     case "${last_arg}" in
@@ -84,7 +86,7 @@ then
             export HOSTNAME_URL="https://test.bluebutton.cms.gov/"
             ;;
         *)
-            if [[ ${last_arg} == 'http*' ]]
+            if [[ ${last_arg} == 'http'* ]]
             then
                 export HOSTNAME_URL=${last_arg}
             else
