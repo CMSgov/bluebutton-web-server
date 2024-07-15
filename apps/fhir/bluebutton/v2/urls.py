@@ -10,7 +10,6 @@ from apps.fhir.bluebutton.views.search import (
     SearchViewCoverage,
     SearchViewExplanationOfBenefit,
     SearchViewPatient,
-    SearchViewOrganization
 )
 
 admin.autodiscover()
@@ -52,9 +51,4 @@ urlpatterns = [
         SearchViewExplanationOfBenefit.as_view(version=2),
         name="bb_oauth_fhir_eob_search_v2",
     ),
-    # Digital Insurance Card View
-    re_path(
-        r'Organization[/]?',
-        SearchViewOrganization.as_view(version=2),
-        name='bb_oauth_dic_organization_v2'),
 ]
