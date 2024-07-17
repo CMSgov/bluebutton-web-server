@@ -14,4 +14,3 @@ RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip3 install --upgrade pip
 RUN pip3 install selenium pytest jsonschema
-

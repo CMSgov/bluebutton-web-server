@@ -74,7 +74,7 @@ MSLSX_CSS_BUTTON = "button"
 # email notification subjects
 USER_ACCT_ACTIVATION_EMAIL_SUBJ = "Subject: Verify Your Blue Button 2.0 Developer Sandbox Account"
 USER_ACCT_1ST_APP_EMAIL_SUBJ = "Subject: Congrats on Registering Your First Application!"
-USER_ACCT_ACTIVATION_KEY_PREFIX = "Activation Key: "
+USER_ACCT_ACTIVATION_KEY_PREFIX = 'title="Verify Your Email"'
 APP_1ST_API_CALL_EMAIL_SUBJ = "Subject: Congrats on Making Your First API Call"
 
 # create user account form fields
@@ -110,7 +110,7 @@ USER_LNK_TXT_ACCT_LOGOUT = "Logout"
 # language and localization checking
 AUTH_SCREEN_ID_LANG = "connect_app"
 AUTH_SCREEN_ID_END_DATE = "permission_end_date"
-AUTH_SCREEN_ES_TXT = "Conectar los datos de sus reclamos de Medicare"
+AUTH_SCREEN_ES_TXT = "Desea compartir sus datos de Medicare"
 AUTH_SCREEN_EN_TXT = "Connect your Medicare claims"
 # regex for date formats
 AUTH_SCREEN_ES_DATE_FORMAT = "^\\d{1,2} de \\w+ de \\d{4}"
