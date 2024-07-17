@@ -56,7 +56,7 @@ class ReadViewPatient(ReadView):
         self.resource_type = "Patient"
 
     def get(self, request, *args, **kwargs):
-        return_c4dic = True
+        return_c4dic = False
         if return_c4dic:
             return Response(get_response_json("bfd-c4dic-patient-read"))
         else:
@@ -71,7 +71,8 @@ class ReadViewCoverage(ReadView):
 
     def get(self, request, *args, **kwargs):
         profile = request.query_params.get('_profile', '')
-        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage":
+        return_c4dic = False
+        if return_c4dic and profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage":
             return Response(get_response_json("bfd-c4dic-coverage-read"))
         else:
             return super().get(request, *args, **kwargs)
@@ -82,13 +83,3 @@ class ReadViewExplanationOfBenefit(ReadView):
     def __init__(self, version=1):
         super().__init__(version)
         self.resource_type = "ExplanationOfBenefit"
-
-
-class ReadViewOrganization(ReadView):
-    # Class used for Patient resource
-    def __init__(self, version=1):
-        super().__init__(version)
-        self.resource_type = "Organization"
-
-    def get(self, request, *args, **kwargs):
-        return Response(get_response_json("organization_read_c4dic"))

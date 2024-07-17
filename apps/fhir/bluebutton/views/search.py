@@ -63,16 +63,6 @@ class SearchView(FhirDataView):
                                            resource_type)
 
 
-class SearchViewOrganization(SearchView):
-
-    def __init__(self, version=1):
-        super().__init__(version)
-        self.resource_type = "Organization"
-
-    def get(self, request, *args, **kwargs):
-        return Response(get_response_json("organization_search_c4dic"))
-
-
 class SearchViewPatient(SearchView):
     # Class used for Patient resource search view
 
@@ -87,7 +77,7 @@ class SearchViewPatient(SearchView):
         }
 
     def get(self, request, *args, **kwargs):
-        return_c4dic = True
+        return_c4dic = False
         if return_c4dic:
             return Response(get_response_json("bfd-c4dic-patient-search"))
         else:
@@ -109,7 +99,8 @@ class SearchViewCoverage(SearchView):
 
     def get(self, request, *args, **kwargs):
         profile = request.query_params.get('_profile', '')
-        if profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage":
+        return_c4dic = False
+        if return_c4dic and profile == "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage":
             return Response(get_response_json("bfd-c4dic-coverage-search"))
         else:
             return super().get(request, *args, **kwargs)
