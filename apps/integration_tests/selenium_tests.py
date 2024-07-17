@@ -91,3 +91,21 @@ class TestBlueButtonAPI(SeleniumGenericTests):
         self._play(TESTS[test_name], step, api_ver=api_ver)
         self._testclient_home()
         self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
+
+    '''
+    Test lang param support on the authorize end point via the built in
+    testclient using the Selenium web driver (Chrome)
+    direct to login url with lang=en by click on "Authorize as beneficiary" button
+    '''
+    def test_authorize_lang_english_button(self):
+        step = [0]
+        test_name = "authorize_lang_english_button"
+        api_ver = API_V2
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, True)
+        if USE_NEW_PERM_SCREEN == "true":
+            # the validation of expire date etc. only applicable to new perm screen
+            self._play(TESTS[test_name], step, api_ver=api_ver)
+        else:
+            print("Skip test " + test_name + " - only for new perm screen.")
+        self._testclient_home()
+        self._print_testcase_banner(test_name, api_ver, step[0], self.use_mslsx, False)
