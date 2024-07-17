@@ -50,7 +50,7 @@ class AuthorizedGrants(viewsets.GenericViewSet,
 
     def get_queryset(self):
         return DataAccessGrant.objects.select_related("application").filter(
-            Q(expiration_date__lt=datetime.now()) | Q(expiration_date=None),
+            Q(expiration_date__gt=datetime.now()) | Q(expiration_date=None),
             beneficiary=self.request.user
         )
 

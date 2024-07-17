@@ -437,10 +437,6 @@ class TestTokenView(BaseApiTest):
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris="http://example.it",
         )
-        # Create expired DAG
-        DataAccessGrant.objects.update_or_create(
-            beneficiary=anna, application=application, expiration_date=date.today() - timedelta(days=1)
-        )
         application.scope.add(capability_a)
         self._create_test_token(anna, application)
         response = self.client.get(
@@ -457,6 +453,43 @@ class TestTokenView(BaseApiTest):
         expected = [
             {
                 # can't predict the id in this case
+                "id": result[0]["id"],
+                "user": anna.id,
+                "application": {
+                    "id": application.id,
+                    "name": "an app",
+                    "logo_uri": "",
+                    "tos_uri": "",
+                    "policy_uri": "",
+                    "contacts": "",
+                },
+            }
+        ]
+        self.assertEqual(result, expected)
+
+        # Check tokens endpoint doesn't return expired
+        application2 = self._create_application(
+            "an expired app",
+            grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris="http://example.it",
+            user=anna
+        )
+        DataAccessGrant.objects.update_or_create(
+            beneficiary=anna, application=application2, expiration_date=date.today() - timedelta(days=1)
+        )
+        response = self.client.get(
+            "/v1/o/tokens/",
+            headers={
+                "authorization": self._create_authorization_header(
+                    application.client_id, application.client_secret_plain
+                ),
+                "x-authentication": self._create_authentication_header(self.test_uuid),
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        result = response.json()
+        expected = [
+            {
                 "id": result[0]["id"],
                 "user": anna.id,
                 "application": {
