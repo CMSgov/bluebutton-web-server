@@ -1,5 +1,7 @@
 import json
 import base64
+from datetime import date, timedelta
+
 from django.conf import settings
 from django.http import HttpRequest
 from django.urls import reverse
@@ -434,6 +436,10 @@ class TestTokenView(BaseApiTest):
             "an app",
             grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris="http://example.it",
+        )
+        # Create expired DAG
+        DataAccessGrant.objects.update_or_create(
+            beneficiary=anna, application=application, expiration_date=date.today() - timedelta(days=1)
         )
         application.scope.add(capability_a)
         self._create_test_token(anna, application)
