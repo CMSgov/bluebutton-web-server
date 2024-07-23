@@ -7,7 +7,7 @@ paths:
   /.well-known/openid-configuration:
     get:
       operationId: openIdConfig
-      description: ''
+      description: 'Returns OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)'
       security: []
       responses:
         '200':
@@ -26,7 +26,7 @@ paths:
   /v1/fhir/metadata:
     get:
       operationId: fhirMetaData
-      description: ''
+      description: 'Returns FHIR CapabilityStatement resource (public access, no token needed)'
       security: []
       responses:
         '200':
@@ -52,7 +52,7 @@ paths:
   /v1/connect/userinfo:
     get:
       operationId: listopenidconnect_userinfos
-      description: ''
+      description: 'Returns OIDC userinfo'
       parameters: []
       responses:
         '200':
@@ -88,7 +88,7 @@ paths:
   '/v1/fhir/Patient/{resource_id}':
     get:
       operationId: listReadViewPatients
-      description: ''
+      description: 'Returns Patient FHIR resource identified by resource_id'
       parameters:
         - name: resource_id
           in: path
@@ -141,7 +141,7 @@ paths:
   /v1/fhir/Patient/:
     get:
       operationId: listSearchViewPatients
-      description: ''
+      description: 'Returns Patient FHIR resources matching search criteria as a FHIR Bundle'
       parameters:
         - in: query
           name: identifier
@@ -224,7 +224,7 @@ paths:
   '/v1/fhir/Coverage/{resource_id}':
     get:
       operationId: listReadViewCoverages
-      description: ''
+      description: 'Returns Coverage FHIR resource identified by resource_id'
       parameters:
         - name: resource_id
           in: path
@@ -277,7 +277,7 @@ paths:
   /v1/fhir/Coverage/:
     get:
       operationId: listSearchViewCoverages
-      description: ''
+      description: 'Returns Coverage FHIR resources matching the search criteria as a FHIR Bundle'
       parameters:
         - in: query
           name: beneficiary
@@ -335,7 +335,7 @@ paths:
   '/v1/fhir/ExplanationOfBenefit/{resource_id}':
     get:
       operationId: listReadViewExplanationOfBenefits
-      description: ''
+      description: 'Returns ExplanationOfBenefit FHIR resource identified by resource_id'
       parameters:
         - name: resource_id
           in: path
@@ -388,7 +388,7 @@ paths:
   /v1/fhir/ExplanationOfBenefit/:
     get:
       operationId: listSearchViewExplanationOfBenefits
-      description: ''
+      description: 'Returns ExplanationOfBenefit FHIR resources matching search criteria as a FHIR Bundle'
       parameters:
         - in: query
           name: patient
@@ -464,7 +464,7 @@ paths:
   /.well-known/openid-configuration-v2:
     get:
       operationId: openIdConfig_v2
-      description: ''
+      description: 'Returns OIDC Discovery: listing of the OpenID/OAuth endpoints, supported scopes and claims (public access, no token needed)'
       security: []
       responses:
         '200':
@@ -483,7 +483,7 @@ paths:
   /v2/fhir/metadata:
     get:
       operationId: fhirMetaData_v2
-      description: ''
+      description: 'Returns FHIR CapabilityStatement resource (public access, no token needed)'
       security: []
       responses:
         '200':
@@ -509,7 +509,7 @@ paths:
   /v2/connect/userinfo:
     get:
       operationId: listopenidconnect_userinfos_v2
-      description: ''
+      description: 'Returns OIDC userinfo'
       parameters: []
       responses:
         '200':
@@ -545,7 +545,7 @@ paths:
   '/v2/fhir/Patient/{resource_id}':
     get:
       operationId: listReadViewPatients_v2
-      description: ''
+      description: 'Returns Patient FHIR resource identified by resource_id'
       parameters:
         - name: resource_id
           in: path
@@ -598,7 +598,7 @@ paths:
   /v2/fhir/Patient/:
     get:
       operationId: listSearchViewPatients_v2
-      description: ''
+      description: 'Returns Patient FHIR resources matching search criteria as a FHIR Bundle'
       parameters:
         - in: query
           name: identifier
@@ -681,7 +681,7 @@ paths:
   '/v2/fhir/Coverage/{resource_id}':
     get:
       operationId: listReadViewCoverages_v2
-      description: ''
+      description: 'Returns Coverage FHIR resource identified by resource_id'
       parameters:
         - name: resource_id
           in: path
@@ -734,7 +734,7 @@ paths:
   /v2/fhir/Coverage/:
     get:
       operationId: listSearchViewCoverages_v2
-      description: ''
+      description: 'Returns Coverage FHIR resources matching the search criteria as a FHIR Bundle'
       parameters:
         - in: query
           name: beneficiary
@@ -792,7 +792,7 @@ paths:
   '/v2/fhir/ExplanationOfBenefit/{resource_id}':
     get:
       operationId: listReadViewExplanationOfBenefits_v2
-      description: ''
+      description: 'Returns ExplanationOfBenefit FHIR resource identified by resource_id'
       parameters:
         - name: resource_id
           in: path
@@ -838,7 +838,7 @@ paths:
   /v2/fhir/ExplanationOfBenefit/:
     get:
       operationId: listSearchViewExplanationOfBenefits_v2
-      description: ''
+      description: 'Returns ExplanationOfBenefit FHIR resources matching search criteria as a FHIR Bundle'
       parameters:
         - in: query
           name: patient
@@ -921,6 +921,9 @@ components:
 servers:
   - url: 'https://sandbox.bluebutton.cms.gov/'
     description: Sandbox server
+    variables: {}
+  - url: 'http://localhost:8000/'
+    description: Local server
     variables: {}
 security:
     - bearerAuth: []
