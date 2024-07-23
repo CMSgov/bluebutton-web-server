@@ -922,8 +922,5 @@ servers:
   - url: 'https://sandbox.bluebutton.cms.gov/'
     description: Sandbox server
     variables: {}
-  - url: 'http://localhost:8000/'
-    description: Local server
-    variables: {}
 security:
     - bearerAuth: []
