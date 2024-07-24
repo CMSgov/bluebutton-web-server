@@ -23,6 +23,8 @@ class BBMyMedicareCallbackCrosswalkUpdateException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+# BB2-3267 deprecate mbi_hash, hicn_hash based patient lookup
+# use mbi, hicn based lookup instead
 def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
     """
     Find or create the user associated
@@ -52,8 +54,16 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
     logger = logging.getLogger(logging.AUDIT_AUTHN_MED_CALLBACK_LOGGER, request)
 
     # Match a patient identifier via the backend FHIR server
+    # BB2-3267 deprecate use of mbi_hash, hicn_hash in patient lookup during auth flow
+    # fhir_id, hash_lookup_type = match_fhir_id(
+    #     mbi=slsx_client.mbi,
+    #     mbi_hash=slsx_client.mbi_hash,
+    #     hicn_hash=slsx_client.hicn_hash, request=request
+    # )
     fhir_id, hash_lookup_type = match_fhir_id(
+        mbi=slsx_client.mbi,
         mbi_hash=slsx_client.mbi_hash,
+        hicn=slsx_client.hicn,
         hicn_hash=slsx_client.hicn_hash, request=request
     )
 

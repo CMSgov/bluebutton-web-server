@@ -18,24 +18,97 @@ from ..bluebutton.utils import (FhirServerAuth,
 from .loggers import log_match_fhir_id
 
 
-def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
+# def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
+def search_fhir_id_by_identifier_mbi(mbi, mbi_hash, request=None):
     """
         Search the backend FHIR server's patient resource
         using the mbi_hash identifier.
+        BB2-3267: now use mbi instead of hash
     """
-    search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_MBI_HASH \
-        + "%7C" + mbi_hash
+    # BB2-3267
+    # BFD now support POST based patient search by mbi:
+    # refer to :
+    # https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-server/bfd-server-war/src/test/resources/openapi/posts.yaml
+    # for details.
+    """
+    End points:
+    1. /v1/fhir/Patient/_search POST:
+    2. /v2/fhir/Patient/_search POST:
+    parameter:
+    identifier:
+    type: string
+    description: |-
+    **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO CHOOSE ONE OUT OF
+    THE FOLLOWING THREE PARAMETERS AT A GIVEN TIME (_id, identifier, _has:Coverage.extension)**
+
+    Fetch _Patient_ data using a FHIR _identifier_; an identifier contains a set of values that
+    include the logical identity for a resource. In FHIR, the _identifier_ is a parent element
+    defined by the [FHIR specification](https://www.hl7.org/fhir/r4/datatypes-definitions.html#Identifier) as:
+
+    `A string, typically numeric or alphanumeric, that is associated with a single object or entity within a given system.
+    Typically, identifiers are used to connect content in resources to external content available in other frameworks
+    or protocols.
+    Identifiers are associated with objects and may be changed or retired due to human or system process and errors.`
+
+    This class contains the identifier, which is usually represented as a URL, along with a single, url encoded,
+    pipe-delimited key|value pair, with the value as
+    (mbi, hicn, etc); the following are all valid values for Identifier, and all might represent the same resource:
+        - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
+        - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
+        - `identifier=http://hl7.org/fhir/sid/us-mbi|<your mbi>`
+    example: "http://hl7.org/fhir/sid/us-mbi|<your mbi>"
+    """
+    # search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_MBI_HASH \
+    #     + "%7C" + mbi_hash
+    # note, with mbi search, the search param is not url encoded because it is in the POST request body
+    # make it in original text form so that it will match BFD TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED
+    search_identifier = settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI \
+        + "|" + mbi
 
     return search_fhir_id_by_identifier(search_identifier, request)
 
 
+# def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None):
 def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None):
     """
         Search the backend FHIR server's patient resource
         using the hicn_hash identifier.
     """
-    search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_HICN_HASH \
-        + "%7C" + hicn_hash
+    # BB2-3267
+    # BFD now support POST based patient search by mbi:
+    # refer to :
+    # https://github.com/CMSgov/beneficiary-fhir-data/blob/master/apps/bfd-server/bfd-server-war/src/test/resources/openapi/posts.yaml
+    # for details.
+    """
+    End points:
+    1. /v1/fhir/Patient/_search POST:
+    2. /v2/fhir/Patient/_search POST:
+    parameter:
+    identifier:
+        type: string
+        description: |-
+        **NOTE: TO MAKE A REQUEST TO THIS ENDPOINT IT IS REQUIRED TO CHOOSE ONE OUT OF THE FOLLOWING THREE PARAMETERS AT A GIVEN
+        TIME (_id, identifier, _has:Coverage.extension)**
+
+        Fetch _Patient_ data using a FHIR _identifier_; an identifier contains a set of values that
+        include the logical identity for a resource. In FHIR, the _identifier_ is a parent element
+        defined by the [FHIR specification](https://www.hl7.org/fhir/r4/datatypes-definitions.html#Identifier) as:
+
+        `A string, typically numeric or alphanumeric, that is associated with a single object or entity within a given system.
+        Typically, identifiers are used to connect content in resources to external content available in other frameworks
+        or protocols.
+        Identifiers are associated with objects and may be changed or retired due to human or system process and errors.`
+
+        This class contains the identifier, which is usually represented as a URL, along with a single, url encoded,
+        pipe-delimited key|value pair, with the value as
+        (mbi, hicn, etc); the following are all valid values for Identifier, and all might represent the same resource:
+            - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
+            - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
+            - `identifier=http://hl7.org/fhir/sid/us-mbi|<your mbi>`
+        example: "http://hl7.org/fhir/sid/us-mbi|<your mbi>"
+    """
+    # note, for POST search patient request, the search identifier no longer url encoded because it is in POST body
+    search_identifier = settings.FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH + "|" + hicn_hash
 
     return search_fhir_id_by_identifier(search_identifier, request)
 
@@ -80,13 +153,19 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     # Build URL with patient ID search by identifier.
     ver = "v{}".format(request.session.get('version', 1))
+    # url = get_resourcerouter().fhir_url \
+    #     + "/{}/fhir/Patient/?identifier=".format(ver) + search_identifier \
+    #     + "&_format=" + settings.FHIR_PARAM_FORMAT
+
     url = get_resourcerouter().fhir_url \
-        + "/{}/fhir/Patient/?identifier=".format(ver) + search_identifier \
-        + "&_format=" + settings.FHIR_PARAM_FORMAT
+        + "/{}/fhir/Patient/_search".format(ver)
 
     s = requests.Session()
 
-    req = requests.Request('GET', url, headers=headers)
+    # BB2-3267 use BFD POST instead of GET
+    # req = requests.Request('GET', url, headers=headers)
+    payload = {"identifier": search_identifier}
+    req = requests.Request('POST', url, headers=headers, data=payload)
     prepped = req.prepare()
     pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
     response = s.send(prepped, cert=certs, verify=False)
@@ -129,7 +208,9 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         raise UpstreamServerException("Unexpected result found in the Patient resource bundle")
 
 
-def match_fhir_id(mbi_hash, hicn_hash, request=None):
+# BB2-3267
+# def match_fhir_id(mbi_hash, hicn_hash, request=None):
+def match_fhir_id(mbi, mbi_hash, hicn, hicn_hash, request=None):
     """
       Matches a patient identifier via the backend FHIR server
       using an MBI or HICN hash.
@@ -150,7 +231,8 @@ def match_fhir_id(mbi_hash, hicn_hash, request=None):
     # Perform primary lookup using MBI_HASH
     if mbi_hash:
         try:
-            fhir_id = search_fhir_id_by_identifier_mbi_hash(mbi_hash, request)
+            # fhir_id = search_fhir_id_by_identifier_mbi_hash(mbi_hash, request)
+            fhir_id = search_fhir_id_by_identifier_mbi(mbi, mbi_hash, request)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "M", str(err))
             # Don't return a 404 because retrying later will not fix this.
