@@ -20,7 +20,14 @@ class SignupForm(UserCreationForm):
         max_length=100, label=_("Organization Name"), required=True
     )
     password1 = forms.CharField(
-        widget=forms.PasswordInput, max_length=120, label=_("Password")
+        widget=forms.PasswordInput,
+        max_length=120,
+        label=_("Password"),
+        help_text="Password must:</br>"
+                  "<ul><li>Contain one upper case letter</li>"
+                  "<li>Contain one upper case letter</li>"
+                  "<li>Contain one special character</li>"
+                  "<li>Contain at leaat 8 characters</li></ul>"
     )
     password2 = forms.CharField(
         widget=forms.PasswordInput, max_length=120, label=_("Password (again)")
