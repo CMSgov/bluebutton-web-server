@@ -1,10 +1,9 @@
 services:
   msls:
     build: ./dev-local
-    command: bash -c "python -m debugpy --listen 0.0.0.0:7890 app.py"
+    command: bash -c "python app.py"
     ports:
       - "8080:8080"
-      - "7890:7890"
     profiles:
       - mocksls
   db:
@@ -61,3 +60,12 @@ services:
       - .:/code
     profiles:
       - tests
+  tests:
+    build: .
+    command: python3 runtests.py
+    env_file:
+      - docker-compose/unittests-env-vars.env
+    volumes:
+      - .:/code
+    profiles:
+      - justtests

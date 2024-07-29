@@ -1,5 +1,6 @@
-FROM --platform=linux/amd64 python:3.8
+FROM --platform=linux/amd64 python:3.11
 ENV PYTHONUNBUFFERED 1
+ENV PYDEVD_DISABLE_FILE_VALIDATION 1
 RUN useradd -m -s /bin/bash DEV
 USER DEV
 ADD . /code
