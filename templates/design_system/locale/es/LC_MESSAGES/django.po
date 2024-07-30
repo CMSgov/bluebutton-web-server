@@ -107,7 +107,7 @@ msgstr "Su nombre, dirección, fecha de nacimiento y sexo"
 
 #: templates/design_system/new_authorize_v2.html:92
 msgid "Uncheck to block access to personal information."
-msgstr "Quite la marca para no compartir su información personal"
+msgstr "Quite la marca para no compartir su información personal."
 
 #: templates/design_system/new_authorize_v2.html:93
 msgid "Check to allow access to personal information."
