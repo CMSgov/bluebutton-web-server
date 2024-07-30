@@ -432,7 +432,7 @@ class RequestResponseLog(object):
         """
         --- Logging items from a FHIR type response ---
         """
-        if type(self.response) == Response and isinstance(self.response.data, dict):
+        if isinstance(self.response, Response) and isinstance(self.response.data, dict):
             self.log_msg["fhir_bundle_type"] = self.response.data.get("type", None)
             self.log_msg["fhir_resource_id"] = self.response.data.get("id", None)
             self.log_msg["fhir_resource_type"] = self.response.data.get(
