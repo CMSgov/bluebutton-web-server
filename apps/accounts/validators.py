@@ -16,7 +16,7 @@ from .models import (
 )
 
 
-class PasswordComplexityValidator():
+class PasswordComplexityValidator:
     '''
     BB2-62 POAM strengthen blue button developer account authentication
     - increase password complexity
@@ -77,7 +77,7 @@ class PasswordComplexityValidator():
         return self.help_txt
 
 
-class PasswordReuseAndMinAgeValidator(object):
+class PasswordReuseAndMinAgeValidator:
     '''
     BB2-62 POAM strengthen blue button developer account authentication
     - enforce min password age and re-use interval
