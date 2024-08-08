@@ -1,6 +1,6 @@
 # base packages
 django == 4.2.14
-django-getenv
+## django-getenv
 django-bootstrap-form
 django-cors-headers
 django-localflavor
