@@ -193,26 +193,15 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
         self.user = User.objects.get(username="fred")  # get user again so that you can see password changed
         self.assertEquals(self.user.check_password("IchangedTHEpassword#123"), True)
 
-        # add 12 minutes to time to expire current password
-        StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+12)
-        )
-        self.client.logout()
-        form_data = {'username': 'fred',
-                     'password': 'IchangedTHEpassword#123'}
-        response = self.client.post(reverse('login'), form_data, follow=True)
-        self.assertContains(response,
-                            ("Your password has expired, change password strongly recommended."))
-
     @override_switch('login', active=True)
     @mock.patch("apps.accounts.validators.datetime", StubDate)
-    def test_password_expire_not_affect_staff(self):
+    def test_no_password_expire(self):
         self.client.logout()
-        # add 20 minutes to time to show staff is not effected
+        # add 90 days to time to show expiration is removed
         StubDate.now = classmethod(
-            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(minutes=+20)
+            lambda cls, timezone: datetime.now().replace(tzinfo=pytz.UTC) + relativedelta(days=+90)
         )
-        form_data = {'username': 'staff',
+        form_data = {'username': 'fred',
                      'password': 'foobarfoobarfoobar'}
         response = self.client.post(reverse('login'), form_data, follow=True)
         # assert account dashboard page
@@ -222,8 +211,5 @@ class ResetPasswordWhileAuthenticatedTestCase(TestCase):
                             ("The Developer Sandbox lets you register applications to get credentials"))
 
     def test_password_reuse_min_age_validator_args_check(self):
-        with self.assertRaisesRegex(ValueError,
-                                    (".*password_min_age < password_reuse_interval expected.*"
-                                     "password_expire < password_reuse_interval expected.*"
-                                     "password_min_age < password_expire expected.*")):
-            PasswordReuseAndMinAgeValidator(60 * 60 * 24 * 30, 60 * 60 * 24 * 10, 60 * 60 * 24 * 20)
+        with self.assertRaisesRegex(ValueError, ".*password_min_age < password_reuse_interval expected.*"):
+            PasswordReuseAndMinAgeValidator(60 * 60 * 24 * 30, 60 * 60 * 24 * 10)

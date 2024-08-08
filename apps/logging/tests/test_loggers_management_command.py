@@ -79,7 +79,7 @@ class TestLoggersGlobalMetricsManagementCommand(BaseApiTest):
             else:
                 a = None
             b = dict_b.get(key, None)
-            if a != b and type(b) == int:
+            if a != b and isinstance(b, int):
                 print("\"{}\": {},  # {} -> {}".format(key, b, a, b))
         print("=========================================================")
         print("")
