@@ -26,7 +26,7 @@ urlpatterns = [
     path("v1/fhir/", include("apps.fhir.bluebutton.urls")),
     path("v1/o/", include("apps.dot_ext.urls")),
     path("v1/o/", include("apps.authorization.urls")),
-    path("v1/", include("apps.openapi.urls")),
+    # path("v1/", include("apps.openapi.urls")),
     path("v2/accounts/", include("apps.accounts.v2.urls")),
     re_path(
         r"^v2/connect/userinfo",
@@ -37,7 +37,7 @@ urlpatterns = [
     path("v2/fhir/", include("apps.fhir.bluebutton.v2.urls")),
     path("v2/o/", include("apps.dot_ext.v2.urls")),
     path("v2/o/", include("apps.authorization.v2.urls")),
-    path("v2/", include("apps.openapi.urls")),
+    # path("v2/", include("apps.openapi.urls")),
     path("docs/", include("apps.docs.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/metrics/", include("apps.metrics.urls")),
     re_path(r"^" + ADMIN_REDIRECTOR + "admin/", admin.site.urls),
