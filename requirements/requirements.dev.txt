@@ -40,7 +40,9 @@ backports-zoneinfo==0.2.1 \
 beautifulsoup4==4.12.2 \
     --hash=sha256:492bbc69dca35d12daac71c4db1bfff0c876c00ef4a2ffacce226d4638eb72da \
     --hash=sha256:bd2520ca0d9d7d12694a53d44ac482d181b4ec1888909b035a3dbf40d0f57d4a
-    # via -r requirements/requirements.dev.in
+    # via
+    #   -r requirements/requirements.dev.in
+    #   django-bootstrap-v5
 blinker==1.8.2 \
     --hash=sha256:1779309f71bf239144b9399d06ae925637cf6634cf6bd131104184531bf67c01 \
     --hash=sha256:8f77b09d3bf7c795e969e9486f39c2c5e9c39d4ee07424be2bc594ece9642d83
@@ -282,7 +284,7 @@ django==4.2.14 \
     #   -r requirements/requirements.in
     #   dj-database-url
     #   django-axes
-    #   django-bootstrap-form
+    #   django-bootstrap-v5
     #   django-cors-headers
     #   django-debug-toolbar
     #   django-filter
@@ -296,8 +298,9 @@ django-axes==5.41.1 \
     --hash=sha256:38b89dc71104ace0498d08d7100a1af67688d151206e3c17d98f75bff1351c38 \
     --hash=sha256:aa43fe3a5763bea28d320b1d98e481c12e2dbc12f4dd851aaf7308e80629df9f
     # via -r requirements/requirements.in
-django-bootstrap-form==3.4 \
-    --hash=sha256:de3f7893e515352834d446c441c0cb861637f92cebbe59d8229469c6cd3dc640
+django-bootstrap-v5==1.0.11 \
+    --hash=sha256:2d431308859ce3cab7729bb09c76039059cd5fbdd34484da82c4c7f8d49da3a2 \
+    --hash=sha256:a207aa804938164c8450bbbef4faaba6d2093b3236000557a50f3bd44b53d268
     # via -r requirements/requirements.in
 django-cors-headers==4.0.0 \
     --hash=sha256:a971cd4c75b29974068cc36b5c595698822f1e0edd5f1b32ea42ea37326ad4aa \

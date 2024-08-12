@@ -1,8 +1,8 @@
 import logging
-
+import os
 import apps.logging.request_logger as bb2logging
 
-from getenv import env
+##from getenv import env
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
@@ -30,9 +30,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # get variables
-        super_username = env("DJANGO_SUPERUSER_USERNAME", "")
-        super_password = env("DJANGO_SUPERUSER_PASSWORD", "")
-        super_email = env("DJANGO_SUPERUSER_EMAIL", "")
+        super_username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "")
+        super_password = os.environ.get("DJANGO_SUPERUSER_PASSWORD", "")
+        super_email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "")
         if super_username and super_password and super_email:
             # create a super user
             r = create_superuser(super_username, super_password, super_email)

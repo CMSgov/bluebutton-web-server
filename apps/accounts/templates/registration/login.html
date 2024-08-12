@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load bootstrap5 %}
 
 <!-- Ignore Banner Code -->
 {% block banner %}{% endblock %}
@@ -23,8 +24,9 @@
 				<form class="" method="post" action="">
 					{% csrf_token %}
 					<table>
-						{% load bootstrap %}
-						{{ form|bootstrap }}
+						{% comment %} {% load bootstrap %}
+						{{ form|bootstrap }} {% endcomment %}
+						{% bootstrap_form form %}
 					</table>
 					<input type="submit" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid" value="Login" />
 				</form>

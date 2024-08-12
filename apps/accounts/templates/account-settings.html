@@ -1,5 +1,6 @@
 {% extends "oauth2_provider/base.html" %}
 {% load i18n %}
+{% load bootstrap5 %}
 
 {% block bannerBackButton %}
   <a class="banner-back-button" href="/" style="outline-color: transparent; background-color: transparent"><i data-feather="arrow-left"></i>Back to Dashboard</a>
@@ -43,10 +44,9 @@
 
           <form class="well ds-u-margin-y--2" method="post" action="" enctype="multipart/form-data">
             {% csrf_token %}
-    
-            {% load bootstrap %}
-            {{ form|bootstrap }}
-    
+            {% comment %} {% load bootstrap %}
+            {{ form|bootstrap }} {% endcomment %}
+            {% bootstrap_form form %}
             <input type="submit" class="ds-c-button ds-c-button--solid ds-u-margin-y--2" value="{% trans 'Update Information' %}" /><br>
           </form>
 
