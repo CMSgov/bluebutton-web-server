@@ -44,8 +44,6 @@
 
           <form class="well ds-u-margin-y--2" method="post" action="" enctype="multipart/form-data">
             {% csrf_token %}
-            {% comment %} {% load bootstrap %}
-            {{ form|bootstrap }} {% endcomment %}
             {% bootstrap_form form %}
             <input type="submit" class="ds-c-button ds-c-button--solid ds-u-margin-y--2" value="{% trans 'Update Information' %}" /><br>
           </form>

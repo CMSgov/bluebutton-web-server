@@ -45,8 +45,6 @@
       {% include "include/messages.html" %}
       <form class="well" method="post" action="" enctype="multipart/form-data">
         {% csrf_token %}
-        {% comment %} {% load bootstrap %}
-        {{ form|bootstrap }} {% endcomment %}
         {% bootstrap_form form %}
         <input type="submit" class="button button-success btn btn-large"  value="{% trans 'Continue' %}" /><br>
         <a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>

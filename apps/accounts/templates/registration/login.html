@@ -24,8 +24,6 @@
 				<form class="" method="post" action="">
 					{% csrf_token %}
 					<table>
-						{% comment %} {% load bootstrap %}
-						{{ form|bootstrap }} {% endcomment %}
 						{% bootstrap_form form %}
 					</table>
 					<input type="submit" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid" value="Login" />
