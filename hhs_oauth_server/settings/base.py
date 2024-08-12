@@ -185,7 +185,6 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "axes",
     "apps.logging",
-    "apps.openapi",
     "apps.creds",
 ]
 
