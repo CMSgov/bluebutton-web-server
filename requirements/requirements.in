@@ -11,6 +11,7 @@ django-axes
 
 # support
 beautifulsoup4 == 4.12.2
+soupsieve == 2.4.1
 backports.zoneinfo
 django-waffle
 django-storages
