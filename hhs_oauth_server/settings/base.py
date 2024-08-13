@@ -197,7 +197,7 @@ DEV_SPECIFIC_APPS = [
 
 INSTALLED_APPS += DEV_SPECIFIC_APPS
 
-if os.environ.get("ENV_SPECIFIC_APPS", False):
+if get_bool_env("ENV_SPECIFIC_APPS", False):
     INSTALLED_APPS += os.environ.get("ENV_SPECIFIC_APPS")
 
 REST_FRAMEWORK = {
@@ -221,7 +221,7 @@ AXES_USERNAME_FORM_FIELD = "username"
 OPTIONAL_INSTALLED_APPS = [
     "",
 ]
-if os.environ.get("OPTIONAL_INSTALLED_APPS", False):
+if get_bool_env("OPTIONAL_INSTALLED_APPS", False):
     OPTIONAL_INSTALLED_APPS += os.environ.get("OPTIONAL_INSTALLED_APPS")
 
 

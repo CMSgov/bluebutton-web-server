@@ -25,6 +25,7 @@ class Action(Enum):
     VALIDATE_EMAIL_NOTIFICATION = 13
     CHECK_DATE_FORMAT = 14
     COPY_LINK_AND_LOAD_WITH_PARAM = 15
+    FIND_MSG_BY_CLASS = 16
 
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
@@ -944,8 +945,12 @@ SEE_LOGIN_BEFORE_ACTIVATION_MSG = {
 ACCT_TESTS = {
     "create_user_account": [
         {"sequence": SEQ_CREATE_USER_ACCOUNT},
+        WAIT_SECONDS,
+        WAIT_SECONDS,
         SEE_ACCT_CREATED_MSG,
         {"sequence": SEQ_USER_LOGIN},
+        WAIT_SECONDS,
+        WAIT_SECONDS,
         SEE_LOGIN_BEFORE_ACTIVATION_MSG,
         WAIT_SECONDS,
     ],
