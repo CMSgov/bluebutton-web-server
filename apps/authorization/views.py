@@ -24,9 +24,16 @@ Application = get_application_model()
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
+    contacts = serializers.SerializerMethodField()
+
     class Meta:
         model = Application
         fields = ('id', 'name', 'logo_uri', 'tos_uri', 'policy_uri', 'contacts')
+
+    def get_contacts(self, obj):
+        print(obj)
+        application = Application.objects.get(id=obj.id)
+        return application.support_email or ""
 
 
 class DataAccessGrantSerializer(serializers.ModelSerializer):
