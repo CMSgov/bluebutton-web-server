@@ -5,7 +5,6 @@
 flake8 == 6.0.*
 django-debug-toolbar
 httmock
-beautifulsoup4 == 4.12.2
 debugpy
 selenium 
 pytest 
