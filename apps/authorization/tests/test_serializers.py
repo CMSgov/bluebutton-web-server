@@ -18,7 +18,6 @@ class TestApplicationSerializer(BaseApiTest):
 
         serializer = ApplicationSerializer(test_app)
         serialized = serializer.data
-        print(serializer.data)
         expected = {
             'id': 1,
             'name': 'test_app',
