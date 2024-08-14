@@ -2,6 +2,7 @@ import os
 import dj_database_url
 import socket
 import datetime
+from getenv import env
 from ..utils import bool_env, int_env
 
 from django.contrib.messages import constants as messages
@@ -10,8 +11,8 @@ from .themes import THEMES, THEME_SELECTED
 
 
 # helper to get an env value of bool as boolean
-def get_bool_env(k: str, default_val: bool):
-    return os.environ.get(k, default_val) in (True, 'True', 'true')
+# def get_bool_env(k: str, default_val: bool):
+#     return os.environ.get(k, default_val) in (True, 'True', 'true')
 
 
 # project root folder
@@ -21,7 +22,8 @@ BASE_DIR = os.path.join(BASE_DIR, "..")
 # OPENAPI_DOC = os.path.join(BASE_DIR, "bluebutton-openapi-doc/bluebutton/openapi.yaml")
 
 # security
-SECRET_KEY = os.environ.get(
+SECRET_KEY = env(
+# SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY", "FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR"
 )
 if SECRET_KEY == "FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR":
@@ -30,8 +32,8 @@ if SECRET_KEY == "FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR":
         "variable: DJANGO_SECRET_KEY"
     )
 
-
-CMS_SPLUNK_URL = os.environ.get("CMS_SPLUNK_URL", "https://splunk.cloud.cms.gov")
+CMS_SPLUNK_URL = env("CMS_SPLUNK_URL", "https://splunk.cloud.cms.gov")
+# CMS_SPLUNK_URL = os.environ.get("CMS_SPLUNK_URL", "https://splunk.cloud.cms.gov")
 
 # splunk dashboards links:
 SPLUNK_DASHBOARDS = [
@@ -138,11 +140,14 @@ PASSWORD_RULES = [
     },
 ]
 
-PASSWORD_HASH_ITERATIONS = int(os.environ.get("DJANGO_PASSWORD_HASH_ITERATIONS", "200000"))
+PASSWORD_HASH_ITERATIONS = int(env("DJANGO_PASSWORD_HASH_ITERATIONS", "200000"))
+# PASSWORD_HASH_ITERATIONS = int(os.environ.get("DJANGO_PASSWORD_HASH_ITERATIONS", "200000"))
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", ["*", socket.gethostname()])
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", ["*", socket.gethostname()])
+# ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", ["*", socket.gethostname()])
 
-DEBUG = get_bool_env("DEBUG", False)
+DEBUG = env("DEBUG", False)
+# DEBUG = get_bool_env("DEBUG", False)
 
 # apps and middlewares
 INSTALLED_APPS = [
@@ -197,12 +202,17 @@ DEV_SPECIFIC_APPS = [
 
 INSTALLED_APPS += DEV_SPECIFIC_APPS
 
-if get_bool_env("ENV_SPECIFIC_APPS", False):
-    INSTALLED_APPS += os.environ.get("ENV_SPECIFIC_APPS")
+if env("ENV_SPECIFIC_APPS", False):
+    INSTALLED_APPS += env("ENV_SPECIFIC_APPS")
+# if get_bool_env("ENV_SPECIFIC_APPS", False):
+#    INSTALLED_APPS += os.environ.get("ENV_SPECIFIC_APPS")
 
+# REST_FRAMEWORK = {
+#    "DEFAULT_THROTTLE_RATES": {
 REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
-        "token": os.environ.get("TOKEN_THROTTLE_RATE", "100000/s"),
+        "token": env("TOKEN_THROTTLE_RATE", "100000/s"),
+        # "token": os.environ.get("TOKEN_THROTTLE_RATE", "100000/s"),
     },
 }
 
@@ -221,8 +231,10 @@ AXES_USERNAME_FORM_FIELD = "username"
 OPTIONAL_INSTALLED_APPS = [
     "",
 ]
-if get_bool_env("OPTIONAL_INSTALLED_APPS", False):
-    OPTIONAL_INSTALLED_APPS += os.environ.get("OPTIONAL_INSTALLED_APPS")
+if env("OPTIONAL_INSTALLED_APPS", False):
+    OPTIONAL_INSTALLED_APPS += env("OPTIONAL_INSTALLED_APPS")
+# if get_bool_env("OPTIONAL_INSTALLED_APPS", False):
+#     OPTIONAL_INSTALLED_APPS += os.environ.get("OPTIONAL_INSTALLED_APPS")
 
 
 MIDDLEWARE = [
@@ -249,7 +261,8 @@ MIDDLEWARE = [
     "axes.middleware.AxesMiddleware",
 ]
 
-CORS_ORIGIN_ALLOW_ALL = bool_env(os.environ.get("CORS_ORIGIN_ALLOW_ALL", True))
+CORS_ORIGIN_ALLOW_ALL = bool_env(env("CORS_ORIGIN_ALLOW_ALL", True))
+# CORS_ORIGIN_ALLOW_ALL = bool_env(os.environ.get("CORS_ORIGIN_ALLOW_ALL", True))
 
 ROOT_URLCONF = "hhs_oauth_server.urls"
 
@@ -289,7 +302,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("DATABASES_CUSTOM", "sqlite:///{}/db.sqlite3".format(BASE_DIR))
+        default=env("DATABASES_CUSTOM", "sqlite:///{}/db.sqlite3".format(BASE_DIR))
+        # default=os.environ.get("DATABASES_CUSTOM", "sqlite:///{}/db.sqlite3".format(BASE_DIR))
     ),
 }
 
@@ -320,7 +334,8 @@ USE_I18N = True
 USE_TZ = True
 
 # static files and media
-ASSETS_ROOT = os.environ.get("DJANGO_ASSETS_ROOT", BASE_DIR)
+ASSETS_ROOT = env("DJANGO_ASSETS_ROOT", BASE_DIR)
+# ASSETS_ROOT = os.environ.get("DJANGO_ASSETS_ROOT", BASE_DIR)
 
 MEDIA_ROOT = os.path.join(ASSETS_ROOT, "media")
 
@@ -338,29 +353,43 @@ STATICFILES_DIRS = [
 WAFFLE_FLAG_MODEL = "core.Flag"
 
 # emails
-DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_FROM_EMAIL", "change-me@example.com")
-DEFAULT_ADMIN_EMAIL = os.environ.get("DJANGO_ADMIN_EMAIL", "change-me@example.com")
+DEFAULT_FROM_EMAIL = env("DJANGO_FROM_EMAIL", "change-me@example.com")
+DEFAULT_ADMIN_EMAIL = env("DJANGO_ADMIN_EMAIL", "change-me@example.com")
+# DEFAULT_FROM_EMAIL = os.environ.get("DJANGO_FROM_EMAIL", "change-me@example.com")
+# DEFAULT_ADMIN_EMAIL = os.environ.get("DJANGO_ADMIN_EMAIL", "change-me@example.com")
 
 # The console.EmailBackend backend prints to the console.
 # Redefine this for SES or other email delivery mechanism
 EMAIL_BACKEND_DEFAULT = "django.core.mail.backends.console.EmailBackend"
-EMAIL_BACKEND = os.environ.get("DJANGO_EMAIL_BACKEND", EMAIL_BACKEND_DEFAULT)
-EMAIL_HOST = os.environ.get("DJANGO_EMAIL_HOST", "email-smtp.us-east-1.amazonaws.com")
+EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", EMAIL_BACKEND_DEFAULT)
+EMAIL_HOST = env("DJANGO_EMAIL_HOST", "email-smtp.us-east-1.amazonaws.com")
+# EMAIL_BACKEND = os.environ.get("DJANGO_EMAIL_BACKEND", EMAIL_BACKEND_DEFAULT)
+# EMAIL_HOST = os.environ.get("DJANGO_EMAIL_HOST", "email-smtp.us-east-1.amazonaws.com")
 # SES PORT options: 25, 465, 587, 2465 or 2587.
 # Port 25 is throttled
 # Use port 587 or 2587 for TLS connections
 # Use port 465 or 2465 for Native SSL support
-EMAIL_PORT = int_env(os.environ.get("DJANGO_EMAIL_PORT", 587))
-EMAIL_USE_TLS = bool_env(os.environ.get("DJANGO_EMAIL_USE_TLS", "True"))
-EMAIL_USE_SSL = bool_env(os.environ.get("DJANGO_EMAIL_USE_SSL", "False"))
-EMAIL_TIMEOUT = os.environ.get("DJANGO_EMAIL_TIMEOUT", None)
-EMAIL_HOST_USER = os.environ.get("DJANGO_EMAIL_HOST_USER", None)
-EMAIL_HOST_PASSWORD = os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", None)
-EMAIL_SSL_KEYFILE = os.environ.get("DJANGO_EMAIL_SSL_KEYFILE", None)
-EMAIL_SSL_CERTFILE = os.environ.get("DJANGO_EMAIL_SSL_CERTFILE", None)
+EMAIL_PORT = int_env(env("DJANGO_EMAIL_PORT", 587))
+EMAIL_USE_TLS = bool_env(env("DJANGO_EMAIL_USE_TLS", "True"))
+EMAIL_USE_SSL = bool_env(env("DJANGO_EMAIL_USE_SSL", "False"))
+EMAIL_TIMEOUT = env("DJANGO_EMAIL_TIMEOUT", None)
+EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", None)
+EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", None)
+EMAIL_SSL_KEYFILE = env("DJANGO_EMAIL_SSL_KEYFILE", None)
+EMAIL_SSL_CERTFILE = env("DJANGO_EMAIL_SSL_CERTFILE", None)
+
+# EMAIL_PORT = int_env(os.environ.get("DJANGO_EMAIL_PORT", 587))
+# EMAIL_USE_TLS = bool_env(os.environ.get("DJANGO_EMAIL_USE_TLS", "True"))
+# EMAIL_USE_SSL = bool_env(os.environ.get("DJANGO_EMAIL_USE_SSL", "False"))
+# EMAIL_TIMEOUT = os.environ.get("DJANGO_EMAIL_TIMEOUT", None)
+# EMAIL_HOST_USER = os.environ.get("DJANGO_EMAIL_HOST_USER", None)
+# EMAIL_HOST_PASSWORD = os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", None)
+# EMAIL_SSL_KEYFILE = os.environ.get("DJANGO_EMAIL_SSL_KEYFILE", None)
+# EMAIL_SSL_CERTFILE = os.environ.get("DJANGO_EMAIL_SSL_CERTFILE", None)
 
 # Use env-specific logging config if present
-LOGGING = os.environ.get(
+LOGGING = env(
+# LOGGING = os.environ.get(
     "DJANGO_LOGGING",
     {
         "version": 1,
@@ -373,7 +402,7 @@ LOGGING = os.environ.get(
             "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
             "jsonout": {
                 "format": '{"env": "'
-                + os.environ.get("TARGET_ENV", "DEV")
+                + env("TARGET_ENV", "DEV")
                 + '", "time": "%(asctime)s", "level": "%(levelname)s", '
                 '"name": "%(name)s", "message": "%(message)s"}',
                 "datefmt": "%Y-%m-%d %H:%M:%S",
@@ -432,8 +461,8 @@ LOGGING = os.environ.get(
 )
 
 # Option for local development to pretty print/format JSON logging
-# LOG_JSON_FORMAT_PRETTY = os.environ.get("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
-LOG_JSON_FORMAT_PRETTY = get_bool_env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
+LOG_JSON_FORMAT_PRETTY = env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
+# LOG_JSON_FORMAT_PRETTY = get_bool_env("DJANGO_LOG_JSON_FORMAT_PRETTY", False)
 
 AUTH_PROFILE_MODULE = "accounts.UserProfile"
 
@@ -477,8 +506,10 @@ BENE_PERSONAL_INFO_SCOPES = ["patient/Patient.read", "profile"]
 THEME = THEMES[THEME_SELECTED]
 
 
-APPLICATION_TITLE = os.environ.get("DJANGO_APPLICATION_TITLE", "Blue Button 2.0")
-ORGANIZATION_TITLE = os.environ.get(
+APPLICATION_TITLE = env("DJANGO_APPLICATION_TITLE", "Blue Button 2.0")
+ORGANIZATION_TITLE = env(
+# APPLICATION_TITLE = os.environ.get("DJANGO_APPLICATION_TITLE", "Blue Button 2.0")
+# ORGANIZATION_TITLE = os.environ.get(
     "DJANGO_ORGANIZATION_TITLE",
     "The U.S. Centers for Medicare & Medicaid Services (CMS)",
 )
@@ -487,24 +518,34 @@ POLICY_URI = os.environ.get(
     "DJANGO_POLICY_URI",
     "https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html",
 )
-POLICY_TITLE = os.environ.get("DJANGO_POLICY_TITLE", "Privacy Policy")
-TOS_URI = os.environ.get("DJANGO_TOS_URI", "https://bluebutton.cms.gov/terms")
-TOS_TITLE = os.environ.get("DJANGO_TOS_TITLE", "Terms of Service")
-TAG_LINE_1 = os.environ.get("DJANGO_TAG_LINE_1", "Share your Medicare data")
-TAG_LINE_2 = os.environ.get(
+# POLICY_TITLE = os.environ.get("DJANGO_POLICY_TITLE", "Privacy Policy")
+# TOS_URI = os.environ.get("DJANGO_TOS_URI", "https://bluebutton.cms.gov/terms")
+# TOS_TITLE = os.environ.get("DJANGO_TOS_TITLE", "Terms of Service")
+# TAG_LINE_1 = os.environ.get("DJANGO_TAG_LINE_1", "Share your Medicare data")
+# TAG_LINE_2 = os.environ.get(
+POLICY_TITLE = env("DJANGO_POLICY_TITLE", "Privacy Policy")
+TOS_URI = env("DJANGO_TOS_URI", "https://bluebutton.cms.gov/terms")
+TOS_TITLE = env("DJANGO_TOS_TITLE", "Terms of Service")
+TAG_LINE_1 = env("DJANGO_TAG_LINE_1", "Share your Medicare data")
+TAG_LINE_2 = env(
     "DJANGO_TAG_LINE_2", "with applications, organizations, and people you trust."
 )
 EXPLAINATION_LINE = "This service allows Medicare beneficiaries to connect their health data to applications of their choosing."
-EXPLAINATION_LINE = os.environ.get("DJANGO_EXPLAINATION_LINE ", EXPLAINATION_LINE)
+EXPLAINATION_LINE = env("DJANGO_EXPLAINATION_LINE ", EXPLAINATION_LINE)
+# EXPLAINATION_LINE = os.environ``.get("DJANGO_EXPLAINATION_LINE ", EXPLAINATION_LINE)
 
 # Application model settings
-APP_LOGO_SIZE_MAX = os.environ.get("DJANGO_APP_LOGO_SIZE_MAX", "100")
-APP_LOGO_WIDTH_MAX = os.environ.get("DJANGO_APP_LOGO_WIDTH_MAX", "128")
-APP_LOGO_HEIGHT_MAX = os.environ.get("DJANGO_APP_LOGO_HEIGHT_MAX", "128")
+APP_LOGO_SIZE_MAX = env("DJANGO_APP_LOGO_SIZE_MAX", "100")
+APP_LOGO_WIDTH_MAX = env("DJANGO_APP_LOGO_WIDTH_MAX", "128")
+APP_LOGO_HEIGHT_MAX = env("DJANGO_APP_LOGO_HEIGHT_MAX", "128")
+# APP_LOGO_SIZE_MAX = os.environ.get("DJANGO_APP_LOGO_SIZE_MAX", "100")
+# APP_LOGO_WIDTH_MAX = os.environ.get("DJANGO_APP_LOGO_WIDTH_MAX", "128")
+# APP_LOGO_HEIGHT_MAX = os.environ.get("DJANGO_APP_LOGO_HEIGHT_MAX", "128")
 
 # Application label slugs to exclude from externally
 # published lists, like those used for internal use testing.
-APP_LIST_EXCLUDE = os.environ.get("DJANGO_APP_LIST_EXCLUDE", ["internal-use"])
+APP_LIST_EXCLUDE = env("DJANGO_APP_LIST_EXCLUDE", ["internal-use"])
+# APP_LIST_EXCLUDE = os.environ.get("DJANGO_APP_LIST_EXCLUDE", ["internal-use"])
 
 # LINKS TO DOCS
 DEVELOPER_DOCS_URI = "https://bluebutton.cms.gov/developers"
@@ -519,9 +560,11 @@ DEFAULT_DISCLOSURE_TEXT = """
     subject to audit.
     """
 
-DISCLOSURE_TEXT = os.environ.get("DJANGO_PRIVACY_POLICY_URI", DEFAULT_DISCLOSURE_TEXT)
+DISCLOSURE_TEXT = env("DJANGO_PRIVACY_POLICY_URI", DEFAULT_DISCLOSURE_TEXT)
+# DISCLOSURE_TEXT = os.environ.get("DJANGO_PRIVACY_POLICY_URI", DEFAULT_DISCLOSURE_TEXT)
 
-HOSTNAME_URL = os.environ.get("HOSTNAME_URL", "http://localhost:8000")
+HOSTNAME_URL = env("HOSTNAME_URL", "http://localhost:8000")
+# HOSTNAME_URL = os.environ.get("HOSTNAME_URL", "http://localhost:8000")
 
 # Set the default Encoding standard. typically 'utf-8'
 ENCODING = "utf-8"
@@ -556,7 +599,8 @@ SETTINGS_EXPORT = [
 ]
 
 SESSION_COOKIE_AGE = 5400
-SESSION_COOKIE_SECURE = os.environ.get("DJANGO_SECURE_SESSION", True)
+SESSION_COOKIE_SECURE = env("DJANGO_SECURE_SESSION", True)
+# SESSION_COOKIE_SECURE = os.environ.get("DJANGO_SECURE_SESSION", True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 APPLICATION_TEMPORARILY_INACTIVE = (
@@ -584,18 +628,23 @@ APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
     "and consent to share their data."
 )
 
-FHIR_CLIENT_CERTSTORE = os.environ.get(
+# FHIR_CLIENT_CERTSTORE = os.environ.get(
+FHIR_CLIENT_CERTSTORE = env(    
     "DJANGO_FHIR_CERTSTORE",
     os.path.join(BASE_DIR, os.environ.get("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
 )
 
 FHIR_SERVER = {
-    "FHIR_URL": os.environ.get("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
+    "FHIR_URL": env("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
+    # "FHIR_URL": os.environ.get("FHIR_URL", "https://fhir.backend.bluebutton.hhsdevcloud.us"),
+    
     "CERT_FILE": os.path.join(
-        FHIR_CLIENT_CERTSTORE, os.environ.get("FHIR_CERT_FILE", "ca.cert.pem")
+        FHIR_CLIENT_CERTSTORE, env("FHIR_CERT_FILE", "ca.cert.pem")
+        # FHIR_CLIENT_CERTSTORE, os.environ.get("FHIR_CERT_FILE", "ca.cert.pem")
     ),
     "KEY_FILE": os.path.join(
-        FHIR_CLIENT_CERTSTORE, os.environ.get("FHIR_KEY_FILE", "ca.key.nocrypt.pem")
+        FHIR_CLIENT_CERTSTORE, env("FHIR_KEY_FILE", "ca.key.nocrypt.pem")
+        # FHIR_CLIENT_CERTSTORE, os.environ.get("FHIR_KEY_FILE", "ca.key.nocrypt.pem")
     ),
     "CLIENT_AUTH": True,
 }
@@ -618,7 +667,8 @@ REQUEST_CALL_TIMEOUT = (30, 120)
 # this can be over-ridden in aws-{env}.py file to set values per environment
 REQUEST_EOB_KEEP_ALIVE = "timeout=120, max=10"
 
-SIGNUP_TIMEOUT_DAYS = os.environ.get("SIGNUP_TIMEOUT_DAYS", 7)
+SIGNUP_TIMEOUT_DAYS = env("SIGNUP_TIMEOUT_DAYS", 7)
+# SIGNUP_TIMEOUT_DAYS = os.environ.get("SIGNUP_TIMEOUT_DAYS", 7)
 ORGANIZATION_NAME = "CMS Medicare Blue Button"
 
 LOGIN_REDIRECT_URL = "/"
@@ -627,42 +677,55 @@ LOGIN_URL = "/v1/accounts/login"
 LOGOUT_REDIRECT_URL = "/"
 
 # Move Admin to a variable url location
-ADMIN_PREPEND_URL = os.environ.get("DJANGO_ADMIN_PREPEND_URL", "")
+ADMIN_PREPEND_URL = env("DJANGO_ADMIN_PREPEND_URL", "")
+# ADMIN_PREPEND_URL = os.environ.get("DJANGO_ADMIN_PREPEND_URL", "")
 
 ALLOW_END_USER_EXTERNAL_AUTH = "B"
 EXTERNAL_AUTH_NAME = "Medicare.gov"
 
 # SLSx settings
-SLSX_CLIENT_ID = os.environ.get("DJANGO_SLSX_CLIENT_ID")
-SLSX_CLIENT_SECRET = os.environ.get("DJANGO_SLSX_CLIENT_SECRET")
+SLSX_CLIENT_ID = env("DJANGO_SLSX_CLIENT_ID")
+SLSX_CLIENT_SECRET = env("DJANGO_SLSX_CLIENT_SECRET")
+# SLSX_CLIENT_ID = os.environ.get("DJANGO_SLSX_CLIENT_ID")
+# SLSX_CLIENT_SECRET = os.environ.get("DJANGO_SLSX_CLIENT_SECRET")
 
 # ACA token for SLSX_TOKEN_ENDPOINT
-MEDICARE_SLSX_AKAMAI_ACA_TOKEN = os.environ.get("DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN", "")
+MEDICARE_SLSX_AKAMAI_ACA_TOKEN = env("DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN", "")
+# MEDICARE_SLSX_AKAMAI_ACA_TOKEN = os.environ.get("DJANGO_MEDICARE_SLSX_AKAMAI_ACA_TOKEN", "")
 
-MEDICARE_SLSX_REDIRECT_URI = os.environ.get(
+MEDICARE_SLSX_REDIRECT_URI = env(
+# MEDICARE_SLSX_REDIRECT_URI = os.environ.get(
     "DJANGO_MEDICARE_SLSX_REDIRECT_URI", "http://localhost:8000/mymedicare/sls-callback"
 )
 
-MEDICARE_SLSX_LOGIN_URI = os.environ.get(
+MEDICARE_SLSX_LOGIN_URI = env(
+# MEDICARE_SLSX_LOGIN_URI = os.environ.get(
     "DJANGO_MEDICARE_SLSX_LOGIN_URI",
     "https://test.medicare.gov/sso/authorize?client_id=bb2api",
 )
-SLSX_HEALTH_CHECK_ENDPOINT = os.environ.get(
+SLSX_HEALTH_CHECK_ENDPOINT = env(
+# SLSX_HEALTH_CHECK_ENDPOINT = os.environ.get(
     "DJANGO_SLSX_HEALTH_CHECK_ENDPOINT", "https://test.accounts.cms.gov/health"
 )
-SLSX_TOKEN_ENDPOINT = os.environ.get(
+SLSX_TOKEN_ENDPOINT = env(
+# SLSX_TOKEN_ENDPOINT = os.environ.get(
     "DJANGO_SLSX_TOKEN_ENDPOINT", "https://test.medicare.gov/sso/session"
 )
-SLSX_SIGNOUT_ENDPOINT = os.environ.get(
+SLSX_SIGNOUT_ENDPOINT = env(
+# SLSX_SIGNOUT_ENDPOINT = os.environ.get(
     "DJANGO_SLSX_SIGNOUT_ENDPOINT", "https://test.medicare.gov/sso/signout"
 )
-SLSX_USERINFO_ENDPOINT = os.environ.get(
+SLSX_USERINFO_ENDPOINT = env(
+# SLSX_USERINFO_ENDPOINT = os.environ.get(
     "DJANGO_SLSX_USERINFO_ENDPOINT", "https://test.accounts.cms.gov/v1/users"
 )
 
 # SSL verify for internal endpoints can't currently use SSL verification (this may change in the future)
-SLSX_VERIFY_SSL_INTERNAL = get_bool_env("DJANGO_SLSX_VERIFY_SSL_INTERNAL", False)
-SLSX_VERIFY_SSL_EXTERNAL = get_bool_env("DJANGO_SLSX_VERIFY_SSL_EXTERNAL", False)
+SLSX_VERIFY_SSL_INTERNAL = env("DJANGO_SLSX_VERIFY_SSL_INTERNAL", False)
+SLSX_VERIFY_SSL_EXTERNAL = env("DJANGO_SLSX_VERIFY_SSL_EXTERNAL", False)
+
+# SLSX_VERIFY_SSL_INTERNAL = get_bool_env("DJANGO_SLSX_VERIFY_SSL_INTERNAL", False)
+# SLSX_VERIFY_SSL_EXTERNAL = get_bool_env("DJANGO_SLSX_VERIFY_SSL_EXTERNAL", False)
 
 # Message returned to bene for API exceptions related to medicare login/SLS
 MEDICARE_ERROR_MSG = "An error occurred connecting to medicare.gov account"
@@ -675,10 +738,12 @@ AUTHENTICATION_BACKENDS = (
 )
 
 # Change these for production
-USER_ID_SALT = os.environ.get("DJANGO_USER_ID_SALT", "6E6F747468657265616C706570706572")
+USER_ID_SALT = env("DJANGO_USER_ID_SALT", "6E6F747468657265616C706570706572")
+# USER_ID_SALT = os.environ.get("DJANGO_USER_ID_SALT", "6E6F747468657265616C706570706572")
 
 # Check type for cases where this is an INT in local development
-iterations = os.environ.get("DJANGO_USER_ID_ITERATIONS", None)
+iterations = env("DJANGO_USER_ID_ITERATIONS", None)
+# iterations = os.environ.get("DJANGO_USER_ID_ITERATIONS", None)
 if iterations:
     if isinstance(iterations, int):
         USER_ID_ITERATIONS = iterations
@@ -691,7 +756,8 @@ else:
 USER_ID_TYPE_CHOICES = (("H", "HICN"), ("M", "MBI"))
 
 USER_ID_TYPE_DEFAULT = "H"
-DEFAULT_SAMPLE_FHIR_ID = os.environ.get("DJANGO_DEFAULT_SAMPLE_FHIR_ID", "-20140000008325")
+DEFAULT_SAMPLE_FHIR_ID = env("DJANGO_DEFAULT_SAMPLE_FHIR_ID", "-20140000008325")
+# DEFAULT_SAMPLE_FHIR_ID = os.environ.get("DJANGO_DEFAULT_SAMPLE_FHIR_ID", "-20140000008325")
 TESTCLIENT_REDIRECT_URI = "/testclient/callback"
 
 OFFLINE = False
@@ -700,11 +766,14 @@ EXTERNAL_LOGIN_TEMPLATE_NAME = "/v1/accounts/upstream-login"
 BLOCK_HTTP_REDIRECT_URIS = False
 IS_MEDIA_URL_LOCAL = False
 
-if os.environ.get("TARGET_ENV", "") in ["dev", "test", "impl", "prod"]:
-    AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN")
+if env("TARGET_ENV", "") in ["dev", "test", "impl", "prod"]:
+    AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
+# if os.environ.get("TARGET_ENV", "") in ["dev", "test", "impl", "prod"]:
+#     AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN")
     STATICFILES_LOCATION = "static/"
     STATIC_URL = "https://%s%s" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
-    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
+    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+    # AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
     MEDIAFILES_LOCATION = "media/"
     STORAGES = {
         "default": {
@@ -724,7 +793,8 @@ else:
     #
     #     The following ENV variables are needed:
     #         AWS_STORAGE_BUCKET_NAME, AWS_S3_CUSTOM_DOMAIN
-    AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN")
+    AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
+    # AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN")
     if AWS_S3_CUSTOM_DOMAIN:
         AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
         MEDIAFILES_LOCATION = "media/"

@@ -15,6 +15,7 @@ soupsieve == 2.4.1
 backports.zoneinfo
 django-waffle
 django-storages
+django-getenv
 python-dotenv
 jsonschema
 importlib-resources

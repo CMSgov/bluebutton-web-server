@@ -938,7 +938,8 @@ SEE_ACCOUNT_HAS_ISSUE_MSG = {
 SEE_LOGIN_BEFORE_ACTIVATION_MSG = {
     "display": "Check login without activation error message present...",
     "action": Action.CONTAIN_TEXT,
-    "params": [20, By.XPATH, "//div[@class='alert alert-danger']", USER_NOT_ACTIVE_ALERT_MSG]
+    # TODO: use other xpath than class which is sensitive to changes
+    "params": [20, By.XPATH, "//div[@class='alert alert-danger alert-dismissible']", USER_NOT_ACTIVE_ALERT_MSG]
 }
 
 # Test user creation, activation, login, logout, app registration / modification / deletion

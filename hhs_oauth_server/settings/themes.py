@@ -1,4 +1,5 @@
 import os
+from getenv import env
 
 """ theme selection """
 
@@ -91,7 +92,8 @@ THEMES = {
         'PATH': 'theme/yeti/',
         'INFO': 'Yeti bootswatch theme',
     },
-    'SELECTED': os.environ.get('DJANGO_SELECTED_THEME', DEFAULT_THEME),
+    'SELECTED': env('DJANGO_SELECTED_THEME', DEFAULT_THEME),
+    # 'SELECTED': os.environ.get('DJANGO_SELECTED_THEME', DEFAULT_THEME),
 }
 
 if THEMES['SELECTED'] in THEMES:
