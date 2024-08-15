@@ -27,7 +27,7 @@ from .selenium_cases import (
 )
 
 LOG_FILE = "./docker-compose/tmp/bb2_email_to_stdout.log"
-EN_MONTH_ABBR = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.']
+EN_MONTH_ABBR = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.']
 ES_MONTH_NAME = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre',
                  'octubre', 'noviembre', 'diciembre']
 
@@ -135,7 +135,8 @@ class SeleniumGenericTests:
 
     def _click_get_sample_token(self, **kwargs):
         return self._find_and_click(30, By.LINK_TEXT,
-                                    LNK_TXT_GET_TOKEN_V2 if kwargs.get("api_ver", API_V1) == API_V2 else LNK_TXT_GET_TOKEN_V1)
+                                    LNK_TXT_GET_TOKEN_V2 if kwargs.get("api_ver",
+                                                                       API_V1) == API_V2 else LNK_TXT_GET_TOKEN_V1)
 
     def _click_get_sample_token_pkce(self, **kwargs):
         return self._find_and_click(30, By.LINK_TEXT,

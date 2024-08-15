@@ -2,7 +2,6 @@ import os
 from enum import Enum
 from selenium.webdriver.common.by import By
 
-
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
 USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
 PROD_URL = 'https://api.bluebutton.cms.gov'
@@ -119,7 +118,7 @@ AUTH_SCREEN_ES_EXPIRE_INFO_TXT = "TestApp tendrá acceso a sus datos durante 13 
 # regex for date formats
 AUTH_SCREEN_ES_DATE_FORMAT = "^(?P<day>\\d{1,2}) de (?P<month>\\w+) de (?P<year>\\d{4})"
 # Django en locale date format is 3 letter abbrev plus period or full month name (e.g. March, May)
-AUTH_SCREEN_EN_DATE_FORMAT = "^(?P<month>\\w{3}\\.|\\w+) (?P<day>\\d{1,2}), (?P<year>\\d{4})"
+AUTH_SCREEN_EN_DATE_FORMAT = "^(?P<month>\\w{3,4}\\.|\\w+) (?P<day>\\d{1,2}), (?P<year>\\d{4})"
 SLSX_LOGIN_BUTTON_SPANISH = "Entrar"
 
 # app form
