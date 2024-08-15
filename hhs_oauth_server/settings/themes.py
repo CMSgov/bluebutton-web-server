@@ -1,4 +1,3 @@
-import os
 from getenv import env
 
 """ theme selection """
