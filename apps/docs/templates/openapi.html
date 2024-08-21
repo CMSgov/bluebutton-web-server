@@ -45,7 +45,6 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
     <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-standalone-preset.js' %}" charset="UTF-8"> </script>
     <script>
     window.onload = function() {
-      // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
         urls: [
             {
@@ -59,12 +58,57 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
           SwaggerUIBundle.presets.apis,
           SwaggerUIStandalonePreset
         ],
-        layout: "StandaloneLayout"
+        layout: "StandaloneLayout",
+        requestInterceptor: (request) => {
+            const accessToken = localStorage.getItem('access_token');
+            if (accessToken) {
+                request.headers['Authorization'] = `Bearer ${accessToken}`;
+            }
+
+            return request;
+        },
+
+        oauth2RedirectUrl: window.location.origin + "/static/oauth2-redirect.html"
       });
-      // End Swagger UI call region
 
       window.ui = ui;
+
+      async function waitForSwaggerUIRedirectOauth2() {
+          const checkInterval = 1000; // Check every 1 sec
+
+          while (!window.swaggerUIRedirectOauth2) {
+              await new Promise(resolve => setTimeout(resolve, checkInterval));
+          }
+
+          // Save OAuth2 details to localStorage
+          const serializedData = serializeObject(window.swaggerUIRedirectOauth2)
+          /**
+           *  swaggerUIRedirectOauth2 contains information regarding oauth2 clientId, clientSecret etc.
+           * This will be required by static/oauth2-redirect.html and will be deserialized there
+           */
+          localStorage.setItem('swaggerUIRedirectOauth2', serializedData);
+          window.dispatchEvent(new Event('storage'));
+        }
+
+        function serializeObject(obj) {
+          const serializedObj = { ...obj };
+          for (const key in serializedObj) {
+              if (typeof serializedObj[key] === 'function') {
+                  serializedObj[key] = serializedObj[key].toString();
+              }
+          }
+          return JSON.stringify(serializedObj);
+      }
+
+      // Event listener for authorize button click
+      document.addEventListener('click', (event) => {
+          if (event.target && event.target.matches('button.btn.modal-btn.auth.authorize.button')) {
+              waitForSwaggerUIRedirectOauth2();
+          }
+      });
+
     };
+
   </script>
   </body>
 </html>

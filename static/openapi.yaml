@@ -33,7 +33,11 @@ paths:
       operationId: fhirMetaData
       description: "Returns FHIR CapabilityStatement resource (public access, no token needed)"
       summary: "FHIR CapabilityStatement resource"
-      security: []
+      security: 
+        - oAuth2Security: 
+          - patient/Patient.read
+          - patient/Coverage.read
+          - patient/ExplanationOfBenefit.read
       responses:
         '200':
           content:
@@ -64,6 +68,11 @@ paths:
       operationId: listopenidconnect_userinfos
       description: "Returns OpenID Connect protocol (OIDC) userinfo"
       summary: "OpenID Connect protocol (OIDC) userinfo"
+      security: 
+        - oAuth2Security: 
+          - patient/Patient.read
+          - patient/Coverage.read
+          - patient/ExplanationOfBenefit.read
       parameters: []
       responses:
         '200':
@@ -161,6 +170,11 @@ paths:
       operationId: listSearchViewPatients
       description: "Returns Patient FHIR resources matching search criteria as a FHIR Bundle"
       summary: "Patient FHIR resources matching search criteria as a FHIR Bundle"
+      security: 
+        - oAuth2Security: 
+          - patient/Patient.read
+          - patient/Coverage.read
+          - patient/ExplanationOfBenefit.read
       parameters:
         - in: query
           name: identifier
@@ -1000,10 +1014,19 @@ paths:
 
 components:
   securitySchemes:
-      bearerAuth:            # arbitrary name for the security scheme
-        type: http
-        scheme: bearer
-          
+    oAuth2Security:
+      type: oauth2
+      description: This API uses OAuth 2 with the implicit grant flow.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://sandbox.bluebutton.cms.gov/v2/o/authorize
+          tokenUrl: https://sandbox.bluebutton.cms.gov/v2/o/token/
+          scopes:
+            profile: User Profile
+            patient/Patient.read: Read patient
+            patient/Coverage.read: Read Patient coverage
+            patient/ExplanationOfBenefit.read: Read patient explanation of benefit
+            
   schemas:
     V1OpenIdConfiguration:
       properties:
@@ -36880,4 +36903,9 @@ servers:
     description: Sandbox server
     variables: {}
 security:
-    - bearerAuth: []
+    - oAuth2Security:
+      - profile 
+      - patient/Patient.read
+      - patient/Coverage.read
+      - patient/ExplanationOfBenefit.read
+      - profile
