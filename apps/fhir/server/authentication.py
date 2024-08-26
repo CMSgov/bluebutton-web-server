@@ -18,13 +18,12 @@ from ..bluebutton.utils import (FhirServerAuth,
 from .loggers import log_match_fhir_id
 
 
-def search_fhir_id_by_identifier_mbi_hash(mbi_hash, request=None):
+def search_fhir_id_by_identifier_mbi(mbi, request=None):
     """
         Search the backend FHIR server's patient resource
         using the mbi_hash identifier.
     """
-    search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_MBI_HASH \
-        + "%7C" + mbi_hash
+    search_identifier = f"{settings.FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI}|{mbi}"
 
     return search_fhir_id_by_identifier(search_identifier, request)
 
@@ -34,8 +33,7 @@ def search_fhir_id_by_identifier_hicn_hash(hicn_hash, request=None):
         Search the backend FHIR server's patient resource
         using the hicn_hash identifier.
     """
-    search_identifier = settings.FHIR_SEARCH_PARAM_IDENTIFIER_HICN_HASH \
-        + "%7C" + hicn_hash
+    search_identifier = f"{settings.FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH}|{hicn_hash}"
 
     return search_fhir_id_by_identifier(search_identifier, request)
 
@@ -80,13 +78,11 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
 
     # Build URL with patient ID search by identifier.
     ver = "v{}".format(request.session.get('version', 1))
-    url = get_resourcerouter().fhir_url \
-        + "/{}/fhir/Patient/?identifier=".format(ver) + search_identifier \
-        + "&_format=" + settings.FHIR_PARAM_FORMAT
-
+    url = f"{get_resourcerouter().fhir_url}/{ver}/fhir/Patient/_search"
     s = requests.Session()
 
-    req = requests.Request('GET', url, headers=headers)
+    payload = {"identifier": search_identifier}
+    req = requests.Request('POST', url, headers=headers, data=payload)
     prepped = req.prepare()
     pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
     response = s.send(prepped, cert=certs, verify=False)
@@ -129,7 +125,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
         raise UpstreamServerException("Unexpected result found in the Patient resource bundle")
 
 
-def match_fhir_id(mbi_hash, hicn_hash, request=None):
+def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
     """
       Matches a patient identifier via the backend FHIR server
       using an MBI or HICN hash.
@@ -150,7 +146,7 @@ def match_fhir_id(mbi_hash, hicn_hash, request=None):
     # Perform primary lookup using MBI_HASH
     if mbi_hash:
         try:
-            fhir_id = search_fhir_id_by_identifier_mbi_hash(mbi_hash, request)
+            fhir_id = search_fhir_id_by_identifier_mbi(mbi, request)
         except UpstreamServerException as err:
             log_match_fhir_id(request, None, mbi_hash, hicn_hash, False, "M", str(err))
             # Don't return a 404 because retrying later will not fix this.

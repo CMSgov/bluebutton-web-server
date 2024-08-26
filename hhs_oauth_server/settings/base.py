@@ -593,16 +593,26 @@ FHIR_SERVER = {
     "CLIENT_AUTH": True,
 }
 
-"""
-    FHIR URL search query parameters for backend /Patient resource
-    See FHIR and/or BFD specs for "identifier" and "_format" params.
-"""
-FHIR_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (
-    "https%3A%2F%2Fbluebutton.cms.gov" + "%2Fresources%2Fidentifier%2Fmbi-hash"
+FHIR_POST_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (
+    "https://bluebutton.cms.gov/resources/identifier/mbi-hash"
 )
-FHIR_SEARCH_PARAM_IDENTIFIER_HICN_HASH = (
-    "http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash"
+
+FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH = (
+    "https://bluebutton.cms.gov/resources/identifier/hicn-hash"
 )
+
+"""
+    (mbi, hicn, etc); the following are all valid values for Identifier, and all might represent the same resource:
+        - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
+        - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
+        - `identifier=http://hl7.org/fhir/sid/us-mbi|<your mbi>`
+    example: "http://hl7.org/fhir/sid/us-mbi|<your mbi>"
+"""
+
+FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI = (
+    "http://hl7.org/fhir/sid/us-mbi"
+)
+
 FHIR_PARAM_FORMAT = "json"
 
 # Timeout for request call

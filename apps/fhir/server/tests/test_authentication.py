@@ -14,7 +14,8 @@ class TestAuthentication(BaseApiTest):
     MOCK_FHIR_URL = "fhir.backend.bluebutton.hhsdevcloud.us"
     MOCK_FHIR_PATH = "/v1/fhir/Patient/"
     MOCK_FHIR_HICN_QUERY = ".*hicnHash.*"
-    MOCK_FHIR_MBI_QUERY = ".*mbi-hash.*"
+    # MOCK_FHIR_MBI_QUERY = ".*mbi-hash.*"
+    MOCK_FHIR_MBI_QUERY = ".*us-mbi|.*"
 
     def setUp(self):
         # Setup the RequestFactory
@@ -79,6 +80,7 @@ class TestAuthentication(BaseApiTest):
         '''
         with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_success_mock):
             fhir_id, hash_lookup_type = match_fhir_id(
+                mbi=self.test_mbi_hash,
                 mbi_hash=self.test_mbi_hash,
                 hicn_hash=self.test_hicn_hash, request=self.request)
             self.assertEqual(fhir_id, "-20000000002346")
@@ -92,6 +94,7 @@ class TestAuthentication(BaseApiTest):
         '''
         with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_not_found_mock):
             fhir_id, hash_lookup_type = match_fhir_id(
+                mbi=self.test_mbi_hash,
                 mbi_hash=self.test_mbi_hash,
                 hicn_hash=self.test_hicn_hash, request=self.request)
             self.assertEqual(fhir_id, "-20000000002346")
@@ -105,6 +108,7 @@ class TestAuthentication(BaseApiTest):
         '''
         with HTTMock(self.fhir_match_hicn_not_found_mock, self.fhir_match_mbi_success_mock):
             fhir_id, hash_lookup_type = match_fhir_id(
+                mbi=self.test_mbi_hash,
                 mbi_hash=self.test_mbi_hash,
                 hicn_hash=self.test_hicn_hash, request=self.request)
             self.assertEqual(fhir_id, "-20000000002346")
@@ -119,6 +123,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_not_found_mock, self.fhir_match_mbi_not_found_mock):
             with self.assertRaises(exceptions.NotFound):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -131,6 +136,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_error_mock, self.fhir_match_mbi_not_found_mock):
             with self.assertRaises(HTTPError):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -143,6 +149,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_not_found_mock, self.fhir_match_mbi_error_mock):
             with self.assertRaises(HTTPError):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -155,6 +162,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_duplicates_mock, self.fhir_match_mbi_not_found_mock):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -167,6 +175,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_duplicates_mock):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -179,6 +188,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_duplicates_mock, self.fhir_match_mbi_duplicates_mock):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -191,6 +201,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_malformed_mock, self.fhir_match_mbi_not_found_mock):
             with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected result found*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -203,6 +214,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_malformed_mock):
             with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected result found*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -217,6 +229,7 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_lying_mock, self.fhir_match_mbi_not_found_mock):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -231,5 +244,6 @@ class TestAuthentication(BaseApiTest):
         with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_lying_mock):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
+                    mbi=self.test_mbi_hash,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
