@@ -13,7 +13,7 @@ from .themes import THEMES, THEME_SELECTED
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, "..")
 
-OPENAPI_DOC = os.path.join(BASE_DIR, "bluebutton-openapi-doc/bluebutton/openapi.yaml")
+OPENAPI_DOC = os.path.join(BASE_DIR, "static/openapi.yaml")
 
 # security
 SECRET_KEY = env(
@@ -77,8 +77,7 @@ AUTH_PASSWORD_VALIDATORS = [
             "password_min_age": 60 * 5,
             # password reuse interval in seconds (365 days)
             "password_reuse_interval": 60 * 60 * 24 * 365,
-            # password expire in seconds (60 days)
-            "password_expire": 60 * 60 * 24 * 60,
+            "password_expire": 0,
         },
     },
     {

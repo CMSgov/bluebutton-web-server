@@ -159,7 +159,7 @@ class CustomRegisterApplicationForm(forms.ModelForm):
         self.instance.authorization_grant_type = "authorization-code"
         app = self.instance
         # Only log agreement from a Register form
-        if app.agree and type(self) == CustomRegisterApplicationForm:
+        if app.agree and isinstance(self, CustomRegisterApplicationForm):
             logmsg = "%s agreed to %s for the application %s" % (
                 app.user,
                 app.op_tos_uri,

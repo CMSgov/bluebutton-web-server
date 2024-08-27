@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from django.db.models import Q
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -21,9 +24,16 @@ Application = get_application_model()
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
+    contacts = serializers.SerializerMethodField()
+
     class Meta:
         model = Application
         fields = ('id', 'name', 'logo_uri', 'tos_uri', 'policy_uri', 'contacts')
+
+    def get_contacts(self, obj):
+        print(obj)
+        application = Application.objects.get(id=obj.id)
+        return application.support_email or ""
 
 
 class DataAccessGrantSerializer(serializers.ModelSerializer):
@@ -46,7 +56,10 @@ class AuthorizedGrants(viewsets.GenericViewSet,
     serializer_class = DataAccessGrantSerializer
 
     def get_queryset(self):
-        return DataAccessGrant.objects.select_related("application").filter(beneficiary=self.request.user)
+        return DataAccessGrant.objects.select_related("application").filter(
+            Q(expiration_date__gt=datetime.now()) | Q(expiration_date=None),
+            beneficiary=self.request.user
+        )
 
 
 @method_decorator(csrf_exempt, name="dispatch")
