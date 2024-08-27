@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load bootstrap5 %}
+
 {% block Content %}
 
 <!-- Ignore Banner Code -->
@@ -21,12 +23,11 @@
 			<div class="content">
 				<!-- Create Account Form -->
 				<form class="well" method="post" action="" enctype="multipart/form-data">
-      			{% csrf_token %}
-      			{% load bootstrap %}
-      			{{ form|bootstrap }}
-      			<input type="submit" class="ds-c-button  ds-c-button--solid ds-u-margin-y--2" value="{% trans 'Create Account' %}" />
+					{% csrf_token %}
+					{% bootstrap_form form %}
+					<input type="submit" class="ds-c-button  ds-c-button--solid ds-u-margin-y--2" value="{% trans 'Create Account' %}" />
 					<br />
-      			<a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
+	      			<a href="javascript:history.go(-1)">{% trans "Go Back" %}</a>
     			</form>
 			</div>
 		</div>

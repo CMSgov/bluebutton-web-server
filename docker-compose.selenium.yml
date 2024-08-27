@@ -4,6 +4,8 @@ services:
       context: ./
       dockerfile: Dockerfile.selenium
     command: pytest ./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py
+    ports:
+      - "8910:8910"
     env_file:
       - docker-compose/selenium-env-vars.env
     volumes:

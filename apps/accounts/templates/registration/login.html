@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load bootstrap5 %}
 
 <!-- Ignore Banner Code -->
 {% block banner %}{% endblock %}
@@ -14,7 +15,7 @@
 		<h1>Sandbox Login</h1>
 		<p>Register applications, make sample API calls, manage tokens, and more.</p>
 
-                {% include "include/messages-new-fmt.html" %}
+		{% include "include/messages-new-fmt.html" %}
 
 		<!-- Content Card -->
 		<div class="gradient-content-card">
@@ -23,8 +24,7 @@
 				<form class="" method="post" action="">
 					{% csrf_token %}
 					<table>
-						{% load bootstrap %}
-						{{ form|bootstrap }}
+						{% bootstrap_form form %}
 					</table>
 					<input type="submit" class="ds-c-button ds-u-margin-y--2 ds-c-button--solid" value="Login" />
 				</form>

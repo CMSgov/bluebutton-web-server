@@ -3,7 +3,7 @@
 
 
 {% load i18n %}
-{% load bootstrap %}
+{% load bootstrap5 %}
 
 <!-- Ignore Banner Code -->
 {% block banner %}{% endblock %}
@@ -70,8 +70,8 @@
                 {% endfor %}
 
                 <p>{% trans "This application requires following permissions" %}</p>
-                {{ form.scope|bootstrap }}
-                {{ form.expires_in|bootstrap }}
+                {{ form.scope|bootstrap5 }}
+                {{ form.expires_in|bootstrap5 }}
 
                 {{ form.non_field_errors }}
 
