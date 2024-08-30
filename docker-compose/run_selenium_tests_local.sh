@@ -214,7 +214,7 @@ echo "MSLSX=" ${USE_MSLSX}
 echo "SERVICE NAME=" ${SERVICE_NAME}
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 
-docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "pytest ${TESTS_LIST}"
+docker-compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "pytest ${TESTS_LIST}"
 
 #Stop containers after use
 echo_msg

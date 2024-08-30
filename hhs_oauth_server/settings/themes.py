@@ -92,6 +92,7 @@ THEMES = {
         'INFO': 'Yeti bootswatch theme',
     },
     'SELECTED': env('DJANGO_SELECTED_THEME', DEFAULT_THEME),
+    # 'SELECTED': os.environ.get('DJANGO_SELECTED_THEME', DEFAULT_THEME),
 }
 
 if THEMES['SELECTED'] in THEMES:

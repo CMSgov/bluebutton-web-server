@@ -64,7 +64,7 @@ class SeleniumGenericTests:
         opt.add_argument("--disable-popup-blocking")
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
-        opt.add_argument('--window-size=1920,1080')
+        # opt.add_argument('--window-size=1920,1080')
         opt.add_argument("--whitelisted-ips=''")
 
         self.driver = webdriver.Remote(
