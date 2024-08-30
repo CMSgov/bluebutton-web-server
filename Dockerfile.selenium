@@ -13,5 +13,5 @@ RUN python -m venv /tmp/venv
 RUN . /tmp/venv/bin/activate
 ENV PATH="/tmp/venv/bin:${PATH}"
 RUN pip3 install --upgrade pip
-RUN pip3 install selenium pytest debugpy jsonschema
+RUN pip3 install selenium pytest debugpy jsonschema python-dateutil
 
