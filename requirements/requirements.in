@@ -39,6 +39,7 @@ pyrsistent
 typing_extensions
 importlib-metadata
 certifi
+jsonpath-ng
 
 # notifications
 django-ses
