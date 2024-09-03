@@ -1,3 +1,5 @@
+import json
+
 from django.test import RequestFactory
 from django.test.client import Client
 from httmock import HTTMock, urlmatch
@@ -14,8 +16,13 @@ class TestAuthentication(BaseApiTest):
     MOCK_FHIR_URL = "fhir.backend.bluebutton.hhsdevcloud.us"
     MOCK_FHIR_PATH = "/v1/fhir/Patient/"
     MOCK_FHIR_HICN_QUERY = ".*hicnHash.*"
-    # MOCK_FHIR_MBI_QUERY = ".*mbi-hash.*"
     MOCK_FHIR_MBI_QUERY = ".*us-mbi|.*"
+    SUCCESS_KEY = 'success'
+    NOT_FOUND_KEY = 'not_found'
+    ERROR_KEY = 'error'
+    DUPLICATES_KEY = 'duplicates'
+    LYING_KEY = 'lying'
+    MALFORMED_KEY = 'malformed'
 
     def setUp(self):
         # Setup the RequestFactory
@@ -24,53 +31,22 @@ class TestAuthentication(BaseApiTest):
         self.request = self.factory.get('http://localhost:8000/mymedicare/sls-callback')
         self.request.session = self.client.session
 
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_HICN_QUERY)
-    def fhir_match_hicn_success_mock(self, url, request):
-        return responses['success']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_HICN_QUERY)
-    def fhir_match_hicn_not_found_mock(self, url, request):
-        return responses['not_found']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_HICN_QUERY)
-    def fhir_match_hicn_error_mock(self, url, request):
-        return responses['error']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_HICN_QUERY)
-    def fhir_match_hicn_duplicates_mock(self, url, request):
-        return responses['duplicates']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_HICN_QUERY)
-    def fhir_match_hicn_malformed_mock(self, url, request):
-        return responses['malformed']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_HICN_QUERY)
-    def fhir_match_hicn_lying_mock(self, url, request):
-        return responses['lying']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_MBI_QUERY)
-    def fhir_match_mbi_success_mock(self, url, request):
-        return responses['success']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_MBI_QUERY)
-    def fhir_match_mbi_not_found_mock(self, url, request):
-        return responses['not_found']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_MBI_QUERY)
-    def fhir_match_mbi_error_mock(self, url, request):
-        return responses['error']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_MBI_QUERY)
-    def fhir_match_mbi_duplicates_mock(self, url, request):
-        return responses['duplicates']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_MBI_QUERY)
-    def fhir_match_mbi_malformed_mock(self, url, request):
-        return responses['malformed']
-
-    @urlmatch(netloc=MOCK_FHIR_URL, path=MOCK_FHIR_PATH, query=MOCK_FHIR_MBI_QUERY)
-    def fhir_match_mbi_lying_mock(self, url, request):
-        return responses['lying']
+    @classmethod
+    def create_fhir_mock(cls, hicn_response_key, mbi_response_key):
+        @urlmatch(netloc=cls.MOCK_FHIR_URL, path=cls.MOCK_FHIR_PATH, method='POST')
+        def mock_fhir_post(url, request):
+            try:
+                body = json.loads(request.body)
+                identifier = body.get('identifier', '')
+                if 'hicn-hash' in identifier:
+                    return responses[hicn_response_key]
+                elif 'us-mbi' in identifier:
+                    return responses[mbi_response_key]
+                else:
+                    raise Exception(f"Invalid identifier: {identifier}")
+            except json.JSONDecodeError:
+                raise Exception("Failed to parse json")
+        return mock_fhir_post
 
     def test_match_fhir_id_success(self):
         '''
@@ -78,9 +54,9 @@ class TestAuthentication(BaseApiTest):
                                MBI = success
             Expecting: Match via MBI first / hash_lockup_type="M"
         '''
-        with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_success_mock):
+        with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.SUCCESS_KEY)):
             fhir_id, hash_lookup_type = match_fhir_id(
-                mbi=self.test_mbi_hash,
+                mbi=self.test_mbi,
                 mbi_hash=self.test_mbi_hash,
                 hicn_hash=self.test_hicn_hash, request=self.request)
             self.assertEqual(fhir_id, "-20000000002346")
@@ -92,9 +68,9 @@ class TestAuthentication(BaseApiTest):
                                MBI = not_found
             Expecting: Match via HICN / hash_lockup_type="H"
         '''
-        with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_not_found_mock):
+        with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.NOT_FOUND_KEY)):
             fhir_id, hash_lookup_type = match_fhir_id(
-                mbi=self.test_mbi_hash,
+                mbi=self.test_mbi,
                 mbi_hash=self.test_mbi_hash,
                 hicn_hash=self.test_hicn_hash, request=self.request)
             self.assertEqual(fhir_id, "-20000000002346")
@@ -106,9 +82,9 @@ class TestAuthentication(BaseApiTest):
                                MBI = success
             Expecting: Match via MBI / hash_lockup_type="M"
         '''
-        with HTTMock(self.fhir_match_hicn_not_found_mock, self.fhir_match_mbi_success_mock):
+        with HTTMock(self.create_fhir_mock(self.NOT_FOUND_KEY, self.SUCCESS_KEY)):
             fhir_id, hash_lookup_type = match_fhir_id(
-                mbi=self.test_mbi_hash,
+                mbi=self.test_mbi,
                 mbi_hash=self.test_mbi_hash,
                 hicn_hash=self.test_hicn_hash, request=self.request)
             self.assertEqual(fhir_id, "-20000000002346")
@@ -120,10 +96,10 @@ class TestAuthentication(BaseApiTest):
                                MBI = not_found
             Expecting: NotFound exception raised
         '''
-        with HTTMock(self.fhir_match_hicn_not_found_mock, self.fhir_match_mbi_not_found_mock):
+        with HTTMock(self.create_fhir_mock(self.NOT_FOUND_KEY, self.NOT_FOUND_KEY)):
             with self.assertRaises(exceptions.NotFound):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -133,10 +109,10 @@ class TestAuthentication(BaseApiTest):
                                MBI = not_found
             Expecting: HTTPError exception raised
         '''
-        with HTTMock(self.fhir_match_hicn_error_mock, self.fhir_match_mbi_not_found_mock):
+        with HTTMock(self.create_fhir_mock(self.ERROR_KEY, self.NOT_FOUND_KEY)):
             with self.assertRaises(HTTPError):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -146,10 +122,10 @@ class TestAuthentication(BaseApiTest):
                                MBI = error
             Expecting: HTTPError exception raised
         '''
-        with HTTMock(self.fhir_match_hicn_not_found_mock, self.fhir_match_mbi_error_mock):
+        with HTTMock(self.create_fhir_mock(self.NOT_FOUND_KEY, self.ERROR_KEY)):
             with self.assertRaises(HTTPError):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -159,10 +135,10 @@ class TestAuthentication(BaseApiTest):
                                MBI = not_found
             Expecting: UpstreamServerException exception raised
         '''
-        with HTTMock(self.fhir_match_hicn_duplicates_mock, self.fhir_match_mbi_not_found_mock):
+        with HTTMock(self.create_fhir_mock(self.DUPLICATES_KEY, self.NOT_FOUND_KEY)):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -172,10 +148,10 @@ class TestAuthentication(BaseApiTest):
                                MBI = duplicates
             Expecting: UpstreamServerException exception raised
         '''
-        with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_duplicates_mock):
+        with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.DUPLICATES_KEY)):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -185,10 +161,10 @@ class TestAuthentication(BaseApiTest):
                                MBI = duplicates
             Expecting: UpstreamServerException exception raised
         '''
-        with HTTMock(self.fhir_match_hicn_duplicates_mock, self.fhir_match_mbi_duplicates_mock):
+        with HTTMock(self.create_fhir_mock(self.DUPLICATES_KEY, self.DUPLICATES_KEY)):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -198,10 +174,10 @@ class TestAuthentication(BaseApiTest):
                                MBI = not_found
             Expecting: UpstreamServerException exception raised
         '''
-        with HTTMock(self.fhir_match_hicn_malformed_mock, self.fhir_match_mbi_not_found_mock):
+        with HTTMock(self.create_fhir_mock(self.MALFORMED_KEY, self.NOT_FOUND_KEY)):
             with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected result found*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -211,10 +187,10 @@ class TestAuthentication(BaseApiTest):
                                MBI = malformed
             Expecting: UpstreamServerException exception raised
         '''
-        with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_malformed_mock):
+        with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.MALFORMED_KEY)):
             with self.assertRaisesRegexp(UpstreamServerException, "^Unexpected result found*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -226,10 +202,10 @@ class TestAuthentication(BaseApiTest):
             Note: lying means response total=1, but there are multiple
                   Patient resources in the response.
         '''
-        with HTTMock(self.fhir_match_hicn_lying_mock, self.fhir_match_mbi_not_found_mock):
+        with HTTMock(self.create_fhir_mock(self.LYING_KEY, self.NOT_FOUND_KEY)):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)
 
@@ -241,9 +217,9 @@ class TestAuthentication(BaseApiTest):
             Note: lying means response total=1, but there are multiple
                   Patient resources in the response.
         '''
-        with HTTMock(self.fhir_match_hicn_success_mock, self.fhir_match_mbi_lying_mock):
+        with HTTMock(self.create_fhir_mock(self.SUCCESS_KEY, self.LYING_KEY)):
             with self.assertRaisesRegexp(UpstreamServerException, "^Duplicate.*"):
                 fhir_id, hash_lookup_type = match_fhir_id(
-                    mbi=self.test_mbi_hash,
+                    mbi=self.test_mbi,
                     mbi_hash=self.test_mbi_hash,
                     hicn_hash=self.test_hicn_hash, request=self.request)

@@ -1,3 +1,4 @@
+import json
 import requests
 
 from django.conf import settings
@@ -81,7 +82,7 @@ def search_fhir_id_by_identifier(search_identifier, request=None):
     url = f"{get_resourcerouter().fhir_url}/{ver}/fhir/Patient/_search"
     s = requests.Session()
 
-    payload = {"identifier": search_identifier}
+    payload = json.dumps({"identifier": search_identifier})
     req = requests.Request('POST', url, headers=headers, data=payload)
     prepped = req.prepare()
     pre_fetch.send_robust(FhirServerAuth, request=req, auth_request=request, api_ver=ver)
@@ -144,7 +145,7 @@ def match_fhir_id(mbi, mbi_hash, hicn_hash, request=None):
         NotFound: If both searches did not match a fhir_id.
     """
     # Perform primary lookup using MBI_HASH
-    if mbi_hash:
+    if mbi:
         try:
             fhir_id = search_fhir_id_by_identifier_mbi(mbi, request)
         except UpstreamServerException as err:
