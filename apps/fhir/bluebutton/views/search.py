@@ -47,7 +47,7 @@ C4DIC_SUPPORTING_IMAGE_EXT = {
             "url": "image",
             "valueAttachment": {
                 "contentType": "image/png",
-                "data": "<replace with base64 encoded iamge png here>"
+                "data": "<replace with base64 encoded image png here>"
             }
         },
         {
