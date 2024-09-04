@@ -85,14 +85,6 @@ def get_supporting_image_extension(b64encoded: str):
 # POC helper
 def enrich_supporting_image(resp: Response):
     for e in resp.data['entry']:
-        profiles = e['resource']['meta']['profile']
-        # the search result with _profile=http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage
-        # still return C4BB-Coverage, so need to force it into C4DIC-Coverage
-        # if C4DIC_COVERAGE_PROFILE_URL in profiles:
-
-        if C4BB_COVERAGE_PROFILE_URL == profiles[0]:
-            e['resource']['meta']['profile'][0] = C4DIC_COVERAGE_PROFILE_URL
-
         extensions = e['resource']['extension']
         class_type = lookup_1_and_get("$.resource.class[?(@.type.coding[0].code=='plan')]", "value", e)
         class_type = "Part A" if class_type is None else class_type
@@ -124,7 +116,8 @@ class SearchView(FhirDataView):
     QUERY_SCHEMA = {
         Required('startIndex', default=0): Coerce(int),
         Required('_count', default=DEFAULT_PAGE_SIZE): All(Coerce(int), Range(min=0, max=MAX_PAGE_SIZE)),
-        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")]
+        '_lastUpdated': [Match(REGEX_LASTUPDATED_VALUE, msg="the _lastUpdated operator is not valid")],
+        '_profile': Match('.+', msg="_profile value takes a non empty url like string")
     }
 
     def __init__(self, version=1):
