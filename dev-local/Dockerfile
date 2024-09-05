@@ -1,4 +1,5 @@
-FROM python:3.7.13
+FROM python:3.11
+ENV PYDEVD_DISABLE_FILE_VALIDATION 1
 RUN useradd -m -s /bin/bash DEVLOCAL
 USER DEVLOCAL
 ADD . /code
