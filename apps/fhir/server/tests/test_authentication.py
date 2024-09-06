@@ -36,8 +36,9 @@ class TestAuthentication(BaseApiTest):
         @urlmatch(netloc=cls.MOCK_FHIR_URL, path=cls.MOCK_FHIR_PATH, method='POST')
         def mock_fhir_post(url, request):
             try:
-                body = json.loads(request.body)
-                identifier = body.get('identifier', '')
+                body = request.body
+                identifier = body.split('=', 1)[1]
+
                 if 'hicn-hash' in identifier:
                     return responses[hicn_response_key]
                 elif 'us-mbi' in identifier:
