@@ -197,6 +197,7 @@ curl -s -X POST -H "Accept: application/vnd.github.v3+json" \
 if grep -q "\"tag_name\": \"${NEW_RELEASE_TAG}\"" "${GITHUB_RELEASE_STATUS}"
 then
     echo "Release created successfully: https://github.com/${GITHUB_REPO}/releases/tag/${NEW_RELEASE_TAG}"
+    rm "/tmp/$(basename $0)"*
     exit 0
 else
     echo "Error during release creation, dumping debug output!"
