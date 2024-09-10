@@ -9,7 +9,7 @@ declare -A hash2namesref=( ["k1"]="v1")
 get_hash2pr_map() {
     commit_hash_refnames_regex="^([a-f0-9]{40})[[:blank:]]*(.*)"
     refnames_pr_id_regex="^\(.*/pr/([0-9]+).*\)"
-    GIT_LOG_LHASH2REFNAMES="$(mktemp /tmp/$(basename $0).XXXXXX.h2refnames)"
+    GIT_LOG_LHASH2REFNAMES="$(mktemp /tmp/$(basename $0).h2refnames.XXXXXX)"
     git log --pretty=format:'%H %d' ${COMMIT_RANGE} > ${GIT_LOG_LHASH2REFNAMES}
     while read -r line || [ -n "$line" ]; do
         line=$(echo "$line" | xargs)
@@ -35,7 +35,7 @@ get_hash2pr_map() {
 # return release history string with '\n' delimited
 generate_release_history() {
     commit_hash_subj_regex="^([a-f0-9]{40})[[:blank:]]+(.+)(\(\#[0-9]+\))?"
-    GIT_LOG_LHASH2SUBJ="$(mktemp /tmp/$(basename $0).XXXXXX.h2subj)"
+    GIT_LOG_LHASH2SUBJ="$(mktemp /tmp/$(basename $0).h2subj.XXXXXX)"
     git log --pretty=format:'%H %s' ${COMMIT_RANGE} > ${GIT_LOG_LHASH2SUBJ}
     rel_hist=""
     while read -r line || [ -n "$line" ]; do
@@ -65,7 +65,7 @@ generate_release_history() {
 # $2 - ${NEW_RELEASE_DATE}
 # $3 - ${NEW_RELEASE_HISTORY}
 write_release_note() {
-    GITHUB_RELEASE_PAYLOAD="$(mktemp /tmp/$(basename $0).XXXXXX)"
+    GITHUB_RELEASE_PAYLOAD="$(mktemp /tmp/$(basename $0).releasePayload.XXXXXX)"
     echo "{" > "${GITHUB_RELEASE_PAYLOAD}"
     echo '"tag_name":' "\"$1\"," >> "${GITHUB_RELEASE_PAYLOAD}"
     echo '"name":' "\"$1\"," >> "${GITHUB_RELEASE_PAYLOAD}"
@@ -109,7 +109,7 @@ fi
 
 # Detect if running from a fork
 #
-GITHUB_REPO="$(git ls-remote --quiet --get-url | grep -o '[^:/]\{1,\}/bluebutton-css')"
+GITHUB_REPO="$(git ls-remote --get-url | grep -o '[^:/]\{1,\}/bluebutton-css')"
 
 # Test running from root of repository
 #
@@ -169,14 +169,16 @@ get_hash2pr_map
 NEW_RELEASE_HISTORY=$(generate_release_history)
 
 if [[ -z "${NEW_RELEASE_HISTORY}" ]]; then
-   echo "No commits detected since previous release, no need for a new release, exiting."
-   exit 0
+    echo "No commits detected since previous release, no need for a new release, exiting."
+    rm "/tmp/$(basename $0)"*
+    exit 0
 fi
 
 # Create and push new release tag
 #
+echo "Pushing new tag"
 git tag -a -s -m "Blue Button CSS release $NEW_RELEASE_TAG" "$NEW_RELEASE_TAG"
-git push --quiet --tags
+git push --tags
 
 # Create GitHub release template
 #
@@ -184,7 +186,7 @@ write_release_note "${NEW_RELEASE_TAG}" "${NEW_RELEASE_DATE}" "${NEW_RELEASE_HIS
 
 # Create GitHub release via API request
 #
-GITHUB_RELEASE_STATUS="$(mktemp /tmp/$(basename $0).XXXXXX)"
+GITHUB_RELEASE_STATUS="$(mktemp /tmp/$(basename $0).releaseStatus.XXXXXX)"
 
 curl -s -X POST -H "Accept: application/vnd.github.v3+json" \
                 -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" \
@@ -192,16 +194,21 @@ curl -s -X POST -H "Accept: application/vnd.github.v3+json" \
                 --data-binary "@${GITHUB_RELEASE_PAYLOAD}" > "${GITHUB_RELEASE_STATUS}"
 
 # Verify GitHub release
-if [[ "$(grep '"errors":' ${GITHUB_RELEASE_STATUS})" ]]; then
+if grep -q "\"tag_name\": \"${NEW_RELEASE_TAG}\"" "${GITHUB_RELEASE_STATUS}"
+then
+    echo "Release created successfully: https://github.com/${GITHUB_REPO}/releases/tag/${NEW_RELEASE_TAG}"
+    rm "/tmp/$(basename $0)"*
+    exit 0
+else
     echo "Error during release creation, dumping debug output!"
     echo "Release JSON payload:"
     cat "${GITHUB_RELEASE_PAYLOAD}"
     echo "Release API status:"
     cat "${GITHUB_RELEASE_STATUS}"
+    echo "Rolling back pushed tag"
+    git push -d origin "$NEW_RELEASE_TAG"
+    echo "Deleting local tag"
+    git tag -d "$NEW_RELEASE_TAG"
     rm "/tmp/$(basename $0)"*
     exit 1
-else
-    echo "Release created successfully: https://github.com/${GITHUB_REPO}/releases/tag/${NEW_RELEASE_TAG}"
-    rm "/tmp/$(basename $0)"*
-    exit 0
 fi
