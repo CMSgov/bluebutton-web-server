@@ -355,6 +355,30 @@ class RevokeTokenView(DotRevokeTokenView):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
+class RevokeView(DotRevokeTokenView):
+
+    @method_decorator(sensitive_post_parameters("password"))
+    def post(self, request, *args, **kwargs):
+        try:
+            app = validate_app_is_active(request)
+        except (InvalidClientError, InvalidGrantError) as error:
+            return json_response_from_oauth2_error(error)
+
+        token = get_access_token_model().objects.get(
+            token=request.POST.get("token"))
+        try:
+            dag = DataAccessGrant.objects.get(
+                beneficiary=token.user,
+                application=app
+            )
+            dag.delete()
+        except DataAccessGrant.DoesNotExist:
+            pass
+
+        return super().post(request, args, kwargs)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
 class IntrospectTokenView(DotIntrospectTokenView):
 
     def get(self, request, *args, **kwargs):
