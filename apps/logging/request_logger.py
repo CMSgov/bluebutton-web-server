@@ -132,9 +132,13 @@ class RequestLogger(BasicLogger):
             self.standard_log_data["auth_pkce_method"] = request.session["auth_pkce_method"]
         except Exception:
             self.standard_log_data["auth_pkce_method"] = None
-
         try:
             self.standard_log_data["auth_language"] = request.session["auth_language"]
+        except Exception:
+            pass
+        try:
+            request_headers = getattr(request, "headers")
+            self.standard_log_data["data_end_user"] = request_headers["data_end_user"]
         except Exception:
             pass
 
