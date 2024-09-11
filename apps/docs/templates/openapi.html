@@ -40,6 +40,7 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
 
   <body>
     <div id="swagger-ui"></div>
+    <button id="custom-logout-button">Logout</button>
 
     <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-bundle.js' %}" charset="UTF-8"> </script>
     <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-standalone-preset.js' %}" charset="UTF-8"> </script>
@@ -67,6 +68,10 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
 
             return request;
         },
+        onComplete: function() {
+          initializeOauthData()
+          addLogoutButton();
+        },
 
         oauth2RedirectUrl: window.location.origin + "/docs/oauth2-redirect"
       });
@@ -88,9 +93,9 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
            */
           localStorage.setItem('swaggerUIRedirectOauth2', serializedData);
           window.dispatchEvent(new Event('storage'));
-        }
+      }
 
-        function serializeObject(obj) {
+      function serializeObject(obj) {
           const serializedObj = { ...obj };
           for (const key in serializedObj) {
               if (typeof serializedObj[key] === 'function') {
@@ -100,12 +105,76 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
           return JSON.stringify(serializedObj);
       }
 
+      function deserializeObject(serialized) {
+          const parsedObj = JSON.parse(serialized);
+          for (const key in parsedObj) {
+              if (typeof parsedObj[key] === 'string' && parsedObj[key].startsWith('function')) {
+                  parsedObj[key] = new Function('return ' + parsedObj[key])();
+              }
+          }
+          return parsedObj;
+      }
+
       // Event listener for authorize button click
       document.addEventListener('click', (event) => {
           if (event.target && event.target.matches('button.btn.modal-btn.auth.authorize.button')) {
               waitForSwaggerUIRedirectOauth2();
           }
       });
+
+      function initializeOauthData() {
+          const oauth2Data = localStorage.getItem('swaggerUIRedirectOauth2');
+          if (!oauth2Data) {
+            return;
+          }
+          const oauth2 = deserializeObject(oauth2Data)
+          const tokenUrl = oauth2.auth.schema.tokenUrl;
+          const clientId = oauth2.auth.clientId
+          const clientSecret = oauth2.auth.clientSecret;
+          const redirectUri = oauth2.redirectUrl
+          const scopes = oauth2.auth.scopes.join(" ");
+          ui.initOAuth({
+              clientId: clientId,
+              clientSecret: clientSecret,
+              scopeSeparator: " ",
+              scopes: scopes
+          })
+      }
+
+      function addLogoutButton() {
+          const accessToken = localStorage.getItem('access_token');
+          if (!accessToken) {
+            return;
+          }
+
+          const authWrapper = document.querySelector('.auth-wrapper');
+          if (!authWrapper) {
+              return;
+          }
+
+          const customButtonsWrapper = document.createElement('div');
+          customButtonsWrapper.id = 'custom-buttons';
+          customButtonsWrapper.style.display = 'flex';
+          customButtonsWrapper.style.alignItems = 'center';
+          customButtonsWrapper.style.marginLeft = '20px';
+
+          const classNames = ['btn', 'modal-btn', 'auth', 'button'];
+          const logoutButton = document.createElement('button');
+
+          logoutButton.id = 'logoutButton';
+          logoutButton.classList.add(...classNames);
+          logoutButton.textContent = 'Logout';
+          logoutButton.style.marginLeft = '10px';
+
+          logoutButton.addEventListener('click', function() {
+              localStorage.removeItem('access_token');
+              localStorage.removeItem('swaggerUIRedirectOauth2');
+              logoutButton.style.display = 'none';
+           });
+          
+          customButtonsWrapper.appendChild(logoutButton);
+          authWrapper.parentElement.insertBefore(customButtonsWrapper, authWrapper.nextSibling);
+      }
 
     };
 
