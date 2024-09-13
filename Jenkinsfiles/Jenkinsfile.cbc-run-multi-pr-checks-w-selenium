@@ -1,13 +1,13 @@
 pipeline {
   agent {
     kubernetes {
-      defaultContainer "bb2-cbc-build-selenium-python38"
-      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium-p38.yaml"
+      defaultContainer "bb2-cbc-build-selenium-python311"
+      yamlFile "Jenkinsfiles/cbc-pod-deployment-config-w-selenium-p311.yaml"
     }
   }
 
   environment {
-    USE_MSLSX = false
+    USE_MSLSX = true
     DJANGO_LOG_JSON_FORMAT_PRETTY = true
     DJANGO_SETTINGS_MODULE = "hhs_oauth_server.settings.logging_it"
     OAUTHLIB_INSECURE_TRANSPORT = true
@@ -55,6 +55,7 @@ pipeline {
         sh """
           python -m venv venv
           . venv/bin/activate
+          python -m pip install --upgrade pip setuptools wheel
           make reqs-download
           make reqs-install-dev
         """
