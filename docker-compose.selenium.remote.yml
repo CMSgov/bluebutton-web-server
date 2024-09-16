@@ -16,4 +16,4 @@ services:
     hostname: chrome
     ports:
       - "4444:4444"
-      - "6900:6900"
+      - "5900:5900"
