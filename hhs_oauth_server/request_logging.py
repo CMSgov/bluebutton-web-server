@@ -114,7 +114,7 @@ class RequestResponseLog(object):
         - user_id = Login user (or None) or OAuth2 API id. (BB2-342)
         - user = Login user (or None) or OAuth2 API username.
         - user_username = Login user (or None) or OAuth2 API username. (BB2-342)
-        - data_end_user = End user for data facilitator app. (BB2-3345)
+        - data_facilitator_end_user = End user for data facilitator app. (BB2-3345)
     """
 
     request = None
@@ -247,7 +247,7 @@ class RequestResponseLog(object):
                 request_headers, "req_header_bluebutton_app_version", "X-BLUEBUTTON-APP-VERSION"
             )
             self._log_msg_update_from_dict(
-                request_headers, "data_end_user", "DATA-END-USER"
+                request_headers, "data_facilitator_end_user", "DATA-END-USER"
             )
 
         """

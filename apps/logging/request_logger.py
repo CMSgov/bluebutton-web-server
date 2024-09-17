@@ -138,7 +138,7 @@ class RequestLogger(BasicLogger):
             pass
         try:
             request_headers = getattr(request, "headers")
-            self.standard_log_data["data_end_user"] = request_headers["data_end_user"]
+            self.standard_log_data["data_facilitator_end_user"] = request_headers["data_facilitator_end_user"]
         except Exception:
             pass
 

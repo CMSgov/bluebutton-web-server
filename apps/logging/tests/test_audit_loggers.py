@@ -532,13 +532,13 @@ class TestAuditEventLoggers(BaseApiTest):
         self.assertEqual(json_rec.get("req_app_name"), "")
         self.assertEqual(json_rec.get("req_app_id"), "")
 
-    def test_request_logger_data_end_user(self):
-        self._request_logger_data_end_user(False)
+    def test_request_logger_data_facilitator_end_user(self):
+        self._request_logger_data_facilitator_end_user(False)
 
-    def test_request_logger_data_end_user_v2(self):
-        self._request_logger_data_end_user(True)
+    def test_request_logger_data_facilitator_end_user_v2(self):
+        self._request_logger_data_facilitator_end_user(True)
 
-    def _request_logger_data_end_user(self, v2=False):
+    def _request_logger_data_facilitator_end_user(self, v2=False):
         redirect_uri = "http://localhost"
         self._create_user("anna", "123456")
         capability_a = self._create_capability("Capability A", [])
@@ -570,7 +570,7 @@ class TestAuditEventLoggers(BaseApiTest):
         request_log_content = get_log_content(self.logger_registry, logging.AUDIT_HHS_AUTH_SERVER_REQ_LOGGER)
         self.assertIsNotNone(request_log_content)
         json_rec = json.loads(request_log_content)
-        self.assertEqual(json_rec.get("data_end_user"), "End User App")
+        self.assertEqual(json_rec.get("data_facilitator_end_user"), "End User App")
 
     def test_auth_flow_lang_logger(self, v2=False):
         # copy and adapted to test auth flow logger
