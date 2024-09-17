@@ -2,7 +2,7 @@ FROM seleniarm/standalone-chromium
 
 ENV PYTHONUNBUFFERED 1
 USER root
-RUN apt-get update ; apt-get install -yq git curl libpq-dev libffi-dev
+#RUN apt-get update ; apt-get install -yq git curl libpq-dev libffi-dev
 RUN apt-get update ; apt-get install -yq python3 python3-venv
 RUN ln -s /usr/bin/python3 /usr/local/bin/python
 RUN useradd -m -s /bin/bash DEV
