@@ -46,7 +46,8 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
     <script src="{% static 'swagger-ui-4.15.5-dist/swagger-ui-standalone-preset.js' %}" charset="UTF-8"> </script>
     <script>
     window.onload = function() {
-      const ui = SwaggerUIBundle({
+      let ui;
+      ui = SwaggerUIBundle({
         urls: [
             {
                 url: "{% static 'openapi.yaml' %}",
@@ -61,11 +62,14 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
         ],
         layout: "StandaloneLayout",
         requestInterceptor: (request) => {
-            const accessToken = localStorage.getItem('access_token');
-            if (accessToken) {
-                request.headers['Authorization'] = `Bearer ${accessToken}`;
+            if (ui) {
+              const serverUrl = ui.specSelectors.specJson().toJS().servers[0].url;
+              const accessToken = localStorage.getItem('access_token');
+              if (accessToken && request.url.startsWith(serverUrl)) {
+                  request.headers['Authorization'] = `Bearer ${accessToken}`;
+              }
             }
-
+            
             return request;
         },
         onComplete: function() {
@@ -88,7 +92,7 @@ This template is derived from index.html in swagger-ui-dist release 3.52.0
           // Save OAuth2 details to localStorage
           const serializedData = serializeObject(window.swaggerUIRedirectOauth2)
           /**
-           *  swaggerUIRedirectOauth2 contains information regarding oauth2 clientId, clientSecret etc.
+           * swaggerUIRedirectOauth2 contains information regarding oauth2 clientId, clientSecret etc.
            * This will be required by static/oauth2-redirect.html and will be deserialized there
            */
           localStorage.setItem('swaggerUIRedirectOauth2', serializedData);
