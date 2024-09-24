@@ -1,5 +1,3 @@
-import copy
-from jsonpath_ng.ext import parse as ext_parse
 from rest_framework import (permissions)
 from rest_framework.response import Response
 from voluptuous import (
@@ -18,79 +16,10 @@ from apps.fhir.bluebutton.views.home import get_response_json
 from apps.authorization.permissions import DataAccessGrantPermission
 from apps.capabilities.permissions import TokenHasProtectedCapability
 from ..permissions import (SearchCrosswalkPermission, ResourcePermission, ApplicationActivePermission)
-from apps.fhir.bluebutton.views.b64card import B64_BLU_CARD, B64_RED_BLU_CARD, B64_BLU_CARD_BG, B64_HUMANA_PTD
-
-
-# image mapping to part A, B, C, D
-# A: B64_BLU_CARD_BG large vertical figma card as background
-# B: B64_RED_BLU_CARD classic medicare card image
-# C: B64_BLU_CARD horizontal figma card
-# D: B64_HUMANA_PTD medicare RX humana part D card
-INS_TYPE2CARD = {
-    "Part A": ''.join(B64_BLU_CARD_BG.splitlines()),
-    "Part B": ''.join(B64_RED_BLU_CARD.splitlines()),
-    "Part C": ''.join(B64_BLU_CARD.splitlines()),
-    "Part D": ''.join(B64_HUMANA_PTD.splitlines())
-}
 
 C4BB_COVERAGE_PROFILE_URL = "http://hl7.org/fhir/us/carin-bb/StructureDefinition/C4BB-Coverage"
 
 C4DIC_COVERAGE_PROFILE_URL = "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage"
-
-C4DIC_SUPPORTING_IMAGE_EXT = {
-    "extension": [
-        {
-            "url": "description",
-            "valueString": "Beneficiary's proof of insurance"
-        },
-        {
-            "url": "image",
-            "valueAttachment": {
-                "contentType": "image/png",
-                "data": "<replace with base64 encoded image png here>"
-            }
-        },
-        {
-            "url": "label",
-            "valueString": "CMS Insurance card"
-        }
-    ],
-    "url": "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-SupportingImage-extension"
-}
-
-
-# POC helper
-def lookup_by_path(expr, json_obj):
-    jsonpath_expr = ext_parse(expr)
-    return jsonpath_expr.find(json_obj)
-
-
-# POC helper
-def lookup_1_and_get(expr, attribute, json_obj):
-    r = lookup_by_path(expr, json_obj)
-    if r and isinstance(r, list):
-        return r[0].value[attribute]
-
-
-# POC helper: generate supporting image extension per coverage class type
-def get_supporting_image_extension(b64encoded: str):
-    ext = copy.deepcopy(C4DIC_SUPPORTING_IMAGE_EXT)
-    for e in ext['extension']:
-        if e['url'] == 'image':
-            e['valueAttachment']['data'] = b64encoded
-            break
-    return ext
-
-
-# POC helper
-def enrich_supporting_image(resp: Response):
-    for e in resp.data['entry']:
-        extensions = e['resource']['extension']
-        class_type = lookup_1_and_get("$.resource.class[?(@.type.coding[0].code=='plan')]", "value", e)
-        class_type = "Part A" if class_type is None else class_type
-        extensions.append(get_supporting_image_extension(INS_TYPE2CARD[class_type]))
-
-    return resp
 
 
 class SearchView(FhirDataView):
@@ -179,9 +108,7 @@ class SearchViewCoverage(SearchView):
         if return_c4dic and profile == C4DIC_COVERAGE_PROFILE_URL:
             return Response(get_response_json("bfd-c4dic-coverage-search"))
         else:
-            resp = super().get(request, *args, **kwargs)
-            # C4DIC POC: inject c4dic supportingImage extension if the _profile indicate C4DIC Coverage search
-            return enrich_supporting_image(resp) if profile == C4DIC_COVERAGE_PROFILE_URL else resp
+            return super().get(request, *args, **kwargs)
 
 
 class SearchViewExplanationOfBenefit(SearchView):

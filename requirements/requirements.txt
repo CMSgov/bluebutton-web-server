@@ -335,10 +335,6 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsonpath-ng==1.6.1 \
-    --hash=sha256:086c37ba4917304850bd837aeab806670224d3f038fe2833ff593a672ef0a5fa \
-    --hash=sha256:8f22cd8273d7772eea9aaa84d922e0841aa36fdb8a2c6b7f6c3791a16a9bc0be
-    # via -r requirements/requirements.in
 jsonschema==4.17.3 \
     --hash=sha256:0f864437ab8b6076ba6707453ef8f98a6a0d512a80e93f8abdb676f737ecb60d \
     --hash=sha256:a870ad254da1a8ca84b6a2905cac29d265f805acc57af304784962a2aa6508f6
@@ -450,10 +446,6 @@ pkgutil-resolve-name==1.3.10 \
     # via
     #   -r requirements/requirements.in
     #   jsonschema
-ply==3.11 \
-    --hash=sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3 \
-    --hash=sha256:096f9b8350b65ebd2fd1346b12452efe5b9607f7482813ffca50c22722a807ce
-    # via jsonpath-ng
 psycopg2-binary==2.9.6 \
     --hash=sha256:02c0f3757a4300cf379eb49f543fb7ac527fb00144d39246ee40e1df684ab514 \
     --hash=sha256:02c6e3cf3439e213e4ee930308dc122d6fb4d4bea9aef4a12535fbd605d1a2fe \
