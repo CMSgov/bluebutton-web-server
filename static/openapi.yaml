@@ -258,15 +258,9 @@ paths:
       responses:
         '200':
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V1FhirCoverage'
-              examples:
-                V1FhirCoverageExample:
-                  $ref: '#/components/examples/V1FhirCoverageExample'
             application/fhir+json:
               schema:
-                $ref: '#/components/schemas/V1FhirCoverage'
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
               examples:
                 V1FhirCoverageExample:
                   $ref: '#/components/examples/V1FhirCoverageExample'
@@ -406,7 +400,7 @@ paths:
           content:
             application/fhir+json:
               schema:
-                $ref: '#/components/schemas/V2FhirMetadata'
+                $ref: '#/components/schemas/FHIR-JSON-RESOURCE'
               examples:
                 V2FhirMetadataExample:
                   $ref: '#/components/examples/V2FhirMetadataExample'
