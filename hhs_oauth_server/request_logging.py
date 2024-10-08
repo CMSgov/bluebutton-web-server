@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 import json
+import re
 import uuid
 
 import apps.logging.request_logger as logging
@@ -22,7 +23,9 @@ from apps.fhir.bluebutton.utils import (
 )
 
 audit = logging.getLogger("audit.%s" % __name__)
-
+MBI_WITH_HYPHEN_PATTERN = r'\b\d[A-Z]{2}\d-[A-Z]{2}\d-[A-Z]{2}\d{2}\b'
+MBI_WITHOUT_HYPHEN_PATTERN = r'\b[1-9](?![SLOIBZ])[A-Z](?![SLOIBZ)])[A-Z\d]\d(?![SLOIBZ])[A-Z](?![SLOIBZ])[A-Z\d]\d(?![SLOIBZ])[A-Z]{2}\d{2}\b'
+MBI_PATTERN = f'({MBI_WITH_HYPHEN_PATTERN}|{MBI_WITHOUT_HYPHEN_PATTERN})'
 
 class RequestResponseLog(object):
     """Audit log message to JSON string
@@ -137,13 +140,20 @@ class RequestResponseLog(object):
         self.log_msg["location"] = ""
         self.log_msg["size"] = 0
 
+    
+    def has_mbi_match(text):
+        return bool(re.search(MBI_PATTERN, text))
+    
+    def mask_if_has_mbi(text):
+        return re.sub(MBI_PATTERN, '***MBI***', text)
+        
     def _log_msg_update_from_dict(self, from_dict, key, dict_key):
         # Log message update from a passed in dictionary
         try:
             value = from_dict.get(dict_key, None)
             if value is not None:
                 if len(str(value)) > 0:
-                    self.log_msg[key] = value
+                    self.log_msg[key] = self.mask_if_has_mbi(value)
         except ObjectDoesNotExist:
             self.log_msg[key] = (
                 "ObjectDoesNotExist exception for key " + key + ":" + dict_key
@@ -159,7 +169,7 @@ class RequestResponseLog(object):
             value = getattr(obj, obj_key, None)
             if value is not None:
                 if len(str(value)) > 0:
-                    self.log_msg[key] = value
+                    self.log_msg[key] = self.mask_if_has_mbi(value)
         except ObjectDoesNotExist:
             self.log_msg[key] = (
                 "ObjectDoesNotExist exception for key " + key + ":" + obj_key
@@ -174,6 +184,7 @@ class RequestResponseLog(object):
         try:
             value_list = self.request.GET.getlist(qp_key, None)
             if value_list is not None:
+                value_list = [self.mask_if_has_mbi(value) for value in value_list]
                 if len(value_list) == 1:
                     self.log_msg[key] = value_list[0]
                 elif len(value_list) > 1:
@@ -521,7 +532,8 @@ class RequestResponseLog(object):
                     except ObjectDoesNotExist:
                         pass
         self._sync_app_name()
-        return self.log_msg
+        masked_logged_dict = {key: self.mask_if_has_mbi(value) for key, value in self.log_msg.items()}
+        return masked_logged_dict
 
 ##############################################################################
 #
