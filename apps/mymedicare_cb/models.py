@@ -53,6 +53,7 @@ def get_and_update_user(slsx_client: OAuth2ConfigSLSx, request=None):
 
     # Match a patient identifier via the backend FHIR server
     fhir_id, hash_lookup_type = match_fhir_id(
+        mbi=slsx_client.mbi,
         mbi_hash=slsx_client.mbi_hash,
         hicn_hash=slsx_client.hicn_hash, request=request
     )

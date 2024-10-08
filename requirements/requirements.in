@@ -1,7 +1,6 @@
 # base packages
-django == 4.2.11
-django-getenv
-django-bootstrap-form
+django == 4.2.14
+django-bootstrap-v5
 django-cors-headers
 django-localflavor
 django-settings-export
@@ -11,9 +10,12 @@ django-filter
 django-axes
 
 # support
-backports.zoneinfo
+beautifulsoup4 == 4.12.2
+soupsieve == 2.4.1
+
 django-waffle
 django-storages
+django-getenv
 python-dotenv
 jsonschema
 importlib-resources
@@ -30,7 +32,7 @@ psycopg2-binary
 sqlparse >= 0.5.0
 Pillow >= 10.3.0
 boto3
-djangorestframework-yaml
+## djangorestframework-yaml
 voluptuous
 pyyaml
 py
@@ -45,7 +47,7 @@ django-ses
 
 # security and identity system
 oauthlib
-python-openid
+## python-openid
 django-oauth-toolkit
-cryptography >= 42.0.6
+cryptography >= 42.0.8
 jwcrypto

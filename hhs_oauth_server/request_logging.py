@@ -114,6 +114,7 @@ class RequestResponseLog(object):
         - user_id = Login user (or None) or OAuth2 API id. (BB2-342)
         - user = Login user (or None) or OAuth2 API username.
         - user_username = Login user (or None) or OAuth2 API username. (BB2-342)
+        - data_facilitator_end_user = End user for data facilitator app. (BB2-3345)
     """
 
     request = None
@@ -244,6 +245,9 @@ class RequestResponseLog(object):
             )
             self._log_msg_update_from_dict(
                 request_headers, "req_header_bluebutton_app_version", "X-BLUEBUTTON-APP-VERSION"
+            )
+            self._log_msg_update_from_dict(
+                request_headers, "data_facilitator_end_user", "DATA-END-USER"
             )
 
         """
@@ -432,7 +436,7 @@ class RequestResponseLog(object):
         """
         --- Logging items from a FHIR type response ---
         """
-        if type(self.response) == Response and isinstance(self.response.data, dict):
+        if isinstance(self.response, Response) and isinstance(self.response.data, dict):
             self.log_msg["fhir_bundle_type"] = self.response.data.get("type", None)
             self.log_msg["fhir_resource_id"] = self.response.data.get("id", None)
             self.log_msg["fhir_resource_type"] = self.response.data.get(

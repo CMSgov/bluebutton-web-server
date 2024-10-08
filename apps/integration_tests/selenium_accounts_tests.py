@@ -1,3 +1,4 @@
+import debugpy
 from .selenium_generic import SeleniumGenericTests
 from .selenium_cases import (
     USER_ACCT_ACTIVATION_EMAIL_SUBJ,
@@ -10,6 +11,9 @@ from .selenium_cases import (
 class TestUserAndAppMgmt(SeleniumGenericTests):
 
     def testAccountAndAppMgmt(self):
+        debugpy.listen(('0.0.0.0', 8910))
+        # wait if needed
+        # debugpy.wait_for_client()
         step = [0]
         test_name = "create_user_account"
         api_ver = "*"

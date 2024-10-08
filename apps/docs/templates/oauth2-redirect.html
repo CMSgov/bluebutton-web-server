@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth2 Redirect</title>
+</head>
+<body>
+    <script>
+        'use strict';
+        function run () {
+            function deserializeObject(serialized) {
+                const parsedObj = JSON.parse(serialized);
+                for (const key in parsedObj) {
+                    if (typeof parsedObj[key] === 'string' && parsedObj[key].startsWith('function')) {
+                        parsedObj[key] = new Function('return ' + parsedObj[key])();
+                    }
+                }
+                return parsedObj;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (!code) {
+                console.error('Authorization code not found in URL');
+                return;
+            }
+
+            let oauth2Data = localStorage.getItem('swaggerUIRedirectOauth2');
+            let oauth2 = deserializeObject(oauth2Data)
+            let tokenUrl = oauth2.auth.schema.tokenUrl;
+            let clientId = oauth2.auth.clientId
+            let clientSecret = oauth2.auth.clientSecret;
+            let redirectUri = oauth2.redirectUrl
+
+              // Convert client credentials to Base64
+            const credentials = btoa(`${clientId}:${clientSecret}`);
+
+            fetch(tokenUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Basic ${credentials}`,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    code: code,
+                    grant_type: 'authorization_code',
+                    redirect_uri: redirectUri
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Token request failed with status ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const accessToken = data.access_token;
+                if (accessToken) {
+                  localStorage.setItem('access_token', accessToken);
+                  window.location.href = '/docs/openapi';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching token:', error);
+            });
+            
+        }
+
+        if (document.readyState !== 'loading') {
+            run();
+        } else {
+            document.addEventListener('DOMContentLoaded', function () {
+                run();
+            });
+        }
+
+    </script>
+</body>
+</html>

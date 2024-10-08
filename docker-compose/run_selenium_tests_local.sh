@@ -74,7 +74,7 @@ set -e -u -o pipefail
 export USE_MSLSX=true
 export USE_NEW_PERM_SCREEN=false
 export SERVICE_NAME="selenium-tests"
-export TESTS_LIST="./apps/integration_tests/selenium_tests.py"
+export TESTS_LIST="./apps/integration_tests/selenium_tests.py ./apps/integration_tests/selenium_spanish_tests.py"
 export DJANGO_SETTINGS_MODULE="hhs_oauth_server.settings.dev"
 export BB2_SERVER_STD2FILE=""
 
@@ -214,7 +214,7 @@ echo "MSLSX=" ${USE_MSLSX}
 echo "SERVICE NAME=" ${SERVICE_NAME}
 echo "USE_NEW_PERM_SCREEN=" ${USE_NEW_PERM_SCREEN}
 
-docker-compose -f docker-compose.selenium.yml run ${SERVICE_NAME} bash -c "pytest ${TESTS_LIST}"
+docker-compose -f docker-compose.selenium.yml run --service-ports ${SERVICE_NAME} bash -c "pytest ${TESTS_LIST}"
 
 #Stop containers after use
 echo_msg

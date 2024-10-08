@@ -2,7 +2,6 @@ import os
 from enum import Enum
 from selenium.webdriver.common.by import By
 
-
 HOSTNAME_URL = os.environ['HOSTNAME_URL']
 USE_NEW_PERM_SCREEN = os.environ['USE_NEW_PERM_SCREEN']
 PROD_URL = 'https://api.bluebutton.cms.gov'
@@ -25,6 +24,7 @@ class Action(Enum):
     VALIDATE_EMAIL_NOTIFICATION = 13
     CHECK_DATE_FORMAT = 14
     COPY_LINK_AND_LOAD_WITH_PARAM = 15
+    FIND_MSG_BY_CLASS = 16
 
 
 TESTCLIENT_BUNDLE_LABEL_FMT = "Response (Bundle of {}), API version: {}"
@@ -41,6 +41,7 @@ LNK_TXT_GET_TOKEN_V2 = "Get a Sample Authorization Token for v2"
 LNK_TXT_GET_TOKEN_PKCE_V1 = "Get a Sample Authorization Token (PKCE Enabled)"
 LNK_TXT_GET_TOKEN_PKCE_V2 = "Get a Sample Authorization Token for v2 (PKCE Enabled)"
 LNK_TXT_AUTH_AS_BENE = "Authorize as a Beneficiary"
+LNK_TXT_AUTH_AS_BENE_SPANISH = "Authorize as a Beneficiary (Spanish)"
 LNK_TXT_RESTART_TESTCLIENT = "restart testclient"
 TAG_FOR_AUTHORIZE_LINK = "pre"
 # FHIR search result bundle pagination
@@ -110,12 +111,15 @@ USER_LNK_TXT_ACCT_LOGOUT = "Logout"
 # language and localization checking
 AUTH_SCREEN_ID_LANG = "connect_app"
 AUTH_SCREEN_ID_END_DATE = "permission_end_date"
+AUTH_SCREEN_ID_EXPIRE_INFO = "permission_expire_info"
 AUTH_SCREEN_ES_TXT = "Desea compartir sus datos de Medicare"
 AUTH_SCREEN_EN_TXT = "Connect your Medicare claims"
+AUTH_SCREEN_EN_EXPIRE_INFO_TXT = "TestApp will have access to your data for 13 months, until"
+AUTH_SCREEN_ES_EXPIRE_INFO_TXT = "TestApp tendrá acceso a sus datos durante 13 meses, hasta el"
 # regex for date formats
-AUTH_SCREEN_ES_DATE_FORMAT = "^\\d{1,2} de \\w+ de \\d{4}"
+AUTH_SCREEN_ES_DATE_FORMAT = "^(?P<day>\\d{1,2}) de (?P<month>\\w+) de (?P<year>\\d{4})"
 # Django en locale date format is 3 letter abbrev plus period or full month name (e.g. March, May)
-AUTH_SCREEN_EN_DATE_FORMAT = "^(\\w{3}\\.|\\w+) \\d{1,2}, \\d{4}"
+AUTH_SCREEN_EN_DATE_FORMAT = "^(?P<month>\\w{3,4}\\.|\\w+) (?P<day>\\d{1,2}), (?P<year>\\d{4})"
 SLSX_LOGIN_BUTTON_SPANISH = "Entrar"
 
 # app form
@@ -136,8 +140,8 @@ APP_CSS_SELECTOR_DELETE_APP = ".cta-button:nth-child(2)"
 # SLSX login form
 SLSX_TXT_FLD_USERNAME = "username-textbox"
 SLSX_TXT_FLD_PASSWORD = "password-textbox"
-SLSX_TXT_FLD_USERNAME_VAL = "BBUser00000"
-SLSX_TXT_FLD_PASSWORD_VAL = "PW00000!"
+SLSX_TXT_FLD_USERNAME_VAL = "BBUser00001"
+SLSX_TXT_FLD_PASSWORD_VAL = "PW00001!"
 SLSX_CSS_BUTTON = "login-button"
 
 # Demographic info access grant form
@@ -150,6 +154,9 @@ else:
     # Below works for old auth screen
     BTN_ID_RADIO_NOT_SHARE = "label:nth-child(5)"
 
+# Supported Locale
+EN_US = "en_us"
+ES_ES = "es_es"
 
 # API versions
 API_V2 = "v2"
@@ -274,7 +281,7 @@ SEQ_LOGIN_SLSX = [
     },
 ]
 
-SEQ_AUTHORIZE_START = [
+SEQ_REACH_AUTHORIZE_BTN = [
     {
         "display": "Load BB2 Landing Page ...",
         "action": Action.LOAD_PAGE,
@@ -285,10 +292,23 @@ SEQ_AUTHORIZE_START = [
         "display": "Click link to get sample token v1/v2",
         "action": Action.GET_SAMPLE_TOKEN_START,
     },
+]
+
+SEQ_AUTHORIZE_START = [
+    {"sequence": SEQ_REACH_AUTHORIZE_BTN},
     {
         "display": "Click link 'Authorize as a Beneficiary' - start authorization",
         "action": Action.FIND_CLICK,
         "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE]
+    },
+]
+
+SEQ_AUTHORIZE_START_SPANISH = [
+    {"sequence": SEQ_REACH_AUTHORIZE_BTN},
+    {
+        "display": "Click link 'Authorize as a Beneficiary (Spanish)' - start authorization using medicare login in Spanish",
+        "action": Action.FIND_CLICK,
+        "params": [30, By.LINK_TEXT, LNK_TXT_AUTH_AS_BENE_SPANISH]
     },
 ]
 
@@ -543,11 +563,38 @@ TESTS = {
         CLICK_RADIO_NOT_SHARE_NEW_PERM_SCREEN,
         CLICK_AGREE_ACCESS,
         {"sequence": SEQ_QUERY_FHIR_RESOURCES_NO_DEMO}
+    ],
+    "authorize_lang_english_button": [
+        {"sequence": SEQ_AUTHORIZE_START},
+        CALL_LOGIN,
+        WAIT_SECONDS,
+        WAIT_SECONDS,
+        # check the title
+        {
+            "display": "Check for authorization screen language in English",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_EN_TXT]
+        },
+        # now check the expiration info section
+        {
+            "display": "Check for authorization screen expire info in English",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT]
+        },
+        {
+            "display": "Check en_US date format and validate",
+            "action": Action.CHECK_DATE_FORMAT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT, EN_US]
+        },
+        # the 'approve' and 'deny' button click not using locale based text
+        # so it is lang agnostic
+        CLICK_AGREE_ACCESS
     ]
 }
 
 SPANISH_TESTS = {
     "toggle_language": [
+        # kick off default test client
         {"sequence": SEQ_AUTHORIZE_START},
         CALL_LOGIN,
         # Wait to make sure we're logged in because login page also has Spanish link
@@ -559,11 +606,6 @@ SPANISH_TESTS = {
             "action": Action.CONTAIN_TEXT,
             "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
         },
-        {
-            "display": "Check Spanish date format",
-            "action": Action.CHECK_DATE_FORMAT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT]
-        },
         CLICK_ENGLISH,
         {
             "display": "Check for language change to English",
@@ -571,27 +613,77 @@ SPANISH_TESTS = {
             "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_EN_TXT]
         },
         {
-            "display": "Check English date format",
+            "display": "Check for authorization screen access grant expire info in English",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_EN_EXPIRE_INFO_TXT]
+        },
+        {
+            "display": "Check English date format and validate",
             "action": Action.CHECK_DATE_FORMAT,
-            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT]
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_EN_DATE_FORMAT, EN_US]
         },
         CLICK_AGREE_ACCESS
     ],
     "authorize_lang_param": [
+        # direct medicare login by inject a lang=es at the end of the url
         {"sequence": SEQ_AUTHORIZE_LANG_PARAM_START},
         {
             "display": "Check for Medicare.gov login page already in Spanish",
             "action": Action.CONTAIN_TEXT,
             "params": [20, By.ID, SLSX_CSS_BUTTON, SLSX_LOGIN_BUTTON_SPANISH]
         },
+        # note, for now CALL_LOGIN does not use locale based text to look up elements
+        # so it is lang agnostic
         CALL_LOGIN,
         WAIT_SECONDS,
         WAIT_SECONDS,
+        # check the title
         {
             "display": "Check for authorization screen language already in Spanish",
             "action": Action.CONTAIN_TEXT,
             "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
         },
+        # now check the expiration info section
+        {
+            "display": "Check for authorization screen expire info in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
+        },
+        {
+            "display": "Check Spanish date format and validate",
+            "action": Action.CHECK_DATE_FORMAT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
+        },
+        # the 'approve' and 'deny' button click not using locale based text
+        # so it is lang agnostic
+        CLICK_AGREE_ACCESS
+    ],
+    "authorize_lang_spanish_button": [
+        {"sequence": SEQ_AUTHORIZE_START_SPANISH},
+        # note, CALL_LOGIN does not use locale based text to look up elements
+        # so it is lang agnostic
+        CALL_LOGIN,
+        WAIT_SECONDS,
+        WAIT_SECONDS,
+        # check the title
+        {
+            "display": "Check for authorization screen language already in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_LANG, AUTH_SCREEN_ES_TXT]
+        },
+        # now check the expiration info section
+        {
+            "display": "Check for authorization screen expire info in Spanish",
+            "action": Action.CONTAIN_TEXT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_EXPIRE_INFO, AUTH_SCREEN_ES_EXPIRE_INFO_TXT]
+        },
+        {
+            "display": "Check Spanish date format and validate",
+            "action": Action.CHECK_DATE_FORMAT,
+            "params": [20, By.ID, AUTH_SCREEN_ID_END_DATE, AUTH_SCREEN_ES_DATE_FORMAT, ES_ES]
+        },
+        # the 'approve' and 'deny' button click not using locale based text
+        # so it is lang agnostic
         CLICK_AGREE_ACCESS
     ]
 }
@@ -845,15 +937,20 @@ SEE_ACCOUNT_HAS_ISSUE_MSG = {
 SEE_LOGIN_BEFORE_ACTIVATION_MSG = {
     "display": "Check login without activation error message present...",
     "action": Action.CONTAIN_TEXT,
-    "params": [20, By.XPATH, "//div[@class='alert alert-danger']", USER_NOT_ACTIVE_ALERT_MSG]
+    # TODO: use other xpath than class which is sensitive to changes
+    "params": [20, By.XPATH, "//div[@class='alert alert-danger alert-dismissible']", USER_NOT_ACTIVE_ALERT_MSG]
 }
 
 # Test user creation, activation, login, logout, app registration / modification / deletion
 ACCT_TESTS = {
     "create_user_account": [
         {"sequence": SEQ_CREATE_USER_ACCOUNT},
+        WAIT_SECONDS,
+        WAIT_SECONDS,
         SEE_ACCT_CREATED_MSG,
         {"sequence": SEQ_USER_LOGIN},
+        WAIT_SECONDS,
+        WAIT_SECONDS,
         SEE_LOGIN_BEFORE_ACTIVATION_MSG,
         WAIT_SECONDS,
     ],

@@ -2,6 +2,8 @@ import os
 import time
 import re
 
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -22,9 +24,13 @@ from .selenium_cases import (
     SEQ_LOGIN_MSLSX,
     SEQ_LOGIN_SLSX,
     PROD_URL,
+    ES_ES,
 )
 
 LOG_FILE = "./docker-compose/tmp/bb2_email_to_stdout.log"
+EN_MONTH_ABBR = ['Jan.', 'Feb.', 'March', 'April', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.']
+ES_MONTH_NAME = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre',
+                 'octubre', 'noviembre', 'diciembre']
 
 
 # class SeleniumGenericTests(TestCase):
@@ -59,7 +65,6 @@ class SeleniumGenericTests:
         opt.add_argument("--disable-popup-blocking")
         opt.add_argument("--enable-javascript")
         opt.add_argument('--allow-insecure-localhost')
-        opt.add_argument('--window-size=1920,1080')
         opt.add_argument("--whitelisted-ips=''")
 
         self.driver = webdriver.Remote(
@@ -130,7 +135,8 @@ class SeleniumGenericTests:
 
     def _click_get_sample_token(self, **kwargs):
         return self._find_and_click(30, By.LINK_TEXT,
-                                    LNK_TXT_GET_TOKEN_V2 if kwargs.get("api_ver", API_V1) == API_V2 else LNK_TXT_GET_TOKEN_V1)
+                                    LNK_TXT_GET_TOKEN_V2 if kwargs.get("api_ver",
+                                                                       API_V1) == API_V2 else LNK_TXT_GET_TOKEN_V1)
 
     def _click_get_sample_token_pkce(self, **kwargs):
         return self._find_and_click(30, By.LINK_TEXT,
@@ -165,10 +171,41 @@ class SeleniumGenericTests:
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         assert content_txt in elem.text
 
-    def _check_date_format(self, timeout_sec, by, by_expr, format, **kwargs):
+    def _check_date_format(self, timeout_sec, by, by_expr, format, lang, **kwargs):
         elem = self._find_and_return(timeout_sec, by, by_expr, **kwargs)
         pattern = re.compile(format)
-        assert pattern.match(elem.text)
+        m = pattern.match(elem.text)
+        print("date: " + elem.text)
+        assert m is not None, f"Date value '{elem.text}' doesn't match expected format"
+        try:
+            day = m.group('day')
+            month = m.group('month')
+            year = m.group('year')
+            month_num = -1
+            try:
+                if lang == ES_ES:
+                    # for ES_ES, month is full name
+                    # locale.setlocale(locale.LC_ALL, ES_ES) - choose not to use locale package (it might be thread unsafe)
+                    # use a pre-built array to do month name -> month num mapping
+                    month_num = ES_MONTH_NAME.index(month)
+                else:
+                    # for EN_US, month is abbr
+                    month_num = EN_MONTH_ABBR.index(month)
+            except ValueError as v:
+                print(v)
+                assert 1 < 0, f"Month value '{month}' is not recognized."
+            if month_num >= 0:
+                expire_date = datetime(int(year), month_num + 1, int(day))
+                expected_exp_date = datetime.today() + relativedelta(months=+13)
+                # Allow 1 day of wiggle room to ignore hour/min/sec
+                dates_match = timedelta(days=-1) < expire_date - expected_exp_date < timedelta(days=1)
+                assert dates_match, f"Expiration date is '{expire_date}', expected '{expected_exp_date}."
+            else:
+                assert 1 < 0, f"Month value '{month}' is not recognized."
+        except IndexError as e:
+            # bad date value
+            print(e)
+            assert 1 < 0, f"Malformed date value '{elem.text}'"
 
     def _copy_link_and_load_with_param(self, timeout_sec, by, by_expr, **kwargs):
         elem = WebDriverWait(self.driver, timeout_sec).until(EC.visibility_of_element_located((by, by_expr)))

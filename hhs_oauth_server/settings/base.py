@@ -9,11 +9,10 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from .themes import THEMES, THEME_SELECTED
 
+
 # project root folder
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.join(BASE_DIR, "..")
-
-OPENAPI_DOC = os.path.join(BASE_DIR, "bluebutton-openapi-doc/bluebutton/openapi.yaml")
 
 # security
 SECRET_KEY = env(
@@ -24,7 +23,6 @@ if SECRET_KEY == "FAKE_SECRET_KEY_YOU_MUST_SET_DJANGO_SECRET_KEY_VAR":
         "WARNING: Generate your secret key and set in environment "
         "variable: DJANGO_SECRET_KEY"
     )
-
 
 CMS_SPLUNK_URL = env("CMS_SPLUNK_URL", "https://splunk.cloud.cms.gov")
 
@@ -174,13 +172,12 @@ INSTALLED_APPS = [
     "apps.bb2_tools",
     # 3rd Party ---------------------
     "corsheaders",
-    "bootstrapform",
+    "bootstrap5",
     "waffle",
     # DOT must be installed after apps.dot_ext in order to override templates
     "oauth2_provider",
     "axes",
     "apps.logging",
-    "apps.openapi",
     "apps.creds",
 ]
 
@@ -199,6 +196,7 @@ if env("ENV_SPECIFIC_APPS", False):
 REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "token": env("TOKEN_THROTTLE_RATE", "100000/s"),
+        # "token": os.environ.get("TOKEN_THROTTLE_RATE", "100000/s"),
     },
 }
 
@@ -217,9 +215,9 @@ AXES_USERNAME_FORM_FIELD = "username"
 OPTIONAL_INSTALLED_APPS = [
     "",
 ]
+
 if env("OPTIONAL_INSTALLED_APPS", False):
     OPTIONAL_INSTALLED_APPS += env("OPTIONAL_INSTALLED_APPS")
-
 
 MIDDLEWARE = [
     # Middleware that adds headers to the resposne
@@ -477,8 +475,8 @@ ORGANIZATION_TITLE = env(
     "DJANGO_ORGANIZATION_TITLE",
     "The U.S. Centers for Medicare & Medicaid Services (CMS)",
 )
-ORGANIZATION_URI = env("DJANGO_ORGANIZATION_URI", "https://cms.gov")
-POLICY_URI = env(
+ORGANIZATION_URI = os.environ.get("DJANGO_ORGANIZATION_URI", "https://cms.gov")
+POLICY_URI = os.environ.get(
     "DJANGO_POLICY_URI",
     "https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy.html",
 )
@@ -581,7 +579,7 @@ APPLICATION_THIRTEEN_MONTH_DATA_ACCESS_EXPIRED_MESG = (
 
 FHIR_CLIENT_CERTSTORE = env(
     "DJANGO_FHIR_CERTSTORE",
-    os.path.join(BASE_DIR, env("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
+    os.path.join(BASE_DIR, os.environ.get("DJANGO_FHIR_CERTSTORE_REL", "../certstore")),
 )
 
 FHIR_SERVER = {
@@ -595,16 +593,26 @@ FHIR_SERVER = {
     "CLIENT_AUTH": True,
 }
 
-"""
-    FHIR URL search query parameters for backend /Patient resource
-    See FHIR and/or BFD specs for "identifier" and "_format" params.
-"""
-FHIR_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (
-    "https%3A%2F%2Fbluebutton.cms.gov" + "%2Fresources%2Fidentifier%2Fmbi-hash"
+FHIR_POST_SEARCH_PARAM_IDENTIFIER_MBI_HASH = (
+    "https://bluebutton.cms.gov/resources/identifier/mbi-hash"
 )
-FHIR_SEARCH_PARAM_IDENTIFIER_HICN_HASH = (
-    "http%3A%2F%2Fbluebutton.cms.hhs.gov%2Fidentifier%23hicnHash"
+
+FHIR_POST_SEARCH_PARAM_IDENTIFIER_HICN_HASH = (
+    "https://bluebutton.cms.gov/resources/identifier/hicn-hash"
 )
+
+"""
+    (mbi, hicn, etc); the following are all valid values for Identifier, and all might represent the same resource:
+        - `identifier=https://bluebutton.cms.gov/resources/identifier/hicn-hash|<your hicn hash>`
+        - `identifier=https://bluebutton.cms.gov/resources/identifier/mbi-hash|<your mbi hash>`
+        - `identifier=http://hl7.org/fhir/sid/us-mbi|<your mbi>`
+    example: "http://hl7.org/fhir/sid/us-mbi|<your mbi>"
+"""
+
+FHIR_PATIENT_SEARCH_PARAM_IDENTIFIER_MBI = (
+    "http://hl7.org/fhir/sid/us-mbi"
+)
+
 FHIR_PARAM_FORMAT = "json"
 
 # Timeout for request call
@@ -721,7 +729,7 @@ else:
     #         AWS_STORAGE_BUCKET_NAME, AWS_S3_CUSTOM_DOMAIN
     AWS_S3_CUSTOM_DOMAIN = env("AWS_S3_CUSTOM_DOMAIN")
     if AWS_S3_CUSTOM_DOMAIN:
-        AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+        AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
         MEDIAFILES_LOCATION = "media/"
         STATICFILES_LOCATION = "static/"
         DEFAULT_FILE_STORAGE = "hhs_oauth_server.s3_storage.MediaStorage"
