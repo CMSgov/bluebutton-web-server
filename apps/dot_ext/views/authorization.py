@@ -21,6 +21,7 @@ from oauth2_provider.views.introspect import (
 )
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from rest_framework import status
 from urllib.parse import urlparse, parse_qs
 
 from apps.dot_ext.scopes import CapabilitiesScopes
@@ -371,6 +372,10 @@ class RevokeView(DotRevokeTokenView):
         except Exception:
             token = at_model.objects.get(
                 token=request.POST.get("token"))
+
+        if token is None:
+            return HttpResponse("Token was Not Found.  Please check the value and try again.",
+                                status=status.HTTP_404_NOT_FOUND)
         try:
             dag = DataAccessGrant.objects.get(
                 beneficiary=token.user,
