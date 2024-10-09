@@ -359,23 +359,28 @@ class RevokeView(DotRevokeTokenView):
 
     @method_decorator(sensitive_post_parameters("password"))
     def post(self, request, *args, **kwargs):
+        at_model = get_access_token_model()
         try:
             app = validate_app_is_active(request)
         except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
 
-        token = get_access_token_model().objects.get(
-            token=request.POST.get("token"))
+        try:
+            body = json.loads(request.body.decode("UTF-8"))
+            token = at_model.objects.get(token=body.get("token"))
+        except Exception:
+            token = at_model.objects.get(
+                token=request.POST.get("token"))
         try:
             dag = DataAccessGrant.objects.get(
                 beneficiary=token.user,
                 application=app
             )
             dag.delete()
-        except DataAccessGrant.DoesNotExist:
-            pass
+        except DataAccessGrant.DoesNotExist as error:
+            return json_response_from_oauth2_error(error)
 
-        return super().post(request, args, kwargs)
+        return HttpResponse(content="OK", status=200)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
