@@ -23,7 +23,7 @@ from oauth2_provider.models import get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
 from rest_framework import status
 from urllib.parse import urlparse, parse_qs
-
+import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 import apps.logging.request_logger as bb2logging
 
@@ -374,7 +374,8 @@ class RevokeView(DotRevokeTokenView):
         try:
             token = at_model.objects.get(token=tkn)
         except at_model.DoesNotExist:
-            return HttpResponse(f"Token {tkn} was Not Found.  Please check the value and try again.",
+            escaped_tkn = html.escape(tkn)
+            return HttpResponse(f"Token {escaped_tkn} was Not Found.  Please check the value and try again.",
                                 status=status.HTTP_404_NOT_FOUND)
 
         try:
