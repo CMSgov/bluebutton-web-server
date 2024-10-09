@@ -4342,7 +4342,7 @@ components:
                     - url: authorize
                       valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/authorize/'
                     - url: revoke
-                    valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
+                      valueUri: 'https://sandbox.bluebutton.cms.gov/v1/o/revoke/'
 
     V2FhirMetadataExample:
       value:
