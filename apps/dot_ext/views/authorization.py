@@ -367,15 +367,16 @@ class RevokeView(DotRevokeTokenView):
             return json_response_from_oauth2_error(error)
 
         try:
-            body = json.loads(request.body.decode("UTF-8"))
-            token = at_model.objects.get(token=body.get("token"))
+            tkn = json.loads(request.body.decode("UTF-8")).get("token")
         except Exception:
-            token = at_model.objects.get(
-                token=request.POST.get("token"))
+            tkn = request.POST.get("token")
 
-        if token is None:
-            return HttpResponse("Token was Not Found.  Please check the value and try again.",
+        try:
+            token = at_model.objects.get(token=tkn)
+        except at_model.DoesNotExist:
+            return HttpResponse(f"Token {tkn} was Not Found.  Please check the value and try again.",
                                 status=status.HTTP_404_NOT_FOUND)
+
         try:
             dag = DataAccessGrant.objects.get(
                 beneficiary=token.user,
