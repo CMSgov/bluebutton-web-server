@@ -12,7 +12,7 @@ django-axes
 # support
 beautifulsoup4 == 4.12.2
 soupsieve == 2.4.1
-backports.zoneinfo
+
 django-waffle
 django-storages
 django-getenv
@@ -49,5 +49,5 @@ django-ses
 oauthlib
 ## python-openid
 django-oauth-toolkit
-cryptography >= 42.0.6
+cryptography >= 42.0.8
 jwcrypto
