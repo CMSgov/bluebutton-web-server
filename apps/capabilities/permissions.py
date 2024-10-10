@@ -36,7 +36,7 @@ class TokenHasProtectedCapability(permissions.BasePermission):
                 slug__in=token.scope.split()
             ).values_list('protected_resources', flat=True).all())
 
-            # this is a shorterm fix to reject all tokens that do not have either 
+            # this is a shorterm fix to reject all tokens that do not have either
             # patient/coverage.read or patient/ExplanationOfBenefit.read
             if ("patient/Coverage.read" or "patient/ExplanationOfBenefit.read") in token.scope.split():
                 for scope in scopes:
