@@ -371,10 +371,11 @@ class RevokeView(DotRevokeTokenView):
         except Exception:
             tkn = request.POST.get("token")
 
+        escaped_tkn = html.escape(tkn)
+
         try:
             token = at_model.objects.get(token=tkn)
         except at_model.DoesNotExist:
-            escaped_tkn = html.escape(tkn)
             return HttpResponse(f"Token {escaped_tkn} was Not Found.  Please check the value and try again.",
                                 status=status.HTTP_404_NOT_FOUND)
 
@@ -384,8 +385,8 @@ class RevokeView(DotRevokeTokenView):
                 application=app
             )
             dag.delete()
-        except DataAccessGrant.DoesNotExist as error:
-            return json_response_from_oauth2_error(error)
+        except DataAccessGrant.DoesNotExist:
+            log.debug(f"Token deleted, but DAG lookup failed for token {escaped_tkn}.")
 
         return HttpResponse(content="OK", status=200)
 
