@@ -1,5 +1,6 @@
 import json
 import base64
+import unittest
 from datetime import date, timedelta
 
 from django.conf import settings
