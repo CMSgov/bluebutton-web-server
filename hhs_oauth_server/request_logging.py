@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 import json
+import re
 import uuid
 
 import apps.logging.request_logger as logging
@@ -22,6 +23,37 @@ from apps.fhir.bluebutton.utils import (
 )
 
 audit = logging.getLogger("audit.%s" % __name__)
+MBI_WITH_HYPHEN_PATTERN = r"""\b
+    [1-9](?![SLOIBZ])[A-Z](?![SLOIBZ)])[A-Z\d]\d
+    -(?![SLOIBZ])[A-Z](?![SLOIBZ])[A-Z\d]\d
+    -((?![SLOIBZ])[A-Z]){2}\d{2}
+    \b
+    """
+
+MBI_WITHOUT_HYPHEN_PATTERN = r"""\b
+    [1-9](?![SLOIBZ])[A-Z](?![SLOIBZ)])[A-Z\d]\d
+    (?![SLOIBZ])[A-Z](?![SLOIBZ])[A-Z\d]\d
+    ((?![SLOIBZ])[A-Z]){2}\d{2}
+    \b"""
+
+MBI_PATTERN = f'({MBI_WITH_HYPHEN_PATTERN}|{MBI_WITHOUT_HYPHEN_PATTERN})'
+
+
+def has_mbi_match(text):
+    return bool(re.search(MBI_PATTERN, text, flags=re.VERBOSE))
+
+
+def mask_if_has_mbi(text):
+    return re.sub(MBI_PATTERN, '***MBI***', text, flags=re.VERBOSE)
+
+
+def mask_mbi(dictionary):
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            mask_mbi(value)
+        elif isinstance(value, str):
+            dictionary[key] = mask_if_has_mbi(value)
+    return dictionary
 
 
 class RequestResponseLog(object):
@@ -521,7 +553,8 @@ class RequestResponseLog(object):
                     except ObjectDoesNotExist:
                         pass
         self._sync_app_name()
-        return self.log_msg
+
+        return mask_mbi(self.log_msg)
 
 ##############################################################################
 #
