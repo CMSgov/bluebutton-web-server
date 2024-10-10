@@ -21,8 +21,9 @@ from oauth2_provider.views.introspect import (
 )
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
+from rest_framework import status
 from urllib.parse import urlparse, parse_qs
-
+import html
 from apps.dot_ext.scopes import CapabilitiesScopes
 import apps.logging.request_logger as bb2logging
 
@@ -120,12 +121,12 @@ class AuthorizationView(DotAuthorizationView):
     def get_template_names(self):
         flag = get_waffle_flag_model().get("limit_data_access")
         if waffle.switch_is_active('require-scopes'):
-            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.application.user)):
+            if flag.rollout or (flag.id is not None and self.application and flag.is_active_for_user(self.application.user)):
                 return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize_v2.html"]
         else:
-            if flag.rollout or (flag.id is not None and flag.is_active_for_user(self.user)):
+            if flag.rollout or (flag.id is not None and self.user and flag.is_active_for_user(self.user)):
                 return ["design_system/new_authorize_v2.html"]
             else:
                 return ["design_system/authorize.html"]
@@ -167,7 +168,9 @@ class AuthorizationView(DotAuthorizationView):
         set_session_auth_flow_trace_value(self.request, 'auth_share_demographic_scopes', share_demographic_scopes)
 
         # Get scopes list available to the application
-        application_available_scopes = CapabilitiesScopes().get_available_scopes(application=application)
+        application_available_scopes = CapabilitiesScopes().get_available_scopes(
+            application=application, share_demographic_scopes=share_demographic_scopes
+        )
 
         # Set scopes to those available to application and beneficiary demographic info choices
         scopes = ' '.join([s for s in scopes.split(" ")
@@ -352,6 +355,42 @@ class RevokeTokenView(DotRevokeTokenView):
             return json_response_from_oauth2_error(error)
 
         return super().post(request, args, kwargs)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RevokeView(DotRevokeTokenView):
+
+    @method_decorator(sensitive_post_parameters("password"))
+    def post(self, request, *args, **kwargs):
+        at_model = get_access_token_model()
+        try:
+            app = validate_app_is_active(request)
+        except (InvalidClientError, InvalidGrantError) as error:
+            return json_response_from_oauth2_error(error)
+
+        try:
+            tkn = json.loads(request.body.decode("UTF-8")).get("token")
+        except Exception:
+            tkn = request.POST.get("token")
+
+        escaped_tkn = html.escape(tkn)
+
+        try:
+            token = at_model.objects.get(token=tkn)
+        except at_model.DoesNotExist:
+            return HttpResponse(f"Token {escaped_tkn} was Not Found.  Please check the value and try again.",
+                                status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            dag = DataAccessGrant.objects.get(
+                beneficiary=token.user,
+                application=app
+            )
+            dag.delete()
+        except DataAccessGrant.DoesNotExist:
+            log.debug(f"Token deleted, but DAG lookup failed for token {escaped_tkn}.")
+
+        return HttpResponse(content="OK", status=200)
 
 
 @method_decorator(csrf_exempt, name="dispatch")

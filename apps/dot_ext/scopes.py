@@ -15,7 +15,7 @@ class CapabilitiesScopes(BaseScopes):
         """
         return dict(ProtectedCapability.objects.values_list('slug', 'title'))
 
-    def get_available_scopes(self, application=None, request=None, *args, **kwargs):
+    def get_available_scopes(self, application=None, request=None, share_demographic_scopes=None, *args, **kwargs):
         """
         Returns a list that contains all the capabilities related
         to the current application.
@@ -29,8 +29,8 @@ class CapabilitiesScopes(BaseScopes):
             ProtectedCapability.objects.filter(Q(default=True) | Q(application=application))
                                        .values_list('slug', flat=True).distinct())
 
-        # Set scopes based on application choice. Default behavior is True, if it hasn't been set yet.
-        if application.require_demographic_scopes in [True, None]:
+        # Set scopes based on application choice.
+        if share_demographic_scopes is not False:
             # Return all scopes
             return app_scopes_avail
         else:
