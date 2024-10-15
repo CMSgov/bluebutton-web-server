@@ -38,7 +38,7 @@ class TokenHasProtectedCapability(permissions.BasePermission):
 
             # this is a shorterm fix to reject all tokens that do not have either
             # patient/coverage.read or patient/ExplanationOfBenefit.read
-            if ("patient/Coverage.read" or "patient/ExplanationOfBenefit.read") in token.scope.split():
+            if ("patient/Coverage.read" in token.scope.split()) or ("patient/ExplanationOfBenefit.read" in token.scope.split()):
                 for scope in scopes:
                     for method, path in json.loads(scope):
                         if method != request.method:
