@@ -21,7 +21,6 @@ from oauth2_provider.views.introspect import (
 )
 from oauth2_provider.models import get_application_model
 from oauthlib.oauth2.rfc6749.errors import InvalidClientError, InvalidGrantError
-from rest_framework import status
 from urllib.parse import urlparse, parse_qs
 import html
 from apps.dot_ext.scopes import CapabilitiesScopes
@@ -366,18 +365,16 @@ class RevokeView(DotRevokeTokenView):
         except (InvalidClientError, InvalidGrantError) as error:
             return json_response_from_oauth2_error(error)
 
-        try:
-            tkn = json.loads(request.body.decode("UTF-8")).get("token")
-        except Exception:
-            tkn = request.POST.get("token")
-
-        escaped_tkn = html.escape(tkn)
+        tkn = request.POST.get('token')
+        if tkn is not None:
+            escaped_tkn = html.escape(tkn)
+        else:
+            escaped_tkn = ""
 
         try:
             token = at_model.objects.get(token=tkn)
         except at_model.DoesNotExist:
-            return HttpResponse(f"Token {escaped_tkn} was Not Found.  Please check the value and try again.",
-                                status=status.HTTP_404_NOT_FOUND)
+            log.debug(f"Token {escaped_tkn} was not found.")
 
         try:
             dag = DataAccessGrant.objects.get(
@@ -385,10 +382,10 @@ class RevokeView(DotRevokeTokenView):
                 application=app
             )
             dag.delete()
-        except DataAccessGrant.DoesNotExist:
-            log.debug(f"Token deleted, but DAG lookup failed for token {escaped_tkn}.")
+        except Exception:
+            log.debug(f"DAG lookup failed for token {escaped_tkn}.")
 
-        return HttpResponse(content="OK", status=200)
+        return super().post(request, args, kwargs)
 
 
 @method_decorator(csrf_exempt, name="dispatch")

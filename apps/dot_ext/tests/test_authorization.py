@@ -621,17 +621,17 @@ class TestAuthorizeWithCustomScheme(BaseApiTest):
         self.assertEqual(response.status_code, 200)
         # extract token and use it to make a revoke request
         tkn = response.json()['access_token']
-        revoke_request_data = {
-            'token': tkn,
-            'client_id': application.client_id,
-            'client_secret': application.client_secret_plain,
-        }
+        revoke_request_data = f"token={tkn}&client_id={application.client_id}&client_secret={application.client_secret_plain}"
+        content_type = "application/x-www-form-urlencoded"
         c = Client()
-        rev_response = c.post('/v1/o/revoke/', data=revoke_request_data)
+        rev_response = c.post('/v1/o/revoke/', data=revoke_request_data, content_type=content_type)
         self.assertEqual(rev_response.status_code, 200)
         # check DAG deletion
         dags_count = DataAccessGrant.objects.count()
         self.assertEqual(dags_count, 0)
+        # check token deletion
+        tkn_count = AccessToken.objects.filter(token=tkn).count()
+        self.assertEqual(tkn_count, 0)
 
     def test_refresh_with_revoked_token(self):
         redirect_uri = 'http://localhost'
